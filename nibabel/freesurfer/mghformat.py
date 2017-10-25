@@ -19,6 +19,7 @@ from ..fileholders import FileHolder, copy_file_map
 from ..arrayproxy import ArrayProxy
 from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
+from ..wrapstruct import LabeledWrapStruct
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -70,7 +71,7 @@ class MGHError(Exception):
     """
 
 
-class MGHHeader(object):
+class MGHHeader(LabeledWrapStruct):
     ''' Class for MGH format header
 
     The header also consists of the footer data which MGH places after the data
@@ -84,6 +85,7 @@ class MGHHeader(object):
 
     def __init__(self,
                  binaryblock=None,
+                 endianness='>',
                  check=True):
         ''' Initialize header from binary data block
 
@@ -96,64 +98,16 @@ class MGHHeader(object):
             Whether to check content of header in initialization.
             Default is True.
         '''
-        if binaryblock is None:
-            self._header_data = self._empty_headerdata()
-            return
-        # check size
-        if len(binaryblock) != self.template_dtype.itemsize:
-            raise HeaderDataError('Binary block is wrong size')
-        hdr = np.ndarray(shape=(),
-                         dtype=self.template_dtype,
-                         buffer=binaryblock)
-        # if goodRASFlag, discard delta, Mdc and c_ras stuff
-        if int(hdr['goodRASFlag']) < 0:
-            hdr = self._set_affine_default(hdr)
-        self._header_data = hdr.copy()
+        if endianness != '>':
+            raise ValueError("MGHHeader is big-endian")
+
+        super(MGHHeader, self).__init__(binaryblock=binaryblock,
+                                        endianness=endianness,
+                                        check=False)
+        if int(self._structarr['goodRASFlag']) < 0:
+            self._set_affine_default()
         if check:
             self.check_fix()
-        return
-
-    def __str__(self):
-        ''' Print the MGH header object information
-        '''
-        txt = []
-        txt.append(str(self.__class__))
-        txt.append('Dims: ' + str(self.get_data_shape()))
-        code = int(self._header_data['type'])
-        txt.append('MRI Type: ' + self._data_type_codes.mritype[code])
-        txt.append('goodRASFlag: ' + str(self._header_data['goodRASFlag']))
-        txt.append('delta: ' + str(self._header_data['delta']))
-        txt.append('Mdc: ')
-        txt.append(str(self._header_data['Mdc']))
-        txt.append('Pxyz_c: ' + str(self._header_data['Pxyz_c']))
-        txt.append('mrparms: ' + str(self._header_data['mrparms']))
-        return '\n'.join(txt)
-
-    def __getitem__(self, item):
-        ''' Return values from header data
-        '''
-        return self._header_data[item]
-
-    def __setitem__(self, item, value):
-        ''' Set values in header data
-        '''
-        self._header_data[item] = value
-
-    def __iter__(self):
-        return iter(self.keys())
-
-    def keys(self):
-        ''' Return keys from header data'''
-        return list(self.template_dtype.names)
-
-    def values(self):
-        ''' Return values from header data'''
-        data = self._header_data
-        return [data[key] for key in self.template_dtype.names]
-
-    def items(self):
-        ''' Return items from header data'''
-        return zip(self.keys(), self.values())
 
     @classmethod
     def from_header(klass, header=None, check=True):
@@ -188,42 +142,7 @@ class MGHHeader(object):
                      int(klass._data_type_codes.bytespervox[tp]) *
                      np.prod(hdr_str_to_np['dims']))
         ftr_str = fileobj.read(klass._ftrdtype.itemsize)
-        return klass(hdr_str + ftr_str, check)
-
-    @property
-    def binaryblock(self):
-        ''' binary block of data as string
-
-        Returns
-        -------
-        binaryblock : string
-            string giving binary data block
-
-        '''
-        return self._header_data.tostring()
-
-    def copy(self):
-        ''' Return copy of header
-        '''
-        return self.__class__(self.binaryblock, check=False)
-
-    def __eq__(self, other):
-        ''' equality between two MGH format headers
-
-        Examples
-        --------
-        >>> wstr = MGHHeader()
-        >>> wstr2 = MGHHeader()
-        >>> wstr == wstr2
-        True
-        '''
-        return self.binaryblock == other.binaryblock
-
-    def __ne__(self, other):
-        return not self == other
-
-    def check_fix(self):
-        ''' Pass. maybe for now'''
+        return klass(hdr_str + ftr_str, check=check)
 
     def get_affine(self):
         ''' Get the affine transform from the header information.
@@ -231,7 +150,7 @@ class MGHHeader(object):
         from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
         Pxyz_c ) and the dimensions.
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         d = np.diag(hdr['delta'])
         pcrs_c = hdr['dims'][:3] / 2.0
         Mdc = hdr['Mdc'].T
@@ -253,8 +172,8 @@ class MGHHeader(object):
         ''' Get the vox2ras-tkr transform. See "Torig" here:
                 https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         '''
-        ds = np.array(self._header_data['delta'])
-        ns = (np.array(self._header_data['dims'][:3]) * ds) / 2.0
+        ds = np.array(self._structarr['delta'])
+        ns = (np.array(self._structarr['dims'][:3]) * ds) / 2.0
         v2rtkr = np.array([[-ds[0], 0, 0, ns[0]],
                            [0, 0, ds[2], -ns[2]],
                            [0, -ds[1], 0, ns[1]],
@@ -271,7 +190,7 @@ class MGHHeader(object):
 
         For examples see ``set_data_dtype``
         '''
-        code = int(self._header_data['type'])
+        code = int(self._structarr['type'])
         dtype = self._data_type_codes.numpy_dtype[code]
         return dtype
 
@@ -282,7 +201,7 @@ class MGHHeader(object):
             code = self._data_type_codes[datatype]
         except KeyError:
             raise MGHError('datatype dtype "%s" not recognized' % datatype)
-        self._header_data['type'] = code
+        self._structarr['type'] = code
 
     def get_zooms(self):
         ''' Get zooms from header
@@ -292,7 +211,7 @@ class MGHHeader(object):
         z : tuple
            tuple of header zoom values
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         zooms = hdr['delta']
         return tuple(zooms[:])
 
@@ -301,7 +220,7 @@ class MGHHeader(object):
 
         See docstring for ``get_zooms`` for examples
         '''
-        hdr = self._header_data
+        hdr = self._structarr
         zooms = np.asarray(zooms)
         if len(zooms) != len(hdr['delta']):
             raise HeaderDataError('Expecting %d zoom values for ndim'
@@ -314,7 +233,7 @@ class MGHHeader(object):
     def get_data_shape(self):
         ''' Get shape of data
         '''
-        shape = tuple(self._header_data['dims'])
+        shape = tuple(self._structarr['dims'])
         # If last dimension (nframes) is 1, remove it because
         # we want to maintain 3D and it's redundant
         if shape[3] == 1:
@@ -332,18 +251,18 @@ class MGHHeader(object):
         shape = tuple(shape)
         if len(shape) > 4:
             raise ValueError("Shape may be at most 4 dimensional")
-        self._header_data['dims'] = shape + (1,) * (4 - len(shape))
+        self._structarr['dims'] = shape + (1,) * (4 - len(shape))
 
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
         '''
         return int(self._data_type_codes.bytespervox[
-            int(self._header_data['type'])])
+            int(self._structarr['type'])])
 
     def get_data_size(self):
         ''' Get the number of bytes the data chunk occupies.
         '''
-        return self.get_data_bytespervox() * np.prod(self._header_data['dims'])
+        return self.get_data_bytespervox() * np.prod(self._structarr['dims'])
 
     def get_data_offset(self):
         ''' Return offset into data file to read data
@@ -379,11 +298,18 @@ class MGHHeader(object):
         """
         return None, None
 
-    def _empty_headerdata(self):
+    @classmethod
+    def guessed_endian(klass, mapping):
+        """ MGHHeader data must be big-endian """
+        return '>'
+
+    @classmethod
+    def default_structarr(klass, endianness=None):
         ''' Return header data for empty header
+
+        Ignores byte order; always big endian
         '''
-        dt = self.template_dtype
-        hdr_data = np.zeros((), dtype=dt)
+        hdr_data = super(MGHHeader, klass).default_structarr()
         hdr_data['version'] = 1
         hdr_data['dims'][:] = np.array([1, 1, 1, 1])
         hdr_data['type'] = 3
@@ -396,15 +322,14 @@ class MGHHeader(object):
         hdr_data['mrparms'] = np.array([0, 0, 0, 0])
         return hdr_data
 
-    def _set_affine_default(self, hdr):
+    def _set_affine_default(self):
         ''' If  goodRASFlag is 0, return the default delta, Mdc and Pxyz_c
         '''
-        hdr['delta'][:] = np.array([1, 1, 1])
-        hdr['Mdc'][0][:] = np.array([-1, 0, 0])  # x_ras
-        hdr['Mdc'][1][:] = np.array([0, 0, -1])  # y_ras
-        hdr['Mdc'][2][:] = np.array([0, 1, 0])   # z_ras
-        hdr['Pxyz_c'][:] = np.array([0, 0, 0])   # c_ras
-        return hdr
+        self._structarr['delta'][:] = np.array([1, 1, 1])
+        self._structarr['Mdc'][0][:] = np.array([-1, 0, 0])  # x_ras
+        self._structarr['Mdc'][1][:] = np.array([0, 0, -1])  # y_ras
+        self._structarr['Mdc'][2][:] = np.array([0, 1, 0])   # z_ras
+        self._structarr['Pxyz_c'][:] = np.array([0, 0, 0])   # c_ras
 
     def writehdr_to(self, fileobj):
         ''' Write header to fileobj
