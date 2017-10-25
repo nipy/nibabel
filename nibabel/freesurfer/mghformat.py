@@ -32,7 +32,9 @@ header_dtd = [
     ('dof', '>i4'),
     ('goodRASFlag', '>i2'),
     ('delta', '>f4', (3,)),
-    ('Mdc', '>f4', (3, 3)),
+    ('x_ras', '>f4', (3, 1)),
+    ('y_ras', '>f4', (3, 1)),
+    ('z_ras', '>f4', (3, 1)),
     ('Pxyz_c', '>f4', (3,))
 ]
 # Optional footer. Also has more stuff after this, optionally
@@ -153,7 +155,7 @@ class MGHHeader(LabeledWrapStruct):
         hdr = self._structarr
         d = np.diag(hdr['delta'])
         pcrs_c = hdr['dims'][:3] / 2.0
-        Mdc = hdr['Mdc'].T
+        Mdc = np.vstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras']))
         pxyz_0 = hdr['Pxyz_c'] - np.dot(Mdc, np.dot(d, pcrs_c))
         M = np.eye(4, 4)
         M[0:3, 0:3] = np.dot(Mdc, d)
@@ -315,9 +317,9 @@ class MGHHeader(LabeledWrapStruct):
         hdr_data['type'] = 3
         hdr_data['goodRASFlag'] = 1
         hdr_data['delta'][:] = np.array([1, 1, 1])
-        hdr_data['Mdc'][:, 0] = np.array([-1, 0, 0])  # x_ras
-        hdr_data['Mdc'][:, 1] = np.array([0, 0, 1])   # y_ras
-        hdr_data['Mdc'][:, 2] = np.array([0, -1, 0])  # z_ras
+        hdr_data['x_ras'] = np.array([[-1], [0], [0]])
+        hdr_data['y_ras'] = np.array([[0], [0], [1]])
+        hdr_data['z_ras'] = np.array([[0], [-1], [0]])
         hdr_data['Pxyz_c'] = np.array([0, 0, 0])  # c_ras
         hdr_data['mrparms'] = np.array([0, 0, 0, 0])
         return hdr_data
@@ -327,9 +329,9 @@ class MGHHeader(LabeledWrapStruct):
         '''
         self._structarr['goodRASFlag'] = 1
         self._structarr['delta'][:] = np.array([1, 1, 1])
-        hdr_data['Mdc'][:, 0] = np.array([-1, 0, 0])  # x_ras
-        hdr_data['Mdc'][:, 1] = np.array([0, 0, 1])   # y_ras
-        hdr_data['Mdc'][:, 2] = np.array([0, -1, 0])  # z_ras
+        self._structarr['x_ras'] = np.array([[-1], [0], [0]])
+        self._structarr['y_ras'] = np.array([[0], [0], [1]])
+        self._structarr['z_ras'] = np.array([[0], [-1], [0]])
         self._structarr['Pxyz_c'][:] = np.array([0, 0, 0])   # c_ras
 
     def writehdr_to(self, fileobj):
@@ -535,7 +537,9 @@ class MGHImage(SpatialImage):
         Pxyz_c = np.dot(self._affine, Pcrs_c)
 
         hdr['delta'][:] = delta
-        hdr['Mdc'][:, :] = Mdc.T
+        hdr['x_ras'] = Mdc[:, [0]]
+        hdr['y_ras'] = Mdc[:, [1]]
+        hdr['z_ras'] = Mdc[:, [2]]
         hdr['Pxyz_c'][:] = Pxyz_c[:3]
 
 
