@@ -191,7 +191,7 @@ def bench_arrayproxy_slicing():
     data[:, 1] = [r[4] for r in results]
     try:
         data[:, 2] = [r[3] / r[4] for r in results]
-    except:
+    except ZeroDivisionError:
         data[:, 2] = np.nan
     data[:, 3] = [r[5] - r[6] for r in results]
 
