@@ -13,6 +13,7 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
+from ..affines import voxel_sizes
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
@@ -152,15 +153,14 @@ class MGHHeader(LabeledWrapStruct):
         from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
         c_ras ) and the dimensions.
         '''
+        affine = np.eye(4)
         hdr = self._structarr
         d = np.diag(hdr['delta'])
         pcrs_c = hdr['dims'][:3] / 2.0
-        Mdc = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras']))
-        pxyz_0 = hdr['c_ras'] - Mdc.dot(d).dot(pcrs_c.reshape(3, 1))
-        M = np.eye(4, 4)
-        M[:3, :3] = np.dot(Mdc, d)
-        M[:3, [3]] = pxyz_0
-        return M
+        MdcD = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])).dot(d)
+        affine[:3, :3] = MdcD
+        affine[:3, [3]] = hdr['c_ras'] - MdcD.dot(pcrs_c.reshape(3, 1))
+        return affine
 
     # For compatibility with nifti (multiple affines)
     get_best_affine = get_affine
@@ -527,16 +527,14 @@ class MGHImage(SpatialImage):
     def _affine2header(self):
         """ Unconditionally set affine into the header """
         hdr = self._header
-        shape = self._dataobj.shape
+        shape = np.array(self._dataobj.shape[:3]).reshape(3, 1)
         # for more information, go through save_mgh.m in FreeSurfer dist
         MdcD = self._affine[:3, :3]
-        delta = np.sqrt(np.sum(MdcD * MdcD, axis=0))
+        delta = voxel_sizes(self._affine)
         Mdc = MdcD / np.tile(delta, (3, 1))
-        Pcrs_c = np.array([0, 0, 0, 1], dtype=np.float)
-        Pcrs_c[:3] = np.array(shape[:3]) / 2.0
-        c_ras = self._affine.dot(Pcrs_c.reshape(4, 1))
+        c_ras = self._affine.dot(np.vstack((shape, [1])))
 
-        hdr['delta'][:] = delta
+        hdr['delta'] = delta
         hdr['x_ras'] = Mdc[:, [0]]
         hdr['y_ras'] = Mdc[:, [1]]
         hdr['z_ras'] = Mdc[:, [2]]
