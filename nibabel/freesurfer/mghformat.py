@@ -315,9 +315,9 @@ class MGHHeader(LabeledWrapStruct):
         hdr_data['type'] = 3
         hdr_data['goodRASFlag'] = 1
         hdr_data['delta'][:] = np.array([1, 1, 1])
-        hdr_data['Mdc'][0][:] = np.array([-1, 0, 0])  # x_ras
-        hdr_data['Mdc'][1][:] = np.array([0, 0, -1])  # y_ras
-        hdr_data['Mdc'][2][:] = np.array([0, 1, 0])   # z_ras
+        hdr_data['Mdc'][:, 0] = np.array([-1, 0, 0])  # x_ras
+        hdr_data['Mdc'][:, 1] = np.array([0, 0, 1])   # y_ras
+        hdr_data['Mdc'][:, 2] = np.array([0, -1, 0])  # z_ras
         hdr_data['Pxyz_c'] = np.array([0, 0, 0])  # c_ras
         hdr_data['mrparms'] = np.array([0, 0, 0, 0])
         return hdr_data
@@ -327,9 +327,9 @@ class MGHHeader(LabeledWrapStruct):
         '''
         self._structarr['goodRASFlag'] = 1
         self._structarr['delta'][:] = np.array([1, 1, 1])
-        self._structarr['Mdc'][0][:] = np.array([-1, 0, 0])  # x_ras
-        self._structarr['Mdc'][1][:] = np.array([0, 0, -1])  # y_ras
-        self._structarr['Mdc'][2][:] = np.array([0, 1, 0])   # z_ras
+        hdr_data['Mdc'][:, 0] = np.array([-1, 0, 0])  # x_ras
+        hdr_data['Mdc'][:, 1] = np.array([0, 0, 1])   # y_ras
+        hdr_data['Mdc'][:, 2] = np.array([0, -1, 0])  # z_ras
         self._structarr['Pxyz_c'][:] = np.array([0, 0, 0])   # c_ras
 
     def writehdr_to(self, fileobj):
