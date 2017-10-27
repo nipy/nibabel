@@ -17,7 +17,7 @@ from ..affines import voxel_sizes
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
-from ..arrayproxy import ArrayProxy
+from ..arrayproxy import ArrayProxy, reshape_dataobj
 from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
 from ..wrapstruct import LabeledWrapStruct
@@ -389,6 +389,14 @@ class MGHImage(SpatialImage):
     rw = True
 
     ImageArrayProxy = ArrayProxy
+
+    def __init__(self, dataobj, affine, header=None,
+                 extra=None, file_map=None):
+        shape = dataobj.shape
+        if len(shape) < 3:
+            dataobj = reshape_dataobj(dataobj, shape + (1,) * (3 - len(shape)))
+        super(MGHImage, self).__init__(dataobj, affine, header=header,
+                                       extra=extra, file_map=file_map)
 
     @classmethod
     def filespec_to_file_map(klass, filespec):

@@ -354,7 +354,7 @@ class SpatialImage(DataobjImage):
         '''
         super(SpatialImage, self).__init__(dataobj, header=header, extra=extra,
                                            file_map=file_map)
-        if not affine is None:
+        if affine is not None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
             # do need 4,4.
