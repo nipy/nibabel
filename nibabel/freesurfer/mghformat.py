@@ -27,16 +27,16 @@ from ..wrapstruct import LabeledWrapStruct
 DATA_OFFSET = 284
 # Note that mgh data is strictly big endian ( hence the > sign )
 header_dtd = [
-    ('version', '>i4'),
-    ('dims', '>i4', (4,)),
-    ('type', '>i4'),
-    ('dof', '>i4'),
-    ('ras_good', '>i2'),
-    ('voxelsize', '>f4', (3,)),
-    ('x_ras', '>f4', (3, 1)),
-    ('y_ras', '>f4', (3, 1)),
-    ('z_ras', '>f4', (3, 1)),
-    ('c_ras', '>f4', (3, 1))
+    ('version', '>i4'),             # 0; must be 1
+    ('dims', '>i4', (4,)),          # 4; width, height, depth, nframes
+    ('type', '>i4'),                # 20; data type
+    ('dof', '>i4'),                 # 24; degrees of freedom
+    ('ras_good', '>i2'),            # 28; *_ras fields valid
+    ('voxelsize', '>f4', (3,)),     # 30; zooms (X, Y, Z)
+    ('x_ras', '>f4', (3, 1)),       # 42; X direction cosine column
+    ('y_ras', '>f4', (3, 1)),       # 54; Y direction cosine column
+    ('z_ras', '>f4', (3, 1)),       # 66; Z direction cosine column
+    ('c_ras', '>f4', (3, 1)),       # 78; mm from (0, 0, 0) RAS to vol center
 ]
 # Optional footer. Also has more stuff after this, optionally
 footer_dtd = [
