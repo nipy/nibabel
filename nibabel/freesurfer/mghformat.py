@@ -32,7 +32,7 @@ header_dtd = [
     ('type', '>i4'),
     ('dof', '>i4'),
     ('ras_good', '>i2'),
-    ('delta', '>f4', (3,)),
+    ('voxelsize', '>f4', (3,)),
     ('x_ras', '>f4', (3, 1)),
     ('y_ras', '>f4', (3, 1)),
     ('z_ras', '>f4', (3, 1)),
@@ -155,11 +155,10 @@ class MGHHeader(LabeledWrapStruct):
         '''
         affine = np.eye(4)
         hdr = self._structarr
-        d = np.diag(hdr['delta'])
-        pcrs_c = hdr['dims'][:3] / 2.0
-        MdcD = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])).dot(d)
+        MdcD = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])) * hdr['voxelsize']
+        vol_center = MdcD.dot(hdr['dims'][:3].reshape(-1, 1)) / 2
         affine[:3, :3] = MdcD
-        affine[:3, [3]] = hdr['c_ras'] - MdcD.dot(pcrs_c.reshape(3, 1))
+        affine[:3, [3]] = hdr['c_ras'] - vol_center
         return affine
 
     # For compatibility with nifti (multiple affines)
@@ -174,8 +173,8 @@ class MGHHeader(LabeledWrapStruct):
         ''' Get the vox2ras-tkr transform. See "Torig" here:
                 https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         '''
-        ds = np.array(self._structarr['delta'])
-        ns = (np.array(self._structarr['dims'][:3]) * ds) / 2.0
+        ds = self._structarr['voxelsize']
+        ns = self._structarr['dims'][:3] * ds / 2.0
         v2rtkr = np.array([[-ds[0], 0, 0, ns[0]],
                            [0, 0, ds[2], -ns[2]],
                            [0, -ds[1], 0, ns[1]],
@@ -213,9 +212,7 @@ class MGHHeader(LabeledWrapStruct):
         z : tuple
            tuple of header zoom values
         '''
-        hdr = self._structarr
-        zooms = hdr['delta']
-        return tuple(zooms[:])
+        return tuple(self._structarr['voxelsize'])
 
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
@@ -224,13 +221,12 @@ class MGHHeader(LabeledWrapStruct):
         '''
         hdr = self._structarr
         zooms = np.asarray(zooms)
-        if len(zooms) != len(hdr['delta']):
+        if len(zooms) != len(hdr['voxelsize']):
             raise HeaderDataError('Expecting %d zoom values for ndim'
-                                  % hdr['delta'])
+                                  % hdr['voxelsize'])
         if np.any(zooms < 0):
             raise HeaderDataError('zooms must be positive')
-        delta = hdr['delta']
-        delta[:] = zooms[:]
+        hdr['voxelsize'] = zooms
 
     def get_data_shape(self):
         ''' Get shape of data
@@ -311,27 +307,27 @@ class MGHHeader(LabeledWrapStruct):
 
         Ignores byte order; always big endian
         '''
-        hdr_data = super(MGHHeader, klass).default_structarr()
-        hdr_data['version'] = 1
-        hdr_data['dims'][:] = np.array([1, 1, 1, 1])
-        hdr_data['type'] = 3
-        hdr_data['ras_good'] = 1
-        hdr_data['delta'][:] = np.array([1, 1, 1])
-        hdr_data['x_ras'] = np.array([[-1], [0], [0]])
-        hdr_data['y_ras'] = np.array([[0], [0], [1]])
-        hdr_data['z_ras'] = np.array([[0], [-1], [0]])
-        hdr_data['c_ras'] = 0
-        hdr_data['mrparms'] = np.array([0, 0, 0, 0])
-        return hdr_data
+        structarr = super(MGHHeader, klass).default_structarr()
+        structarr['version'] = 1
+        structarr['dims'] = 1
+        structarr['type'] = 3
+        structarr['ras_good'] = 1
+        structarr['voxelsize'] = 1
+        structarr['x_ras'] = [[-1], [0], [0]]
+        structarr['y_ras'] = [[0], [0], [1]]
+        structarr['z_ras'] = [[0], [-1], [0]]
+        structarr['c_ras'] = 0
+        structarr['mrparms'] = 0
+        return structarr
 
     def _set_affine_default(self):
         ''' If ras_good flag is 0, set the default affine
         '''
         self._structarr['ras_good'] = 1
-        self._structarr['delta'][:] = np.array([1, 1, 1])
-        self._structarr['x_ras'] = np.array([[-1], [0], [0]])
-        self._structarr['y_ras'] = np.array([[0], [0], [1]])
-        self._structarr['z_ras'] = np.array([[0], [-1], [0]])
+        self._structarr['voxelsize'] = 1
+        self._structarr['x_ras'] = [[-1], [0], [0]]
+        self._structarr['y_ras'] = [[0], [0], [1]]
+        self._structarr['z_ras'] = [[0], [-1], [0]]
         self._structarr['c_ras'] = 0
 
     def writehdr_to(self, fileobj):
@@ -535,18 +531,19 @@ class MGHImage(SpatialImage):
     def _affine2header(self):
         """ Unconditionally set affine into the header """
         hdr = self._header
-        shape = np.array(self._dataobj.shape[:3]).reshape(3, 1)
-        # for more information, go through save_mgh.m in FreeSurfer dist
-        MdcD = self._affine[:3, :3]
-        delta = voxel_sizes(self._affine)
-        Mdc = MdcD / np.tile(delta, (3, 1))
-        c_ras = self._affine.dot(np.vstack((shape, [1])))
+        shape = np.array(self._dataobj.shape[:3]).reshape(-1, 1)
 
-        hdr['delta'] = delta
+        # for more information, go through save_mgh.m in FreeSurfer dist
+        voxelsize = voxel_sizes(self._affine)
+        Mdc = self._affine[:3, :3] / voxelsize
+        c_ras = self._affine.dot(np.vstack((shape / 2, [1])))[:3]
+
+        # Assign after we've had a chance to raise exceptions
+        hdr['voxelsize'] = voxelsize
         hdr['x_ras'] = Mdc[:, [0]]
         hdr['y_ras'] = Mdc[:, [1]]
         hdr['z_ras'] = Mdc[:, [2]]
-        hdr['c_ras'] = c_ras[:3]
+        hdr['c_ras'] = c_ras
 
 
 load = MGHImage.load
