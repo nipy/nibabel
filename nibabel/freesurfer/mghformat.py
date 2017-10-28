@@ -328,11 +328,9 @@ class MGHHeader(LabeledWrapStruct):
         structarr['type'] = 3
         structarr['ras_good'] = 1
         structarr['voxelsize'] = 1
-        structarr['x_ras'] = [[-1], [0], [0]]
-        structarr['y_ras'] = [[0], [0], [1]]
-        structarr['z_ras'] = [[0], [-1], [0]]
-        structarr['c_ras'] = 0
-        structarr['mrparms'] = 0
+        structarr['x_ras'][0] = -1
+        structarr['y_ras'][2] = 1
+        structarr['z_ras'][1] = -1
         return structarr
 
     def _set_affine_default(self):
