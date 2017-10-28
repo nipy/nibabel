@@ -32,7 +32,7 @@ from six.moves import zip_longest
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
 
-from .np_features import VIRAL_MEMMAP
+from .np_features import memmap_after_ufunc
 
 def assert_dt_equal(a, b):
     """ Assert two numpy dtype specifiers are equal
