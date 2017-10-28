@@ -549,7 +549,7 @@ class MGHImage(SpatialImage):
         # for more information, go through save_mgh.m in FreeSurfer dist
         voxelsize = voxel_sizes(self._affine)
         Mdc = self._affine[:3, :3] / voxelsize
-        c_ras = self._affine.dot(np.vstack((shape / 2, [1])))[:3]
+        c_ras = self._affine.dot(np.vstack((shape / 2.0, [1])))[:3]
 
         # Assign after we've had a chance to raise exceptions
         hdr['voxelsize'] = voxelsize
