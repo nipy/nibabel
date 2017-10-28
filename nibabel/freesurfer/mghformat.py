@@ -40,7 +40,11 @@ header_dtd = [
 ]
 # Optional footer. Also has more stuff after this, optionally
 footer_dtd = [
-    ('mrparms', '>f4', (4,))
+    ('tr', '>f4'),                  # 0; repetition time
+    ('flip_angle', '>f4'),          # 4; flip angle
+    ('te', '>f4'),                  # 8; echo time
+    ('ti', '>f4'),                  # 12; inversion time
+    ('fov', '>f4'),                 # 16; field of view (unused)
 ]
 
 header_dtype = np.dtype(header_dtd)
@@ -104,6 +108,14 @@ class MGHHeader(LabeledWrapStruct):
         if endianness != '>':
             raise ValueError("MGHHeader is big-endian")
 
+        min_size = self._hdrdtype.itemsize
+        full_size = self.template_dtype.itemsize
+        if binaryblock is not None and len(binaryblock) >= min_size:
+            # Right zero-pad or truncate binaryblock to appropriate size
+            # Footer is optional and may contain variable-length text fields,
+            # so limit to fixed fields
+            binaryblock = (binaryblock[:full_size] +
+                           b'\x00' * (full_size - len(binaryblock)))
         super(MGHHeader, self).__init__(binaryblock=binaryblock,
                                         endianness=endianness,
                                         check=False)
