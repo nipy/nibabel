@@ -264,6 +264,7 @@ class MGHHeader(LabeledWrapStruct):
         if len(shape) > 4:
             raise ValueError("Shape may be at most 4 dimensional")
         self._structarr['dims'] = shape + (1,) * (4 - len(shape))
+        self._structarr['voxelsize'] = 1
 
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
