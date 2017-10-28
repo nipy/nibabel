@@ -53,7 +53,7 @@ def test_read_mgh():
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 3)
     assert_equal(h['dof'], 0)
-    assert_equal(h['goodRASFlag'], 1)
+    assert_equal(h['ras_good'], 1)
     assert_array_equal(h['dims'], [3, 4, 5, 2])
     assert_array_almost_equal(h['mrparms'], [2.0, 0.0, 0.0, 0.0])
     assert_array_almost_equal(h.get_zooms(), 1)
@@ -84,7 +84,7 @@ def test_write_mgh():
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 3)
     assert_equal(h['dof'], 0)
-    assert_equal(h['goodRASFlag'], 1)
+    assert_equal(h['ras_good'], 1)
     assert_array_equal(h['dims'], [5, 4, 3, 2])
     assert_array_almost_equal(h['mrparms'], [0.0, 0.0, 0.0, 0.0])
     assert_array_almost_equal(h.get_vox2ras(), v2r)
@@ -110,17 +110,15 @@ def test_write_noaffine_mgh():
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 0)  # uint8 for mgh
     assert_equal(h['dof'], 0)
-    assert_equal(h['goodRASFlag'], 1)
+    assert_equal(h['ras_good'], 1)
     assert_array_equal(h['dims'], [7, 13, 3, 22])
     assert_array_almost_equal(h['mrparms'], [0.0, 0.0, 0.0, 0.0])
     # important part -- whether default affine info is stored
-    ex_mdc = np.array([[-1, 0, 0],
-                       [0, 0, -1],
-                       [0, 1, 0]], dtype=np.float32)
-    assert_array_almost_equal(h['Mdc'], ex_mdc)
+    assert_array_almost_equal(h['x_ras'].T, [[-1, 0, 0]])
+    assert_array_almost_equal(h['y_ras'].T, [[0, 0, 1]])
+    assert_array_almost_equal(h['z_ras'].T, [[0, -1, 0]])
 
-    ex_pxyzc = np.array([0, 0, 0], dtype=np.float32)
-    assert_array_almost_equal(h['Pxyz_c'], ex_pxyzc)
+    assert_array_almost_equal(h['c_ras'].T, [[0, 0, 0]])
 
 
 def bad_dtype_mgh():
@@ -178,14 +176,15 @@ def test_header_updating():
     assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
-    assert_equal(hdr['delta'], 1)
-    assert_almost_equal(hdr['Mdc'], exp_aff[:3, :3].T)
+    assert_equal(hdr['voxelsize'], 1)
+    assert_almost_equal(np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])),
+                        exp_aff[:3, :3])
     # Save, reload, same thing
     img_fobj = io.BytesIO()
     mgz2 = _mgh_rt(mgz, img_fobj)
     hdr2 = mgz2.header
     assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
-    assert_equal(hdr2['delta'], 1)
+    assert_equal(hdr2['voxelsize'], 1)
     # Change affine, change underlying header info
     exp_aff_d = exp_aff.copy()
     exp_aff_d[0, -1] = -14
@@ -194,8 +193,10 @@ def test_header_updating():
     mgz2.update_header()
     assert_almost_equal(hdr2.get_affine(), exp_aff_d, 6)
     RZS = exp_aff_d[:3, :3]
-    assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS ** 2, axis=0)))
-    assert_almost_equal(hdr2['Mdc'], (RZS / hdr2['delta']).T)
+    assert_almost_equal(hdr2['voxelsize'], np.sqrt(np.sum(RZS ** 2, axis=0)))
+    assert_almost_equal(
+        np.hstack((hdr2['x_ras'], hdr2['y_ras'], hdr2['z_ras'])),
+        RZS / hdr2['voxelsize'])
 
 
 def test_cosine_order():
@@ -210,8 +211,10 @@ def test_cosine_order():
     hdr2 = img2.header
     RZS = aff[:3, :3]
     zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
-    assert_almost_equal(hdr2['Mdc'], (RZS / zooms).T)
-    assert_almost_equal(hdr2['delta'], zooms)
+    assert_almost_equal(
+        np.hstack((hdr2['x_ras'], hdr2['y_ras'], hdr2['z_ras'])),
+        RZS / zooms)
+    assert_almost_equal(hdr2['voxelsize'], zooms)
 
 
 def test_eq():
