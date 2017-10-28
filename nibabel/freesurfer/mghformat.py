@@ -224,7 +224,9 @@ class MGHHeader(LabeledWrapStruct):
         z : tuple
            tuple of header zoom values
         '''
-        return tuple(self._structarr['voxelsize'])
+        # Do not return time zoom (TR) if 3D image
+        tzoom = () if self._structarr['dims'][3] == 1 else (self['tr'],)
+        return tuple(self._structarr['voxelsize']) + tzoom
 
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
