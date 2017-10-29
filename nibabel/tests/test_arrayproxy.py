@@ -30,7 +30,7 @@ import mock
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
-from nibabel.testing import VIRAL_MEMMAP
+from nibabel.testing import memmap_after_ufunc
 
 from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip
@@ -298,6 +298,8 @@ def check_mmap(hdr, offset, proxy_class,
     # Whether scaled array memory backed by memory map (regardless of what
     # numpy says).
     scaled_really_mmap = unscaled_really_mmap and not has_scaling
+    # Whether ufunc on memmap return memmap
+    viral_memmap = memmap_after_ufunc()
     with InTemporaryDirectory():
         with open(fname, 'wb') as fobj:
             fobj.write(b' ' * offset)
@@ -324,9 +326,9 @@ def check_mmap(hdr, offset, proxy_class,
                 assert_false(back_is_mmap)
             else:
                 assert_equal(unscaled_is_mmap,
-                             VIRAL_MEMMAP or unscaled_really_mmap)
+                             viral_memmap or unscaled_really_mmap)
                 assert_equal(back_is_mmap,
-                             VIRAL_MEMMAP or scaled_really_mmap)
+                             viral_memmap or scaled_really_mmap)
                 if scaled_really_mmap:
                     assert_equal(back_data.mode, expected_mode)
             del prox, back_data
