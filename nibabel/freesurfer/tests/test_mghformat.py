@@ -265,6 +265,37 @@ def test_mgh_load_fileobj():
     assert_array_equal(img.get_data(), img2.get_data())
 
 
+def test_mgh_reject_little_endian():
+    bblock = b'\x00' * MGHHeader.template_dtype.itemsize
+    with assert_raises(ValueError):
+        MGHHeader(bblock, endianness='<')
+
+
+def test_mgh_affine_default():
+    hdr = MGHHeader()
+    hdr['ras_good'] = 0
+    hdr2 = MGHHeader(hdr.binaryblock)
+    assert_equal(hdr2['ras_good'], 1)
+    assert_array_equal(hdr['x_ras'], hdr2['x_ras'])
+    assert_array_equal(hdr['y_ras'], hdr2['y_ras'])
+    assert_array_equal(hdr['z_ras'], hdr2['z_ras'])
+    assert_array_equal(hdr['c_ras'], hdr2['c_ras'])
+
+
+def test_mgh_set_data_shape():
+    hdr = MGHHeader()
+    hdr.set_data_shape((5,))
+    assert_array_equal(hdr.get_data_shape(), (5, 1, 1))
+    hdr.set_data_shape((5, 4))
+    assert_array_equal(hdr.get_data_shape(), (5, 4, 1))
+    hdr.set_data_shape((5, 4, 3))
+    assert_array_equal(hdr.get_data_shape(), (5, 4, 3))
+    hdr.set_data_shape((5, 4, 3, 2))
+    assert_array_equal(hdr.get_data_shape(), (5, 4, 3, 2))
+    with assert_raises(ValueError):
+        hdr.set_data_shape((5, 4, 3, 2, 1))
+
+
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
     """ Apply general image tests to MGHImage
     """
