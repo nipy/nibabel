@@ -216,8 +216,26 @@ class MGHHeader(LabeledWrapStruct):
             raise MGHError('datatype dtype "%s" not recognized' % datatype)
         self._structarr['type'] = code
 
+    def _ndims(self):
+        ''' Get dimensionality of data
+
+        MGH does not encode dimensionality explicitly, so an image where the
+        fourth dimension is 1 is treated as three-dimensional.
+
+        Returns
+        -------
+        ndims : 3 or 4
+        '''
+        return 3 + (self._structarr['dims'][3] > 1)
+
     def get_zooms(self):
         ''' Get zooms from header
+
+        Returns the spacing of voxels in the x, y, and z dimensions.
+        For four-dimensional files, a fourth zoom is included, equal to the
+        repetition time (TR) in ms.
+
+        To access only the spatial zooms, use `hdr['voxelsize']`.
 
         Returns
         -------
@@ -225,22 +243,32 @@ class MGHHeader(LabeledWrapStruct):
            tuple of header zoom values
         '''
         # Do not return time zoom (TR) if 3D image
-        tzoom = () if self._structarr['dims'][3] == 1 else (self['tr'],)
+        tzoom = (self['tr'],)[:self._ndims() > 3]
         return tuple(self._structarr['voxelsize']) + tzoom
 
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
 
-        See docstring for ``get_zooms`` for examples
+        Sets the spaing of voxels in the x, y, and z dimensions.
+        For four-dimensional files, a temporal zoom (repetition time, or TR, in
+        ms) may be provided as a fourth sequence element.
+
+        Parameters
+        ----------
+        zooms : sequence
+            sequence of floats specifying spatial and (optionally) temporal
+            zooms
         '''
         hdr = self._structarr
         zooms = np.asarray(zooms)
-        if len(zooms) != len(hdr['voxelsize']):
-            raise HeaderDataError('Expecting %d zoom values for ndim'
-                                  % hdr['voxelsize'])
-        if np.any(zooms < 0):
+        ndims = self._ndims()
+        if len(zooms) > ndims:
+            raise HeaderDataError('Expecting %d zoom values' % ndims)
+        if np.any(zooms <= 0):
             raise HeaderDataError('zooms must be positive')
-        hdr['voxelsize'] = zooms
+        hdr['voxelsize'] = zooms[:3]
+        if len(zooms) == 4:
+            hdr['tr'] = zooms[3]
 
     def get_data_shape(self):
         ''' Get shape of data
