@@ -13,7 +13,7 @@ Author: Krish Subramaniam
 from os.path import splitext
 import numpy as np
 
-from ..affines import voxel_sizes
+from ..affines import voxel_sizes, from_matvec
 from ..volumeutils import (array_to_file, array_from_file, Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
@@ -168,10 +168,8 @@ class MGHHeader(LabeledWrapStruct):
         affine = np.eye(4)
         hdr = self._structarr
         MdcD = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])) * hdr['voxelsize']
-        vol_center = MdcD.dot(hdr['dims'][:3].reshape(-1, 1)) / 2
-        affine[:3, :3] = MdcD
-        affine[:3, [3]] = hdr['c_ras'] - vol_center
-        return affine
+        vol_center = MdcD.dot(hdr['dims'][:3]) / 2
+        return from_matvec(MdcD, hdr['c_ras'].T - vol_center)
 
     # For compatibility with nifti (multiple affines)
     get_best_affine = get_affine
@@ -581,9 +579,7 @@ class MGHImage(SpatialImage):
 
         # Assign after we've had a chance to raise exceptions
         hdr['voxelsize'] = voxelsize
-        hdr['x_ras'] = Mdc[:, [0]]
-        hdr['y_ras'] = Mdc[:, [1]]
-        hdr['z_ras'] = Mdc[:, [2]]
+        hdr['x_ras'][:, 0], hdr['y_ras'][:, 0], hdr['z_ras'][:, 0] = Mdc.T
         hdr['c_ras'] = c_ras
 
 
