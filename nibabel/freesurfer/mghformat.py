@@ -21,6 +21,7 @@ from ..arrayproxy import ArrayProxy, reshape_dataobj
 from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
 from ..wrapstruct import LabeledWrapStruct
+from ..deprecated import deprecate_with_version
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -412,6 +413,58 @@ class MGHHeader(LabeledWrapStruct):
                             buffer=self.binaryblock, offset=ftr_loc_in_hdr)
         fileobj.seek(self.get_footer_offset())
         fileobj.write(ftr_nd.tostring())
+
+    class _HeaderData:
+        """ Provide interface to deprecated MGHHeader fields"""
+        renamed = {'goodRASFlag': 'ras_good',
+                   'delta': 'voxelsize'}
+        def __init__(self, structarr):
+            self._structarr = structarr
+
+        def __getitem__(self, item):
+            sa = self._structarr
+            if item == 'Mdc':
+                return np.hstack((sa['x_ras'], sa['y_ras'], sa['z_ras'])).T
+            elif item == 'Pxyz_c':
+                return sa['c_ras'][:, 0]
+            elif item == 'mrparams':
+                return np.hstack((sa['tr'], sa['flip_angle'], sa['te'], sa['ti']))
+            elif item in self.renamed:
+                item = self.renamed[item]
+            return sa[item]
+
+        def __setitem__(self, item, val):
+            sa = self._structarr
+            if item == 'Mdc':
+                sa['x_ras'][:, 0], sa['y_ras'][:, 0], sa['z_ras'][:, 0] = val
+            elif item == 'Pxyz_c':
+                sa['c_ras'][:, 0] = val
+            elif item == 'mrparams':
+                return sa['tr'], sa['flip_angle'], sa['te'], sa['ti'] = val
+            else:
+                if item in self.renamed.values():
+                    item = {v: k for k, v in self.renamed.items()}[item]
+                sa[item] = val
+
+    @property
+    @deprecate_with_version('_header_data is deprecated.\n'
+                            'Please use the _structarr interface instead.\n'
+                            'Note also that some fields have changed name and '
+                            'shape.',
+                            '2.3', '4.0')
+    def _header_data(self):
+        """ Deprecated field-access interface """
+        return self._HeaderData(self._structarr)
+
+    def __getitem__(self, item):
+        if item in ('goodRASFlag', 'delta', 'Mdc', 'Pxyz_c', 'mrparams'):
+            return self._header_data[item]
+        super(MGHHeader, self).__getitem__(item)
+
+    def __setitem__(self, item, value):
+        if item in ('goodRASFlag', 'delta', 'Mdc', 'Pxyz_c', 'mrparams'):
+            return self._header_data[item] = value
+        super(MGHHeader, self).__setitem__(item, value)
 
 
 class MGHImage(SpatialImage):
