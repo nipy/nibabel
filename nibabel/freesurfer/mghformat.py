@@ -161,6 +161,7 @@ class MGHHeader(LabeledWrapStruct):
 
     def get_affine(self):
         ''' Get the affine transform from the header information.
+
         MGH format doesn't store the transform directly. Instead it's gleaned
         from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
         c_ras ) and the dimensions.
@@ -349,6 +350,9 @@ class MGHHeader(LabeledWrapStruct):
         Ignores byte order; always big endian
         '''
         structarr = super(MGHHeader, klass).default_structarr()
+        # This should not be reachable even to test
+        if structarr.newbyteorder('>') != structarr:
+            raise ValueError("Default structarr is not big-endian")
         structarr['version'] = 1
         structarr['dims'] = 1
         structarr['type'] = 3
