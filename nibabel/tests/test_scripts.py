@@ -128,6 +128,10 @@ def test_nib_ls_multiple():
     )
 
 
+@script_test
+def test_nib_diff():
+    raise NotImplementedError("TODO")
+
 
 @script_test
 def test_nib_nifti_dx():
