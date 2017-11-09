@@ -1773,8 +1773,8 @@ class Nifti1Pair(analyze.AnalyzeImage):
               you are changing the affine, you are likely to be changing the
               space to which the affine is pointing.  The :meth:`set_sform`
               and :meth:`set_qform` methods can be used to update the codes
-              after an image has been created - see those methods for more
-              details.  .
+              after an image has been created - see those methods, and
+              the :ref:`manual <default-sform-qform-codes>` for more details.
     '''
 
 
