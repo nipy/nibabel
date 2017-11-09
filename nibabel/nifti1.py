@@ -1769,7 +1769,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
               ``affine`` does not match the affine that is in the ``header``,
               the ``affine`` will be used, but the ``sform_code`` and
               ``qform_code`` fields in the header will be re-initialised to
-              their default values.. This is performed on the basis that, if
+              their default values. This is performed on the basis that, if
               you are changing the affine, you are likely to be changing the
               space to which the affine is pointing.  The :meth:`set_sform`
               and :meth:`set_qform` methods can be used to update the codes
