@@ -1768,7 +1768,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
     Notes
     -----
 
-    If both a ``header`` and an ``affine`` are specified, andq the ``affine``
+    If both a ``header`` and an ``affine`` are specified, and the ``affine``
     does not match the affine that is in the ``header``, the ``affine`` will
     be used, but the ``sform_code`` and ``qform_code`` fields in the header
     will be re-initialised to their default values. This is performed on the
