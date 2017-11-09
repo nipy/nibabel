@@ -281,6 +281,41 @@ the sform: ``get_qform()``, ``set_qform()``.
 The qform also has a corresponding ``qform_code`` with the same interpretation
 as the `sform_code`.
 
+The fall-back header affine
+===========================
+
+This is the affine of last resort, constructed only from the ``pixdim`` voxel
+sizes.  The `NIfTI specification <nifti1>`_ says that this should set the
+first voxel in the image as [0, 0, 0] in world coordinates, but we nibabblers
+follow SPM_ in preferring to set the central voxel to have [0, 0, 0] world
+coordinate. The NIfTI spec also implies that the image should be assumed to be
+in RAS+ *voxel* orientation for this affine (see :doc:`coordinate_systems`).
+Again like SPM, we prefer to assume LAS+ voxel orientation by default.
+
+You can always get the fall-back affine with ``get_base_affine()``:
+
+>>> n1_header.get_base_affine()
+array([[  -2. ,    0. ,    0. ,  127. ],
+       [   0. ,    2. ,    0. ,  -95. ],
+       [   0. ,    0. ,    2.2,  -25.3],
+       [   0. ,    0. ,    0. ,    1. ]])
+
+.. _choosing-image-affine:
+
+Choosing the image affine
+=========================
+
+Given there are three possible affines defined in the NIfTI header, nibabel
+has to chose which of these to use for the image ``affine``.
+
+The algorithm is defined in the ``get_best_affine()`` method.  It is:
+
+#. If ``sform_code`` != 0 ('unknown') use the sform affine; else
+#. If ``qform_code`` != 0 ('unknown') use the qform affine; else
+#. Use the fall-back affine.
+
+.. _default-sform-qform-codes:
+
 Default sform and qform codes
 =============================
 
@@ -335,39 +370,6 @@ the original sform and qform codes can no longer be assumed to be valid.
 If you wish to set the sform and qform affines and/or codes to some other
 value, you can always set them after creation using the ``set_sform`` and
 ``set_qform`` methods, as described above.
-
-The fall-back header affine
-===========================
-
-This is the affine of last resort, constructed only from the ``pixdim`` voxel
-sizes.  The `NIfTI specification <nifti1>`_ says that this should set the
-first voxel in the image as [0, 0, 0] in world coordinates, but we nibabblers
-follow SPM_ in preferring to set the central voxel to have [0, 0, 0] world
-coordinate. The NIfTI spec also implies that the image should be assumed to be
-in RAS+ *voxel* orientation for this affine (see :doc:`coordinate_systems`).
-Again like SPM, we prefer to assume LAS+ voxel orientation by default.
-
-You can always get the fall-back affine with ``get_base_affine()``:
-
->>> n1_header.get_base_affine()
-array([[  -2. ,    0. ,    0. ,  127. ],
-       [   0. ,    2. ,    0. ,  -95. ],
-       [   0. ,    0. ,    2.2,  -25.3],
-       [   0. ,    0. ,    0. ,    1. ]])
-
-.. _choosing-image-affine:
-
-Choosing the image affine
-=========================
-
-Given there are three possible affines defined in the NIfTI header, nibabel
-has to chose which of these to use for the image ``affine``.
-
-The algorithm is defined in the ``get_best_affine()`` method.  It is:
-
-#. If ``sform_code`` != 0 ('unknown') use the sform affine; else
-#. If ``qform_code`` != 0 ('unknown') use the qform affine; else
-#. Use the fall-back affine.
 
 ************
 Data scaling
