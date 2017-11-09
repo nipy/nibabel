@@ -328,7 +328,7 @@ If you create a new image, e.g.:
 The sform and qform codes will be initialised to 2 (aligned) and 0 (unknown)
 respectively:
 
->>> img.get_sform(coded=True)
+>>> img.get_sform(coded=True) # doctest: +NORMALIZE_WHITESPACE
 (array([[ 2.,  0.,  0.,  0.],
         [ 0.,  2.,  0.,  0.],
         [ 0.,  0.,  2.,  0.],
