@@ -459,11 +459,11 @@ class MGHHeader(LabeledWrapStruct):
     def __getitem__(self, item):
         if item in ('goodRASFlag', 'delta', 'Mdc', 'Pxyz_c', 'mrparams'):
             return self._header_data[item]
-        super(MGHHeader, self).__getitem__(item)
+        return super(MGHHeader, self).__getitem__(item)
 
     def __setitem__(self, item, value):
         if item in ('goodRASFlag', 'delta', 'Mdc', 'Pxyz_c', 'mrparams'):
-            return self._header_data[item] = value
+            self._header_data[item] = value
         super(MGHHeader, self).__setitem__(item, value)
 
 
