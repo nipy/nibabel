@@ -32,12 +32,10 @@ header_dtd = [
     ('dims', '>i4', (4,)),          # 4; width, height, depth, nframes
     ('type', '>i4'),                # 20; data type
     ('dof', '>i4'),                 # 24; degrees of freedom
-    ('ras_good', '>i2'),            # 28; *_ras fields valid
-    ('voxelsize', '>f4', (3,)),     # 30; zooms (X, Y, Z)
-    ('x_ras', '>f4', (3, 1)),       # 42; X direction cosine column
-    ('y_ras', '>f4', (3, 1)),       # 54; Y direction cosine column
-    ('z_ras', '>f4', (3, 1)),       # 66; Z direction cosine column
-    ('c_ras', '>f4', (3, 1)),       # 78; mm from (0, 0, 0) RAS to vol center
+    ('goodRASFlag', '>i2'),         # 28; Mdc, Pxyz_c fields valid
+    ('delta', '>f4', (3,)),         # 30; zooms (X, Y, Z)
+    ('Mdc', '>f4', (3, 3)),         # 42; TRANSPOSE of direction cosine matrix
+    ('Pxyz_c', '>f4', (3,)),        # 78; mm from (0, 0, 0) RAS to vol center
 ]
 # Optional footer. Also has more stuff after this, optionally
 footer_dtd = [
@@ -120,7 +118,7 @@ class MGHHeader(LabeledWrapStruct):
         super(MGHHeader, self).__init__(binaryblock=binaryblock,
                                         endianness=endianness,
                                         check=False)
-        if not self._structarr['ras_good']:
+        if not self._structarr['goodRASFlag']:
             self._set_affine_default()
         if check:
             self.check_fix()
@@ -165,13 +163,12 @@ class MGHHeader(LabeledWrapStruct):
 
         MGH format doesn't store the transform directly. Instead it's gleaned
         from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
-        c_ras ) and the dimensions.
+        Pxyz_c ) and the dimensions.
         '''
-        affine = np.eye(4)
         hdr = self._structarr
-        MdcD = np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])) * hdr['voxelsize']
+        MdcD = hdr['Mdc'].T * hdr['delta']
         vol_center = MdcD.dot(hdr['dims'][:3]) / 2
-        return from_matvec(MdcD, hdr['c_ras'].T - vol_center)
+        return from_matvec(MdcD, hdr['Pxyz_c'] - vol_center)
 
     # For compatibility with nifti (multiple affines)
     get_best_affine = get_affine
@@ -185,7 +182,7 @@ class MGHHeader(LabeledWrapStruct):
         ''' Get the vox2ras-tkr transform. See "Torig" here:
                 https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         '''
-        ds = self._structarr['voxelsize']
+        ds = self._structarr['delta']
         ns = self._structarr['dims'][:3] * ds / 2.0
         v2rtkr = np.array([[-ds[0], 0, 0, ns[0]],
                            [0, 0, ds[2], -ns[2]],
@@ -235,7 +232,7 @@ class MGHHeader(LabeledWrapStruct):
         For four-dimensional files, a fourth zoom is included, equal to the
         repetition time (TR) in ms.
 
-        To access only the spatial zooms, use `hdr['voxelsize']`.
+        To access only the spatial zooms, use `hdr['delta']`.
 
         Returns
         -------
@@ -244,7 +241,7 @@ class MGHHeader(LabeledWrapStruct):
         '''
         # Do not return time zoom (TR) if 3D image
         tzoom = (self['tr'],)[:self._ndims() > 3]
-        return tuple(self._structarr['voxelsize']) + tzoom
+        return tuple(self._structarr['delta']) + tzoom
 
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
@@ -266,7 +263,7 @@ class MGHHeader(LabeledWrapStruct):
             raise HeaderDataError('Expecting %d zoom values' % ndims)
         if np.any(zooms <= 0):
             raise HeaderDataError('zooms must be positive')
-        hdr['voxelsize'] = zooms[:3]
+        hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
             hdr['tr'] = zooms[3]
 
@@ -292,7 +289,7 @@ class MGHHeader(LabeledWrapStruct):
         if len(shape) > 4:
             raise ValueError("Shape may be at most 4 dimensional")
         self._structarr['dims'] = shape + (1,) * (4 - len(shape))
-        self._structarr['voxelsize'] = 1
+        self._structarr['delta'] = 1
 
     def get_data_bytespervox(self):
         ''' Get the number of bytes per voxel of the data
@@ -357,22 +354,18 @@ class MGHHeader(LabeledWrapStruct):
         structarr['version'] = 1
         structarr['dims'] = 1
         structarr['type'] = 3
-        structarr['ras_good'] = 1
-        structarr['voxelsize'] = 1
-        structarr['x_ras'][0] = -1
-        structarr['y_ras'][2] = 1
-        structarr['z_ras'][1] = -1
+        structarr['goodRASFlag'] = 1
+        structarr['delta'] = 1
+        structarr['Mdc'] = [[-1, 0, 0], [0, 0, 1], [0, -1, 0]]
         return structarr
 
     def _set_affine_default(self):
-        ''' If ras_good flag is 0, set the default affine
+        ''' If goodRASFlag is 0, set the default affine
         '''
-        self._structarr['ras_good'] = 1
-        self._structarr['voxelsize'] = 1
-        self._structarr['x_ras'] = [[-1], [0], [0]]
-        self._structarr['y_ras'] = [[0], [0], [1]]
-        self._structarr['z_ras'] = [[0], [-1], [0]]
-        self._structarr['c_ras'] = 0
+        self._structarr['goodRASFlag'] = 1
+        self._structarr['delta'] = 1
+        self._structarr['Mdc'] = [[-1, 0, 0], [0, 0, 1], [0, -1, 0]]
+        self._structarr['Pxyz_c'] = 0
 
     def writehdr_to(self, fileobj):
         ''' Write header to fileobj
@@ -416,35 +409,20 @@ class MGHHeader(LabeledWrapStruct):
 
     class _HeaderData:
         """ Provide interface to deprecated MGHHeader fields"""
-        renamed = {'goodRASFlag': 'ras_good',
-                   'delta': 'voxelsize'}
         def __init__(self, structarr):
             self._structarr = structarr
 
         def __getitem__(self, item):
             sa = self._structarr
-            if item == 'Mdc':
-                return np.hstack((sa['x_ras'], sa['y_ras'], sa['z_ras'])).T
-            elif item == 'Pxyz_c':
-                return sa['c_ras'][:, 0]
-            elif item == 'mrparams':
+            if item == 'mrparams':
                 return np.hstack((sa['tr'], sa['flip_angle'], sa['te'], sa['ti']))
-            elif item in self.renamed:
-                item = self.renamed[item]
             return sa[item]
 
         def __setitem__(self, item, val):
             sa = self._structarr
-            if item == 'Mdc':
-                sa['x_ras'][:, 0], sa['y_ras'][:, 0], sa['z_ras'][:, 0] = val
-            elif item == 'Pxyz_c':
-                sa['c_ras'][:, 0] = val
-            elif item == 'mrparams':
-                return sa['tr'], sa['flip_angle'], sa['te'], sa['ti'] = val
-            else:
-                if item in self.renamed.values():
-                    item = {v: k for k, v in self.renamed.items()}[item]
-                sa[item] = val
+            if item == 'mrparams':
+                sa['tr'], sa['flip_angle'], sa['te'], sa['ti'] = val
+            sa[item] = val
 
     @property
     @deprecate_with_version('_header_data is deprecated.\n'
@@ -457,12 +435,12 @@ class MGHHeader(LabeledWrapStruct):
         return self._HeaderData(self._structarr)
 
     def __getitem__(self, item):
-        if item in ('goodRASFlag', 'delta', 'Mdc', 'Pxyz_c', 'mrparams'):
+        if item == 'mrparams':
             return self._header_data[item]
         return super(MGHHeader, self).__getitem__(item)
 
     def __setitem__(self, item, value):
-        if item in ('goodRASFlag', 'delta', 'Mdc', 'Pxyz_c', 'mrparams'):
+        if item == 'mrparams':
             self._header_data[item] = value
         super(MGHHeader, self).__setitem__(item, value)
 
@@ -627,17 +605,17 @@ class MGHImage(SpatialImage):
     def _affine2header(self):
         """ Unconditionally set affine into the header """
         hdr = self._header
-        shape = np.array(self._dataobj.shape[:3]).reshape(-1, 1)
+        shape = np.array(self._dataobj.shape[:3])
 
         # for more information, go through save_mgh.m in FreeSurfer dist
         voxelsize = voxel_sizes(self._affine)
         Mdc = self._affine[:3, :3] / voxelsize
-        c_ras = self._affine.dot(np.vstack((shape / 2.0, [1])))[:3]
+        c_ras = self._affine.dot(np.hstack((shape / 2.0, [1])))[:3]
 
         # Assign after we've had a chance to raise exceptions
-        hdr['voxelsize'] = voxelsize
-        hdr['x_ras'][:, 0], hdr['y_ras'][:, 0], hdr['z_ras'][:, 0] = Mdc.T
-        hdr['c_ras'] = c_ras
+        hdr['delta'] = voxelsize
+        hdr['Mdc'] = Mdc.T
+        hdr['Pxyz_c'] = c_ras
 
 
 load = MGHImage.load

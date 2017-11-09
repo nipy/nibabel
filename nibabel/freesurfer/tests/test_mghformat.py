@@ -53,7 +53,7 @@ def test_read_mgh():
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 3)
     assert_equal(h['dof'], 0)
-    assert_equal(h['ras_good'], 1)
+    assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [3, 4, 5, 2])
     assert_almost_equal(h['tr'], 2.0)
     assert_almost_equal(h['flip_angle'], 0.0)
@@ -87,7 +87,7 @@ def test_write_mgh():
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 3)
     assert_equal(h['dof'], 0)
-    assert_equal(h['ras_good'], 1)
+    assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [5, 4, 3, 2])
     assert_almost_equal(h['tr'], 0.0)
     assert_almost_equal(h['flip_angle'], 0.0)
@@ -117,7 +117,7 @@ def test_write_noaffine_mgh():
     assert_equal(h['version'], 1)
     assert_equal(h['type'], 0)  # uint8 for mgh
     assert_equal(h['dof'], 0)
-    assert_equal(h['ras_good'], 1)
+    assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [7, 13, 3, 22])
     assert_almost_equal(h['tr'], 0.0)
     assert_almost_equal(h['flip_angle'], 0.0)
@@ -125,11 +125,8 @@ def test_write_noaffine_mgh():
     assert_almost_equal(h['ti'], 0.0)
     assert_almost_equal(h['fov'], 0.0)
     # important part -- whether default affine info is stored
-    assert_array_almost_equal(h['x_ras'].T, [[-1, 0, 0]])
-    assert_array_almost_equal(h['y_ras'].T, [[0, 0, 1]])
-    assert_array_almost_equal(h['z_ras'].T, [[0, -1, 0]])
-
-    assert_array_almost_equal(h['c_ras'].T, [[0, 0, 0]])
+    assert_array_almost_equal(h['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
+    assert_array_almost_equal(h['Pxyz_c'], [0, 0, 0])
 
 
 def bad_dtype_mgh():
@@ -187,15 +184,14 @@ def test_header_updating():
     assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
-    assert_equal(hdr['voxelsize'], 1)
-    assert_almost_equal(np.hstack((hdr['x_ras'], hdr['y_ras'], hdr['z_ras'])),
-                        exp_aff[:3, :3])
+    assert_equal(hdr['delta'], 1)
+    assert_almost_equal(hdr['Mdc'].T, exp_aff[:3, :3])
     # Save, reload, same thing
     img_fobj = io.BytesIO()
     mgz2 = _mgh_rt(mgz, img_fobj)
     hdr2 = mgz2.header
     assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
-    assert_equal(hdr2['voxelsize'], 1)
+    assert_equal(hdr2['delta'], 1)
     # Change affine, change underlying header info
     exp_aff_d = exp_aff.copy()
     exp_aff_d[0, -1] = -14
@@ -204,10 +200,8 @@ def test_header_updating():
     mgz2.update_header()
     assert_almost_equal(hdr2.get_affine(), exp_aff_d, 6)
     RZS = exp_aff_d[:3, :3]
-    assert_almost_equal(hdr2['voxelsize'], np.sqrt(np.sum(RZS ** 2, axis=0)))
-    assert_almost_equal(
-        np.hstack((hdr2['x_ras'], hdr2['y_ras'], hdr2['z_ras'])),
-        RZS / hdr2['voxelsize'])
+    assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS ** 2, axis=0)))
+    assert_almost_equal(hdr2['Mdc'].T, RZS / hdr2['delta'])
 
 
 def test_cosine_order():
@@ -222,10 +216,8 @@ def test_cosine_order():
     hdr2 = img2.header
     RZS = aff[:3, :3]
     zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
-    assert_almost_equal(
-        np.hstack((hdr2['x_ras'], hdr2['y_ras'], hdr2['z_ras'])),
-        RZS / zooms)
-    assert_almost_equal(hdr2['voxelsize'], zooms)
+    assert_almost_equal(hdr2['Mdc'].T, RZS / zooms)
+    assert_almost_equal(hdr2['delta'], zooms)
 
 
 def test_eq():
@@ -273,13 +265,11 @@ def test_mgh_reject_little_endian():
 
 def test_mgh_affine_default():
     hdr = MGHHeader()
-    hdr['ras_good'] = 0
+    hdr['goodRASFlag'] = 0
     hdr2 = MGHHeader(hdr.binaryblock)
-    assert_equal(hdr2['ras_good'], 1)
-    assert_array_equal(hdr['x_ras'], hdr2['x_ras'])
-    assert_array_equal(hdr['y_ras'], hdr2['y_ras'])
-    assert_array_equal(hdr['z_ras'], hdr2['z_ras'])
-    assert_array_equal(hdr['c_ras'], hdr2['c_ras'])
+    assert_equal(hdr2['goodRASFlag'], 1)
+    assert_array_equal(hdr['Mdc'], hdr2['Mdc'])
+    assert_array_equal(hdr['Pxyz_c'], hdr2['Pxyz_c'])
 
 
 def test_mgh_set_data_shape():
