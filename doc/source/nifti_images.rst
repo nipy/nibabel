@@ -353,14 +353,14 @@ If you create a new image and specify an existing header, e.g.:
 >>> new_data = np.random.random(n1_img.shape[:3])
 >>> new_img = nib.nifti1.Nifti1Image(data, None, header=new_header)
 
-Then the newly created image will inherit the same sform and qform codes that
+then the newly created image will inherit the same sform and qform codes that
 are in the provided header. However, if you create a new image with both an
 affine and a header specified, e.g.:
 
 >>> xform = np.eye(4)
 >>> new_img = nib.nifti1.Nifti1Image(data, xform, header=new_header)
 
-Then the sform and qform codes will *only* be preserved if the provided affine
+then the sform and qform codes will *only* be preserved if the provided affine
 is the same as the affine in the provided header. If the affines do not match,
 the sform and qform codes will be set to their default values of 2 and 0
 respectively. This is done on the basis that, if you are changing the affine,
