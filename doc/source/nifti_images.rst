@@ -239,7 +239,7 @@ You can get the affine and the code using the ``coded=True`` argument to
        [   0.  ,    0.32,    2.17,   -7.25],
        [   0.  ,    0.  ,    0.  ,    1.  ]]), array(1, dtype=int16))
 
-You can set the sform with with the ``get_sform()`` method of the header and
+You can set the sform with with the ``set_sform()`` method of the header and
 the image.
 
 >>> n1_header.set_sform(np.diag([2, 3, 4, 1]))
