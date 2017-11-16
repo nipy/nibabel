@@ -63,30 +63,29 @@ def main():
 
     # load the files headers
     # see which fields differ
-    # call proc_file from ls, with opts.header_fields set to the fields which
-    # differ between files
+    # call proc_file from ls, with opts.header_fields set to the fields which differ between files
 
-    from nibabel.analyze import AnalyzeHeader
+    img1 = nibabel.load(files[0])  # load first image
+    img2 = nibabel.load(files[1])  # load second image
 
-    img1 = AnalyzeHeader(nibabel.load(files[0])) # load first image
-    img2 = AnalyzeHeader(nibabel.load(files[1])) # load second image
-
-    if img1.get_data_dtype() != img2.get_data_dtype():
-        data_type = (img1.get_data_dtype(), img2.get_data_dtype())
+    if img1.header.get_data_dtype() != img2.header.get_data_dtype():
+        data_dtype = (img1.header.get_data_dtype(), img2.header.get_data_dtype())
     else:
-        return "Same"
+        return "Same data type"
 
-    if img1.get_data_shape() != img2.get_data_shape():
-        data_shape = (img1.get_data_shape(), img2.get_data_shape())
+    if img1.header.get_data_shape() != img2.header.get_data_shape():
+        data_shape = (img1.header.get_data_shape(), img2.header.get_data_shape())
     else:
-        return "Same"
+        return "Same data shape"
 
-    if img1.get_data_offset() != img2.get_data_offset():
-        data_offset = (img1.get_data_offset(), img2.get_data_offset())
+    if img1.header.get_zooms() != img2.header.get_zooms():
+        zooms = (img1.header.get_zooms(), img2.header.get_zooms())
     else:
-        return "Same"
+        return "Same voxel sizes"
 
-    opts.header_fields = [data_type, data_shape, data_offset]  # TODO #1
+    # MAIN QUESTION: HOW TO GET 1. properly load files and 2. replace with adjusted header fields?
+
+    opts.header_fields = [data_dtype, data_shape, zooms]  # TODO #1
 
     from .ls import proc_file
     rows = [proc_file(f, opts) for f in files]
