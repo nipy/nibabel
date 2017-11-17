@@ -20,6 +20,7 @@ import numpy as np
 import nibabel as nib
 import nibabel.cmdline.utils
 from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
+import fileinput
 
 __author__ = 'Yaroslav Halchenko & Christopher Cheng'
 __copyright__ = 'Copyright (c) 2017 NiBabel contributors'
@@ -62,9 +63,30 @@ def main():
 
     # load the files headers
     # see which fields differ
-    # call proc_file from ls, with opts.header_fields set to the fields which
-    # differ between files
-    opts.header_fields = []  # TODO #1
+    # call proc_file from ls, with opts.header_fields set to the fields which differ between files
+
+    img1 = nibabel.load(files[0])  # load first image
+    img2 = nibabel.load(files[1])  # load second image
+
+    if img1.header.get_data_dtype() != img2.header.get_data_dtype():
+        data_dtype = (img1.header.get_data_dtype(), img2.header.get_data_dtype())
+    else:
+        return "Same data type"
+
+    if img1.header.get_data_shape() != img2.header.get_data_shape():
+        data_shape = (img1.header.get_data_shape(), img2.header.get_data_shape())
+    else:
+        return "Same data shape"
+
+    if img1.header.get_zooms() != img2.header.get_zooms():
+        zooms = (img1.header.get_zooms(), img2.header.get_zooms())
+    else:
+        return "Same voxel sizes"
+
+    # MAIN QUESTION: HOW TO GET 1. properly load files and 2. replace with adjusted header fields?
+
+    opts.header_fields = [data_dtype, data_shape, zooms]  # TODO #1
+
     from .ls import proc_file
     rows = [proc_file(f, opts) for f in files]
 
