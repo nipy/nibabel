@@ -218,4 +218,4 @@ def setup_test():
     """
     from distutils.version import LooseVersion
     if LooseVersion(np.__version__) >= LooseVersion('1.14'):
-        np.set_printoptions(sign='legacy')
+        np.set_printoptions(legacy="1.13")
