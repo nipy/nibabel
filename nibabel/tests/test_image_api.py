@@ -377,9 +377,9 @@ class DataInterfaceMixin(GetSetDtypeMixin):
 
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
+        img = imaker()
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
-            img = imaker()
             assert_equal(img.get_shape(), params['shape'])
             assert_equal(len(w), 1)
 
