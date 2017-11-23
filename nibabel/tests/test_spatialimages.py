@@ -25,7 +25,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
-                       VIRAL_MEMMAP)
+                       memmap_after_ufunc)
 from ..tmpdirs import InTemporaryDirectory
 from .. import load as top_load
 
@@ -464,6 +464,7 @@ class MmapImageMixin(object):
     def test_load_mmap(self):
         # Test memory mapping when loading images
         img_klass = self.image_class
+        viral_memmap = memmap_after_ufunc()
         with InTemporaryDirectory():
             img, fname, has_scaling = self.get_disk_image()
             file_map = img.file_map.copy()
@@ -485,7 +486,7 @@ class MmapImageMixin(object):
                     # numpies returned a memmap object, even though the array
                     # has no mmap memory backing.  See:
                     # https://github.com/numpy/numpy/pull/7406
-                    if has_scaling and not VIRAL_MEMMAP:
+                    if has_scaling and not viral_memmap:
                         expected_mode = None
                     kwargs = {}
                     if mmap is not None:

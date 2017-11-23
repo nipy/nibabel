@@ -4,6 +4,8 @@ import sys
 
 PY2 = sys.version_info[0] < 3
 
+from distutils.version import LooseVersion
+
 import numpy as np
 
 from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
@@ -103,7 +105,12 @@ def test_check_nmant_nexp():
         ti = type_info(t)
         if ti['nmant'] != 106:  # This check does not work for PPC double pair
             assert_true(_check_nmant(t, ti['nmant']))
-        assert_true(_check_maxexp(t, ti['maxexp']))
+        # Test fails for longdouble after blacklisting of OSX powl as of numpy
+        # 1.12 - see https://github.com/numpy/numpy/issues/8307
+        if (t != np.longdouble or
+              sys.platform != 'darwin' or
+              LooseVersion(np.__version__) < LooseVersion('1.12')):
+            assert_true(_check_maxexp(t, ti['maxexp']))
 
 
 def test_as_int():

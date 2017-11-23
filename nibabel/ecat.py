@@ -468,13 +468,13 @@ def get_series_framenumbers(mlist):
     mlist_nframes = len(frames_order)
     trueframenumbers = np.arange(nframes - mlist_nframes, nframes)
     frame_dict = {}
-    try:
-        for frame_stored, (true_order, _) in frames_order.items():
-            # frame as stored in file -> true number in series
+    for frame_stored, (true_order, _) in frames_order.items():
+        # frame as stored in file -> true number in series
+        try:
             frame_dict[frame_stored] = trueframenumbers[true_order] + 1
-        return frame_dict
-    except:
-        raise IOError('Error in header or mlist order unknown')
+        except IndexError:
+            raise IOError('Error in header or mlist order unknown')
+    return frame_dict
 
 
 def read_subheaders(fileobj, mlist, endianness):

@@ -32,7 +32,7 @@ from six.moves import zip_longest
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
 
-from .np_features import VIRAL_MEMMAP
+from .np_features import memmap_after_ufunc
 
 def assert_dt_equal(a, b):
     """ Assert two numpy dtype specifiers are equal
@@ -218,4 +218,4 @@ def setup_test():
     """
     from distutils.version import LooseVersion
     if LooseVersion(np.__version__) >= LooseVersion('1.14'):
-        np.set_printoptions(sign='legacy')
+        np.set_printoptions(legacy="1.13")
