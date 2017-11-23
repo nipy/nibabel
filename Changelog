@@ -24,6 +24,25 @@ Gerhard (SG) and Eric Larson (EL).
 
 References like "pr/298" refer to github pull request numbers.
 
+2.2.1 (Wednesday 22 November 2017)
+==================================
+
+Bug fixes
+---------
+
+* Set L/R labels in orthoview correctly (pr/564) (CM)
+* Defer use of ufunc / memmap test - allows "freezing" (pr/572) (MB, reviewed
+  by Satra Ghosh)
+* Fix doctest failures with pre-release numpy (pr/582) (MB, reviewed by CM)
+
+Maintenance
+-----------
+
+* Update documentation around NIfTI qform/sform codes (pr/576) (Paul McCarthy,
+  reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by Paul McCarthy)
+* Skip precision test on macOS, newer numpy (pr/583) (MB, reviewed by CM)
+* Simplify AppVeyor script, removing conda (pr/584) (MB, reviewed by CM)
+
 2.2 (Friday 13 October 2017)
 ============================
 
