@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 import getpass
 import time
+from os.path import exists as pexists, realpath
 
 from collections import OrderedDict
 from six.moves import xrange
@@ -47,7 +48,9 @@ def _fread3_many(fobj, n):
     return (b1 << 16) + (b2 << 8) + b3
 
 
-def read_aseg_stats(seg_stats_file, set ='subcortical', volumes_only = False):
+def read_aseg_stats(seg_stats_file,
+                    set_wanted = 'subcortical',
+                    volumes_only = False):
     """
     Returns the subcortical stats found in Freesurfer output: subid/stats/aseg.stats
 
@@ -55,21 +58,31 @@ def read_aseg_stats(seg_stats_file, set ='subcortical', volumes_only = False):
     
     Parameters
     ----------
-    filepath : str
+    seg_stats_file : str
         Abs path to aseg.stats file.
         
-    set : str
-        Which set of volumes to return, among ['subcortical', 'wholebrain']. Default: 'subcortical'.
-        The choice 'subcortical' returns the usual subortical segmentations. 
-        The choice 'wholebrain' returns only volumes (only stat available), 
-        whose segmentations include [ 'BrainSegVol', 'BrainSegVolNotVent',
-        'lhCortexVol', 'rhCortexVol', 'lhCorticalWhiteMatterVol', 'rhCorticalWhiteMatterVol',
-        'SubCortGrayVol', 'TotalGrayVol', 'SupraTentorialVol', 'SupraTentorialVolNotVent',
-        'MaskVol', 'BrainSegVol-to-eTIV', 'MaskVol-to-eTIV',  'lhSurfaceHoles', 'rhSurfaceHoles',
-        'eTIV' ]
+    set_wanted : str
+        Which set of volumes to return, among ['subcortical', 'wholebrain', 'etiv_only' ].
+        Default: 'subcortical'.
+        The choice 'subcortical' returns the usual subortical segmentations.
+        The choice 'wholebrain' returns the volumes in aseg.stats coded as :
+            [ 'BrainSegVol', 'BrainSegVolNotVent', 'lhCortexVol', 'rhCortexVol', 'lhCorticalWhiteMatterVol',
+              'rhCorticalWhiteMatterVol', 'SubCortGrayVol', 'TotalGrayVol', 'SupraTentorialVol',
+              'SupraTentorialVolNotVent', 'MaskVol', 'BrainSegVol-to-eTIV', 'MaskVol-to-eTIV',
+              'lhSurfaceHoles', 'rhSurfaceHoles', 'eTIV' ]
+            These are noted as 'Measure' in the commented section of stats/aseg.stats file.
+        The choice 'etiv_only' returns the value for eTIV (estimated total intra-cranial volume) only.
+
+    volumes_only : bool
+        Flag to indicate only the volumes are wanted.
+
+        Default: False, returning all info available, to closely match the outputs returned by Freesurfer's Matlab counter part:
+        https://github.com/freesurfer/freesurfer/blob/dev/matlab/load_segstats.m
 
     Returns
     -------
+    By default (volumes_only=False), three arrays are returned:
+
     seg_name : numpy array of strings
         Array of segmentation names
     seg_index : numpy array
@@ -86,14 +99,20 @@ def read_aseg_stats(seg_stats_file, set ='subcortical', volumes_only = False):
         6. max intensity over space
         7. range intensity over space
 
+    When volumes_only=True, only one array is returned containing only volumes.
+
     """
 
-    acceptable_choices = ['subcortical', 'wholebrain', 'eTIV']
-    set = set.lower()
-    if set not in acceptable_choices:
-        raise ValueError('invalid choice. Choose one among: {}'.format(acceptable_choices))
+    seg_stats_file = realpath(seg_stats_file)
+    if not pexists(seg_stats_file):
+        raise IOError('given path does not exist : {}'.format(seg_stats_file))
 
-    if set in 'subcortical':
+    acceptable_choices = ['subcortical', 'wholebrain', 'etiv_only']
+    set_wanted = set_wanted.lower()
+    if set_wanted not in acceptable_choices:
+        raise ValueError('Invalid choice. Choose one among: {}'.format(acceptable_choices))
+
+    if set_wanted in 'subcortical':
         stats = np.loadtxt(seg_stats_file, dtype="i1,i1,i4,f4,S50,f4,f4,f4,f4,f4")
         if volumes_only:
             out_data = np.array([seg[3] for seg in stats])
@@ -101,11 +120,11 @@ def read_aseg_stats(seg_stats_file, set ='subcortical', volumes_only = False):
             # need to ensure both two types return data correspond in seg order
             out_data = stats
 
-    elif set in [ 'wholebrain', 'eTIV']:
+    elif set_wanted in ['wholebrain', 'etiv_only']:
         wb_regex_pattern = r'# Measure ([\w/+_\- ]+), ([\w/+_\- ]+), ([\w/+_\- ]+), ([\d\.]+), ([\w/+_\-^]+)'
         datatypes = np.dtype('U100,U100,U100,f8,U10')
         stats = np.fromregex(seg_stats_file, wb_regex_pattern, dtype=datatypes)
-        if set in ['eTIV']:
+        if set_wanted in ['etiv_only']:
             out_data = np.array([seg[3] for seg in stats if seg[1] == 'eTIV'])
         else:
             out_data = np.array([seg[3] for seg in stats])
