@@ -13,6 +13,7 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 from __future__ import division, print_function
 import warnings
 from io import BytesIO
+from six import string_types
 
 import numpy as np
 import numpy.linalg as npl
@@ -26,6 +27,7 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
+from .testing import setup_test  # flake8: noqa F401
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -232,18 +234,19 @@ intent_codes = Recoder((
     (2003, 'rgb vector', (), "NIFTI_INTENT_RGB_VECTOR"),
     (2004, 'rgba vector', (), "NIFTI_INTENT_RGBA_VECTOR"),
     (2005, 'shape', (), "NIFTI_INTENT_SHAPE"),
-    # The codes below appear on the CIFTI page, but don't appear to have
-    # reached the nifti standard as of 19 August 2013
-    # https://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
-    (3001, 'dense connectivity', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE'),
-    (3002, 'dense time connectivity', (),
-     'NIFTI_INTENT_CONNECTIVITY_DENSE_TIME'),
-    (3003, 'parcellated connectivity', (),
-     'NIFTI_INTENT_CONNECTIVITY_PARCELLATED'),
-    (3004, 'parcellated time connectivity', (),
-     "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME"),
-    (3005, 'trajectory connectivity', (),
-     'NIFTI_INTENT_CONNECTIVITY_CONNECTIVITY_TRAJECTORY'),
+    # FSL-specific intent codes - codes used by FNIRT
+    # ($FSLDIR/warpfns/fnirt_file_reader.h:104)
+    (2006, 'fnirt disp field', (), 'FSL_FNIRT_DISPLACEMENT_FIELD'),
+    (2007, 'fnirt cubic spline coef', (), 'FSL_CUBIC_SPLINE_COEFFICIENTS'),
+    (2008, 'fnirt dct coef', (), 'FSL_DCT_COEFFICIENTS'),
+    (2009, 'fnirt quad spline coef', (), 'FSL_QUADRATIC_SPLINE_COEFFICIENTS'),
+    # FSL-specific intent codes - codes used by TOPUP
+    # ($FSLDIR/topup/topup_file_io.h:104)
+    (2016, 'topup cubic spline coef ', (),
+     'FSL_TOPUP_CUBIC_SPLINE_COEFFICIENTS'),
+    (2017, 'topup quad spline coef', (),
+     'FSL_TOPUP_QUADRATIC_SPLINE_COEFFICIENTS'),
+    (2018, 'topup field', (), 'FSL_TOPUP_FIELD'),
 ), fields=('code', 'label', 'parameters', 'niistring'))
 
 
@@ -482,9 +485,8 @@ extension_codes = Recoder((
     (10, "jimdiminfo", Nifti1Extension),
     (12, "workflow_fwds", Nifti1Extension),
     (14, "freesurfer", Nifti1Extension),
-    (16, "pypickle", Nifti1Extension)
-),
-    fields=('code', 'label', 'handler'))
+    (16, "pypickle", Nifti1Extension),
+), fields=('code', 'label', 'handler'))
 
 
 class Nifti1Extensions(list):
@@ -1273,7 +1275,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         This is stored in one byte in the header
         '''
         for inp in (freq, phase, slice):
-            if inp not in (None, 0, 1, 2):
+            # Don't use == on None to avoid a FutureWarning in python3
+            if inp is not None and inp not in (0, 1, 2):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
@@ -1314,18 +1317,22 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._structarr
         recoder = self._field_recoders['intent_code']
         code = int(hdr['intent_code'])
+        known_intent = code in recoder
         if code_repr == 'code':
             label = code
         elif code_repr == 'label':
-            label = recoder.label[code]
+            if known_intent:
+                label = recoder.label[code]
+            else:
+                label = 'unknown code ' + str(code)
         else:
             raise TypeError('repr can be "label" or "code"')
-        n_params = len(recoder.parameters[code])
+        n_params = len(recoder.parameters[code]) if known_intent else 0
         params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
         name = asstr(np.asscalar(hdr['intent_name']))
         return label, tuple(params), name
 
-    def set_intent(self, code, params=(), name=''):
+    def set_intent(self, code, params=(), name='', allow_unknown=False):
         ''' Set the intent code, parameters and name
 
         If parameters are not specified, assumed to be all zero. Each
@@ -1344,6 +1351,10 @@ class Nifti1Header(SpmAnalyzeHeader):
             defaults to ().  Unspecified parameters are set to 0.0
         name : string
             intent name (description). Defaults to ''
+        allow_unknown : {False, True}, optional
+            Allow unknown integer intent codes. If False (the default),
+            a KeyError is raised on attempts to set the intent
+            to an unknown code.
 
         Returns
         -------
@@ -1352,7 +1363,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Examples
         --------
         >>> hdr = Nifti1Header()
-        >>> hdr.set_intent(0)  # unknown code
+        >>> hdr.set_intent(0)  # no intent
         >>> hdr.set_intent('z score')
         >>> hdr.get_intent()
         ('z score', (), '')
@@ -1367,19 +1378,32 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_intent('f test')
         >>> hdr.get_intent()
         ('f test', (0.0, 0.0), '')
+        >>> hdr.set_intent(9999, allow_unknown=True) # unknown code
+        >>> hdr.get_intent()
+        ('unknown code 9999', (), '')
         '''
         hdr = self._structarr
-        icode = intent_codes.code[code]
-        p_descr = intent_codes.parameters[code]
+        known_intent = code in intent_codes
+        if not known_intent:
+            # We can set intent via an unknown integer code, but can't via an
+            # unknown string label
+            if not allow_unknown or isinstance(code, string_types):
+                raise KeyError('Unknown intent code: ' + str(code))
+        if known_intent:
+            icode = intent_codes.code[code]
+            p_descr = intent_codes.parameters[code]
+        else:
+            icode = code
+            p_descr = ('p1', 'p2', 'p3')
         if len(params) and len(params) != len(p_descr):
             raise HeaderDataError('Need params of form %s, or empty'
                                   % (p_descr,))
+        hdr['intent_code'] = icode
+        hdr['intent_name'] = name
         all_params = [0] * 3
         all_params[:len(params)] = params[:]
         for i, param in enumerate(all_params):
             hdr['intent_p%d' % (i + 1)] = param
-        hdr['intent_code'] = icode
-        hdr['intent_name'] = name
 
     def get_slice_duration(self):
         ''' Get slice duration
@@ -1740,7 +1764,20 @@ class Nifti1Pair(analyze.AnalyzeImage):
         if header is None and affine is not None:
             self._affine2header()
     # Copy docstring
-    __init__.doc = analyze.AnalyzeImage.__init__.__doc__
+    __init__.__doc__ = analyze.AnalyzeImage.__init__.__doc__ + '''
+    Notes
+    -----
+
+    If both a `header` and an `affine` are specified, and the `affine` does
+    not match the affine that is in the `header`, the `affine` will be used,
+    but the ``sform_code`` and ``qform_code`` fields in the header will be
+    re-initialised to their default values. This is performed on the basis
+    that, if you are changing the affine, you are likely to be changing the
+    space to which the affine is pointing.  The :meth:`set_sform` and
+    :meth:`set_qform` methods can be used to update the codes after an image
+    has been created - see those methods, and the :ref:`manual
+    <default-sform-qform-codes>` for more details.  '''
+
 
     def update_header(self):
         ''' Harmonize header with image data and affine
@@ -1945,6 +1982,40 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 self._affine = self._header.get_best_affine()
             else:
                 self._affine[:] = self._header.get_best_affine()
+
+    def as_reoriented(self, ornt):
+        """Apply an orientation change and return a new image
+
+        If ornt is identity transform, return the original image, unchanged
+
+        Parameters
+        ----------
+        ornt : (n,2) orientation array
+           orientation transform. ``ornt[N,1]` is flip of axis N of the
+           array implied by `shape`, where 1 means no flip and -1 means
+           flip.  For example, if ``N==0`` and ``ornt[0,1] == -1``, and
+           there's an array ``arr`` of shape `shape`, the flip would
+           correspond to the effect of ``np.flipud(arr)``.  ``ornt[:,0]`` is
+           the transpose that needs to be done to the implied array, as in
+           ``arr.transpose(ornt[:,0])``
+        """
+        img = super(Nifti1Pair, self).as_reoriented(ornt)
+
+        if img is self:
+            return img
+
+        # Also apply the transform to the dim_info fields
+        new_dim = list(img.header.get_dim_info())
+        for idx, value in enumerate(new_dim):
+            # For each value, leave as None if it was that way,
+            # otherwise check where we have mapped it to
+            if value is None:
+                continue
+            new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
+
+        img.header.set_dim_info(*new_dim)
+
+        return img
 
 
 class Nifti1Image(Nifti1Pair):

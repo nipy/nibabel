@@ -24,6 +24,84 @@ Gerhard (SG) and Eric Larson (EL).
 
 References like "pr/298" refer to github pull request numbers.
 
+2.2.1 (Wednesday 22 November 2017)
+==================================
+
+Bug fixes
+---------
+
+* Set L/R labels in orthoview correctly (pr/564) (CM)
+* Defer use of ufunc / memmap test - allows "freezing" (pr/572) (MB, reviewed
+  by Satra Ghosh)
+* Fix doctest failures with pre-release numpy (pr/582) (MB, reviewed by CM)
+
+Maintenance
+-----------
+
+* Update documentation around NIfTI qform/sform codes (pr/576) (Paul McCarthy,
+  reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by Paul McCarthy)
+* Skip precision test on macOS, newer numpy (pr/583) (MB, reviewed by CM)
+* Simplify AppVeyor script, removing conda (pr/584) (MB, reviewed by CM)
+
+2.2 (Friday 13 October 2017)
+============================
+
+New features
+------------
+
+* CIFTI support (pr/249) (Satra Ghosh, Michiel Cottaar, BC, CM, Demian
+  Wassermann, MB)
+* Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
+  MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
+* Added ``get_fdata()`` as default method to retrieve scaled floating point
+  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, Satra Ghosh)
+
+Enhancements
+------------
+
+* Support for alternative header field name variants in .PAR files
+  (pr/507) (Gregory R. Lee)
+* Various enhancements to streamlines API by MC: support for reading TRK
+  version 1 (pr/512); concatenation of tractograms using `+`/`+=` operators
+  (pr/495); function to concatenate multiple ArraySequence objects (pr/494)
+* Support for numpy 1.12 (pr/500, pr/502) (MC, MB)
+* Allow dtype specifiers as fileslice input (pr/485) (MB)
+* Support "headerless" ArrayProxy specification, enabling memory-efficient
+  ArrayProxy reshaping (pr/521) (CM)
+* Allow unknown NIfTI intent codes, add FSL codes (pr/528) (Paul McCarthy)
+* Improve error handling for ``img.__getitem__`` (pr/533) (Ariel Rokem)
+* Delegate reorientation to SpatialImage classes (pr/544) (Mark Hymers, CM,
+  reviewed by MB)
+* Enable using ``indexed_gzip`` to reduce memory usage when reading from
+  gzipped NIfTI and MGH files (pr/552) (Paul McCarthy, reviewed by MB, CM)
+
+Bug fixes
+---------
+
+* Miscellaneous MINC reader fixes (pr/493) (Robert D. Vincent, reviewed by CM,
+  MB)
+* Fix corner case in ``wrapstruct.get`` (pr/516) (Paul McCarthy, reviewed by
+  CM, MB)
+
+Maintenance
+-----------
+
+* Fix documentation errors (pr/517, pr/536) (Fernando Perez, Venky Reddy)
+* Documentation update (pr/514) (Ivan Gonzalez)
+* Update testing to use pre-release builds of dependencies (pr/509) (MB)
+* Better warnings when nibabel not on path (pr/503) (MB)
+
+API changes and deprecations
+----------------------------
+
+* ``header`` argument to ``ArrayProxy.__init__`` is renamed to ``spec``
+* Deprecation of ``header`` property of ``ArrayProxy`` object, for removal in
+  3.0
+* ``wrapstruct.get`` now returns entries evaluating ``False``, instead of ``None``
+* ``DataobjImage.get_data`` to be deprecated April 2018, scheduled for removal
+  April 2020
+
+
 2.1 (Monday 22 August 2016)
 ===========================
 

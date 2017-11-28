@@ -52,7 +52,7 @@ contributed code and discussion (in rough order of appearance):
 * Basile Pinsard
 * `Satrajit Ghosh`_
 * `Nolan Nichols`_
-* Nguyen, Ly
+* Ly Nguyen
 * Philippe Gervais
 * Demian Wassermann
 * Justin Lecher
@@ -70,6 +70,16 @@ contributed code and discussion (in rough order of appearance):
 * `Ariel Rokem`_
 * Eleftherios Garyfallidis
 * Jaakko Leppäkangas
+* Syam Gadde
+* Robert D. Vincent
+* Ivan Gonzalez
+* Demian Wassermann
+* Paul McCarthy
+* Fernando Pérez García
+* Venky Reddy
+* Mark Hymers
+* Jasper J.F. van den Bosch
+* Bennet Fauber
 
 License reprise
 ===============

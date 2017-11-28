@@ -239,7 +239,7 @@ You can get the affine and the code using the ``coded=True`` argument to
        [   0.  ,    0.32,    2.17,   -7.25],
        [   0.  ,    0.  ,    0.  ,    1.  ]]), array(1, dtype=int16))
 
-You can set the sform with with the ``get_sform()`` method of the header and
+You can set the sform with the ``set_sform()`` method of the header and
 the image.
 
 >>> n1_header.set_sform(np.diag([2, 3, 4, 1]))
@@ -263,7 +263,7 @@ The qform affine
 
 This affine can be calculated from a combination of the voxel sizes (entries 1
 through 4 of the ``pixdim`` field), a sign flip called ``qfac`` stored in
-entry 0 of ``pixdim``, and a `quaternion <wikipedia quaternion>`_ that can be
+entry 0 of ``pixdim``, and a `quaternion <wikipedia quaternion_>`_ that can be
 reconstructed from fields ``quatern_b``, ``quatern_c``, ``quatern_d``.
 
 See the code for the :meth:`get_qform() method
@@ -314,6 +314,63 @@ The algorithm is defined in the ``get_best_affine()`` method.  It is:
 #. If ``qform_code`` != 0 ('unknown') use the qform affine; else
 #. Use the fall-back affine.
 
+.. _default-sform-qform-codes:
+
+Default sform and qform codes
+=============================
+
+If you create a new image, e.g.:
+
+>>> data = np.random.random((20, 20, 20))
+>>> xform = np.eye(4) * 2
+>>> img = nib.nifti1.Nifti1Image(data, xform)
+
+The sform and qform codes will be initialised to 2 (aligned) and 0 (unknown)
+respectively:
+
+>>> img.get_sform(coded=True) # doctest: +NORMALIZE_WHITESPACE
+(array([[ 2.,  0.,  0.,  0.],
+        [ 0.,  2.,  0.,  0.],
+        [ 0.,  0.,  2.,  0.],
+        [ 0.,  0.,  0.,  1.]]), array(2, dtype=int16))
+>>> img.get_qform(coded=True)
+(None, 0)
+
+This is based on the assumption that the affine you specify for a newly
+created image will align the image to some known coordinate system. According
+to the `NIfTI specification <nifti1>`_, the qform is intended to encode a
+transformation into scanner coordinates - for a programmatically created
+image, we have no way of knowing what the scanner coordinate system is;
+furthermore, the qform cannot be used to store an arbitrary affine transform,
+as it is unable to encode shears. So the provided affine will be stored in the
+sform, and the qform will be left uninitialised.
+
+If you create a new image and specify an existing header, e.g.:
+
+>>> example_ni1 = os.path.join(data_path, 'example4d.nii.gz')
+>>> n1_img = nib.load(example_ni1)
+>>> new_header = header=n1_img.header.copy()
+>>> new_data = np.random.random(n1_img.shape[:3])
+>>> new_img = nib.nifti1.Nifti1Image(data, None, header=new_header)
+
+then the newly created image will inherit the same sform and qform codes that
+are in the provided header. However, if you create a new image with both an
+affine and a header specified, e.g.:
+
+>>> xform = np.eye(4)
+>>> new_img = nib.nifti1.Nifti1Image(data, xform, header=new_header)
+
+then the sform and qform codes will *only* be preserved if the provided affine
+is the same as the affine in the provided header. If the affines do not match,
+the sform and qform codes will be set to their default values of 2 and 0
+respectively. This is done on the basis that, if you are changing the affine,
+you are likely to be changing the space to which the affine is pointing. So
+the original sform and qform codes can no longer be assumed to be valid.
+
+If you wish to set the sform and qform affines and/or codes to some other
+value, you can always set them after creation using the ``set_sform`` and
+``set_qform`` methods, as described above.
+
 ************
 Data scaling
 ************
@@ -336,7 +393,7 @@ The output data from a NIfTI image comes from:
 #. Reshaping to the output image shape;
 #. Multiplying the result by the header ``scl_slope`` value, if
    both of ``scl_slope`` and ``scl_inter`` are defined;
-#. Adding the value header ``scl_slope`` value to the result, if both of
+#. Adding the value header ``scl_inter`` value to the result, if both of
    ``scl_slope`` and ``scl_inter`` are defined;
 
 'Defined' means, the value is not NaN (not a number).

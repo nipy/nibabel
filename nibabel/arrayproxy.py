@@ -25,12 +25,34 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
-import warnings
+from contextlib import contextmanager
+from threading import RLock
 
+import numpy as np
+
+from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
-from .openers import ImageOpener
+from .openers import ImageOpener, HAVE_INDEXED_GZIP
+
+
+"""This flag controls whether a new file handle is created every time an image
+is accessed through an ``ArrayProxy``, or a single file handle is created and
+used for the lifetime of the ``ArrayProxy``. It should be set to one of
+``True``, ``False``, or ``'auto'``.
+
+If ``True``, a single file handle is created and used. If ``False``, a new
+file handle is created every time the image is accessed. If ``'auto'``, and
+the optional ``indexed_gzip`` dependency is present, a single file handle is
+created and persisted. If ``indexed_gzip`` is not available, behaviour is the
+same as if ``keep_file_open is False``.
+
+If this is set to any other value, attempts to create an ``ArrayProxy`` without
+specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
+raised.
+"""
+KEEP_FILE_OPEN_DEFAULT = False
 
 
 class ArrayProxy(object):
@@ -43,14 +65,17 @@ class ArrayProxy(object):
     of the numpy dtypes, starting at a given file position ``offset`` with
     single ``slope`` and ``intercept`` scaling to produce output values.
 
-    The class ``__init__`` requires a ``header`` object with methods:
+    The class ``__init__`` requires a spec which defines how the data will be
+    read and rescaled. The spec may be a tuple of length 2 - 5, containing the
+    shape, storage dtype, offset, slope and intercept, or a ``header`` object
+    with methods:
 
     * get_data_shape
     * get_data_dtype
     * get_data_offset
     * get_slope_inter
 
-    The header should also have a 'copy' method.  This requirement will go away
+    A header should also have a 'copy' method.  This requirement will go away
     when the deprecated 'header' propoerty goes away.
 
     This implementation allows us to deal with Analyze and its variants,
@@ -62,17 +87,30 @@ class ArrayProxy(object):
     """
     # Assume Fortran array memory layout
     order = 'F'
+    _header = None
 
     @kw_only_meth(2)
-    def __init__(self, file_like, header, mmap=True):
-        """ Initialize array proxy instance
+    def __init__(self, file_like, spec, mmap=True, keep_file_open=None):
+        """Initialize array proxy instance
 
         Parameters
         ----------
         file_like : object
             File-like object or filename. If file-like object, should implement
             at least ``read`` and ``seek``.
-        header : object
+        spec : object or tuple
+            Tuple must have length 2-5, with the following values:
+
+            #. shape: tuple - tuple of ints describing shape of data;
+            #. storage_dtype: dtype specifier - dtype of array inside proxied
+               file, or input to ``numpy.dtype`` to specify array dtype;
+            #. offset: int - offset, in bytes, of data array from start of file
+               (default: 0);
+            #. slope: float - scaling factor for resulting data (default: 1.0);
+            #. inter: float - intercept for rescaled data (default: 0.0).
+
+            OR
+
             Header object implementing ``get_data_shape``, ``get_data_dtype``,
             ``get_data_offset``, ``get_slope_inter``
         mmap : {True, False, 'c', 'r'}, optional, keyword only
@@ -82,28 +120,110 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        scaling : {'fp', 'dv'}, optional, keyword only
-            Type of scaling to use - see header ``get_data_scaling`` method.
+        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_like`` is an open file
+            handle, this setting has no effect. The default value (``None``)
+            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
+        if hasattr(spec, 'get_data_shape'):
+            slope, inter = spec.get_slope_inter()
+            par = (spec.get_data_shape(),
+                   spec.get_data_dtype(),
+                   spec.get_data_offset(),
+                   1. if slope is None else slope,
+                   0. if inter is None else inter)
+            # Reference to original header; we will remove this soon
+            self._header = spec.copy()
+        elif 2 <= len(spec) <= 5:
+            optional = (0, 1., 0.)
+            par = spec + optional[len(spec) - 2:]
+        else:
+            raise TypeError('spec must be tuple of length 2-5 or header object')
+
         # Copies of values needed to read array
-        self._shape = header.get_data_shape()
-        self._dtype = header.get_data_dtype()
-        self._offset = header.get_data_offset()
-        self._slope, self._inter = header.get_slope_inter()
-        self._slope = 1.0 if self._slope is None else self._slope
-        self._inter = 0.0 if self._inter is None else self._inter
+        self._shape, self._dtype, self._offset, self._slope, self._inter = par
+        # Permit any specifier that can be interpreted as a numpy dtype
+        self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
-        # Reference to original header; we will remove this soon
-        self._header = header.copy()
+        self._keep_file_open = self._should_keep_file_open(file_like,
+                                                           keep_file_open)
+        self._lock = RLock()
+
+    def __del__(self):
+        """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
+        the open file object is closed if necessary.
+        """
+        if hasattr(self, '_opener') and not self._opener.closed:
+            self._opener.close_if_mine()
+            self._opener = None
+
+    def __getstate__(self):
+        """Returns the state of this ``ArrayProxy`` during pickling. """
+        state = self.__dict__.copy()
+        state.pop('_lock', None)
+        return state
+
+    def __setstate__(self, state):
+        """Sets the state of this ``ArrayProxy`` during unpickling. """
+        self.__dict__.update(state)
+        self._lock = RLock()
+
+    def _should_keep_file_open(self, file_like, keep_file_open):
+        """Called by ``__init__``, and used to determine the final value of
+        ``keep_file_open``.
+
+        The return value is derived from these rules:
+
+          - If ``file_like`` is a file(-like) object, ``False`` is returned.
+            Otherwise, ``file_like`` is assumed to be a file name.
+          - if ``file_like`` ends with ``'gz'``, and the ``indexed_gzip``
+            library is available, ``True`` is returned.
+          - Otherwise, ``False`` is returned.
+
+        Parameters
+        ----------
+
+        file_like : object
+            File-like object or filename, as passed to ``__init__``.
+        keep_file_open : { 'auto', True, False }
+            Flag as passed to ``__init__``.
+
+        Returns
+        -------
+
+        The value of ``keep_file_open`` that will be used by this
+        ``ArrayProxy``.
+        """
+        if keep_file_open is None:
+            keep_file_open = KEEP_FILE_OPEN_DEFAULT
+        # if keep_file_open is True/False, we do what the user wants us to do
+        if isinstance(keep_file_open, bool):
+            return keep_file_open
+        if keep_file_open != 'auto':
+            raise ValueError('keep_file_open should be one of {None, '
+                             '\'auto\', True, False}')
+
+        # file_like is a handle - keep_file_open is irrelevant
+        if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
+            return False
+        # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
+        # keep_file_open to True, else we set it to False
+        return HAVE_INDEXED_GZIP and file_like.endswith('gz')
 
     @property
+    @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
     def header(self):
-        warnings.warn('We will remove the header property from proxies soon',
-                      FutureWarning,
-                      stacklevel=2)
         return self._header
 
     @property
@@ -111,8 +231,12 @@ class ArrayProxy(object):
         return self._shape
 
     @property
-    def is_proxy(self):
-        return True
+    def dtype(self):
+        return self._dtype
+
+    @property
+    def offset(self):
+        return self._offset
 
     @property
     def slope(self):
@@ -123,15 +247,36 @@ class ArrayProxy(object):
         return self._inter
 
     @property
-    def offset(self):
-        return self._offset
+    def is_proxy(self):
+        return True
+
+    @contextmanager
+    def _get_fileobj(self):
+        """Create and return a new ``ImageOpener``, or return an existing one.
+
+        The specific behaviour depends on the value of the ``keep_file_open``
+        flag that was passed to ``__init__``.
+
+        Yields
+        ------
+        ImageOpener
+            A newly created ``ImageOpener`` instance, or an existing one,
+            which provides access to the file.
+        """
+        if self._keep_file_open:
+            if not hasattr(self, '_opener'):
+                self._opener = ImageOpener(self.file_like, keep_open=True)
+            yield self._opener
+        else:
+            with ImageOpener(self.file_like, keep_open=False) as opener:
+                yield opener
 
     def get_unscaled(self):
-        ''' Read of data from file
+        """ Read of data from file
 
         This is an optional part of the proxy API
-        '''
-        with ImageOpener(self.file_like) as fileobj:
+        """
+        with self._get_fileobj() as fileobj, self._lock:
             raw_data = array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
@@ -146,15 +291,39 @@ class ArrayProxy(object):
         return apply_read_scaling(raw_data, self._slope, self._inter)
 
     def __getitem__(self, slicer):
-        with ImageOpener(self.file_like) as fileobj:
+        with self._get_fileobj() as fileobj:
             raw_data = fileslice(fileobj,
                                  slicer,
                                  self._shape,
                                  self._dtype,
                                  self._offset,
-                                 order=self.order)
+                                 order=self.order,
+                                 lock=self._lock)
         # Upcast as necessary for big slopes, intercepts
         return apply_read_scaling(raw_data, self._slope, self._inter)
+
+    def reshape(self, shape):
+        """ Return an ArrayProxy with a new shape, without modifying data """
+        size = np.prod(self._shape)
+
+        # Calculate new shape if not fully specified
+        from operator import mul
+        from functools import reduce
+        n_unknowns = len([e for e in shape if e == -1])
+        if n_unknowns > 1:
+            raise ValueError("can only specify one unknown dimension")
+        elif n_unknowns == 1:
+            known_size = reduce(mul, shape, -1)
+            unknown_size = size // known_size
+            shape = tuple(unknown_size if e == -1 else e for e in shape)
+
+        if np.prod(shape) != size:
+            raise ValueError("cannot reshape array of size {:d} into shape "
+                             "{!s}".format(size, shape))
+        return self.__class__(file_like=self.file_like,
+                              spec=(shape, self._dtype, self._offset,
+                                    self._slope, self._inter),
+                              mmap=self._mmap)
 
 
 def is_proxy(obj):
@@ -164,3 +333,10 @@ def is_proxy(obj):
         return obj.is_proxy
     except AttributeError:
         return False
+
+
+def reshape_dataobj(obj, shape):
+    """ Use `obj` reshape method if possible, else numpy reshape function
+    """
+    return (obj.reshape(shape) if hasattr(obj, 'reshape')
+            else np.reshape(obj, shape))

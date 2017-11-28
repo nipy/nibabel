@@ -12,7 +12,25 @@
 import bz2
 import gzip
 import sys
+import warnings
 from os.path import splitext
+from distutils.version import StrictVersion
+
+# is indexed_gzip present and modern?
+try:
+    from indexed_gzip import SafeIndexedGzipFile, __version__ as version
+
+    HAVE_INDEXED_GZIP = True
+
+    if StrictVersion(version) < StrictVersion('0.6.0'):
+        warnings.warn('indexed_gzip is present, but too old '
+                      '(>= 0.6.0 required): {})'.format(version))
+        HAVE_INDEXED_GZIP = False
+
+    del version
+
+except ImportError:
+    HAVE_INDEXED_GZIP = False
 
 
 # The largest memory chunk that gzip can use for reads
@@ -60,13 +78,21 @@ class BufferedGzipFile(gzip.GzipFile):
             return n_read
 
 
-def _gzip_open(fileish, *args, **kwargs):
-    gzip_file = BufferedGzipFile(fileish, *args, **kwargs)
+def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
-    # Speedup for #209; attribute not present in in Python 3.5
-    # open gzip files with faster reads on large files using larger
-    # See https://github.com/nipy/nibabel/pull/210 for discussion
-    if hasattr(gzip_file, 'max_chunk_read'):
+    # use indexed_gzip if possible for faster read access
+    if keep_open and mode == 'rb' and HAVE_INDEXED_GZIP:
+        gzip_file = SafeIndexedGzipFile(filename)
+
+    # Fall-back to built-in GzipFile (wrapped with the BufferedGzipFile class
+    # defined above)
+    else:
+        gzip_file = BufferedGzipFile(filename, mode, compresslevel)
+
+    # Speedup for #209, for versions of python < 3.5. Open gzip files with
+    # faster reads on large files using a larger read buffer. See
+    # https://github.com/nipy/nibabel/pull/210 for discussion
+    if hasattr(gzip_file, 'max_read_chunk'):
         gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
 
     return gzip_file
@@ -86,12 +112,13 @@ class Opener(object):
     \*args : positional arguments
         passed to opening method when `fileish` is str.  ``mode``, if not
         specified, is `rb`.  ``compresslevel``, if relevant, and not specified,
-        is set from class variable ``default_compresslevel``
+        is set from class variable ``default_compresslevel``. ``keep_open``, if
+        relevant, and not specified, is ``False``.
     \*\*kwargs : keyword arguments
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
-    gz_def = (_gzip_open, ('mode', 'compresslevel'))
+    gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
     bz2_def = (bz2.BZ2File, ('mode', 'buffering', 'compresslevel'))
     compress_ext_map = {
         '.gz': gz_def,
@@ -117,8 +144,15 @@ class Opener(object):
         # Set default mode
         if 'mode' not in full_kwargs:
             kwargs['mode'] = 'rb'
+        # Default compression level
         if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
+        # Default keep_open hint
+        if 'keep_open' in arg_names:
+            kwargs.setdefault('keep_open', False)
+        # Clear keep_open hint if it is not relevant for the file type
+        else:
+            kwargs.pop('keep_open', None)
         self.fobj = opener(fileish, *args, **kwargs)
         self._name = fileish
         self.me_opened = True

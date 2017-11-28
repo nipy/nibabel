@@ -130,6 +130,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr = hdr_t.copy()
         hdr['bitpix'] = 0
         assert_equal(self._dxer(hdr), 'bitpix does not match datatype')
+
+    def test_pixdim_checks(self):
+        hdr_t = self.header_class()
         for i in (1, 2, 3):
             hdr = hdr_t.copy()
             hdr['pixdim'][i] = -1
@@ -176,7 +179,10 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert_equal(message, 'bitpix does not match datatype; '
                      'setting bitpix to match datatype')
         assert_raises(*raiser)
+
+    def test_pixdim_log_checks(self):
         # pixdim positive
+        HC = self.header_class
         hdr = HC()
         hdr['pixdim'][1] = -2  # severity 35
         fhdr, message, raiser = self.log_chk(hdr, 35)
@@ -232,18 +238,21 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # Make a new logger
         str_io = StringIO()
         logger = logging.getLogger('test.logger')
-        logger.setLevel(30)  # defaultish level
         logger.addHandler(logging.StreamHandler(str_io))
-        # Prepare an error
-        hdr['pixdim'][1] = 0  # severity 30
+        # Prepare a defect: bitpix not matching data type
+        hdr['datatype'] = 16  # float32
+        hdr['bitpix'] = 16  # severity 10
+        logger.setLevel(10)
         log_cache = imageglobals.logger, imageglobals.error_level
         try:
             # Check log message appears in new logger
             imageglobals.logger = logger
             hdr.copy().check_fix()
-            assert_equal(str_io.getvalue(), PIXDIM0_MSG + '\n')
+            assert_equal(str_io.getvalue(),
+                         'bitpix does not match datatype; '
+                         'setting bitpix to match datatype\n')
             # Check that error_level in fact causes error to be raised
-            imageglobals.error_level = 30
+            imageglobals.error_level = 10
             assert_raises(HeaderDataError, hdr.copy().check_fix)
         finally:
             imageglobals.logger, imageglobals.error_level = log_cache

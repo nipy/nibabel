@@ -86,6 +86,7 @@
 .. _mock: https://github.com/testing-cabal/mock
 .. _`python coverage tester`: http://nedbatchelder.com/code/coverage/
 .. _bitbucket: https://bitbucket.org
+.. _six: http://pythonhosted.org/six
 
 .. Other python projects
 .. _numpy: http://www.numpy.org
@@ -244,6 +245,7 @@
 .. _Bertrand Thirion: https://team.inria.fr/parietal/bertrand-thirions-page
 .. _Nolan Nichols: http://www.nolan-nichols.com
 .. _Satrajit Ghosh: http://satra.cogitatum.org
+.. _Chris Rorden: http://www.mccauslandcenter.sc.edu/crnl/chris-rorden
 
 .. Substitutions
 .. |emdash| unicode:: U+02014

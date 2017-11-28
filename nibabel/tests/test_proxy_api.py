@@ -31,6 +31,7 @@ from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 import warnings
+from itertools import product
 from io import BytesIO
 
 import numpy as np
@@ -58,7 +59,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 
-from ..testing import data_path as DATA_PATH
+from ..testing import data_path as DATA_PATH, assert_dt_equal
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -121,7 +122,7 @@ class _TestProxyAPI(ValidateAPI):
         prox, fio, hdr = pmaker()
         out = np.asarray(prox)
         assert_array_equal(out, params['arr_out'])
-        assert_equal(out.dtype.type, params['dtype_out'])
+        assert_dt_equal(out.dtype, params['dtype_out'])
         # Shape matches expected shape
         assert_equal(out.shape, params['shape'])
 
@@ -194,72 +195,81 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (self.header_class().get_data_offset(),)
         else:
             offsets = (0, 16)
-        for shape in self.shapes:
+        slopes = (1., 2.) if self.has_slope else (1.,)
+        inters = (0., 10.) if self.has_inter else (0.,)
+        dtypes = (np.uint8, np.int16, np.float32)
+        for shape, dtype, offset, slope, inter in product(self.shapes,
+                                                          dtypes,
+                                                          offsets,
+                                                          slopes,
+                                                          inters):
             n_els = np.prod(shape)
-            for dtype in (np.uint8, np.int16, np.float32):
-                dt = np.dtype(dtype).newbyteorder(self.data_endian)
-                arr = np.arange(n_els, dtype=dt).reshape(shape)
-                data = arr.tostring(order=self.array_order)
-                for offset in offsets:
-                    slopes = (1., 2.) if self.has_slope else (1.,)
-                    inters = (0., 10.) if self.has_inter else (0.,)
-                    for slope in slopes:
-                        for inter in inters:
-                            hdr = self.header_class()
-                            hdr.set_data_dtype(dtype)
-                            hdr.set_data_shape(shape)
-                            if self.settable_offset:
-                                hdr.set_data_offset(offset)
-                            if (slope, inter) == (1, 0):  # No scaling applied
-                                # dtype from array
-                                dtype_out = dtype
-                            else:  # scaling or offset applied
-                                # out dtype predictable from apply_read_scaling
-                                # and datatypes of slope, inter
-                                hdr.set_slope_inter(slope, inter)
-                                s, i = hdr.get_slope_inter()
-                                tmp = apply_read_scaling(arr,
-                                                         1. if s is None else s,
-                                                         0. if i is None else i)
-                                dtype_out = tmp.dtype.type
+            dtype = np.dtype(dtype).newbyteorder(self.data_endian)
+            arr = np.arange(n_els, dtype=dtype).reshape(shape)
+            data = arr.tostring(order=self.array_order)
+            hdr = self.header_class()
+            hdr.set_data_dtype(dtype)
+            hdr.set_data_shape(shape)
+            if self.settable_offset:
+                hdr.set_data_offset(offset)
+            if (slope, inter) == (1, 0):  # No scaling applied
+                # dtype from array
+                dtype_out = dtype
+            else:  # scaling or offset applied
+                # out dtype predictable from apply_read_scaling
+                # and datatypes of slope, inter
+                hdr.set_slope_inter(slope, inter)
+                s, i = hdr.get_slope_inter()
+                tmp = apply_read_scaling(arr,
+                                         1. if s is None else s,
+                                         0. if i is None else i)
+                dtype_out = tmp.dtype.type
 
-                            def sio_func():
-                                fio = BytesIO()
-                                fio.truncate(0)
-                                fio.seek(offset)
-                                fio.write(data)
-                                # Use a copy of the header to avoid changing
-                                # global header in test functions.
-                                new_hdr = hdr.copy()
-                                return (self.proxy_class(fio, new_hdr),
-                                        fio,
-                                        new_hdr)
-                            params = dict(
-                                dtype=dtype,
-                                dtype_out=dtype_out,
-                                arr=arr.copy(),
-                                arr_out=arr * slope + inter,
-                                shape=shape,
-                                offset=offset,
-                                slope=slope,
-                                inter=inter)
-                            yield sio_func, params
-                            # Same with filenames
-                            with InTemporaryDirectory():
-                                fname = 'data.bin'
+            def sio_func():
+                fio = BytesIO()
+                fio.truncate(0)
+                fio.seek(offset)
+                fio.write(data)
+                # Use a copy of the header to avoid changing
+                # global header in test functions.
+                new_hdr = hdr.copy()
+                return (self.proxy_class(fio, new_hdr),
+                        fio,
+                        new_hdr)
 
-                                def fname_func():
-                                    with open(fname, 'wb') as fio:
-                                        fio.seek(offset)
-                                        fio.write(data)
-                                    # Use a copy of the header to avoid changing
-                                    # global header in test functions.
-                                    new_hdr = hdr.copy()
-                                    return (self.proxy_class(fname, new_hdr),
-                                            fname,
-                                            new_hdr)
-                                params = params.copy()
-                                yield fname_func, params
+            params = dict(
+                dtype=dtype,
+                dtype_out=dtype_out,
+                arr=arr.copy(),
+                arr_out=arr * slope + inter,
+                shape=shape,
+                offset=offset,
+                slope=slope,
+                inter=inter)
+            yield sio_func, params
+            # Same with filenames
+            with InTemporaryDirectory():
+                fname = 'data.bin'
+
+                def fname_func():
+                    with open(fname, 'wb') as fio:
+                        fio.seek(offset)
+                        fio.write(data)
+                    # Use a copy of the header to avoid changing
+                    # global header in test functions.
+                    new_hdr = hdr.copy()
+                    return (self.proxy_class(fname, new_hdr),
+                            fname,
+                            new_hdr)
+                params = params.copy()
+                yield fname_func, params
+
+    def validate_dtype(self, pmaker, params):
+        # Read-only dtype attribute
+        prox, fio, hdr = pmaker()
+        assert_dt_equal(prox.dtype, params['dtype'])
+        assert_raises(AttributeError,
+                      prox.__setattr__, 'dtype', np.dtype(prox.dtype))
 
     def validate_slope_inter_offset(self, pmaker, params):
         # Check slope, inter, offset
@@ -278,7 +288,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             # Header is a copy of original
             assert_false(prox.header is hdr)
             assert_equal(prox.header, hdr)
-            assert_equal(warns.pop(0).category, FutureWarning)
+            assert_equal(warns.pop(0).category, DeprecationWarning)
 
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):

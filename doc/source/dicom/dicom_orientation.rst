@@ -58,12 +58,12 @@ Section 10.7.1.3:  Pixel Spacing
 DICOM voxel to patient coordinate system mapping
 ================================================
 
-See: 
+See:
 
-* http://www.dclunie.com/medical-image-faq/html/part2.html
-* http://fixunix.com/dicom/50449-image-position-patient-image-orientation-patient.html
+* http://www.dclunie.com/medical-image-faq/html/part2.html;
+* `this dicom mailing list post <https://groups.google.com/forum/#!topic/comp.protocols.dicom/-Nms_GgmdRc>`_;
 
-See `wikipedia direction cosine`_ for a definition of direction cosines. 
+See `wikipedia direction cosine`_ for a definition of direction cosines.
 
 From section C.7.6.2.1.1 of the `DICOM object definitions`_ (2009):
 

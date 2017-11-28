@@ -212,10 +212,12 @@ def test_annot():
 @freesurfer_test
 def test_label():
     """Test IO of .label"""
-    label_path = pjoin(data_path, "label", "lh.BA1.label")
+    label_path = pjoin(data_path, "label", "lh.cortex.label")
     label = read_label(label_path)
     # XXX : test more
-    assert_true(np.all(label > 0))
+    assert_true(label.min() >= 0)
+    assert_true(label.max() <= 163841)
+    assert_true(label.shape[0] <= 163842)
 
     labels, scalars = read_label(label_path, True)
     assert_true(np.all(labels == label))

@@ -10,7 +10,7 @@
 import numpy as np
 import itertools
 
-from six import BytesIO
+from io import BytesIO
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
 
@@ -88,7 +88,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
-        # See tests for apply_read_scaling in test_utils
+        # See tests for apply_read_scaling in test_volumeutils
         hdr = self.header_class()
         hdr.set_data_shape((1, 1, 1))
         hdr.set_data_dtype(np.int16)

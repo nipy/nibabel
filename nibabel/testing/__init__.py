@@ -32,7 +32,7 @@ from six.moves import zip_longest
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
 
 
-from .np_features import VIRAL_MEMMAP
+from .np_features import memmap_after_ufunc
 
 def assert_dt_equal(a, b):
     """ Assert two numpy dtype specifiers are equal
@@ -209,3 +209,13 @@ def assert_arr_dict_equal(dict1, dict2):
     for key, value1 in dict1.items():
         value2 = dict2[key]
         assert_array_equal(value1, value2)
+
+
+def setup_test():
+    """ Set numpy print options to "legacy" for new versions of numpy
+
+    If imported into a file, nosetest will run this before any doctests.
+    """
+    from distutils.version import LooseVersion
+    if LooseVersion(np.__version__) >= LooseVersion('1.14'):
+        np.set_printoptions(legacy="1.13")

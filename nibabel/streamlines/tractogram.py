@@ -209,8 +209,11 @@ class LazyDict(collections.MutableMapping):
         return self.store[key]()
 
     def __setitem__(self, key, value):
-        if value is not None and not callable(value):  # TODO: why None?
-            raise TypeError("`value` must be a generator function or None.")
+        if not callable(value):
+            msg = ("Values in a `LazyDict` must be generator functions."
+                   " These are functions which, when called, return an"
+                   " instantiated generator.")
+            raise TypeError(msg)
         self.store[key] = value
 
     def __delitem__(self, key):
@@ -261,9 +264,14 @@ class Tractogram(object):
 
     Streamlines of a tractogram can be in any coordinate system of your
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
-    construction time, that brings the streamlines back to *RAS+*, *mm* space,
-    where the coordinates (0,0,0) corresponds to the center of the voxel
-    (as opposed to the corner of the voxel).
+    construction time. When applied to streamlines coordinates, that
+    transformation matrix should bring the streamlines back to world space
+    (RAS+ and mm space) [1]_.
+
+    Moreover, when streamlines are mapped back to voxel space [2]_, a
+    streamline point located at an integer coordinate (i,j,k) is considered
+    to be at the center of the corresponding voxel. This is in contrast with
+    other conventions where it might have referred to a corner.
 
     Attributes
     ----------
@@ -284,6 +292,11 @@ class Tractogram(object):
         ndarrays of shape ($N_t$, $M_i$) where $N_t$ is the number of points
         for a particular streamline $t$ and $M_i$ is the number values to store
         for that particular piece of information $i$.
+
+    References
+    ----------
+    [1] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
+    [2] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -504,11 +517,16 @@ class LazyTractogram(Tractogram):
     streamlines and their data information. This container is thus memory
     friendly since it doesn't require having all this data loaded in memory.
 
-    Streamlines of a lazy tractogram can be in any coordinate system of your
+    Streamlines of a tractogram can be in any coordinate system of your
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
-    construction time, that brings the streamlines back to *RAS+*, *mm* space,
-    where the coordinates (0,0,0) corresponds to the center of the voxel
-    (as opposed to the corner of the voxel).
+    construction time. When applied to streamlines coordinates, that
+    transformation matrix should bring the streamlines back to world space
+    (RAS+ and mm space) [1]_.
+
+    Moreover, when streamlines are mapped back to voxel space [2]_, a
+    streamline point located at an integer coordinate (i,j,k) is considered
+    to be at the center of the corresponding voxel. This is in contrast with
+    other conventions where it might have referred to a corner.
 
     Attributes
     ----------
@@ -538,6 +556,11 @@ class LazyTractogram(Tractogram):
     LazyTractogram objects are suited for operations that can be linearized
     such as applying an affine transformation or converting streamlines from
     one file format to another.
+
+    References
+    ----------
+    [1] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
+    [2] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -682,7 +705,10 @@ class LazyTractogram(Tractogram):
 
     def _set_streamlines(self, value):
         if value is not None and not callable(value):
-            raise TypeError("`streamlines` must be a generator function.")
+            msg = ("`streamlines` must be a generator function. That is a"
+                   " function which, when called, returns an instantiated"
+                   " generator.")
+            raise TypeError(msg)
         self._streamlines = value
 
     @property

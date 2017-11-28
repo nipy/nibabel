@@ -1,6 +1,10 @@
 # Makefile for Sphinx documentation
 #
 
+# The Python executable to be used
+#
+PYTHON ?= python
+
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
@@ -98,4 +102,3 @@ gitwash-update:
 	python ../tools/gitwash_dumper.py source nibabel --github-user=nipy \
 		--project-url=http://nipy.org/nibabel \
 		--project-ml-url=https://mail.python.org/mailman/listinfo/neuroimaging
-

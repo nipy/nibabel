@@ -11,10 +11,6 @@
 Format described here:
 
     https://www.nitrc.org/forum/message.php?msg_id=3738
-
-Stuff about the CIFTI file format here:
-
-    https://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
 '''
 
 import numpy as np

@@ -14,7 +14,7 @@ import warnings
 
 import numpy as np
 
-from six import BytesIO
+from io import BytesIO
 from ..spatialimages import (SpatialHeader, SpatialImage, HeaderDataError,
                              Header, ImageDataError)
 
@@ -25,7 +25,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .test_helpers import bytesio_round_trip
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
-                       VIRAL_MEMMAP)
+                       memmap_after_ufunc)
 from ..tmpdirs import InTemporaryDirectory
 from .. import load as top_load
 
@@ -306,12 +306,76 @@ class TestSpatialImage(TestCase):
             img = img_klass(np.zeros((2, 3, 4), np.int16), np.eye(4))
             assert_equal(img.get_shape(), (2, 3, 4))
 
+    def test_get_fdata(self):
+        # Test array image and proxy image interface for floating point data
+        img_klass = self.image_class
+        in_data_template = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        in_data = in_data_template.copy()
+        img = img_klass(in_data, None)
+        assert_true(in_data is img.dataobj)
+        # The get_fdata method changes the array to floating point type
+        assert_equal(img.get_fdata(dtype='f4').dtype, np.dtype(np.float32))
+        fdata_32 = img.get_fdata(dtype=np.float32)
+        assert_equal(fdata_32.dtype, np.dtype(np.float32))
+        # Caching is specific to data dtype.  If we reload with default data
+        # type, the cache gets reset
+        fdata_32[:] = 99
+        # Cache has been modified, we pick up the modifications, but only for
+        # the cached data type
+        assert_array_equal(img.get_fdata(dtype='f4'), 99)
+        fdata_64 = img.get_fdata()
+        assert_equal(fdata_64.dtype, np.dtype(np.float64))
+        assert_array_equal(fdata_64, in_data)
+        fdata_64[:] = 101
+        assert_array_equal(img.get_fdata(dtype='f8'), 101)
+        assert_array_equal(img.get_fdata(), 101)
+        # Reloading with new data type blew away the float32 cache
+        assert_array_equal(img.get_fdata(dtype='f4'), in_data)
+        img.uncache()
+        # Now recaching, is float64
+        out_data = img.get_fdata()
+        assert_equal(out_data.dtype, np.dtype(np.float64))
+        # Input dtype needs to be floating point
+        assert_raises(ValueError, img.get_fdata, dtype=np.int16)
+        assert_raises(ValueError, img.get_fdata, dtype=np.int32)
+        # The cache is filled
+        out_data[:] = 42
+        assert_true(img.get_fdata() is out_data)
+        img.uncache()
+        assert_false(img.get_fdata() is out_data)
+        # The 42 has gone now.
+        assert_array_equal(img.get_fdata(), in_data_template)
+        # If we can save, we can create a proxy image
+        if not self.can_save:
+            return
+        rt_img = bytesio_round_trip(img)
+        assert_false(in_data is rt_img.dataobj)
+        assert_array_equal(rt_img.dataobj, in_data)
+        out_data = rt_img.get_fdata()
+        assert_array_equal(out_data, in_data)
+        assert_false(rt_img.dataobj is out_data)
+        assert_equal(out_data.dtype, np.dtype(np.float64))
+        # cache
+        assert_true(rt_img.get_fdata() is out_data)
+        out_data[:] = 42
+        rt_img.uncache()
+        assert_false(rt_img.get_fdata() is out_data)
+        assert_array_equal(rt_img.get_fdata(), in_data)
+
     def test_get_data(self):
         # Test array image and proxy image interface
         img_klass = self.image_class
         in_data_template = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         in_data = in_data_template.copy()
         img = img_klass(in_data, None)
+        # Can't slice into the image object:
+        with assert_raises(TypeError) as exception_manager:
+            img[0, 0, 0]
+        # Make sure the right message gets raised:
+        assert_equal(str(exception_manager.exception),
+                     ("Cannot slice image objects; consider slicing image "
+                      "array data with `img.dataobj[slice]` or "
+                      "`img.get_data()[slice]`"))
         assert_true(in_data is img.dataobj)
         out_data = img.get_data()
         assert_true(in_data is out_data)
@@ -400,6 +464,7 @@ class MmapImageMixin(object):
     def test_load_mmap(self):
         # Test memory mapping when loading images
         img_klass = self.image_class
+        viral_memmap = memmap_after_ufunc()
         with InTemporaryDirectory():
             img, fname, has_scaling = self.get_disk_image()
             file_map = img.file_map.copy()
@@ -421,7 +486,7 @@ class MmapImageMixin(object):
                     # numpies returned a memmap object, even though the array
                     # has no mmap memory backing.  See:
                     # https://github.com/numpy/numpy/pull/7406
-                    if has_scaling and not VIRAL_MEMMAP:
+                    if has_scaling and not viral_memmap:
                         expected_mode = None
                     kwargs = {}
                     if mmap is not None:

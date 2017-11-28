@@ -14,6 +14,10 @@ class HeaderWarning(Warning):
     """ Base class for warnings about tractogram file header. """
 
 
+class DataWarning(Warning):
+    """ Base class for warnings about tractogram file data. """
+
+
 class HeaderError(Exception):
     """ Raised when a tractogram file header contains invalid information. """
 
@@ -35,7 +39,7 @@ class TractogramFile(with_metaclass(ABCMeta)):
 
     def __init__(self, tractogram, header=None):
         self._tractogram = tractogram
-        self._header = {} if header is None else header
+        self._header = self.create_empty_header() if header is None else header
 
     @property
     def tractogram(self):
@@ -72,6 +76,11 @@ class TractogramFile(with_metaclass(ABCMeta)):
             otherwise returns False.
         """
         raise NotImplementedError()
+
+    @classmethod
+    def create_empty_header(cls):
+        """ Returns an empty header for this streamlines file format. """
+        return {}
 
     @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):

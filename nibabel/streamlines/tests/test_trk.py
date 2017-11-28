@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 from os.path import join as pjoin
 
-from six import BytesIO
+from io import BytesIO
 
 from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings, assert_arr_dict_equal
@@ -295,8 +295,6 @@ class TestTRK(unittest.TestCase):
 
                 new_trk = TrkFile.load(fname, lazy_load=False)
                 assert_tractogram_equal(new_trk.tractogram, trk.tractogram)
-
-                trk_file.seek(0, os.SEEK_SET)
 
     def test_load_write_LPS_file(self):
         # Load the RAS and LPS version of the standard.

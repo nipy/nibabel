@@ -26,7 +26,8 @@ _field_recoders -> field_recoders
 import logging
 import numpy as np
 
-from six import BytesIO, StringIO
+from io import BytesIO
+from six import StringIO
 from ..wrapstruct import WrapStructError, WrapStruct, LabeledWrapStruct
 from ..batteryrunners import Report
 
@@ -42,6 +43,69 @@ from ..testing import (assert_equal, assert_true, assert_false,
                        assert_raises, assert_not_equal)
 
 INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
+
+def log_chk(hdr, level):
+    """ Utility method to check header checking / logging
+
+    Asserts that log entry appears during ``hdr.check_fix`` for logging level
+    below `level`.
+
+    Parameters
+    ----------
+    hdr : instance
+        Instance of header class, with methods ``copy`` and check_fix``.  The
+        header has some minor error (defect) which can be detected with
+        ``check_fix``.
+    level : int
+        Level (severity) of defect present in `hdr`.  When logging threshold is
+        at or below `level`, a message appears in the default log (we test that
+        happens).
+
+    Returns
+    -------
+    hdrc : instance
+        Header, with defect corrected.
+    message : str
+        Message generated in log when defect was detected.
+    raiser : tuple
+        Tuple of error type, callable, arguments that will raise an exception
+        when then defect is detected.  Can be empty.  Check with ``if raiser !=
+        (): assert_raises(*raiser)``.
+    """
+    str_io = StringIO()
+    logger = logging.getLogger('test.logger')
+    handler = logging.StreamHandler(str_io)
+    logger.addHandler(handler)
+    str_io.truncate(0)
+    hdrc = hdr.copy()
+    if level == 0:  # Should never log or raise error
+        logger.setLevel(0)
+        hdrc.check_fix(logger=logger, error_level=0)
+        assert_equal(str_io.getvalue(), '')
+        logger.removeHandler(handler)
+        return hdrc, '', ()
+    # Non zero defect level, test above and below threshold.
+    # Set error level above defect level to prevent exception when defect
+    # detected.
+    e_lev = level + 1
+    # Logging level above threshold, no log.
+    logger.setLevel(level + 1)
+    hdrc.check_fix(logger=logger, error_level=e_lev)
+    assert_equal(str_io.getvalue(), '')
+    # Logging level below threshold, log appears, store logged message
+    logger.setLevel(level - 1)
+    hdrc = hdr.copy()
+    hdrc.check_fix(logger=logger, error_level=e_lev)
+    assert_true(str_io.getvalue() != '')
+    message = str_io.getvalue().strip()
+    logger.removeHandler(handler)
+    # When error level == level, check_fix should raise an error
+    hdrc2 = hdr.copy()
+    raiser = (HeaderDataError,
+              hdrc2.check_fix,
+              logger,
+              level)
+    return hdrc, message, raiser
 
 
 class _TestWrapStructBase(TestCase):
@@ -120,6 +184,17 @@ class _TestWrapStructBase(TestCase):
         assert_equal(hdr.get(keys[0]), vals[0])
         assert_equal(hdr.get(keys[0], 'default'), vals[0])
 
+        # make sure .get returns values which evaluate to False. We have to
+        # use a different falsy value depending on the data type of the first
+        # header field.
+        falsyval = 0 if np.issubdtype(hdr_dt[0], np.number) else b''
+
+        hdr[keys[0]] = falsyval
+        assert_equal(hdr[keys[0]], falsyval)
+        assert_equal(hdr.get(keys[0]), falsyval)
+        assert_equal(hdr.get(keys[0], -1), falsyval)
+
+
     def test_endianness_ro(self):
         # endianness is a read only property
         ''' Its use in initialization tested in the init tests.
@@ -161,40 +236,7 @@ class _TestWrapStructBase(TestCase):
         assert_raises(AttributeError, hdr.__setattr__, 'structarr', 0)
 
     def log_chk(self, hdr, level):
-        # utility method to check header checking / logging
-        # If level == 0, this header should always be OK
-        str_io = StringIO()
-        logger = logging.getLogger('test.logger')
-        handler = logging.StreamHandler(str_io)
-        logger.addHandler(handler)
-        str_io.truncate(0)
-        hdrc = hdr.copy()
-        if level == 0:  # Should never log or raise error
-            logger.setLevel(0)
-            hdrc.check_fix(logger=logger, error_level=0)
-            assert_equal(str_io.getvalue(), '')
-            logger.removeHandler(handler)
-            return hdrc, '', ()
-        # Non zero level, test above and below threshold
-        # Logging level above threshold, no log
-        logger.setLevel(level + 1)
-        e_lev = level + 1
-        hdrc.check_fix(logger=logger, error_level=e_lev)
-        assert_equal(str_io.getvalue(), '')
-        # Logging level below threshold, log appears
-        logger.setLevel(level + 1)
-        logger.setLevel(level - 1)
-        hdrc = hdr.copy()
-        hdrc.check_fix(logger=logger, error_level=e_lev)
-        assert_true(str_io.getvalue() != '')
-        message = str_io.getvalue().strip()
-        logger.removeHandler(handler)
-        hdrc2 = hdr.copy()
-        raiser = (HeaderDataError,
-                  hdrc2.check_fix,
-                  logger,
-                  level)
-        return hdrc, message, raiser
+        return log_chk(hdr, level)
 
     def assert_no_log_err(self, hdr):
         """ Assert that no logging or errors result from this `hdr`

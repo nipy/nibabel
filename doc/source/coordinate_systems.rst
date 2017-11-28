@@ -216,7 +216,7 @@ From scanner to subject
 If the subject is lying in the usual position for a brain scan, face up
 and head first in the scanner, then scanner-left/right is also the left-right
 axis of the subject's head, scanner-floor/ceiling is the anterior-posterior
-axis of the head and scanner-bore is the inferior-posterior axis of the head.
+axis of the head and scanner-bore is the inferior-superior axis of the head.
 
 Sometimes the subject is not lying in the standard position.  For example, the
 subject may be lying with their face pointing to the right (in terms of the
@@ -239,7 +239,7 @@ scanner-floor/ceiling, but reversed so that positive values are towards the
 floor.  This axis goes from left to right in the subject, with positive values
 to the right.  The second (Y) axis would be scanner-left/right
 (anterior-posterior in the subject), and the Z axis would be scanner-bore
-(inferior-posterior).
+(inferior-superior).
 
 Naming reference spaces
 =======================
@@ -386,8 +386,8 @@ A rotation of $\gamma$ radians around the first array axis:
     \end{bmatrix} =
     \begin{bmatrix}
     1 & 0 & 0 \\
-    0 & \cos(\gamma) & 0 & -\sin(\gamma) \\
-    0 & \sin(\gamma) & 0 & \cos(\gamma) \\
+    0 & \cos(\gamma) & -\sin(\gamma) \\
+    0 & \sin(\gamma) & \cos(\gamma) \\
     \end{bmatrix}
     \begin{bmatrix}
     i\\
