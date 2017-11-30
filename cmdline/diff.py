@@ -18,8 +18,8 @@ from optparse import OptionParser, Option
 import numpy as np
 
 import nibabel as nib
-import nibabel.cmdline.utils
-from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
+import cmdline.utils
+from cmdline.utils import _err, verbose, table2string, ap, safe_get
 import fileinput
 
 __author__ = 'Yaroslav Halchenko & Christopher Cheng'
@@ -59,9 +59,9 @@ def main():
     parser = get_opt_parser()
     (opts, files) = parser.parse_args()
 
-    nibabel.cmdline.utils.verbose_level = opts.verbose
+    cmdline.utils.verbose_level = opts.verbose
 
-    if nibabel.cmdline.utils.verbose_level < 3:
+    if cmdline.utils.verbose_level < 3:
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
@@ -71,19 +71,15 @@ def main():
     # see which fields differ
     # call proc_file from ls, with opts.header_fields set to the fields which differ between files
 
-    img1 = nibabel.load(files[0])  # load first image
-    img2 = nibabel.load(files[1])  # load second image
+    img1 = nib.load(files[0])  # load first image
+    img2 = nib.load(files[1])  # load second image
 
     def diff_dicts(compare1, compare2):
-        if {i: compare1.header[i] for i in compare1.header.keys()} == {i: compare2.header[i] for i in
-                                                                       compare2.header.keys()}:
-            return
-        else:
-            for i in compare1.header.keys():
-                if compare1.header[i] != compare2.header[i]:
-                    print({i: (compare1.header[i], compare2.header[i])})
-
-    opts.header_fields = []  # TODO #1
+        for i in header_fields:
+            if {i: compare1.header[i]} == {i: compare2.header[i]}:
+                return
+            else:
+                opts.header_fields.append((compare1.header[i],compare2.header[i]))
 
     from .ls import proc_file
     rows = [proc_file(f, opts) for f in files]
