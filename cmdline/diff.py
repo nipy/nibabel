@@ -26,6 +26,12 @@ __author__ = 'Yaroslav Halchenko & Christopher Cheng'
 __copyright__ = 'Copyright (c) 2017 NiBabel contributors'
 __license__ = 'MIT'
 
+# these fields are processed by the __get method
+header_fields = ['sizeof_hdr', 'dim_info', 'dim', 'intent_p1', 'intent_p2', 'intent_p3', 'intent_code', 'datatype',
+                 'bitpix', 'slice_start', 'pixdim', 'vox_offset', 'scl_slope', 'scl_inter', 'slice_end', 'slice_code',
+                 'xyzt_units', 'cal_max', 'cal_min', 'slice_duration', 'toffset', 'descrip', 'aux_file', 'qform_code',
+                 'sform_code', 'quatern_b', 'quatern_c', 'quatern_d', 'qoffset_x', 'qoffset_y', 'qoffset_z', 'srow_x',
+                 'srow_y', 'srow_z', 'intent_name', 'magic']
 
 
 def get_opt_parser():
@@ -76,8 +82,6 @@ def main():
             for i in compare1.header.keys():
                 if compare1.header[i] != compare2.header[i]:
                     print({i: (compare1.header[i], compare2.header[i])})
-
-    # MAIN QUESTION: HOW TO GET 1. properly load files and 2. replace with adjusted header fields?
 
     opts.header_fields = []  # TODO #1
 
