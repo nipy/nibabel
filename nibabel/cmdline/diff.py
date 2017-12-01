@@ -18,14 +18,20 @@ from optparse import OptionParser, Option
 import numpy as np
 
 import nibabel as nib
-import nibabel.cmdline.utils
-from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
+import cmdline.utils
+from cmdline.utils import _err, verbose, table2string, ap, safe_get
 import fileinput
 
 __author__ = 'Yaroslav Halchenko & Christopher Cheng'
 __copyright__ = 'Copyright (c) 2017 NiBabel contributors'
 __license__ = 'MIT'
 
+# these fields are processed by the __get method
+header_fields = ['sizeof_hdr', 'dim_info', 'dim', 'intent_p1', 'intent_p2', 'intent_p3', 'intent_code', 'datatype',
+                 'bitpix', 'slice_start', 'pixdim', 'vox_offset', 'scl_slope', 'scl_inter', 'slice_end', 'slice_code',
+                 'xyzt_units', 'cal_max', 'cal_min', 'slice_duration', 'toffset', 'descrip', 'aux_file', 'qform_code',
+                 'sform_code', 'quatern_b', 'quatern_c', 'quatern_d', 'qoffset_x', 'qoffset_y', 'qoffset_z', 'srow_x',
+                 'srow_y', 'srow_z', 'intent_name', 'magic']
 
 
 def get_opt_parser():
@@ -46,6 +52,13 @@ def get_opt_parser():
 
     return p
 
+def diff_dicts(compare1, compare2):
+    """Returns the header fields with differing values between two files"""
+        for i in header_fields:
+            if {i: compare1.header[i]} == {i: compare2.header[i]}:
+                return
+            else:
+                opts.header_fields.append((compare1.header[i],compare2.header[i]))
 
 def main():
     """Show must go on"""
@@ -53,9 +66,9 @@ def main():
     parser = get_opt_parser()
     (opts, files) = parser.parse_args()
 
-    nibabel.cmdline.utils.verbose_level = opts.verbose
+    cmdline.utils.verbose_level = opts.verbose
 
-    if nibabel.cmdline.utils.verbose_level < 3:
+    if cmdline.utils.verbose_level < 3:
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
@@ -65,27 +78,7 @@ def main():
     # see which fields differ
     # call proc_file from ls, with opts.header_fields set to the fields which differ between files
 
-    img1 = nibabel.load(files[0])  # load first image
-    img2 = nibabel.load(files[1])  # load second image
-
-    if img1.header.get_data_dtype() != img2.header.get_data_dtype():
-        data_dtype = (img1.header.get_data_dtype(), img2.header.get_data_dtype())
-    else:
-        return "Same data type"
-
-    if img1.header.get_data_shape() != img2.header.get_data_shape():
-        data_shape = (img1.header.get_data_shape(), img2.header.get_data_shape())
-    else:
-        return "Same data shape"
-
-    if img1.header.get_zooms() != img2.header.get_zooms():
-        zooms = (img1.header.get_zooms(), img2.header.get_zooms())
-    else:
-        return "Same voxel sizes"
-
-    # MAIN QUESTION: HOW TO GET 1. properly load files and 2. replace with adjusted header fields?
-
-    opts.header_fields = [data_dtype, data_shape, zooms]  # TODO #1
+    diff_dicts(files[0], files[1])
 
     from .ls import proc_file
     rows = [proc_file(f, opts) for f in files]
