@@ -11,7 +11,7 @@
 Quick diff summary for a set of neuroimaging files
 """
 
-from cmdline.diff import main
+from nibabel.cmdline.diff import main
 
 if __name__ == '__main__':
     main()

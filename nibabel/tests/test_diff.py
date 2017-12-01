@@ -36,7 +36,7 @@ from .test_helpers import assert_data_similar
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
-from cmdline.diff import diff_dicts
+from nibabel.cmdline.diff import diff_dicts
 
 
 def test_diff_dicts():

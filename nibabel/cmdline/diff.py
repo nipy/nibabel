@@ -18,8 +18,8 @@ from optparse import OptionParser, Option
 import numpy as np
 
 import nibabel as nib
-import cmdline.utils
-from cmdline.utils import _err, verbose, table2string, ap, safe_get
+import nibabel.cmdline.utils
+from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
 import fileinput
 
 __author__ = 'Yaroslav Halchenko & Christopher Cheng'
@@ -54,11 +54,9 @@ def get_opt_parser():
 
 def diff_dicts(compare1, compare2):
     """Returns the header fields with differing values between two files"""
-        for i in header_fields:
-            if {i: compare1.header[i]} == {i: compare2.header[i]}:
-                return
-            else:
-                opts.header_fields.append((compare1.header[i],compare2.header[i]))
+    for i in header_fields:
+        if np.any(compare1.header[i] != compare2.header[i]):
+            return {i:(compare1.header[i],compare2.header[i])}
 
 def main():
     """Show must go on"""
@@ -66,9 +64,9 @@ def main():
     parser = get_opt_parser()
     (opts, files) = parser.parse_args()
 
-    cmdline.utils.verbose_level = opts.verbose
+    nibabel.cmdline.utils.verbose_level = opts.verbose
 
-    if cmdline.utils.verbose_level < 3:
+    if nibabel.cmdline.utils.verbose_level < 3:
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
@@ -78,7 +76,10 @@ def main():
     # see which fields differ
     # call proc_file from ls, with opts.header_fields set to the fields which differ between files
 
-    diff_dicts(files[0], files[1])
+    img1 = nib.load(files[0])
+    img2 = nib.load(files[1])
+
+    opts.header_fields = [diff_dicts(img1, img2)]
 
     from .ls import proc_file
     rows = [proc_file(f, opts) for f in files]

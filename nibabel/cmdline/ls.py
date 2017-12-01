@@ -18,8 +18,8 @@ from optparse import OptionParser, Option
 import numpy as np
 
 import nibabel as nib
-import cmdline.utils
-from cmdline.utils import _err, verbose, table2string, ap, safe_get
+import nibabel.cmdline.utils
+from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
 
 __author__ = 'Yaroslav Halchenko'
 __copyright__ = 'Copyright (c) 2011-2016 Yaroslav Halchenko ' \
@@ -159,9 +159,9 @@ def main():
     parser = get_opt_parser()
     (opts, files) = parser.parse_args()
 
-    cmdline.utils.verbose_level = opts.verbose
+    nibabel.cmdline.utils.verbose_level = opts.verbose
 
-    if cmdline.utils.verbose_level < 3:
+    if nibabel.cmdline.utils.verbose_level < 3:
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
