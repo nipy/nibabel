@@ -54,7 +54,7 @@ def get_opt_parser():
 
 def diff_dicts(compare1, compare2):
     """Returns the header fields with differing values between two files"""
-    for i in header_fields:
+    for i in compare1.header.keys():
         if np.any(compare1.header[i] != compare2.header[i]):
             return {i:(compare1.header[i],compare2.header[i])}
 
@@ -79,12 +79,13 @@ def main():
     img1 = nib.load(files[0])
     img2 = nib.load(files[1])
 
-    opts.header_fields = [diff_dicts(img1, img2)]
+#    opts.header_fields = [diff_dicts(img1, img2)]
 
-    from .ls import proc_file
-    rows = [proc_file(f, opts) for f in files]
+#    from .ls import proc_file
+#    rows = [proc_file(f, opts) for f in files]
 
-    print(table2string(rows))
+#    print(table2string(rows))
+    print(diff_dicts(img1, img2))
 
     # Later TODO #2
     # if opts.header_fields are specified, then limit comparison only to those
