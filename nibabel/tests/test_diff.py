@@ -15,7 +15,7 @@ from glob import glob
 
 import numpy as np
 
-from ..tmpdirs import InTemporaryDirectory
+# from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 
@@ -40,8 +40,9 @@ from nibabel.cmdline.diff import diff_dicts
 
 
 def test_diff_dicts():
-    assert_equal(diff_dicts({}, {}), {})
-    assert_equal(diff_dicts({'dtype': int}, {'dtype': float}), {'dtype': (int, float)})
-    assert_equal(diff_dicts({1: 2}, {1: 2}), {})
+    assert_equal(diff_dicts('key', None, None), None)
+    assert_equal(diff_dicts('dtype', int, float), {'dtype': (int, float)})
+    assert_equal(diff_dicts(1, 2, 2), None)
+    assert_equal(diff_dicts('hdr', 1, None), {'hdr': (1, None)})
+    assert_equal(diff_dicts('array', np.array([[-3.,  0.,  0.,  3.]]), np.array([[-2.,  0.,  0.,  3.]])), {'array': (array([[-3.,  0.,  0.,  3.]]), array([[-2.,  0.,  0.,  3.]]))})
     # TODO: mixed cases
-    # TODO: arrays

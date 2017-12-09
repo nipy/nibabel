@@ -26,13 +26,6 @@ __author__ = 'Yaroslav Halchenko & Christopher Cheng'
 __copyright__ = 'Copyright (c) 2017 NiBabel contributors'
 __license__ = 'MIT'
 
-# these fields are processed by the __get method
-# header_fields = ['sizeof_hdr', 'dim_info', 'dim', 'intent_p1', 'intent_p2', 'intent_p3', 'intent_code', 'datatype',
-#                 'bitpix', 'slice_start', 'pixdim', 'vox_offset', 'scl_slope', 'scl_inter', 'slice_end', 'slice_code',
-#                 'xyzt_units', 'cal_max', 'cal_min', 'slice_duration', 'toffset', 'descrip', 'aux_file', 'qform_code',
-#                 'sform_code', 'quatern_b', 'quatern_c', 'quatern_d', 'qoffset_x', 'qoffset_y', 'qoffset_z', 'srow_x',
-#                 'srow_y', 'srow_z', 'intent_name', 'magic']
-
 
 def get_opt_parser():
     # use module docstring for help output
@@ -57,16 +50,9 @@ def diff_dicts(key, compare1, compare2):
     """Returns the differences between two dicts"""
     if np.any(compare1 != compare2):
         return {key: (compare1,compare2)}
-    elif compare1 or compare2 is None:
-        return {key: "Information for this header does not exist for both files"}
     else:
-        return {key: None}
+        pass
 
-
-def diff_dicts2(compare1, compare2):
-    for i in compare1.header.keys():
-        if np.any(compare1.header[i] != compare2.header[i]):
-            return {i:(compare1.header[i],compare2.header[i])}
 
 def main():
     """Show must go on"""
@@ -80,24 +66,14 @@ def main():
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    assert len(files) == 2, "ATM we can work only with two files"  # TODO #3 -- make it work for any number
-
-    # load the files headers
-    # see which fields differ
-    # call proc_file from ls, with opts.header_fields set to the fields which differ between files
+    assert len(files) == 2, "Please enter two files"
+    # TODO #3 -- make it work for any number
 
     img1 = nib.load(files[0])
     img2 = nib.load(files[1])
 
-#    opts.header_fields = [diff_dicts(img1, img2)]
-
-#    from .ls import proc_file
-#    rows = [proc_file(f, opts) for f in files]
-
-#    print(table2string(rows))
     for i in img1.header.keys():
-        print(diff_dicts(i, img1.header[i], img2.header[i]))
+        if diff_dicts(i, img1.header[i], img2.header[i]) is not None:
+            print(diff_dicts(i, img1.header[i], img2.header[i]))
 
-    # Later TODO #2
-    # if opts.header_fields are specified, then limit comparison only to those
-    # fields
+    #  TODO #2 -- limit comparison only to certain fields
