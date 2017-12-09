@@ -92,7 +92,6 @@ class MGHHeader(LabeledWrapStruct):
 
     def __init__(self,
                  binaryblock=None,
-                 endianness='>',
                  check=True):
         ''' Initialize header from binary data block
 
@@ -105,9 +104,6 @@ class MGHHeader(LabeledWrapStruct):
             Whether to check content of header in initialization.
             Default is True.
         '''
-        if endianness != '>':
-            raise ValueError("MGHHeader is big-endian")
-
         min_size = self._hdrdtype.itemsize
         full_size = self.template_dtype.itemsize
         if binaryblock is not None and len(binaryblock) >= min_size:
@@ -117,7 +113,7 @@ class MGHHeader(LabeledWrapStruct):
             binaryblock = (binaryblock[:full_size] +
                            b'\x00' * (full_size - len(binaryblock)))
         super(MGHHeader, self).__init__(binaryblock=binaryblock,
-                                        endianness=endianness,
+                                        endianness='big',
                                         check=False)
         if not self._structarr['goodRASFlag']:
             self._set_affine_default()
@@ -407,6 +403,42 @@ class MGHHeader(LabeledWrapStruct):
                             buffer=self.binaryblock, offset=ftr_loc_in_hdr)
         fileobj.seek(self.get_footer_offset())
         fileobj.write(ftr_nd.tostring())
+
+    def copy(self):
+        ''' Return copy of structure '''
+        return self.__class__(self.binaryblock, check=False)
+
+    def as_byteswapped(self, endianness=None):
+        ''' Return new object with given ``endianness``
+
+        If big endian, returns a copy of the object. Otherwise raises ValueError.
+
+        Parameters
+        ----------
+        endianness : None or string, optional
+           endian code to which to swap.  None means swap from current
+           endianness, and is the default
+
+        Returns
+        -------
+        wstr : ``MGHHeader``
+           ``MGHHeader`` object
+
+        '''
+        if endianness is None or endian_codes[endianness] != '>':
+            raise ValueError('Cannot byteswap MGHHeader - '
+                             'must always be big endian')
+        return self.copy()
+
+    @classmethod
+    def diagnose_binaryblock(klass, binaryblock, endianness=None):
+        if endianness is not None and endian_codes[endianness] != '>':
+            raise ValueError('MGHHeader must always be big endian')
+        wstr = klass(binaryblock, check=False)
+        battrun = BatteryRunner(klass._get_checks())
+        reports = battrun.check_only(wstr)
+        return '\n'.join([report.message
+                          for report in reports if report.message])
 
     class _HeaderData:
         """ Provide interface to deprecated MGHHeader fields"""
