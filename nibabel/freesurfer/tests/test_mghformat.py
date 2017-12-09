@@ -340,9 +340,12 @@ def test_mghheader_default_structarr():
 
 def test_deprecated_fields():
     hdr = MGHHeader()
+    hdr_data = MGHHeader._HeaderData(hdr.structarr)
 
     # mrparams is the only deprecated field at the moment
+    # Accessing hdr_data is equivalent to accessing hdr, so double all checks
     assert_array_equal(hdr['mrparams'], 0)
+    assert_array_equal(hdr_data['mrparams'], 0)
 
     hdr['mrparams'] = [1, 2, 3, 4]
     assert_array_almost_equal(hdr['mrparams'], [1, 2, 3, 4])
@@ -351,12 +354,26 @@ def test_deprecated_fields():
     assert_equal(hdr['te'], 3)
     assert_equal(hdr['ti'], 4)
     assert_equal(hdr['fov'], 0)
+    assert_array_almost_equal(hdr_data['mrparams'], [1, 2, 3, 4])
+    assert_equal(hdr_data['tr'], 1)
+    assert_equal(hdr_data['flip_angle'], 2)
+    assert_equal(hdr_data['te'], 3)
+    assert_equal(hdr_data['ti'], 4)
+    assert_equal(hdr_data['fov'], 0)
 
     hdr['tr'] = 5
     hdr['flip_angle'] = 6
     hdr['te'] = 7
     hdr['ti'] = 8
     assert_array_almost_equal(hdr['mrparams'], [5, 6, 7, 8])
+    assert_array_almost_equal(hdr_data['mrparams'], [5, 6, 7, 8])
+
+    hdr_data['tr'] = 9
+    hdr_data['flip_angle'] = 10
+    hdr_data['te'] = 11
+    hdr_data['ti'] = 12
+    assert_array_almost_equal(hdr['mrparams'], [9, 10, 11, 12])
+    assert_array_almost_equal(hdr_data['mrparams'], [9, 10, 11, 12])
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
@@ -379,7 +396,7 @@ class TestMGHHeader(_TestLabeledWrapStruct):
         hdr['dims'] = [4, 3, 2, 1]
 
     def get_bad_bb(self):
-        return b'\xff' + bytes(self.header_class._hdrdtype.itemsize)
+        return b'\xff' + b'\x00' * self.header_class._hdrdtype.itemsize
 
     # Update tests to account for big-endian requirement
     def test_general_init(self):
