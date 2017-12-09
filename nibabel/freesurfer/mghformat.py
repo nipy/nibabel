@@ -455,7 +455,8 @@ class MGHHeader(LabeledWrapStruct):
             sa = self._structarr
             if item == 'mrparams':
                 sa['tr'], sa['flip_angle'], sa['te'], sa['ti'] = val
-            sa[item] = val
+            else:
+                sa[item] = val
 
     @property
     @deprecate_with_version('_header_data is deprecated.\n'
@@ -475,7 +476,8 @@ class MGHHeader(LabeledWrapStruct):
     def __setitem__(self, item, value):
         if item == 'mrparams':
             self._header_data[item] = value
-        super(MGHHeader, self).__setitem__(item, value)
+        else:
+            super(MGHHeader, self).__setitem__(item, value)
 
 
 class MGHImage(SpatialImage):
