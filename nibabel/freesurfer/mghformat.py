@@ -14,7 +14,8 @@ from os.path import splitext
 import numpy as np
 
 from ..affines import voxel_sizes, from_matvec
-from ..volumeutils import (array_to_file, array_from_file, Recoder)
+from ..volumeutils import (array_to_file, array_from_file, endian_codes,
+                           Recoder)
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
@@ -347,10 +348,10 @@ class MGHHeader(LabeledWrapStruct):
 
         Ignores byte order; always big endian
         '''
-        structarr = super(MGHHeader, klass).default_structarr()
-        # This should not be reachable even to test
-        if structarr.newbyteorder('>') != structarr:
-            raise ValueError("Default structarr is not big-endian")
+        if endianness is not None and endian_codes[endianness] != '>':
+            raise ValueError('MGHHeader must always be big endian')
+        structarr = super(MGHHeader,
+                          klass).default_structarr(endianness=endianness)
         structarr['version'] = 1
         structarr['dims'] = 1
         structarr['type'] = 3

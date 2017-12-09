@@ -18,6 +18,7 @@ from ...openers import ImageOpener
 from ..mghformat import MGHHeader, MGHError, MGHImage
 from ...tmpdirs import InTemporaryDirectory
 from ...fileholders import FileHolder
+from ...volumeutils import sys_is_le
 
 from nose.tools import assert_true, assert_false
 
@@ -284,6 +285,42 @@ def test_mgh_set_data_shape():
     assert_array_equal(hdr.get_data_shape(), (5, 4, 3, 2))
     with assert_raises(ValueError):
         hdr.set_data_shape((5, 4, 3, 2, 1))
+
+
+def test_mghheader_default_structarr():
+    hdr = MGHHeader.default_structarr()
+    assert_equal(hdr['version'], 1)
+    assert_array_equal(hdr['dims'], 1)
+    assert_equal(hdr['type'], 3)
+    assert_equal(hdr['dof'], 0)
+    assert_equal(hdr['goodRASFlag'], 1)
+    assert_array_equal(hdr['delta'], 1)
+    assert_array_equal(hdr['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
+    assert_array_equal(hdr['Pxyz_c'], 0)
+    assert_equal(hdr['tr'], 0)
+    assert_equal(hdr['flip_angle'], 0)
+    assert_equal(hdr['te'], 0)
+    assert_equal(hdr['ti'], 0)
+    assert_equal(hdr['fov'], 0)
+
+    big_codes = ('>', 'big', 'BIG', 'b', 'be', 'B', 'BE')
+    little_codes = ('<', 'little', 'l', 'le', 'L', 'LE')
+
+    if sys_is_le:
+        big_codes += ('swapped', 's', 'S', '!')
+        little_codes += ('native', 'n', 'N', '=', '|', 'i', 'I')
+    else:
+        big_codes += ('native', 'n', 'N', '=', '|', 'i', 'I')
+        little_codes += ('swapped', 's', 'S', '!')
+
+    for endianness in big_codes:
+        hdr2 = MGHHeader.default_structarr(endianness=endianness)
+        assert_equal(hdr2, hdr)
+        assert_equal(hdr2.newbyteorder('>'), hdr)
+
+    for endianness in little_codes:
+        with assert_raises(ValueError):
+            MGHHeader.default_structarr(endianness=endianness)
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
