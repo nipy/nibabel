@@ -21,6 +21,7 @@ from ...fileholders import FileHolder
 from ...spatialimages import HeaderDataError
 from ...volumeutils import sys_is_le
 from ...wrapstruct import WrapStructError
+from ... import imageglobals
 
 from nose.tools import assert_true, assert_false
 
@@ -32,7 +33,7 @@ from ...testing import assert_not_equal
 from ...testing import data_path
 
 from ...tests import test_spatialimages as tsi
-from ...tests.test_wrapstruct import _TestWrapStructBase
+from ...tests.test_wrapstruct import _TestLabeledWrapStruct
 
 MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
@@ -371,9 +372,16 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_equal(expected.newbyteorder('>'), actual)
 
 
-class TestMGHHeader(_TestWrapStructBase):
+class TestMGHHeader(_TestLabeledWrapStruct):
     header_class = MGHHeader
 
+    def _set_something_into_hdr(self, hdr):
+        hdr['dims'] = [4, 3, 2, 1]
+
+    def get_bad_bb(self):
+        return b'\xff' + bytes(self.header_class._hdrdtype.itemsize)
+
+    # Update tests to account for big-endian requirement
     def test_general_init(self):
         hdr = self.header_class()
         # binaryblock has length given by header data dtype
@@ -385,10 +393,6 @@ class TestMGHHeader(_TestWrapStructBase):
         # effect
         hdr = self.header_class(check=False)
 
-    def _set_something_into_hdr(self, hdr):
-        hdr['dims'] = [4, 3, 2, 1]
-
-    # Update tests to account for big-endian requirement
     def test__eq__(self):
         # Test equal and not equal
         hdr1 = self.header_class()
@@ -470,3 +474,14 @@ class TestMGHHeader(_TestWrapStructBase):
         assert_raises(Exception, DC, hdr.binaryblock)
         hdr = DC(hdr.binaryblock, check=False)
         hdr2 = hdr.as_byteswapped('>')
+
+    def test_checks(self):
+        # Test header checks
+        hdr_t = self.header_class()
+        # _dxer just returns the diagnostics as a string
+        # Default hdr is OK
+        assert_equal(self._dxer(hdr_t), '')
+        # Version should be 1
+        hdr = hdr_t.copy()
+        hdr['version'] = 2
+        assert_equal(self._dxer(hdr), 'Unknown MGH format version')

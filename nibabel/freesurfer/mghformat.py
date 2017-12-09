@@ -21,6 +21,7 @@ from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
 from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
+from ..batteryrunners import BatteryRunner, Report
 from ..wrapstruct import LabeledWrapStruct
 from ..deprecated import deprecate_with_version
 
@@ -119,6 +120,20 @@ class MGHHeader(LabeledWrapStruct):
             self._set_affine_default()
         if check:
             self.check_fix()
+
+    @staticmethod
+    def chk_version(hdr, fix=False):
+        rep = Report()
+        if hdr['version'] != 1:
+            rep = Report(HeaderDataError, 40)
+            rep.problem_msg = 'Unknown MGH format version'
+            if fix:
+                hdr['version'] = 1
+        return hdr, rep
+
+    @classmethod
+    def _get_checks(klass):
+        return (klass.chk_version,)
 
     @classmethod
     def from_header(klass, header=None, check=True):
