@@ -18,17 +18,21 @@ from ...openers import ImageOpener
 from ..mghformat import MGHHeader, MGHError, MGHImage
 from ...tmpdirs import InTemporaryDirectory
 from ...fileholders import FileHolder
+from ...spatialimages import HeaderDataError
 from ...volumeutils import sys_is_le
+from ...wrapstruct import WrapStructError
 
 from nose.tools import assert_true, assert_false
 
 from numpy.testing import (assert_equal, assert_array_equal,
                            assert_array_almost_equal, assert_almost_equal,
                            assert_raises)
+from ...testing import assert_not_equal
 
 from ...testing import data_path
 
 from ...tests import test_spatialimages as tsi
+from ...tests.test_wrapstruct import _TestWrapStructBase
 
 MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
@@ -139,6 +143,21 @@ def test_write_noaffine_mgh():
     # important part -- whether default affine info is stored
     assert_array_almost_equal(h['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
     assert_array_almost_equal(h['Pxyz_c'], [0, 0, 0])
+
+
+def test_set_zooms():
+    mgz = load(MGZ_FNAME)
+    h = mgz.header
+    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
+    h.set_zooms([1, 1, 1, 3])
+    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 3])
+    for zooms in ((-1, 1, 1, 1),
+                  (1, -1, 1, 1),
+                  (1, 1, -1, 1),
+                  (1, 1, 1, -1),
+                  (1, 1, 1, 1, 5)):
+        with assert_raises(HeaderDataError):
+            h.set_zooms(zooms)
 
 
 def bad_dtype_mgh():
@@ -318,17 +337,25 @@ def test_mghheader_default_structarr():
             MGHHeader.default_structarr(endianness=endianness)
 
 
-def test_byteswap():
+def test_deprecated_fields():
     hdr = MGHHeader()
 
-    for endianness in BIG_CODES:
-        hdr2 = hdr.as_byteswapped(endianness)
-        assert_true(hdr2 is not hdr)
-        assert_equal(hdr2, hdr)
+    # mrparams is the only deprecated field at the moment
+    assert_array_equal(hdr['mrparams'], 0)
 
-    for endianness in (None,) + LITTLE_CODES:
-        with assert_raises(ValueError):
-            hdr.as_byteswapped(endianness)
+    hdr['mrparams'] = [1, 2, 3, 4]
+    assert_array_almost_equal(hdr['mrparams'], [1, 2, 3, 4])
+    assert_equal(hdr['tr'], 1)
+    assert_equal(hdr['flip_angle'], 2)
+    assert_equal(hdr['te'], 3)
+    assert_equal(hdr['ti'], 4)
+    assert_equal(hdr['fov'], 0)
+
+    hdr['tr'] = 5
+    hdr['flip_angle'] = 6
+    hdr['te'] = 7
+    hdr['ti'] = 8
+    assert_array_almost_equal(hdr['mrparams'], [5, 6, 7, 8])
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
@@ -342,3 +369,104 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         # others may only require the same type
         # MGH requires the actual to be a big endian version of expected
         assert_equal(expected.newbyteorder('>'), actual)
+
+
+class TestMGHHeader(_TestWrapStructBase):
+    header_class = MGHHeader
+
+    def test_general_init(self):
+        hdr = self.header_class()
+        # binaryblock has length given by header data dtype
+        binblock = hdr.binaryblock
+        assert_equal(len(binblock), hdr.structarr.dtype.itemsize)
+        # Endianness will always be big, and cannot be set
+        assert_equal(hdr.endianness, '>')
+        # You can also pass in a check flag, without data this has no
+        # effect
+        hdr = self.header_class(check=False)
+
+    def _set_something_into_hdr(self, hdr):
+        hdr['dims'] = [4, 3, 2, 1]
+
+    # Update tests to account for big-endian requirement
+    def test__eq__(self):
+        # Test equal and not equal
+        hdr1 = self.header_class()
+        hdr2 = self.header_class()
+        assert_equal(hdr1, hdr2)
+        self._set_something_into_hdr(hdr1)
+        assert_not_equal(hdr1, hdr2)
+        self._set_something_into_hdr(hdr2)
+        assert_equal(hdr1, hdr2)
+        # REMOVED as_byteswapped() test
+        # Check comparing to funny thing says no
+        assert_not_equal(hdr1, None)
+        assert_not_equal(hdr1, 1)
+
+    def test_to_from_fileobj(self):
+        # Successful write using write_to
+        hdr = self.header_class()
+        str_io = io.BytesIO()
+        hdr.write_to(str_io)
+        str_io.seek(0)
+        hdr2 = self.header_class.from_fileobj(str_io)
+        assert_equal(hdr2.endianness, '>')
+        assert_equal(hdr2.binaryblock, hdr.binaryblock)
+
+    def test_endian_guess(self):
+        # Check guesses of endian
+        eh = self.header_class()
+        assert_equal(eh.endianness, '>')
+        assert_equal(self.header_class.guessed_endian(eh), '>')
+
+    def test_bytes(self):
+        # Test get of bytes
+        hdr1 = self.header_class()
+        bb = hdr1.binaryblock
+        hdr2 = self.header_class(hdr1.binaryblock)
+        assert_equal(hdr1, hdr2)
+        assert_equal(hdr1.binaryblock, hdr2.binaryblock)
+        # Do a set into the header, and try again.  The specifics of 'setting
+        # something' will depend on the nature of the bytes object
+        self._set_something_into_hdr(hdr1)
+        hdr2 = self.header_class(hdr1.binaryblock)
+        assert_equal(hdr1, hdr2)
+        assert_equal(hdr1.binaryblock, hdr2.binaryblock)
+        # Short binaryblocks give errors (here set through init)
+        # Long binaryblocks are truncated
+        assert_raises(WrapStructError,
+                      self.header_class,
+                      bb[:self.header_class._hdrdtype.itemsize - 1])
+        # Checking set to true by default, and prevents nonsense being
+        # set into the header.
+        bb_bad = self.get_bad_bb()
+        if bb_bad is None:
+            return
+        with imageglobals.LoggingOutputSuppressor():
+            assert_raises(HeaderDataError, self.header_class, bb_bad)
+        # now slips past without check
+        _ = self.header_class(bb_bad, check=False)
+
+    def test_as_byteswapped(self):
+        # Check byte swapping
+        hdr = self.header_class()
+        assert_equal(hdr.endianness, '>')
+        # same code just returns a copy
+        for endianness in BIG_CODES:
+            hdr2 = hdr.as_byteswapped(endianness)
+            assert_false(hdr2 is hdr)
+            assert_equal(hdr2, hdr)
+
+        # Different code raises error
+        for endianness in (None,) + LITTLE_CODES:
+            with assert_raises(ValueError):
+                hdr.as_byteswapped(endianness)
+        # Note that contents is not rechecked on swap / copy
+        class DC(self.header_class):
+            def check_fix(self, *args, **kwargs):
+                raise Exception
+
+        # Assumes check=True default
+        assert_raises(Exception, DC, hdr.binaryblock)
+        hdr = DC(hdr.binaryblock, check=False)
+        hdr2 = hdr.as_byteswapped('>')
