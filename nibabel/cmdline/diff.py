@@ -49,7 +49,9 @@ def get_opt_parser():
 def diff_dicts(key, compare1, compare2):
     """Returns the differences between two dicts"""
     if np.any(compare1 != compare2):
-        return {key: (compare1,compare2)}
+        return {key: (compare1, compare2)}
+    elif type(compare1) != type(compare2):
+        return {key: (compare1, compare2)}
     else:
         pass
 
