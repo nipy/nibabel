@@ -2,3 +2,4 @@
 -r requirements.txt
 nose
 mock
+hypothesis

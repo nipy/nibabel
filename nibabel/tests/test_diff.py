@@ -13,9 +13,6 @@ from os.path import (dirname, join as pjoin, abspath, splitext, basename,
 import csv
 from glob import glob
 
-import numpy as np
-from numpy import array
-
 # from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
@@ -39,52 +36,52 @@ import hypothesis.strategies as st
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
-from nibabel.cmdline.diff import diff_dicts
+from nibabel.cmdline.diff import diff_values
 
 
 @given(st.data())
-def test_diff_dicts_int(data):
+def test_diff_values_int(data):
     x = data.draw(st.integers(), label='x')
     y = data.draw(st.integers(min_value = x + 1), label='x+1')
     z = data.draw(st.integers(max_value = x - 1), label='x-1')
 
-    assert diff_dicts('key', x, x) is None
-    assert diff_dicts('key', x, y) == {'key': (x, y)}
-    assert diff_dicts('key', x, z) == {'key': (x, z)}
-    assert diff_dicts('key', y, z) == {'key': (y, z)}
+    assert diff_values('key', x, x) is None
+    assert diff_values('key', x, y) == {'key': (x, y)}
+    assert diff_values('key', x, z) == {'key': (x, z)}
+    assert diff_values('key', y, z) == {'key': (y, z)}
 
 
 @given(st.data())
-def test_diff_dicts_float(data):
+def test_diff_values_float(data):
     x = data.draw(st.just(0), label='x')
     y = data.draw(st.floats(min_value = 1e8), label='y')
     z = data.draw(st.floats(max_value = -1e8), label='z')
 
-    assert diff_dicts('key', x, x) is None
-    assert diff_dicts('key', x, y) == {'key': (x, y)}
-    assert diff_dicts('key', x, z) == {'key': (x, z)}
-    assert diff_dicts('key', y, z) == {'key': (y, z)}
+    assert diff_values('key', x, x) is None
+    assert diff_values('key', x, y) == {'key': (x, y)}
+    assert diff_values('key', x, z) == {'key': (x, z)}
+    assert diff_values('key', y, z) == {'key': (y, z)}
 
 
 @given(st.data())
-def test_diff_dicts_mixed(data):
+def test_diff_values_mixed(data):
     type_float = data.draw(st.floats(), label='float')
     type_int = data.draw(st.integers(), label='int')
     type_none = data.draw(st.none(), label='none')
 
-    assert diff_dicts('key', type_float, type_int) == {'key': (type_float, type_int)}
-    assert diff_dicts('key', type_float, type_none) == {'key': (type_float, type_none)}
-    assert diff_dicts('key', type_int, type_none) == {'key': (type_int, type_none)}
-    assert diff_dicts('key', type_none, type_none) is None
+    assert diff_values('key', type_float, type_int) == {'key': (type_float, type_int)}
+    assert diff_values('key', type_float, type_none) == {'key': (type_float, type_none)}
+    assert diff_values('key', type_int, type_none) == {'key': (type_int, type_none)}
+    assert diff_values('key', type_none, type_none) is None
 
 
 @given(st.data())
-def test_diff_dicts_array(data):
+def test_diff_values_array(data):
     a = data.draw(st.lists(elements=st.integers(min_value=0), min_size=1))
     b = data.draw(st.lists(elements=st.integers(max_value=-1), min_size=1))
     c = data.draw(st.lists(elements=st.floats(min_value=1e8), min_size=1))
     d = data.draw(st.lists(elements=st.floats(max_value=-1e8), min_size=1))
     # TODO: Figure out a way to include 0 in lists (arrays)
 
-    assert diff_dicts('key', a, b) == {'key': (a, b)}
-    assert diff_dicts('key', c, d) == {'key': (c, d)}
+    assert diff_values('key', a, b) == {'key': (a, b)}
+    assert diff_values('key', c, d) == {'key': (c, d)}

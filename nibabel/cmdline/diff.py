@@ -46,7 +46,7 @@ def get_opt_parser():
     return p
 
 
-def diff_dicts(key, compare1, compare2):
+def diff_values(key, compare1, compare2):
     """Returns the differences between two dicts"""
     if np.any(compare1 != compare2):
         return {key: (compare1, compare2)}
@@ -75,7 +75,7 @@ def main():
     img2 = nib.load(files[1])
 
     for i in img1.header.keys():
-        if diff_dicts(i, img1.header[i], img2.header[i]) is not None:
+        if diff_values(i, img1.header[i], img2.header[i]) is not None:
             print(diff_dicts(i, img1.header[i], img2.header[i]))
 
     #  TODO #2 -- limit comparison only to certain fields
