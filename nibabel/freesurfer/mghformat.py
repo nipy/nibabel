@@ -242,7 +242,8 @@ class MGHHeader(LabeledWrapStruct):
 
         Returns the spacing of voxels in the x, y, and z dimensions.
         For four-dimensional files, a fourth zoom is included, equal to the
-        repetition time (TR) in ms.
+        repetition time (TR) in ms (see `The MGH/MGZ Volume Format
+        <mghformat>`_).
 
         To access only the spatial zooms, use `hdr['delta']`.
 
@@ -250,6 +251,8 @@ class MGHHeader(LabeledWrapStruct):
         -------
         z : tuple
            tuple of header zoom values
+           
+        .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         '''
         # Do not return time zoom (TR) if 3D image
         tzoom = (self['tr'],)[:self._ndims() > 3]
