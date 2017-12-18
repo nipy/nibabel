@@ -258,7 +258,7 @@ class MGHHeader(LabeledWrapStruct):
     def set_zooms(self, zooms):
         ''' Set zooms into header fields
 
-        Sets the spaing of voxels in the x, y, and z dimensions.
+        Sets the spacing of voxels in the x, y, and z dimensions.
         For four-dimensional files, a temporal zoom (repetition time, or TR, in
         ms) may be provided as a fourth sequence element.
 
