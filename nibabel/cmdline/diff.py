@@ -39,7 +39,7 @@ def get_opt_parser():
                help="Make more noise.  Could be specified multiple times"),
 
         Option("-H", "--header-fields",
-               dest="header_fields", default='',
+               dest="header_fields", default='all',
                help="Header fields (comma separated) to be printed as well (if present)"),
     ])
 
@@ -56,6 +56,29 @@ def diff_values(key, compare1, compare2):
         pass
 
 
+def proc_file(f1, f2, opts):
+
+    vol = nib.load(f1)
+    vol2 = nib.load(f2)
+    h = vol.header
+    h2 = vol2.header
+
+    if opts.header_fields:
+        # signals "all fields"
+        if opts.header_fields == 'all':
+            # TODO: might vary across file types, thus prior sensing
+            # would be needed
+            header_fields = h.keys()
+        else:
+            header_fields = opts.header_fields.split(',')
+
+        for f in header_fields:
+            # if not f:  # skip empty
+            #    continue
+            if diff_values(f, h[f], h2[f]) is not None:
+                print(diff_values(f, h[f], h2[f]))
+
+
 def main():
     """Show must go on"""
 
@@ -64,18 +87,13 @@ def main():
 
     nibabel.cmdline.utils.verbose_level = opts.verbose
 
+    assert len(files) == 2, "Please enter two files"
+    # TODO #3 -- make it work for any number
+
     if nibabel.cmdline.utils.verbose_level < 3:
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    assert len(files) == 2, "Please enter two files"
-    # TODO #3 -- make it work for any number
+    rows = [proc_file(files[0], files[1], opts)]
 
-    img1 = nib.load(files[0])
-    img2 = nib.load(files[1])
-
-    for i in img1.header.keys():
-        if diff_values(i, img1.header[i], img2.header[i]) is not None:
-            print(diff_dicts(i, img1.header[i], img2.header[i]))
-
-    #  TODO #2 -- limit comparison only to certain fields
+    print(rows)
