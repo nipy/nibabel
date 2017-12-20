@@ -251,7 +251,7 @@ class MGHHeader(LabeledWrapStruct):
         -------
         z : tuple
            tuple of header zoom values
-           
+
         .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         '''
         # Do not return time zoom (TR) if 3D image
