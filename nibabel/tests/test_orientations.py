@@ -9,6 +9,7 @@
 ''' Testing for orientations module '''
 
 import numpy as np
+import warnings
 
 from nose.tools import assert_true, assert_equal, assert_raises
 
@@ -16,7 +17,8 @@ from numpy.testing import assert_array_equal
 
 from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
                             flip_axis, apply_orientation, OrientationError,
-                            ornt2axcodes, axcodes2ornt, aff2axcodes)
+                            ornt2axcodes, axcodes2ornt, aff2axcodes,
+                            orientation_affine)
 
 from ..affines import from_matvec, to_matvec
 
@@ -245,6 +247,12 @@ def test_ornt_transform():
                   [[0, 1, 1], [1, 1, 1]],
                   [[0, 1, 1], [1, 1, 1]])
 
+    # Target axes must exist in source
+    assert_raises(ValueError,
+                  ornt_transform,
+                  [[0, 1], [1, 1], [1, 1]],
+                  [[0, 1], [1, 1], [2, 1]])
+
 
 def test_ornt2axcodes():
     # Recoding orientation to axis codes
@@ -347,3 +355,13 @@ def test_inv_ornt_aff():
     # io_orientations test)
     assert_raises(OrientationError, inv_ornt_aff,
                   [[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
+
+
+def test_orientation_affine_deprecation():
+    aff1 = inv_ornt_aff([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
+    with warnings.catch_warnings(record=True) as warns:
+        warnings.simplefilter('always')
+        aff2 = orientation_affine([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
+        assert_equal(len(warns), 1)
+        assert_equal(warns[0].category, DeprecationWarning)
+    assert_array_equal(aff1, aff2)
