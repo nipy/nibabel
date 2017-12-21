@@ -8,7 +8,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
-Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
+Quick summary of the differences among a set of neuroimaging files
 """
 from __future__ import division, print_function, absolute_import
 
@@ -46,54 +46,79 @@ def get_opt_parser():
     return p
 
 
-def diff_values(key, compare1, compare2):
-    """Returns the differences between two dicts"""
-    if np.any(compare1 != compare2):
-        return {key: (compare1, compare2)}
-    elif type(compare1) != type(compare2):
-        return {key: (compare1, compare2)}
-    else:
-        pass
+def diff_values(key, inputs):
+    diffs = []
+
+    for i in range(len(inputs)):
+        if i != len(inputs)-1:
+            temp_input_1 = inputs[i]
+            temp_input_2 = inputs[i+1]
+            if np.any(temp_input_1[key] != temp_input_2[key]):
+                if i != 0 and temp_input_2 != diffs:
+                    diffs.append(temp_input_1[key])
+                    diffs.append(temp_input_2[key])
+                else:
+                    diffs.append(temp_input_1[key])
+            elif type(temp_input_1[key]) != type(temp_input_2[key]):
+                if i != 0 and temp_input_2 != diffs:
+                    diffs.append(temp_input_1[key])
+                    diffs.append(temp_input_2[key])
+                else:
+                    diffs.append(temp_input_1[key])
+            else:
+                pass
+
+    # TODO: figure out a way to not have these erroneous outputs occur in the above loop
+    for a in range(len(diffs)-1):
+        for b in range(len(diffs)-1):
+            try:
+                if np.all(np.isnan(diffs[a])) and np.all(np.isnan(diffs[a+1])):
+                    del diffs[a]
+            except TypeError:
+                pass
+            if a and b != len(diffs)-1:
+                if np.any(diffs[a] == diffs[b]):
+                    del diffs[a]
+
+    if len(diffs) > 1:
+        return {key: diffs}
 
 
-def proc_file(f1, f2, opts):
+def process_file(files, opts):
 
-    vol = nib.load(f1)
-    vol2 = nib.load(f2)
-    h = vol.header
-    h2 = vol2.header
+    file_list = []
+    header_list = []
+
+    for f in range(len(files)):
+        file_list.append(nib.load(files[f]))
+        for h in range(len(files)):
+            header_list.append(file_list[f].header)
 
     if opts.header_fields:
         # signals "all fields"
         if opts.header_fields == 'all':
-            # TODO: might vary across file types, thus prior sensing
-            # would be needed
-            header_fields = h.keys()
+            # TODO: header fields might vary across file types, thus prior sensing would be needed
+            header_fields = header_list[0].keys()
         else:
             header_fields = opts.header_fields.split(',')
 
         for f in header_fields:
-            # if not f:  # skip empty
-            #    continue
-            if diff_values(f, h[f], h2[f]) is not None:
-                print(diff_values(f, h[f], h2[f]))
+            if diff_values(f, header_list) is not None:
+                    print(diff_values(f, header_list))
 
 
 def main():
-    """Show must go on"""
+    """NO DAYS OFF"""
 
     parser = get_opt_parser()
     (opts, files) = parser.parse_args()
 
     nibabel.cmdline.utils.verbose_level = opts.verbose
 
-    assert len(files) == 2, "Please enter two files"
-    # TODO #3 -- make it work for any number
+    assert len(files) >= 2, "Please enter at least two files"
 
     if nibabel.cmdline.utils.verbose_level < 3:
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    rows = [proc_file(files[0], files[1], opts)]
-
-    print(rows)
+    process_file(files, opts)
