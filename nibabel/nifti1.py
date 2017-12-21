@@ -1671,8 +1671,6 @@ class Nifti1Header(SpmAnalyzeHeader):
             xyz = 0
         if t is None:
             t = 0
-        xyz_code = self.structarr['xyzt_units'] % 8
-        t_code = self.structarr['xyzt_units'] - xyz_code
         xyz_code = unit_codes[xyz]
         t_code = unit_codes[t]
         self.structarr['xyzt_units'] = xyz_code + t_code
@@ -1702,11 +1700,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         if t_msg:
             warnings.warn('{} - assuming sec'.format(t_msg))
 
-        xyz_factor = {'meter': 0.001, 'mm': 1, 'usec': 1000}[xyz_code]
-        t_factor = {'sec': 1, 'msec': 1000, 'usec': 1000000}[t_code]
+        xyz_factor = {'meter': 1000, 'mm': 1, 'micron': 0.001}[xyz_code]
+        t_factor = {'sec': 1, 'msec': 0.001, 'usec': 0.000001}[t_code]
 
-        xyz_zooms = tuple(np.array(xyz_zooms) / xyz_factor)
-        t_zoom = (t_zoom / t_factor,) if t_zoom is not None else ()
+        xyz_zooms = tuple(np.array(xyz_zooms) * xyz_factor)
+        t_zoom = (t_zoom * t_factor,) if t_zoom is not None else ()
 
         return xyz_zooms + t_zoom
 
