@@ -7,6 +7,7 @@ from __future__ import division
 
 import os
 import warnings
+import itertools
 
 import numpy as np
 
@@ -191,8 +192,18 @@ class TckFile(TractogramFile):
             # Write temporary header that we will update at the end
             self._write_header(f, header)
 
+            # Make sure streamlines are in rasmm.
+            tractogram = self.tractogram.to_world(lazy=True)
+            # Assume looping over the streamlines can be done only once.
+            tractogram = iter(tractogram)
+
             try:
-                first_item = next(iter(self.tractogram))
+                # Use the first element to check
+                #  1) the tractogram is not empty;
+                #  2) quantity of information saved along each streamline.
+                first_item = next(tractogram)
+                # Put back the first element at its place.
+                tractogram = itertools.chain([first_item], tractogram)
             except StopIteration:
                 # Empty tractogram
                 header[Field.NB_STREAMLINES] = 0
@@ -215,9 +226,6 @@ class TckFile(TractogramFile):
                 msg = ("TCK format does not support saving additional data"
                        " alongside points. Dropping: {}".format(keys))
                 warnings.warn(msg, DataWarning)
-
-            # Make sure streamlines are in rasmm.
-            tractogram = self.tractogram.to_world(lazy=True)
 
             for t in tractogram:
                 data = np.r_[t.streamline, self.FIBER_DELIMITER]
