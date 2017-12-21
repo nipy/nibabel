@@ -294,6 +294,12 @@ class MGHHeader(LabeledWrapStruct):
 
         return zooms
 
+    def set_norm_zooms(self, zooms):
+        if len(zooms) == 4:
+            zooms = zooms[:3] + (zooms[3] * 1000,)
+
+        self.set_zooms(zooms)
+
     def get_data_shape(self):
         """ Get shape of data
         """

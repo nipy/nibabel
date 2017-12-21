@@ -242,6 +242,10 @@ class SpatialHeader(FileBasedHeader):
         ''' Get zooms in mm/s units '''
         return self.get_zooms()
 
+    def set_norm_zooms(self, zooms):
+        ''' Get zooms in mm/s units '''
+        return self.set_zooms(zooms)
+
     def get_base_affine(self):
         shape = self.get_data_shape()
         zooms = self.get_zooms()

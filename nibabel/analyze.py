@@ -710,6 +710,10 @@ class AnalyzeHeader(LabeledWrapStruct):
         ''' Get zooms in mm/s units '''
         return self.get_zooms()
 
+    def set_norm_zooms(self, zooms):
+        ''' Set zooms in mm/s units '''
+        return self.set_zooms(zooms)
+
     def as_analyze_map(self):
         """ Return header as mapping for conversion to Analyze types
 

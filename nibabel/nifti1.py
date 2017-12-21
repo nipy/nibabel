@@ -1710,6 +1710,11 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         return xyz_zooms + t_zoom
 
+    def set_norm_zooms(self, zooms):
+        ''' Set zooms in mm/s units '''
+        self.set_zooms(zooms)
+        self.set_xyzt_units('mm', 'sec')
+
     def _clean_after_mapping(self):
         """ Set format-specific stuff after converting header from mapping
 
