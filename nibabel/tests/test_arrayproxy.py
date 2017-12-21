@@ -384,24 +384,18 @@ def test_keep_file_open_true_false_invalid():
         # Test that the keep_file_open flag has no effect if an open file
         # handle is passed in
         with open(fname, 'rb') as fobj:
-            proxy_no_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
-                                      keep_file_open=False)
-            assert not proxy_no_kfp._keep_file_open
-            for i in range(voxels.shape[0]):
-                assert proxy_no_kfp[x, y, z] == x * 100 + y * 10 + z
+            for kfo in (True, False, 'auto'):
+                proxy = ArrayProxy(fobj, ((10, 10, 10), dtype),
+                                   keep_file_open=kfo)
+                if kfo == 'auto':
+                    kfo = False
+                assert proxy._keep_file_open is kfo
+                for i in range(voxels.shape[0]):
+                    assert proxy[x, y, z] == x * 100 + y * 10 + z
+                    assert not fobj.closed
+                del proxy
                 assert not fobj.closed
-            del proxy_no_kfp
-            proxy_no_kfp = None
-            assert not fobj.closed
-            proxy_kfp = ArrayProxy(fobj, ((10, 10, 10), dtype),
-                                   keep_file_open=True)
-            assert proxy_kfp._keep_file_open
-            for i in range(voxels.shape[0]):
-                assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
-                assert not fobj.closed
-            del proxy_kfp
-            proxy_kfp = None
-            assert not fobj.closed
+        assert fobj.closed
         # Test invalid values of keep_file_open
         with assert_raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=0)
