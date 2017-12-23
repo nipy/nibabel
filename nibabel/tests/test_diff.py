@@ -6,29 +6,7 @@ Test running scripts
 """
 from __future__ import division, print_function, absolute_import
 
-import sys
-import os
-from os.path import (dirname, join as pjoin, abspath, splitext, basename,
-                     exists)
-import csv
-from glob import glob
-
-# from ..tmpdirs import InTemporaryDirectory
-from ..loadsave import load
-from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
-
-from nose.tools import assert_true, assert_false, assert_equal
-from nose import SkipTest
-
-from numpy.testing import assert_almost_equal
-
-from .scriptrunner import ScriptRunner
-from .nibabel_data import needs_nibabel_data
-from ..testing import assert_dt_equal, assert_re_in
-from .test_parrec import (DTI_PAR_BVECS, DTI_PAR_BVALS,
-                          EXAMPLE_IMAGES as PARREC_EXAMPLES)
-from .test_parrec_data import BALLS, AFF_OFF
-from .test_helpers import assert_data_similar
+from os.path import (dirname, join as pjoin, abspath)
 
 from hypothesis import given
 import hypothesis.strategies as st
@@ -38,17 +16,26 @@ DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 from nibabel.cmdline.diff import diff_values
 
+# TODO: MAJOR TO DO IS TO FIGURE OUT HOW TO USE HYPOTHESIS FOR LONGER LIST LENGTHS WHILE STILL CONTROLLING FOR OUTCOMES
 
 @given(st.data())
 def test_diff_values_int(data):
     x = data.draw(st.integers(), label='x')
     y = data.draw(st.integers(min_value = x + 1), label='x+1')
     z = data.draw(st.integers(max_value = x - 1), label='x-1')
+    list_1 = [x, x, x]
+    list_2 = [x, y, x]
+    list_3 = [x, y, z]
+    list_4 = [x, z, x]
+    list_5 = [y, z, y]
+    list_6 = [y, x, y]
 
-    assert diff_values('key', x, x) is None
-    assert diff_values('key', x, y) == {'key': (x, y)}
-    assert diff_values('key', x, z) == {'key': (x, z)}
-    assert diff_values('key', y, z) == {'key': (y, z)}
+    assert diff_values('key', list_1) is None
+    assert diff_values('key', list_2) == {'key': [x, y]}
+    assert diff_values('key', list_3) == {'key': [x, y, z]}
+    assert diff_values('key', list_4) == {'key': [x, z]}
+    assert diff_values('key', list_5) == {'key': [y, z]}
+    assert diff_values('key', list_6) == {'key': [y, x]}
 
 
 @given(st.data())
@@ -56,11 +43,19 @@ def test_diff_values_float(data):
     x = data.draw(st.just(0), label='x')
     y = data.draw(st.floats(min_value = 1e8), label='y')
     z = data.draw(st.floats(max_value = -1e8), label='z')
+    list_1 = [x, x, x]
+    list_2 = [x, y, x]
+    list_3 = [x, y, z]
+    list_4 = [x, z, x]
+    list_5 = [y, z, y]
+    list_6 = [y, x, y]
 
-    assert diff_values('key', x, x) is None
-    assert diff_values('key', x, y) == {'key': (x, y)}
-    assert diff_values('key', x, z) == {'key': (x, z)}
-    assert diff_values('key', y, z) == {'key': (y, z)}
+    assert diff_values('key', list_1) is None
+    assert diff_values('key', list_2) == {'key': [x, y]}
+    assert diff_values('key', list_3) == {'key': [x, y, z]}
+    assert diff_values('key', list_4) == {'key': [x, z]}
+    assert diff_values('key', list_5) == {'key': [y, z]}
+    assert diff_values('key', list_6) == {'key': [y, x]}
 
 
 @given(st.data())
@@ -68,11 +63,13 @@ def test_diff_values_mixed(data):
     type_float = data.draw(st.floats(), label='float')
     type_int = data.draw(st.integers(), label='int')
     type_none = data.draw(st.none(), label='none')
+    list_1 = [type_float, type_int]
+    list_2 = [type_none, type_none, type_none]
+    list_3 = [type_float, type_none, type_int]
 
-    assert diff_values('key', type_float, type_int) == {'key': (type_float, type_int)}
-    assert diff_values('key', type_float, type_none) == {'key': (type_float, type_none)}
-    assert diff_values('key', type_int, type_none) == {'key': (type_int, type_none)}
-    assert diff_values('key', type_none, type_none) is None
+    assert diff_values('key', list_1) == {'key': [type_float, type_int]}
+    assert diff_values('key', list_2) is None
+    assert diff_values('key', list_3) == {'key': [type_float, type_none, type_int]}
 
 
 @given(st.data())
@@ -82,6 +79,14 @@ def test_diff_values_array(data):
     c = data.draw(st.lists(elements=st.floats(min_value=1e8), min_size=1))
     d = data.draw(st.lists(elements=st.floats(max_value=-1e8), min_size=1))
     # TODO: Figure out a way to include 0 in lists (arrays)
+    # TODO: Figure out a way to test for NaN
 
-    assert diff_values('key', a, b) == {'key': (a, b)}
-    assert diff_values('key', c, d) == {'key': (c, d)}
+    list_1 = [a, a, b]
+    list_2 = [a, b, c, d]
+    list_3 = [c, d]
+    list_4 = [b, b, c]
+
+    assert diff_values('key', list_1) == {'key': [a, b]}
+    assert diff_values('key', list_2) == {'key': [a, b, c, d]}
+    assert diff_values('key', list_3) == {'key': [c, d]}
+    assert diff_values('key', list_1) == {'key': [b, c]}
