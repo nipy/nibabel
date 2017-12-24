@@ -46,7 +46,7 @@ def get_opt_parser():
     return p
 
 
-def diff_values(key, inputs):
+def diff_files(key, inputs):
     diffs = []
 
     for i in range(len(inputs)):
@@ -84,15 +84,12 @@ def diff_values(key, inputs):
         return {key: diffs}
 
 
-def process_file(files, opts):
+def process_files(files, opts):
 
-    file_list = []
     header_list = []
 
-    for f in range(len(files)):
-        file_list.append(nib.load(files[f]))
-        for h in range(len(files)):
-            header_list.append(file_list[f].header)
+    for f in files:
+        header_list.append(nib.load(f).header)
 
     if opts.header_fields:
         # signals "all fields"
@@ -103,8 +100,8 @@ def process_file(files, opts):
             header_fields = opts.header_fields.split(',')
 
         for f in header_fields:
-            if diff_values(f, header_list) is not None:
-                    print(diff_values(f, header_list))
+            if diff_files(f, header_list) is not None:
+                    print(diff_files(f, header_list))
 
 
 def main():
@@ -121,4 +118,4 @@ def main():
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    process_file(files, opts)
+    process_files(files, opts)

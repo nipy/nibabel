@@ -14,7 +14,7 @@ import hypothesis.strategies as st
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
-from nibabel.cmdline.diff import diff_values
+from nibabel.cmdline.diff import diff_files
 
 # TODO: MAJOR TO DO IS TO FIGURE OUT HOW TO USE HYPOTHESIS FOR LONGER LIST LENGTHS WHILE STILL CONTROLLING FOR OUTCOMES
 
@@ -30,12 +30,12 @@ def test_diff_values_int(data):
     list_5 = [y, z, y]
     list_6 = [y, x, y]
 
-    assert diff_values('key', list_1) is None
-    assert diff_values('key', list_2) == {'key': [x, y]}
-    assert diff_values('key', list_3) == {'key': [x, y, z]}
-    assert diff_values('key', list_4) == {'key': [x, z]}
-    assert diff_values('key', list_5) == {'key': [y, z]}
-    assert diff_values('key', list_6) == {'key': [y, x]}
+    assert diff_files('key', list_1) is None
+    assert diff_files('key', list_2) == {'key': [x, y]}
+    assert diff_files('key', list_3) == {'key': [x, y, z]}
+    assert diff_files('key', list_4) == {'key': [x, z]}
+    assert diff_files('key', list_5) == {'key': [y, z]}
+    assert diff_files('key', list_6) == {'key': [y, x]}
 
 
 @given(st.data())
@@ -50,12 +50,12 @@ def test_diff_values_float(data):
     list_5 = [y, z, y]
     list_6 = [y, x, y]
 
-    assert diff_values('key', list_1) is None
-    assert diff_values('key', list_2) == {'key': [x, y]}
-    assert diff_values('key', list_3) == {'key': [x, y, z]}
-    assert diff_values('key', list_4) == {'key': [x, z]}
-    assert diff_values('key', list_5) == {'key': [y, z]}
-    assert diff_values('key', list_6) == {'key': [y, x]}
+    assert diff_files('key', list_1) is None
+    assert diff_files('key', list_2) == {'key': [x, y]}
+    assert diff_files('key', list_3) == {'key': [x, y, z]}
+    assert diff_files('key', list_4) == {'key': [x, z]}
+    assert diff_files('key', list_5) == {'key': [y, z]}
+    assert diff_files('key', list_6) == {'key': [y, x]}
 
 
 @given(st.data())
@@ -67,9 +67,9 @@ def test_diff_values_mixed(data):
     list_2 = [type_none, type_none, type_none]
     list_3 = [type_float, type_none, type_int]
 
-    assert diff_values('key', list_1) == {'key': [type_float, type_int]}
-    assert diff_values('key', list_2) is None
-    assert diff_values('key', list_3) == {'key': [type_float, type_none, type_int]}
+    assert diff_files('key', list_1) == {'key': [type_float, type_int]}
+    assert diff_files('key', list_2) is None
+    assert diff_files('key', list_3) == {'key': [type_float, type_none, type_int]}
 
 
 @given(st.data())
@@ -86,7 +86,7 @@ def test_diff_values_array(data):
     list_3 = [c, d]
     list_4 = [b, b, c]
 
-    assert diff_values('key', list_1) == {'key': [a, b]}
-    assert diff_values('key', list_2) == {'key': [a, b, c, d]}
-    assert diff_values('key', list_3) == {'key': [c, d]}
-    assert diff_values('key', list_1) == {'key': [b, c]}
+    assert diff_files('key', list_1) == {'key': [a, b]}
+    assert diff_files('key', list_2) == {'key': [a, b, c, d]}
+    assert diff_files('key', list_3) == {'key': [c, d]}
+    assert diff_files('key', list_1) == {'key': [b, c]}
