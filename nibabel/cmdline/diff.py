@@ -49,24 +49,39 @@ def get_opt_parser():
 def diff_files(key, inputs):
     diffs = []
 
-    for i in range(len(inputs)):
-        if i != len(inputs)-1:
-            temp_input_1 = inputs[i]
-            temp_input_2 = inputs[i+1]
-            if np.any(temp_input_1[key] != temp_input_2[key]):
-                if i != 0 and temp_input_2 != diffs:
-                    diffs.append(temp_input_1[key])
-                    diffs.append(temp_input_2[key])
+    if len(inputs) > 2:
+        for i in range(len(inputs)):
+            if i != len(inputs)-1:
+                temp_input_1 = inputs[i]
+                temp_input_2 = inputs[i+1]
+                if np.any(temp_input_1[key] != temp_input_2[key]):
+                    if i != 0 and temp_input_2 not in diffs:
+                        diffs.append(temp_input_1[key])
+                        diffs.append(temp_input_2[key])
+                    else:
+                        diffs.append(temp_input_1[key])
+                elif type(temp_input_1[key]) != type(temp_input_2[key]):
+                    if i != 0 and temp_input_2 not in diffs:
+                        diffs.append(temp_input_1[key])
+                        diffs.append(temp_input_2[key])
+                    else:
+                        diffs.append(temp_input_1[key])
                 else:
-                    diffs.append(temp_input_1[key])
-            elif type(temp_input_1[key]) != type(temp_input_2[key]):
-                if i != 0 and temp_input_2 != diffs:
-                    diffs.append(temp_input_1[key])
-                    diffs.append(temp_input_2[key])
-                else:
-                    diffs.append(temp_input_1[key])
-            else:
-                pass
+                    pass
+
+
+    else:
+        temp_input_1 = inputs[0]
+        temp_input_2 = inputs[1]
+
+        if np.any(temp_input_1[key] != temp_input_2[key]):
+            diffs.append(temp_input_1[key])
+            diffs.append(temp_input_2[key])
+        elif type(temp_input_1[key]) != type(temp_input_2[key]):
+            diffs.append(temp_input_1[key])
+            diffs.append(temp_input_2[key])
+        else:
+            pass
 
     # TODO: figure out a way to not have these erroneous outputs occur in the above loop
     for a in range(len(diffs)-1):
@@ -76,9 +91,6 @@ def diff_files(key, inputs):
                     del diffs[a]
             except TypeError:
                 pass
-            if a and b != len(diffs)-1:
-                if np.any(diffs[a] == diffs[b]):
-                    del diffs[a]
 
     if len(diffs) > 1:
         return {key: diffs}
