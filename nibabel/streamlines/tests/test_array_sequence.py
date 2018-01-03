@@ -152,6 +152,11 @@ class TestArraySequence(unittest.TestCase):
         seq.append(element)
         check_arr_seq(seq, [element])
 
+        # Append an empty array.
+        seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
+        seq.append([])
+        check_arr_seq(seq, SEQ_DATA['seq'])
+
         # Append an element with different shape.
         element = generate_data(nb_arrays=1,
                                 common_shape=SEQ_DATA['seq'].common_shape*2,
