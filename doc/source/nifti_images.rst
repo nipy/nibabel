@@ -237,7 +237,7 @@ You can get the affine and the code using the ``coded=True`` argument to
 (array([[  -2.  ,    0.  ,    0.  ,  117.86],
        [  -0.  ,    1.97,   -0.36,  -35.72],
        [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]]), array(1, dtype=int16))
+       [   0.  ,    0.  ,    0.  ,    1.  ]]), 1)
 
 You can set the sform with the ``set_sform()`` method of the header and
 the image.
@@ -256,7 +256,7 @@ Set the affine and code using the ``code`` parameter to ``set_sform()``:
 (array([[ 3.,  0.,  0.,  0.],
        [ 0.,  4.,  0.,  0.],
        [ 0.,  0.,  5.,  0.],
-       [ 0.,  0.,  0.,  1.]]), array(4, dtype=int16))
+       [ 0.,  0.,  0.,  1.]]), 4)
 
 The qform affine
 ================
@@ -276,7 +276,7 @@ the sform: ``get_qform()``, ``set_qform()``.
 (array([[  -2.  ,    0.  ,    0.  ,  117.86],
        [  -0.  ,    1.97,   -0.36,  -35.72],
        [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]]), array(1, dtype=int16))
+       [   0.  ,    0.  ,    0.  ,    1.  ]]), 1)
 
 The qform also has a corresponding ``qform_code`` with the same interpretation
 as the `sform_code`.
@@ -332,7 +332,7 @@ respectively:
 (array([[ 2.,  0.,  0.,  0.],
         [ 0.,  2.,  0.,  0.],
         [ 0.,  0.,  2.,  0.],
-        [ 0.,  0.,  0.,  1.]]), array(2, dtype=int16))
+        [ 0.,  0.,  0.,  1.]]), 2)
 >>> img.get_qform(coded=True)
 (None, 0)
 
