@@ -911,7 +911,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             Qform code. Only returned if `coded` is True.
         """
         hdr = self._structarr
-        code = hdr['qform_code']
+        code = int(hdr['qform_code'])
         if code == 0 and coded:
             return None, 0
         quat = self.get_qform_quaternion()
@@ -1054,7 +1054,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             Sform code. Only returned if `coded` is True.
         """
         hdr = self._structarr
-        code = hdr['sform_code']
+        code = int(hdr['sform_code'])
         if code == 0 and coded:
             return None, 0
         out = np.eye(4)
