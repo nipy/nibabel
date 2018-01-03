@@ -412,9 +412,10 @@ class TestLazyDict(unittest.TestCase):
         lazy_dicts += [LazyDict(DATA['data_per_streamline_func'])]
         lazy_dicts += [LazyDict(**DATA['data_per_streamline_func'])]
 
+        expected_keys = DATA['data_per_streamline_func'].keys()
         for data_dict in lazy_dicts:
             assert_true(is_lazy_dict(data_dict))
-            assert_equal(data_dict.keys(), DATA['data_per_streamline_func'].keys())
+            assert_equal(data_dict.keys(), expected_keys)
             for k in data_dict.keys():
                 assert_array_equal(list(data_dict[k]),
                                    list(DATA['data_per_streamline'][k]))
