@@ -16,7 +16,7 @@ def is_data_dict(obj):
 
 def is_lazy_dict(obj):
     """ True if `obj` seems to implement the :class:`LazyDict` API """
-    return is_data_dict(obj) and callable(obj.store.values()[0])
+    return is_data_dict(obj) and callable(list(obj.store.values())[0])
 
 
 class SliceableDataDict(collections.MutableMapping):
