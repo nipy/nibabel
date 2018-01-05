@@ -46,7 +46,8 @@ def get_opt_parser():
     return p
 
 
-def diff_files(key, inputs):
+def diff_header_fields(key, inputs):
+    """Iterates over a single header field of multiple files"""
     diffs = []
 
     if len(inputs) > 2:
@@ -96,12 +97,9 @@ def diff_files(key, inputs):
         return {key: diffs}
 
 
-def process_files(files, opts):
+def get_headers_diff(files, opts):
 
-    header_list = []
-
-    for f in files:
-        header_list.append(nib.load(f).header)
+    header_list = [nib.load(f).header for f in files]
 
     if opts.header_fields:
         # signals "all fields"
@@ -112,8 +110,8 @@ def process_files(files, opts):
             header_fields = opts.header_fields.split(',')
 
         for f in header_fields:
-            if diff_files(f, header_list) is not None:
-                    print(diff_files(f, header_list))
+            if diff_header_fields(f, header_list) is not None:
+                    print(diff_header_fields(f, header_list))
 
 
 def main():
@@ -130,4 +128,4 @@ def main():
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    process_files(files, opts)
+    get_headers_diff(files, opts)
