@@ -51,38 +51,36 @@ def diff_header_fields(key, inputs):
     diffs = []
 
     if len(inputs) > 2:
-        for i in range(len(inputs)):
-            if i != len(inputs)-1:
-                temp_input_1 = inputs[i]
-                temp_input_2 = inputs[i+1]
-                if np.any(temp_input_1[key] != temp_input_2[key]):
-                    if i != 0 and temp_input_2 not in diffs:
-                        diffs.append(temp_input_1[key])
-                        diffs.append(temp_input_2[key])
-                    else:
-                        diffs.append(temp_input_1[key])
-                elif type(temp_input_1[key]) != type(temp_input_2[key]):
-                    if i != 0 and temp_input_2 not in diffs:
-                        diffs.append(temp_input_1[key])
-                        diffs.append(temp_input_2[key])
-                    else:
-                        diffs.append(temp_input_1[key])
-                else:
-                    pass
+        for input_1, input_2 in zip(inputs, inputs[1:]):
+                key_1 = input_1[key]
+                key_2 = input_2[key]
 
+                if type(key_1) != type(key_2):
+                    if input_1 != inputs[0] and input_2 not in diffs:
+                        diffs.append(key_1)
+                        diffs.append(key_2)
+                    else:
+                        diffs.append(key_1)
+                elif np.any(key_1 != key_2):
+                    if input_1 != inputs[0] and input_2 not in diffs:
+                        diffs.append(key_1)
+                        diffs.append(key_2)
+                    else:
+                        diffs.append(key_1)
 
     else:
-        temp_input_1 = inputs[0]
-        temp_input_2 = inputs[1]
+        input_1 = inputs[0]
+        input_2 = inputs[1]
 
-        if np.any(temp_input_1[key] != temp_input_2[key]):
-            diffs.append(temp_input_1[key])
-            diffs.append(temp_input_2[key])
-        elif type(temp_input_1[key]) != type(temp_input_2[key]):
-            diffs.append(temp_input_1[key])
-            diffs.append(temp_input_2[key])
-        else:
-            pass
+        key_1 = input_1[key]
+        key_2 = input_2[key]
+
+        if np.any(key_1 != key_2):
+            diffs.append(key_1)
+            diffs.append(key_2)
+        elif type(key_1) != type(key_2):
+            diffs.append(key_1)
+            diffs.append(key_2)
 
     # TODO: figure out a way to not have these erroneous outputs occur in the above loop
     for a in range(len(diffs)-1):
