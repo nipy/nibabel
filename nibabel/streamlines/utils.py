@@ -1,3 +1,5 @@
+import itertools
+
 import nibabel
 
 
@@ -29,3 +31,22 @@ def get_affine_from_reference(ref):
 
     # Assume `ref` is the name of a neuroimaging file.
     return nibabel.load(ref).affine
+
+
+def peek_next(iterable):
+    """ Peek next element of iterable.
+
+    Parameters
+    ----------
+    iterable
+        Iterable to peek the next element from.
+
+    Returns
+    -------
+    next_item
+        Element peeked from `iterable`.
+    new_iterable
+        Iterable behaving like if the original `iterable` was untouched.
+    """
+    next_item = next(iterable)
+    return next_item, itertools.chain([next_item], iterable)

@@ -20,6 +20,7 @@ from .tractogram_file import HeaderWarning, DataWarning
 from .tractogram_file import HeaderError, DataError
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
+from .utils import peek_next
 
 MEGABYTE = 1024 * 1024
 
@@ -201,9 +202,7 @@ class TckFile(TractogramFile):
                 # Use the first element to check
                 #  1) the tractogram is not empty;
                 #  2) quantity of information saved along each streamline.
-                first_item = next(tractogram)
-                # Put back the first element at its place.
-                tractogram = itertools.chain([first_item], tractogram)
+                first_item, tractogram = peek_next(tractogram)
             except StopIteration:
                 # Empty tractogram
                 header[Field.NB_STREAMLINES] = 0
