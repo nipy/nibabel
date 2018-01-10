@@ -7,7 +7,6 @@ from __future__ import division
 
 import os
 import warnings
-import itertools
 
 import numpy as np
 

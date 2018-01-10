@@ -7,7 +7,6 @@ import os
 import struct
 import string
 import warnings
-import itertools
 
 import numpy as np
 import nibabel as nib
