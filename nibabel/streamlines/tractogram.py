@@ -16,7 +16,7 @@ def is_data_dict(obj):
 
 def is_lazy_dict(obj):
     """ True if `obj` seems to implement the :class:`LazyDict` API """
-    return is_data_dict(obj) and callable(obj.store.values()[0])
+    return is_data_dict(obj) and callable(list(obj.store.values())[0])
 
 
 class SliceableDataDict(collections.MutableMapping):
@@ -77,7 +77,7 @@ class PerArrayDict(SliceableDataDict):
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
-    values.  The elements must also be ndarrays.
+    values. The elements must also be ndarrays.
 
     In addition, it makes sure the amount of data contained in those ndarrays
     matches the number of streamlines given at the instantiation of this
@@ -199,9 +199,6 @@ class LazyDict(collections.MutableMapping):
             if isinstance(args[0], LazyDict):
                 self.update(**args[0].store)  # Copy the generator functions.
                 return
-
-            if isinstance(args[0], SliceableDataDict):
-                self.update(**args[0])
 
         self.update(dict(*args, **kwargs))
 

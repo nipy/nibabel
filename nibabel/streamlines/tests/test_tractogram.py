@@ -13,6 +13,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from six.moves import zip
 
 from .. import tractogram as module_tractogram
+from ..tractogram import is_data_dict, is_lazy_dict
 from ..tractogram import TractogramItem, Tractogram, LazyTractogram
 from ..tractogram import PerArrayDict, PerArraySequenceDict, LazyDict
 
@@ -406,14 +407,21 @@ class TestPerArraySequenceDict(unittest.TestCase):
 class TestLazyDict(unittest.TestCase):
 
     def test_lazydict_creation(self):
-        data_dict = LazyDict(DATA['data_per_streamline_func'])
-        assert_equal(data_dict.keys(), DATA['data_per_streamline_func'].keys())
-        for k in data_dict.keys():
-            assert_array_equal(list(data_dict[k]),
-                               list(DATA['data_per_streamline'][k]))
+        # Different ways of creating LazyDict
+        lazy_dicts = []
+        lazy_dicts += [LazyDict(DATA['data_per_streamline_func'])]
+        lazy_dicts += [LazyDict(**DATA['data_per_streamline_func'])]
 
-        assert_equal(len(data_dict),
-                     len(DATA['data_per_streamline_func']))
+        expected_keys = DATA['data_per_streamline_func'].keys()
+        for data_dict in lazy_dicts:
+            assert_true(is_lazy_dict(data_dict))
+            assert_equal(data_dict.keys(), expected_keys)
+            for k in data_dict.keys():
+                assert_array_equal(list(data_dict[k]),
+                                   list(DATA['data_per_streamline'][k]))
+
+            assert_equal(len(data_dict),
+                         len(DATA['data_per_streamline_func']))
 
 
 class TestTractogramItem(unittest.TestCase):
@@ -469,6 +477,9 @@ class TestTractogram(unittest.TestCase):
                          DATA['streamlines'],
                          DATA['data_per_streamline'],
                          DATA['data_per_point'])
+
+        assert_true(is_data_dict(tractogram.data_per_streamline))
+        assert_true(is_data_dict(tractogram.data_per_point))
 
         # Create a tractogram from another tractogram attributes.
         tractogram2 = Tractogram(tractogram.streamlines,
@@ -795,6 +806,9 @@ class TestLazyTractogram(unittest.TestCase):
                                     DATA['data_per_streamline_func'],
                                     DATA['data_per_point_func'])
 
+        assert_true(is_lazy_dict(tractogram.data_per_streamline))
+        assert_true(is_lazy_dict(tractogram.data_per_point))
+
         [t for t in tractogram]  # Force iteration through tractogram.
         assert_equal(len(tractogram), len(DATA['streamlines']))
 
@@ -909,6 +923,22 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram = DATA['lazy_tractogram'].copy()
         tractogram.affine_to_rasmm = None
         assert_raises(ValueError, tractogram.to_world)
+
+        # But calling apply_affine when affine_to_rasmm is None should work.
+        tractogram = DATA['lazy_tractogram'].copy()
+        tractogram.affine_to_rasmm = None
+        transformed_tractogram = tractogram.apply_affine(affine)
+        assert_array_equal(transformed_tractogram._affine_to_apply, affine)
+        assert_true(transformed_tractogram.affine_to_rasmm is None)
+        check_tractogram(transformed_tractogram,
+                         streamlines=[s*scaling for s in DATA['streamlines']],
+                         data_per_streamline=DATA['data_per_streamline'],
+                         data_per_point=DATA['data_per_point'])
+
+        # Calling apply_affine with lazy=False should fail for LazyTractogram.
+        tractogram = DATA['lazy_tractogram'].copy()
+        assert_raises(ValueError, tractogram.apply_affine,
+                      affine=np.eye(4), lazy=False)
 
     def test_tractogram_to_world(self):
         tractogram = DATA['lazy_tractogram'].copy()
