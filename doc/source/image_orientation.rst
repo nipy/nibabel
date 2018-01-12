@@ -53,10 +53,10 @@ Here is the affine (to two digits decimal precision):
 
 >>> np.set_printoptions(precision=2, suppress=True)
 >>> img.affine
-array([[  -2.  ,    0.  ,    0.  ,  117.86],
-       [  -0.  ,    1.97,   -0.36,  -35.72],
-       [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]])
+array([[ -2.  ,   0.  ,   0.  , 117.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
 
 What are the orientations of the voxel axes here?
 

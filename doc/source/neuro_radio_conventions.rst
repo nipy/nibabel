@@ -61,7 +61,7 @@ scanner RAS+ (see :doc:`coordinate_systems`):
     ...                         [0,  0,  0,  1]])
     >>> ijk = [1, 0, 0] # moving one unit on the first voxel axis
     >>> apply_affine(diag_affine, ijk)
-    array([ 3.,  0.,  0.])
+    array([3., 0., 0.])
 
 In this case the voxel axes are aligned to the output axes, in the sense that
 moving in a positive direction on the first voxel axis results in increasing
