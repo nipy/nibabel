@@ -424,11 +424,16 @@ class TrkFile(TractogramFile):
             i4_dtype = np.dtype("<i4")  # Always save in little-endian.
             f4_dtype = np.dtype("<f4")  # Always save in little-endian.
 
-            # Make sure streamlines are in rasmm then send them to voxmm.
+            # Since the TRK format requires the streamlines to be saved in
+            # voxmm, we first transform them accordingly. The transformation
+            # is performed lazily since `self.tractogram` might be a
+            # LazyTractogram object, which means we might be able to loop
+            # over the streamlines only once.
             tractogram = self.tractogram.to_world(lazy=True)
             affine_to_trackvis = get_affine_rasmm_to_trackvis(header)
             tractogram = tractogram.apply_affine(affine_to_trackvis, lazy=True)
-            # Assume looping over the streamlines can be done only once.
+
+            # Create the iterator we'll be using for the rest of the funciton.
             tractogram = iter(tractogram)
 
             try:
