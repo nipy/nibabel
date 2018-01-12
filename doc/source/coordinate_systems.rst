@@ -104,7 +104,7 @@ middle voxel in the EPI data array like this:
     (26, 30, 16)
     >>> center_vox_value = epi_img_data[center_i, center_j, center_k]
     >>> center_vox_value
-    81.549287796020508
+    81.5492877960205...
 
 The values (26, 30, 16) are indices into the data array ``epi_img_data``. (26,
 30, 16) is therefore a 'voxel coordinate' - a coordinate into the voxel array.
@@ -776,7 +776,7 @@ center of the EPI image?
     :nofigs:
 
     >>> apply_affine(epi_vox2anat_vox, epi_vox_center)
-    array([ 28.364,  31.562,  36.165])
+    array([28.364, 31.562, 36.165])
 
 The voxel coordinate of the center voxel of the anatomical image is:
 
@@ -786,7 +786,7 @@ The voxel coordinate of the center voxel of the anatomical image is:
 
     >>> anat_vox_center = (np.array(anat_img_data.shape) - 1) / 2.
     >>> anat_vox_center
-    array([ 28. ,  33. ,  27.5])
+    array([28. , 33. , 27.5])
 
 The voxel location in the anatomical image that matches the center voxel of
 the EPI image is nearly exactly half way across the first axis, a voxel or two

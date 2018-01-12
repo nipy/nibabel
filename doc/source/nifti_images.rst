@@ -151,10 +151,10 @@ You can get and set individual fields in the header using dict (mapping-type)
 item access.  For example:
 
 >>> n1_header['cal_max']
-array(1162.0, dtype=float32)
+array(1162., dtype=float32)
 >>> n1_header['cal_max'] = 1200
 >>> n1_header['cal_max']
-array(1200.0, dtype=float32)
+array(1200., dtype=float32)
 
 Check the attributes of the header for ``get_`` / ``set_`` methods to get and
 set various combinations of NIfTI header fields.
@@ -173,10 +173,10 @@ Like other nibabel image types, NIfTI images have an affine relating the voxel
 coordinates to world coordinates in RAS+ space:
 
 >>> n1_img.affine
-array([[  -2.  ,    0.  ,    0.  ,  117.86],
-       [  -0.  ,    1.97,   -0.36,  -35.72],
-       [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]])
+array([[ -2.  ,   0.  ,   0.  , 117.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
 
 Unlike other formats, the NIfTI header format can specify this affine in one
 of three ways |--| the *sform* affine, the *qform* affine and the *fall-back
@@ -199,16 +199,16 @@ the image or the header.
 For example:
 
 >>> print(n1_header['srow_x'])
-[  -2.      0.      0.    117.86]
+[ -2.     0.     0.   117.86]
 >>> print(n1_header['srow_y'])
 [ -0.     1.97  -0.36 -35.72]
 >>> print(n1_header['srow_z'])
 [ 0.    0.32  2.17 -7.25]
 >>> print(n1_header.get_sform())
-[[  -2.      0.      0.    117.86]
- [  -0.      1.97   -0.36  -35.72]
- [   0.      0.32    2.17   -7.25]
- [   0.      0.      0.      1.  ]]
+[[ -2.     0.     0.   117.86]
+ [ -0.     1.97  -0.36 -35.72]
+ [  0.     0.32   2.17  -7.25]
+ [  0.     0.     0.     1.  ]]
 
 This affine is valid only if the ``sform_code`` is not zero.
 
@@ -234,29 +234,29 @@ You can get the affine and the code using the ``coded=True`` argument to
 ``get_sform()``:
 
 >>> print(n1_header.get_sform(coded=True))
-(array([[  -2.  ,    0.  ,    0.  ,  117.86],
-       [  -0.  ,    1.97,   -0.36,  -35.72],
-       [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]]), 1)
+(array([[ -2.  ,   0.  ,   0.  , 117.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]]), 1)
 
 You can set the sform with the ``set_sform()`` method of the header and
 the image.
 
 >>> n1_header.set_sform(np.diag([2, 3, 4, 1]))
 >>> n1_header.get_sform()
-array([[ 2.,  0.,  0.,  0.],
-       [ 0.,  3.,  0.,  0.],
-       [ 0.,  0.,  4.,  0.],
-       [ 0.,  0.,  0.,  1.]])
+array([[2., 0., 0., 0.],
+       [0., 3., 0., 0.],
+       [0., 0., 4., 0.],
+       [0., 0., 0., 1.]])
 
 Set the affine and code using the ``code`` parameter to ``set_sform()``:
 
 >>> n1_header.set_sform(np.diag([3, 4, 5, 1]), code='mni')
 >>> n1_header.get_sform(coded=True)
-(array([[ 3.,  0.,  0.,  0.],
-       [ 0.,  4.,  0.,  0.],
-       [ 0.,  0.,  5.,  0.],
-       [ 0.,  0.,  0.,  1.]]), 4)
+(array([[3., 0., 0., 0.],
+       [0., 4., 0., 0.],
+       [0., 0., 5., 0.],
+       [0., 0., 0., 1.]]), 4)
 
 The qform affine
 ================
@@ -273,10 +273,10 @@ You can get and set the qform affine using the equivalent methods to those for
 the sform: ``get_qform()``, ``set_qform()``.
 
 >>> n1_header.get_qform(coded=True)
-(array([[  -2.  ,    0.  ,    0.  ,  117.86],
-       [  -0.  ,    1.97,   -0.36,  -35.72],
-       [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]]), 1)
+(array([[ -2.  ,   0.  ,   0.  , 117.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]]), 1)
 
 The qform also has a corresponding ``qform_code`` with the same interpretation
 as the `sform_code`.
@@ -295,10 +295,10 @@ Again like SPM, we prefer to assume LAS+ voxel orientation by default.
 You can always get the fall-back affine with ``get_base_affine()``:
 
 >>> n1_header.get_base_affine()
-array([[  -2. ,    0. ,    0. ,  127. ],
-       [   0. ,    2. ,    0. ,  -95. ],
-       [   0. ,    0. ,    2.2,  -25.3],
-       [   0. ,    0. ,    0. ,    1. ]])
+array([[ -2. ,   0. ,   0. , 127. ],
+       [  0. ,   2. ,   0. , -95. ],
+       [  0. ,   0. ,   2.2, -25.3],
+       [  0. ,   0. ,   0. ,   1. ]])
 
 .. _choosing-image-affine:
 
@@ -329,10 +329,10 @@ The sform and qform codes will be initialised to 2 (aligned) and 0 (unknown)
 respectively:
 
 >>> img.get_sform(coded=True) # doctest: +NORMALIZE_WHITESPACE
-(array([[ 2.,  0.,  0.,  0.],
-        [ 0.,  2.,  0.,  0.],
-        [ 0.,  0.,  2.,  0.],
-        [ 0.,  0.,  0.,  1.]]), 2)
+(array([[2., 0., 0., 0.],
+       [0., 2., 0., 0.],
+       [0., 0., 2., 0.],
+       [0., 0., 0., 1.]]), 2)
 >>> img.get_qform(coded=True)
 (None, 0)
 
@@ -434,21 +434,21 @@ image is written.  We can do this by setting the fields directly, or with
 >>> array_header.get_slope_inter()
 (2.0, 10.0)
 >>> array_header['scl_slope']
-array(2.0, dtype=float32)
+array(2., dtype=float32)
 >>> array_header['scl_inter']
-array(10.0, dtype=float32)
+array(10., dtype=float32)
 
 Setting the scale factors in the header has no effect on the image data before
 we save and load again:
 
->>> array_img.get_data()
-array([[[ 0,  1,  2,  3],
-        [ 4,  5,  6,  7],
-        [ 8,  9, 10, 11]],
+>>> array_img.get_fdata()
+array([[[ 0.,  1.,  2.,  3.],
+        [ 4.,  5.,  6.,  7.],
+        [ 8.,  9., 10., 11.]],
 <BLANKLINE>
-       [[12, 13, 14, 15],
-        [16, 17, 18, 19],
-        [20, 21, 22, 23]]], dtype=int16)
+       [[12., 13., 14., 15.],
+        [16., 17., 18., 19.],
+        [20., 21., 22., 23.]]])
 
 Now we save the image and load it again:
 
@@ -457,14 +457,14 @@ Now we save the image and load it again:
 
 The data array has the scaling applied:
 
->>> scaled_img.get_data()
-...([[[ 10.,  12.,  14.,  16.],
-        [ 18.,  20.,  22.,  24.],
-        [ 26.,  28.,  30.,  32.]],
+>>> scaled_img.get_fdata()
+array([[[10., 12., 14., 16.],
+        [18., 20., 22., 24.],
+        [26., 28., 30., 32.]],
 <BLANKLINE>
-       [[ 34.,  36.,  38.,  40.],
-        [ 42.,  44.,  46.,  48.],
-        [ 50.,  52.,  54.,  56.]]])
+       [[34., 36., 38., 40.],
+        [42., 44., 46., 48.],
+        [50., 52., 54., 56.]]])
 
 The header for the loaded image has had the scaling reset to undefined, to
 mark the fact that the scaling has been "consumed" by the load:
