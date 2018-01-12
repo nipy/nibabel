@@ -224,7 +224,23 @@ class SpatialHeader(FileBasedHeader):
         nzs = min(len(self._zooms), ndim)
         self._zooms = self._zooms[:nzs] + (1.0,) * (ndim - nzs)
 
-    def get_zooms(self):
+    def get_zooms(self, units='canonical', raise_unknown=False):
+        ''' Get zooms (spacing between voxels along each axis) from header
+
+        Parameters
+        ----------
+        units : {'canonical', 'raw'}, optional
+            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+            as raw values stored in header.
+        raise_unkown : bool, optional
+            If canonical units are requested and the units are ambiguous, raise
+            a ``ValueError``
+
+        Returns
+        -------
+        zooms : tuple
+            Spacing between voxels along each axis
+        '''
         return self._zooms
 
     def set_zooms(self, zooms):
@@ -237,10 +253,6 @@ class SpatialHeader(FileBasedHeader):
         if len([z for z in zooms if z < 0]):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
-
-    def get_norm_zooms(self, raise_unknown=False):
-        ''' Get zooms in mm/s units '''
-        return self.get_zooms()
 
     def set_norm_zooms(self, zooms):
         ''' Get zooms in mm/s units '''

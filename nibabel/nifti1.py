@@ -1675,9 +1675,56 @@ class Nifti1Header(SpmAnalyzeHeader):
         t_code = unit_codes[t]
         self.structarr['xyzt_units'] = xyz_code + t_code
 
-    def get_norm_zooms(self, raise_unknown=False):
-        ''' Get zooms in mm/s units '''
-        raw_zooms = self.get_zooms()
+    def get_zooms(self, units=None, raise_unknown=False):
+        ''' Get zooms (spacing between voxels along each axis) from header
+
+        NIfTI1 headers may specify that zooms are encoded in units other than
+        mm and sec (see ``get_xyzt_units``).
+        Default behavior has been to return the raw zooms, and leave it to the
+        programmer to handle non-standard units.
+        However, most files indicate mm/sec units or have unspecified units,
+        and it is common practice to neglect specified units and assume all
+        files will be in mm/sec.
+
+        The default behavior for ``get_zooms`` will remain to return the raw
+        zooms until version 4.0, when it will change to return zooms in
+        canonical mm/sec units.
+        Because the default behavior will change, a warning will be given to
+        prompt programmers to specify whether they intend to retrieve raw
+        values, or values coerced into canonical units.
+
+        Parameters
+        ----------
+        units : {'canonical', 'raw'}
+            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+            as raw values stored in header.
+        raise_unkown : bool, optional
+            If canonical units are requested and the units are ambiguous, raise
+            a ``ValueError``
+
+        Returns
+        -------
+        zooms : tuple
+            tuple of header zoom values
+
+        '''
+        if units is None:
+            units = 'raw'
+            warnings.warn('Units not specified in `{}.get_zooms`. Returning '
+                          'raw zooms, but default will change to canonical.\n'
+                          'Please explicitly specify units parameter.'
+                          ''.format(self.__class__.__name__),
+                          FutureWarning, stacklevel=2)
+
+        raw_zooms = super(Nifti1Header, self).get_zooms(units='raw',
+                                                        raise_unknown=False)
+
+        if units == 'raw':
+            return raw_zooms
+
+        elif units != 'canonical':
+            raise ValueError("`units` parameter must be 'canonical' or 'raw'")
+
         xyz_zooms = raw_zooms[:3]
         t_zoom = raw_zooms[3] if len(raw_zooms) > 3 else None
 

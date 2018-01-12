@@ -237,25 +237,45 @@ class MGHHeader(LabeledWrapStruct):
         """
         return 3 + (self._structarr['dims'][3] > 1)
 
-    def get_zooms(self):
+    def get_zooms(self, units='canonical', raise_unknown=False):
         """ Get zooms from header
 
         Returns the spacing of voxels in the x, y, and z dimensions.
         For four-dimensional files, a fourth zoom is included, equal to the
-        repetition time (TR) in ms (see `The MGH/MGZ Volume Format
-        <mghformat>`_).
+        repetition time (TR).
+        TR is stored in milliseconds (see `The MGH/MGZ Volume Format
+        <mghformat>`_),
+        so if ``units == 'raw'``, the fourth zoom will be in ms.
+        If ``units == 'canonical'`` (default), the fourth zoom will be in
+        seconds.
 
         To access only the spatial zooms, use `hdr['delta']`.
 
+        Parameters
+        ----------
+        units : {'canonical', 'raw'}, optional
+            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+            as raw values stored in header.
+        raise_unkown : bool, optional
+            If canonical units are requested and the units are ambiguous, raise
+            a ``ValueError``
+
         Returns
         -------
-        z : tuple
-           tuple of header zoom values
+        zooms : tuple
+            tuple of header zoom values
 
         .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         """
+        if units == 'canonical':
+            tfactor = 0.001
+        elif units == 'raw':
+            tfactor = 1
+        else:
+            raise ValueError("`units` parameter must be 'canonical' or 'raw'")
+
         # Do not return time zoom (TR) if 3D image
-        tzoom = (self['tr'],) if self._ndims() > 3 else ()
+        tzoom = (self['tr'] * tfactor,) if self._ndims() > 3 else ()
         return tuple(self._structarr['delta']) + tzoom
 
     def set_zooms(self, zooms):
@@ -284,15 +304,6 @@ class MGHHeader(LabeledWrapStruct):
             if zooms[3] < 0:
                 raise HeaderDataError(f'TR must be non-negative; got {zooms[3]}')
             hdr['tr'] = zooms[3]
-
-    def get_norm_zooms(self, raise_unknown=False):
-        ''' Get zooms in mm/s units '''
-        zooms = self.get_zooms()
-
-        if len(zooms) == 4:
-            zooms = zooms[:3] + (zooms[3] / 1000,)
-
-        return zooms
 
     def set_norm_zooms(self, zooms):
         if len(zooms) == 4:

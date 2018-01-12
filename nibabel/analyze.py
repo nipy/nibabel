@@ -661,13 +661,22 @@ class AnalyzeHeader(LabeledWrapStruct):
 
     get_best_affine = get_base_affine
 
-    def get_zooms(self):
-        """ Get zooms from header
+    def get_zooms(self, units='canonical', raise_unknown=False):
+        """ Get zooms (spacing between voxels along each axis) from header
+
+        Parameters
+        ----------
+        units : {'canonical', 'raw'}, optional
+            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+            as raw values stored in header.
+        raise_unkown : bool, optional
+            If canonical units are requested and the units are ambiguous, raise
+            a ``ValueError``
 
         Returns
         -------
-        z : tuple
-           tuple of header zoom values
+        zooms : tuple
+            tuple of header zoom values
 
         Examples
         --------
@@ -705,10 +714,6 @@ class AnalyzeHeader(LabeledWrapStruct):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1:ndim + 1] = zooms[:]
-
-    def get_norm_zooms(self, raise_unknown=False):
-        ''' Get zooms in mm/s units '''
-        return self.get_zooms()
 
     def set_norm_zooms(self, zooms):
         ''' Set zooms in mm/s units '''
