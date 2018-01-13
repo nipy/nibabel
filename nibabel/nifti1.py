@@ -1733,8 +1733,9 @@ class Nifti1Header(SpmAnalyzeHeader):
         if xyz_code == 'unknown':
             xyz_msg = 'Unknown spatial units'
             xyz_code = 'mm'
-        if t_code == 'unknown' and t_zoom is not None:
-            t_msg = 'Unknown time units'
+        if t_code == 'unknown':
+            if t_zoom is not None:
+                t_msg = 'Unknown time units'
             t_code = 'sec'
         if raise_unknown and (xyz_msg, t_msg) != ('', ''):
             if xyz_msg and t_msg:
