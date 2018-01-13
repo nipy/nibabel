@@ -111,8 +111,10 @@ def get_headers_diff(files, opts):
             header_fields = opts.header_fields.split(',')
 
         for f in header_fields:
-            if diff_header_fields(f, header_list) is not None:
-                    print(diff_header_fields(f, header_list))
+            output = diff_header_fields(f, header_list)
+
+            if output is not None:
+                    print(output)
 
 
 def main():
