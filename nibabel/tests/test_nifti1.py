@@ -1176,7 +1176,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                 img_rt = bytesio_round_trip(img)
                 assert img_rt.get_data_dtype() == effective_dt
 
-    def test_norm_zooms_edge_cases(self):
+    def test_zooms_edge_cases(self):
         img_klass = self.image_class
         arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
         aff = np.eye(4)
@@ -1186,47 +1186,53 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Unknown units = 2 warnings
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter('always')
-            assert_array_almost_equal(img.header.get_norm_zooms(),
+            assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                       (1, 1, 1, 1))
             assert_equal(len(warns), 2)
-        assert_raises(ValueError, img.header.get_norm_zooms, True)
+        assert_raises(ValueError, img.header.get_zooms,
+                      units='canonical', raise_unknown=True)
 
         img.header.set_xyzt_units(xyz='meter')
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter('always')
-            assert_array_almost_equal(img.header.get_norm_zooms(),
+            assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                       (1000, 1000, 1000, 1))
             assert_equal(len(warns), 1)
-        assert_raises(ValueError, img.header.get_norm_zooms, True)
+        assert_raises(ValueError, img.header.get_zooms,
+                      units='canonical', raise_unknown=True)
 
         img.header.set_xyzt_units(xyz='mm', t='sec')
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (1, 1, 1, 1))
         img.header.set_xyzt_units(xyz='micron', t='sec')
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (0.001, 0.001, 0.001, 1))
 
         img.header.set_xyzt_units(t='sec')
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter('always')
-            assert_array_equal(img.header.get_norm_zooms(), (1, 1, 1, 1))
+            assert_array_equal(img.header.get_zooms(units='canonical'),
+                               (1, 1, 1, 1))
             assert_equal(len(warns), 1)
-        assert_raises(ValueError, img.header.get_norm_zooms, True)
+        assert_raises(ValueError, img.header.get_zooms,
+                      units='canonical', raise_unknown=True)
 
         img.header.set_xyzt_units(xyz='mm', t='msec')
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (1, 1, 1, 0.001))
 
         img.header.set_xyzt_units(xyz='mm', t='usec')
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (1, 1, 1, 0.000001))
 
         # Verify `set_norm_zooms` resets units
         img.header.set_xyzt_units(xyz='meter', t='usec')
         assert_equal(img.header.get_xyzt_units(), ('meter', 'usec'))
         img.header.set_norm_zooms((2, 2, 2, 2.5))
-        assert_array_almost_equal(img.header.get_norm_zooms(), (2, 2, 2, 2.5))
-        assert_array_almost_equal(img.header.get_zooms(), (2, 2, 2, 2.5))
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+                                  (2, 2, 2, 2.5))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 2.5))
         assert_equal(img.header.get_xyzt_units(), ('mm', 'sec'))
 
 

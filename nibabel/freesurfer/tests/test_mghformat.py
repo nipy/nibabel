@@ -351,49 +351,58 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         # MGH requires the actual to be a big endian version of expected
         assert expected.newbyteorder('>') == actual
 
-    def test_norm_zooms_edge_cases(self):
+    def test_zooms_edge_cases(self):
         img_klass = self.image_class
         aff = np.eye(4)
         arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
         img = img_klass(arr, aff)
 
-        assert_array_almost_equal(img.header.get_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (1, 1, 1, 0))
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (1, 1, 1, 0))
 
         img.header.set_zooms((1, 1, 1, 2000))
-        assert_array_almost_equal(img.header.get_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (1, 1, 1, 2000))
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (1, 1, 1, 2))
+        assert_array_almost_equal(img.header.get_zooms(), (1, 1, 1, 2))
 
         img.header.set_norm_zooms((2, 2, 2, 3))
-        assert_array_almost_equal(img.header.get_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (2, 2, 2, 3000))
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (2, 2, 2, 3))
+        assert_array_almost_equal(img.header.get_zooms(), (2, 2, 2, 3))
 
         # It's legal to set zooms for spatial dimensions only
         img.header.set_norm_zooms((3, 3, 3))
-        assert_array_almost_equal(img.header.get_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (3, 3, 3, 3000))
-        assert_array_almost_equal(img.header.get_norm_zooms(),
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                   (3, 3, 3, 3))
+        assert_array_almost_equal(img.header.get_zooms(), (3, 3, 3, 3))
 
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         img = img_klass(arr, aff)
 
-        assert_array_almost_equal(img.header.get_zooms(), (1, 1, 1))
-        assert_array_almost_equal(img.header.get_norm_zooms(), (1, 1, 1))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                                       (1, 1, 1))
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+                                                       (1, 1, 1))
 
         img.header.set_zooms((2, 2, 2))
-        assert_array_almost_equal(img.header.get_zooms(), (2, 2, 2))
-        assert_array_almost_equal(img.header.get_norm_zooms(), (2, 2, 2))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                                       (2, 2, 2))
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+                                                       (2, 2, 2))
 
         img.header.set_norm_zooms((3, 3, 3))
-        assert_array_almost_equal(img.header.get_zooms(), (3, 3, 3))
-        assert_array_almost_equal(img.header.get_norm_zooms(), (3, 3, 3))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                                       (3, 3, 3))
+        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+                                                       (3, 3, 3))
 
         # Cannot set TR as zoom for 3D image
         assert_raises(HeaderDataError, img.header.set_zooms, (4, 4, 4, 5))

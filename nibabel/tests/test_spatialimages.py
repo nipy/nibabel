@@ -528,27 +528,27 @@ class TestSpatialImage(TestCase):
                             assert (sliced_data == img.get_data()[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
 
-    def test_norm_zooms(self):
+    def test_zooms(self):
         ''' Should be true for all images '''
         img_klass = self.image_class
         arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
         aff = np.eye(4)
         img = img_klass(arr, aff)
         img.header.set_norm_zooms((2, 2, 2, 2.5))
-        assert_array_equal(img.header.get_norm_zooms(), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='canonical'), (2, 2, 2, 2.5))
 
-    def test_norm_zooms_edge_cases(self):
+    def test_zooms_edge_cases(self):
         ''' Override for classes where *_norm_zooms != *_zooms '''
         img_klass = self.image_class
         arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
         aff = np.eye(4)
         img = img_klass(arr, aff)
         img.header.set_zooms((2, 2, 2, 2.5))
-        assert_array_equal(img.header.get_zooms(), (2, 2, 2, 2.5))
-        assert_array_equal(img.header.get_norm_zooms(), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='raw'), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='canonical'), (2, 2, 2, 2.5))
         img.header.set_norm_zooms((2, 2, 2, 2.5))
-        assert_array_equal(img.header.get_zooms(), (2, 2, 2, 2.5))
-        assert_array_equal(img.header.get_norm_zooms(), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='raw'), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='canonical'), (2, 2, 2, 2.5))
 
 
 class MmapImageMixin:
