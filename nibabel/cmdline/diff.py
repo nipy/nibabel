@@ -46,6 +46,15 @@ def get_opt_parser():
     return p
 
 
+def diff_values(compare1, compare2):
+    if np.any(compare1 != compare2):
+        return compare1, compare2
+    elif type(compare1) != type(compare2):
+        return compare1, compare2
+    else:
+        pass
+
+
 def diff_header_fields(key, inputs):
     """Iterates over a single header field of multiple files"""
     diffs = []
@@ -55,13 +64,7 @@ def diff_header_fields(key, inputs):
                 key_1 = input_1[key]
                 key_2 = input_2[key]
 
-                if type(key_1) != type(key_2):
-                    if input_1 != inputs[0] and input_2 not in diffs:
-                        diffs.append(key_1)
-                        diffs.append(key_2)
-                    else:
-                        diffs.append(key_1)
-                elif np.any(key_1 != key_2):
+                if diff_values(key_1, key_2):
                     if input_1 != inputs[0] and input_2 not in diffs:
                         diffs.append(key_1)
                         diffs.append(key_2)
