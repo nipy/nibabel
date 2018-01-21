@@ -41,6 +41,18 @@ def get_opt_parser():
         Option("-H", "--header-fields",
                dest="header_fields", default='all',
                help="Header fields (comma separated) to be printed as well (if present)"),
+
+        Option("-t", "--text",
+               dest="text",
+               help="Print output in a very nice-looking way"),
+
+        Option("-j", "--json",
+               dest="json",
+               help="Print output in a json way"),
+
+        Option("-y", "--yaml",
+               dest="yaml",
+               help="Print output in a yaml way"),
     ])
 
     return p
