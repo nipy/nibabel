@@ -7,8 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-# https://github.com/florisvanvugt/afnipy/blob/master/afni.py
-
 from __future__ import print_function, division
 
 from copy import deepcopy
@@ -17,11 +15,11 @@ import re
 
 import numpy as np
 
-from .fileslice import fileslice, strided_scalar
+from .arrayproxy import ArrayProxy
+from .fileslice import strided_scalar
 from .keywordonly import kw_only_meth
-from .openers import ImageOpener
 from .spatialimages import SpatialImage, SpatialHeader
-from .volumeutils import Recoder, array_from_file
+from .volumeutils import Recoder
 
 _attr_dic = {
     'string': str,
@@ -62,6 +60,7 @@ class AFNIError(Exception):
     """
 
 
+DATA_OFFSET = 0
 TYPE_RE = re.compile('type\s*=\s*(string|integer|float)-attribute\s*\n')
 NAME_RE = re.compile('name\s*=\s*(\w+)\s*\n')
 
@@ -79,14 +78,11 @@ def _unpack_var(var):
     (key, value)
         Example: ('BRICK_TYPES', [1])
     """
-
     # data type and key
     atype = TYPE_RE.findall(var)[0]
     aname = NAME_RE.findall(var)[0]
-
     atype = _attr_dic.get(atype, str)
     attr = ' '.join(var.strip().split('\n')[3:])
-
     if atype is not str:
         attr = [atype(f) for f in attr.split()]
         if len(attr) == 1:
@@ -100,19 +96,15 @@ def _unpack_var(var):
 def _get_datatype(info):
     """ Gets datatype from `info` header information
     """
-
     bo = info['BYTEORDER_STRING']
     bt = info['BRICK_TYPES']
-
     if isinstance(bt, list):
         if len(np.unique(bt)) > 1:
             raise AFNIError('Can\'t load dataset with multiple data types.')
         else:
             bt = bt[0]
-
     bo = _endian_dict.get(bo, '=')
     bt = _dtype_dict.get(bt, None)
-
     if bt is None:
         raise AFNIError('Can\'t deduce image data type.')
 
@@ -125,65 +117,30 @@ def parse_AFNI_header(fobj):
     Parameters
     ----------
     fobj : file-object
-        AFNI HEAD file objects
+        AFNI HEAD file object
 
     Returns
     -------
     all_info : dict
         Contains all the information from the HEAD file
     """
-
     head = fobj.read().split('\n\n')
-
     all_info = {key: value for key, value in map(_unpack_var, head)}
 
     return all_info
 
 
-def _data_from_brik(fobj, shape, dtype, scalings=None, mmap=True):
-    """ Load and return array data from BRIK file
-
-    Parameters
-    ----------
-    fobj : file-like
-        The file to process.
-    shape : tuple
-        The data shape as specified from the HEAD file.
-    dtype : dtype
-        The datatype.
-    scalings : {None, sequence}, optional
-        Scalings to use. If not None, a length N sequence, where N is equal to
-        `shape[-1]`
-    mmap : {True, False, 'c', 'r', 'r+'}, optional
-        `mmap` controls the use of numpy memory mapping for reading data.  If
-        False, do not try numpy ``memmap`` for data array.  If one of {'c',
-        'r', 'r+'}, try numpy memmap with ``mode=mmap``.  A `mmap` value of
-        True gives the same behavior as ``mmap='c'``.  If `rec_fileobj` cannot
-        be memory-mapped, ignore `mmap` value and read array from file.
-
-    Returns
-    -------
-    data : array
-        The scaled and sorted array.
-    """
-    brik_data = array_from_file(shape, dtype, fobj, mmap=mmap)
-    if scalings is not None:
-        brik_data = brik_data * scalings.astype(dtype)
-    return brik_data
-
-
-class AFNIArrayProxy(object):
-
-    def __init__(self, file_like, header, mmap=True):
+class AFNIArrayProxy(ArrayProxy):
+    @kw_only_meth(2)
+    def __init__(self, file_like, header, mmap=True, keep_file_open=None):
         """ Initialize AFNI array proxy
 
         Parameters
         ----------
         file_like : file-like object
-            Filename or object implementing ``read, seek, tell``
-        header : AFNIHeader instance
-            Implementing ``get_data_shape, get_data_dtype``,
-            ``get_data_scaling``.
+            File-like object or filename. If file-like object, should implement
+            at least ``read`` and ``seek``.
+        header : AFNIHeader object
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading data.
             If False, do not try numpy ``memmap`` for data array.  If one of
@@ -191,38 +148,40 @@ class AFNIArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
+        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``keep_file_open is False``. If ``file_like`` is an open file
+            handle, this setting has no effect. The default value (``None``)
+            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
-        self.file_like = file_like
-        self._shape = header.get_data_shape()
-        self._dtype = header.get_data_dtype()
-        self._mmap = mmap
+        super(AFNIArrayProxy, self).__init__(file_like,
+                                             header,
+                                             mmap=mmap,
+                                             keep_file_open=keep_file_open)
         self._scaling = header.get_data_scaling()
 
     @property
-    def shape(self):
-        return self._shape
-
-    @property
-    def dtype(self):
-        return self._dtype
-
-    @property
-    def is_proxy(self):
-        return True
+    def scaling(self):
+        return self._scaling
 
     def __array__(self):
-        with ImageOpener(self.file_like) as fileobj:
-            return _data_from_brik(fileobj,
-                                   self._shape,
-                                   self._dtype,
-                                   scalings=self._scaling,
-                                   mmap=self._mmap)
+        raw_data = self.get_unscaled()
+        # apply volume specific scaling
+        if self._scaling is not None:
+            return raw_data * self._scaling.astype(self.dtype)
+
+        return raw_data
 
     def __getitem__(self, slicer):
-        with ImageOpener(self.file_like) as fileobj:
-            raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0,
-                                 'F')
-
+        raw_data = super(AFNIArrayProxy, self).__getitem__(slicer)
+        # apply volume specific scaling
         if self._scaling is not None:
             scaling = self._scaling.copy()
             fake_data = strided_scalar(self._shape)
@@ -235,7 +194,6 @@ class AFNIArrayProxy(object):
 class AFNIHeader(SpatialHeader):
     """ Class for AFNI header
     """
-
     def __init__(self, info):
         """
         Parameters
@@ -246,7 +204,6 @@ class AFNIHeader(SpatialHeader):
         """
         self.info = info
         dt = _get_datatype(self.info)
-
         super(AFNIHeader, self).__init__(data_dtype=dt,
                                          shape=self._calc_data_shape(),
                                          zooms=self._calc_zooms())
@@ -293,7 +250,6 @@ class AFNIHeader(SpatialHeader):
         """
         xyz_step = tuple(np.abs(self.info['DELTA']))
         t_step = self.info.get('TAXIS_FLOATS', ())
-
         if len(t_step) > 0:
             t_step = (t_step[1],)
 
@@ -320,13 +276,14 @@ class AFNIHeader(SpatialHeader):
         -------
         space : str
         """
-
         listed_space = self.info.get('TEMPLATE_SPACE', 0)
         space = space_codes.label[listed_space]
 
         return space
 
     def get_affine(self):
+        """ Returns affine of dataset
+        """
         # AFNI default is RAI/DICOM order (i.e., RAI are - axis)
         # need to flip RA sign to align with nibabel RAS+ system
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
@@ -336,16 +293,24 @@ class AFNIHeader(SpatialHeader):
         return affine
 
     def get_data_scaling(self):
+        """ AFNI applies volume-specific data scaling
+        """
         floatfacs = self.info.get('BRICK_FLOAT_FACS', None)
-
         if floatfacs is None or not np.any(floatfacs):
             return None
-
         scale = np.ones(self.info['DATASET_RANK'][1])
         floatfacs = np.asarray(floatfacs)
         scale[floatfacs.nonzero()] = floatfacs[floatfacs.nonzero()]
 
         return scale
+
+    def get_slope_inter(self):
+        """ Use `self.get_data_scaling()` instead
+        """
+        return None, None
+
+    def get_data_offset(self):
+        return DATA_OFFSET
 
     def get_volume_labels(self):
         """ Returns volume labels
@@ -355,7 +320,6 @@ class AFNIHeader(SpatialHeader):
         labels : list of str
         """
         labels = self.info.get('BRICK_LABS', None)
-
         if labels is not None:
             labels = labels.split('~')
 
@@ -370,10 +334,8 @@ class AFNIImage(SpatialImage):
     valid_exts = ('.brik', '.head')
     files_types = (('image', '.brik'), ('header', '.head'))
     _compressed_suffixes = ('.gz', '.bz2')
-
     makeable = False
     rw = False
-
     ImageArrayProxy = AFNIArrayProxy
 
     @classmethod
