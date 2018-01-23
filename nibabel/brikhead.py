@@ -6,11 +6,23 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+""" Class for reading AFNI BRIK/HEAD datasets
 
+See https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html
+for more information on required information to have a valid BRIK/HEAD dataset.
+
+Examples
+--------
+  .. testsetup::
+    # change directory to provide relative paths for doctests
+    >>> filepath = os.path.dirname(os.path.realpath( __file__ ))
+    >>> datadir = os.path.realpath(os.path.join(filepath, 'tests/data'))
+    >>> os.chdir(datadir)
+"""
 from __future__ import print_function, division
 
 from copy import deepcopy
-import os.path as op
+import os
 import re
 
 import numpy as np
@@ -56,8 +68,7 @@ space_codes = Recoder((
 
 
 class AFNIError(Exception):
-    """ Error when reading AFNI files
-    """
+    """Error when reading AFNI files"""
 
 
 DATA_OFFSET = 0
@@ -66,17 +77,29 @@ NAME_RE = re.compile('name\s*=\s*(\w+)\s*\n')
 
 
 def _unpack_var(var):
-    """ Parses key, value pair from `var`
+    """
+    Parses key : value pair from `var`
 
     Parameters
     ----------
     var : str
-        Example: 'type = integer-attribute\nname = BRICK_TYPES\ncount = 1\n1\n'
+        Entry from HEAD file
 
     Returns
     -------
     (key, value)
-        Example: ('BRICK_TYPES', [1])
+        Parsed entry from HEAD file
+
+    Examples
+    --------
+    >>> var = "type = integer-attribute\\nname = BRICK_TYPES\\ncount = 1\\n1\\n"
+    >>> name, attr = _unpack_var(var)
+    >>> print(name, attr)
+    BRICK_TYPES 1
+    >>> var = "type = string-attribute\\nname = TEMPLATE_SPACE\\ncount = 5\\n'ORIG~"
+    >>> name, attr = _unpack_var(var)
+    >>> print(name, attr)
+    TEMPLATE_SPACE ORIG
     """
     # data type and key
     atype = TYPE_RE.findall(var)[0]
@@ -94,12 +117,23 @@ def _unpack_var(var):
 
 
 def _get_datatype(info):
-    """ Gets datatype from `info` header information
+    """
+    Gets datatype of BRIK file associated with HEAD file yielding `info`
+
+    Parameters
+    ----------
+    info : dict
+        As obtained by `parse_AFNI_header()`
+
+    Returns
+    -------
+    np.dtype
+        Datatype of BRIK file associated with HEAD
     """
     bo = info['BYTEORDER_STRING']
     bt = info['BRICK_TYPES']
     if isinstance(bt, list):
-        if len(np.unique(bt)) > 1:
+        if np.unique(bt).size > 1:
             raise AFNIError('Can\'t load dataset with multiple data types.')
         else:
             bt = bt[0]
@@ -112,7 +146,8 @@ def _get_datatype(info):
 
 
 def parse_AFNI_header(fobj):
-    """ Parses HEAD file for relevant information
+    """
+    Parses `fobj` to extract information from HEAD file
 
     Parameters
     ----------
@@ -121,19 +156,33 @@ def parse_AFNI_header(fobj):
 
     Returns
     -------
-    all_info : dict
-        Contains all the information from the HEAD file
-    """
-    head = fobj.read().split('\n\n')
-    all_info = {key: value for key, value in map(_unpack_var, head)}
+    info : dict
+        Dictionary containing AFNI-style key:value pairs from HEAD file
 
-    return all_info
+    Examples
+    --------
+    >>> info = parse_AFNI_header('example4d+orig.HEAD')
+    >>> print(info['BYTEORDER_STRING'])
+    LSB_FIRST
+    >>> print(info['BRICK_TYPES'])
+    [1, 1, 1]
+    """
+    # edge case for being fed a filename instead of a file object
+    if isinstance(fobj, str):
+        with open(fobj, 'r') as src:
+            return parse_AFNI_header(src)
+    # unpack variables in HEAD file
+    head = fobj.read().split('\n\n')
+    info = {key: value for key, value in map(_unpack_var, head)}
+
+    return info
 
 
 class AFNIArrayProxy(ArrayProxy):
     @kw_only_meth(2)
     def __init__(self, file_like, header, mmap=True, keep_file_open=None):
-        """ Initialize AFNI array proxy
+        """
+        Initialize AFNI array proxy
 
         Parameters
         ----------
@@ -192,15 +241,23 @@ class AFNIArrayProxy(ArrayProxy):
 
 
 class AFNIHeader(SpatialHeader):
-    """ Class for AFNI header
-    """
+    """Class for AFNI header"""
     def __init__(self, info):
         """
         Parameters
         ----------
         info : dict
-            Information from AFNI HEAD file (as obtained by
-            `parse_AFNI_header()`)
+            Information from HEAD file as obtained by `parse_AFNI_header()`
+
+        Examples
+        --------
+        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> header.get_data_dtype()
+        dtype('int16')
+        >>> header.get_zooms()
+        (3.0, 3.0, 3.0, 3.0)
+        >>> header.get_data_shape()
+        (33, 41, 25, 3)
         """
         self.info = info
         dt = _get_datatype(self.info)
@@ -225,7 +282,7 @@ class AFNIHeader(SpatialHeader):
         return AFNIHeader(deepcopy(self.info))
 
     def _calc_data_shape(self):
-        """ Calculate the output shape of the image data
+        """Calculate the output shape of the image data
 
         Returns length 3 tuple for 3D image, length 4 tuple for 4D.
 
@@ -256,21 +313,21 @@ class AFNIHeader(SpatialHeader):
         return xyz_step + t_step
 
     def get_orient(self):
-        """ Returns orientation of data
+        """Returns orientation of data
 
-        Three letter string of {('L','R'),('P','A'),('I','S')} specifying
+        Three letter string of {('L','R'), ('P','A'), ('I','S')} specifying
         data orientation
 
         Returns
         -------
         orient : str
         """
-        orient = [_orient_dict[f][0] for f in self.info['ORIENT_SPECIFIC']]
+        orient = [_orient_dict[f] for f in self.info['ORIENT_SPECIFIC']]
 
         return ''.join(orient)
 
     def get_space(self):
-        """ Returns space of dataset
+        """Returns space of dataset
 
         Returns
         -------
@@ -283,8 +340,17 @@ class AFNIHeader(SpatialHeader):
 
     def get_affine(self):
         """ Returns affine of dataset
+
+        Examples
+        --------
+        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> header.get_affine()
+        array([[ -3.    ,  -0.    ,  -0.    ,  49.5   ],
+               [ -0.    ,  -3.    ,  -0.    ,  82.312 ],
+               [  0.    ,   0.    ,   3.    , -52.3511],
+               [  0.    ,   0.    ,   0.    ,   1.    ]])
         """
-        # AFNI default is RAI/DICOM order (i.e., RAI are - axis)
+        # AFNI default is RAI-/DICOM order (i.e., RAI are - axis)
         # need to flip RA sign to align with nibabel RAS+ system
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
         affine = np.row_stack((affine * [[-1], [-1], [1]],
@@ -294,6 +360,11 @@ class AFNIHeader(SpatialHeader):
 
     def get_data_scaling(self):
         """ AFNI applies volume-specific data scaling
+
+        Examples
+        --------
+        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> header.get_data_scaling()
         """
         floatfacs = self.info.get('BRICK_FLOAT_FACS', None)
         if floatfacs is None or not np.any(floatfacs):
@@ -305,19 +376,25 @@ class AFNIHeader(SpatialHeader):
         return scale
 
     def get_slope_inter(self):
-        """ Use `self.get_data_scaling()` instead
-        """
+        """Use `self.get_data_scaling()` instead"""
         return None, None
 
     def get_data_offset(self):
+        """Data offset in BRIK file"""
         return DATA_OFFSET
 
     def get_volume_labels(self):
-        """ Returns volume labels
+        """Returns volume labels
 
         Returns
         -------
         labels : list of str
+
+        Examples
+        --------
+        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> header.get_volume_labels()
+        ['#0', '#1', '#2']
         """
         labels = self.info.get('BRICK_LABS', None)
         if labels is not None:
@@ -327,7 +404,23 @@ class AFNIHeader(SpatialHeader):
 
 
 class AFNIImage(SpatialImage):
-    """ AFNI image file
+    """AFNI Image file
+
+    Can be loaded from either the BRIK or HEAD file (but MUST specify one!)
+
+    Examples
+    --------
+    >>> brik = load('example4d+orig.BRIK')
+    >>> brik.shape
+    (33, 41, 25, 3)
+    >>> brik.affine
+    array([[ -3.    ,  -0.    ,  -0.    ,  49.5   ],
+           [ -0.    ,  -3.    ,  -0.    ,  82.312 ],
+           [  0.    ,   0.    ,   3.    , -52.3511],
+           [  0.    ,   0.    ,   0.    ,   1.    ]])
+    >>> head = load('example4d+orig.HEAD')
+    >>> (head.get_data() == brik.get_data()).all()
+    True
     """
 
     header_class = AFNIHeader
@@ -346,7 +439,7 @@ class AFNIImage(SpatialImage):
         ----------
         file_map : dict
             dict with keys ``image, header`` and values being fileholder
-            objects for the respective REC and PAR files.
+            objects for the respective BRIK and HEAD files
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
@@ -372,7 +465,7 @@ class AFNIImage(SpatialImage):
         ----------
         file_map : dict
             dict with keys ``image, header`` and values being fileholder
-            objects for the respective REC and PAR files.
+            objects for the respective BRIK and HEAD files
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
@@ -385,16 +478,16 @@ class AFNIImage(SpatialImage):
         # only BRIK can be compressed, but `filespec_to_file_map` doesn't
         # handle that case; remove potential compression suffixes from HEAD
         head_fname = file_map['header'].filename
-        if not op.exists(head_fname):
+        if not os.path.exists(head_fname):
             for ext in klass._compressed_suffixes:
                 head_fname = re.sub(ext, '', head_fname)
             file_map['header'].filename = head_fname
         # if HEAD is read in and BRIK is compressed, function won't detect the
         # compressed format; check for these cases
-        if not op.exists(file_map['image'].filename):
+        if not os.path.exists(file_map['image'].filename):
             for ext in klass._compressed_suffixes:
                 im_ext = file_map['image'].filename + ext
-                if op.exists(im_ext):
+                if os.path.exists(im_ext):
                     file_map['image'].filename = im_ext
                     break
         return klass.from_file_map(file_map,
