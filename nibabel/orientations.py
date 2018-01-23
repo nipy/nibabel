@@ -349,7 +349,12 @@ def axcodes2ornt(axcodes, labels=None):
            [ 0., -1.],
            [ 2.,  1.]])
     """
-    axcodes = axcodes.upper()
+
+    upper_str = []
+    for c in axcodes:
+        upper_str.append(c.upper())
+    axcodes = tuple(upper_str)
+
     if labels is None:
         labels = list(zip('LPI', 'RAS'))
     n_axes = len(axcodes)
