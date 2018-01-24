@@ -383,11 +383,11 @@ def read_annot(filepath, orig_ids=False):
                 name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
                 names.append(name)
                 # RGBA
-                ctab[i, :4] = np.fromfile(fobj, dt, 4)
-                ctab[i, 4] = (ctab[i, 0] +
-                              ctab[i, 1] * (2 ** 8) +
-                              ctab[i, 2] * (2 ** 16) +
-                              ctab[i, 3] * (2 ** 24))
+                ctab[idx, :4] = np.fromfile(fobj, dt, 4)
+                ctab[idx, 4] = (ctab[idx, 0] +
+                                ctab[idx, 1] * (2 ** 8) +
+                                ctab[idx, 2] * (2 ** 16) +
+                                ctab[idx, 3] * (2 ** 24))
 
     # make sure names are strings, not bytes
     names = [n.decode('ascii') for n in names]
