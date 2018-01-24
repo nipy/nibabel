@@ -318,51 +318,78 @@ def read_annot(filepath, orig_ids=False):
         The names of the labels. The length of the list is n_labels.
     """
     with open(filepath, "rb") as fobj:
+        # all data (apart from strings) in an .annot file is stored as
+        # big-endian int32
         dt = ">i4"
+
+        # number of vertices
         vnum = np.fromfile(fobj, dt, 1)[0]
+
+        # vertex ids + annotation values
         data = np.fromfile(fobj, dt, vnum * 2).reshape(vnum, 2)
         labels = data[:, 1]
 
+        # is there a colour table?
         ctab_exists = np.fromfile(fobj, dt, 1)[0]
         if not ctab_exists:
             raise Exception('Color table not found in annotation file')
+
+        # in old-format files, the next field will contain the number of
+        # entries in the colour table. In new-format files, this will be
+        # equal to -2
         n_entries = np.fromfile(fobj, dt, 1)[0]
+
+        # We've got an old-format .annot file.
         if n_entries > 0:
+
+            # orig_tab string length + string
             length = np.fromfile(fobj, dt, 1)[0]
             orig_tab = np.fromfile(fobj, '>c', length)
             orig_tab = orig_tab[:-1]
-
             names = list()
-            ctab = np.zeros((n_entries, 5), np.int)
+            ctab = np.zeros((n_entries, 5), np.int32)
             for i in xrange(n_entries):
+                # structure name length + string
                 name_length = np.fromfile(fobj, dt, 1)[0]
                 name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
                 names.append(name)
+                # RGBA
                 ctab[i, :4] = np.fromfile(fobj, dt, 4)
-                ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
+                # generate the annotation value
+                ctab[i, 4] = (ctab[i, 0] +
+                              ctab[i, 1] * (2 ** 8) +
                               ctab[i, 2] * (2 ** 16) +
                               ctab[i, 3] * (2 ** 24))
+        # We've got a new-format .annot file
         else:
+            # file version number
             ctab_version = -n_entries
             if ctab_version != 2:
                 raise Exception('Color table version not supported')
-            n_entries = np.fromfile(fobj, dt, 1)[0]
-            ctab = np.zeros((n_entries, 5), np.int)
+            # maximum colour table index used
+            max_index = np.fromfile(fobj, dt, 1)[0]
+            ctab = np.zeros((max_index, 5), np.int32)
+            # orig_tab string length + string
             length = np.fromfile(fobj, dt, 1)[0]
             np.fromfile(fobj, "|S%d" % length, 1)[0]  # Orig table path
+            # number of entries to read from the file
             entries_to_read = np.fromfile(fobj, dt, 1)[0]
             names = list()
             for i in xrange(entries_to_read):
-                np.fromfile(fobj, dt, 1)[0]  # Structure
+                # index of this entry
+                idx = np.fromfile(fobj, dt, 1)[0]
+                # structure name length + string
                 name_length = np.fromfile(fobj, dt, 1)[0]
                 name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
                 names.append(name)
+                # RGBA
                 ctab[i, :4] = np.fromfile(fobj, dt, 4)
-                ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
-                              ctab[i, 2] * (2 ** 16))
-        ctab[:, 3] = 255
+                ctab[i, 4] = (ctab[i, 0] +
+                              ctab[i, 1] * (2 ** 8) +
+                              ctab[i, 2] * (2 ** 16) +
+                              ctab[i, 3] * (2 ** 24))
 
-    labels = labels.astype(np.int)
+    labels = labels.astype(np.int32)
 
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
