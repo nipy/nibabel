@@ -209,7 +209,7 @@ def test_annot():
         assert_equal(names, names2)
 
 
-def test_annot_readback():
+def test_read_write_annot():
 
     # This annot file will store a LUT for a mesh made of 10 vertices, with
     # 3 colours in the LUT.
@@ -245,9 +245,31 @@ def test_annot_readback():
     annot_path = 'c.annot'
 
     with InTemporaryDirectory():
-        write_annot(annot_path, labels, rgbal, names)
+        write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         labels2, rgbal2, names2 = read_annot(annot_path)
         assert np.all(np.isclose(rgbal2, rgbal))
+        assert np.all(np.isclose(labels2, labels))
+        assert names2 == names
+
+
+def test_write_annot_fill_ctab():
+
+    nvertices = 10
+    nlabels = 3
+    names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+    labels = list(range(nlabels)) + \
+             list(np.random.randint(0, nlabels, nvertices - nlabels))
+    labels = np.array(labels, dtype=np.int32)
+    np.random.shuffle(labels)
+    rgbal = np.random.randint(0, 255, (nlabels, 4), dtype=np.int32)
+    annot_path = 'c.annot'
+
+    with InTemporaryDirectory():
+        write_annot(annot_path, labels, rgbal, names, fill_ctab=True)
+        labels2, rgbal2, names2 = read_annot(annot_path)
+        assert np.all(np.isclose(rgbal2[:, :4], rgbal))
+        assert np.all(np.isclose(labels2, labels))
+        assert names2 == names
 
 
 @freesurfer_test
