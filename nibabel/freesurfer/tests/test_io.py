@@ -261,7 +261,7 @@ def test_write_annot_fill_ctab():
              list(np.random.randint(0, nlabels, nvertices - nlabels))
     labels = np.array(labels, dtype=np.int32)
     np.random.shuffle(labels)
-    rgbal = np.random.randint(0, 255, (nlabels, 4), dtype=np.int32)
+    rgbal = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
     annot_path = 'c.annot'
 
     with InTemporaryDirectory():
