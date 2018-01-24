@@ -389,6 +389,9 @@ def read_annot(filepath, orig_ids=False):
                               ctab[i, 2] * (2 ** 16) +
                               ctab[i, 3] * (2 ** 24))
 
+    # make sure names are strings, not bytes
+    names = [n.decode('ascii') for n in names]
+
     labels = labels.astype(np.int32)
 
     if not orig_ids:
