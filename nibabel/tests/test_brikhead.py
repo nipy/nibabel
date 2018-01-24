@@ -15,7 +15,7 @@ import numpy as np
 from .. import load, Nifti1Image
 from .. import brikhead
 
-from nose.tools import (assert_true, assert_equal)
+from nose.tools import (assert_true, assert_equal, assert_raises)
 from numpy.testing import assert_array_equal
 from ..testing import data_path
 
@@ -24,7 +24,8 @@ from .test_helpers import assert_data_similar
 
 EXAMPLE_IMAGES = [
     dict(
-        fname=pjoin(data_path, 'example4d+orig.BRIK'),
+        head=pjoin(data_path, 'example4d+orig.HEAD'),
+        brik=pjoin(data_path, 'example4d+orig.BRIK.gz'),
         shape=(33, 41, 25, 3),
         dtype=np.int16,
         affine=np.array([[-3.0,0,0,49.5],
@@ -32,13 +33,49 @@ EXAMPLE_IMAGES = [
                          [0,0,3.0,-52.3511],
                          [0,0,0,1.0]]),
         zooms=(3., 3., 3., 3.),
-        # These values from SPM2
         data_summary=dict(
             min=0,
             max=13722,
             mean=4266.76024636),
-        is_proxy=True)
+        is_proxy=True,
+        space='ORIG',
+        labels=['#0', '#1', '#2'],
+        scaling=None),
+    dict(
+        head=pjoin(data_path, 'scaled+tlrc.HEAD'),
+        brik=pjoin(data_path, 'scaled+tlrc.BRIK'),
+        shape=(47, 54, 43),
+        dtype=np.int16,
+        affine=np.array([[3.0,0,0,-66.],
+                         [0,3.0,0,-87.],
+                         [0,0,3.0,-54.],
+                         [0,0,0,1.0]]),
+        zooms=(3., 3., 3.),
+        data_summary=dict(
+            min=1.9416814999999998e-07,
+            max=0.0012724615542099998,
+            mean=0.00023919645351876782),
+        is_proxy=True,
+        space='TLRC',
+        labels=['#0'],
+        scaling=np.array([  3.88336300e-08]),
+    )
 ]
+
+
+class TestAFNIHeader(object):
+    module = brikhead
+    test_files = EXAMPLE_IMAGES
+
+    def test_makehead(self):
+        for tp in self.test_files:
+            head1 = self.module.AFNIHeader.from_fileobj(tp['head'])
+            head2 = self.module.AFNIHeader.from_header(head1)
+            assert_equal(head1, head2)
+            with assert_raises(self.module.AFNIError):
+                self.module.AFNIHeader.from_header(header=None)
+            with assert_raises(self.module.AFNIError):
+                self.module.AFNIHeader.from_header(tp['brik'])
 
 
 class TestAFNIImage(object):
@@ -47,18 +84,20 @@ class TestAFNIImage(object):
 
     def test_brikheadfile(self):
         for tp in self.test_files:
-            brik = self.module.load(tp['fname'])
+            brik = self.module.load(tp['brik'])
             assert_equal(brik.get_data_dtype().type, tp['dtype'])
             assert_equal(brik.shape, tp['shape'])
             assert_equal(brik.header.get_zooms(), tp['zooms'])
             assert_array_equal(brik.affine, tp['affine'])
+            assert_equal(brik.header.get_space(), tp['space'])
             data = brik.get_data()
             assert_equal(data.shape, tp['shape'])
+            assert_array_equal(brik.dataobj.scaling, tp['scaling'])
 
     def test_load(self):
         # Check highest level load of brikhead works
         for tp in self.test_files:
-            img = load(tp['fname'])
+            img = load(tp['brik'])
             data = img.get_data()
             assert_equal(data.shape, tp['shape'])
             # min, max, mean values
@@ -71,7 +110,7 @@ class TestAFNIImage(object):
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
-            img = load(tp['fname'])
+            img = load(tp['brik'])
             arr = img.get_data()
             prox = img.dataobj
             assert_true(prox.is_proxy)

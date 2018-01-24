@@ -51,15 +51,6 @@ _dtype_dict = {
     5: 'D',
 }
 
-_orient_dict = {
-    0: 'R',
-    1: 'L',
-    2: 'P',
-    3: 'A',
-    4: 'I',
-    5: 'S'
-}
-
 space_codes = Recoder((
     (0, 'unknown', ''),
     (1, 'scanner', 'ORIG'),
@@ -222,15 +213,15 @@ class AFNIArrayProxy(ArrayProxy):
 
     def __array__(self):
         raw_data = self.get_unscaled()
-        # apply volume specific scaling
+        # apply volume specific scaling (may change datatype!)
         if self._scaling is not None:
-            return raw_data * self._scaling.astype(self.dtype)
+            return raw_data * self._scaling
 
         return raw_data
 
     def __getitem__(self, slicer):
         raw_data = super(AFNIArrayProxy, self).__getitem__(slicer)
-        # apply volume specific scaling
+        # apply volume specific scaling (may change datatype!)
         if self._scaling is not None:
             scaling = self._scaling.copy()
             fake_data = strided_scalar(self._shape)
@@ -312,20 +303,6 @@ class AFNIHeader(SpatialHeader):
 
         return xyz_step + t_step
 
-    def get_orient(self):
-        """Returns orientation of data
-
-        Three letter string of {('L','R'), ('P','A'), ('I','S')} specifying
-        data orientation
-
-        Returns
-        -------
-        orient : str
-        """
-        orient = [_orient_dict[f] for f in self.info['ORIENT_SPECIFIC']]
-
-        return ''.join(orient)
-
     def get_space(self):
         """Returns space of dataset
 
@@ -334,7 +311,7 @@ class AFNIHeader(SpatialHeader):
         space : str
         """
         listed_space = self.info.get('TEMPLATE_SPACE', 0)
-        space = space_codes.label[listed_space]
+        space = space_codes.space[listed_space]
 
         return space
 
@@ -363,14 +340,15 @@ class AFNIHeader(SpatialHeader):
 
         Examples
         --------
-        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> header = AFNIHeader(parse_AFNI_header('scaled+tlrc.HEAD'))
         >>> header.get_data_scaling()
+        array([  3.88336300e-08])
         """
         floatfacs = self.info.get('BRICK_FLOAT_FACS', None)
         if floatfacs is None or not np.any(floatfacs):
             return None
         scale = np.ones(self.info['DATASET_RANK'][1])
-        floatfacs = np.asarray(floatfacs)
+        floatfacs = np.atleast_1d(floatfacs)
         scale[floatfacs.nonzero()] = floatfacs[floatfacs.nonzero()]
 
         return scale
@@ -419,7 +397,7 @@ class AFNIImage(SpatialImage):
            [  0.    ,   0.    ,   3.    , -52.3511],
            [  0.    ,   0.    ,   0.    ,   1.    ]])
     >>> head = load('example4d+orig.HEAD')
-    >>> (head.get_data() == brik.get_data()).all()
+    >>> np.array_equal(head.get_data(), brik.get_data())
     True
     """
 
