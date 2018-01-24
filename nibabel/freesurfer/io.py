@@ -73,6 +73,27 @@ def _read_volume_info(fobj):
     return volume_info
 
 
+def _pack_rgba(rgba):
+    """Used by :meth:`read_annot` and :meth:`write_annot` to pack an RGBA
+    sequence into a single integer.
+
+    Parameters
+    ----------
+
+    rgba : ndarray, shape (n, 4)
+        RGBA colours
+
+    Returns
+    -------
+
+    out : ndarray, shape (n, )
+        Annotation values for each colour.
+    """
+    # ctab :: n x 4
+    bitshifts = 2 ** np.array([[0], [8], [16], [24]], dtype=rgba.dtype)
+    return rgba.dot(bitshifts).squeeze()
+
+
 def read_geometry(filepath, read_metadata=False, read_stamp=False):
     """Read a triangular format Freesurfer surface mesh.
 
@@ -347,35 +368,30 @@ def read_annot(filepath, orig_ids=False):
             orig_tab = np.fromfile(fobj, '>c', length)
             orig_tab = orig_tab[:-1]
             names = list()
-            ctab = np.zeros((n_entries, 5), np.int32)
+            ctab = np.zeros((n_entries, 5), dt)
             for i in xrange(n_entries):
                 # structure name length + string
                 name_length = np.fromfile(fobj, dt, 1)[0]
                 name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
                 names.append(name)
-                # RGBA
+                # read RGBA for this entry
                 ctab[i, :4] = np.fromfile(fobj, dt, 4)
-                # generate the annotation value
-                ctab[i, 4] = (ctab[i, 0] +
-                              ctab[i, 1] * (2 ** 8) +
-                              ctab[i, 2] * (2 ** 16) +
-                              ctab[i, 3] * (2 ** 24))
         # We've got a new-format .annot file
         else:
             # file version number
             ctab_version = -n_entries
             if ctab_version != 2:
                 raise Exception('Color table version not supported')
-            # maximum colour table index used
+            # maximum LUT index present in the file
             max_index = np.fromfile(fobj, dt, 1)[0]
-            ctab = np.zeros((max_index, 5), np.int32)
+            ctab = np.zeros((max_index, 5), dt)
             # orig_tab string length + string
             length = np.fromfile(fobj, dt, 1)[0]
             np.fromfile(fobj, "|S%d" % length, 1)[0]  # Orig table path
-            # number of entries to read from the file
+            # number of LUT entries present in the file
             entries_to_read = np.fromfile(fobj, dt, 1)[0]
             names = list()
-            for i in xrange(entries_to_read):
+            for _ in xrange(entries_to_read):
                 # index of this entry
                 idx = np.fromfile(fobj, dt, 1)[0]
                 # structure name length + string
@@ -384,15 +400,12 @@ def read_annot(filepath, orig_ids=False):
                 names.append(name)
                 # RGBA
                 ctab[idx, :4] = np.fromfile(fobj, dt, 4)
-                ctab[idx, 4] = (ctab[idx, 0] +
-                                ctab[idx, 1] * (2 ** 8) +
-                                ctab[idx, 2] * (2 ** 16) +
-                                ctab[idx, 3] * (2 ** 24))
+
+    # generate annotation values for each LUT entry
+    ctab[:, 4] = _pack_rgba(ctab[:, :4])
 
     # make sure names are strings, not bytes
     names = [n.decode('ascii') for n in names]
-
-    labels = labels.astype(np.int32)
 
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
@@ -437,13 +450,11 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
 
         # Generate annotation values for each ctab entry
         if fill_ctab:
-            new_ctab = np.zeros((ctab.shape[0], 5), dtype=np.int32)
-            new_ctab[:, :4] = ctab[:, :4]
-            ctab = new_ctab
-            ctab[:, 4] = (ctab[:, 0] +
-                          ctab[:, 1] * (2 ** 8) +
-                          ctab[:, 2] * (2 ** 16) +
-                          ctab[:, 3] * (2 ** 24))
+            ctab = np.hstack((ctab[:, :4],
+                              _pack_rgba(ctab[:, :4]).reshape(-1, 1)))
+        elif not np.array_equal(ctab[:, 4], _pack_rgba(ctab[:, :4])):
+            warnings.warn('Annotation values in {} will be incorrect'.format(
+                filepath))
 
         # vtxct
         write(vnum)
