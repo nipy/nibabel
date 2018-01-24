@@ -402,7 +402,7 @@ def read_annot(filepath, orig_ids=False):
     return labels, ctab, names
 
 
-def write_annot(filepath, labels, ctab, names):
+def write_annot(filepath, labels, ctab, names, fill_ctab=True):
     """Write out a Freesurfer annotation file.
 
     See:
@@ -418,6 +418,11 @@ def write_annot(filepath, labels, ctab, names):
         RGBA + label id colortable array.
     names : list of str
         The names of the labels. The length of the list is n_labels.
+    fill_ctab : bool
+        If True, the annotation values for each vertex  are automatically
+        generated. In this case, the provided `ctab` may have shape
+        (n_labels, 4) or (n_labels, 5) - if the latter, the final column is
+        ignored.
     """
     with open(filepath, "wb") as fobj:
         dt = ">i4"
@@ -429,6 +434,16 @@ def write_annot(filepath, labels, ctab, names):
         def write_string(s):
             write(len(s))
             write(s, dtype='|S%d' % len(s))
+
+        # Generate annotation values for each ctab entry
+        if fill_ctab:
+            new_ctab = np.zeros((ctab.shape[0], 5), dtype=np.int32)
+            new_ctab[:, :4] = ctab[:, :4]
+            ctab = new_ctab
+            ctab[:, 4] = (ctab[:, 0] +
+                          ctab[:, 1] * (2 ** 8) +
+                          ctab[:, 2] * (2 ** 16) +
+                          ctab[:, 3] * (2 ** 24))
 
         # vtxct
         write(vnum)
