@@ -209,6 +209,47 @@ def test_annot():
         assert_equal(names, names2)
 
 
+def test_annot_readback():
+
+    # This annot file will store a LUT for a mesh made of 10 vertices, with
+    # 3 colours in the LUT.
+    nvertices = 10
+    nlabels = 3
+
+    names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+
+    # randomly generate a label for each vertex, making sure
+    # that at least one of each label value is present. Label
+    # values are in the range (0, nlabels-1) - they are used
+    # as indices into the lookup table (generated below).
+    labels = list(range(nlabels)) + \
+             list(np.random.randint(0, nlabels, nvertices - nlabels))
+    labels = np.array(labels, dtype=np.int32)
+    np.random.shuffle(labels)
+
+    # Generate some random colours for the LUT
+    rgbal = np.zeros((nlabels, 5), dtype=np.int32)
+    rgbal[:, :4] = np.random.randint(0, 255, (nlabels, 4))
+
+    # But make sure we have at least one large alpha, to make sure that when
+    # it is packed into a signed 32 bit int, it results in a negative value
+    # for the annotation value.
+    rgbal[0, 3] = 255
+
+    # Generate the annotation values for each LUT entry
+    rgbal[:, 4] = (rgbal[:, 0] +
+                   rgbal[:, 1] * (2 ** 8) +
+                   rgbal[:, 2] * (2 ** 16) +
+                   rgbal[:, 3] * (2 ** 24))
+
+    annot_path = 'c.annot'
+
+    with InTemporaryDirectory():
+        write_annot(annot_path, labels, rgbal, names)
+        labels2, rgbal2, names2 = read_annot(annot_path)
+        assert np.all(np.isclose(rgbal2, rgbal))
+
+
 @freesurfer_test
 def test_label():
     """Test IO of .label"""
