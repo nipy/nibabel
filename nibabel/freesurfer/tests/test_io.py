@@ -253,7 +253,6 @@ def test_read_write_annot():
 
 
 def test_write_annot_fill_ctab():
-
     nvertices = 10
     nlabels = 3
     names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
@@ -261,13 +260,46 @@ def test_write_annot_fill_ctab():
              list(np.random.randint(0, nlabels, nvertices - nlabels))
     labels = np.array(labels, dtype=np.int32)
     np.random.shuffle(labels)
-    rgbal = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
+    rgba = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
     annot_path = 'c.annot'
 
     with InTemporaryDirectory():
-        write_annot(annot_path, labels, rgbal, names, fill_ctab=True)
+        write_annot(annot_path, labels, rgba, names, fill_ctab=True)
         labels2, rgbal2, names2 = read_annot(annot_path)
-        assert np.all(np.isclose(rgbal2[:, :4], rgbal))
+        assert np.all(np.isclose(rgbal2[:, :4], rgba))
+        assert np.all(np.isclose(labels2, labels))
+        assert names2 == names
+
+        # make sure a warning is emitted if fill_ctab is False, and the
+        # annotation values are wrong. Use orig_ids=True so we get those bad
+        # values back.
+        badannot = (10 * np.arange(nlabels, dtype=np.int32)).reshape(-1, 1)
+        rgbal = np.hstack((rgba, badannot))
+        print(labels)
+        with clear_and_catch_warnings() as w:
+            write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
+        assert_true(
+            any('Annotation values in {} will be incorrect'.format(
+                annot_path) == str(ww.message) for ww in w))
+        labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
+        assert np.all(np.isclose(rgbal2[:, :4], rgba))
+        assert np.all(np.isclose(labels2, badannot[labels].squeeze()))
+        assert names2 == names
+
+        # make sure a warning is *not* emitted if fill_ctab is False, but the
+        # annotation values are correct.
+        rgbal = np.hstack((rgba, np.zeros((nlabels, 1), dtype=np.int32)))
+        rgbal[:, 4] = (rgbal[:, 0] +
+                       rgbal[:, 1] * (2 ** 8) +
+                       rgbal[:, 2] * (2 ** 16) +
+                       rgbal[:, 3] * (2 ** 24))
+        with clear_and_catch_warnings() as w:
+            write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
+        assert_true(
+            not any('Annotation values in {} will be incorrect'.format(
+                annot_path) == str(ww.message) for ww in w))
+        labels2, rgbal2, names2 = read_annot(annot_path)
+        assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, labels))
         assert names2 == names
 
