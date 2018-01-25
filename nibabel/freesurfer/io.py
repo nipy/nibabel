@@ -89,9 +89,8 @@ def _pack_rgba(rgba):
     out : ndarray, shape (n, )
         Annotation values for each colour.
     """
-    # ctab :: n x 4
     bitshifts = 2 ** np.array([[0], [8], [16], [24]], dtype=rgba.dtype)
-    return rgba.dot(bitshifts).squeeze()
+    return rgba.dot(bitshifts)
 
 
 def read_geometry(filepath, read_metadata=False, read_stamp=False):
@@ -402,7 +401,7 @@ def read_annot(filepath, orig_ids=False):
                 ctab[idx, :4] = np.fromfile(fobj, dt, 4)
 
     # generate annotation values for each LUT entry
-    ctab[:, 4] = _pack_rgba(ctab[:, :4])
+    ctab[:, [4]] = _pack_rgba(ctab[:, :4])
 
     # make sure names are strings, not bytes
     names = [n.decode('ascii') for n in names]
@@ -450,8 +449,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
 
         # Generate annotation values for each ctab entry
         if fill_ctab:
-            ctab = np.hstack((ctab[:, :4],
-                              _pack_rgba(ctab[:, :4]).reshape(-1, 1)))
+            ctab = np.hstack((ctab[:, :4], _pack_rgba(ctab[:, :4])))
         elif not np.array_equal(ctab[:, 4], _pack_rgba(ctab[:, :4])):
             warnings.warn('Annotation values in {} will be incorrect'.format(
                 filepath))
