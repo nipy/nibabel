@@ -450,7 +450,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         # Generate annotation values for each ctab entry
         if fill_ctab:
             ctab = np.hstack((ctab[:, :4], _pack_rgba(ctab[:, :4])))
-        elif not np.array_equal(ctab[:, 4], _pack_rgba(ctab[:, :4])):
+        elif not np.array_equal(ctab[:, [4]], _pack_rgba(ctab[:, :4])):
             warnings.warn('Annotation values in {} will be incorrect'.format(
                 filepath))
 
