@@ -301,14 +301,14 @@ def test_read_annot_old_format():
     """Test reading an old-style .annot file."""
     def gen_old_annot_file(fpath, nverts, labels, rgba, names):
         dt = '>i'
-        vdata = np.zeros((nverts, 2))
+        vdata = np.zeros((nverts, 2), dtype=dt)
         vdata[:, 0] = np.arange(nverts)
         vdata[:, [1]] = _pack_rgba(rgba[labels, :])
         fbytes = b''
         # number of vertices
         fbytes += struct.pack(dt, nverts)
         # vertices + annotation values
-        fbytes += vdata.astype(dt).tobytes()
+        fbytes += bytes(vdata.astype(dt).tostring())
         # is there a colour table?
         fbytes += struct.pack(dt, 1)
         # number of entries in colour table
@@ -320,7 +320,7 @@ def test_read_annot_old_format():
             # length of entry name (+1 for terminating byte)
             fbytes += struct.pack(dt, len(names[i]) + 1)
             fbytes += names[i].encode('ascii') + b'\00'
-            fbytes += rgba[i, :].astype(dt).tobytes()
+            fbytes += bytes(rgba[i, :].astype(dt))
         with open(fpath, 'wb') as f:
             f.write(fbytes)
     with InTemporaryDirectory():
@@ -328,7 +328,7 @@ def test_read_annot_old_format():
         nlabels = 3
         names = ['Label {}'.format(l) for l in range(nlabels)]
         labels = np.concatenate((
-            np.arange(nlabels), np.random.randint(0, 3, nverts - nlabels)))
+            np.arange(nlabels), np.random.randint(0, nlabels, nverts - nlabels)))
         np.random.shuffle(labels)
         rgba = np.random.randint(0, 255, (nlabels, 4))
         # write an old .annot file
