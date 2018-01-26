@@ -320,7 +320,7 @@ def test_read_annot_old_format():
             # length of entry name (+1 for terminating byte)
             fbytes += struct.pack(dt, len(names[i]) + 1)
             fbytes += names[i].encode('ascii') + b'\00'
-            fbytes += bytes(rgba[i, :].astype(dt))
+            fbytes += bytes(rgba[i, :].astype(dt).tostring())
         with open(fpath, 'wb') as f:
             f.write(fbytes)
     with InTemporaryDirectory():
