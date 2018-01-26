@@ -3,6 +3,7 @@ import os
 from os.path import join as pjoin, isdir
 import getpass
 import time
+import struct
 import hashlib
 import warnings
 
@@ -15,6 +16,7 @@ from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
                 write_geometry, write_morph_data, write_annot)
+from ..io import _pack_rgba
 
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
@@ -169,7 +171,7 @@ def test_write_morph_data():
 
 @freesurfer_test
 def test_annot():
-    """Test IO of .annot"""
+    """Test IO of .annot against freesurfer example data."""
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
         annot_path = pjoin(data_path, "label", "%s.%s.annot" % ("lh", a))
@@ -210,14 +212,12 @@ def test_annot():
 
 
 def test_read_write_annot():
-
+    """Test generating .annot fiole and reading it back."""
     # This annot file will store a LUT for a mesh made of 10 vertices, with
     # 3 colours in the LUT.
     nvertices = 10
     nlabels = 3
-
     names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
-
     # randomly generate a label for each vertex, making sure
     # that at least one of each label value is present. Label
     # values are in the range (0, nlabels-1) - they are used
@@ -226,24 +226,19 @@ def test_read_write_annot():
              list(np.random.randint(0, nlabels, nvertices - nlabels))
     labels = np.array(labels, dtype=np.int32)
     np.random.shuffle(labels)
-
     # Generate some random colours for the LUT
     rgbal = np.zeros((nlabels, 5), dtype=np.int32)
     rgbal[:, :4] = np.random.randint(0, 255, (nlabels, 4))
-
     # But make sure we have at least one large alpha, to make sure that when
     # it is packed into a signed 32 bit int, it results in a negative value
     # for the annotation value.
     rgbal[0, 3] = 255
-
     # Generate the annotation values for each LUT entry
     rgbal[:, 4] = (rgbal[:, 0] +
                    rgbal[:, 1] * (2 ** 8) +
                    rgbal[:, 2] * (2 ** 16) +
                    rgbal[:, 3] * (2 ** 24))
-
     annot_path = 'c.annot'
-
     with InTemporaryDirectory():
         write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         labels2, rgbal2, names2 = read_annot(annot_path)
@@ -253,6 +248,7 @@ def test_read_write_annot():
 
 
 def test_write_annot_fill_ctab():
+    """Test the `fill_ctab` parameter to :func:`.write_annot`. """
     nvertices = 10
     nlabels = 3
     names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
@@ -262,14 +258,12 @@ def test_write_annot_fill_ctab():
     np.random.shuffle(labels)
     rgba = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
     annot_path = 'c.annot'
-
     with InTemporaryDirectory():
         write_annot(annot_path, labels, rgba, names, fill_ctab=True)
         labels2, rgbal2, names2 = read_annot(annot_path)
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, labels))
         assert names2 == names
-
         # make sure a warning is emitted if fill_ctab is False, and the
         # annotation values are wrong. Use orig_ids=True so we get those bad
         # values back.
@@ -285,7 +279,6 @@ def test_write_annot_fill_ctab():
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, badannot[labels].squeeze()))
         assert names2 == names
-
         # make sure a warning is *not* emitted if fill_ctab is False, but the
         # annotation values are correct.
         rgbal = np.hstack((rgba, np.zeros((nlabels, 1), dtype=np.int32)))
@@ -302,6 +295,49 @@ def test_write_annot_fill_ctab():
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, labels))
         assert names2 == names
+
+
+def test_read_annot_old_format():
+    """Test reading an old-style .annot file."""
+    def gen_old_annot_file(fpath, nverts, labels, rgba, names):
+        dt = '>i'
+        vdata = np.zeros((nverts, 2))
+        vdata[:, 0] = np.arange(nverts)
+        vdata[:, [1]] = _pack_rgba(rgba[labels, :])
+        fbytes = b''
+        # number of vertices
+        fbytes += struct.pack(dt, nverts)
+        # vertices + annotation values
+        fbytes += vdata.astype(dt).tobytes()
+        # is there a colour table?
+        fbytes += struct.pack(dt, 1)
+        # number of entries in colour table
+        fbytes += struct.pack(dt, rgba.shape[0])
+        # length of orig_tab string
+        fbytes += struct.pack(dt, 5)
+        fbytes += b'abcd\00'
+        for i in range(rgba.shape[0]):
+            # length of entry name (+1 for terminating byte)
+            fbytes += struct.pack(dt, len(names[i]) + 1)
+            fbytes += names[i].encode('ascii') + b'\00'
+            fbytes += rgba[i, :].astype(dt).tobytes()
+        with open(fpath, 'wb') as f:
+            f.write(fbytes)
+    with InTemporaryDirectory():
+        nverts = 10
+        nlabels = 3
+        names = ['Label {}'.format(l) for l in range(nlabels)]
+        labels = np.concatenate((
+            np.arange(nlabels), np.random.randint(0, 3, nverts - nlabels)))
+        np.random.shuffle(labels)
+        rgba = np.random.randint(0, 255, (nlabels, 4))
+        # write an old .annot file
+        gen_old_annot_file('blah.annot', nverts, labels, rgba, names)
+        # read it back
+        rlabels, rrgba, rnames = read_annot('blah.annot')
+        assert np.all(np.isclose(labels, rlabels))
+        assert np.all(np.isclose(rgba, rrgba[:, :4]))
+        assert names == rnames
 
 
 @freesurfer_test
