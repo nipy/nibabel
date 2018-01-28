@@ -92,13 +92,23 @@ def _unpack_var(var):
     >>> print(name, attr)
     TEMPLATE_SPACE ORIG
     """
-    # data type and key
-    atype = TYPE_RE.findall(var)[0]
-    aname = NAME_RE.findall(var)[0]
+    err_msg = ('.HEAD file appears to contain a misformed attribute. Please '
+               'check .HEAD file and try again.')
+    # get data type and key; if error, bad attribute/HEAD file
+    try:
+        atype = TYPE_RE.findall(var)[0]
+        aname = NAME_RE.findall(var)[0]
+    except IndexError:
+        raise AFNIError(err_msg)
+    # get actual attribute value; if error, improper casting due to bad
+    # attribute/HEAD file
     atype = _attr_dic.get(atype, str)
     attr = ' '.join(var.strip().split('\n')[3:])
     if atype is not str:
-        attr = [atype(f) for f in attr.split()]
+        try:
+            attr = [atype(f) for f in attr.split()]
+        except ValueError:
+            raise AFNIError(err_msg)
         if len(attr) == 1:
             attr = attr[0]
     else:
@@ -388,7 +398,7 @@ class AFNIImage(SpatialImage):
 
     Examples
     --------
-    >>> brik = load('example4d+orig.BRIK')
+    >>> brik = load('example4d+orig.BRIK.gz')
     >>> brik.shape
     (33, 41, 25, 3)
     >>> brik.affine

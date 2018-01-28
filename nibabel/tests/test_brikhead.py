@@ -62,6 +62,14 @@ EXAMPLE_IMAGES = [
     )
 ]
 
+EXAMPLE_BAD_IMAGES = [
+    dict(
+        head=pjoin(data_path, 'bad_datatype+orig.HEAD')
+    ),
+    dict(
+        head=pjoin(data_path, 'bad_attribute+orig.HEAD')
+    )
+]
 
 class TestAFNIHeader(object):
     module = brikhead
@@ -97,7 +105,7 @@ class TestAFNIImage(object):
     def test_load(self):
         # Check highest level load of brikhead works
         for tp in self.test_files:
-            img = load(tp['brik'])
+            img = self.module.load(tp['brik'])
             data = img.get_data()
             assert_equal(data.shape, tp['shape'])
             # min, max, mean values
@@ -110,9 +118,19 @@ class TestAFNIImage(object):
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
-            img = load(tp['brik'])
+            img = self.module.load(tp['brik'])
             arr = img.get_data()
             prox = img.dataobj
             assert_true(prox.is_proxy)
             for sliceobj in slicer_samples(img.shape):
                 assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+
+class TestBadFiles(object):
+    module = brikhead
+    test_files = EXAMPLE_BAD_IMAGES
+
+    def test_brikheadfile(self):
+        for tp in self.test_files:
+            with assert_raises(self.module.AFNIError):
+                self.module.load(tp['head'])
