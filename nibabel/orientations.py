@@ -350,9 +350,8 @@ def axcodes2ornt(axcodes, labels=None):
            [ 2.,  1.]])
     """
 
-    axcodes = tuple(c.upper() for c in axcodes)
-
     if labels is None:
+        axcodes = tuple(c.upper() for c in axcodes)
         labels = list(zip('LPI', 'RAS'))
     n_axes = len(axcodes)
     ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
