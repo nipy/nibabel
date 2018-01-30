@@ -313,6 +313,11 @@ def test_axcodes2ornt():
                         [2, 1]]
                        )
 
+    # test that format of axcode works for tuples and upper/lower case
+    lia_ornt = [[0, -1], [2, -1], [1, 1]]
+    for lia_axcodes in ('LIA', 'lia', ('L', 'I', 'A'), ('l', 'i', 'a')):
+        assert_array_equal(axcodes2ornt(lia_axcodes), lia_ornt)
+
 
 def test_aff2axcodes():
     assert_equal(aff2axcodes(np.eye(4)), tuple('RAS'))
