@@ -357,9 +357,8 @@ def read_annot(filepath, orig_ids=False):
         to any label and orig_ids=False, its id will be set to -1.
     ctab : ndarray, shape (n_labels, 5)
         RGBA + label id colortable array.
-    names : list of str
+    names : list of str (python 2), list of bytes (python 3)
         The names of the labels. The length of the list is n_labels.
-
     """
     with open(filepath, "rb") as fobj:
         dt = _ANNOT_DT
@@ -390,9 +389,6 @@ def read_annot(filepath, orig_ids=False):
 
     # generate annotation values for each LUT entry
     ctab[:, [4]] = _pack_rgba(ctab[:, :4])
-
-    # make sure names are strings, not bytes
-    names = [n.decode('ascii') for n in names]
 
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
@@ -522,6 +518,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
             np.array([num]).astype(dtype).tofile(fobj)
 
         def write_string(s):
+            s = s.encode() + b'\00'
             write(len(s))
             write(s, dtype='|S%d' % len(s))
 
