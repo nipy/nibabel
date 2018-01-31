@@ -207,9 +207,10 @@ class AFNIArrayProxy(ArrayProxy):
             ``'auto'``, and the optional ``indexed_gzip`` dependency is
             present, a single file handle is created and persisted. If
             ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. If ``file_like`` is an open file
-            handle, this setting has no effect. The default value (``None``)
-            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
+            ``keep_file_open is False``. If ``file_like`` refers to an open
+            file handle, this setting has no effect. The default value
+            (``None``) will result in the value of
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         super(AFNIArrayProxy, self).__init__(file_like,
                                              header,
@@ -437,11 +438,11 @@ class AFNIImage(SpatialImage):
             read array from file.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
-            hdr = klass.header_class.from_fileobj(
-                hdr_fobj)
-        brik_fobj = file_map['image'].get_prepare_fileobj()
-        data = klass.ImageArrayProxy(brik_fobj, hdr,
-                                     mmap=mmap)
+            hdr = klass.header_class.from_fileobj(hdr_fobj)
+        imgf = file_map['image'].fileobj
+        if imgf is None:
+            imgf = file_map['image'].filename
+        data = klass.ImageArrayProxy(imgf, hdr.copy(), mmap=mmap)
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
