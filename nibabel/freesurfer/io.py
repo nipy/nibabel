@@ -518,7 +518,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
             np.array([num]).astype(dtype).tofile(fobj)
 
         def write_string(s):
-            s = s.encode() + b'\00'
+            s = (s if isinstance(s, bytes) else s.encode()) + b'\x00'
             write(len(s))
             write(s, dtype='|S%d' % len(s))
 
