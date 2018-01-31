@@ -212,7 +212,7 @@ def test_annot():
 
 
 def test_read_write_annot():
-    """Test generating .annot fiole and reading it back."""
+    """Test generating .annot file and reading it back."""
     # This annot file will store a LUT for a mesh made of 10 vertices, with
     # 3 colours in the LUT.
     nvertices = 10
@@ -242,6 +242,7 @@ def test_read_write_annot():
     with InTemporaryDirectory():
         write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         labels2, rgbal2, names2 = read_annot(annot_path)
+        names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2, rgbal))
         assert np.all(np.isclose(labels2, labels))
         assert names2 == names
@@ -261,6 +262,7 @@ def test_write_annot_fill_ctab():
     with InTemporaryDirectory():
         write_annot(annot_path, labels, rgba, names, fill_ctab=True)
         labels2, rgbal2, names2 = read_annot(annot_path)
+        names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, labels))
         assert names2 == names
@@ -276,6 +278,7 @@ def test_write_annot_fill_ctab():
             any('Annotation values in {} will be incorrect'.format(
                 annot_path) == str(ww.message) for ww in w))
         labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
+        names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, badannot[labels].squeeze()))
         assert names2 == names
@@ -292,6 +295,7 @@ def test_write_annot_fill_ctab():
             not any('Annotation values in {} will be incorrect'.format(
                 annot_path) == str(ww.message) for ww in w))
         labels2, rgbal2, names2 = read_annot(annot_path)
+        names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
         assert np.all(np.isclose(labels2, labels))
         assert names2 == names
@@ -315,11 +319,11 @@ def test_read_annot_old_format():
         fbytes += struct.pack(dt, rgba.shape[0])
         # length of orig_tab string
         fbytes += struct.pack(dt, 5)
-        fbytes += b'abcd\00'
+        fbytes += b'abcd\x00'
         for i in range(rgba.shape[0]):
             # length of entry name (+1 for terminating byte)
             fbytes += struct.pack(dt, len(names[i]) + 1)
-            fbytes += names[i].encode('ascii') + b'\00'
+            fbytes += names[i].encode('ascii') + b'\x00'
             fbytes += bytes(rgba[i, :].astype(dt).tostring())
         with open(fpath, 'wb') as f:
             f.write(fbytes)
@@ -335,6 +339,7 @@ def test_read_annot_old_format():
         gen_old_annot_file('blah.annot', nverts, labels, rgba, names)
         # read it back
         rlabels, rrgba, rnames = read_annot('blah.annot')
+        rnames = [n.decode('ascii') for n in rnames]
         assert np.all(np.isclose(labels, rlabels))
         assert np.all(np.isclose(rgba, rrgba[:, :4]))
         assert names == rnames
