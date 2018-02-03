@@ -14,8 +14,11 @@ from __future__ import division, print_function, absolute_import
 
 import sys
 from optparse import OptionParser, Option
+from six import binary_type
 
 import numpy as np
+
+import json_tricks
 
 import nibabel as nib
 import nibabel.cmdline.utils
@@ -74,16 +77,18 @@ def diff_header_fields(key, inputs):
 
     # for comparing more than 2 files at once
     if len(inputs) > 2:
-        for input_1, input_2 in zip(inputs, inputs[1:]):
-                key_1 = input_1[key]
+        input_1 = inputs[0]
+        key_1 = input_1[key]
+        for input_2 in inputs[1:]:
                 key_2 = input_2[key]
 
                 if diff_values(key_1, key_2):
-                    if input_1 != inputs[0] and input_2 not in diffs:
+                    if key_1 not in diffs:
                         diffs.append(key_1)
-                        diffs.append(key_2)
-                    else:
-                        diffs.append(key_1)
+                    diffs.append(key_2)
+
+                elif len(diffs) != 0:
+                    diffs.append(key_2)
 
     # for comparing 2 files
     else:
@@ -111,7 +116,7 @@ def diff_header_fields(key, inputs):
                 pass
 
     if len(diffs) > 1:
-        return {key: diffs}
+        return diffs
 
 
 def get_headers_diff(files, opts):
@@ -126,11 +131,15 @@ def get_headers_diff(files, opts):
         else:
             header_fields = opts.header_fields.split(',')
 
-        for f in header_fields:
-            output = diff_header_fields(f, header_list)
+        output = {}
 
-            if output is not None:
-                    print(output)
+        for f in header_fields:
+            val = diff_header_fields(f, header_list)
+
+            if val is not None:
+                output[f] = val
+
+        return output
 
 
 def main():
@@ -147,4 +156,13 @@ def main():
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    get_headers_diff(files, opts)
+    diff = get_headers_diff(files, opts)
+
+    if opts.text:
+        print(diff)
+
+    if opts.json:
+        if isinstance(diff, binary_type):
+            print(json_tricks.dumps(diff.decode("utf-8")))
+        else:
+            print(json_tricks.dumps(diff))
