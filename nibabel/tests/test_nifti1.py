@@ -1075,6 +1075,9 @@ def test_extension_basics():
     assert_true(ext.get_sizeondisk() == 16)
     assert_true(ext.get_content() == raw)
     assert_true(ext.get_code() == 6)
+    # Test that extensions already aligned to 16 bytes are not padded
+    ext = Nifti1Extension('comment', b'x' * 24)
+    assert_true(ext.get_sizeondisk() == 32)
 
 
 def test_ext_eq():
