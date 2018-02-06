@@ -85,17 +85,15 @@ def _pack_rgba(rgba):
     """Pack an RGBA sequence into a single integer.
 
     Used by :func:`read_annot` and :func:`write_annot` to generate
-    "annotation values" for a Freesuerfer `.annot` file.
+    "annotation values" for a Freesuerfer ``.annot`` file.
 
     Parameters
     ----------
-
     rgba : ndarray, shape (n, 4)
         RGBA colours
 
     Returns
     -------
-
     out : ndarray, shape (n, 1)
         Annotation values for each colour.
     """
@@ -326,16 +324,14 @@ def write_morph_data(file_like, values, fnum=0):
 
 
 def read_annot(filepath, orig_ids=False):
-    """Read in a Freesurfer annotation from a `.annot` file.
+    """Read in a Freesurfer annotation from a ``.annot`` file.
 
-    An `.annot` file contains a sequence of vertices with a label (also known
+    An ``.annot`` file contains a sequence of vertices with a label (also known
     as an "annotation value") associated with each vertex, and then a sequence
     of colours corresponding to each label.
 
-    The colour table itself may be stored in either an "old-style" format, or
-    a "new-style" format - the :func:`_read_annot_ctab_old_format` and
-    :func:`_read_annot_ctab_new_format` functions are respectively used to
-    read in the colour table.
+    Annotation file format versions 1 and 2 are supported, corresponding to
+    the "old-style" and "new-style" color table layout.
 
     See:
     https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
@@ -488,7 +484,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
 
 
 def write_annot(filepath, labels, ctab, names, fill_ctab=True):
-    """Write out a Freesurfer annotation file.
+    """Write out a "new-style" Freesurfer annotation file.
 
     See:
     https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
