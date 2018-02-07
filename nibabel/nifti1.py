@@ -334,7 +334,8 @@ class Nifti1Extension(object):
         size = len(self._mangle(self._content))
         size += 8
         # extensions size has to be a multiple of 16 bytes
-        size += 16 - (size % 16)
+        if size % 16 != 0:
+            size += 16 - (size % 16)
         return size
 
     def __repr__(self):
