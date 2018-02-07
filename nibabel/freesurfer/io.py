@@ -402,7 +402,7 @@ def _read_annot_ctab_old_format(fobj, n_entries):
     Parameters
     ----------
 
-    fobj : file
+    fobj : file-like
         Open file handle to a Freesurfer `.annot` file, with seek point
         at the beginning of the color table data.
     n_entries : int
@@ -416,8 +416,9 @@ def _read_annot_ctab_old_format(fobj, n_entries):
     names : list of str
         The names of the labels. The length of the list is n_entries.
     """
-    dt = _ANNOT_DT
+    assert hasattr(fobj, 'read')
 
+    dt = _ANNOT_DT
     # orig_tab string length + string
     length = np.fromfile(fobj, dt, 1)[0]
     orig_tab = np.fromfile(fobj, '>c', length)
@@ -443,7 +444,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     Parameters
     ----------
 
-    fobj : file
+    fobj : file-like
         Open file handle to a Freesurfer `.annot` file, with seek point
         at the beginning of the color table data.
     ctab_version : int
@@ -457,6 +458,8 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     names : list of str
         The names of the labels. The length of the list is n_labels.
     """
+    assert hasattr(fobj, 'read')
+
     dt = _ANNOT_DT
     # This code works with a file version == 2, nothing else
     if ctab_version != 2:
