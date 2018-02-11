@@ -132,6 +132,38 @@ def read_aseg_stats(seg_stats_file,
     return out_data
 
 
+def read_aparc_stats(file_path):
+    """Read statistics on cortical features (such as thickness, curvature etc) produced by Freesurfer.
+
+    file_path would contain whether it is from the right or left hemisphere.
+
+    """
+
+    # ColHeaders StructName NumVert SurfArea GrayVol ThickAvg ThickStd MeanCurv GausCurv FoldInd CurvInd
+    aparc_roi_dtype = [('StructName', 'S50'), ('NumVert', '<i4'), ('SurfArea', '<i4'), ('GrayVol', '<i4'),
+             ('ThickAvg', '<f4'), ('ThickStd', '<f4'), ('MeanCurv', '<f4'), ('GausCurv', '<f4'),
+             ('FoldInd', '<f4'), ('CurvInd', '<f4')]
+    roi_stats = np.genfromtxt(file_path, dtype=aparc_roi_dtype, filling_values=np.NaN)
+    subset = ['SurfArea', 'GrayVol', 'ThickAvg', 'ThickStd', 'MeanCurv', 'GausCurv', 'FoldInd', 'CurvInd']
+    roi_stats_values = np.full((len(roi_stats), len(subset)), np.NaN)
+    for idx, stat in enumerate(roi_stats):
+        roi_stats_values[idx,:] = [ stat[feat] for feat in subset ]
+
+    # whole cortex
+    # Measure Cortex, NumVert, Number of Vertices, 120233, unitless
+    # Measure Cortex, WhiteSurfArea, White Surface Total Area, 85633.5, mm^2
+    # Measure Cortex, MeanThickness, Mean Thickness, 2.59632, mm
+    wb_regex_pattern = r'# Measure Cortex, ([\w/+_\- ]+), ([\w/+_\- ]+), ([\d\.]+), ([\w/+_\-^]+)'
+    wb_aparc_dtype = np.dtype('U100,U100,f8,U10')
+    # wb_aparc_dtype = [('f0', '<U100'), ('f1', '<U100'), ('f2', '<f8'), ('f3', '<U10')]
+    wb_stats = np.fromregex(file_path, wb_regex_pattern, dtype=wb_aparc_dtype)
+
+    # concatenating while surf total area and global mean thickness
+    stats = np.hstack((roi_stats_values.flatten(), (wb_stats[1][2], wb_stats[2][2])))
+
+    return stats
+
+
 def _read_volume_info(fobj):
     """Helper for reading the footer from a surface file."""
     volume_info = OrderedDict()
