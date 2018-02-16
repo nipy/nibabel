@@ -37,7 +37,7 @@ class _BuildCache(object):
         self.common_shape = common_shape
         n_in_row = reduce(mul, common_shape, 1)
         bytes_per_row = n_in_row * dtype.itemsize
-        self.rows_per_buf = self.bytes_per_buf / bytes_per_row
+        self.rows_per_buf = int(np.ceil(self.bytes_per_buf / bytes_per_row))
 
     def update_seq(self, arr_seq):
         arr_seq._offsets = np.array(self.offsets)
