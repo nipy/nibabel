@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import tempfile
+import itertools
 import numpy as np
 
 from nose.tools import assert_equal, assert_raises, assert_true
@@ -91,11 +92,20 @@ class TestArraySequence(unittest.TestCase):
                       SEQ_DATA['data'])
 
     def test_creating_arraysequence_from_generator(self):
-        gen = (e for e in SEQ_DATA['data'])
-        check_arr_seq(ArraySequence(gen), SEQ_DATA['data'])
+        gen_1, gen_2 = itertools.tee((e for e in SEQ_DATA['data']))
+        seq = ArraySequence(gen_1)
+        seq_with_buffer = ArraySequence(gen_2, buffer_size=256)
+
+        # Check buffer size effect
+        assert_true(seq_with_buffer.data.shape[0] > seq.data.shape[0])
+        assert_equal(seq_with_buffer.common_shape, seq.common_shape)
+
+        # Check generator result
+        check_arr_seq(seq, SEQ_DATA['data'])
+        check_arr_seq(seq_with_buffer, SEQ_DATA['data'])
 
         # Already consumed generator
-        check_empty_arr_seq(ArraySequence(gen))
+        check_empty_arr_seq(ArraySequence(gen_1))
 
     def test_creating_arraysequence_from_arraysequence(self):
         seq = ArraySequence(SEQ_DATA['data'])
