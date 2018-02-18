@@ -90,7 +90,7 @@ Requirements
 *  NumPy_ 1.7.1 or greater
 *  Six_ 1.3 or greater
 *  SciPy_ (optional, for full SPM-ANALYZE support)
-*  PyDICOM_ 0.9.7 or greater (optional, for DICOM support)
+*  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
 *  nose_ 0.11 or greater (optional, to run the tests)
 *  mock_ (optional, to run the tests)
