@@ -570,9 +570,11 @@ class SpatialImage(DataobjImage):
         Use the slicer attribute to perform cropping and subsampling at your
         own risk.
         '''
-        raise TypeError("Cannot slice image objects; consider slicing image "
-                        "array data with `img.dataobj[slice]` or "
-                        "`img.get_data()[slice]`")
+        raise TypeError(
+            "Cannot slice image objects; consider using `img.slicer[slice]` "
+            "to generate a sliced image (see documentation for caveats) or "
+            "slicing image array data with `img.dataobj[slice]` or "
+            "`img.get_data()[slice]`")
 
     def orthoview(self):
         """Plot the image using OrthoSlicer3D
