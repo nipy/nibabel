@@ -437,9 +437,9 @@ class TestSpatialImage(TestCase):
             assert_array_equal(downsampled_img.header.get_zooms()[:3],
                                np.array(spatial_zooms) * 2)
 
-            max4d = (hasattr(img.header, '_header_data') and
-                     'dims' in img.header._header_data.dtype.fields and
-                     img.header._header_data['dims'].shape == (4,))
+            max4d = (hasattr(img.header, '_structarr') and
+                     'dims' in img.header._structarr.dtype.fields and
+                     img.header._structarr['dims'].shape == (4,))
             # Check newaxis and single-slice errors
             if t_axis == 3:
                 with assert_raises(IndexError):
