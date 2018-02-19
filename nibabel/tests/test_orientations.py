@@ -300,11 +300,8 @@ def test_axcodes2ornt():
                        )
 
     # default is RAS output directions
-    assert_array_equal(axcodes2ornt(('R', 'A', 'S')),
-                       [[0, 1],
-                        [1, 1],
-                        [2, 1]]
-                       )
+    default = np.c_[range(3), [1] * 3]
+    assert_array_equal(axcodes2ornt(('R', 'A', 'S')), default)
 
     # dropped axes produce None
     assert_array_equal(axcodes2ornt(('R', None, 'S')),
@@ -312,6 +309,28 @@ def test_axcodes2ornt():
                         [np.nan, np.nan],
                         [2, 1]]
                        )
+
+    # Missing axcodes raise an error
+    assert_array_equal(axcodes2ornt('RAS'), default)
+    assert_raises(ValueError, axcodes2ornt, 'rAS')
+    # None is OK as axis code
+    assert_array_equal(axcodes2ornt(('R', None, 'S')),
+                                    [[0, 1],
+                                     [np.nan, np.nan],
+                                     [2, 1]])
+    # Bad axis code with None also raises error.
+    assert_raises(ValueError, axcodes2ornt, ('R', None, 's'))
+    # Axis codes checked with custom labels
+    labels = ('SD', 'BF', 'lh')
+    assert_array_equal(axcodes2ornt('BlD', labels),
+                       [[1, -1],
+                        [2, -1],
+                        [0, 1]])
+    assert_raises(ValueError, axcodes2ornt, 'blD', labels)
+
+    # Duplicate labels
+    assert_raises(ValueError, axcodes2ornt, 'blD', ('SD', 'BF', 'lD'))
+    assert_raises(ValueError, axcodes2ornt, 'blD', ('SD', 'SF', 'lD'))
 
 
 def test_aff2axcodes():
