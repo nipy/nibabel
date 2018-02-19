@@ -881,11 +881,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         img.set_qform(new_affine, 1, update_affine=False)
         assert_array_almost_equal(img.affine, aff_affine)
         # Clear qform using None, zooms unchanged
-        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [1.1, 1.1, 1.1])
         img.set_qform(None)
         qaff, code = img.get_qform(coded=True)
         assert (qaff, code) == (None, 0)
-        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [1.1, 1.1, 1.1])
         # Best affine similarly
         assert_array_almost_equal(img.affine, hdr.get_best_affine())
         # If sform is not set, qform should update affine
@@ -942,9 +942,9 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_almost_equal(img.affine, aff_affine)
         # zooms do not get updated when qform is 0
         assert_array_almost_equal(img.get_qform(), orig_aff)
-        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [2.2, 3.3, 4.3])
         img.set_qform(None)
-        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [2.2, 3.3, 4.3])
         # Set sform using new_affine when qform is set
         img.set_qform(qform_affine, 1)
         img.set_sform(new_affine, 1)
@@ -953,7 +953,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_almost_equal(saff, new_affine)
         assert_array_almost_equal(img.affine, new_affine)
         # zooms follow qform
-        assert_array_almost_equal(hdr.get_zooms(), [1.2, 1.2, 1.2])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [1.2, 1.2, 1.2])
         # Clear sform using None, best_affine should fall back on qform
         img.set_sform(None)
         assert hdr['sform_code'] == 0
@@ -1042,7 +1042,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Check qform, sform, pixdims are the same
         assert_array_equal(img_hdr.get_qform(), qaff)
         assert_array_equal(img_hdr.get_sform(), saff)
-        assert_array_equal(img_hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(img_hdr.get_zooms(units='raw'), [2, 3, 4])
         # Save to stringio
         re_simg = bytesio_round_trip(simg)
         assert_array_equal(re_simg.get_fdata(), arr)
@@ -1050,7 +1050,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         rimg_hdr = re_simg.header
         assert_array_equal(rimg_hdr.get_qform(), qaff)
         assert_array_equal(rimg_hdr.get_sform(), saff)
-        assert_array_equal(rimg_hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(rimg_hdr.get_zooms(units='raw'), [2, 3, 4])
 
     def test_affines_init(self):
         # Test we are doing vaguely spec-related qform things.  The 'spec' here
@@ -1064,20 +1064,20 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr = img.header
         assert hdr['qform_code'] == 0
         assert hdr['sform_code'] == 2
-        assert_array_equal(hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(hdr.get_zooms(units='raw'), [2, 3, 4])
         # This is also true for affines with header passed
         qaff = np.diag([3, 4, 5, 1])
         saff = np.diag([6, 7, 8, 1])
         hdr.set_qform(qaff, code='scanner')
         hdr.set_sform(saff, code='talairach')
-        assert_array_equal(hdr.get_zooms(), [3, 4, 5])
+        assert_array_equal(hdr.get_zooms(units='raw'), [3, 4, 5])
         img = IC(arr, aff, hdr)
         new_hdr = img.header
         # Again affine is sort of anonymous space
         assert new_hdr['qform_code'] == 0
         assert new_hdr['sform_code'] == 2
         assert_array_equal(new_hdr.get_sform(), aff)
-        assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(new_hdr.get_zooms(units='raw'), [2, 3, 4])
         # But if no affine passed, codes and matrices stay the same
         img = IC(arr, None, hdr)
         new_hdr = img.header
@@ -1086,7 +1086,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert new_hdr['sform_code'] == 3  # Still talairach
         assert_array_equal(new_hdr.get_sform(), saff)
         # Pixdims as in the original header
-        assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
+        assert_array_equal(new_hdr.get_zooms(units='raw'), [3, 4, 5])
 
     def test_read_no_extensions(self):
         IC = self.image_class

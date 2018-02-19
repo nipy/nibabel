@@ -399,7 +399,7 @@ class AnalyzeHeader(LabeledWrapStruct):
                                   f"but output header {klass} does not support it")
         obj.set_data_dtype(header.get_data_dtype())
         obj.set_data_shape(header.get_data_shape())
-        obj.set_zooms(header.get_zooms())
+        obj.set_zooms(header.get_zooms(units='raw'))
         if check:
             obj.check_fix()
         return obj

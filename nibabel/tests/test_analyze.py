@@ -91,7 +91,8 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         assert_array_equal(np.diag(hdr.get_base_affine()),
                            [-1, 1, 1, 1])
         # But zooms only go with number of dimensions
-        assert hdr.get_zooms() == (1.0,)
+        assert hdr.get_zooms(units='raw') == (1.0,)
+        assert hdr.get_zooms(units='canonical') == (1.0,)
 
     def test_header_size(self):
         assert self.header_class.template_dtype.itemsize == self.sizeof_hdr
@@ -437,7 +438,8 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             else:
                 assert hdr.get_data_shape() == (0,)
             # Default zoom - for 3D - is 1(())
-            assert hdr.get_zooms() == (1,) * L
+            assert hdr.get_zooms(units='raw') == (1,) * L
+            assert hdr.get_zooms(units='canonical') == (1,) * L
             # errors if zooms do not match shape
             if len(shape):
                 with pytest.raises(HeaderDataError):
@@ -455,11 +457,14 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = self.header_class()
         hdr.set_data_shape((1, 2, 3))
         hdr.set_zooms((4, 5, 6))
-        assert_array_equal(hdr.get_zooms(), (4, 5, 6))
+        assert_array_equal(hdr.get_zooms(units='raw'), (4, 5, 6))
+        assert_array_equal(hdr.get_zooms(units='canonical'), (4, 5, 6))
         hdr.set_data_shape((1, 2))
-        assert_array_equal(hdr.get_zooms(), (4, 5))
+        assert_array_equal(hdr.get_zooms(units='raw'), (4, 5))
+        assert_array_equal(hdr.get_zooms(units='canonical'), (4, 5))
         hdr.set_data_shape((1, 2, 3))
-        assert_array_equal(hdr.get_zooms(), (4, 5, 1))
+        assert_array_equal(hdr.get_zooms(units='raw'), (4, 5, 1))
+        assert_array_equal(hdr.get_zooms(units='canonical'), (4, 5, 1))
         # Setting zooms changes affine
         assert_array_equal(np.diag(hdr.get_base_affine()),
                            [-4, 5, 1, 1])
@@ -529,12 +534,13 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
 
             def get_data_shape(self): return (5, 4, 3)
 
-            def get_zooms(self): return (10.0, 9.0, 8.0)
+            def get_zooms(self, units=None, raise_unknown=None): return (10.0, 9.0, 8.0)
         converted = klass.from_header(C())
         assert isinstance(converted, klass)
         assert converted.get_data_dtype() == np.dtype('i2')
         assert converted.get_data_shape() == (5, 4, 3)
-        assert converted.get_zooms() == (10.0, 9.0, 8.0)
+        assert converted.get_zooms(units='raw') == (10.0, 9.0, 8.0)
+        assert converted.get_zooms(units='canonical') == (10.0, 9.0, 8.0)
 
     def test_base_affine(self):
         klass = self.header_class
@@ -640,7 +646,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
 
         class H4(H3):
 
-            def get_zooms(self):
+            def get_zooms(self, units=None, raise_unknown=None):
                 return 4., 5., 6.
         exp_hdr = klass()
         exp_hdr.set_data_dtype(np.dtype('u1'))

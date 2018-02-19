@@ -784,7 +784,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Expanding number of dimensions gets default zooms
 
-        >>> hdr.get_zooms()
+        >>> hdr.get_zooms(units='canonical')
         (1.0, 1.0, 1.0)
 
         Notes
