@@ -97,8 +97,8 @@ class TestArraySequence(unittest.TestCase):
         seq_with_buffer = ArraySequence(gen_2, buffer_size=256)
 
         # Check buffer size effect
-        assert_true(seq_with_buffer.data.shape[0] > seq.data.shape[0])
-        assert_equal(seq_with_buffer.common_shape, seq.common_shape)
+        assert_equal(seq_with_buffer.data.shape, seq.data.shape)
+        assert_true(seq_with_buffer._buffer_size > seq._buffer_size)
 
         # Check generator result
         check_arr_seq(seq, SEQ_DATA['data'])
@@ -328,4 +328,5 @@ def test_concatenate():
     seqs = [seq[:, [i]] for i in range(seq.common_shape[0])]
     new_seq = concatenate(seqs, axis=0)
     assert_true(len(new_seq), seq.common_shape[0] * len(seq))
-    assert_array_equal(new_seq._data, seq._data.T.reshape((-1, 0)))
+    assert_array_equal(new_seq._data, seq._data.T.reshape((-1, 1)))
+    
