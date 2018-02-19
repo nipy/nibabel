@@ -83,6 +83,18 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             np.longcomplex))
     tana.add_intp(supported_np_types)
 
+    def setUp(self):
+        # Add warning filters for duration of test case
+        self._wctx = warnings.catch_warnings()
+        self._wctx.__enter__()
+        warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+        warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                UserWarning)
+
+    def tearDown(self):
+        # Restore warning filters
+        self._wctx.__exit__()
+
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
@@ -764,6 +776,18 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
     supported_np_types = TestNifti1PairHeader.supported_np_types
+
+    def setUp(self):
+        # Add warning filters for duration of test case
+        self._wctx = warnings.catch_warnings()
+        self._wctx.__enter__()
+        warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+        warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                UserWarning)
+
+    def tearDown(self):
+        # Restore warning filters
+        self._wctx.__exit__()
 
     def test_int64_warning(self):
         # Verify that initializing with (u)int64 data and no
