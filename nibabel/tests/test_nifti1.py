@@ -1208,7 +1208,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
 
 
         # Unknown units = 2 warnings
-        with warnings.catch_warnings(record=True) as warns:
+        with clear_and_catch_warnings() as warns:
             warnings.simplefilter('always')
             assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                       (1, 1, 1, 1))
@@ -1217,7 +1217,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                       units='canonical', raise_unknown=True)
 
         img.header.set_xyzt_units(xyz='meter')
-        with warnings.catch_warnings(record=True) as warns:
+        with clear_and_catch_warnings() as warns:
             warnings.simplefilter('always')
             assert_array_almost_equal(img.header.get_zooms(units='canonical'),
                                       (1000, 1000, 1000, 1))
@@ -1233,7 +1233,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                                   (0.001, 0.001, 0.001, 1))
 
         img.header.set_xyzt_units(t='sec')
-        with warnings.catch_warnings(record=True) as warns:
+        with clear_and_catch_warnings() as warns:
             warnings.simplefilter('always')
             assert_array_equal(img.header.get_zooms(units='canonical'),
                                (1, 1, 1, 1))
