@@ -14,9 +14,8 @@ cache:
     - $HOME/.cache/pip
 env:
     global:
-        - DEPENDS="six numpy scipy matplotlib h5py pillow"
+        - DEPENDS="six numpy scipy matplotlib h5py pillow pydicom"
         - OPTIONAL_DEPENDS=""
-        - PYDICOM=1
         - INSTALL_TYPE="setup"
         - EXTRA_WHEELS="https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
         - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
@@ -34,7 +33,7 @@ matrix:
     # Absolute minimum dependencies
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.7.1" PYDICOM=0
+        - DEPENDS="numpy==1.7.1"
     # Absolute minimum dependencies plus oldest MPL
     # Check these against:
     # nibabel/info.py
@@ -42,21 +41,21 @@ matrix:
     # requirements.txt
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.7.1 matplotlib==1.3.1" PYDICOM=0
+        - DEPENDS="numpy==1.7.1 matplotlib==1.3.1"
     # Minimum pydicom dependency
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.7.1 pydicom==0.9.7 pillow==2.6"
+        - DEPENDS="numpy==1.7.1 pydicom==0.9.9 pillow==2.6"
     # test against numpy 1.7
     - python: 2.7
       env:
         - DEPENDS="numpy==1.7.1"
-    # pydicom 1.0 (currently unreleased)
-    - python: 2.7
+    # pydicom master branch
+    - python: 3.5
       env:
-        - PYDICOM="v1.0"
-    # test 2.7 against pre-release builds of everything
-    - python: 2.7
+        - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
+    # test 3.5 against pre-release builds of everything
+    - python: 3.5
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # test 3.5 against pre-release builds of everything
@@ -102,14 +101,6 @@ before_install:
     - pip install -U pip wheel  # needed at one point
     - retry pip install nose flake8 mock  # always
     - pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
-    # pydicom <= 0.9.8 doesn't install on python 3
-    - if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "2" ]; then
-        if [ "$PYDICOM" == "1" ]; then
-            pip install pydicom;
-        elif [ "$PYDICOM" == "v1.0" ]; then
-            pip install git+https://github.com/darcymason/pydicom.git@43f278444d5cb2e4648135d3edcd430c363c6975;
-        fi
-      fi
     - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
       pip install coveralls;
