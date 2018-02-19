@@ -507,6 +507,7 @@ class MGHImage(SpatialImage):
     ImageOpener.compress_ext_map['.mgz'] = ImageOpener.gz_def
     files_types = (('image', '.mgh'),)
     _compressed_suffixes = ()
+    _spatial_dims = slice(0, 3)
 
     makeable = True
     rw = True
