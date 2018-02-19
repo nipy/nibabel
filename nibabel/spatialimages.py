@@ -549,7 +549,7 @@ class SpatialImage(DataobjImage):
 
         The image is resliced in the current orientation; no rotation or
         resampling is performed, and no attempt is made to filter the image
-        to avoid aliasing.
+        to avoid `aliasing`_.
 
         The affine matrix is updated with the new intercept (and scales, if
         down-sampling is used), so that all values are found at the same RAS
@@ -558,6 +558,8 @@ class SpatialImage(DataobjImage):
         Slicing may include non-spatial dimensions.
         However, this method does not currently adjust the repetition time in
         the image header.
+
+        .. _aliasing: https://en.wikipedia.org/wiki/Aliasing
         """
         return self.Slicer(self)
 
