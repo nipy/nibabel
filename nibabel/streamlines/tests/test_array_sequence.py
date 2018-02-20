@@ -329,4 +329,3 @@ def test_concatenate():
     new_seq = concatenate(seqs, axis=0)
     assert_true(len(new_seq), seq.common_shape[0] * len(seq))
     assert_array_equal(new_seq._data, seq._data.T.reshape((-1, 1)))
-    
