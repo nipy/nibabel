@@ -6,18 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Class for reading AFNI BRIK/HEAD datasets
+"""
+Class for reading AFNI BRIK/HEAD datasets
 
 See https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html
 for more information on required information to have a valid BRIK/HEAD dataset.
-
-Examples
---------
-  .. testsetup::
-    # change directory to provide relative paths for doctests
-    >>> filepath = os.path.dirname(os.path.realpath( __file__ ))
-    >>> datadir = os.path.realpath(os.path.join(filepath, 'tests/data'))
-    >>> os.chdir(datadir)
 """
 from __future__ import print_function, division
 
@@ -30,8 +23,17 @@ import numpy as np
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
 from .keywordonly import kw_only_meth
-from .spatialimages import SpatialImage, SpatialHeader
+from .spatialimages import (
+    SpatialImage,
+    SpatialHeader,
+    HeaderDataError,
+    ImageDataError
+)
 from .volumeutils import Recoder
+
+# used for doc-tests
+filepath = os.path.dirname(os.path.realpath(__file__))
+datadir = os.path.realpath(os.path.join(filepath, 'tests/data'))
 
 _attr_dic = {
     'string': str,
@@ -58,8 +60,14 @@ space_codes = Recoder((
     (4, 'mni', 'MNI')), fields=('code', 'label', 'space'))
 
 
-class AFNIError(Exception):
-    """Error when reading AFNI files"""
+class AFNIImageError(ImageDataError):
+    """Error when reading AFNI BRIK files"""
+    pass
+
+
+class AFNIHeaderError(HeaderDataError):
+    """Error when reading AFNI HEAD file"""
+    pass
 
 
 DATA_OFFSET = 0
@@ -78,8 +86,10 @@ def _unpack_var(var):
 
     Returns
     -------
-    (key, value)
-        Parsed entry from HEAD file
+    name : str
+        Name of attribute
+    value : object
+        Value of attribute
 
     Examples
     --------
@@ -92,29 +102,34 @@ def _unpack_var(var):
     >>> print(name, attr)
     TEMPLATE_SPACE ORIG
     """
-    err_msg = ('.HEAD file appears to contain a misformed attribute. Please '
-               'check .HEAD file and try again.')
-    # get data type and key; if error, bad attribute/HEAD file
-    try:
-        atype = TYPE_RE.findall(var)[0]
-        aname = NAME_RE.findall(var)[0]
-    except IndexError:
-        raise AFNIError(err_msg)
-    # get actual attribute value; if error, improper casting due to bad
-    # attribute/HEAD file
-    atype = _attr_dic.get(atype, str)
+
+    err_msg = ('Please check HEAD file to ensure it is AFNI compliant. '
+               'Offending attribute:\n%s' % var)
+
+    atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
+    if len(atype) != 1:
+        raise AFNIHeaderError('Invalid attribute type entry in HEAD file. '
+                              '%s' % err_msg)
+    if len(aname) != 1:
+        raise AFNIHeaderError('Invalid attribute name entry in HEAD file. '
+                              '%s' % err_msg)
+    atype = _attr_dic.get(atype[0], str)
     attr = ' '.join(var.strip().split('\n')[3:])
     if atype is not str:
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
-            raise AFNIError(err_msg)
+            raise AFNIHeaderError('Failed to read variable from HEAD file due '
+                                  'to improper type casting. %s' % err_msg)
         if len(attr) == 1:
             attr = attr[0]
     else:
-        attr = attr.strip('\'~')
+        # AFNI string attributes will always start with open single quote and
+        # end with a tilde (NUL). These attributes CANNOT contain tildes (so
+        # stripping is safe), but can contain single quotes (so we replace)
+        attr = attr.replace('\'', '', 1).rstrip('~')
 
-    return aname, attr
+    return aname[0], attr
 
 
 def _get_datatype(info):
@@ -124,24 +139,23 @@ def _get_datatype(info):
     Parameters
     ----------
     info : dict
-        As obtained by `parse_AFNI_header()`
+        As obtained by :func:`parse_AFNI_header`
 
     Returns
     -------
-    np.dtype
+    dt : np.dtype
         Datatype of BRIK file associated with HEAD
     """
     bo = info['BYTEORDER_STRING']
     bt = info['BRICK_TYPES']
     if isinstance(bt, list):
         if np.unique(bt).size > 1:
-            raise AFNIError('Can\'t load dataset with multiple data types.')
-        else:
-            bt = bt[0]
+            raise AFNIImageError('Can\'t load file with multiple data types.')
+        bt = bt[0]
     bo = _endian_dict.get(bo, '=')
     bt = _dtype_dict.get(bt, None)
     if bt is None:
-        raise AFNIError('Can\'t deduce image data type.')
+        raise AFNIImageError('Can\'t deduce image data type.')
 
     return np.dtype(bo + bt)
 
@@ -152,8 +166,9 @@ def parse_AFNI_header(fobj):
 
     Parameters
     ----------
-    fobj : file-object
-        AFNI HEAD file object
+    fobj : file-like object
+        AFNI HEAD file object or filename. If file object, should
+        implement at least ``read``
 
     Returns
     -------
@@ -162,15 +177,18 @@ def parse_AFNI_header(fobj):
 
     Examples
     --------
-    >>> info = parse_AFNI_header('example4d+orig.HEAD')
+    >>> fname = os.path.join(datadir, 'example4d+orig.HEAD')
+    >>> info = parse_AFNI_header(fname)
     >>> print(info['BYTEORDER_STRING'])
     LSB_FIRST
     >>> print(info['BRICK_TYPES'])
     [1, 1, 1]
     """
+    from six import string_types
+
     # edge case for being fed a filename instead of a file object
-    if isinstance(fobj, str):
-        with open(fobj, 'r') as src:
+    if isinstance(fobj, string_types):
+        with open(fobj, 'rt') as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
@@ -244,16 +262,20 @@ class AFNIArrayProxy(ArrayProxy):
 
 class AFNIHeader(SpatialHeader):
     """Class for AFNI header"""
+
     def __init__(self, info):
         """
+        Initialize AFNI header object
+
         Parameters
         ----------
         info : dict
-            Information from HEAD file as obtained by `parse_AFNI_header()`
+            Information from HEAD file as obtained by :func:`parse_AFNI_header`
 
         Examples
         --------
-        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> fname = os.path.join(datadir, 'example4d+orig.HEAD')
+        >>> header = AFNIHeader(parse_AFNI_header(fname))
         >>> header.get_data_dtype()
         dtype('int16')
         >>> header.get_zooms()
@@ -270,10 +292,10 @@ class AFNIHeader(SpatialHeader):
     @classmethod
     def from_header(klass, header=None):
         if header is None:
-            raise AFNIError('Cannot create AFNIHeader from nothing.')
+            raise AFNIHeaderError('Cannot create AFNIHeader from nothing.')
         if type(header) == klass:
             return header.copy()
-        raise AFNIError('Cannot create AFNIHeader from non-AFNIHeader.')
+        raise AFNIHeaderError('Cannot create AFNIHeader from non-AFNIHeader.')
 
     @classmethod
     def from_fileobj(klass, fileobj):
@@ -284,7 +306,8 @@ class AFNIHeader(SpatialHeader):
         return AFNIHeader(deepcopy(self.info))
 
     def _calc_data_shape(self):
-        """Calculate the output shape of the image data
+        """
+        Calculate the output shape of the image data
 
         Returns length 3 tuple for 3D image, length 4 tuple for 4D.
 
@@ -296,30 +319,34 @@ class AFNIHeader(SpatialHeader):
         shape = tuple(self.info['DATASET_DIMENSIONS'][:dset_rank[0]])
         n_vols = dset_rank[1]
 
-        return shape + (n_vols,) if n_vols > 1 else shape
+        return shape + (n_vols,)
 
     def _calc_zooms(self):
-        """ Get image zooms from header data
+        """
+        Get image zooms from header data
 
-        Spatial axes are first three indices
+        Spatial axes are first three indices, time axis is last index. If
+        dataset is not a time series the last index will be zero.
 
         Returns
         -------
         zooms : tuple
         """
         xyz_step = tuple(np.abs(self.info['DELTA']))
-        t_step = self.info.get('TAXIS_FLOATS', ())
+        t_step = self.info.get('TAXIS_FLOATS', (0, 0,))
         if len(t_step) > 0:
             t_step = (t_step[1],)
 
         return xyz_step + t_step
 
     def get_space(self):
-        """Returns space of dataset
+        """
+        Returns space of dataset
 
         Returns
         -------
         space : str
+            AFNI "space" designation; one of [ORIG, ANAT, TLRC, MNI]
         """
         listed_space = self.info.get('TEMPLATE_SPACE', 0)
         space = space_codes.space[listed_space]
@@ -327,11 +354,13 @@ class AFNIHeader(SpatialHeader):
         return space
 
     def get_affine(self):
-        """ Returns affine of dataset
+        """
+        Returns affine of dataset
 
         Examples
         --------
-        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> fname = os.path.join(datadir, 'example4d+orig.HEAD')
+        >>> header = AFNIHeader(parse_AFNI_header(fname))
         >>> header.get_affine()
         array([[ -3.    ,  -0.    ,  -0.    ,  49.5   ],
                [ -0.    ,  -3.    ,  -0.    ,  82.312 ],
@@ -347,11 +376,13 @@ class AFNIHeader(SpatialHeader):
         return affine
 
     def get_data_scaling(self):
-        """ AFNI applies volume-specific data scaling
+        """
+        AFNI applies volume-specific data scaling
 
         Examples
         --------
-        >>> header = AFNIHeader(parse_AFNI_header('scaled+tlrc.HEAD'))
+        >>> fname = os.path.join(datadir, 'scaled+tlrc.HEAD')
+        >>> header = AFNIHeader(parse_AFNI_header(fname))
         >>> header.get_data_scaling()
         array([  3.88336300e-08])
         """
@@ -373,15 +404,17 @@ class AFNIHeader(SpatialHeader):
         return DATA_OFFSET
 
     def get_volume_labels(self):
-        """Returns volume labels
+        """
+        Returns volume labels
 
         Returns
         -------
         labels : list of str
+            Labels for volumes along fourth dimension
 
         Examples
         --------
-        >>> header = AFNIHeader(parse_AFNI_header('example4d+orig.HEAD'))
+        >>> header = AFNIHeader(parse_AFNI_header(os.path.join(datadir, 'example4d+orig.HEAD')))
         >>> header.get_volume_labels()
         ['#0', '#1', '#2']
         """
@@ -393,13 +426,14 @@ class AFNIHeader(SpatialHeader):
 
 
 class AFNIImage(SpatialImage):
-    """AFNI Image file
+    """
+    AFNI Image file
 
     Can be loaded from either the BRIK or HEAD file (but MUST specify one!)
 
     Examples
     --------
-    >>> brik = load('example4d+orig.BRIK.gz')
+    >>> brik = load(os.path.join(datadir, 'example4d+orig.BRIK.gz'))
     >>> brik.shape
     (33, 41, 25, 3)
     >>> brik.affine
@@ -407,13 +441,13 @@ class AFNIImage(SpatialImage):
            [ -0.    ,  -3.    ,  -0.    ,  82.312 ],
            [  0.    ,   0.    ,   3.    , -52.3511],
            [  0.    ,   0.    ,   0.    ,   1.    ]])
-    >>> head = load('example4d+orig.HEAD')
+    >>> head = load(os.path.join(datadir, 'example4d+orig.HEAD'))
     >>> np.array_equal(head.get_data(), brik.get_data())
     True
     """
 
     header_class = AFNIHeader
-    valid_exts = ('.brik', '.head')
+    valid_exts = ('.BRIK', '.HEAD')  # HEAD, at least, needs to be upper
     files_types = (('image', '.brik'), ('header', '.head'))
     _compressed_suffixes = ('.gz', '.bz2')
     makeable = False
@@ -424,6 +458,8 @@ class AFNIImage(SpatialImage):
     @kw_only_meth(1)
     def from_file_map(klass, file_map, mmap=True):
         """
+        Creates an AFNIImage instance from `file_map`
+
         Parameters
         ----------
         file_map : dict
@@ -450,11 +486,12 @@ class AFNIImage(SpatialImage):
     @kw_only_meth(1)
     def from_filename(klass, filename, mmap=True):
         """
+        Creates an AFNIImage instance from `filename`
+
         Parameters
         ----------
-        file_map : dict
-            dict with keys ``image, header`` and values being fileholder
-            objects for the respective BRIK and HEAD files
+        filename : str
+            Path to BRIK or HEAD file to be loaded
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
@@ -464,12 +501,38 @@ class AFNIImage(SpatialImage):
             read array from file.
         """
         file_map = klass.filespec_to_file_map(filename)
-        # only BRIK can be compressed, but `filespec_to_file_map` doesn't
-        # handle that case; remove potential compression suffixes from HEAD
+        return klass.from_file_map(file_map, mmap=mmap)
+
+    @classmethod
+    def filespec_to_file_map(klass, filespec):
+        """
+        Make `file_map` from filename `filespec`
+
+        Deals with idiosyncracies of AFNI BRIK / HEAD formats
+
+        Parameters
+        ----------
+        filespec : str
+            Filename that might be for this image file type.
+
+        Returns
+        -------
+        file_map : dict
+            dict with keys ``image`` and ``header`` where values are fileholder
+            objects for the respective BRIK and HEAD files
+
+        Raises
+        ------
+        ImageFileError
+            If `filespec` is not recognizable as being a filename for this
+            image type.
+        """
+        file_map = super(AFNIImage, klass).filespec_to_file_map(filespec)
+        # only BRIK can be compressed; remove potential compression suffixes from HEAD
         head_fname = file_map['header'].filename
         if not os.path.exists(head_fname):
             for ext in klass._compressed_suffixes:
-                head_fname = re.sub(ext, '', head_fname)
+                head_fname = head_fname[:-len(ext)] if head_fname.endswith(ext) else head_fname
             file_map['header'].filename = head_fname
         # if HEAD is read in and BRIK is compressed, function won't detect the
         # compressed format; check for these cases
@@ -479,8 +542,7 @@ class AFNIImage(SpatialImage):
                 if os.path.exists(im_ext):
                     file_map['image'].filename = im_ext
                     break
-        return klass.from_file_map(file_map,
-                                   mmap=mmap)
+        return file_map
 
     load = from_filename
 

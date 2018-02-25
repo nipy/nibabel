@@ -1,10 +1,5 @@
 
 type = string-attribute
-name = HISTORY_NOTE
-count = 304
-'[rossmarkello@rossdm.local: Tue Jan 23 20:04:42 2018] {AFNI_18.0.09:macosx_10.7_Intel_64} 3dcalc -short -a 'mreg/subj-020_task-rest_bold.nii.gz[0]' -expr a -prefix scaled\n[rossmarkello@rossdm.local: Tue Jan 23 20:05:10 2018] {AFNI_18.0.09:macosx_10.7_Intel_64} 3dAutobox -prefix scaled+tlrc scaled+tlrc~
-
-type = string-attribute
 name = TYPESTRING
 count = 15
 '3DIM_HEAD_ANAT~

@@ -44,13 +44,13 @@ EXAMPLE_IMAGES = [
     dict(
         head=pjoin(data_path, 'scaled+tlrc.HEAD'),
         brik=pjoin(data_path, 'scaled+tlrc.BRIK'),
-        shape=(47, 54, 43),
+        shape=(47, 54, 43, 1.),
         dtype=np.int16,
         affine=np.array([[3.0,0,0,-66.],
                          [0,3.0,0,-87.],
                          [0,0,3.0,-54.],
                          [0,0,0,1.0]]),
-        zooms=(3., 3., 3.),
+        zooms=(3., 3., 3., 0.),
         data_summary=dict(
             min=1.9416814999999998e-07,
             max=0.0012724615542099998,
@@ -64,10 +64,12 @@ EXAMPLE_IMAGES = [
 
 EXAMPLE_BAD_IMAGES = [
     dict(
-        head=pjoin(data_path, 'bad_datatype+orig.HEAD')
+        head=pjoin(data_path, 'bad_datatype+orig.HEAD'),
+        err=brikhead.AFNIImageError
     ),
     dict(
-        head=pjoin(data_path, 'bad_attribute+orig.HEAD')
+        head=pjoin(data_path, 'bad_attribute+orig.HEAD'),
+        err=brikhead.AFNIHeaderError
     )
 ]
 
@@ -80,9 +82,9 @@ class TestAFNIHeader(object):
             head1 = self.module.AFNIHeader.from_fileobj(tp['head'])
             head2 = self.module.AFNIHeader.from_header(head1)
             assert_equal(head1, head2)
-            with assert_raises(self.module.AFNIError):
+            with assert_raises(self.module.AFNIHeaderError):
                 self.module.AFNIHeader.from_header(header=None)
-            with assert_raises(self.module.AFNIError):
+            with assert_raises(self.module.AFNIHeaderError):
                 self.module.AFNIHeader.from_header(tp['brik'])
 
 
@@ -105,7 +107,7 @@ class TestAFNIImage(object):
     def test_load(self):
         # Check highest level load of brikhead works
         for tp in self.test_files:
-            img = self.module.load(tp['brik'])
+            img = self.module.load(tp['head'])
             data = img.get_data()
             assert_equal(data.shape, tp['shape'])
             # min, max, mean values
@@ -132,5 +134,5 @@ class TestBadFiles(object):
 
     def test_brikheadfile(self):
         for tp in self.test_files:
-            with assert_raises(self.module.AFNIError):
+            with assert_raises(tp['err']):
                 self.module.load(tp['head'])
