@@ -371,26 +371,25 @@ def test_dpconn():
         del img2
 
 
-# SKIP until intent code is specified
-# https://www.nitrc.org/forum/attachment.php?attachid=341&group_id=454&forum_id=1955
-# def test_plabel():
-#     label_map = create_label_map((0, ))
-#     parcel_map = create_parcel_map((1, ))
-#     matrix = ci.Cifti2Matrix()
-#     matrix.append(label_map)
-#     matrix.append(parcel_map)
-#     hdr = ci.Cifti2Header(matrix)
-#     data = np.random.randn(2, 3)
-#     img = ci.Cifti2Image(data, hdr)
-#
-#     with InTemporaryDirectory():
-#         ci.save(img, 'test.plabel.nii')
-#         img2 = ci.load('test.plabel.nii')
-#         assert_true(isinstance(img2, ci.Cifti2Image))
-#         assert_true((img2.get_data() == data).all())
-#         check_label_map(img2.header.matrix.get_index_map(0))
-#         check_parcel_map(img2.header.matrix.get_index_map(1))
-#         del img2
+def test_plabel():
+    label_map = create_label_map((0, ))
+    parcel_map = create_parcel_map((1, ))
+    matrix = ci.Cifti2Matrix()
+    matrix.append(label_map)
+    matrix.append(parcel_map)
+    hdr = ci.Cifti2Header(matrix)
+    data = np.random.randn(2, 3)
+    img = ci.Cifti2Image(data, hdr
+    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
+
+    with InTemporaryDirectory():
+        ci.save(img, 'test.plabel.nii')
+        img2 = ci.load('test.plabel.nii')
+        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert_true((img2.get_data() == data).all())
+        check_label_map(img2.header.matrix.get_index_map(0))
+        check_parcel_map(img2.header.matrix.get_index_map(1))
+        del img2
 
 
 def test_pconn():

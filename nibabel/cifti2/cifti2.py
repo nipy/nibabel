@@ -1443,5 +1443,5 @@ def save(img, filename):
         filename to which to save image
     """
     if img.nifti_header.get_intent()[0] == 'none':
-        raise AttributeError("CIFTI image has an invalid intent code.")
+        raise ValueError("CIFTI image has an invalid intent code.")
     Cifti2Image.instance_to_filename(img, filename)
