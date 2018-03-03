@@ -25,7 +25,7 @@ from .test_helpers import assert_data_similar
 EXAMPLE_IMAGES = [
     dict(
         head=pjoin(data_path, 'example4d+orig.HEAD'),
-        brik=pjoin(data_path, 'example4d+orig.BRIK.gz'),
+        fname=pjoin(data_path, 'example4d+orig.BRIK.gz'),
         shape=(33, 41, 25, 3),
         dtype=np.int16,
         affine=np.array([[-3.0,0,0,49.5],
@@ -43,7 +43,7 @@ EXAMPLE_IMAGES = [
         scaling=None),
     dict(
         head=pjoin(data_path, 'scaled+tlrc.HEAD'),
-        brik=pjoin(data_path, 'scaled+tlrc.BRIK'),
+        fname=pjoin(data_path, 'scaled+tlrc.BRIK'),
         shape=(47, 54, 43, 1.),
         dtype=np.int16,
         affine=np.array([[3.0,0,0,-66.],
@@ -85,7 +85,7 @@ class TestAFNIHeader(object):
             with assert_raises(self.module.AFNIHeaderError):
                 self.module.AFNIHeader.from_header(header=None)
             with assert_raises(self.module.AFNIHeaderError):
-                self.module.AFNIHeader.from_header(tp['brik'])
+                self.module.AFNIHeader.from_header(tp['fname'])
 
 
 class TestAFNIImage(object):
@@ -94,7 +94,7 @@ class TestAFNIImage(object):
 
     def test_brikheadfile(self):
         for tp in self.test_files:
-            brik = self.module.load(tp['brik'])
+            brik = self.module.load(tp['fname'])
             assert_equal(brik.get_data_dtype().type, tp['dtype'])
             assert_equal(brik.shape, tp['shape'])
             assert_equal(brik.header.get_zooms(), tp['zooms'])
@@ -120,7 +120,7 @@ class TestAFNIImage(object):
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
-            img = self.module.load(tp['brik'])
+            img = self.module.load(tp['fname'])
             arr = img.get_data()
             prox = img.dataobj
             assert_true(prox.is_proxy)

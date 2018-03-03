@@ -447,7 +447,7 @@ class AFNIImage(SpatialImage):
     """
 
     header_class = AFNIHeader
-    valid_exts = ('.BRIK', '.HEAD')  # HEAD, at least, needs to be upper
+    valid_exts = ('.brik', '.head')
     files_types = (('image', '.brik'), ('header', '.head'))
     _compressed_suffixes = ('.gz', '.bz2')
     makeable = False
