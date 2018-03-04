@@ -422,7 +422,7 @@ class TestSpatialImage(TestCase):
             img = img_klass(in_data, base_affine.copy())
 
             # Detect time axis on first loop (4D image)
-            if t_axis is None:
+            if t_axis is None and img._spatial_dims is not None:
                 t_axis = 3 if img._spatial_dims.start == 0 else 0
 
             assert_true(hasattr(img.slicer, '__getitem__'))
@@ -451,7 +451,7 @@ class TestSpatialImage(TestCase):
                     img.slicer[None]
                 # 4D Minc to 3D
                 assert_equal(img.slicer[0].shape, img.shape[1:])
-            else:
+            elif t_axis is not None:
                 # 3D Minc to 4D
                 assert_equal(img.slicer[None].shape, (1,) + img.shape)
             # Axes 1 and 2 are always spatial
@@ -479,7 +479,7 @@ class TestSpatialImage(TestCase):
                 # 4D to 3D using ellipsis or slices
                 assert_equal(img.slicer[..., 0].shape, img.shape[:-1])
                 assert_equal(img.slicer[:, :, :, 0].shape, img.shape[:-1])
-            else:
+            elif t_axis is not None:
                 # 3D Analyze/NIfTI/MGH to 4D
                 assert_equal(img.slicer[:, :, :, None].shape, img.shape + (1,))
             if len(img.shape) == 3:
@@ -499,7 +499,7 @@ class TestSpatialImage(TestCase):
                 sliced_j = img.slicer[:, 1:]
                 sliced_k = img.slicer[:, :, 1:]
                 sliced_ijk = img.slicer[1:, 1:, 1:]
-            else:
+            elif t_axis is not None:
                 # 4D Minc
                 sliced_i = img.slicer[:, 1:]
                 sliced_j = img.slicer[:, :, 1:]
