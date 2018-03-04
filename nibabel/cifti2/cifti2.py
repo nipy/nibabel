@@ -1384,6 +1384,8 @@ class Cifti2Image(DataobjImage):
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
+        if header.get_intent()[0] == 'none':
+            raise ValueError("CIFTI image has an invalid intent code.")
         data = reshape_dataobj(self.dataobj,
                                (1, 1, 1, 1) + self.dataobj.shape)
         # If qform not set, reset pixdim values so Nifti2 does not complain
@@ -1442,6 +1444,4 @@ def save(img, filename):
     filename : str
         filename to which to save image
     """
-    if img.nifti_header.get_intent()[0] == 'none':
-        raise ValueError("CIFTI image has an invalid intent code.")
     Cifti2Image.instance_to_filename(img, filename)

@@ -12,7 +12,7 @@ import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true, assert_equal, assert_raises
 
 affine = [[-1.5, 0, 0, 90],
           [0, 1.5, 0, -85],
@@ -213,6 +213,8 @@ def test_dtseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 9)
     img = ci.Cifti2Image(data, hdr)
+    with assert_raises(ValueError):
+        img.to_filename('test.dtseries.nii')
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
 
     with InTemporaryDirectory():
@@ -234,6 +236,8 @@ def test_dscalar():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 9)
     img = ci.Cifti2Image(data, hdr)
+    with assert_raises(ValueError):
+        nib.save(img, 'test.dscalar.nii')
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS')
 
     with InTemporaryDirectory():
@@ -255,6 +259,8 @@ def test_dlabel():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 9)
     img = ci.Cifti2Image(data, hdr)
+    with assert_raises(ValueError):
+        ci.save(img, 'test.dlabel.nii')
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS')
 
     with InTemporaryDirectory():
@@ -379,7 +385,7 @@ def test_plabel():
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 3)
-    img = ci.Cifti2Image(data, hdr
+    img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
 
     with InTemporaryDirectory():
