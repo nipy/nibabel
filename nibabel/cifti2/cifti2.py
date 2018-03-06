@@ -1384,8 +1384,9 @@ class Cifti2Image(DataobjImage):
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
+        # if intent code is not set, default to unknown CIFTI
         if header.get_intent()[0] == 'none':
-            raise ValueError("CIFTI image has an invalid intent code.")
+            header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
         data = reshape_dataobj(self.dataobj,
                                (1, 1, 1, 1) + self.dataobj.shape)
         # If qform not set, reset pixdim values so Nifti2 does not complain
