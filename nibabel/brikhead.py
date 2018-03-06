@@ -21,6 +21,8 @@ import re
 import numpy as np
 
 from .arrayproxy import ArrayProxy
+from .fileholders import FileHolder
+from .filename_parser import (types_filenames, TypesFilenamesError)
 from .fileslice import strided_scalar
 from .keywordonly import kw_only_meth
 from .spatialimages import (
@@ -527,21 +529,27 @@ class AFNIImage(SpatialImage):
             If `filespec` is not recognizable as being a filename for this
             image type.
         """
-        file_map = super(AFNIImage, klass).filespec_to_file_map(filespec)
-        # only BRIK can be compressed; remove potential compression suffixes from HEAD
-        head_fname = file_map['header'].filename
-        if not os.path.exists(head_fname):
-            for ext in klass._compressed_suffixes:
-                head_fname = head_fname[:-len(ext)] if head_fname.endswith(ext) else head_fname
-            file_map['header'].filename = head_fname
-        # if HEAD is read in and BRIK is compressed, function won't detect the
-        # compressed format; check for these cases
-        if not os.path.exists(file_map['image'].filename):
-            for ext in klass._compressed_suffixes:
-                im_ext = file_map['image'].filename + ext
-                if os.path.exists(im_ext):
-                    file_map['image'].filename = im_ext
-                    break
+        # copied from filebasedimages.py
+        try:
+            filenames = types_filenames(
+                filespec, klass.files_types,
+                trailing_suffixes=klass._compressed_suffixes)
+        except TypesFilenamesError:
+            raise ImageFileError(
+                'Filespec "{0}" does not look right for class {1}'.format(
+                    filespec, klass))
+        file_map = {}
+        # check for AFNI-specific BRIK/HEAD compression idiosyncracies
+        for key, fname in filenames.items():
+            if key == 'header' and not os.path.exists(fname):
+                for ext in klass._compressed_suffixes:
+                    fname = fname[:-len(ext)] if fname.endswith(ext) else fname
+            elif key == 'image' and not os.path.exists(fname):
+                for ext in klass._compressed_suffixes:
+                    if os.path.exists(fname + ext):
+                        fname += ext
+                        break
+            file_map[key] = FileHolder(filename=fname)
         return file_map
 
     load = from_filename
