@@ -213,14 +213,13 @@ def test_dtseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 9)
     img = ci.Cifti2Image(data, hdr)
-    print(img.nifti_header.get_intent())
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.dtseries.nii')
         img2 = nib.load('test.dtseries.nii')
-        assert_true(img2.nifti_header.get_intent()[0]
-                    == 'dense data series/fiber fans')
+        assert_equal(img2.nifti_header.get_intent()[0],
+                     'dense data series/fiber fans')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_series_map(img2.header.matrix.get_index_map(0))
@@ -242,7 +241,7 @@ def test_dscalar():
     with InTemporaryDirectory():
         ci.save(img, 'test.dscalar.nii')
         img2 = nib.load('test.dscalar.nii')
-        assert_true(img2.nifti_header.get_intent()[0] == 'dense scalar')
+        assert_equal(img2.nifti_header.get_intent()[0], 'dense scalar')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_scalar_map(img2.header.matrix.get_index_map(0))
@@ -264,7 +263,7 @@ def test_dlabel():
     with InTemporaryDirectory():
         ci.save(img, 'test.dlabel.nii')
         img2 = nib.load('test.dlabel.nii')
-        assert_true(img2.nifti_header.get_intent()[0] == 'dense label')
+        assert_equal(img2.nifti_header.get_intent()[0], 'dense label')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_label_map(img2.header.matrix.get_index_map(0))
@@ -284,7 +283,7 @@ def test_dconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.dconn.nii')
         img2 = nib.load('test.dconn.nii')
-        assert_true(img2.nifti_header.get_intent()[0] == 'dense connectivity')
+        assert_equal(img2.nifti_header.get_intent()[0], 'dense connectivity')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
@@ -307,8 +306,8 @@ def test_ptseries():
     with InTemporaryDirectory():
         ci.save(img, 'test.ptseries.nii')
         img2 = nib.load('test.ptseries.nii')
-        assert_true(img2.nifti_header.get_intent()[0]
-                    == 'parcellated data series')
+        assert_equal(img2.nifti_header.get_intent()[0],
+                     'parcellated data series')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_series_map(img2.header.matrix.get_index_map(0))
@@ -330,7 +329,7 @@ def test_pscalar():
     with InTemporaryDirectory():
         ci.save(img, 'test.pscalar.nii')
         img2 = nib.load('test.pscalar.nii')
-        assert_true(img2.nifti_header.get_intent()[0] == 'parcellated scalar')
+        assert_equal(img2.nifti_header.get_intent()[0], 'parcellated scalar')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_scalar_map(img2.header.matrix.get_index_map(0))
@@ -352,8 +351,8 @@ def test_pdconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.pdconn.nii')
         img2 = ci.load('test.pdconn.nii')
-        assert_true(img2.nifti_header.get_intent()[0]
-                    == 'parcellated dense connectivity')
+        assert_equal(img2.nifti_header.get_intent()[0],
+                     'parcellated dense connectivity')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_geometry_map(img2.header.matrix.get_index_map(0))
@@ -375,8 +374,8 @@ def test_dpconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.dpconn.nii')
         img2 = ci.load('test.dpconn.nii')
-        assert_true(img2.nifti_header.get_intent()[0]
-                    == 'dense parcellated connectivity')
+        assert_equal(img2.nifti_header.get_intent()[0],
+                     'dense parcellated connectivity')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_parcel_map(img2.header.matrix.get_index_map(0))
@@ -397,8 +396,8 @@ def test_plabel():
     with InTemporaryDirectory():
         ci.save(img, 'test.plabel.nii')
         img2 = ci.load('test.plabel.nii')
-        assert_true(img.nifti_header.get_intent()[0]
-                    == 'dense fiber/fan samples')
+        assert_equal(img.nifti_header.get_intent()[0],
+                     'dense fiber/fan samples')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         check_label_map(img2.header.matrix.get_index_map(0))
@@ -418,8 +417,8 @@ def test_pconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.pconn.nii')
         img2 = ci.load('test.pconn.nii')
-        assert_true(img.nifti_header.get_intent()[0]
-                    == 'parcellated connectivity')
+        assert_equal(img.nifti_header.get_intent()[0],
+                     'parcellated connectivity')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
@@ -431,6 +430,7 @@ def test_pconn():
 def test_pconnseries():
     parcel_map = create_parcel_map((0, 1))
     series_map = create_series_map((2, ))
+
     matrix = ci.Cifti2Matrix()
     matrix.append(parcel_map)
     matrix.append(series_map)
@@ -443,8 +443,8 @@ def test_pconnseries():
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnseries.nii')
         img2 = ci.load('test.pconnseries.nii')
-        assert_true(img.nifti_header.get_intent()[0]
-                    == 'parcellated connectivity series')
+        assert_equal(img.nifti_header.get_intent()[0],
+                     'parcellated connectivity series')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
@@ -457,6 +457,7 @@ def test_pconnseries():
 def test_pconnscalar():
     parcel_map = create_parcel_map((0, 1))
     scalar_map = create_scalar_map((2, ))
+
     matrix = ci.Cifti2Matrix()
     matrix.append(parcel_map)
     matrix.append(scalar_map)
@@ -469,8 +470,8 @@ def test_pconnscalar():
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnscalar.nii')
         img2 = ci.load('test.pconnscalar.nii')
-        assert_true(img.nifti_header.get_intent()[0]
-                    == 'parcellated connectivity scalar')
+        assert_equal(img.nifti_header.get_intent()[0],
+                     'parcellated connectivity scalar')
         assert_true(isinstance(img2, ci.Cifti2Image))
         assert_true((img2.get_data() == data).all())
         assert_equal(img2.header.matrix.get_index_map(0),
