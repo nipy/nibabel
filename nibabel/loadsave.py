@@ -133,10 +133,10 @@ def save(img, filename):
                 converted = klass.from_image(img)
                 break
             except Exception as e:
-                continue
+                err = e
         # ... and if none of them work, raise an error.
         if converted is None:
-            raise e
+            raise err
 
     # Here, we either have a klass or a converted image.
     if converted is None:
