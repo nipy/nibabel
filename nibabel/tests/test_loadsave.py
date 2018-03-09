@@ -10,7 +10,8 @@ import numpy as np
 from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image,
                 Nifti2Pair, Nifti2Image)
-from ..loadsave import load, read_img_data
+from ..spatialimages import SpatialImage
+from ..loadsave import load, read_img_data, save
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
@@ -135,3 +136,33 @@ def test_read_img_data_nifti():
             assert_array_equal(exp_offset, read_img_data(img_back))
             # Delete stuff that might hold onto file references
             del img, img_back, data_back
+
+
+def test_save():
+    with InTemporaryDirectory():
+        dataobj = np.ones((10, 10, 10), dtype=np.float16)
+        affine = np.eye(4, dtype=np.float32)
+        img = SpatialImage(dataobj, affine)
+
+        # The `save` method can raise one of many types of errors, but they are
+        # all subclasses of Exception. This attempt will fail because float16
+        # is not supported.
+        with assert_raises(Exception):
+            save(img, 'foo.nii.gz')
+
+        # Test the saving of several types of images.
+        dataobj = np.ones((10, 10, 10), dtype=np.float32)
+        img = SpatialImage(dataobj, affine)
+        for ext in {'hdr', 'img', 'nii', 'nii.gz', 'mgz'}:
+            this_filepath = "foo." + ext
+            save(img, this_filepath)
+            img_loaded = load(this_filepath)
+            assert_array_equal(np.asarray(img_loaded.dataobj), dataobj)
+            assert_array_equal(np.asarray(img_loaded.affine), affine)
+
+        # Test not being able to work out file type.
+        with assert_raises(ImageFileError):
+            save(img, 'foo.noexists')
+
+        # Delete stuff that might hold onto file references
+        del img, img_loaded
