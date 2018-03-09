@@ -185,3 +185,6 @@ def test_angle_axis():
         yield nq.nearly_equivalent, q, q2
         aa_mat = nq.angle_axis2mat(theta, vec)
         yield assert_array_almost_equal, aa_mat, M
+        unit_vec = vec / np.sqrt(vec.dot(vec))
+        aa_mat2 = nq.angle_axis2mat(theta, unit_vec, is_normalized=True)
+        yield assert_array_almost_equal, aa_mat2, M

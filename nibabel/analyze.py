@@ -1086,10 +1086,6 @@ class AnalyzeImage(SpatialImage):
         # Write header
         hdr.write_to(hdrf)
         # Write image
-        shape = hdr.get_data_shape()
-        if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' %
-                                  ', '.join(str(s) for s in shape))
         # Seek to writing position, get there by writing zeros if seek fails
         seek_tell(imgf, hdr.get_data_offset(), write0=True)
         # Write array data

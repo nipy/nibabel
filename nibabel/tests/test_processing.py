@@ -214,10 +214,11 @@ def test_resample_to_output():
     img2 = resample_to_output(img, vox_sizes)
     # Check 2D works
     img_2d = Nifti1Image(data[0], np.eye(4))
-    img3 = resample_to_output(img_2d)
-    assert_array_equal(img3.shape, (3, 4, 1))
-    assert_array_equal(img3.affine, np.eye(4))
-    assert_array_equal(img3.dataobj, data[0][..., None])
+    for vox_sizes in (None, 1, (1, 1), (1, 1, 1)):
+        img3 = resample_to_output(img_2d, vox_sizes)
+        assert_array_equal(img3.shape, (3, 4, 1))
+        assert_array_equal(img3.affine, np.eye(4))
+        assert_array_equal(img3.dataobj, data[0][..., None])
     # Even 1D
     img_1d = Nifti1Image(data[0, 0], np.eye(4))
     img3 = resample_to_output(img_1d)
