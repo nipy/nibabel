@@ -10,7 +10,6 @@
 '''
 from __future__ import division, print_function, absolute_import
 import os
-import time
 import shutil
 from tempfile import template, mkdtemp
 
@@ -42,16 +41,7 @@ class TemporaryDirectory(object):
 
     def cleanup(self):
         if not self._closed:
-            # Account for latency in Windows releasing open files
-            # for deletion
-            for i in range(50):
-                try:
-                    shutil.rmtree(self.name)
-                    break
-                except (OSError, WindowsError):
-                    if i == 49:
-                        raise
-                    time.sleep(0.1)
+            shutil.rmtree(self.name)
             self._closed = True
 
     def __exit__(self, exc, value, tb):
