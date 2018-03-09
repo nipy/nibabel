@@ -381,6 +381,8 @@ def test_keep_file_open_true_false_invalid():
                 x , y, z = [int(c) for c in voxels[i, :]]
                 assert proxy_kfp[x, y, z] == x * 100 + y * 10 + z
                 assert CountingImageOpener.num_openers == 1
+            del proxy_kfp
+            del proxy_no_kfp
         # Test that the keep_file_open flag has no effect if an open file
         # handle is passed in
         with open(fname, 'rb') as fobj:
