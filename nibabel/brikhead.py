@@ -10,7 +10,18 @@
 Class for reading AFNI BRIK/HEAD datasets
 
 See https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html
-for more information on required information to have a valid BRIK/HEAD dataset.
+for information on what is required to have a valid BRIK/HEAD dataset.
+
+Some notes on the AFNI BRIK/HEAD format:
+
+* In the AFNI HEAD file, the first two values of the attribute DATASET_RANK
+determine the shape of the data array stored in the corresponding BRIK file.
+The first value, DATASET_RANK[0], must be set to 3 denoting a 3D image. The
+second value, DATASET_RANK[1], determines how many "sub-bricks" (in AFNI
+parlance) / volumes there are along the fourth (traditionally, but not
+exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
+am aware) always be >= 1. This permits sub-brick indexing common in AFNI
+programs (e.g., example4d+orig'[0]').
 """
 from __future__ import print_function, division
 
@@ -19,10 +30,9 @@ import os
 import re
 
 import numpy as np
+from six import string_types
 
 from .arrayproxy import ArrayProxy
-from .fileholders import FileHolder
-from .filename_parser import (types_filenames, TypesFilenamesError)
 from .fileslice import strided_scalar
 from .keywordonly import kw_only_meth
 from .spatialimages import (
@@ -64,12 +74,10 @@ space_codes = Recoder((
 
 class AFNIImageError(ImageDataError):
     """Error when reading AFNI BRIK files"""
-    pass
 
 
 class AFNIHeaderError(HeaderDataError):
     """Error when reading AFNI HEAD file"""
-    pass
 
 
 DATA_OFFSET = 0
@@ -107,7 +115,6 @@ def _unpack_var(var):
 
     err_msg = ('Please check HEAD file to ensure it is AFNI compliant. '
                'Offending attribute:\n%s' % var)
-
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
         raise AFNIHeaderError('Invalid attribute type entry in HEAD file. '
@@ -116,22 +123,20 @@ def _unpack_var(var):
         raise AFNIHeaderError('Invalid attribute name entry in HEAD file. '
                               '%s' % err_msg)
     atype = _attr_dic.get(atype[0], str)
-    attr = ' '.join(var.strip().split('\n')[3:])
+    attr = ' '.join(var.strip().splitlines()[3:])
     if atype is not str:
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
             raise AFNIHeaderError('Failed to read variable from HEAD file due '
                                   'to improper type casting. %s' % err_msg)
-        if len(attr) == 1:
-            attr = attr[0]
     else:
         # AFNI string attributes will always start with open single quote and
         # end with a tilde (NUL). These attributes CANNOT contain tildes (so
         # stripping is safe), but can contain single quotes (so we replace)
         attr = attr.replace('\'', '', 1).rstrip('~')
 
-    return aname[0], attr
+    return aname[0], attr[0] if len(attr) == 1 else attr
 
 
 def _get_datatype(info):
@@ -158,7 +163,6 @@ def _get_datatype(info):
     bt = _dtype_dict.get(bt, None)
     if bt is None:
         raise AFNIImageError('Can\'t deduce image data type.')
-
     return np.dtype(bo + bt)
 
 
@@ -186,8 +190,6 @@ def parse_AFNI_header(fobj):
     >>> print(info['BRICK_TYPES'])
     [1, 1, 1]
     """
-    from six import string_types
-
     # edge case for being fed a filename instead of a file object
     if isinstance(fobj, string_types):
         with open(fobj, 'rt') as src:
@@ -195,11 +197,16 @@ def parse_AFNI_header(fobj):
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
     info = {key: value for key, value in map(_unpack_var, head)}
-
     return info
 
 
 class AFNIArrayProxy(ArrayProxy):
+    """
+    Attributes
+    ----------
+    scaling : np.ndarray
+        Scaling factor (one factor per volume/subbrick) for data. Default: None
+    """
     @kw_only_meth(2)
     def __init__(self, file_like, header, mmap=True, keep_file_open=None):
         """
@@ -210,7 +217,7 @@ class AFNIArrayProxy(ArrayProxy):
         file_like : file-like object
             File-like object or filename. If file-like object, should implement
             at least ``read`` and ``seek``.
-        header : AFNIHeader object
+        header : ``AFNIHeader`` object
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading data.
             If False, do not try numpy ``memmap`` for data array.  If one of
@@ -244,11 +251,8 @@ class AFNIArrayProxy(ArrayProxy):
 
     def __array__(self):
         raw_data = self.get_unscaled()
-        # apply volume specific scaling (may change datatype!)
-        if self._scaling is not None:
-            return raw_data * self._scaling
-
-        return raw_data
+        # datatype may change if applying self._scaling
+        return raw_data if self.scaling is None else raw_data * self.scaling
 
     def __getitem__(self, slicer):
         raw_data = super(AFNIArrayProxy, self).__getitem__(slicer)
@@ -258,7 +262,6 @@ class AFNIArrayProxy(ArrayProxy):
             fake_data = strided_scalar(self._shape)
             _, scaling = np.broadcast_arrays(fake_data, scaling)
             raw_data = raw_data * scaling[slicer]
-
         return raw_data
 
 
@@ -320,7 +323,6 @@ class AFNIHeader(SpatialHeader):
         dset_rank = self.info['DATASET_RANK']
         shape = tuple(self.info['DATASET_DIMENSIONS'][:dset_rank[0]])
         n_vols = dset_rank[1]
-
         return shape + (n_vols,)
 
     def _calc_zooms(self):
@@ -328,7 +330,7 @@ class AFNIHeader(SpatialHeader):
         Get image zooms from header data
 
         Spatial axes are first three indices, time axis is last index. If
-        dataset is not a time series the last index will be zero.
+        dataset is not a time series the last value will be zero.
 
         Returns
         -------
@@ -338,7 +340,6 @@ class AFNIHeader(SpatialHeader):
         t_step = self.info.get('TAXIS_FLOATS', (0, 0,))
         if len(t_step) > 0:
             t_step = (t_step[1],)
-
         return xyz_step + t_step
 
     def get_space(self):
@@ -352,7 +353,6 @@ class AFNIHeader(SpatialHeader):
         """
         listed_space = self.info.get('TEMPLATE_SPACE', 0)
         space = space_codes.space[listed_space]
-
         return space
 
     def get_affine(self):
@@ -374,7 +374,6 @@ class AFNIHeader(SpatialHeader):
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
         affine = np.row_stack((affine * [[-1], [-1], [1]],
                                [0, 0, 0, 1]))
-
         return affine
 
     def get_data_scaling(self):
@@ -394,11 +393,15 @@ class AFNIHeader(SpatialHeader):
         scale = np.ones(self.info['DATASET_RANK'][1])
         floatfacs = np.atleast_1d(floatfacs)
         scale[floatfacs.nonzero()] = floatfacs[floatfacs.nonzero()]
-
         return scale
 
     def get_slope_inter(self):
-        """Use `self.get_data_scaling()` instead"""
+        """
+        Use `self.get_data_scaling()` instead
+
+        Holdover because ``AFNIArrayProxy`` (inheriting from ``ArrayProxy``)
+        requires this functionality so as to not error.
+        """
         return None, None
 
     def get_data_offset(self):
@@ -423,7 +426,6 @@ class AFNIHeader(SpatialHeader):
         labels = self.info.get('BRICK_LABS', None)
         if labels is not None:
             labels = labels.split('~')
-
         return labels
 
 
@@ -435,7 +437,7 @@ class AFNIImage(SpatialImage):
 
     Examples
     --------
-    >>> brik = load(os.path.join(datadir, 'example4d+orig.BRIK.gz'))
+    >>> brik = nib.load(os.path.join(datadir, 'example4d+orig.BRIK.gz'))
     >>> brik.shape
     (33, 41, 25, 3)
     >>> brik.affine
@@ -451,7 +453,7 @@ class AFNIImage(SpatialImage):
     header_class = AFNIHeader
     valid_exts = ('.brik', '.head')
     files_types = (('image', '.brik'), ('header', '.head'))
-    _compressed_suffixes = ('.gz', '.bz2')
+    _compressed_suffixes = ('.gz', '.bz2', '.Z')
     makeable = False
     rw = False
     ImageArrayProxy = AFNIArrayProxy
@@ -510,7 +512,13 @@ class AFNIImage(SpatialImage):
         """
         Make `file_map` from filename `filespec`
 
-        Deals with idiosyncracies of AFNI BRIK / HEAD formats
+        AFNI BRIK files can be compressed, but HEAD files cannot - see
+        afni.nimh.nih.gov/pub/dist/doc/program_help/README.compression.html.
+        Thus, if you have AFNI files my_image.HEAD and my_image.BRIK.gz and you
+        want to load the AFNI BRIK / HEAD pair, you can specify:
+            * The HEAD filename - e.g., my_image.HEAD
+            * The BRIK filename w/o compressed extension - e.g., my_image.BRIK
+            * The full BRIK filename - e.g., my_image.BRIK.gz
 
         Parameters
         ----------
@@ -529,18 +537,10 @@ class AFNIImage(SpatialImage):
             If `filespec` is not recognizable as being a filename for this
             image type.
         """
-        # copied from filebasedimages.py
-        try:
-            filenames = types_filenames(
-                filespec, klass.files_types,
-                trailing_suffixes=klass._compressed_suffixes)
-        except TypesFilenamesError:
-            raise ImageFileError(
-                'Filespec "{0}" does not look right for class {1}'.format(
-                    filespec, klass))
-        file_map = {}
+        file_map = super(AFNIImage, klass).filespec_to_file_map(filespec)
         # check for AFNI-specific BRIK/HEAD compression idiosyncracies
-        for key, fname in filenames.items():
+        for key, fholder in file_map.items():
+            fname = fholder.filename
             if key == 'header' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
                     fname = fname[:-len(ext)] if fname.endswith(ext) else fname
@@ -549,7 +549,7 @@ class AFNIImage(SpatialImage):
                     if os.path.exists(fname + ext):
                         fname += ext
                         break
-            file_map[key] = FileHolder(filename=fname)
+            file_map[key].filename = fname
         return file_map
 
     load = from_filename
