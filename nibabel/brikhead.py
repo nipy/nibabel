@@ -437,6 +437,7 @@ class AFNIImage(SpatialImage):
 
     Examples
     --------
+    >>> import nibabel as nib
     >>> brik = nib.load(os.path.join(datadir, 'example4d+orig.BRIK.gz'))
     >>> brik.shape
     (33, 41, 25, 3)
