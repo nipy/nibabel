@@ -88,6 +88,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         self._wctx = warnings.catch_warnings()
         self._wctx.__enter__()
         warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+        warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
         warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
                                 UserWarning)
 
@@ -782,6 +783,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         self._wctx = warnings.catch_warnings()
         self._wctx.__enter__()
         warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+        warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
         warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
                                 UserWarning)
 
@@ -1206,7 +1208,6 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         aff = np.eye(4)
         img = img_klass(arr, aff)
 
-
         # Unknown units = 2 warnings
         with clear_and_catch_warnings() as warns:
             warnings.simplefilter('always')
@@ -1249,15 +1250,36 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                   (1, 1, 1, 0.000001))
 
-        # Verify `set_zooms(units='norm')` resets units
         img.header.set_xyzt_units(xyz='meter', t='usec')
         assert_equal(img.header.get_xyzt_units(), ('meter', 'usec'))
+
+        # Verify `set_zooms(units='raw')` leaves units unchanged
+        img.header.set_zooms((2, 2, 2, 2.5), units='raw')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (2000, 2000, 2000, 0.0000025))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 2.5))
+        assert_equal(img.header.get_xyzt_units(), ('meter', 'usec'))
+
+        # Verify `set_zooms(units=<tuple>)` sets units explicitly
+        img.header.set_zooms((2, 2, 2, 2.5), units=('micron', 'msec'))
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (0.002, 0.002, 0.002, 0.0025))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 2.5))
+        assert_equal(img.header.get_xyzt_units(), ('micron', 'msec'))
+
+        # Verify `set_zooms(units='norm')` resets units
         img.header.set_zooms((2, 2, 2, 2.5), units='norm')
         assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                   (2, 2, 2, 2.5))
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (2, 2, 2, 2.5))
         assert_equal(img.header.get_xyzt_units(), ('mm', 'sec'))
+
+        assert_raises(ValueError, img.header.get_zooms, units='badparam')
+        assert_raises(ValueError, img.header.set_zooms, (3, 3, 3, 3.5),
+                      units='badparam')
 
 
 class TestNifti1Image(TestNifti1Pair):
