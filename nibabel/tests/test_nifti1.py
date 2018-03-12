@@ -1277,6 +1277,36 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                                   (2, 2, 2, 2.5))
         assert_equal(img.header.get_xyzt_units(), ('mm', 'sec'))
 
+        # Non-temporal t units are not transformed
+        img.header.set_zooms((1, 1, 1, 1.5), units=('mm', 'ppm'))
+        with clear_and_catch_warnings() as warns:
+            warnings.simplefilter('always')
+            assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                      (1, 1, 1, 1.5))
+            assert_equal(len(warns), 1)
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (1, 1, 1, 1.5))
+
+        # Non-temporal t units are not normalized
+        img.header.set_zooms((2, 2, 2, 3.5), units='norm')
+        with clear_and_catch_warnings() as warns:
+            warnings.simplefilter('always')
+            assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                      (2, 2, 2, 3.5))
+            assert_equal(len(warns), 1)
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 3.5))
+        assert_equal(img.header.get_xyzt_units(), ('mm', 'ppm'))
+
+        # Unknown t units are normalized to seconds
+        img.header.set_xyzt_units(xyz='mm', t='unknown')
+        img.header.set_zooms((2, 2, 2, 3.5), units='norm')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (2, 2, 2, 3.5))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 3.5))
+        assert_equal(img.header.get_xyzt_units(), ('mm', 'sec'))
+
         assert_raises(ValueError, img.header.get_zooms, units='badparam')
         assert_raises(ValueError, img.header.set_zooms, (3, 3, 3, 3.5),
                       units='badparam')
