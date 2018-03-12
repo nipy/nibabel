@@ -83,19 +83,6 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             np.longcomplex))
     tana.add_intp(supported_np_types)
 
-    def setUp(self):
-        # Add warning filters for duration of test case
-        self._wctx = warnings.catch_warnings()
-        self._wctx.__enter__()
-        warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
-        warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
-        warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
-                                UserWarning)
-
-    def tearDown(self):
-        # Restore warning filters
-        self._wctx.__exit__()
-
     def test_empty(self):
         tana.TestAnalyzeHeader.test_empty(self)
         hdr = self.header_class()
@@ -731,6 +718,30 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr['slice_code'] = 4  # alternating decreasing
         assert hdr.get_value_label('slice_code') == 'alternating decreasing'
 
+    def test_general_init(self):
+        with clear_and_catch_warnings() as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1PairHeader, self).test_general_init()
+
+    def test_from_header(self):
+        with clear_and_catch_warnings() as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1PairHeader, self).test_from_header()
+
+    def test_data_shape_zooms_affine(self):
+        with clear_and_catch_warnings() as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1PairHeader, self).test_data_shape_zooms_affine()
+
 
 def unshear_44(affine):
     RZS = affine[:3, :3]
@@ -777,19 +788,6 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti1Pair
     supported_np_types = TestNifti1PairHeader.supported_np_types
-
-    def setUp(self):
-        # Add warning filters for duration of test case
-        self._wctx = warnings.catch_warnings()
-        self._wctx.__enter__()
-        warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
-        warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
-        warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
-                                UserWarning)
-
-    def tearDown(self):
-        # Restore warning filters
-        self._wctx.__exit__()
 
     def test_int64_warning(self):
         # Verify that initializing with (u)int64 data and no
@@ -1310,6 +1308,14 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_raises(ValueError, img.header.get_zooms, units='badparam')
         assert_raises(ValueError, img.header.set_zooms, (3, 3, 3, 3.5),
                       units='badparam')
+
+    def test_no_finite_values(self):
+        with clear_and_catch_warnings() as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1Pair, self).test_no_finite_values()
 
 
 class TestNifti1Image(TestNifti1Pair):
