@@ -70,7 +70,7 @@ def test_read_mgh():
     assert h['dof'] == 0
     assert h['goodRASFlag'] == 1
     assert_array_equal(h['dims'], [3, 4, 5, 2])
-    assert_almost_equal(h['tr'], 2)
+    assert_almost_equal(h['tr'], 2.0)
     assert_almost_equal(h['flip_angle'], 0.0)
     assert_almost_equal(h['te'], 0.0)
     assert_almost_equal(h['ti'], 0.0)
@@ -148,9 +148,14 @@ def test_write_noaffine_mgh():
 def test_set_zooms():
     mgz = load(MGZ_FNAME)
     h = mgz.header
-    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 0.002])
-    h.set_zooms([1, 1, 1, 3])
-    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 3])
+    assert_array_almost_equal(h.get_zooms(units='raw'), [1, 1, 1, 2])
+    assert_array_almost_equal(h.get_zooms(units='norm'), [1, 1, 1, 0.002])
+    h.set_zooms([1, 1, 1, 3], units='raw')
+    assert_array_almost_equal(h.get_zooms(units='raw'), [1, 1, 1, 3])
+    assert_array_almost_equal(h.get_zooms(units='norm'), [1, 1, 1, 0.003])
+    h.set_zooms([1, 1, 1, 3], units='norm')
+    assert_array_almost_equal(h.get_zooms(units='raw'), [1, 1, 1, 3000])
+    assert_array_almost_equal(h.get_zooms(units='norm'), [1, 1, 1, 3])
     for zooms in ((-1, 1, 1, 1),
                   (1, -1, 1, 1),
                   (1, 1, -1, 1),
