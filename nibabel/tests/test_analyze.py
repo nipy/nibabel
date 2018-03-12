@@ -92,7 +92,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
                            [-1, 1, 1, 1])
         # But zooms only go with number of dimensions
         assert hdr.get_zooms(units='raw') == (1.0,)
-        assert hdr.get_zooms(units='canonical') == (1.0,)
+        assert hdr.get_zooms(units='norm') == (1.0,)
 
     def test_header_size(self):
         assert self.header_class.template_dtype.itemsize == self.sizeof_hdr
@@ -439,7 +439,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
                 assert hdr.get_data_shape() == (0,)
             # Default zoom - for 3D - is 1(())
             assert hdr.get_zooms(units='raw') == (1,) * L
-            assert hdr.get_zooms(units='canonical') == (1,) * L
+            assert hdr.get_zooms(units='norm') == (1,) * L
             # errors if zooms do not match shape
             if len(shape):
                 with pytest.raises(HeaderDataError):
@@ -456,19 +456,19 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         # it again reverts the previously set zoom values to 1.0
         hdr = self.header_class()
         hdr.set_data_shape((1, 2, 3))
-        hdr.set_zooms((4, 5, 6))
+        hdr.set_zooms((4, 5, 6), units='norm')
         assert_array_equal(hdr.get_zooms(units='raw'), (4, 5, 6))
-        assert_array_equal(hdr.get_zooms(units='canonical'), (4, 5, 6))
+        assert_array_equal(hdr.get_zooms(units='norm'), (4, 5, 6))
         hdr.set_data_shape((1, 2))
         assert_array_equal(hdr.get_zooms(units='raw'), (4, 5))
-        assert_array_equal(hdr.get_zooms(units='canonical'), (4, 5))
+        assert_array_equal(hdr.get_zooms(units='norm'), (4, 5))
         hdr.set_data_shape((1, 2, 3))
         assert_array_equal(hdr.get_zooms(units='raw'), (4, 5, 1))
-        assert_array_equal(hdr.get_zooms(units='canonical'), (4, 5, 1))
+        assert_array_equal(hdr.get_zooms(units='norm'), (4, 5, 1))
         # Setting zooms changes affine
         assert_array_equal(np.diag(hdr.get_base_affine()),
                            [-4, 5, 1, 1])
-        hdr.set_zooms((1, 1, 1))
+        hdr.set_zooms((1, 1, 1), units='norm')
         assert_array_equal(np.diag(hdr.get_base_affine()),
                            [-1, 1, 1, 1])
 
@@ -476,7 +476,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = self.header_class()
         hdr.default_x_flip = True
         hdr.set_data_shape((1, 2, 3))
-        hdr.set_zooms((1, 1, 1))
+        hdr.set_zooms((1, 1, 1), units='norm')
         assert_array_equal(np.diag(hdr.get_base_affine()),
                            [-1, 1, 1, 1])
         hdr.default_x_flip = False
@@ -495,7 +495,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = self.header_class()
         assert hdr.default_x_flip
         hdr.set_data_shape((3, 5, 7))
-        hdr.set_zooms((4, 5, 6))
+        hdr.set_zooms((4, 5, 6), units='norm')
         aff = np.diag((-4, 5, 6, 1))
         aff[:3, 3] = np.array([1, 2, 3]) * np.array([-4, 5, 6]) * -1
         assert_array_equal(hdr.get_base_affine(), aff)
@@ -522,7 +522,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = klass()
         hdr.set_data_dtype(np.float64)
         hdr.set_data_shape((1, 2, 3))
-        hdr.set_zooms((3.0, 2.0, 1.0))
+        hdr.set_zooms((3.0, 2.0, 1.0), units='norm')
         for check in (True, False):
             copy = klass.from_header(hdr, check=check)
             assert hdr == copy
@@ -540,13 +540,13 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         assert converted.get_data_dtype() == np.dtype('i2')
         assert converted.get_data_shape() == (5, 4, 3)
         assert converted.get_zooms(units='raw') == (10.0, 9.0, 8.0)
-        assert converted.get_zooms(units='canonical') == (10.0, 9.0, 8.0)
+        assert converted.get_zooms(units='norm') == (10.0, 9.0, 8.0)
 
     def test_base_affine(self):
         klass = self.header_class
         hdr = klass()
         hdr.set_data_shape((3, 5, 7))
-        hdr.set_zooms((3, 2, 1))
+        hdr.set_zooms((3, 2, 1), units='norm')
         assert hdr.default_x_flip
         assert_array_almost_equal(
             hdr.get_base_affine(),
@@ -651,7 +651,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         exp_hdr = klass()
         exp_hdr.set_data_dtype(np.dtype('u1'))
         exp_hdr.set_data_shape((2, 3, 4))
-        exp_hdr.set_zooms((4, 5, 6))
+        exp_hdr.set_zooms((4, 5, 6), units='raw')
         assert klass.from_header(H4()) == exp_hdr
         # cal_max, cal_min get properly set from ``as_analyze_map``
 
@@ -688,7 +688,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
 def test_best_affine():
     hdr = AnalyzeHeader()
     hdr.set_data_shape((3, 5, 7))
-    hdr.set_zooms((4, 5, 6))
+    hdr.set_zooms((4, 5, 6), units='norm')
     assert_array_equal(hdr.get_base_affine(), hdr.get_best_affine())
 
 
@@ -836,24 +836,24 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         # With a None affine - don't overwrite zooms
         img = img_klass(np.zeros((2, 3, 4)), None)
         hdr = img.header
-        hdr.set_zooms((4, 5, 6))
+        hdr.set_zooms((4, 5, 6), units='norm')
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
-        assert_array_equal(hdr_back.get_zooms(), (4, 5, 6))
+        assert_array_equal(hdr_back.get_zooms(units='norm'), (4, 5, 6))
         # With a real affine, update zooms
         img = img_klass(np.zeros((2, 3, 4)), np.diag([2, 3, 4, 1]), hdr)
         hdr = img.header
-        assert_array_equal(hdr.get_zooms(), (2, 3, 4))
+        assert_array_equal(hdr.get_zooms(units='norm'), (2, 3, 4))
         # Modify affine in-place? Update on save.
         img.affine[0, 0] = 9
         for key, value in img.file_map.items():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
-        assert_array_equal(hdr.get_zooms(), (9, 3, 4))
+        assert_array_equal(hdr.get_zooms(units='norm'), (9, 3, 4))
         # Modify data in-place?  Update on save
         data = img.get_fdata()
         data.shape = (3, 2, 4)

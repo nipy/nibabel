@@ -399,7 +399,7 @@ class AnalyzeHeader(LabeledWrapStruct):
                                   f"but output header {klass} does not support it")
         obj.set_data_dtype(header.get_data_dtype())
         obj.set_data_shape(header.get_data_shape())
-        obj.set_zooms(header.get_zooms(units='raw'))
+        obj.set_zooms(header.get_zooms(units='raw'), units='raw')
         if check:
             obj.check_fix()
         return obj
@@ -661,16 +661,16 @@ class AnalyzeHeader(LabeledWrapStruct):
 
     get_best_affine = get_base_affine
 
-    def get_zooms(self, units='canonical', raise_unknown=False):
+    def get_zooms(self, units='norm', raise_unknown=False):
         """ Get zooms (spacing between voxels along each axis) from header
 
         Parameters
         ----------
-        units : {'canonical', 'raw'}, optional
-            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+        units : {'norm', 'raw'}, optional
+            Return zooms in normalized units of mm/sec for spatial/temporal or
             as raw values stored in header.
         raise_unkown : bool, optional
-            If canonical units are requested and the units are ambiguous, raise
+            If normalized units are requested and the units are ambiguous, raise
             a ``ValueError``
 
         Returns
@@ -698,10 +698,19 @@ class AnalyzeHeader(LabeledWrapStruct):
         pixdims = hdr['pixdim']
         return tuple(pixdims[1:ndim + 1])
 
-    def set_zooms(self, zooms):
+    def set_zooms(self, zooms, units='norm'):
         """ Set zooms into header fields
 
         See docstring for ``get_zooms`` for examples
+
+        Parameters
+        ----------
+        zooms : sequence of floats
+            Zoom values to set in header
+        units : {'norm', 'raw'}, optional
+            Zooms are specified in normalized units of mm/sec for
+            spatial/temporal or as raw values to be interpreted according to
+            format specification.
         """
         hdr = self._structarr
         dims = hdr['dim']
@@ -714,10 +723,6 @@ class AnalyzeHeader(LabeledWrapStruct):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1:ndim + 1] = zooms[:]
-
-    def set_norm_zooms(self, zooms):
-        ''' Set zooms in mm/s units '''
-        return self.set_zooms(zooms)
 
     def as_analyze_map(self):
         """ Return header as mapping for conversion to Analyze types

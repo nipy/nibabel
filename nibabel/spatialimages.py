@@ -224,15 +224,15 @@ class SpatialHeader(FileBasedHeader):
         nzs = min(len(self._zooms), ndim)
         self._zooms = self._zooms[:nzs] + (1.0,) * (ndim - nzs)
 
-    def get_zooms(self, units='canonical', raise_unknown=False):
+    def get_zooms(self, units='norm', raise_unknown=False):
         ''' Get zooms (spacing between voxels along each axis) from header
 
         Parameters
         ----------
-        units : {'canonical', 'raw'}, optional
-            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+        units : {'norm', 'raw'}, optional
+            Return zooms in normalized units of mm/sec for spatial/temporal or
             as raw values stored in header.
-        raise_unkown : bool, optional
+        raise_unknown : bool, optional
             If canonical units are requested and the units are ambiguous, raise
             a ``ValueError``
 
@@ -243,20 +243,27 @@ class SpatialHeader(FileBasedHeader):
         '''
         return self._zooms
 
-    def set_zooms(self, zooms):
-        zooms = tuple([float(z) for z in zooms])
+    def set_zooms(self, zooms, units='norm'):
+        ''' Set zooms (spacing between voxels along each axis) in header
+
+        Parameters
+        ----------
+        zooms : sequence of floats
+            Spacing between voxels along each axis
+        units : {'norm', 'raw'}, optional
+            Zooms are specified in normalized units of mm/sec for
+            spatial/temporal or as raw values to be interpreted according to
+            format specification.
+        '''
+        zooms = tuple(float(z) for z in zooms)
         shape = self.get_data_shape()
         ndim = len(shape)
         if len(zooms) != ndim:
             raise HeaderDataError('Expecting %d zoom values for ndim %d'
                                   % (ndim, ndim))
-        if len([z for z in zooms if z < 0]):
+        if any(z < 0 for z in zooms):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
-
-    def set_norm_zooms(self, zooms):
-        ''' Get zooms in mm/s units '''
-        return self.set_zooms(zooms)
 
     def get_base_affine(self):
         shape = self.get_data_shape()

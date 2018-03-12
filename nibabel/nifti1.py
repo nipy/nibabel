@@ -784,7 +784,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         Expanding number of dimensions gets default zooms
 
-        >>> hdr.get_zooms(units='canonical')
+        >>> hdr.get_zooms(units='norm')
         (1.0, 1.0, 1.0)
 
         Notes
@@ -1678,7 +1678,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     def get_zooms(self, units=None, raise_unknown=False):
         ''' Get zooms (spacing between voxels along each axis) from header
 
-        NIfTI1 headers may specify that zooms are encoded in units other than
+        NIfTI-1 headers may specify that zooms are encoded in units other than
         mm and sec (see ``get_xyzt_units``).
         Default behavior has been to return the raw zooms, and leave it to the
         programmer to handle non-standard units.
@@ -1688,18 +1688,18 @@ class Nifti1Header(SpmAnalyzeHeader):
 
         The default behavior for ``get_zooms`` will remain to return the raw
         zooms until version 4.0, when it will change to return zooms in
-        canonical mm/sec units.
+        normalized mm/sec units.
         Because the default behavior will change, a warning will be given to
         prompt programmers to specify whether they intend to retrieve raw
-        values, or values coerced into canonical units.
+        values, or values coerced into normalized units.
 
         Parameters
         ----------
-        units : {'canonical', 'raw'}
-            Return zooms in "canonical" units of mm/sec for spatial/temporal or
+        units : {'norm', 'raw'}
+            Return zooms in normalized units of mm/sec for spatial/temporal or
             as raw values stored in header.
         raise_unkown : bool, optional
-            If canonical units are requested and the units are ambiguous, raise
+            If normalized units are requested and the units are ambiguous, raise
             a ``ValueError``
 
         Returns
@@ -1711,7 +1711,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if units is None:
             units = 'raw'
             warnings.warn('Units not specified in `{}.get_zooms`. Returning '
-                          'raw zooms, but default will change to canonical.\n'
+                          'raw zooms, but default will change to normalized.\n'
                           'Please explicitly specify units parameter.'
                           ''.format(self.__class__.__name__),
                           FutureWarning, stacklevel=2)
@@ -1722,8 +1722,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         if units == 'raw':
             return raw_zooms
 
-        elif units != 'canonical':
-            raise ValueError("`units` parameter must be 'canonical' or 'raw'")
+        elif units != 'norm':
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
 
         xyz_zooms = raw_zooms[:3]
         t_zoom = raw_zooms[3] if len(raw_zooms) > 3 else None
@@ -1733,10 +1733,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         if xyz_code == 'unknown':
             xyz_msg = 'Unknown spatial units'
             xyz_code = 'mm'
-        if t_code == 'unknown':
-            if t_zoom is not None:
+        if t_zoom is not None:
+            if t_code == 'unknown':
                 t_msg = 'Unknown time units'
-            t_code = 'sec'
+                t_code = 'sec'
+            elif t_code in ('hz', 'ppm', 'rads'):
+                t_msg = 'Unconvertible temporal units: {}'.format(t_code)
+
         if raise_unknown and (xyz_msg, t_msg) != ('', ''):
             if xyz_msg and t_msg:
                 msg = 'Unknown spatial and time units'
@@ -1746,20 +1749,82 @@ class Nifti1Header(SpmAnalyzeHeader):
         if xyz_msg:
             warnings.warn('{} - assuming mm'.format(xyz_msg))
         if t_msg:
-            warnings.warn('{} - assuming sec'.format(t_msg))
+            if t_code == 'sec':
+                warnings.warn('{} - assuming sec'.format(t_msg))
+            else:
+                warnings.warn(t_msg)
 
         xyz_factor = {'meter': 1000, 'mm': 1, 'micron': 0.001}[xyz_code]
-        t_factor = {'sec': 1, 'msec': 0.001, 'usec': 0.000001}[t_code]
-
         xyz_zooms = tuple(np.array(xyz_zooms) * xyz_factor)
-        t_zoom = (t_zoom * t_factor,) if t_zoom is not None else ()
+
+        if t_zoom is not None:
+            t_factor = {'sec': 1, 'msec': 0.001, 'usec': 0.000001,
+                        'hz': 1, 'ppm': 1, 'rads': 1}[t_code]
+            t_zoom = (t_zoom * t_factor,)
+        else:
+            t_zoom = ()
 
         return xyz_zooms + t_zoom
 
-    def set_norm_zooms(self, zooms):
-        ''' Set zooms in mm/s units '''
-        self.set_zooms(zooms)
-        self.set_xyzt_units('mm', 'sec')
+    def set_zooms(self, zooms, units=None):
+        ''' Set zooms into header fields
+
+        NIfTI-1 headers may specify that zooms are encoded in units other than
+        mm and sec.
+        Default behavior has been to set the raw zooms, and leave unit handling
+        to a separate method (``set_xyzt_units``).
+        However, most files indicate mm/sec units or have unspecified units,
+        and it is common practice to neglect specified units and assume all
+        files will be in mm/sec.
+
+        The default behavior for ``set_zooms`` will remain to update only the
+        zooms until version 4.0, when it will change to setting units in
+        normalized mm/sec units.
+        Because the default behavior will change, a warning will be given to
+        prompt programmers to specify whether they intend to set only the raw
+        values, or set normalized units, as well.
+
+        For setting normalized units, the following rules apply:
+        Spatial units will be set to mm.
+        The temporal code for a <4D image is considered "unknown".
+        If the current temporal units are Hz, PPM or Rads, these are left
+        unchanged.
+        Otherwise, the fourth zoom is considered to be in seconds.
+
+        Parameters
+        ----------
+        zooms : sequence of floats
+            Zoom values to set in header
+        units : {'norm', 'raw', tuple of unit codes}, optional
+            Zooms are specified in normalized units of mm/sec for
+            spatial/temporal, as raw values to be interpreted according to
+            format specification, or according to a tuple of NIFTI unit
+            codes.
+
+        '''
+        if units is None:
+            units = 'raw'
+            warnings.warn('Units not specified in `{}.set_zooms`. Setting '
+                          'raw zooms, but default will change to normalized.\n'
+                          'Please explicitly specify units parameter.'
+                          ''.format(self.__class__.__name__),
+                          FutureWarning, stacklevel=2)
+
+        super(Nifti1Header, self).set_zooms(zooms, units=units)
+
+        if isinstance(units, tuple):
+            self.set_xyzt_units(*units)
+        elif units == 'norm':
+            _, t_code = self.get_xyzt_units()
+            xyz_code = 'mm'
+            if len(zooms) == 3:
+                t_code = 'unknown'
+            elif len(zooms) > 3 and t_code in ('unknown', 'sec', 'msec', 'usec'):
+                t_code = 'sec'
+            self.set_xyzt_units(xyz_code, t_code)
+        elif units != 'raw':
+            raise ValueError("`units` parameter must be 'norm', 'raw',"
+                             " or a tuple of unit codes (see set_xyzt_units)")
 
     def _clean_after_mapping(self):
         """ Set format-specific stuff after converting header from mapping

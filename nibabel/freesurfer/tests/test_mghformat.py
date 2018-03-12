@@ -70,11 +70,12 @@ def test_read_mgh():
     assert h['dof'] == 0
     assert h['goodRASFlag'] == 1
     assert_array_equal(h['dims'], [3, 4, 5, 2])
-    assert_almost_equal(h['tr'], 2.0)
+    assert_almost_equal(h['tr'], 2)
     assert_almost_equal(h['flip_angle'], 0.0)
     assert_almost_equal(h['te'], 0.0)
     assert_almost_equal(h['ti'], 0.0)
-    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
+    assert_array_almost_equal(h.get_zooms(units='raw'), [1, 1, 1, 2])
+    assert_array_almost_equal(h.get_zooms(units='norm'), [1, 1, 1, 0.002])
     assert_array_almost_equal(h.get_vox2ras(), v2r)
     assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 
@@ -147,7 +148,7 @@ def test_write_noaffine_mgh():
 def test_set_zooms():
     mgz = load(MGZ_FNAME)
     h = mgz.header
-    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
+    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 0.002])
     h.set_zooms([1, 1, 1, 3])
     assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 3])
     for zooms in ((-1, 1, 1, 1),
@@ -359,28 +360,28 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
 
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (1, 1, 1, 0))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                   (1, 1, 1, 0))
 
-        img.header.set_zooms((1, 1, 1, 2000))
+        img.header.set_zooms((1, 1, 1, 2000), units='raw')
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (1, 1, 1, 2000))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                   (1, 1, 1, 2))
         assert_array_almost_equal(img.header.get_zooms(), (1, 1, 1, 2))
 
-        img.header.set_norm_zooms((2, 2, 2, 3))
+        img.header.set_zooms((2, 2, 2, 3), units='norm')
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (2, 2, 2, 3000))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                   (2, 2, 2, 3))
         assert_array_almost_equal(img.header.get_zooms(), (2, 2, 2, 3))
 
         # It's legal to set zooms for spatial dimensions only
-        img.header.set_norm_zooms((3, 3, 3))
+        img.header.set_zooms((3, 3, 3), units='norm')
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                   (3, 3, 3, 3000))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                   (3, 3, 3, 3))
         assert_array_almost_equal(img.header.get_zooms(), (3, 3, 3, 3))
 
@@ -389,24 +390,24 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
 
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                                        (1, 1, 1))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                                        (1, 1, 1))
 
-        img.header.set_zooms((2, 2, 2))
+        img.header.set_zooms((2, 2, 2), units='raw')
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                                        (2, 2, 2))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                                        (2, 2, 2))
 
-        img.header.set_norm_zooms((3, 3, 3))
+        img.header.set_zooms((3, 3, 3), units='norm')
         assert_array_almost_equal(img.header.get_zooms(units='raw'),
                                                        (3, 3, 3))
-        assert_array_almost_equal(img.header.get_zooms(units='canonical'),
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                                        (3, 3, 3))
 
         # Cannot set TR as zoom for 3D image
-        assert_raises(HeaderDataError, img.header.set_zooms, (4, 4, 4, 5))
-        assert_raises(HeaderDataError, img.header.set_norm_zooms, (4, 4, 4, 5))
+        assert_raises(HeaderDataError, img.header.set_zooms, (4, 4, 4, 5), 'raw')
+        assert_raises(HeaderDataError, img.header.set_zooms, (4, 4, 4, 5), 'norm')
 
 
 class TestMGHHeader(tws._TestLabeledWrapStruct):
