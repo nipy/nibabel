@@ -578,7 +578,7 @@ class EcatSubHeader:
                                                               z_off])
         return aff
 
-    def get_zooms(self, frame=0):
+    def get_zooms(self, frame=0, units='norm', raise_unknown=False):
         """returns zooms  ...pixdims"""
         subhdr = self.subheaders[frame]
         x_zoom = subhdr['x_pixel_size'] * 10
