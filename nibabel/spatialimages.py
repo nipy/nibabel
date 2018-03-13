@@ -241,6 +241,8 @@ class SpatialHeader(FileBasedHeader):
         zooms : tuple
             Spacing between voxels along each axis
         '''
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         return self._zooms
 
     def set_zooms(self, zooms, units='norm'):
@@ -255,6 +257,8 @@ class SpatialHeader(FileBasedHeader):
             spatial/temporal or as raw values to be interpreted according to
             format specification.
         '''
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         zooms = tuple(float(z) for z in zooms)
         shape = self.get_data_shape()
         ndim = len(shape)

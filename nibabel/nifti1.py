@@ -1810,6 +1810,9 @@ class Nifti1Header(SpmAnalyzeHeader):
                           ''.format(self.__class__.__name__),
                           FutureWarning, stacklevel=2)
 
+        if units not in ('norm', 'raw') and not isinstance(units, tuple):
+            raise ValueError("`units` parameter must be 'norm', 'raw',"
+                             " or a tuple of unit codes (see set_xyzt_units)")
         super(Nifti1Header, self).set_zooms(zooms, units=units)
 
         if isinstance(units, tuple):
@@ -1822,9 +1825,6 @@ class Nifti1Header(SpmAnalyzeHeader):
             elif len(zooms) > 3 and t_code in ('unknown', 'sec', 'msec', 'usec'):
                 t_code = 'sec'
             self.set_xyzt_units(xyz_code, t_code)
-        elif units != 'raw':
-            raise ValueError("`units` parameter must be 'norm', 'raw',"
-                             " or a tuple of unit codes (see set_xyzt_units)")
 
     def _clean_after_mapping(self):
         """ Set format-specific stuff after converting header from mapping

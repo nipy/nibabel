@@ -580,6 +580,8 @@ class EcatSubHeader:
 
     def get_zooms(self, frame=0, units='norm', raise_unknown=False):
         """returns zooms  ...pixdims"""
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         subhdr = self.subheaders[frame]
         x_zoom = subhdr['x_pixel_size'] * 10
         y_zoom = subhdr['y_pixel_size'] * 10

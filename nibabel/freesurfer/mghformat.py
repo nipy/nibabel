@@ -301,7 +301,11 @@ class MGHHeader(LabeledWrapStruct):
             Zooms are specified in normalized units of mm/sec for
             spatial/temporal dimensions or as raw values to be stored in
             header.
+
+        .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         """
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         hdr = self._structarr
         zooms = np.asarray(zooms)
         ndims = self._ndims()

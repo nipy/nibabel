@@ -690,6 +690,8 @@ class AnalyzeHeader(LabeledWrapStruct):
         >>> hdr.get_zooms()
         (3.0, 4.0)
         """
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
@@ -712,6 +714,8 @@ class AnalyzeHeader(LabeledWrapStruct):
             spatial/temporal or as raw values to be interpreted according to
             format specification.
         """
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         hdr = self._structarr
         dims = hdr['dim']
         ndim = dims[0]
