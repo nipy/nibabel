@@ -15,11 +15,14 @@ from nibabel.cmdline.utils import *
 
 
 class TestObject:
-    def __init__(self, test):
+    def __init__(self, test=None):
         self.test = test
 
     def get_test(self):
         return self.test
+
+test = TestObject()
+test.test = 2
 
 
 def test_table2string():
@@ -38,5 +41,5 @@ def test_ap():
 
 
 def test_safe_get():
-    assert_equal(safe_get(TestObject(2), "test"), 2)
-    assert_equal(safe_get(TestObject(2), "failtest"), "-")
+    assert_equal(safe_get(test, "test"), 2)
+    assert_equal(safe_get(test, "failtest"), "-")
