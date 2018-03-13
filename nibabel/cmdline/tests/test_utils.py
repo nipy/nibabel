@@ -19,3 +19,11 @@ def test_table2string():
     assert_equal(table2string([["Let's", "Make", "Tests", "And"], ["Have", "Lots", "Of", "Fun"],
                                ["With", "Python", "Guys", "!"]]), "Let's  Make  Tests And\n Have  Lots    Of  Fun"+
                                                                   "\n With Python  Guys  !\n")
+
+
+def test_ap():
+    assert_equal(ap([1, 2], "%2d"), "  1,  2")
+    assert_equal(ap([1, 2], "%3d"), "   1,   2")
+    assert_equal(ap([1, 2], "%-2d"), "1  , 2  ")
+    assert_equal(ap([1, 2], "%d", "+"), "1+2")
+    assert_equal(ap([1, 2, 3], "%d", "-"), "1-2-3")

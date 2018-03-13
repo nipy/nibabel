@@ -108,11 +108,11 @@ def table2string(table, out=None):
         return value
 
 
-def ap(l, format_, sep=', '):
+def ap(helplist, format_, sep=', '):
     """Little helper to enforce consistency"""
-    if l == '-':
-        return l
-    ls = [format_ % x for x in l]
+    if helplist == '-':
+        return helplist
+    ls = [format_ % x for x in helplist]
     return sep.join(ls)
 
 
