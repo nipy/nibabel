@@ -30,12 +30,12 @@ def _err(msg=None):
     return '!' + msg
 
 
-def verbose(l, msg):
-    """Print `s` if `l` is less than the `verbose_level`
+def verbose(thing, msg):
+    """Print `s` if `thing` is less than the `verbose_level`
     """
     # TODO: consider using nibabel's logger
-    if l <= int(verbose_level):
-        print("%s%s" % (' ' * l, msg))
+    if thing <= int(verbose_level):
+        print("%s%s" % (' ' * thing, msg))
 
 
 def table2string(table, out=None):
