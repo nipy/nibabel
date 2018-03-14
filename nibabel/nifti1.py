@@ -1726,22 +1726,22 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise ValueError("`units` parameter must be 'norm' or 'raw'")
 
         xyz_zooms = raw_zooms[:3]
-        t_zoom = raw_zooms[3] if len(raw_zooms) > 3 else None
+        t_zoom = raw_zooms[3:4]  # Tuple of length 0 or 1
 
         xyz_code, t_code = self.get_xyzt_units()
         xyz_msg = t_msg = ''
         if xyz_code == 'unknown':
             xyz_msg = 'Unknown spatial units'
             xyz_code = 'mm'
-        if t_zoom is not None:
+        if t_zoom:
             if t_code == 'unknown':
                 t_msg = 'Unknown time units'
                 t_code = 'sec'
             elif t_code in ('hz', 'ppm', 'rads'):
                 t_msg = 'Unconvertible temporal units: {}'.format(t_code)
 
-        if raise_unknown and (xyz_msg, t_msg) != ('', ''):
-            if xyz_msg and t_msg:
+        if raise_unknown and (xyz_msg or t_msg.startswith('Unknown')):
+            if xyz_msg and t_msg.startswith('Unknown'):
                 msg = 'Unknown spatial and time units'
             else:
                 msg = xyz_msg or t_msg
@@ -1757,12 +1757,10 @@ class Nifti1Header(SpmAnalyzeHeader):
         xyz_factor = {'meter': 1000, 'mm': 1, 'micron': 0.001}[xyz_code]
         xyz_zooms = tuple(np.array(xyz_zooms) * xyz_factor)
 
-        if t_zoom is not None:
+        if t_zoom:
             t_factor = {'sec': 1, 'msec': 0.001, 'usec': 0.000001,
                         'hz': 1, 'ppm': 1, 'rads': 1}[t_code]
-            t_zoom = (t_zoom * t_factor,)
-        else:
-            t_zoom = ()
+            t_zoom = (t_zoom[0] * t_factor,)
 
         return xyz_zooms + t_zoom
 
@@ -1813,7 +1811,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if units not in ('norm', 'raw') and not isinstance(units, tuple):
             raise ValueError("`units` parameter must be 'norm', 'raw',"
                              " or a tuple of unit codes (see set_xyzt_units)")
-        super(Nifti1Header, self).set_zooms(zooms, units=units)
+        super(Nifti1Header, self).set_zooms(zooms, units='raw')
 
         if isinstance(units, tuple):
             self.set_xyzt_units(*units)
