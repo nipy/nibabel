@@ -17,7 +17,7 @@ from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
-from .py3k import FileNotFoundError
+from .py3k import FileNotFoundError, unicode
 from .deprecated import deprecate_with_version
 
 
@@ -36,6 +36,11 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
+    if hasattr(filename, '__fspath__'):
+        filename = filename.__fspath__()
+    else:
+        filename = unicode(filename)
+    
     if not op.exists(filename):
         raise FileNotFoundError("No such file: '%s'" % filename)
     sniff = None
