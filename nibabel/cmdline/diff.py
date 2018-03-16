@@ -138,7 +138,8 @@ def main():
     diff = get_headers_diff(files, opts)
 
     if opts.text:
-        print(diff)
+        for x in diff:
+            print(x, diff[x])
 
     elif opts.json:
         print(json_tricks.dumps(diff))
