@@ -77,9 +77,9 @@ def diff_header_fields(key, inputs):
 
     keyed_inputs = []
 
-    for i in inputs:
-        if isinstance(i[key], binary_type):
-            i[key] = i[key].decode()
+    for i in inputs:  # stores each file's respective header files
+        if isinstance(i[key], (bytes, bytearray)):
+            i[key] = str(i[key][2:])
 
         try:
             if np.all(np.isnan(i[key])):
@@ -89,8 +89,7 @@ def diff_header_fields(key, inputs):
 
         keyed_inputs.append(i[key])
 
-    if keyed_inputs:
-
+    if keyed_inputs:  # sometimes keyed_inputs is empty lol
         comparison_input = keyed_inputs[0]
 
         for i in keyed_inputs[1:]:
@@ -139,10 +138,10 @@ def main():
 
     if opts.text:
         for x in diff:
-            print(x, diff[x])
+            print(x+":", diff[x])
 
-    elif opts.json:
-        print(json_tricks.dumps(diff))
-
-    elif opts.yaml:
-        print(yaml.dump(diff))
+    # elif opts.json:
+    #     print(json_tricks.dumps(diff, conv_str_byte=True))
+    #
+    # elif opts.yaml:
+    #     print(yaml.dump(diff))
