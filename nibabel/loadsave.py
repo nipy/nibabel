@@ -41,7 +41,6 @@ def load(filename, **kwargs):
 
     if op.getsize(filename) <= 0:
         raise FileEmptyError("Given file is empty: '%s'" % filename)
-    
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
