@@ -6,7 +6,6 @@ import warnings
 import numpy as np
 import getpass
 import time
-from os.path import exists as pexists, realpath
 
 from collections import OrderedDict
 from six.moves import xrange
@@ -46,122 +45,6 @@ def _fread3_many(fobj, n):
     b1, b2, b3 = np.fromfile(fobj, ">u1", 3 * n).reshape(-1,
                                                          3).astype(np.int).T
     return (b1 << 16) + (b2 << 8) + b3
-
-
-def read_aseg_stats(seg_stats_file,
-                    set_wanted = 'subcortical',
-                    volumes_only = False):
-    """
-    Returns the subcortical stats found in Freesurfer output: subid/stats/aseg.stats
-
-    Tries to match the outputs returned by Freesurfer's Matlab counter part: load_segstats.m 
-    
-    Parameters
-    ----------
-    seg_stats_file : str
-        Abs path to aseg.stats file.
-        
-    set_wanted : str
-        Which set of volumes to return, among ['subcortical', 'wholebrain', 'etiv_only' ].
-        Default: 'subcortical'.
-        The choice 'subcortical' returns the usual subortical segmentations.
-        The choice 'wholebrain' returns the volumes in aseg.stats coded as :
-            [ 'BrainSegVol', 'BrainSegVolNotVent', 'lhCortexVol', 'rhCortexVol', 'lhCorticalWhiteMatterVol',
-              'rhCorticalWhiteMatterVol', 'SubCortGrayVol', 'TotalGrayVol', 'SupraTentorialVol',
-              'SupraTentorialVolNotVent', 'MaskVol', 'BrainSegVol-to-eTIV', 'MaskVol-to-eTIV',
-              'lhSurfaceHoles', 'rhSurfaceHoles', 'eTIV' ]
-            These are noted as 'Measure' in the commented section of stats/aseg.stats file.
-        The choice 'etiv_only' returns the value for eTIV (estimated total intra-cranial volume) only.
-
-    volumes_only : bool
-        Flag to indicate only the volumes are wanted.
-
-        Default: False, returning all info available, to closely match the outputs returned by Freesurfer's Matlab counter part:
-        https://github.com/freesurfer/freesurfer/blob/dev/matlab/load_segstats.m
-
-    Returns
-    -------
-    By default (volumes_only=False), three arrays are returned:
-
-    seg_name : numpy array of strings
-        Array of segmentation names
-    seg_index : numpy array
-        Array of indices of segmentations into the Freesurfer color lookup table.
-    seg_stats : numpy array
-        Matrix of subcortical statistics, with the following 5 columns by default. 
-        If volumes_only = True, only the volumes in mm^3 are returned. 
-        Columns in the full output are:
-        1. number of voxels
-        2. volume of voxels (mm^3) -- same as number but scaled by voxvol
-        3. mean intensity over space
-        4. std intensity over space
-        5. min intensity over space
-        6. max intensity over space
-        7. range intensity over space
-
-    When volumes_only=True, only one array is returned containing only volumes.
-
-    """
-
-    seg_stats_file = realpath(seg_stats_file)
-    if not pexists(seg_stats_file):
-        raise IOError('given path does not exist : {}'.format(seg_stats_file))
-
-    acceptable_choices = ['subcortical', 'wholebrain', 'etiv_only']
-    set_wanted = set_wanted.lower()
-    if set_wanted not in acceptable_choices:
-        raise ValueError('Invalid choice. Choose one among: {}'.format(acceptable_choices))
-
-    if set_wanted in 'subcortical':
-        stats = np.loadtxt(seg_stats_file, dtype="i1,i1,i4,f4,S50,f4,f4,f4,f4,f4")
-        if volumes_only:
-            out_data = np.array([seg[3] for seg in stats])
-        else:
-            # need to ensure both two types return data correspond in seg order
-            out_data = stats
-
-    elif set_wanted in ['wholebrain', 'etiv_only']:
-        wb_regex_pattern = r'# Measure ([\w/+_\- ]+), ([\w/+_\- ]+), ([\w/+_\- ]+), ([\d\.]+), ([\w/+_\-^]+)'
-        datatypes = np.dtype('U100,U100,U100,f8,U10')
-        stats = np.fromregex(seg_stats_file, wb_regex_pattern, dtype=datatypes)
-        if set_wanted in ['etiv_only']:
-            out_data = np.array([seg[3] for seg in stats if seg[1] == 'eTIV'])
-        else:
-            out_data = np.array([seg[3] for seg in stats])
-
-    return out_data
-
-
-def read_aparc_stats(file_path):
-    """Read statistics on cortical features (such as thickness, curvature etc) produced by Freesurfer.
-
-    file_path would contain whether it is from the right or left hemisphere.
-
-    """
-
-    # ColHeaders StructName NumVert SurfArea GrayVol ThickAvg ThickStd MeanCurv GausCurv FoldInd CurvInd
-    aparc_roi_dtype = [('StructName', 'S50'), ('NumVert', '<i4'), ('SurfArea', '<i4'), ('GrayVol', '<i4'),
-             ('ThickAvg', '<f4'), ('ThickStd', '<f4'), ('MeanCurv', '<f4'), ('GausCurv', '<f4'),
-             ('FoldInd', '<f4'), ('CurvInd', '<f4')]
-    roi_stats = np.genfromtxt(file_path, dtype=aparc_roi_dtype, filling_values=np.NaN)
-    subset = ['SurfArea', 'GrayVol', 'ThickAvg', 'ThickStd', 'MeanCurv', 'GausCurv', 'FoldInd', 'CurvInd']
-    roi_stats_values = np.full((len(roi_stats), len(subset)), np.NaN)
-    for idx, stat in enumerate(roi_stats):
-        roi_stats_values[idx,:] = [ stat[feat] for feat in subset ]
-
-    # whole cortex
-    # Measure Cortex, NumVert, Number of Vertices, 120233, unitless
-    # Measure Cortex, WhiteSurfArea, White Surface Total Area, 85633.5, mm^2
-    # Measure Cortex, MeanThickness, Mean Thickness, 2.59632, mm
-    wb_regex_pattern = r'# Measure Cortex, ([\w/+_\- ]+), ([\w/+_\- ]+), ([\d\.]+), ([\w/+_\-^]+)'
-    wb_aparc_dtype = np.dtype('U100,U100,f8,U10')
-    # wb_aparc_dtype = [('f0', '<U100'), ('f1', '<U100'), ('f2', '<f8'), ('f3', '<U10')]
-    wb_stats = np.fromregex(file_path, wb_regex_pattern, dtype=wb_aparc_dtype)
-
-    # concatenating while surf total area and global mean thickness
-    stats = np.hstack((roi_stats_values.flatten(), (wb_stats[1][2], wb_stats[2][2])))
-
-    return stats
 
 
 def _read_volume_info(fobj):

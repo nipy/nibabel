@@ -14,8 +14,7 @@ import numpy as np
 from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
-                write_geometry, write_morph_data, write_annot,
-                read_aseg_stats)
+                write_geometry, write_morph_data, write_annot)
 
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
@@ -146,18 +145,6 @@ def test_morph_data():
         assert_equal(curv2, curv)
 
 
-@freesurfer_test
-def test_aseg_stats():
-    """Test reader for stats/aseg.stats """
-    stats_path = pjoin(data_path, "stats", "aseg.stats")
-
-    stats = read_aseg_stats(stats_path, volumes_only=True)
-    assert_true(np.alltrue(np.isfinite(stats)))
-
-    seg_name, seg_index, seg_stats = read_aseg_stats(stats_path, volumes_only=False)
-
-
-
 def test_write_morph_data():
     """Test write_morph_data edge cases"""
     values = np.arange(20, dtype='>f4')
@@ -235,5 +222,3 @@ def test_label():
     labels, scalars = read_label(label_path, True)
     assert_true(np.all(labels == label))
     assert_true(len(labels) == len(scalars))
-
-test_aseg_stats()
