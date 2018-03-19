@@ -103,6 +103,7 @@ class TestAFNIImage(object):
             data = brik.get_data()
             assert_equal(data.shape, tp['shape'])
             assert_array_equal(brik.dataobj.scaling, tp['scaling'])
+            assert_equal(brik.header.get_volume_labels(), tp['labels'])
 
     def test_load(self):
         # Check highest level load of brikhead works
@@ -136,3 +137,14 @@ class TestBadFiles(object):
         for tp in self.test_files:
             with assert_raises(tp['err']):
                 self.module.load(tp['head'])
+
+
+class TestBadVars(object):
+    module = brikhead
+    vars = ['type = badtype-attribute\nname = BRICK_TYPES\ncount = 1\n1\n',
+            'type = integer-attribute\ncount = 1\n1\n']
+
+    def test_unpack_var(self):
+        for var in self.vars:
+            with assert_raises(self.module.AFNIHeaderError):
+                self.module._unpack_var(var)
