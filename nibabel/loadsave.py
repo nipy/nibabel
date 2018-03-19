@@ -17,7 +17,7 @@ from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
-from .py3k import FileNotFoundError
+from .py3k import FileNotFoundError, FileEmptyError
 from .deprecated import deprecate_with_version
 
 
@@ -38,6 +38,10 @@ def load(filename, **kwargs):
     '''
     if not op.exists(filename):
         raise FileNotFoundError("No such file: '%s'" % filename)
+
+    if op.getsize(filename) <= 0:
+        raise FileEmptyError("Given file is empty: '%s'" % filename)
+    
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
