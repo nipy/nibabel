@@ -67,10 +67,6 @@ else:
         pass
 
 
-class FileEmptyError(IOError):
-    pass
-
-
 def getexception():
     return sys.exc_info()[1]
 
