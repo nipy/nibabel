@@ -536,6 +536,12 @@ class TestSpatialImage(TestCase):
         img = img_klass(arr, aff)
         img.header.set_zooms((2, 2, 2, 2.5), units='norm')
         assert_array_equal(img.header.get_zooms(units='norm'), (2, 2, 2, 2.5))
+        with assert_raises(ValueError):
+            img.header.set_zooms((1, 1, 1, 1), units='badarg')
+        with assert_raises(ValueError):
+            img.header.get_zooms(units='badarg')
+        with assert_raises(HeaderDataError):
+            img.header.set_zooms((-1, 1, 1, 1))
 
     def test_zooms_edge_cases(self):
         ''' Override for classes where *_norm_zooms != *_zooms '''
