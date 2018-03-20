@@ -169,6 +169,10 @@ class TestEcatSubHeader(TestCase):
                                   np.array([2.20241979, 2.20241979, 3.125, 1.]))
         assert self.subhdr.get_zooms()[0] == 2.20241978764534
         assert self.subhdr.get_zooms()[2] == 3.125
+        assert_array_equal(self.subhdr.get_zooms(units='raw'),
+                           self.subhdr.get_zooms(units='norm'))
+        with pytest.raises(ValueError):
+            self.subhdr.get_zooms(units='badarg')
         assert self.subhdr._get_data_dtype(0) == np.int16
         #assert_equal(self.subhdr._get_frame_offset(), 1024)
         assert self.subhdr._get_frame_offset() == 1536
