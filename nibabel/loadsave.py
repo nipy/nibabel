@@ -9,7 +9,7 @@
 # module imports
 """ Utilities to load and save image objects """
 
-import os.path as op
+import os
 import numpy as np
 
 from .filename_parser import splitext_addext
@@ -36,9 +36,11 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
-    if not op.exists(filename):
-        raise FileNotFoundError("No such file: '%s'" % filename)
-    if op.getsize(filename) <= 0:
+    try:
+        stat_result = os.stat(filename)
+    except OSError:
+        raise FileNotFoundError("No such file or no access: '%s'" % filename)
+    if stat_result.st_size <= 0:
         raise ImageFileError("Empty file: '%s'" % filename)
     sniff = None
     for image_klass in all_image_classes:
