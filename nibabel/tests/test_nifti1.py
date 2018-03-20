@@ -719,7 +719,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert hdr.get_value_label('slice_code') == 'alternating decreasing'
 
     def test_general_init(self):
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
@@ -727,7 +727,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             super(TestNifti1PairHeader, self).test_general_init()
 
     def test_from_header(self):
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
@@ -735,7 +735,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             super(TestNifti1PairHeader, self).test_from_header()
 
     def test_data_shape_zooms_affine(self):
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
@@ -1207,7 +1207,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         img = img_klass(arr, aff)
 
         # Unknown units = 2 warnings
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.simplefilter('always')
             assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                       (1, 1, 1, 1))
@@ -1216,7 +1216,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                       units='norm', raise_unknown=True)
 
         img.header.set_xyzt_units(xyz='meter')
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.simplefilter('always')
             assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                       (1000, 1000, 1000, 1))
@@ -1232,7 +1232,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                                   (0.001, 0.001, 0.001, 1))
 
         img.header.set_xyzt_units(t='sec')
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.simplefilter('always')
             assert_array_equal(img.header.get_zooms(units='norm'),
                                (1, 1, 1, 1))
@@ -1277,7 +1277,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
 
         # Non-temporal t units are not transformed
         img.header.set_zooms((1, 1, 1, 1.5), units=('mm', 'ppm'))
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.simplefilter('always')
             assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                       (1, 1, 1, 1.5))
@@ -1287,7 +1287,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
 
         # Non-temporal t units are not normalized
         img.header.set_zooms((2, 2, 2, 3.5), units='norm')
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.simplefilter('always')
             assert_array_almost_equal(img.header.get_zooms(units='norm'),
                                       (2, 2, 2, 3.5))
@@ -1310,7 +1310,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                       units='badparam')
 
     def test_no_finite_values(self):
-        with clear_and_catch_warnings() as warns:
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
             warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
             warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
