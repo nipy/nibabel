@@ -47,15 +47,15 @@ def get_opt_parser():
                help="Header fields (comma separated) to be printed as well (if present)"),
 
         Option("-t", "--text",
-               dest="text",
+               action='store_true',
                help="Print output in a very nice-looking way"),
 
         Option("-j", "--json",
-               dest="json",
+               action='store_true',
                help="Print output in a json way"),
 
         Option("-y", "--yaml",
-               dest="yaml",
+               action='store_true',
                help="Print output in a yaml way"),
     ])
 
