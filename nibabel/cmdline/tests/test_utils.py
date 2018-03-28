@@ -14,17 +14,6 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 from nibabel.cmdline.utils import *
 
 
-class TestObject:
-    def __init__(self, test=None):
-        self.test = test
-
-    def get_test(self):
-        return self.test
-
-test = TestObject()
-test.test = 2
-
-
 def test_table2string():
     assert_equal(table2string([["A", "B", "C", "D"], ["E", "F", "G", "H"]]), "A B C D\nE F G H\n")
     assert_equal(table2string([["Let's", "Make", "Tests", "And"], ["Have", "Lots", "Of", "Fun"],
@@ -41,5 +30,15 @@ def test_ap():
 
 
 def test_safe_get():
+    class TestObject:
+        def __init__(self, test=None):
+            self.test = test
+
+        def get_test(self):
+            return self.test
+
+    test = TestObject()
+    test.test = 2
+
     assert_equal(safe_get(test, "test"), 2)
     assert_equal(safe_get(test, "failtest"), "-")
