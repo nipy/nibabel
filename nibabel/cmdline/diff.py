@@ -144,14 +144,15 @@ def main():
         print("{:<11}".format('Field'), end="", flush=True)
 
         for f in files:
-            print("{:<40}".format(f), end="", flush=True)
+            print("{:<45}".format(f), end="", flush=True)
         print("\n")
 
         for x in diff:
             print("{:<11}".format(x), end="", flush=True)
 
             for e in diff[x]:
-                print("{:<40}".format(e), end="", flush=True)
+                print("{:<45}".format(e), end="", flush=True)
+
             print("\n")
 
     # elif opts.json:
