@@ -78,19 +78,30 @@ def diff_header_fields(key, inputs):
     keyed_inputs = []
 
     for i in inputs:  # stores each file's respective header files
+        field_value = i[key]
 
         try:
-            if np.all(np.isnan(i[key])):
+            if np.all(np.isnan(field_value)):
                 continue
         except TypeError:
             pass
 
-        if i[key].ndim < 1:
-            keyed_inputs.append("{}@{}".format(i[key], i[key].dtype))
-        elif i[key].ndim == 1:
-            keyed_inputs.append("{}@{}".format(list(i[key]), i[key].dtype))
+        for x in inputs[1:]:
+            data_diff = diff_values(str(x[key].dtype), str(field_value.dtype))
+
+            if data_diff:
+                break
+
+        if data_diff:
+            if field_value.ndim < 1:
+                keyed_inputs.append("{}@{}".format(field_value, field_value.dtype))
+            elif field_value.ndim == 1:
+                keyed_inputs.append("{}@{}".format(list(field_value), field_value.dtype))
         else:
-            pass
+            if field_value.ndim < 1:
+                keyed_inputs.append("{}".format(field_value))
+            elif field_value.ndim == 1:
+                keyed_inputs.append("{}".format(list(field_value)))
 
     if keyed_inputs:  # sometimes keyed_inputs is empty lol
         comparison_input = keyed_inputs[0]
@@ -139,8 +150,7 @@ def main():
 
     diff = get_headers_diff(files, opts)
 
-    if opts.text:
-
+    if opts.text:  # using string formatting to print a table of the results
         print("{:<11}".format('Field'), end="", flush=True)
 
         for f in files:
