@@ -153,11 +153,11 @@ def proc_file(f, opts):
     return row
 
 
-def main():
+def main(args=None):
     """Show must go on"""
 
     parser = get_opt_parser()
-    (opts, files) = parser.parse_args()
+    (opts, files) = parser.parse_args(args=args)
 
     nibabel.cmdline.utils.verbose_level = opts.verbose
 
