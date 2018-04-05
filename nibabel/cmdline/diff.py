@@ -151,19 +151,20 @@ def main():
     diff = get_headers_diff(files, opts)
 
     if opts.text:  # using string formatting to print a table of the results
-        print("{:<11}".format('Field'), end="", flush=True)
+        print("{:<11}".format('Field'), end="")
 
         for f in files:
-            print("{:<45}".format(f), end="", flush=True)
-        print("\n")
+            print("{:<45}".format(f), end="")
+        print()
 
         for x in diff:
-            print("{:<11}".format(x), end="", flush=True)
+            print("{:<11}".format(x), end="")
 
             for e in diff[x]:
-                print("{:<45}".format(e), end="", flush=True)
+                print("{:<45}".format(e), end="")
 
-            print("\n")
+            print()
+        raise SystemExit(1)
 
     # elif opts.json:
     #     print(json_tricks.dumps(diff, conv_str_byte=True))
