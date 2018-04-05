@@ -272,3 +272,19 @@ class TestLoadSave(unittest.TestCase):
 
     def test_save_unknown_format(self):
         assert_raises(ValueError, nib.streamlines.save, Tractogram(), "")
+
+    def test_save_from_generator(self):
+        tractogram = Tractogram(DATA['streamlines'],
+                                affine_to_rasmm=np.eye(4))
+
+        # Just to create a generator
+        for ext, _ in FORMATS.items():
+            filtered = (s for s in tractogram.streamlines if True)
+            lazy_tractogram = LazyTractogram(lambda: filtered,
+                                             affine_to_rasmm=np.eye(4))
+
+            with InTemporaryDirectory():
+                filename = 'streamlines' + ext
+                nib.streamlines.save(lazy_tractogram, filename)
+                tfile = nib.streamlines.load(filename, lazy_load=False)
+                assert_tractogram_equal(tfile.tractogram, tractogram)

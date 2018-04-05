@@ -5,8 +5,8 @@ from __future__ import division
 
 import os
 import struct
-import warnings
 import string
+import warnings
 
 import numpy as np
 import nibabel as nib
@@ -21,6 +21,7 @@ from .tractogram_file import TractogramFile
 from .tractogram_file import DataError, HeaderError, HeaderWarning
 from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
+from .utils import peek_next
 
 
 MAX_NB_NAMED_SCALARS_PER_POINT = 10
@@ -106,7 +107,7 @@ def get_affine_trackvis_to_rasmm(header):
     if hasattr(vox_order, 'item'):  # structured array
         vox_order = header[Field.VOXEL_ORDER].item()
     affine_ornt = "".join(aff2axcodes(header[Field.VOXEL_TO_RASMM]))
-    header_ornt = axcodes2ornt(vox_order.decode('latin1'))
+    header_ornt = axcodes2ornt(vox_order.decode('latin1').upper())
     affine_ornt = axcodes2ornt(affine_ornt)
     ornt = nib.orientations.ornt_transform(header_ornt, affine_ornt)
     M = nib.orientations.inv_ornt_aff(ornt, header[Field.DIMENSIONS])
@@ -423,8 +424,23 @@ class TrkFile(TractogramFile):
             i4_dtype = np.dtype("<i4")  # Always save in little-endian.
             f4_dtype = np.dtype("<f4")  # Always save in little-endian.
 
+            # Since the TRK format requires the streamlines to be saved in
+            # voxmm, we first transform them accordingly. The transformation
+            # is performed lazily since `self.tractogram` might be a
+            # LazyTractogram object, which means we might be able to loop
+            # over the streamlines only once.
+            tractogram = self.tractogram.to_world(lazy=True)
+            affine_to_trackvis = get_affine_rasmm_to_trackvis(header)
+            tractogram = tractogram.apply_affine(affine_to_trackvis, lazy=True)
+
+            # Create the iterator we'll be using for the rest of the funciton.
+            tractogram = iter(tractogram)
+
             try:
-                first_item = next(iter(self.tractogram))
+                # Use the first element to check
+                #  1) the tractogram is not empty;
+                #  2) quantity of information saved along each streamline.
+                first_item, tractogram = peek_next(tractogram)
             except StopIteration:
                 # Empty tractogram
                 header[Field.NB_STREAMLINES] = 0
@@ -469,11 +485,6 @@ class TrkFile(TractogramFile):
                 nb_values = data_for_points[name].shape[-1]
                 scalar_name[i] = encode_value_in_name(nb_values, name)
             header['scalar_name'][:] = scalar_name
-
-            # Make sure streamlines are in rasmm then send them to voxmm.
-            tractogram = self.tractogram.to_world(lazy=True)
-            affine_to_trackvis = get_affine_rasmm_to_trackvis(header)
-            tractogram = tractogram.apply_affine(affine_to_trackvis, lazy=True)
 
             for t in tractogram:
                 if any((len(d) != len(t.streamline)

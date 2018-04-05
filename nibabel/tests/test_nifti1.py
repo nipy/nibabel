@@ -12,6 +12,8 @@ import os
 import warnings
 import struct
 
+import six
+
 import numpy as np
 
 from nibabel import nifti1 as nifti1
@@ -595,7 +597,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_raises(HeaderDataError, ehdr.set_intent, 999, (1,),
                       allow_unknown=True)
         assert_raises(HeaderDataError, ehdr.set_intent, 999, (1,2),
-                      allow_unknown=True) 
+                      allow_unknown=True)
 
     def test_set_slice_times(self):
         hdr = self.header_class()
@@ -900,6 +902,23 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         img.set_sform(new_affine, 2)
         assert_array_almost_equal(img.affine, new_affine)
 
+    def test_sqform_code_type(self):
+        # make sure get_s/qform returns codes as integers
+        img = self.image_class(np.zeros((2, 3, 4)), None)
+        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        img.set_sform(None, 3)
+        img.set_qform(None, 3)
+        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        img.set_sform(None, 2.0)
+        img.set_qform(None, 4.0)
+        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        img.set_sform(None, img.get_sform(coded=True)[1])
+        img.set_qform(None, img.get_qform(coded=True)[1])
+
+
     def test_hdr_diff(self):
         # Check an offset beyond data does not raise an error
         img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
@@ -1056,6 +1075,9 @@ def test_extension_basics():
     assert_true(ext.get_sizeondisk() == 16)
     assert_true(ext.get_content() == raw)
     assert_true(ext.get_code() == 6)
+    # Test that extensions already aligned to 16 bytes are not padded
+    ext = Nifti1Extension('comment', b'x' * 24)
+    assert_true(ext.get_sizeondisk() == 32)
 
 
 def test_ext_eq():

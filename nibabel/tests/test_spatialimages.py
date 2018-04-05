@@ -195,7 +195,7 @@ class DataLike(object):
     shape = (3,)
 
     def __array__(self):
-        return np.arange(3)
+        return np.arange(3, dtype=np.int16)
 
 
 class TestSpatialImage(TestCase):
@@ -249,8 +249,11 @@ class TestSpatialImage(TestCase):
     def test_data_api(self):
         # Test minimal api data object can initialize
         img = self.image_class(DataLike(), None)
-        assert_array_equal(img.get_data(), np.arange(3))
-        assert_equal(img.shape, (3,))
+        # Shape may be promoted to higher dimension, but may not reorder or
+        # change size
+        assert_array_equal(img.get_data().flatten(), np.arange(3))
+        assert_equal(img.get_shape()[:1], (3,))
+        assert_equal(np.prod(img.get_shape()), 3)
 
     def check_dtypes(self, expected, actual):
         # Some images will want dtypes to be equal including endianness,
@@ -278,7 +281,10 @@ class TestSpatialImage(TestCase):
         # See https://github.com/nipy/nibabel/issues/58
         arr = np.arange(4, dtype=np.int16)
         img = img_klass(arr, np.eye(4))
-        assert_equal(img.shape, (4,))
+        # Shape may be promoted to higher dimension, but may not reorder or
+        # change size
+        assert_equal(img.get_shape()[:1], (4,))
+        assert_equal(np.prod(img.get_shape()), 4)
         img = img_klass(np.zeros((2, 3, 4), dtype=np.float32), np.eye(4))
         assert_equal(img.shape, (2, 3, 4))
 
@@ -290,7 +296,10 @@ class TestSpatialImage(TestCase):
         arr = np.arange(5, dtype=np.int16)
         img = img_klass(arr, np.eye(4))
         assert_true(len(str(img)) > 0)
-        assert_equal(img.shape, (5,))
+        # Shape may be promoted to higher dimension, but may not reorder or
+        # change size
+        assert_equal(img.shape[:1], (5,))
+        assert_equal(np.prod(img.shape), 5)
         img = img_klass(np.zeros((2, 3, 4), dtype=np.int16), np.eye(4))
         assert_true(len(str(img)) > 0)
 
@@ -302,7 +311,10 @@ class TestSpatialImage(TestCase):
         # See https://github.com/nipy/nibabel/issues/58
         img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
         with suppress_warnings():
-            assert_equal(img.get_shape(), (1,))
+            # Shape may be promoted to higher dimension, but may not reorder or
+            # change size
+            assert_equal(img.get_shape()[:1], (1,))
+            assert_equal(np.prod(img.get_shape()), 1)
             img = img_klass(np.zeros((2, 3, 4), np.int16), np.eye(4))
             assert_equal(img.get_shape(), (2, 3, 4))
 

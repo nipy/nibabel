@@ -17,7 +17,7 @@ from ..tractogram import Tractogram
 from ..tractogram_file import HeaderError, HeaderWarning
 
 from .. import trk as trk_module
-from ..trk import TrkFile, encode_value_in_name, decode_value_from_name
+from ..trk import TrkFile, encode_value_in_name, decode_value_from_name, get_affine_trackvis_to_rasmm
 from ..header import Field
 
 DATA = {}
@@ -110,6 +110,17 @@ class TestTRK(unittest.TestCase):
         return trk_struct, trk_bytes
 
     def test_load_file_with_wrong_information(self):
+        # Simulate a TRK file where `voxel_order` is lowercase.
+        trk_struct1, trk_bytes1 = self.trk_with_bytes()
+        trk_struct1[Field.VOXEL_ORDER] = b'LAS'
+        trk1 = TrkFile.load(BytesIO(trk_bytes1))
+        trk_struct2, trk_bytes2 = self.trk_with_bytes()
+        trk_struct2[Field.VOXEL_ORDER] = b'las'
+        trk2 = TrkFile.load(BytesIO(trk_bytes2))
+        trk1_aff2rasmm = get_affine_trackvis_to_rasmm(trk1.header)
+        trk2_aff2rasmm = get_affine_trackvis_to_rasmm(trk2.header)
+        assert_array_equal(trk1_aff2rasmm,trk2_aff2rasmm)
+
         # Simulate a TRK file where `count` was not provided.
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.NB_STREAMLINES] = 0

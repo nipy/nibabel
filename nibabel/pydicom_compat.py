@@ -10,17 +10,18 @@ without error, and always defines:
 * pydicom : pydicom module or dicom module or None of not importable;
 * read_file : ``read_file`` function if pydicom or dicom module is importable
   else None;
+* tag_for_keyword : ``tag_for_keyword`` function if pydicom or dicom module
+  is importable else None;
 * dicom_test : test decorator that skips test if dicom not available.
 """
 
-# Module does (apparently) unused imports; stop flake8 complaining
+# Module has (apparently) unused imports; stop flake8 complaining
 # flake8: noqa
 
 import numpy as np
 
 have_dicom = True
-read_file = None
-pydicom = None
+pydicom = read_file = tag_for_keyword = None
 
 try:
     import dicom as pydicom
@@ -37,6 +38,14 @@ except ImportError:
         import pydicom.values
 else:  # dicom module available
     read_file = pydicom.read_file
+
+if have_dicom:
+    try:
+        # Versions >= 1.0
+        tag_for_keyword = pydicom.datadict.tag_for_keyword
+    except AttributeError:
+        # Versions < 1.0 - also has more search options.
+        tag_for_keyword = pydicom.datadict.tag_for_name
 
 
 # test decorator that skips test if dicom not available.

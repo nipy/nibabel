@@ -37,7 +37,7 @@ class _BuildCache(object):
         self.common_shape = common_shape
         n_in_row = reduce(mul, common_shape, 1)
         bytes_per_row = n_in_row * dtype.itemsize
-        self.rows_per_buf = bytes_per_row / self.bytes_per_buf
+        self.rows_per_buf = max(1, self.bytes_per_buf // bytes_per_row)
 
     def update_seq(self, arr_seq):
         arr_seq._offsets = np.array(self.offsets)
@@ -185,6 +185,7 @@ class ArraySequence(object):
             return
         self._build_cache.update_seq(self)
         self._build_cache = None
+        self.shrink_data()
 
     def _resize_data_to(self, n_rows, build_cache):
         """ Resize data array if required """

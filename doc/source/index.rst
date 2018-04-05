@@ -79,6 +79,7 @@ contributed code and discussion (in rough order of appearance):
 * Venky Reddy
 * Mark Hymers
 * Jasper J.F. van den Bosch
+* Bennet Fauber
 
 License reprise
 ===============

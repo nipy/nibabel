@@ -62,10 +62,10 @@ array to coordinates in some RAS+ world coordinate system
 >>> np.set_printoptions(precision=2, suppress=True)
 
 >>> img.affine
-array([[  -2.  ,    0.  ,    0.  ,  117.86],
-       [  -0.  ,    1.97,   -0.36,  -35.72],
-       [   0.  ,    0.32,    2.17,   -7.25],
-       [   0.  ,    0.  ,    0.  ,    1.  ]])
+array([[ -2.  ,   0.  ,   0.  , 117.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
 
 ``header`` contains the metadata for this inage.  In this case it is
 specifically NIfTI metadata:
@@ -148,7 +148,7 @@ The header of any image will normally have the following methods:
 * ``get_zooms()`` to get the voxel sizes in millimeters:
 
   >>> print(header.get_zooms())
-  (2.0, 2.0, 2.1999991, 2000.0)
+  (2.0, 2.0, 2.19999..., 2000.0)
 
   The last value of ``header.get_zooms()`` is the time between scans in
   milliseconds; this is the equivalent of voxel size on the time axis.

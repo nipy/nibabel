@@ -13,5 +13,6 @@ Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
 
 from nibabel.cmdline.ls import main
 
+
 if __name__ == '__main__':
     main()

@@ -334,7 +334,8 @@ class Nifti1Extension(object):
         size = len(self._mangle(self._content))
         size += 8
         # extensions size has to be a multiple of 16 bytes
-        size += 16 - (size % 16)
+        if size % 16 != 0:
+            size += 16 - (size % 16)
         return size
 
     def __repr__(self):
@@ -911,7 +912,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             Qform code. Only returned if `coded` is True.
         """
         hdr = self._structarr
-        code = hdr['qform_code']
+        code = int(hdr['qform_code'])
         if code == 0 and coded:
             return None, 0
         quat = self.get_qform_quaternion()
@@ -1054,7 +1055,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             Sform code. Only returned if `coded` is True.
         """
         hdr = self._structarr
-        code = hdr['sform_code']
+        code = int(hdr['sform_code'])
         if code == 0 and coded:
             return None, 0
         out = np.eye(4)
@@ -1764,7 +1765,20 @@ class Nifti1Pair(analyze.AnalyzeImage):
         if header is None and affine is not None:
             self._affine2header()
     # Copy docstring
-    __init__.doc = analyze.AnalyzeImage.__init__.__doc__
+    __init__.__doc__ = analyze.AnalyzeImage.__init__.__doc__ + '''
+    Notes
+    -----
+
+    If both a `header` and an `affine` are specified, and the `affine` does
+    not match the affine that is in the `header`, the `affine` will be used,
+    but the ``sform_code`` and ``qform_code`` fields in the header will be
+    re-initialised to their default values. This is performed on the basis
+    that, if you are changing the affine, you are likely to be changing the
+    space to which the affine is pointing.  The :meth:`set_sform` and
+    :meth:`set_qform` methods can be used to update the codes after an image
+    has been created - see those methods, and the :ref:`manual
+    <default-sform-qform-codes>` for more details.  '''
+
 
     def update_header(self):
         ''' Harmonize header with image data and affine

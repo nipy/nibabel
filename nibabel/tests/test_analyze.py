@@ -525,9 +525,10 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr.set_data_dtype(np.float64)
         hdr.set_data_shape((1, 2, 3))
         hdr.set_zooms((3.0, 2.0, 1.0))
-        copy = klass.from_header(hdr)
-        assert_equal(hdr, copy)
-        assert_false(hdr is copy)
+        for check in (True, False):
+            copy = klass.from_header(hdr, check=check)
+            assert_equal(hdr, copy)
+            assert_false(hdr is copy)
 
         class C(object):
 

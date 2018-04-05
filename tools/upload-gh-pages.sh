@@ -23,7 +23,7 @@ ORGANIZATION=$3
 if [ -z "$ORGANIZATION" ]; then
     ORGANIZATION=nipy
 fi
-upstream_repo="https://github.com/$ORGANIZATION/$PROJECT"
+upstream_repo="git@github.com:$ORGANIZATION/$PROJECT"
 cd $HTML_DIR
 git init
 git checkout -b gh-pages

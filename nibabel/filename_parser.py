@@ -147,8 +147,7 @@ def parse_filename(filename,
                    types_exts,
                    trailing_suffixes,
                    match_case=False):
-    ''' Splits filename into tuple of
-    (fileroot, extension, trailing_suffix, guessed_name)
+    '''Split filename into fileroot, extension, trailing suffix; guess type.
 
     Parameters
     ----------

@@ -8,5 +8,3 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Functionality to be exposed in the command line
 """
-
-

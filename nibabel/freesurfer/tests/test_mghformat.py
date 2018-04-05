@@ -18,16 +18,22 @@ from ...openers import ImageOpener
 from ..mghformat import MGHHeader, MGHError, MGHImage
 from ...tmpdirs import InTemporaryDirectory
 from ...fileholders import FileHolder
+from ...spatialimages import HeaderDataError
+from ...volumeutils import sys_is_le
+from ...wrapstruct import WrapStructError
+from ... import imageglobals
 
 from nose.tools import assert_true, assert_false
 
 from numpy.testing import (assert_equal, assert_array_equal,
                            assert_array_almost_equal, assert_almost_equal,
                            assert_raises)
+from ...testing import assert_not_equal
 
 from ...testing import data_path
 
 from ...tests import test_spatialimages as tsi
+from ...tests.test_wrapstruct import _TestLabeledWrapStruct
 
 MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
@@ -39,6 +45,17 @@ v2rtkr = np.array([[-1.0, 0.0, 0.0, 1.5],
                    [0.0, 0.0, 1.0, -2.5],
                    [0.0, -1.0, 0.0, 2.0],
                    [0.0, 0.0, 0.0, 1.0]], dtype=np.float32)
+
+BIG_CODES = ('>', 'big', 'BIG', 'b', 'be', 'B', 'BE')
+LITTLE_CODES = ('<', 'little', 'l', 'le', 'L', 'LE')
+
+if sys_is_le:
+    BIG_CODES += ('swapped', 's', 'S', '!')
+    LITTLE_CODES += ('native', 'n', 'N', '=', '|', 'i', 'I')
+else:
+    BIG_CODES += ('native', 'n', 'N', '=', '|', 'i', 'I')
+    LITTLE_CODES += ('swapped', 's', 'S', '!')
+
 
 
 def test_read_mgh():
@@ -55,8 +72,11 @@ def test_read_mgh():
     assert_equal(h['dof'], 0)
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [3, 4, 5, 2])
-    assert_array_almost_equal(h['mrparms'], [2.0, 0.0, 0.0, 0.0])
-    assert_array_almost_equal(h.get_zooms(), 1)
+    assert_almost_equal(h['tr'], 2.0)
+    assert_almost_equal(h['flip_angle'], 0.0)
+    assert_almost_equal(h['te'], 0.0)
+    assert_almost_equal(h['ti'], 0.0)
+    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
     assert_array_almost_equal(h.get_vox2ras(), v2r)
     assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 
@@ -86,7 +106,11 @@ def test_write_mgh():
     assert_equal(h['dof'], 0)
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [5, 4, 3, 2])
-    assert_array_almost_equal(h['mrparms'], [0.0, 0.0, 0.0, 0.0])
+    assert_almost_equal(h['tr'], 0.0)
+    assert_almost_equal(h['flip_angle'], 0.0)
+    assert_almost_equal(h['te'], 0.0)
+    assert_almost_equal(h['ti'], 0.0)
+    assert_almost_equal(h['fov'], 0.0)
     assert_array_almost_equal(h.get_vox2ras(), v2r)
     # data
     assert_almost_equal(dat, v, 7)
@@ -112,15 +136,29 @@ def test_write_noaffine_mgh():
     assert_equal(h['dof'], 0)
     assert_equal(h['goodRASFlag'], 1)
     assert_array_equal(h['dims'], [7, 13, 3, 22])
-    assert_array_almost_equal(h['mrparms'], [0.0, 0.0, 0.0, 0.0])
+    assert_almost_equal(h['tr'], 0.0)
+    assert_almost_equal(h['flip_angle'], 0.0)
+    assert_almost_equal(h['te'], 0.0)
+    assert_almost_equal(h['ti'], 0.0)
+    assert_almost_equal(h['fov'], 0.0)
     # important part -- whether default affine info is stored
-    ex_mdc = np.array([[-1, 0, 0],
-                       [0, 0, -1],
-                       [0, 1, 0]], dtype=np.float32)
-    assert_array_almost_equal(h['Mdc'], ex_mdc)
+    assert_array_almost_equal(h['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
+    assert_array_almost_equal(h['Pxyz_c'], [0, 0, 0])
 
-    ex_pxyzc = np.array([0, 0, 0], dtype=np.float32)
-    assert_array_almost_equal(h['Pxyz_c'], ex_pxyzc)
+
+def test_set_zooms():
+    mgz = load(MGZ_FNAME)
+    h = mgz.header
+    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
+    h.set_zooms([1, 1, 1, 3])
+    assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 3])
+    for zooms in ((-1, 1, 1, 1),
+                  (1, -1, 1, 1),
+                  (1, 1, -1, 1),
+                  (1, 1, 1, -1),
+                  (1, 1, 1, 1, 5)):
+        with assert_raises(HeaderDataError):
+            h.set_zooms(zooms)
 
 
 def bad_dtype_mgh():
@@ -179,7 +217,7 @@ def test_header_updating():
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
     assert_equal(hdr['delta'], 1)
-    assert_almost_equal(hdr['Mdc'], exp_aff[:3, :3].T)
+    assert_almost_equal(hdr['Mdc'].T, exp_aff[:3, :3])
     # Save, reload, same thing
     img_fobj = io.BytesIO()
     mgz2 = _mgh_rt(mgz, img_fobj)
@@ -195,7 +233,7 @@ def test_header_updating():
     assert_almost_equal(hdr2.get_affine(), exp_aff_d, 6)
     RZS = exp_aff_d[:3, :3]
     assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS ** 2, axis=0)))
-    assert_almost_equal(hdr2['Mdc'], (RZS / hdr2['delta']).T)
+    assert_almost_equal(hdr2['Mdc'].T, RZS / hdr2['delta'])
 
 
 def test_cosine_order():
@@ -210,7 +248,7 @@ def test_cosine_order():
     hdr2 = img2.header
     RZS = aff[:3, :3]
     zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
-    assert_almost_equal(hdr2['Mdc'], (RZS / zooms).T)
+    assert_almost_equal(hdr2['Mdc'].T, RZS / zooms)
     assert_almost_equal(hdr2['delta'], zooms)
 
 
@@ -251,6 +289,93 @@ def test_mgh_load_fileobj():
     assert_array_equal(img.get_data(), img2.get_data())
 
 
+def test_mgh_affine_default():
+    hdr = MGHHeader()
+    hdr['goodRASFlag'] = 0
+    hdr2 = MGHHeader(hdr.binaryblock)
+    assert_equal(hdr2['goodRASFlag'], 1)
+    assert_array_equal(hdr['Mdc'], hdr2['Mdc'])
+    assert_array_equal(hdr['Pxyz_c'], hdr2['Pxyz_c'])
+
+
+def test_mgh_set_data_shape():
+    hdr = MGHHeader()
+    hdr.set_data_shape((5,))
+    assert_array_equal(hdr.get_data_shape(), (5, 1, 1))
+    hdr.set_data_shape((5, 4))
+    assert_array_equal(hdr.get_data_shape(), (5, 4, 1))
+    hdr.set_data_shape((5, 4, 3))
+    assert_array_equal(hdr.get_data_shape(), (5, 4, 3))
+    hdr.set_data_shape((5, 4, 3, 2))
+    assert_array_equal(hdr.get_data_shape(), (5, 4, 3, 2))
+    with assert_raises(ValueError):
+        hdr.set_data_shape((5, 4, 3, 2, 1))
+
+
+def test_mghheader_default_structarr():
+    hdr = MGHHeader.default_structarr()
+    assert_equal(hdr['version'], 1)
+    assert_array_equal(hdr['dims'], 1)
+    assert_equal(hdr['type'], 3)
+    assert_equal(hdr['dof'], 0)
+    assert_equal(hdr['goodRASFlag'], 1)
+    assert_array_equal(hdr['delta'], 1)
+    assert_array_equal(hdr['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
+    assert_array_equal(hdr['Pxyz_c'], 0)
+    assert_equal(hdr['tr'], 0)
+    assert_equal(hdr['flip_angle'], 0)
+    assert_equal(hdr['te'], 0)
+    assert_equal(hdr['ti'], 0)
+    assert_equal(hdr['fov'], 0)
+
+    for endianness in (None,) + BIG_CODES:
+        hdr2 = MGHHeader.default_structarr(endianness=endianness)
+        assert_equal(hdr2, hdr)
+        assert_equal(hdr2.newbyteorder('>'), hdr)
+
+    for endianness in LITTLE_CODES:
+        with assert_raises(ValueError):
+            MGHHeader.default_structarr(endianness=endianness)
+
+
+def test_deprecated_fields():
+    hdr = MGHHeader()
+    hdr_data = MGHHeader._HeaderData(hdr.structarr)
+
+    # mrparams is the only deprecated field at the moment
+    # Accessing hdr_data is equivalent to accessing hdr, so double all checks
+    assert_array_equal(hdr['mrparams'], 0)
+    assert_array_equal(hdr_data['mrparams'], 0)
+
+    hdr['mrparams'] = [1, 2, 3, 4]
+    assert_array_almost_equal(hdr['mrparams'], [1, 2, 3, 4])
+    assert_equal(hdr['tr'], 1)
+    assert_equal(hdr['flip_angle'], 2)
+    assert_equal(hdr['te'], 3)
+    assert_equal(hdr['ti'], 4)
+    assert_equal(hdr['fov'], 0)
+    assert_array_almost_equal(hdr_data['mrparams'], [1, 2, 3, 4])
+    assert_equal(hdr_data['tr'], 1)
+    assert_equal(hdr_data['flip_angle'], 2)
+    assert_equal(hdr_data['te'], 3)
+    assert_equal(hdr_data['ti'], 4)
+    assert_equal(hdr_data['fov'], 0)
+
+    hdr['tr'] = 5
+    hdr['flip_angle'] = 6
+    hdr['te'] = 7
+    hdr['ti'] = 8
+    assert_array_almost_equal(hdr['mrparams'], [5, 6, 7, 8])
+    assert_array_almost_equal(hdr_data['mrparams'], [5, 6, 7, 8])
+
+    hdr_data['tr'] = 9
+    hdr_data['flip_angle'] = 10
+    hdr_data['te'] = 11
+    hdr_data['ti'] = 12
+    assert_array_almost_equal(hdr['mrparams'], [9, 10, 11, 12])
+    assert_array_almost_equal(hdr_data['mrparams'], [9, 10, 11, 12])
+
+
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
     """ Apply general image tests to MGHImage
     """
@@ -262,3 +387,118 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         # others may only require the same type
         # MGH requires the actual to be a big endian version of expected
         assert_equal(expected.newbyteorder('>'), actual)
+
+
+class TestMGHHeader(_TestLabeledWrapStruct):
+    header_class = MGHHeader
+
+    def _set_something_into_hdr(self, hdr):
+        hdr['dims'] = [4, 3, 2, 1]
+
+    def get_bad_bb(self):
+        return b'\xff' + b'\x00' * self.header_class._hdrdtype.itemsize
+
+    # Update tests to account for big-endian requirement
+    def test_general_init(self):
+        hdr = self.header_class()
+        # binaryblock has length given by header data dtype
+        binblock = hdr.binaryblock
+        assert_equal(len(binblock), hdr.structarr.dtype.itemsize)
+        # Endianness will always be big, and cannot be set
+        assert_equal(hdr.endianness, '>')
+        # You can also pass in a check flag, without data this has no
+        # effect
+        hdr = self.header_class(check=False)
+
+    def test__eq__(self):
+        # Test equal and not equal
+        hdr1 = self.header_class()
+        hdr2 = self.header_class()
+        assert_equal(hdr1, hdr2)
+        self._set_something_into_hdr(hdr1)
+        assert_not_equal(hdr1, hdr2)
+        self._set_something_into_hdr(hdr2)
+        assert_equal(hdr1, hdr2)
+        # REMOVED as_byteswapped() test
+        # Check comparing to funny thing says no
+        assert_not_equal(hdr1, None)
+        assert_not_equal(hdr1, 1)
+
+    def test_to_from_fileobj(self):
+        # Successful write using write_to
+        hdr = self.header_class()
+        str_io = io.BytesIO()
+        hdr.write_to(str_io)
+        str_io.seek(0)
+        hdr2 = self.header_class.from_fileobj(str_io)
+        assert_equal(hdr2.endianness, '>')
+        assert_equal(hdr2.binaryblock, hdr.binaryblock)
+
+    def test_endian_guess(self):
+        # Check guesses of endian
+        eh = self.header_class()
+        assert_equal(eh.endianness, '>')
+        assert_equal(self.header_class.guessed_endian(eh), '>')
+
+    def test_bytes(self):
+        # Test get of bytes
+        hdr1 = self.header_class()
+        bb = hdr1.binaryblock
+        hdr2 = self.header_class(hdr1.binaryblock)
+        assert_equal(hdr1, hdr2)
+        assert_equal(hdr1.binaryblock, hdr2.binaryblock)
+        # Do a set into the header, and try again.  The specifics of 'setting
+        # something' will depend on the nature of the bytes object
+        self._set_something_into_hdr(hdr1)
+        hdr2 = self.header_class(hdr1.binaryblock)
+        assert_equal(hdr1, hdr2)
+        assert_equal(hdr1.binaryblock, hdr2.binaryblock)
+        # Short binaryblocks give errors (here set through init)
+        # Long binaryblocks are truncated
+        assert_raises(WrapStructError,
+                      self.header_class,
+                      bb[:self.header_class._hdrdtype.itemsize - 1])
+        # Checking set to true by default, and prevents nonsense being
+        # set into the header.
+        bb_bad = self.get_bad_bb()
+        if bb_bad is None:
+            return
+        with imageglobals.LoggingOutputSuppressor():
+            assert_raises(HeaderDataError, self.header_class, bb_bad)
+        # now slips past without check
+        _ = self.header_class(bb_bad, check=False)
+
+    def test_as_byteswapped(self):
+        # Check byte swapping
+        hdr = self.header_class()
+        assert_equal(hdr.endianness, '>')
+        # same code just returns a copy
+        for endianness in BIG_CODES:
+            hdr2 = hdr.as_byteswapped(endianness)
+            assert_false(hdr2 is hdr)
+            assert_equal(hdr2, hdr)
+
+        # Different code raises error
+        for endianness in (None,) + LITTLE_CODES:
+            with assert_raises(ValueError):
+                hdr.as_byteswapped(endianness)
+        # Note that contents is not rechecked on swap / copy
+        class DC(self.header_class):
+            def check_fix(self, *args, **kwargs):
+                raise Exception
+
+        # Assumes check=True default
+        assert_raises(Exception, DC, hdr.binaryblock)
+        hdr = DC(hdr.binaryblock, check=False)
+        hdr2 = hdr.as_byteswapped('>')
+
+    def test_checks(self):
+        # Test header checks
+        hdr_t = self.header_class()
+        # _dxer just returns the diagnostics as a string
+        # Default hdr is OK
+        assert_equal(self._dxer(hdr_t), '')
+        # Version should be 1
+        hdr = hdr_t.copy()
+        hdr['version'] = 2
+        assert_equal(self._dxer(hdr), 'Unknown MGH format version')
