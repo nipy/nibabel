@@ -385,9 +385,10 @@ class TestSpatialImage(TestCase):
             img[0, 0, 0]
         # Make sure the right message gets raised:
         assert_equal(str(exception_manager.exception),
-                     ("Cannot slice image objects; consider slicing image "
-                      "array data with `img.dataobj[slice]` or "
-                      "`img.get_data()[slice]`"))
+                     "Cannot slice image objects; consider using "
+                     "`img.slicer[slice]` to generate a sliced image (see "
+                     "documentation for caveats) or slicing image array data "
+                     "with `img.dataobj[slice]` or `img.get_data()[slice]`")
         assert_true(in_data is img.dataobj)
         out_data = img.get_data()
         assert_true(in_data is out_data)
@@ -432,7 +433,8 @@ class TestSpatialImage(TestCase):
 
             # Down-sample with [::2, ::2, ::2] along spatial dimensions
             sliceobj = [slice(None)] * len(dshape)
-            sliceobj[img._spatial_dims] = [slice(None, None, 2)] * 3
+            if img._spatial_dims is not None:
+                sliceobj[img._spatial_dims] = [slice(None, None, 2)] * 3
             downsampled_img = img.slicer[tuple(sliceobj)]
             assert_array_equal(downsampled_img.header.get_zooms()[:3],
                                np.array(spatial_zooms) * 2)
