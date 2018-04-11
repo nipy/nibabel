@@ -94,9 +94,14 @@ def optional_package(name, trip_msg=None, min_version=None):
     # fromlist=[''] results in submodule being returned, rather than the top
     # level module.  See help(__import__)
     fromlist = [''] if '.' in name else []
+    exc = None
     try:
         pkg = __import__(name, fromlist=fromlist)
-    except ImportError:
+    except ImportError as exc:
+        pass
+    except Exception as exc:  # it failed to import for some other reason
+        # e.g. h5py might have been checking file system to support UTF-8
+        # etc.  We should not blow if they blow
         pass
     else:  # import worked
         # top level module
@@ -111,8 +116,8 @@ def optional_package(name, trip_msg=None, min_version=None):
                             (name, min_version))
     if trip_msg is None:
         trip_msg = ('We need package %s for these functions, but '
-                    '``import %s`` raised an ImportError'
-                    % (name, name))
+                    '``import %s`` raised %s'
+                    % (name, name, exc))
     pkg = TripWire(trip_msg)
 
     def setup_module():

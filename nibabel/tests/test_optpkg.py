@@ -1,6 +1,7 @@
 """ Testing optpkg module
 """
 
+import mock
 import types
 import sys
 from distutils.version import LooseVersion
@@ -36,6 +37,12 @@ def test_basic():
     assert_good('os.path')
     # We never have package _not_a_package
     assert_bad('_not_a_package')
+    def raise_Exception(*args, **kwargs):
+        raise Exception(
+            "non ImportError could be thrown by some malfunctioning module "
+            "upon import, and optional_package should catch it too")
+    with mock.patch('__builtin__.__import__', side_effect=raise_Exception):
+        assert_bad('nottriedbefore')
 
 
 def test_versions():
