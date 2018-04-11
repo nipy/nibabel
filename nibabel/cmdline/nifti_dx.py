@@ -14,8 +14,8 @@ from optparse import OptionParser
 
 import nibabel as nib
 
-__author__ = 'Matthew Brett, Yaroslav Halchenko and Christopher Cheng'
-__copyright__ = 'Copyright (c) 2018 Matthew Brett ' \
+__author__ = 'Matthew Brett'
+__copyright__ = 'Copyright (c) 2011-18 Matthew Brett ' \
                 'and NiBabel contributors'
 __license__ = 'MIT'
 

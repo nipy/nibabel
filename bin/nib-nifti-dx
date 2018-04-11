@@ -8,7 +8,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Print nifti diagnostics for header files '''
-from __future__ import division, print_function, absolute_import
 
 from nibabel.cmdline.nifti_dx import main
 

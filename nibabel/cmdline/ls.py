@@ -21,8 +21,7 @@ import nibabel as nib
 import nibabel.cmdline.utils
 from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
 
-__author__ = 'Yaroslav Halchenko'
-__copyright__ = 'Copyright (c) 2011-2016 Yaroslav Halchenko ' \
+__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko ' \
                 'and NiBabel contributors'
 __license__ = 'MIT'
 
