@@ -97,12 +97,11 @@ def optional_package(name, trip_msg=None, min_version=None):
     exc = None
     try:
         pkg = __import__(name, fromlist=fromlist)
-    except ImportError as exc:
-        pass
-    except Exception as exc:  # it failed to import for some other reason
+    except Exception as exc_:
+        # Could fail due to some ImportError or for some other reason
         # e.g. h5py might have been checking file system to support UTF-8
         # etc.  We should not blow if they blow
-        pass
+        exc = exc_  # So it is accessible outside of the code block
     else:  # import worked
         # top level module
         if check_version(pkg):

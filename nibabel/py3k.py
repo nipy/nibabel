@@ -41,6 +41,7 @@ if sys.version_info[0] >= 3:
     ints2bytes = lambda seq: bytes(seq)
     ZEROB = bytes([0])
     FileNotFoundError = FileNotFoundError
+    import builtins
 else:
     import StringIO
     StringIO = BytesIO = StringIO.StringIO
@@ -65,6 +66,8 @@ else:
 
     class FileNotFoundError(IOError):
         pass
+
+    import __builtin__ as builtins
 
 
 def getexception():

@@ -11,6 +11,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal)
 
 
+from nibabel.py3k import builtins
 from nibabel.optpkg import optional_package
 from nibabel.tripwire import TripWire, TripWireError
 
@@ -41,7 +42,7 @@ def test_basic():
         raise Exception(
             "non ImportError could be thrown by some malfunctioning module "
             "upon import, and optional_package should catch it too")
-    with mock.patch('__builtin__.__import__', side_effect=raise_Exception):
+    with mock.patch.object(builtins, '__import__', side_effect=raise_Exception):
         assert_bad('nottriedbefore')
 
 
