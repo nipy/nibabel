@@ -14,21 +14,13 @@ from __future__ import division, print_function, absolute_import
 
 import sys
 from optparse import OptionParser, Option
-from six import binary_type
 
 import numpy as np
 
-import json_tricks
-import yaml
-
 import nibabel as nib
 import nibabel.cmdline.utils
-from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
-import fileinput
-
-__author__ = 'Yaroslav Halchenko & Christopher Cheng'
-__copyright__ = 'Copyright (c) 2017 NiBabel contributors'
-__license__ = 'MIT'
+import itertools
+import hashlib
 
 
 def get_opt_parser():
@@ -45,18 +37,6 @@ def get_opt_parser():
         Option("-H", "--header-fields",
                dest="header_fields", default='all',
                help="Header fields (comma separated) to be printed as well (if present)"),
-
-        Option("-t", "--text",
-               action='store_true',
-               help="Print output in a very nice-looking way"),
-
-        Option("-j", "--json",
-               action='store_true',
-               help="Print output in a json way"),
-
-        Option("-y", "--yaml",
-               action='store_true',
-               help="Print output in a yaml way"),
     ])
 
     return p
@@ -67,6 +47,8 @@ def diff_values(compare1, compare2):
     if np.any(compare1 != compare2):
         return True
     elif type(compare1) != type(compare2):
+        return True
+    elif compare1 != compare2:
         return True
     else:
         return False
@@ -80,19 +62,19 @@ def diff_header_fields(key, inputs):
     for i in inputs:  # stores each file's respective header files
         field_value = i[key]
 
-        try:
+        try:  # filter numpy arrays
             if np.all(np.isnan(field_value)):
                 continue
         except TypeError:
             pass
 
-        for x in inputs[1:]:
+        for x in inputs[1:]:  # compare different values, print all as soon as diff is found
             data_diff = diff_values(str(x[key].dtype), str(field_value.dtype))
 
             if data_diff:
                 break
 
-        if data_diff:
+        if data_diff:  # prints data types if they're different and not if they're not
             if field_value.ndim < 1:
                 keyed_inputs.append("{}@{}".format(field_value, field_value.dtype))
             elif field_value.ndim == 1:
@@ -134,6 +116,15 @@ def get_headers_diff(files, opts):
         return output
 
 
+def get_data_diff(files):
+
+    data_list = [nib.load(f).get_data() for f in files]
+
+    for a, b in itertools.combinations(data_list, 2):
+        return diff_values(hashlib.md5(repr(a).encode('utf-8')).hexdigest(), hashlib.md5(
+            repr(b).encode('utf-8')).hexdigest())
+
+
 def main():
     """NO DAYS OFF"""
 
@@ -149,25 +140,27 @@ def main():
         nib.imageglobals.logger.level = 50
 
     diff = get_headers_diff(files, opts)
+    diff2 = get_data_diff(files)
 
-    if opts.text:  # using string formatting to print a table of the results
-        print("{:<11}".format('Field'), end="")
+    print("{:<11}".format('Field'), end="")
 
-        for f in files:
-            print("{:<45}".format(f), end="")
+    for f in files:
+        print("{:<45}".format(f), end="")
+    print()
+
+    for x in diff:
+        print("{:<11}".format(x), end="")
+
+        for e in diff[x]:
+            print("{:<45}".format(e), end="")
+
         print()
 
-        for x in diff:
-            print("{:<11}".format(x), end="")
+    print("DATA: ", end="")
 
-            for e in diff[x]:
-                print("{:<45}".format(e), end="")
+    if diff2:
+        print("These files are different.")
+    else:
+        print("These files are identical!")
 
-            print()
-        raise SystemExit(1)
-
-    # elif opts.json:
-    #     print(json_tricks.dumps(diff, conv_str_byte=True))
-    #
-    # elif opts.yaml:
-    #     print(yaml.dump(diff))
+    raise SystemExit(1)

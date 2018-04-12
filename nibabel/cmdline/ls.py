@@ -21,11 +21,6 @@ import nibabel as nib
 import nibabel.cmdline.utils
 from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
 
-__author__ = 'Yaroslav Halchenko'
-__copyright__ = 'Copyright (c) 2011-2016 Yaroslav Halchenko ' \
-                'and NiBabel contributors'
-__license__ = 'MIT'
-
 
 MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 
