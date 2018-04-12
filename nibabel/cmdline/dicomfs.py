@@ -115,7 +115,7 @@ class DICOMFS(fuse.Fuse):
         now = time.time()
         st = fuse.Stat()
         if isinstance(matched_path, dict):
-            st.st_mode = stat.S_IFDIR | 0755
+            st.st_mode = stat.S_IFDIR | 0o755
             st.st_ctime = now
             st.st_mtime = now
             st.st_atime = now
@@ -124,7 +124,7 @@ class DICOMFS(fuse.Fuse):
             st.st_nlink = len(matched_path)
             return st
         if isinstance(matched_path, str):
-            st.st_mode = stat.S_IFREG | 0644
+            st.st_mode = stat.S_IFREG | 0o644
             st.st_ctime = now
             st.st_mtime = now
             st.st_atime = now
@@ -134,7 +134,7 @@ class DICOMFS(fuse.Fuse):
             st.st_nlink = 1
             return st
         if isinstance(matched_path, tuple):
-            st.st_mode = stat.S_IFREG | 0644
+            st.st_mode = stat.S_IFREG | 0o644
             st.st_ctime = now
             st.st_mtime = now
             st.st_atime = now
