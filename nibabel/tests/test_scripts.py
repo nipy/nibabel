@@ -128,6 +128,15 @@ def test_nib_ls_multiple():
     )
 
 
+@script_test
+def test_help():
+    for cmd in ['parrec2nii', 'nib-dicomfs', 'nib-ls', 'nib-nifti-dx']:
+        code, stdout, stderr = run_command([cmd, '--help'])
+        assert_equal(code, 0)
+        assert_re_in(".*%s" % cmd, stdout)
+        assert_re_in(".*Usage", stdout)
+        assert_equal(stderr, '')
+
 
 @script_test
 def test_nib_nifti_dx():
