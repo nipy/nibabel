@@ -131,6 +131,13 @@ def test_nib_ls_multiple():
 @script_test
 def test_help():
     for cmd in ['parrec2nii', 'nib-dicomfs', 'nib-ls', 'nib-nifti-dx']:
+        if cmd == 'nib-dicomfs':
+            # needs special treatment since depends on fuse module which
+            # might not be available.
+            try:
+                import fuse
+            except Exception:
+                continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])
         assert_equal(code, 0)
         assert_re_in(".*%s" % cmd, stdout)
