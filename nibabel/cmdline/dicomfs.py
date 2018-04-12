@@ -103,10 +103,10 @@ class DICOMFS(fuse.Fuse):
         if matched_path is None:
             return -errno.ENOENT
         logger.debug('matched %s' % (matched_path,))
-        fnames = [ k.encode('ascii', 'replace') for k in matched_path.keys() ]
+        fnames = [k.encode('ascii', 'replace') for k in matched_path.keys()]
         fnames.append('.')
         fnames.append('..')
-        return [ fuse.Direntry(f) for f in fnames ]
+        return [fuse.Direntry(f) for f in fnames]
 
     def getattr(self, path):
         logger.debug('getattr %s' % path)
@@ -115,7 +115,7 @@ class DICOMFS(fuse.Fuse):
         now = time.time()
         st = fuse.Stat()
         if isinstance(matched_path, dict):
-            st.st_mode = stat.S_IFDIR | 0755
+            st.st_mode = stat.S_IFDIR | 0o755
             st.st_ctime = now
             st.st_mtime = now
             st.st_atime = now
@@ -124,7 +124,7 @@ class DICOMFS(fuse.Fuse):
             st.st_nlink = len(matched_path)
             return st
         if isinstance(matched_path, str):
-            st.st_mode = stat.S_IFREG | 0644
+            st.st_mode = stat.S_IFREG | 0o644
             st.st_ctime = now
             st.st_mtime = now
             st.st_atime = now
@@ -134,7 +134,7 @@ class DICOMFS(fuse.Fuse):
             st.st_nlink = 1
             return st
         if isinstance(matched_path, tuple):
-            st.st_mode = stat.S_IFREG | 0644
+            st.st_mode = stat.S_IFREG | 0o644
             st.st_ctime = now
             st.st_mtime = now
             st.st_atime = now
@@ -168,7 +168,7 @@ class DICOMFS(fuse.Fuse):
         logger.debug(size)
         logger.debug(offset)
         logger.debug(fh)
-        return self.fhs[fh.fno][offset:offset+size]
+        return self.fhs[fh.fno][offset:offset + size]
 
     def release(self, path, flags, fh):
         logger.debug('release')
@@ -181,21 +181,21 @@ class DICOMFS(fuse.Fuse):
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-                usage="%s [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>"
-                      % os.path.basename(sys.argv[0]),
-                version="%prog " + nib.__version__)
+        usage="%s [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>"
+              % os.path.basename(sys.argv[0]),
+        version="%prog " + nib.__version__)
 
     p.add_options([
         Option("-v", "--verbose", action="count",
                dest="verbose", default=0,
                help="make noise.  Could be specified multiple times"),
-        ])
+    ])
 
     p.add_options([
         Option("-L", "--follow-links", action="store_true",
                dest="followlinks", default=False,
                help="Follow symbolic links in DICOM directory"),
-        ])
+    ])
     return p
 
 
@@ -208,7 +208,7 @@ def main(args=None):
         logger.setLevel(opts.verbose > 1 and logging.DEBUG or logging.INFO)
 
     if len(files) != 2:
-        sys.stderr.write("Please provide two arguments:\n%s\n"  % parser.usage)
+        sys.stderr.write("Please provide two arguments:\n%s\n" % parser.usage)
         sys.exit(1)
 
     fs = DICOMFS(dash_s_do='setsingle', followlinks=opts.followlinks)
@@ -221,5 +221,3 @@ def main(args=None):
         sys.exit(1)
 
     sys.exit(0)
-
-# eof
