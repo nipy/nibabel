@@ -16,7 +16,18 @@ import errno
 import time
 import locale
 import logging
-import fuse
+
+
+class dummy_fuse(object):
+    """Dummy fuse "module" so that nose does not blow during doctests"""
+    Fuse = object
+
+
+try:
+    import fuse
+except ImportError:
+    fuse = dummy_fuse
+
 import nibabel as nib
 import nibabel.dft as dft
 
@@ -46,6 +57,9 @@ class FileHandle:
 class DICOMFS(fuse.Fuse):
 
     def __init__(self, *args, **kwargs):
+        if fuse is dummy_fuse:
+            raise RuntimeError(
+                "fuse module is not available, install it to use DICOMFS")
         self.followlinks = kwargs.pop('followlinks', False)
         fuse.Fuse.__init__(self, *args, **kwargs)
         self.fhs = {}
