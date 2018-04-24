@@ -60,7 +60,10 @@ def diff_header_fields(key, inputs):
     keyed_inputs = []
 
     for i in inputs:  # stores each file's respective header files
-        field_value = i[key]
+        try:
+            field_value = i[key]
+        except ValueError:
+            continue
 
         try:  # filter numpy arrays
             if np.all(np.isnan(field_value)):
@@ -69,21 +72,27 @@ def diff_header_fields(key, inputs):
             pass
 
         for x in inputs[1:]:  # compare different values, print all as soon as diff is found
-            data_diff = diff_values(str(x[key].dtype), str(field_value.dtype))
+            try:
+                data_diff = diff_values(str(x[key].dtype), str(field_value.dtype))
 
-            if data_diff:
-                break
+                if data_diff:
+                    break
+            except ValueError:
+                continue
 
-        if data_diff:  # prints data types if they're different and not if they're not
-            if field_value.ndim < 1:
-                keyed_inputs.append("{}@{}".format(field_value, field_value.dtype))
-            elif field_value.ndim == 1:
-                keyed_inputs.append("{}@{}".format(list(field_value), field_value.dtype))
-        else:
-            if field_value.ndim < 1:
-                keyed_inputs.append("{}".format(field_value))
-            elif field_value.ndim == 1:
-                keyed_inputs.append("{}".format(list(field_value)))
+        try:
+            if data_diff:  # prints data types if they're different and not if they're not
+                if field_value.ndim < 1:
+                    keyed_inputs.append("{}@{}".format(field_value, field_value.dtype))
+                elif field_value.ndim == 1:
+                    keyed_inputs.append("{}@{}".format(list(field_value), field_value.dtype))
+            else:
+                if field_value.ndim < 1:
+                    keyed_inputs.append("{}".format(field_value))
+                elif field_value.ndim == 1:
+                    keyed_inputs.append("{}".format(list(field_value)))
+        except UnboundLocalError:
+            continue
 
     if keyed_inputs:  # sometimes keyed_inputs is empty lol
         comparison_input = keyed_inputs[0]
@@ -119,10 +128,15 @@ def get_headers_diff(files, opts):
 def get_data_diff(files):
 
     data_list = [nib.load(f).get_data() for f in files]
+    temp_bool = False
 
     for a, b in itertools.combinations(data_list, 2):
-        return diff_values(hashlib.md5(repr(a).encode('utf-8')).hexdigest(), hashlib.md5(
-            repr(b).encode('utf-8')).hexdigest())
+        if diff_values(hashlib.md5(repr(a).encode('utf-8')).hexdigest(), hashlib.md5(
+                repr(b).encode('utf-8')).hexdigest()):
+            temp_bool = True
+            break
+
+    return temp_bool
 
 
 def main():

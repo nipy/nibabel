@@ -65,6 +65,16 @@ def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
     assert_equal(fname, stdout[:len(fname)])
     assert_re_in(expected_re, stdout[len(fname):])
 
+
+def check_nib_diff_examples(opts=[], hdrs_str="", other_str=""):
+    # test nib-diff script
+    fnames = ['spmT_0001.nii.gz', 'spmT_0001_2.nii.gz']
+    code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
+    assert_equal(stdout, "Field      spmT_0001.nii.gz                             spmT_0001_2.nii.gz                   "
+                         "        " + "\n" + "descrip    b'SPM{T_[1066.0]} - contrast 1: AA-GG'       b'SPM{T_[1092.0]}"
+                                             " - contrast 1: gg-tt'       " + "\n" + "DATA: These files are identical!")
+
+
 @script_test
 def test_nib_ls():
     yield check_nib_ls_example4d
@@ -130,7 +140,7 @@ def test_nib_ls_multiple():
 
 @script_test
 def test_nib_diff():
-    raise NotImplementedError("TODO")
+    yield check_nib_diff_examples
 
 
 @script_test
