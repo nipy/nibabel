@@ -10,7 +10,6 @@
 Helper utilities to be used in cmdline applications
 """
 
-
 # global verbosity switch
 import re
 from io import StringIO
@@ -49,7 +48,7 @@ def table2string(table, out=None):
       Where to print. If None -- will print and return string
 
     Returns
-    ------- 
+    -------
     string if out was None
     """
 

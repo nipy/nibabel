@@ -14,7 +14,7 @@ cache:
     - $HOME/.cache/pip
 env:
     global:
-        - DEPENDS="six numpy scipy matplotlib h5py pillow pydicom"
+        - DEPENDS="six numpy scipy matplotlib h5py pillow pydicom hypothesis"
         - OPTIONAL_DEPENDS=""
         - INSTALL_TYPE="setup"
         - EXTRA_WHEELS="https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
@@ -95,7 +95,7 @@ before_install:
     - source venv/bin/activate
     - python --version # just to check
     - pip install -U pip wheel  # needed at one point
-    - retry pip install nose flake8 mock  # always
+    - retry pip install nose flake8 mock hypothesis  # always
     - pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
     - if [ "${COVERAGE}" == "1" ]; then
       pip install coverage;
