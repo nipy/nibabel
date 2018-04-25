@@ -69,10 +69,16 @@ def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
 def check_nib_diff_examples(opts=[], hdrs_str="", other_str=""):
     # test nib-diff script
     fnames = ['spmT_0001.nii.gz', 'spmT_0001_2.nii.gz']
+    fnames2 = ['spmT_0001.nii.gz', 'spmT_0001.nii.gz']
     code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
     assert_equal(stdout, "Field      spmT_0001.nii.gz                             spmT_0001_2.nii.gz                   "
                          "        " + "\n" + "descrip    b'SPM{T_[1066.0]} - contrast 1: AA-GG'       b'SPM{T_[1092.0]}"
                                              " - contrast 1: gg-tt'       " + "\n" + "DATA: These files are identical!")
+
+    code, stdout, stderr = run_command(['nib-diff'] + fnames2, check_code=False)
+    assert_equal(stdout, "Field      spmT_0001.nii.gz                             spmT_0001.nii.gz                     "
+                         "        " + "\n" + "DATA: These files are identical!")
+
 
 
 @script_test
