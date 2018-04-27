@@ -96,7 +96,8 @@ def fillpositive(xyz, w2_thresh=None):
     # Calculate w
     w2 = 1.0 - np.dot(xyz, xyz)
     if w2 < 0:
-        if w2 < w2_thresh:
+        # if w2 is negative and is not very very close to zero
+        if w2 < w2_thresh and not np.isclose(w2, 0, rtol=1e-05, atol=1e-05):
             raise ValueError('w2 should be positive, but is %e' % w2)
         w = 0
     else:
