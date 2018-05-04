@@ -12,9 +12,13 @@ Class for reading AFNI BRIK/HEAD datasets
 See https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html
 for information on what is required to have a valid BRIK/HEAD dataset.
 
-Some notes on the AFNI BRIK/HEAD format:
+Unless otherwise noted, descriptions AFNI attributes in the code refer to this
+document.
 
-* In the AFNI HEAD file, the first two values of the attribute DATASET_RANK
+Notes
+-----
+
+In the AFNI HEAD file, the first two values of the attribute DATASET_RANK
 determine the shape of the data array stored in the corresponding BRIK file.
 The first value, DATASET_RANK[0], must be set to 3 denoting a 3D image. The
 second value, DATASET_RANK[1], determines how many "sub-bricks" (in AFNI
@@ -152,6 +156,15 @@ def _get_datatype(info):
     -------
     dt : np.dtype
         Datatype of BRIK file associated with HEAD
+
+    Notes
+    -----
+    ``BYTEORDER_STRING`` may be absent, signifying platform native byte order,
+    or contain one of "LSB_FIRST" or "MSB_FIRST".
+
+    ``BRICK_TYPES`` gives the storage data type for each sub-brick, with
+    0=uint, 1=int16, 3=float32, 5=complex64 (see ``_dtype_dict``).  This should
+    generally be the same value for each sub-brick in the dataset.
     """
     bo = info['BYTEORDER_STRING']
     bt = info['BRICK_TYPES']
@@ -196,17 +209,19 @@ def parse_AFNI_header(fobj):
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
-    info = {key: value for key, value in map(_unpack_var, head)}
-    return info
+    return {key: value for key, value in map(_unpack_var, head)}
 
 
 class AFNIArrayProxy(ArrayProxy):
-    """
+    """ Proxy object for AFNI image array.
+
     Attributes
     ----------
     scaling : np.ndarray
-        Scaling factor (one factor per volume/subbrick) for data. Default: None
+        Scaling factor (one factor per volume/sub-brick) for data. Default is
+        None
     """
+
     @kw_only_meth(2)
     def __init__(self, file_like, header, mmap=True, keep_file_open=None):
         """
@@ -233,7 +248,7 @@ class AFNIArrayProxy(ArrayProxy):
             a new file handle is created every time the image is accessed. If
             ``'auto'``, and the optional ``indexed_gzip`` dependency is
             present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
+            ``indexed_gzip`` is not available, behavior is the same as if
             ``keep_file_open is False``. If ``file_like`` refers to an open
             file handle, this setting has no effect. The default value
             (``None``) will result in the value of
@@ -319,6 +334,13 @@ class AFNIHeader(SpatialHeader):
         Returns
         -------
         (x, y, z, t) : tuple of int
+
+        Notes
+        -----
+        ``DATASET_RANK[0]`` gives number of spatial dimensions (and apparently
+        must be 3). ``DATASET_RANK[1]`` gives the number of sub-bricks.
+        ``DATASET_DIMENSIONS`` is length 3, giving the number of voxels in i,
+        j, k.
         """
         dset_rank = self.info['DATASET_RANK']
         shape = tuple(self.info['DATASET_DIMENSIONS'][:dset_rank[0]])
@@ -335,6 +357,15 @@ class AFNIHeader(SpatialHeader):
         Returns
         -------
         zooms : tuple
+
+        Notes
+        -----
+        Gets zooms from attributes ``DELTA`` and ``TAXIS_FLOATS``.
+
+        ``DELTA`` gives (x,y,z) voxel sizes.
+
+        ``TAXIS_FLOATS`` should be length 5, with first entry giving "Time
+        origin", and second giving "Time step (TR)".
         """
         xyz_step = tuple(np.abs(self.info['DELTA']))
         t_step = self.info.get('TAXIS_FLOATS', (0, 0,))
@@ -344,12 +375,17 @@ class AFNIHeader(SpatialHeader):
 
     def get_space(self):
         """
-        Returns space of dataset
+        Return label for anatomical space to which this dataset is aligned.
 
         Returns
         -------
         space : str
             AFNI "space" designation; one of [ORIG, ANAT, TLRC, MNI]
+
+        Notes
+        -----
+        There appears to be documentation for these spaces at
+        https://afni.nimh.nih.gov/pub/dist/atlases/elsedemo/AFNI_atlas_spaces.niml
         """
         listed_space = self.info.get('TEMPLATE_SPACE', 0)
         space = space_codes.space[listed_space]
@@ -369,8 +405,8 @@ class AFNIHeader(SpatialHeader):
                [  0.    ,   0.    ,   3.    , -52.3511],
                [  0.    ,   0.    ,   0.    ,   1.    ]])
         """
-        # AFNI default is RAI-/DICOM order (i.e., RAI are - axis)
-        # need to flip RA sign to align with nibabel RAS+ system
+        # AFNI default is RAI- == LPS+ == DICOM order.  We need to flip RA sign
+        # to align with nibabel RAS+ system
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
         affine = np.row_stack((affine * [[-1], [-1], [1]],
                                [0, 0, 0, 1]))
@@ -387,6 +423,9 @@ class AFNIHeader(SpatialHeader):
         >>> header.get_data_scaling()
         array([  3.88336300e-08])
         """
+        # BRICK_FLOAT_FACS has one value per sub-brick, such that the scaled
+        # values for sub-brick array [n] are the values read from disk *
+        # BRICK_FLOAT_FACS[n]
         floatfacs = self.info.get('BRICK_FLOAT_FACS', None)
         if floatfacs is None or not np.any(floatfacs):
             return None
@@ -405,7 +444,10 @@ class AFNIHeader(SpatialHeader):
         return None, None
 
     def get_data_offset(self):
-        """Data offset in BRIK file"""
+        """Data offset in BRIK file
+
+        Offset is always 0.
+        """
         return DATA_OFFSET
 
     def get_volume_labels(self):
@@ -461,7 +503,7 @@ class AFNIImage(SpatialImage):
 
     @classmethod
     @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True):
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
         """
         Creates an AFNIImage instance from `file_map`
 
@@ -477,19 +519,32 @@ class AFNIImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open : {None, 'auto', True, False}, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behavior is the same as if
+            ``keep_file_open is False``. If ``file_like`` refers to an open
+            file handle, this setting has no effect. The default value
+            (``None``) will result in the value of
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj)
         imgf = file_map['image'].fileobj
-        if imgf is None:
-            imgf = file_map['image'].filename
-        data = klass.ImageArrayProxy(imgf, hdr.copy(), mmap=mmap)
+        imgf = file_map['image'].filename if imgf is None else imgf
+        data = klass.ImageArrayProxy(imgf, hdr.copy(), mmap=mmap,
+                                     keep_file_open=keep_file_open)
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
 
     @classmethod
     @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True):
+    def from_filename(klass, filename, mmap=True, keep_file_open=None):
         """
         Creates an AFNIImage instance from `filename`
 
@@ -504,9 +559,23 @@ class AFNIImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
+        keep_file_open : {None, 'auto', True, False}, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed. If
+            ``'auto'``, and the optional ``indexed_gzip`` dependency is
+            present, a single file handle is created and persisted. If
+            ``indexed_gzip`` is not available, behavior is the same as if
+            ``keep_file_open is False``. If ``file_like`` refers to an open
+            file handle, this setting has no effect. The default value
+            (``None``) will result in the value of
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap)
+        return klass.from_file_map(file_map, mmap=mmap,
+                                   keep_file_open=keep_file_open)
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
@@ -539,7 +608,7 @@ class AFNIImage(SpatialImage):
             image type.
         """
         file_map = super(AFNIImage, klass).filespec_to_file_map(filespec)
-        # check for AFNI-specific BRIK/HEAD compression idiosyncracies
+        # check for AFNI-specific BRIK/HEAD compression idiosyncrasies
         for key, fholder in file_map.items():
             fname = fholder.filename
             if key == 'header' and not os.path.exists(fname):
