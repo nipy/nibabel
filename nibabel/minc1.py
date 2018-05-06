@@ -319,49 +319,6 @@ class Minc1Image(SpatialImage):
             data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
 
-    @property
-    def _spatial_dims(self):
-        if len(self.shape) > 3:
-            return slice(1, 4)
-        return slice(0, 3)
-
-    def _check_slicing(self, slicer, return_spatial=False):
-        ''' Canonicalize slicers and check for scalar indices in spatial dims
-
-        Parameters
-        ----------
-        slicer : object
-            something that can be used to slice an array as in
-            ``arr[sliceobj]``
-        return_spatial : bool
-            return only slices along spatial dimensions (x, y, z)
-
-        Returns
-        -------
-        slicer : object
-            Validated slicer object that will slice image's `dataobj`
-            without collapsing spatial dimensions
-        '''
-        slicer = canonical_slicers(slicer, self.shape)
-        try:
-            all_slices = super(Minc1Image, self)._check_slicing(slicer, False)
-            sp_dims = self._spatial_dims
-        except IndexError:
-            # Prepending a new axis for 3D images is valid in Minc
-            if slicer[0] is None and self._spatial_dims == slice(0, 3):
-                all_slices = (None,) + super(Minc1Image, self)._check_slicing(slicer[1:], False)
-                sp_dims = slice(1, 4)
-            else:
-                raise
-        # Added complications of first axis being time
-        if self._spatial_dims == slice(1, 4) and all_slices[0] is None:
-            raise IndexError("New temporal axis is not permitted in 4D Minc images")
-        elif (self._spatial_dims == slice(0, 3) and len(all_slices) > 3 and
-              all_slices[0] is not None):
-            raise IndexError("New axes cannot be added to 3D Minc image "
-                             "without new temporal axis (first dimension)")
-        return all_slices[sp_dims] if return_spatial else all_slices
-
 
 load = Minc1Image.load
 

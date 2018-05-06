@@ -325,7 +325,6 @@ class ImageDataError(Exception):
 class SpatialImage(DataobjImage):
     ''' Template class for volumetric (3D/4D) images '''
     header_class = SpatialHeader
-    _spatial_dims = None
 
     class Slicer(object):
         ''' Slicing interface that returns a new image with an updated affine
@@ -496,7 +495,7 @@ class SpatialImage(DataobjImage):
             without collapsing spatial dimensions
         '''
         slicer = canonical_slicers(slicer, self.shape)
-        spatial_slices = slicer[self._spatial_dims]
+        spatial_slices = slicer[:3]
         for subslicer in spatial_slices:
             if subslicer is None:
                 raise IndexError("New axis not permitted in spatial dimensions")
@@ -559,6 +558,10 @@ class SpatialImage(DataobjImage):
 
         .. _aliasing: https://en.wikipedia.org/wiki/Aliasing
         """
+        from .imageclasses import spatial_axes_first
+        if not spatial_axes_first(self):
+            raise ValueError("Cannot predict position of spatial axes for "
+                             "Image type " + self.__class__.__name__)
         return self.Slicer(self)
 
 

@@ -1222,7 +1222,6 @@ class PARRECImage(SpatialImage):
     header_class = PARRECHeader
     valid_exts = ('.rec', '.par')
     files_types = (('image', '.rec'), ('header', '.par'))
-    _spatial_dims = slice(0, 3)
 
     makeable = False
     rw = False
