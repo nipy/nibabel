@@ -272,10 +272,9 @@ class AFNIArrayProxy(ArrayProxy):
     def __getitem__(self, slicer):
         raw_data = super(AFNIArrayProxy, self).__getitem__(slicer)
         # apply volume specific scaling (may change datatype!)
-        if self._scaling is not None:
-            scaling = self._scaling.copy()
+        if self.scaling is not None:
             fake_data = strided_scalar(self._shape)
-            _, scaling = np.broadcast_arrays(fake_data, scaling)
+            _, scaling = np.broadcast_arrays(fake_data, self.scaling)
             raw_data = raw_data * scaling[slicer]
         return raw_data
 
