@@ -17,6 +17,7 @@ import numpy as np
 from io import BytesIO
 from ..spatialimages import (SpatialHeader, SpatialImage, HeaderDataError,
                              Header, ImageDataError)
+from ..imageclasses import spatial_axes_first
 
 from unittest import TestCase
 from nose.tools import (assert_true, assert_false, assert_equal,
@@ -422,9 +423,10 @@ class TestSpatialImage(TestCase):
             in_data = in_data_template.copy().reshape(dshape)
             img = img_klass(in_data, base_affine.copy())
 
-            # Detect time axis on first loop (4D image)
-            if t_axis is None and img._spatial_dims is not None:
-                t_axis = 3 if img._spatial_dims.start == 0 else 0
+            if not spatial_axes_first(img):
+                with assert_raises(ValueError):
+                    img.slicer
+                continue
 
             assert_true(hasattr(img.slicer, '__getitem__'))
 
@@ -432,9 +434,8 @@ class TestSpatialImage(TestCase):
             spatial_zooms = img.header.get_zooms()[:3]
 
             # Down-sample with [::2, ::2, ::2] along spatial dimensions
-            sliceobj = [slice(None)] * len(dshape)
-            if img._spatial_dims is not None:
-                sliceobj[img._spatial_dims] = [slice(None, None, 2)] * 3
+            sliceobj = [slice(None, None, 2)] * 3 + \
+                [slice(None)] * (len(dshape) - 3)
             downsampled_img = img.slicer[tuple(sliceobj)]
             assert_array_equal(downsampled_img.header.get_zooms()[:3],
                                np.array(spatial_zooms) * 2)
@@ -443,19 +444,10 @@ class TestSpatialImage(TestCase):
                      'dims' in img.header._structarr.dtype.fields and
                      img.header._structarr['dims'].shape == (4,))
             # Check newaxis and single-slice errors
-            if t_axis == 3:
-                with assert_raises(IndexError):
-                    img.slicer[None]
-                with assert_raises(IndexError):
-                    img.slicer[0]
-            elif len(img.shape) == 4:
-                with assert_raises(IndexError):
-                    img.slicer[None]
-                # 4D Minc to 3D
-                assert_equal(img.slicer[0].shape, img.shape[1:])
-            elif t_axis is not None:
-                # 3D Minc to 4D
-                assert_equal(img.slicer[None].shape, (1,) + img.shape)
+            with assert_raises(IndexError):
+                img.slicer[None]
+            with assert_raises(IndexError):
+                img.slicer[0]
             # Axes 1 and 2 are always spatial
             with assert_raises(IndexError):
                 img.slicer[:, None]
@@ -465,12 +457,7 @@ class TestSpatialImage(TestCase):
                 img.slicer[:, :, None]
             with assert_raises(IndexError):
                 img.slicer[:, :, 0]
-            if t_axis == 0:
-                with assert_raises(IndexError):
-                    img.slicer[:, :, :, None]
-                with assert_raises(IndexError):
-                    img.slicer[:, :, :, 0]
-            elif len(img.shape) == 4:
+            if len(img.shape) == 4:
                 if max4d:
                     with assert_raises(ValueError):
                         img.slicer[:, :, :, None]
@@ -481,7 +468,7 @@ class TestSpatialImage(TestCase):
                 # 4D to 3D using ellipsis or slices
                 assert_equal(img.slicer[..., 0].shape, img.shape[:-1])
                 assert_equal(img.slicer[:, :, :, 0].shape, img.shape[:-1])
-            elif t_axis is not None:
+            else:
                 # 3D Analyze/NIfTI/MGH to 4D
                 assert_equal(img.slicer[:, :, :, None].shape, img.shape + (1,))
             if len(img.shape) == 3:
@@ -496,17 +483,10 @@ class TestSpatialImage(TestCase):
                              img.shape + (1,))
 
             # Crop by one voxel in each dimension
-            if len(img.shape) == 3 or t_axis == 3:
-                sliced_i = img.slicer[1:]
-                sliced_j = img.slicer[:, 1:]
-                sliced_k = img.slicer[:, :, 1:]
-                sliced_ijk = img.slicer[1:, 1:, 1:]
-            elif t_axis is not None:
-                # 4D Minc
-                sliced_i = img.slicer[:, 1:]
-                sliced_j = img.slicer[:, :, 1:]
-                sliced_k = img.slicer[:, :, :, 1:]
-                sliced_ijk = img.slicer[:, 1:, 1:, 1:]
+            sliced_i = img.slicer[1:]
+            sliced_j = img.slicer[:, 1:]
+            sliced_k = img.slicer[:, :, 1:]
+            sliced_ijk = img.slicer[1:, 1:, 1:]
 
             # No scaling change
             assert_array_equal(sliced_i.affine[:3, :3], img.affine[:3, :3])

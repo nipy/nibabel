@@ -911,7 +911,6 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image', '.img'), ('header', '.hdr'))
     valid_exts = ('.img', '.hdr')
     _compressed_suffixes = ('.gz', '.bz2')
-    _spatial_dims = slice(0, 3)
 
     makeable = True
     rw = True
