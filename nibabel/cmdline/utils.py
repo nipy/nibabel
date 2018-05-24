@@ -10,6 +10,7 @@
 Helper utilities to be used in cmdline applications
 """
 
+
 # global verbosity switch
 import re
 from io import StringIO

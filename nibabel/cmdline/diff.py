@@ -48,10 +48,8 @@ def diff_values(compare1, compare2):
         return True
     elif type(compare1) != type(compare2):
         return True
-    elif compare1 != compare2:
-        return True
     else:
-        return False
+        return compare1 != compare2
 
 
 def diff_header_fields(key, inputs):
@@ -103,10 +101,19 @@ def diff_header_fields(key, inputs):
 
 
 def get_headers_diff(files, opts):
+    """ 
+        Getting the difference of headers.
+        Returns a dictionary that is later processed.
+        
+        Parameters
+        ----------
+            files: list of files
+            opts: any options included from the command line
+    """
 
     header_list = [nib.load(f).header for f in files]
 
-    if opts.header_fields:
+    if opts.header_fields: # will almost always have a header field
         # signals "all fields"
         if opts.header_fields == 'all':
             # TODO: header fields might vary across file types, thus prior sensing would be needed
@@ -123,24 +130,27 @@ def get_headers_diff(files, opts):
                 output[f] = val
 
         return output
+    else:
+        return {}
 
 
 def get_data_diff(files):
 
     data_list = [nib.load(f).get_data() for f in files]
-    temp_bool = False
+    output = []
 
     for a, b in itertools.combinations(data_list, 2):
-        if diff_values(hashlib.md5(repr(a).encode('utf-8')).hexdigest(), hashlib.md5(
-                repr(b).encode('utf-8')).hexdigest()):
-            temp_bool = True
-            break
+        if diff_values(hash(str(a)), hash(str(b))):
+            if hash(str(a)) not in output:
+                output.append(str(hash(str(a))))
+            if hash(str(b)) not in output:
+                output.append(str(hash(str(b))))
 
-    return temp_bool
+    return output
 
 
 def main():
-    """NO DAYS OFF"""
+    """Getting the show on the road"""
 
     parser = get_opt_parser()
     (opts, files) = parser.parse_args()
@@ -153,38 +163,42 @@ def main():
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    diff = get_headers_diff(files, opts)
-    diff2 = get_data_diff(files)
+    header_diff = get_headers_diff(files, opts)
+    data_diff = get_data_diff(files)
 
-    print("{:<11}".format('Field'), end="")
+    if len(data_diff) != 0 and len(header_diff) != 0:
+        print("{:<11}".format('Field'), end="")
 
-    for f in files:
-        output = ""
-        i = 0
-        while i < len(f):
-            if f[i] == "/":
-                output = ""
-            else:
-                output += f[i]
-            i += 1
+        for f in files:
+            output = ""
+            i = 0
+            while i < len(f):
+                if f[i] == "/" or f[i] == "\\":
+                    output = ""
+                else:
+                    output += f[i]
+                i += 1
 
-        print("{:<45}".format(output), end="")
-
-    print()
-
-    for x in diff:
-        print("{:<11}".format(x), end="")
-
-        for e in diff[x]:
-            print("{:<45}".format(e), end="")
+            print("{:<45}".format(output), end="")
 
         print()
 
+        for x in header_diff:
+            print("{:<11}".format(x), end="")
+
+            for e in header_diff[x]:
+                print("{:<45}".format(e), end="")
+
+            print()
+
     print("DATA: ", end="")
 
-    if diff2:
+    if len(data_diff) != 0:
         print("These files are different.")
+        print("{:<11}".format("Checksum"), end="")
+        for i in data_diff:
+            print("{:45}".format(i[0:8]), end="")
+        print()
+        raise SystemExit(1)
     else:
         print("These files are identical!")
-
-    raise SystemExit(1)
