@@ -159,7 +159,17 @@ def main():
     print("{:<11}".format('Field'), end="")
 
     for f in files:
-        print("{:<45}".format(f), end="")
+        output = ""
+        i = 0
+        while i < len(f):
+            if f[i] == "/":
+                output = ""
+            else:
+                output += f[i]
+            i += 1
+
+        print("{:<45}".format(output), end="")
+
     print()
 
     for x in diff:

@@ -73,7 +73,7 @@ def check_nib_diff_examples(opts=[], hdrs_str="", other_str=""):
     fnames2 = [pjoin(DATA_PATH, f)
               for f in ('example4d.nii.gz', 'example4d.nii.gz')]
     code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
-    assert_equal(stdout, "Field      " + pjoin(DATA_PATH, 'example4d.nii.gz') + pjoin(DATA_PATH, 'standard.nii.gz')
+    assert_equal(stdout, "Field      " + "{:<45}".format("example4d.nii.gz") + "{:<45}".format("standard.nii.gz")
                                     + "\n" + "regular    b'r'                                         b''              "
                                              "                            " + "\n" + "dim_info   57                    "
                                                                                      "                       0         "
@@ -112,7 +112,7 @@ def check_nib_diff_examples(opts=[], hdrs_str="", other_str=""):
                  "     " + "\n" + "DATA: These files are different.")
 
     code, stdout, stderr = run_command(['nib-diff'] + fnames2, check_code=False)
-    assert_equal(stdout, "Field      "+ pjoin(DATA_PATH, 'example4d.nii.gz') + pjoin(DATA_PATH, 'example4d.nii.gz')
+    assert_equal(stdout, "Field      "+ "{:<45}".format("example4d.nii.gz") + "{:<45}".format("example4d.nii.gz")
                          + "\n" + "DATA: These files are identical!")
 
 
