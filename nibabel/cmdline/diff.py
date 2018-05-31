@@ -101,10 +101,10 @@ def diff_header_fields(key, inputs):
 
 
 def get_headers_diff(files, opts):
-    """ 
+    """
         Getting the difference of headers.
         Returns a dictionary that is later processed.
-        
+
         Parameters
         ----------
             files: list of files
@@ -113,7 +113,7 @@ def get_headers_diff(files, opts):
 
     header_list = [nib.load(f).header for f in files]
 
-    if opts.header_fields: # will almost always have a header field
+    if opts.header_fields:  # will almost always have a header field
         # signals "all fields"
         if opts.header_fields == 'all':
             # TODO: header fields might vary across file types, thus prior sensing would be needed
@@ -134,19 +134,17 @@ def get_headers_diff(files, opts):
         return {}
 
 
-def get_data_diff(files):
+def get_data_md5sums(files):
 
-    data_list = [nib.load(f).get_data() for f in files]
-    output = []
+    md5sums = [
+        hashlib.md5(np.ascontiguousarray(nib.load(f).get_data(), dtype=np.float32)).hexdigest()
+        for f in files
+    ]
 
-    for a, b in itertools.combinations(data_list, 2):
-        if diff_values(hash(str(a)), hash(str(b))):
-            if hash(str(a)) not in output:
-                output.append(str(hash(str(a))))
-            if hash(str(b)) not in output:
-                output.append(str(hash(str(b))))
+    if len(set(md5sums)) == 1:
+        return []
 
-    return output
+    return md5sums
 
 
 def main():
@@ -164,7 +162,7 @@ def main():
         nib.imageglobals.logger.level = 50
 
     header_diff = get_headers_diff(files, opts)
-    data_diff = get_data_diff(files)
+    data_diff = get_data_md5sums(files)
 
     if len(data_diff) != 0 and len(header_diff) != 0:
         print("{:<11}".format('Field'), end="")
