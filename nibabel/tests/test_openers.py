@@ -97,9 +97,10 @@ def test_BinOpener():
                       BinOpener, 'test.txt', 'r')
 
 
-class MockIndexedGzipFile(object):
+class MockIndexedGzipFile(GzipFile):
     def __init__(self, *args, **kwargs):
-        pass
+        kwargs.pop('drop_handles', False)
+        super(MockIndexedGzipFile, self).__init__(*args, **kwargs)
 
 
 @contextlib.contextmanager
@@ -112,7 +113,7 @@ def patch_indexed_gzip(state):
         values = (False, False, GzipFile)
     with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), \
          mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', values[1]), \
-         mock.patch('nibabel.openers.SafeIndexedGzipFile', values[2],
+         mock.patch('nibabel.openers.IndexedGzipFile', values[2],
                     create=True):
         yield
 
