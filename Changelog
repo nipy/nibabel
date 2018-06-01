@@ -29,6 +29,7 @@ Upcoming Release
 
 New features
 ------------
+* TRK <=> TCK streamlines conversion CLI tools (pr/606) (MC, reviewed by CM)
 
 Enhancements
 ------------
