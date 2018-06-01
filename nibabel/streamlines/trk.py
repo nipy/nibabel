@@ -107,7 +107,7 @@ def get_affine_trackvis_to_rasmm(header):
     if hasattr(vox_order, 'item'):  # structured array
         vox_order = header[Field.VOXEL_ORDER].item()
     affine_ornt = "".join(aff2axcodes(header[Field.VOXEL_TO_RASMM]))
-    header_ornt = axcodes2ornt(vox_order.decode('latin1'))
+    header_ornt = axcodes2ornt(vox_order.decode('latin1').upper())
     affine_ornt = axcodes2ornt(affine_ornt)
     ornt = nib.orientations.ornt_transform(header_ornt, affine_ornt)
     M = nib.orientations.inv_ornt_aff(ornt, header[Field.DIMENSIONS])

@@ -147,8 +147,7 @@ def parse_filename(filename,
                    types_exts,
                    trailing_suffixes,
                    match_case=False):
-    ''' Splits filename into tuple of
-    (fileroot, extension, trailing_suffix, guessed_name)
+    '''Split filename into fileroot, extension, trailing suffix; guess type.
 
     Parameters
     ----------
@@ -265,9 +264,14 @@ def splitext_addext(filename,
     for ext in addexts:
         if endswith(filename, ext):
             extpos = -len(ext)
-            addext = filename[extpos:]
-            filename = filename[:extpos]
+            filename, addext = filename[:extpos], filename[extpos:]
             break
     else:
         addext = ''
-    return os.path.splitext(filename) + (addext,)
+    # os.path.splitext() behaves unexpectedly when filename starts with '.'
+    extpos = filename.rfind('.')
+    if extpos < 0 or filename.strip('.') == '':
+        root, ext = filename, ''
+    else:
+        root, ext = filename[:extpos], filename[extpos:]
+    return (root, ext, addext)

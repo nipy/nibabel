@@ -30,7 +30,7 @@ from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true, assert_equal, assert_raises
 
 _, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -322,3 +322,14 @@ def test_guessed_image_type():
     assert_equal(nils.guessed_image_type(
         pjoin(DATA_PATH, 'analyze.hdr')),
         Spm2AnalyzeImage)
+
+
+def test_fail_save():
+    with InTemporaryDirectory():
+        dataobj = np.ones((10, 10, 10), dtype=np.float16)
+        affine = np.eye(4, dtype=np.float32)
+        img = SpatialImage(dataobj, affine)
+        # Fails because float16 is not supported.
+        with assert_raises(AttributeError):
+            nils.save(img, 'foo.nii.gz')
+        del img

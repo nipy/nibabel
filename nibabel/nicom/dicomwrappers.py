@@ -21,7 +21,7 @@ from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
-from ..pydicom_compat import pydicom
+from ..pydicom_compat import tag_for_keyword
 
 
 class WrapperError(Exception):
@@ -517,7 +517,7 @@ class MultiframeWrapper(Wrapper):
         # Determine if one of the dimension indices refers to the stack id
         dim_seq = [dim.DimensionIndexPointer
                    for dim in self.get('DimensionIndexSequence')]
-        stackid_tag = pydicom.datadict.tag_for_name('StackID')
+        stackid_tag = tag_for_keyword('StackID')
         # remove the stack id axis if present
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)

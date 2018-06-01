@@ -349,8 +349,13 @@ def axcodes2ornt(axcodes, labels=None):
            [ 0., -1.],
            [ 2.,  1.]])
     """
-    if labels is None:
-        labels = list(zip('LPI', 'RAS'))
+    labels = list(zip('LPI', 'RAS')) if labels is None else labels
+    allowed_labels = sum([list(L) for L in labels], []) + [None]
+    if len(allowed_labels) != len(set(allowed_labels)):
+        raise ValueError('Duplicate labels in {}'.format(allowed_labels))
+    if not set(axcodes).issubset(allowed_labels):
+        raise ValueError('Not all axis codes {} in label set {}'
+                         .format(list(axcodes), allowed_labels))
     n_axes = len(axcodes)
     ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
     for code_idx, code in enumerate(axcodes):

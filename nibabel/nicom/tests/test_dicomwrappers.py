@@ -9,7 +9,8 @@ from copy import copy
 
 import numpy as np
 
-from nibabel.pydicom_compat import have_dicom, pydicom, read_file, dicom_test
+from nibabel.pydicom_compat import (have_dicom, pydicom, read_file, dicom_test,
+                                    tag_for_keyword)
 
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
@@ -416,8 +417,8 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
     dim_idx_seq = [DimIdxSeqElem()] * num_of_frames
     # add an entry for StackID into the DimensionIndexSequence
     if sid_dim is not None:
-        sid_tag = pydicom.datadict.tag_for_name('StackID')
-        fcs_tag = pydicom.datadict.tag_for_name('FrameContentSequence')
+        sid_tag = tag_for_keyword('StackID')
+        fcs_tag = tag_for_keyword('FrameContentSequence')
         dim_idx_seq[sid_dim] = DimIdxSeqElem(sid_tag, fcs_tag)
     # create the PerFrameFunctionalGroupsSequence
     frames = [PerFrmFuncGrpSeqElem(div, sid)
