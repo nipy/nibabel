@@ -61,6 +61,7 @@ class DICOMFS(fuse.Fuse):
             raise RuntimeError(
                 "fuse module is not available, install it to use DICOMFS")
         self.followlinks = kwargs.pop('followlinks', False)
+        self.dicom_path = kwargs.pop('dicom_path', None)
         fuse.Fuse.__init__(self, *args, **kwargs)
         self.fhs = {}
         return
@@ -225,9 +226,12 @@ def main(args=None):
         sys.stderr.write("Please provide two arguments:\n%s\n" % parser.usage)
         sys.exit(1)
 
-    fs = DICOMFS(dash_s_do='setsingle', followlinks=opts.followlinks)
+    fs = DICOMFS(
+        dash_s_do='setsingle',
+        followlinks=opts.followlinks,
+        dicom_path=files[0].decode(encoding)
+    )
     fs.parse(['-f', '-s', files[1]])
-    fs.dicom_path = files[0].decode(encoding)
     try:
         fs.main()
     except fuse.FuseError:
