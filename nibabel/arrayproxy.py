@@ -34,7 +34,7 @@ from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
-from .openers import ImageOpener, HAVE_INDEXED_GZIP
+from . import openers
 
 
 """This flag controls whether a new file handle is created every time an image
@@ -214,7 +214,7 @@ class ArrayProxy(object):
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False
         # don't have indexed_gzip - auto -> False
-        if keep_file_open == 'auto' and not (HAVE_INDEXED_GZIP and
+        if keep_file_open == 'auto' and not (openers.HAVE_INDEXED_GZIP and
                                              file_like.endswith('.gz')):
             return False
         return keep_file_open
@@ -263,11 +263,11 @@ class ArrayProxy(object):
         """
         if self._keep_file_open:
             if not hasattr(self, '_opener'):
-                self._opener = ImageOpener(
+                self._opener = openers.ImageOpener(
                     self.file_like, keep_open=self._keep_file_open)
             yield self._opener
         else:
-            with ImageOpener(self.file_like) as opener:
+            with openers.ImageOpener(self.file_like) as opener:
                 yield opener
 
     def get_unscaled(self):
