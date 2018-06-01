@@ -369,7 +369,7 @@ def test_keep_file_open_true_false_invalid():
         # Test that ArrayProxy(keep_file_open=True) only creates one file
         # handle, and that ArrayProxy(keep_file_open=False) creates a file
         # handle on every data access.
-        with mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+        with mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
             proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
                                       keep_file_open=False)
             assert not proxy_no_kfp._keep_file_open
@@ -418,7 +418,7 @@ def test_keep_file_open_auto():
         # If have_indexed_gzip, then the arrayproxy should create one
         # ImageOpener
         with patch_indexed_gzip(True), \
-             mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+             mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
             CountingImageOpener.num_openers = 0
             proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
                                keep_file_open='auto')
@@ -426,7 +426,7 @@ def test_keep_file_open_auto():
             assert _count_ImageOpeners(proxy, data, voxels) == 1
         # If no have_indexed_gzip, then keep_file_open should be False
         with patch_indexed_gzip(False), \
-             mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+             mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
             CountingImageOpener.num_openers = 0
             proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
                                keep_file_open='auto')
@@ -438,14 +438,14 @@ def test_keep_file_open_auto():
             fobj.write(data.tostring(order='F'))
         # regardless of whether indexed_gzip is present or not
         with patch_indexed_gzip(True), \
-             mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+             mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
             CountingImageOpener.num_openers = 0
             proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
                                keep_file_open='auto')
             assert proxy._keep_file_open is False
             assert _count_ImageOpeners(proxy, data, voxels) == 10
         with patch_indexed_gzip(False), \
-             mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+             mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
             CountingImageOpener.num_openers = 0
             proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
                                keep_file_open='auto')

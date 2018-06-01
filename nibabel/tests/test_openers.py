@@ -108,12 +108,11 @@ def patch_indexed_gzip(state):
     # Make it look like we do (state==True) or do not (state==False) have
     # the indexed gzip module.
     if state:
-        values = (True, True, MockIndexedGzipFile)
+        values = (True, MockIndexedGzipFile)
     else:
-        values = (False, False, GzipFile)
+        values = (False, GzipFile)
     with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), \
-         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', values[1]), \
-         mock.patch('nibabel.openers.IndexedGzipFile', values[2],
+         mock.patch('nibabel.openers.IndexedGzipFile', values[1],
                     create=True):
         yield
 

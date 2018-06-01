@@ -62,8 +62,7 @@ else:
 @contextlib.contextmanager
 def patch_indexed_gzip(have_igzip):
 
-    atts = ['nibabel.openers.HAVE_INDEXED_GZIP',
-            'nibabel.arrayproxy.HAVE_INDEXED_GZIP']
+    atts = ['nibabel.openers.HAVE_INDEXED_GZIP']
 
     with mock.patch(atts[0], have_igzip), mock.patch(atts[1], have_igzip):
         yield
