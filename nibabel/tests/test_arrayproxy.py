@@ -432,6 +432,25 @@ def test_keep_file_open_auto():
                                keep_file_open='auto')
             assert proxy._keep_file_open is False
             assert _count_ImageOpeners(proxy, data, voxels) == 10
+        # If not a gzip file,  keep_file_open should be False
+        fname  = 'testdata'
+        with open(fname, 'wb') as fobj:
+            fobj.write(data.tostring(order='F'))
+        # regardless of whether indexed_gzip is present or not
+        with patch_indexed_gzip(True), \
+             mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+            CountingImageOpener.num_openers = 0
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert proxy._keep_file_open is False
+            assert _count_ImageOpeners(proxy, data, voxels) == 10
+        with patch_indexed_gzip(False), \
+             mock.patch('nibabel.arrayproxy.ImageOpener', CountingImageOpener):
+            CountingImageOpener.num_openers = 0
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert proxy._keep_file_open is False
+            assert _count_ImageOpeners(proxy, data, voxels) == 10
 
 
 @contextlib.contextmanager
