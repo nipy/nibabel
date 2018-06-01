@@ -15,7 +15,6 @@ Run this benchmark with:
 """
 
 from timeit import timeit
-import contextlib
 import gc
 import itertools as it
 import numpy as np
