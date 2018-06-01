@@ -18,16 +18,28 @@ from distutils.version import StrictVersion
 
 # is indexed_gzip present and modern?
 try:
-    from indexed_gzip import SafeIndexedGzipFile, __version__ as version
+    import indexed_gzip as igzip
+    version = igzip.__version__
 
     HAVE_INDEXED_GZIP = True
 
+    # < 0.6 - no good
     if StrictVersion(version) < StrictVersion('0.6.0'):
         warnings.warn('indexed_gzip is present, but too old '
                       '(>= 0.6.0 required): {})'.format(version))
         HAVE_INDEXED_GZIP = False
-
-    del version
+    # < 0.7 - does not support drop_handles
+    elif StrictVersion(version) < StrictVersion('0.7.0'):
+        class IndexedGzipFile(igzip.SafeIndexedGzipFile):
+            def __init__(self, *args, **kwargs):
+                kwargs.pop('drop_handles', None)
+                super(IndexedGzipFile, self).__init__(*args, **kwargs)
+    # >= 0.8 SafeIndexedGzipFile renamed to IndexedGzipFile
+    elif StrictVersion(version) < StrictVersion('0.8.0'):
+        IndexedGzipFile = igzip.SafeIndexedGzipFile
+    else:
+        IndexedGzipFile = igzip.IndexedGzipFile
+    del igzip, version
 
 except ImportError:
     HAVE_INDEXED_GZIP = False
@@ -80,9 +92,12 @@ class BufferedGzipFile(gzip.GzipFile):
 
 def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
-    # use indexed_gzip if possible for faster read access
-    if keep_open and mode == 'rb' and HAVE_INDEXED_GZIP:
-        gzip_file = SafeIndexedGzipFile(filename)
+    # use indexed_gzip if possible for faster read access.  If keep_open ==
+    # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
+    # the IndexedGzipFile will close/open the file on each read.
+    if HAVE_INDEXED_GZIP and keep_open in (True, 'auto') and mode == 'rb':
+        gzip_file = IndexedGzipFile(
+            filename, drop_handles=keep_open == 'auto')
 
     # Fall-back to built-in GzipFile (wrapped with the BufferedGzipFile class
     # defined above)

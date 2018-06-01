@@ -52,7 +52,7 @@ If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
 """
-KEEP_FILE_OPEN_DEFAULT = False
+KEEP_FILE_OPEN_DEFAULT = 'auto'
 
 
 class ArrayProxy(object):
@@ -186,10 +186,10 @@ class ArrayProxy(object):
         The return value is derived from these rules:
 
           - If ``file_like`` is a file(-like) object, ``False`` is returned.
-            Otherwise, ``file_like`` is assumed to be a file name.
-          - if ``file_like`` ends with ``'gz'``, and the ``indexed_gzip``
-            library is available, ``True`` is returned.
-          - Otherwise, ``False`` is returned.
+            Otherwise, ``file_like`` is assumed to be a file name
+          - If ``keep_file_open`` is ``auto``, and ``indexed_gzip`` is
+            not available, ``False`` is returned.
+          - Otherwise, the value of ``keep_file_open`` is returned unchanged.
 
         Parameters
         ----------
@@ -203,23 +203,20 @@ class ArrayProxy(object):
         -------
 
         The value of ``keep_file_open`` that will be used by this
-        ``ArrayProxy``.
+        ``ArrayProxy``, and passed through to ``ImageOpener`` instances.
         """
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
-        # if keep_file_open is True/False, we do what the user wants us to do
-        if isinstance(keep_file_open, bool):
-            return keep_file_open
-        if keep_file_open != 'auto':
+        if keep_file_open not in ('auto', True, False):
             raise ValueError('keep_file_open should be one of {None, '
                              '\'auto\', True, False}')
-
         # file_like is a handle - keep_file_open is irrelevant
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False
-        # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
-        # keep_file_open to True, else we set it to False
-        return HAVE_INDEXED_GZIP and file_like.endswith('gz')
+        # don't have indexed_gzip - auto -> False
+        if keep_file_open == 'auto' and not HAVE_INDEXED_GZIP:
+            return False
+        return keep_file_open
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
@@ -263,12 +260,13 @@ class ArrayProxy(object):
             A newly created ``ImageOpener`` instance, or an existing one,
             which provides access to the file.
         """
-        if self._keep_file_open:
+        if bool(self._keep_file_open):
             if not hasattr(self, '_opener'):
-                self._opener = ImageOpener(self.file_like, keep_open=True)
+                self._opener = ImageOpener(
+                    self.file_like, keep_open=self._keep_file_open)
             yield self._opener
         else:
-            with ImageOpener(self.file_like, keep_open=False) as opener:
+            with ImageOpener(self.file_like) as opener:
                 yield opener
 
     def get_unscaled(self):
