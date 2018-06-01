@@ -6,6 +6,7 @@
 
 .. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
+TESTME
 
 =======
 NiBabel
