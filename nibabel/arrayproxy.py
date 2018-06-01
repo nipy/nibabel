@@ -43,10 +43,10 @@ used for the lifetime of the ``ArrayProxy``. It should be set to one of
 ``True``, ``False``, or ``'auto'``.
 
 If ``True``, a single file handle is created and used. If ``False``, a new
-file handle is created every time the image is accessed. If ``'auto'``, and
-the optional ``indexed_gzip`` dependency is present, a single file handle is
-created and persisted. If ``indexed_gzip`` is not available, behaviour is the
-same as if ``keep_file_open is False``.
+file handle is created every time the image is accessed. For gzip files, if
+``'auto'``, and the optional ``indexed_gzip`` dependency is present, a single
+file handle is created and persisted. If ``indexed_gzip`` is not available,
+behaviour is the same as if ``keep_file_open is False``.
 
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
@@ -186,7 +186,7 @@ class ArrayProxy(object):
         The return value is derived from these rules:
 
           - If ``file_like`` is a file(-like) object, ``False`` is returned.
-            Otherwise, ``file_like`` is assumed to be a file name
+            Otherwise, ``file_like`` is assumed to be a file name.
           - If ``keep_file_open`` is ``auto``, and ``indexed_gzip`` is
             not available, ``False`` is returned.
           - Otherwise, the value of ``keep_file_open`` is returned unchanged.
@@ -214,7 +214,8 @@ class ArrayProxy(object):
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False
         # don't have indexed_gzip - auto -> False
-        if keep_file_open == 'auto' and not HAVE_INDEXED_GZIP:
+        if keep_file_open == 'auto' and not (HAVE_INDEXED_GZIP and
+                                             file_like.endswith('.gz')):
             return False
         return keep_file_open
 
@@ -260,7 +261,7 @@ class ArrayProxy(object):
             A newly created ``ImageOpener`` instance, or an existing one,
             which provides access to the file.
         """
-        if bool(self._keep_file_open):
+        if self._keep_file_open:
             if not hasattr(self, '_opener'):
                 self._opener = ImageOpener(
                     self.file_like, keep_open=self._keep_file_open)
