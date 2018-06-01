@@ -23,17 +23,11 @@ try:
 
     HAVE_INDEXED_GZIP = True
 
-    # < 0.6 - no good
-    if StrictVersion(version) < StrictVersion('0.6.0'):
+    # < 0.7 - no good
+    if StrictVersion(version) < StrictVersion('0.7.0'):
         warnings.warn('indexed_gzip is present, but too old '
-                      '(>= 0.6.0 required): {})'.format(version))
+                      '(>= 0.7.0 required): {})'.format(version))
         HAVE_INDEXED_GZIP = False
-    # < 0.7 - does not support drop_handles
-    elif StrictVersion(version) < StrictVersion('0.7.0'):
-        class IndexedGzipFile(igzip.SafeIndexedGzipFile):
-            def __init__(self, *args, **kwargs):
-                kwargs.pop('drop_handles', None)
-                super(IndexedGzipFile, self).__init__(*args, **kwargs)
     # >= 0.8 SafeIndexedGzipFile renamed to IndexedGzipFile
     elif StrictVersion(version) < StrictVersion('0.8.0'):
         IndexedGzipFile = igzip.SafeIndexedGzipFile
