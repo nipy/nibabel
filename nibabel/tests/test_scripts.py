@@ -142,7 +142,10 @@ def test_help():
         assert_equal(code, 0)
         assert_re_in(".*%s" % cmd, stdout)
         assert_re_in(".*Usage", stdout)
-        assert_equal(stderr, '')
+        # Some third party modules might like to announce some Deprecation
+        # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
+        if 'warning' not in stderr.lower():
+            assert_equal(stderr, '')
 
 
 @script_test
