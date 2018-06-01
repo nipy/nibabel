@@ -67,8 +67,8 @@ Maintenance
 * Refactor for pydicom 1.0 API changes (pr/599) (MB, reviewed by CM)
 * Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by 
   Yaroslav Halchenko, MB)
-* Move ``nib-ls`` to a new cmdline module (pr/601) (Chris Cheng, reviewed by
-  MB, Yaroslav Halchenko)
+* Move ``nib-ls`` and other programs to a new cmdline module (pr/601, pr/615)
+  (Chris Cheng, reviewed by MB, Yaroslav Halchenko)
 * Remove deprecated numpy indexing (EL, reviewed by CM)
 
 API changes and deprecations
