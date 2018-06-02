@@ -339,7 +339,11 @@ class SpatialFirstSlicer(object):
             slicer = self.check_slicing(slicer)
         except ValueError as err:
             raise IndexError(*err.args)
+
         dataobj = self.img.dataobj[slicer]
+        if any(dim == 0 for dim in dataobj.shape):
+            raise IndexError("Empty slice requested")
+
         affine = self.slice_affine(slicer)
         return self.img.__class__(dataobj.copy(), affine, self.img.header)
 
