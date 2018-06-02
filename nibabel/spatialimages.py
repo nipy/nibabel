@@ -328,6 +328,7 @@ class SpatialFirstSlicer(object):
     Checks that an image's first three axes are spatial
     '''
     def __init__(self, img):
+        # Local import to avoid circular import on module load
         from .imageclasses import spatial_axes_first
         if not spatial_axes_first(img):
             raise ValueError("Cannot predict position of spatial axes for "
@@ -365,6 +366,9 @@ class SpatialFirstSlicer(object):
             without collapsing spatial dimensions
         '''
         slicer = canonical_slicers(slicer, self.img.shape)
+        # We can get away with this because we've checked the image's
+        # first three axes are spatial.
+        # More general slicers will need to be smarter, here.
         spatial_slices = slicer[:3]
         for subslicer in spatial_slices:
             if subslicer is None:
