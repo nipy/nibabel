@@ -25,6 +25,8 @@ class dummy_fuse(object):
 
 try:
     import fuse
+    uid = os.getuid()
+    gid = os.getgid()
 except ImportError:
     fuse = dummy_fuse
 
@@ -33,8 +35,6 @@ import nibabel.dft as dft
 
 from optparse import OptionParser, Option
 
-uid = os.getuid()
-gid = os.getgid()
 encoding = locale.getdefaultlocale()[1]
 
 fuse.fuse_python_api = (0, 2)
