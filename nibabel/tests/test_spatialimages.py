@@ -506,7 +506,11 @@ class TestSpatialImage(TestCase):
             with assert_raises(ValueError):
                 img.slicer[:, ::0]
             with assert_raises(ValueError):
-                img._slice_affine((slice(None), slice(None, None, 0)))
+                img.slicer.slice_affine((slice(None), slice(None, None, 0)))
+
+            # Don't permit zero-length slices
+            with assert_raises(IndexError):
+                img.slicer[:0]
 
             # No fancy indexing
             with assert_raises(IndexError):
