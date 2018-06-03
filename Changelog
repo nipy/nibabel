@@ -24,6 +24,27 @@ Gerhard (SG) and Eric Larson (EL).
 
 References like "pr/298" refer to github pull request numbers.
 
+Upcoming Release
+================
+
+New features
+------------
+* Image slicing for SpatialImages (pr/550) (CM)
+
+Enhancements
+------------
+* Simplfiy MGHImage and add footer fields (pr/569) (CM, reviewed by MB)
+
+Bug fixes
+---------
+
+Maintenance
+-----------
+
+API changes and deprecations
+----------------------------
+
+
 2.2.1 (Wednesday 22 November 2017)
 ==================================
 

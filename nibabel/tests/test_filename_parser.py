@@ -159,3 +159,14 @@ def test_splitext_addext():
     # case sensitive
     res = splitext_addext('fname.ext.FOO', ('.foo', '.bar'), True)
     assert_equal(res, ('fname.ext', '.FOO', ''))
+    # edge cases
+    res = splitext_addext('.nii')
+    assert_equal(res, ('', '.nii', ''))
+    res = splitext_addext('...nii')
+    assert_equal(res, ('..', '.nii', ''))
+    res = splitext_addext('.')
+    assert_equal(res, ('.', '', ''))
+    res = splitext_addext('..')
+    assert_equal(res, ('..', '', ''))
+    res = splitext_addext('...')
+    assert_equal(res, ('...', '', ''))

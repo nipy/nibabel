@@ -39,7 +39,7 @@ from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
                 MGHImage, Minc1Image, Minc2Image, is_proxy)
 from ..spatialimages import SpatialImage
-from .. import minc1, minc2, parrec
+from .. import minc1, minc2, parrec, brikhead
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
@@ -54,7 +54,7 @@ from .test_helpers import (bytesio_round_trip, bytesio_filemap,
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
-
+from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 
 class GenericImageAPI(ValidateAPI):
     """ General image validation API """
@@ -596,3 +596,9 @@ class TestMGHAPI(ImageHeaderAPI):
     has_scaling = True
     can_save = True
     standard_extension = '.mgh'
+
+
+class TestAFNIAPI(LoadImageAPI):
+    loader = brikhead.load
+    klass = image_maker = brikhead.AFNIImage
+    example_images = AFNI_EXAMPLE_IMAGES
