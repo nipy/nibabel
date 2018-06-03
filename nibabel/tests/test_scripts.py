@@ -130,6 +130,25 @@ def test_nib_ls_multiple():
     )
 
 
+@script_test
+def test_help():
+    for cmd in ['parrec2nii', 'nib-dicomfs', 'nib-ls', 'nib-nifti-dx']:
+        if cmd == 'nib-dicomfs':
+            # needs special treatment since depends on fuse module which
+            # might not be available.
+            try:
+                import fuse
+            except Exception:
+                continue  # do not test this one
+        code, stdout, stderr = run_command([cmd, '--help'])
+        assert_equal(code, 0)
+        assert_re_in(".*%s" % cmd, stdout)
+        assert_re_in(".*Usage", stdout)
+        # Some third party modules might like to announce some Deprecation
+        # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
+        if 'warning' not in stderr.lower():
+            assert_equal(stderr, '')
+
 
 @script_test
 def test_nib_nifti_dx():
