@@ -90,8 +90,7 @@ def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
     # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
     # the IndexedGzipFile will close/open the file on each read.
     if HAVE_INDEXED_GZIP and mode == 'rb':
-        gzip_file = IndexedGzipFile(
-            filename, drop_handles=keep_open is not True)
+        gzip_file = IndexedGzipFile(filename, drop_handles=not keep_open)
 
     # Fall-back to built-in GzipFile (wrapped with the BufferedGzipFile class
     # defined above)

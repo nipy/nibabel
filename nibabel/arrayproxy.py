@@ -51,8 +51,12 @@ behaviour is the same as if ``keep_file_open is False``.
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
+
+.. warning:: Setting this flag to a value of ``'auto'`` will become deprecated
+             behaviour in version 2.4.0. Support for ``'auto'`` will be removed
+             in version 3.0.0.
 """
-KEEP_FILE_OPEN_DEFAULT = 'auto'
+KEEP_FILE_OPEN_DEFAULT = False
 
 
 class ArrayProxy(object):
