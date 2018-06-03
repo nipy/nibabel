@@ -8,32 +8,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Print nifti diagnostics for header files '''
-from __future__ import division, print_function, absolute_import
 
-import sys
-
-from optparse import OptionParser
-
-import nibabel as nib
-
-
-def main():
-    """ Go go team """
-    parser = OptionParser(
-        usage="%s [FILE ...]\n\n" % sys.argv[0] + __doc__,
-        version="%prog " + nib.__version__)
-    (opts, files) = parser.parse_args()
-
-    for fname in files:
-        with nib.openers.ImageOpener(fname) as fobj:
-            hdr = fobj.read(nib.nifti1.header_dtype.itemsize)
-        result = nib.Nifti1Header.diagnose_binaryblock(hdr)
-        if len(result):
-            print('Picky header check output for "%s"\n' % fname)
-            print(result + '\n')
-        else:
-            print('Header for "%s" is clean' % fname)
-
+from nibabel.cmdline.nifti_dx import main
 
 if __name__ == '__main__':
     main()
