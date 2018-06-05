@@ -34,7 +34,7 @@ We can load up the EPI image to get the image data array:
 
     >>> import nibabel as nib
     >>> epi_img = nib.load('downloads/someones_epi.nii.gz')
-    >>> epi_img_data = epi_img.get_data()
+    >>> epi_img_data = epi_img.get_fdata()
     >>> epi_img_data.shape
     (53, 61, 33)
 
@@ -64,7 +64,7 @@ and look at slices in the three axes:
     :context:
 
     >>> anat_img = nib.load('downloads/someones_anatomy.nii.gz')
-    >>> anat_img_data = anat_img.get_data()
+    >>> anat_img_data = anat_img.get_fdata()
     >>> anat_img_data.shape
     (57, 67, 56)
     >>> show_slices([anat_img_data[28, :, :],
