@@ -27,6 +27,7 @@ from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial
+from itertools import product
 from six import string_types
 
 import numpy as np
@@ -481,40 +482,49 @@ class MakeImageAPI(LoadImageAPI):
     header_maker = None
     # Example shapes for created images
     example_shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
+    # Supported dtypes for storing to disk
+    storable_dtypes = (np.uint8, np.int16, np.float32)
 
     def obj_params(self):
         # Return any obj_params from superclass
         for func, params in super(MakeImageAPI, self).obj_params():
             yield func, params
-        # Create a new images
+        # Create new images
         aff = np.diag([1, 2, 3, 1])
 
         def make_imaker(arr, aff, header=None):
             return lambda: self.image_maker(arr, aff, header)
-        for shape in self.example_shapes:
-            for dtype in (np.uint8, np.int16, np.float32):
-                arr = np.arange(np.prod(shape), dtype=np.float32).reshape(shape)
-                hdr = self.header_maker()
-                hdr.set_data_dtype(dtype)
-                func = make_imaker(arr.copy(), aff, hdr)
-                params = dict(
-                    dtype=dtype,
-                    affine=aff,
-                    data=arr,
-                    shape=shape,
-                    is_proxy=False)
-                yield func, params
-        if not self.can_save:
-            return
-        # Add a proxy image
-        # We assume that loading from a fileobj creates a proxy image
-        params['is_proxy'] = True
 
-        def prox_imaker():
-            img = self.image_maker(arr, aff, hdr)
-            rt_img = bytesio_round_trip(img)
-            return self.image_maker(rt_img.dataobj, aff, rt_img.header)
-        yield prox_imaker, params
+        def make_prox_imaker(arr, aff, hdr):
+
+            def prox_imaker():
+                img = self.image_maker(arr, aff, hdr)
+                rt_img = bytesio_round_trip(img)
+                return self.image_maker(rt_img.dataobj, aff, rt_img.header)
+
+            return prox_imaker
+
+        for shape, stored_dtype in product(self.example_shapes,
+                                           self.storable_dtypes):
+            # To make sure we do not trigger scaling, always use the
+            # stored_dtype for the input array.
+            arr = np.arange(np.prod(shape), dtype=stored_dtype).reshape(shape)
+            hdr = self.header_maker()
+            hdr.set_data_dtype(stored_dtype)
+            func = make_imaker(arr.copy(), aff, hdr)
+            params = dict(
+                dtype=stored_dtype,
+                affine=aff,
+                data=arr,
+                shape=shape,
+                is_proxy=False)
+            yield make_imaker(arr.copy(), aff, hdr), params
+            if not self.can_save:
+                continue
+            # Create proxy images from these array images, by storing via BytesIO.
+            # We assume that loading from a fileobj creates a proxy image.
+            params['is_proxy'] = True
+            yield make_prox_imaker(arr.copy(), aff, hdr), params
 
 
 class ImageHeaderAPI(MakeImageAPI):
