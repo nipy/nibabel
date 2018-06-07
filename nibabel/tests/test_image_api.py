@@ -342,8 +342,8 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Returned data same object as underlying dataobj if using
         # old ``get_data`` method, or using newer ``get_fdata``
         # method, where original array was float64.
-        dataobj_is_data = (img.dataobj.dtype == np.float64
-                           or method == img.get_data)
+        arr_dtype = img.dataobj.dtype
+        dataobj_is_data = arr_dtype == np.float64 or method == img.get_data
         # Set something to the output array.
         data[:] = 42
         get_result_changed = np.all(get_data_func() == 42)
@@ -367,6 +367,16 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # cache state.
         img.uncache()
         assert_true(img.in_memory)
+        if meth_name != 'get_fdata':
+            return
+        # Return original array from get_fdata only if the input array is the
+        # requested dtype.
+        float_types = np.sctypes['float']
+        if arr_dtype not in float_types:
+            return
+        for float_type in float_types:
+            data = get_data_func(dtype=float_type)
+            assert_equal(data is img.dataobj, arr_dtype == float_type)
 
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning
@@ -542,6 +552,8 @@ class TestAnalyzeAPI(ImageHeaderAPI):
     has_scaling = False
     can_save = True
     standard_extension = '.img'
+    # Supported dtypes for storing to disk
+    storable_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.float64)
 
 
 class TestSpatialImageAPI(TestAnalyzeAPI):
