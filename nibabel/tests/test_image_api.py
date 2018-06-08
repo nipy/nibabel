@@ -324,12 +324,6 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def _check_array_interface(self, imaker, meth_name):
         for caching in (None, 'fill', 'unchanged'):
             self._check_array_caching(imaker, meth_name, caching)
-        # Values to get_(f)data caching parameter must be 'fill' or
-        # 'unchanged'
-        img = imaker()
-        for meth_name in self.meth_names:
-            method = getattr(img, meth_name)
-            assert_raises(ValueError, method, caching='something')
 
     def _check_array_caching(self, imaker, meth_name, caching):
         img = imaker()
