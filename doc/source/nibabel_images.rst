@@ -243,10 +243,11 @@ Here's an image backed by a floating point array:
 >>> farray_data.dtype == np.dtype(np.float64)
 True
 
-There was no cast, so the array returned is exactly the array attached to the image:
+There was no cast, so the array returned is exactly the array attached to the
+image:
 
->>> image_data is array_img.dataobj
-False
+>>> farray_data is farray_img.dataobj
+True
 
 For the proxy image, the ``get_fdata()`` method fetches the array data from
 disk using the proxy, and returns the array.
