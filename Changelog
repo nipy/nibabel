@@ -63,6 +63,8 @@ Bug fixes
   reviewed by MB, CM)
 * Do not crash on non-``ImportError`` failures in optional imports (pr/618)
   (Yaroslav Halchenko, reviewed by CM)
+* Return original array from ``get_fdata`` for array image, if no cast
+  required (pr/638, MB, reviewed by CM)
 
 Maintenance
 -----------
@@ -74,6 +76,8 @@ Maintenance
 * Move ``nib-ls`` and other programs to a new cmdline module (pr/601, pr/615)
   (Chris Cheng, reviewed by MB, Yaroslav Halchenko)
 * Remove deprecated numpy indexing (EL, reviewed by CM)
+* Update documentation to encourage ``get_fdata`` over ``get_data`` (pr/637,
+  MB, reviewed by CM)
 
 API changes and deprecations
 ----------------------------
