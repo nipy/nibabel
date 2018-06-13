@@ -9,7 +9,7 @@
 # module imports
 """ Utilities to load and save image objects """
 
-import os.path as op
+import os
 import numpy as np
 
 from .filename_parser import splitext_addext
@@ -36,13 +36,20 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
+    #Coerce pathlib objects
     if hasattr(filename, '__fspath__'):
         filename = filename.__fspath__()
     else:
         filename = unicode(filename)
-    
-    if not op.exists(filename):
-        raise FileNotFoundError("No such file: '%s'" % filename)
+
+    #Check file exists and is not empty
+    try:
+        stat_result = os.stat(filename)
+    except OSError:
+        raise FileNotFoundError("No such file or no access: '%s'" % filename)
+    if stat_result.st_size <= 0:
+        raise ImageFileError("Empty file: '%s'" % filename)
+        
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
@@ -138,10 +145,10 @@ def save(img, filename):
                 converted = klass.from_image(img)
                 break
             except Exception as e:
-                continue
+                err = e
         # ... and if none of them work, raise an error.
         if converted is None:
-            raise e
+            raise err
 
     # Here, we either have a klass or a converted image.
     if converted is None:

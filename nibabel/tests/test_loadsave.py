@@ -58,6 +58,14 @@ def test_file_not_found():
     assert_raises(FileNotFoundError, load, 'does_not_exist.nii.gz')
 
 
+def test_load_empty_image():
+    with InTemporaryDirectory():
+        open('empty.nii', 'w').close()
+        with assert_raises(ImageFileError) as err:
+            load('empty.nii')
+    assert_true(err.exception.args[0].startswith('Empty file: '))
+
+
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)

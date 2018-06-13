@@ -77,10 +77,10 @@ flag when anyone asks for the data, on the basis that the user may then
 do something to the data and you can't know if they have::
 
    img = nibabel.load('some_image.nii')
-   data = img.get_data()
+   data = img.get_fdata()
    data[:] = 0
    img2 = nibabel.load('some_image.nii')
-   assert not np.all(img2.get_data() == img.get_data())
+   assert not np.all(img2.get_fdata() == img.get_fdata())
 
 The image consists of the data, the affine and a header.  In order to
 keep track of the header and affine, we could cache them when loading
@@ -96,7 +96,7 @@ When we need to know whether the image object and image file correspond, we
 could check the current header and current affine (the header may be separate
 from the affine for an SPM Analyze image) against their cached copies, if they
 are the same and the 'dirty' flag has not been set by a previous call to
-``get_data()``, we know that the image file does correspond to the image
+``get_fdata()``, we know that the image file does correspond to the image
 object.
 
 This may be OK for small bits of memory like the affine and the header,

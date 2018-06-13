@@ -86,6 +86,8 @@ def main(**extra_args):
                           'nibabel.gifti.tests',
                           'nibabel.cifti2',
                           'nibabel.cifti2.tests',
+                          'nibabel.cmdline',
+                          'nibabel.cmdline.tests',
                           'nibabel.nicom',
                           'nibabel.freesurfer',
                           'nibabel.freesurfer.tests',
@@ -115,6 +117,8 @@ def main(**extra_args):
                           pjoin('bin', 'nib-ls'),
                           pjoin('bin', 'nib-dicomfs'),
                           pjoin('bin', 'nib-nifti-dx'),
+                          pjoin('bin', 'nib-tck2trk'),
+                          pjoin('bin', 'nib-trk2tck'),
                           ],
           cmdclass = cmdclass,
           **extra_args

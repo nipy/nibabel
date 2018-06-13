@@ -1,4 +1,3 @@
-#!python
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -7,9 +6,5 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-# Copyright (C) 2011 Christian Haselgrove
-
-from nibabel.cmdline.dicomfs import main
-
-if __name__ == '__main__':
-    main()
+"""Functionality to be exposed in the command line
+"""
