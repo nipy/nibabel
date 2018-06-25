@@ -1,6 +1,6 @@
 import numpy as np
 from nose.tools import assert_raises
-from .test_io import check_rewrite
+from .test_cifti2io_axes import check_rewrite
 import nibabel.cifti2.cifti2_axes as axes
 
 
