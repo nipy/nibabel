@@ -537,7 +537,7 @@ class Parcels(Axis):
         (N, ) array with the actual get_parcels (each of which is a BrainModel object)
 
     Individual get_parcels can also be accessed based on their name, using
-    >>> parcel = parcel_axis[name]
+    ``parcel = parcel_axis[name]``
     """
     _use_dtype = np.dtype([('name', 'U60'), ('voxels', 'object'), ('vertices', 'object')])
     _affine = None
