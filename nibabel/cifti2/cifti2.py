@@ -1268,6 +1268,40 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         '''
         return self.matrix.get_index_map(index)
 
+    def get_axis(self, index):
+        '''
+        Generates the Cifti2 axis for a given dimension
+
+        Parameters
+        ----------
+        index : int
+            Dimension for which we want to obtain the mapping.
+
+        Returns
+        -------
+        axis : cifti2_axes.Axis
+        '''
+        from . import cifti2_axes
+        return cifti2_axes.from_mapping(self.matrix.get_index_map(index))
+
+    @classmethod
+    def from_axes(cls, axes):
+        '''
+        Creates a new Cifti2 header based on the Cifti2 axes
+
+        Parameters
+        ----------
+        axes : Tuple[cifti2_axes.Axis]
+            sequence of Cifti2 axes describing each row/column of the matrix to be stored
+
+        Returns
+        -------
+        header : Cifti2Header
+            new header describing the rows/columns in a format consistent with Cifti2
+        '''
+        from . import cifti2_axes
+        return cifti2_axes.to_header(axes)
+
 
 class Cifti2Image(DataobjImage):
     """ Class for single file CIFTI2 format image
@@ -1297,8 +1331,10 @@ class Cifti2Image(DataobjImage):
             Object containing image data.  It should be some object that
             returns an array from ``np.asanyarray``.  It should have a
             ``shape`` attribute or property.
-        header : Cifti2Header instance
+        header : Cifti2Header instance or Sequence[cifti2_axes.Axis]
             Header with data for / from XML part of CIFTI2 format.
+            Alternatively a sequence of cifti2_axes.Axis objects can be provided
+            describing each dimension of the array.
         nifti_header : None or mapping or NIfTI2 header instance, optional
             Metadata for NIfTI2 component of this format.
         extra : None or mapping
@@ -1306,6 +1342,8 @@ class Cifti2Image(DataobjImage):
         file_map : mapping, optional
             Mapping giving file information for this image format.
         '''
+        if not isinstance(header, Cifti2Header) and header:
+            header = Cifti2Header.from_axes(header)
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
         self._nifti_header = Nifti2Header.from_header(nifti_header)
