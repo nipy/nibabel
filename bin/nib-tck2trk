@@ -7,9 +7,12 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-# Copyright (C) 2011 Christian Haselgrove
+"""
+Convert tractograms (TCK -> TRK).
+"""
 
-from nibabel.cmdline.dicomfs import main
+from nibabel.cmdline.tck2trk import main
+
 
 if __name__ == '__main__':
     main()
