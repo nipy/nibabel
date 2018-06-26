@@ -121,17 +121,18 @@ def get_headers_diff(files, opts):
         else:
             header_fields = opts.header_fields.split(',')
 
-        output = {}
+        output = []
 
         for f in header_fields:
             val = diff_header_fields(f, header_list)
 
             if val:
-                output[f] = val
+                loader = {f: val}
+                output.append(loader)
 
         return output
     else:
-        return {}
+        return []
 
 
 def get_data_md5sums(files):
@@ -182,10 +183,11 @@ def main():
         print()
 
         for x in header_diff:
-            print("{:<11}".format(x), end="")
+            for key, value in x.items():
+                print("{:<11}".format(key), end="")
 
-            for e in header_diff[x]:
-                print("{:<45}".format(e), end="")
+                for item in value:
+                    print("{:<45}".format(str(item)), end="")
 
             print()
 
