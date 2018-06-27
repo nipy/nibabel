@@ -25,6 +25,7 @@ __copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko ' \
                 'and NiBabel contributors'
 __license__ = 'MIT'
 
+
 MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 
 
