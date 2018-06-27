@@ -1,8 +1,6 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-""" Test scripts
-
-Test running scripts
+""" Test diff
 """
 from __future__ import division, print_function, absolute_import
 
@@ -16,7 +14,9 @@ DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 from nibabel.cmdline.diff import diff_values
 
-# TODO: MAJOR TO DO IS TO FIGURE OUT HOW TO USE HYPOTHESIS FOR LONGER LIST LENGTHS WHILE STILL CONTROLLING FOR OUTCOMES
+# TODO: MAJOR TO DO IS TO FIGURE OUT HOW TO USE HYPOTHESIS FOR LONGER LIST
+# LENGTHS WHILE STILL CONTROLLING FOR OUTCOMES
+
 
 @given(st.data())
 def test_diff_values_int(data):
@@ -33,8 +33,8 @@ def test_diff_values_int(data):
 @given(st.data())
 def test_diff_values_float(data):
     x = data.draw(st.just(0), label='x')
-    y = data.draw(st.floats(min_value = 1e8), label='y')
-    z = data.draw(st.floats(max_value = -1e8), label='z')
+    y = data.draw(st.floats(min_value=1e8), label='y')
+    z = data.draw(st.floats(max_value=-1e8), label='z')
 
     assert not diff_values(x, x)
     assert diff_values(x, y)

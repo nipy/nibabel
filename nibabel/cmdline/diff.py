@@ -12,7 +12,9 @@ Quick summary of the differences among a set of neuroimaging files
 """
 from __future__ import division, print_function, absolute_import
 
+import re
 import sys
+from collections import OrderedDict
 from optparse import OptionParser, Option
 
 import numpy as np
@@ -101,17 +103,22 @@ def diff_header_fields(key, inputs):
 
 
 def get_headers_diff(files, opts):
-    """
-        Getting the difference of headers.
-        Returns a dictionary that is later processed.
+    """Get difference between headers
 
-        Parameters
-        ----------
-            files: list of files
-            opts: any options included from the command line
+    Parameters
+    ----------
+    files: list of files
+    opts: any options included from the command line
+
+    Returns
+    -------
+    dict
+      str: list  for each header field which differs, return list of
+      values per each file
     """
 
     header_list = [nib.load(f).header for f in files]
+    output = OrderedDict()
 
     if opts.header_fields:  # will almost always have a header field
         # signals "all fields"
@@ -121,18 +128,13 @@ def get_headers_diff(files, opts):
         else:
             header_fields = opts.header_fields.split(',')
 
-        output = []
-
         for f in header_fields:
             val = diff_header_fields(f, header_list)
 
             if val:
-                loader = {f: val}
-                output.append(loader)
+                output[f] = val
 
-        return output
-    else:
-        return []
+    return output
 
 
 def get_data_md5sums(files):
@@ -162,10 +164,13 @@ def main():
         # suppress nibabel format-compliance warnings
         nib.imageglobals.logger.level = 50
 
-    header_diff = get_headers_diff(files, opts)
+    diff = get_headers_diff(files, opts)
     data_diff = get_data_md5sums(files)
+    if data_diff:
+        diff['DATA(md5)'] = data_diff
 
-    if len(data_diff) != 0 and len(header_diff) != 0:
+    if diff:
+        print("These files are different.")
         print("{:<11}".format('Field'), end="")
 
         for f in files:
@@ -182,23 +187,22 @@ def main():
 
         print()
 
-        for x in header_diff:
-            for key, value in x.items():
-                print("{:<11}".format(key), end="")
+        for key, value in diff.items():
+            print("{:<11}".format(key), end="")
 
-                for item in value:
-                    print("{:<45}".format(str(item)), end="")
+            for item in value:
+                item_str = str(item)
+                # Value might start/end with some invisible spacing characters so we
+                # would "condition" it on both ends a bit
+                item_str = re.sub('^[ \t]+', '<', item_str)
+                item_str = re.sub('[ \t]+$', '>', item_str)
+                # and also replace some other invisible symbols with a question
+                # mark
+                item_str = re.sub('[\x00]', '?', item_str)
+                print("{:<45}".format(item_str), end="")
 
             print()
 
-    print("DATA: ", end="")
-
-    if len(data_diff) != 0:
-        print("These files are different.")
-        print("{:<11}".format("Checksum"), end="")
-        for i in data_diff:
-            print("{:45}".format(i[0:8]), end="")
-        print()
         raise SystemExit(1)
     else:
-        print("These files are identical!")
+        print("These files are identical.")

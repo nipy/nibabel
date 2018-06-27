@@ -73,91 +73,42 @@ def check_nib_diff_examples(opts=[], hdrs_str="", other_str=""):
     # test nib-diff script
     fnames = [pjoin(DATA_PATH, f)
               for f in ('example4d.nii.gz', 'standard.nii.gz')]
+    target_output = """\
+These files are different.
+Field      example4d.nii.gz                             standard.nii.gz                              
+regular    r                                                                                         
+dim_info   57                                           0                                            
+dim        [4, 128, 96, 24, 2, 1, 1, 1]                 [3, 4, 5, 7, 1, 1, 1, 1]                     
+datatype   4                                            2                                            
+bitpix     16                                           8                                            
+pixdim     [-1.0, 2.0, 2.0, 2.199999, 2000.0, 1.0, 1.0, 1.0][1.0, 1.0, 3.0, 2.0, 1.0, 1.0, 1.0, 1.0]     
+slice_end  23                                           0                                            
+xyzt_units 10                                           0                                            
+cal_max    1162.0                                       0.0                                          
+descrip    FSL3.3? v2.25 NIfTI-1 Single file format                                                  
+qform_code 1                                            0                                            
+sform_code 1                                            2                                            
+quatern_b  -1.94510681403e-26                           0.0                                          
+quatern_c  -0.996708512306                              0.0                                          
+quatern_d  -0.081068739295                              0.0                                          
+qoffset_x  117.855102539                                0.0                                          
+qoffset_y  -35.7229423523                               0.0                                          
+qoffset_z  -7.24879837036                               0.0                                          
+srow_x     [-2.0, 6.7147157e-19, 9.0810245e-18, 117.8551][1.0, 0.0, 0.0, 0.0]                         
+srow_y     [-6.7147157e-19, 1.9737115, -0.35552824, -35.722942][0.0, 3.0, 0.0, 0.0]                         
+srow_z     [8.255481e-18, 0.32320762, 2.1710818, -7.2487984][0.0, 0.0, 2.0, 0.0]                         
+DATA(md5)  b0abbc492b4fd533b2c80d82570062cf             0a2576dd6badbb25bfb3b12076df986b"""
     fnames2 = [pjoin(DATA_PATH, f)
               for f in ('example4d.nii.gz', 'example4d.nii.gz')]
     code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
-    hi = difflib.context_diff(stdout, "Field      " + "{:<45}".format("example4d.nii.gz") + "{:<45}".format("standard.nii.gz")
-                                    + "\n" + "regular    b'r'                                         b''              "
-                                             "                            " + "\n" + "dim_info   57                    "
-                                                                                     "                       0         "
-                                                                                     "                                 "
-                                                                                     "  " + "\n"
-                 "dim        [4, 128, 96, 24, 2, 1, 1, 1]                 [3, 4, 5, 7, 1, 1, 1, 1]                     "
-                 + "\n" + "datatype   4                                            2                                   "
-                          "         " + "\n" + "bitpix     16                                           8              "
-                                               "                              " + "\n" + "pixdim     [-1.0, 2.0, 2.0, "
-                                                                                         "2.1999991, 2000.0, 1.0, 1.0,"
-                                                                                         " 1.0][1.0, 1.0, 3.0, 2.0, "
-                                                                                         "1.0, 1.0, 1.0, 1.0]     " +
-                 "\n" + "slice_end  23                                           0                                     "
-                        "       " + "\n" + "xyzt_units 10                                           0                  "
-                                           "                          " + "\n" + "cal_max    1162.0                    "
-                                                                                 "                   0.0               "
-                                                                                 "                           " + "\n" +
-                 "descrip    b'FSL3.3\\x00 v2.25 NIfTI-1 Single file format'b''                                         "
-                 " \n" + "qform_code 1                                            0                                    "
-                         "        " + "\n" + "sform_code 1                                            2                "
-                                             "                            \n" +"quatern_b  -1.9451068140294884e-26    "
-                                                                               "                  0.0                  "
-                                                                               "                        " + "\n" +
-                 "quatern_c  -0.9967085123062134                          0.0                                          "
-                 + "\n" + "quatern_d  -0.0810687392950058                          0.0                                 "
-                          "         " + "\n" + "qoffset_x  117.8551025390625                            0.0            "
-                                               "                              " + "\n" + "qoffset_y  -35.72294235229492"
-                                                                                         "                           0."
-                                                                                         "0                            "
-                                                                                         "              " + "\n" +
-                 "qoffset_z  -7.248798370361328                           0.0                                          "
-                 + "\n" + "srow_x     [-2.0, 6.7147157e-19, 9.0810245e-18, 117.8551][1.0, 0.0, 0.0, 0.0]               "
-                          "          " + "\n" + "srow_y     [-6.7147157e-19, 1.9737115, -0.35552824, -35.722942][0.0, 3"
-                                                ".0, 0.0, 0.0]                         " + "\n" +
-                 "srow_z     [8.2554809e-18, 0.32320762, 2.1710818, -7.2487984][0.0, 0.0, 2.0, 0.0]                    "
-                 "     " + "\n" + "DATA: These files are different.\nChecksum   b0abbc49                    "
-                 + "                 0a2576dd")
-    delta = ''.join(hi)
-    print(delta)
-    assert_equal(stdout, "Field      " + "{:<45}".format("example4d.nii.gz") + "{:<45}".format("standard.nii.gz")
-                                    + "\n" + "regular    b'r'                                         b''              "
-                                             "                            " + "\n" + "dim_info   57                    "
-                                                                                     "                       0         "
-                                                                                     "                                 "
-                                                                                     "  " + "\n"
-                 "dim        [4, 128, 96, 24, 2, 1, 1, 1]                 [3, 4, 5, 7, 1, 1, 1, 1]                     "
-                 + "\n" + "datatype   4                                            2                                   "
-                          "         " + "\n" + "bitpix     16                                           8              "
-                                               "                              " + "\n" + "pixdim     [-1.0, 2.0, 2.0, "
-                                                                                         "2.1999991, 2000.0, 1.0, 1.0,"
-                                                                                         " 1.0][1.0, 1.0, 3.0, 2.0, "
-                                                                                         "1.0, 1.0, 1.0, 1.0]     " +
-                 "\n" + "slice_end  23                                           0                                     "
-                        "       " + "\n" + "xyzt_units 10                                           0                  "
-                                           "                          " + "\n" + "cal_max    1162.0                    "
-                                                                                 "                   0.0               "
-                                                                                 "                           " + "\n" +
-                 "descrip    b'FSL3.3\\x00 v2.25 NIfTI-1 Single file format'b''                                         "
-                 " \n" + "qform_code 1                                            0                                    "
-                         "        " + "\n" + "sform_code 1                                            2                "
-                                             "                            \n" +"quatern_b  -1.9451068140294884e-26    "
-                                                                               "                  0.0                  "
-                                                                               "                        " + "\n" +
-                 "quatern_c  -0.9967085123062134                          0.0                                          "
-                 + "\n" + "quatern_d  -0.0810687392950058                          0.0                                 "
-                          "         " + "\n" + "qoffset_x  117.8551025390625                            0.0            "
-                                               "                              " + "\n" + "qoffset_y  -35.72294235229492"
-                                                                                         "                           0."
-                                                                                         "0                            "
-                                                                                         "              " + "\n" +
-                 "qoffset_z  -7.248798370361328                           0.0                                          "
-                 + "\n" + "srow_x     [-2.0, 6.7147157e-19, 9.0810245e-18, 117.8551][1.0, 0.0, 0.0, 0.0]               "
-                          "          " + "\n" + "srow_y     [-6.7147157e-19, 1.9737115, -0.35552824, -35.722942][0.0, 3"
-                                                ".0, 0.0, 0.0]                         " + "\n" +
-                 "srow_z     [8.2554809e-18, 0.32320762, 2.1710818, -7.2487984][0.0, 0.0, 2.0, 0.0]                    "
-                 "     " + "\n" + "DATA: These files are different.\nChecksum   b0abbc49                    "
-                 + "                 0a2576dd")
+    # n1, n2 = 2300, 2400
+    # stdout, target_output = stdout[n1:n2], target_output[n1:n2]
+    delta_diff = difflib.context_diff(stdout, target_output)
+    print(''.join(delta_diff))
+    assert_equal(stdout, target_output)
 
     code, stdout, stderr = run_command(['nib-diff'] + fnames2, check_code=False)
-    assert_equal(stdout, "DATA: These files are identical!")
-
+    assert_equal(stdout, "These files are identical.")
 
 
 @script_test
