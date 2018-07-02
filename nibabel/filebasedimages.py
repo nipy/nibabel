@@ -511,3 +511,9 @@ class FileBasedImage(object):
         if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
             return False, sniff
         return klass.header_class.may_contain_header(sniff[0]), sniff
+
+    def serialize(self):
+        bio = io.BytesIO()
+        file_map = self.make_file_map({'image': bio, 'header': bio})
+        self.to_file_map(file_map)
+        return bio.getvalue()
