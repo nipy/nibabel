@@ -21,7 +21,6 @@ import numpy as np
 
 import nibabel as nib
 import nibabel.cmdline.utils
-import itertools
 import hashlib
 
 
@@ -93,7 +92,7 @@ def diff_headers(files, fields):
                 pass
 
             # compare current file with other files
-            for i in files[f+1:]:
+            for i in files[f + 1:]:
                 other_field = i[h]
 
                 # sometimes field.item doesn't work

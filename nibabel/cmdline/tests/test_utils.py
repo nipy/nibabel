@@ -5,17 +5,12 @@
 Test running scripts
 """
 
-from numpy.testing import (assert_almost_equal,
-                           assert_array_equal)
-
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+from nose.tools import assert_equal
 
 import nibabel as nib
 from nibabel.cmdline.utils import *
 from nibabel.cmdline.diff import diff_header_fields, diff_headers
-from os.path import (dirname, join as pjoin, abspath, splitext, basename,
-                     exists)
+from os.path import (dirname, join as pjoin, abspath)
 
 
 DATA_PATH = abspath(pjoin(dirname(__file__), '../../tests/data'))
