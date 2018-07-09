@@ -255,7 +255,7 @@ axes *starts* on the right, anterior, superior of the subject, rather than
 *ending* on the right, anterior, superior.  In other words, they would use
 "RAS" to refer to a coordinate system we would call "LPI".  To be safe, we'll
 call our interpretation of the RAS convention "RAS+", meaning that Right,
-Anterior, Posterior are all positive values on these axes.
+Anterior, Superior are all positive values on these axes.
 
 Some people also use "right" to mean the right hand side when an observer
 looks at the front of the scanner, from the foot the scanner bed.
