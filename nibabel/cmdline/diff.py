@@ -18,7 +18,6 @@ from collections import OrderedDict
 from optparse import OptionParser, Option
 
 import numpy as np
-import functools.partial
 
 import nibabel as nib
 import nibabel.cmdline.utils
@@ -50,9 +49,11 @@ def are_values_different(*values):
     values = values[1:]  # to ensure that the first value isn't compared with itself
 
     for value in values:
-        try:  # we don't want NaN values
-            if np.any(np.isnan(value0)) or np.any(np.isnan(value)):
+        try:  # we sometimes don't want NaN values
+            if np.any(np.isnan(value0)) and np.any(np.isnan(value)):  # if they're both NaN
                 break
+            elif np.any(np.isnan(value0)) or np.any(np.isnan(value)):  # if only 1 or the other is NaN
+                return True
 
         except TypeError:
             pass
@@ -82,14 +83,18 @@ def get_headers_diff(file_headers, names=None):
       values per each file
     """
     difference = OrderedDict()
+    fields = names
+
+    if names is None:
+        fields = file_headers[0].keys()
 
     # for each header field
-    for name in names:
-        values = [header.get(name) for header in file_headers]  # get corresponding value
+    for field in fields:
+        values = [header.get(field) for header in file_headers]  # get corresponding value
 
         # if these values are different, store them in a dictionary
         if are_values_different(*values):
-            difference[name] = values
+            difference[field] = values
 
     return difference
 
