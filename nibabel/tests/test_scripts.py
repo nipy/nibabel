@@ -15,10 +15,8 @@ import csv
 from glob import glob
 
 import numpy as np
-import difflib
 
 import nibabel as nib
-from nibabel.cmdline.diff import diff_headers
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
@@ -71,43 +69,8 @@ def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
 
 
 def check_nib_diff_examples():
-    # test nib-diff script
-    #     fnames = [pjoin(DATA_PATH, f)
-    #               for f in ('standard.nii.gz', 'example4d.nii.gz')]
-    #     target_output = """\
-    # These files are different.
-    # Field      standard.nii.gz                              example4d.nii.gz
-    # regular    b''                                          b'r'
-    # dim_info   0                                            57
-    # dim        [3, 4, 5, 7, 1, 1, 1, 1]                     [4, 128, 96, 24, 2, 1, 1, 1]
-    # datatype   2                                            4
-    # bitpix     8                                            16
-    # pixdim     [1.0, 1.0, 3.0, 2.0, 1.0, 1.0, 1.0, 1.0]     [-1.0, 2.0, 2.0, 2.1999991, 2000.0, 1.0, 1.0, 1.0]
-    # slice_end  0                                            23
-    # xyzt_units 0                                            10
-    # cal_max    0.0                                          1162.0
-    # descrip    b''                                          b'FSL3.3? v2.25 NIfTI-1 Single file format'
-    # qform_code 0                                            1
-    # sform_code 2                                            1
-    # quatern_b  0.0                                          -1.9451068140294884e-26
-    # quatern_c  0.0                                          -0.9967085123062134
-    # quatern_d  0.0                                          -0.0810687392950058
-    # qoffset_x  0.0                                          117.8551025390625
-    # qoffset_y  0.0                                          -35.72294235229492
-    # qoffset_z  0.0                                          -7.248798370361328
-    # srow_x     [1.0, 0.0, 0.0, 0.0]                         [-2.0, 6.7147157e-19, 9.0810245e-18, 117.8551]
-    # srow_y     [0.0, 3.0, 0.0, 0.0]                         [-6.7147157e-19, 1.9737115, -0.35552824, -35.722942]
-    # srow_z     [0.0, 0.0, 2.0, 0.0]                         [8.2554809e-18, 0.32320762, 2.1710818, -7.2487984]
-    # DATA(md5)  0a2576dd6badbb25bfb3b12076df986b             b0abbc492b4fd533b2c80d82570062cf"""
     fnames2 = [pjoin(DATA_PATH, f)
               for f in ('example4d.nii.gz', 'example4d.nii.gz')]
-#     code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
-#     # n1, n2 = 2300, 2400
-#     # stdout, target_output = stdout[n1:n2], target_output[n1:n2]
-#     delta_diff = difflib.context_diff(stdout, target_output)
-#     print(''.join(delta_diff))
-#     assert_equal(stdout, target_output)
-
     code, stdout, stderr = run_command(['nib-diff'] + fnames2, check_code=False)
     assert_equal(stdout, "These files are identical.")
 

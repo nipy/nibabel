@@ -52,7 +52,7 @@ def are_values_different(*values):
         try:  # we sometimes don't want NaN values
             if np.any(np.isnan(value0)) and np.any(np.isnan(value)):  # if they're both NaN
                 break
-            elif np.any(np.isnan(value0)) or np.any(np.isnan(value)):  # if only 1 or the other is NaN
+            elif np.any(np.isnan(value0)) or np.any(np.isnan(value)):  # if only 1 is NaN
                 return True
 
         except TypeError:
@@ -60,7 +60,7 @@ def are_values_different(*values):
 
         if type(value0) != type(value):  # if types are different, then we consider them different
             return True
-        elif isinstance(value0, np.ndarray) and np.any(value0 != value):  # if they're a numpy array, special test
+        elif isinstance(value0, np.ndarray) and np.any(value0 != value):  # special test for ndarray
             return True
         elif value0 != value:
             return True
