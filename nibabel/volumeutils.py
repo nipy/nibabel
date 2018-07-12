@@ -97,7 +97,7 @@ class Recoder(object):
 
         Parameters
         ----------
-        codes : seqence of sequences
+        codes : sequence of sequences
             Each sequence defines values (codes) that are equivalent
         fields : {('code',) string sequence}, optional
             names by which elements in sequences can be accessed
