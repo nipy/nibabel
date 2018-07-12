@@ -60,8 +60,13 @@ def are_values_different(*values):
 
         if type(value0) != type(value):  # if types are different, then we consider them different
             return True
-        elif isinstance(value0, np.ndarray) and np.any(value0 != value):  # special test for ndarray
-            return True
+        
+        elif isinstance(value0, np.ndarray):
+            if np.any(value0 != value):  # special test for ndarray
+                return True
+            else:
+                return False
+
         elif value0 != value:
             return True
 
