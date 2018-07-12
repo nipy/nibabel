@@ -1573,14 +1573,24 @@ class Nifti1Header(SpmAnalyzeHeader):
         so_recoder = self._field_recoders['slice_code']
         labels = so_recoder.value_set('label')
         labels.remove('unknown')
-        for label in labels:
+
+        matching_labels = []
+        # reversing the order so that "alternative" go last
+        for label in sorted(labels, reverse=True):
             if np.all(st_order == self._slice_time_order(
                     label,
                     n_timed)):
-                break
-        else:
+                matching_labels.append(label)
+
+        if not matching_labels:
             raise HeaderDataError('slice ordering of %s fits '
                                   'with no known scheme' % st_order)
+        if len(matching_labels) > 1:
+            warnings.warn(
+                'Multiple slice orders satisfy: %s. Choosing the first one'
+                % ', '.join(matching_labels)
+            )
+        label = matching_labels[0]
         # Set values into header
         hdr['slice_start'] = slice_start
         hdr['slice_end'] = slice_end
