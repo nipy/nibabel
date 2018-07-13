@@ -558,6 +558,19 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(hdr['slice_end'], 5)
         assert_array_almost_equal(hdr['slice_duration'], 0.1)
 
+        # Ambiguous case
+        hdr2 = self.header_class()
+        hdr2.set_dim_info(slice=2)
+        hdr2.set_slice_duration(0.1)
+        hdr2.set_data_shape((1, 1, 2))
+        hdr2.set_slice_times([0.1, 0])  # will generate warning that multiple match
+        # but always must be choosing sequential one first
+        assert_equal(hdr2.get_value_label('slice_code'), 'sequential decreasing')
+        # and the other direction
+        hdr2.set_slice_times([0, 0.1])
+        assert_equal(hdr2.get_value_label('slice_code'), 'sequential increasing')
+
+
     def test_intents(self):
         ehdr = self.header_class()
         ehdr.set_intent('t test', (10,), name='some score')
