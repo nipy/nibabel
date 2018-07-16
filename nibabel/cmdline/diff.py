@@ -22,6 +22,7 @@ import numpy as np
 import nibabel as nib
 import nibabel.cmdline.utils
 import hashlib
+import os
 
 
 def get_opt_parser():
@@ -151,16 +152,7 @@ def main():
         print("{:<15}".format('Field'), end="")
 
         for f in files:
-            output = ""
-            i = 0
-            while i < len(f):
-                if f[i] == "/" or f[i] == "\\":
-                    output = ""
-                else:
-                    output += f[i]
-                i += 1
-
-            print("{:<55}".format(output), end="")
+            print("{:<55}".format(os.path.basename(f)), end="")
 
         print()
 
