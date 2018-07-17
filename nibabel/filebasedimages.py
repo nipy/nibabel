@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
+import io
 from copy import deepcopy
 from six import string_types
 from .fileholders import FileHolder
