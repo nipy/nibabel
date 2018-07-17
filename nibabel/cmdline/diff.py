@@ -117,6 +117,50 @@ def get_data_md5sums(files):
     return md5sums
 
 
+def display_diff(files, diff):
+    """Format header differences into a nice string
+
+        Parameters
+        ----------
+        files: list of files that were compared so we can print their names
+        diff: dict of different valued header fields
+
+        Returns
+        -------
+        str
+          string-formatted table of differences
+    """
+    output = ""
+    field_width = "{:<15}"
+    value_width = "{:<55}"
+
+    output += "These files are different.\n"
+    output += field_width.format('Field')
+
+    for f in files:
+        output += value_width.format(os.path.basename(f))
+
+    output += "\n"
+
+    for key, value in diff.items():
+        output += field_width.format(key)
+
+        for item in value:
+            item_str = str(item)
+            # Value might start/end with some invisible spacing characters so we
+            # would "condition" it on both ends a bit
+            item_str = re.sub('^[ \t]+', '<', item_str)
+            item_str = re.sub('[ \t]+$', '>', item_str)
+            # and also replace some other invisible symbols with a question
+            # mark
+            item_str = re.sub('[\x00]', '?', item_str)
+            output += value_width.format(item_str)
+
+        output += "\n"
+
+    return output
+
+
 def main():
     """Getting the show on the road"""
 
@@ -148,30 +192,8 @@ def main():
         diff['DATA(md5)'] = data_diff
 
     if diff:
-        print("These files are different.")
-        print("{:<15}".format('Field'), end="")
-
-        for f in files:
-            print("{:<55}".format(os.path.basename(f)), end="")
-
-        print()
-
-        for key, value in diff.items():
-            print("{:<15}".format(key), end="")
-
-            for item in value:
-                item_str = str(item)
-                # Value might start/end with some invisible spacing characters so we
-                # would "condition" it on both ends a bit
-                item_str = re.sub('^[ \t]+', '<', item_str)
-                item_str = re.sub('[ \t]+$', '>', item_str)
-                # and also replace some other invisible symbols with a question
-                # mark
-                item_str = re.sub('[\x00]', '?', item_str)
-                print("{:<55}".format(item_str), end="")
-
-            print()
-
+        sys.stdout.write(display_diff(files, diff))
         raise SystemExit(1)
+
     else:
         print("These files are identical.")

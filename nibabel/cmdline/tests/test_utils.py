@@ -10,11 +10,10 @@ from nose.tools import assert_equal
 import nibabel as nib
 import numpy as np
 from nibabel.cmdline.utils import *
-from nibabel.cmdline.diff import get_headers_diff
+from nibabel.cmdline.diff import get_headers_diff, display_diff
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
-
 
 
 def test_table2string():
@@ -85,3 +84,25 @@ def test_get_headers_diff():
                                                      -7.24879837e+00]).astype(dtype="float32")])])
 
     np.testing.assert_equal(actual_difference, expected_difference)
+
+
+def test_display_diff():
+    bogus_names = ["hellokitty.nii.gz", "privettovarish.nii.gz"]
+
+    dict_values = OrderedDict([
+        ("datatype", [np.array(2).astype(dtype="uint8"), np.array(4).astype(dtype="uint8")]),
+        ("bitpix", [np.array(8).astype(dtype="uint8"), np.array(16).astype(dtype="uint8")])
+    ])
+
+    expected_output = "These files are different.\n" + "Field          hellokitty.nii.gz" \
+                                                       "                                      " \
+                                                       "privettovarish.nii.gz                                  \n" \
+                                                       "datatype       " \
+                                                       "2                                                      " \
+                                                       "4                                                      \n" \
+                                                       "bitpix         " \
+                                                       "8                                                      16" \
+                                                       "                                                     " \
+                                                       "\n"
+
+    assert_equal(display_diff(bogus_names, dict_values), expected_output)
