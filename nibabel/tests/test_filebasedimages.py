@@ -5,9 +5,9 @@ from itertools import product
 
 import numpy as np
 
-from nibabel.filebasedimages import FileBasedHeader, FileBasedImage
+from ..filebasedimages import FileBasedHeader, FileBasedImage
 
-from nibabel.tests.test_image_api import GenericImageAPI
+from .test_image_api import GenericImageAPI, SerializeMixin
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal)
@@ -50,7 +50,8 @@ class FBNumpyImage(FileBasedImage):
         self.arr = self.arr.astype(dtype)
 
 
-class TestFBImageAPI(GenericImageAPI):
+class TestFBImageAPI(GenericImageAPI,
+                     SerializeMixin):
     """ Validation for FileBasedImage instances
     """
     # A callable returning an image from ``image_maker(data, header)``

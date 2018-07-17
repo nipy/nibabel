@@ -493,6 +493,19 @@ class AffineMixin(object):
             assert_true(aff is img.get_affine())
 
 
+class SerializeMixin(object):
+
+    def validate_serialize(self, imaker, params):
+        img = imaker()
+        serialized = img.serialize()
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+            with open(fname, 'rb') as fobj:
+                file_contents = fobj.read()
+        assert serialized == file_contents
+
+
 class LoadImageAPI(GenericImageAPI,
                    DataInterfaceMixin,
                    AffineMixin,
@@ -613,7 +626,7 @@ class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
     can_save = True
 
 
-class TestNifti1API(TestNifti1PairAPI):
+class TestNifti1API(TestNifti1PairAPI, SerializeMixin):
     klass = image_maker = Nifti1Image
     standard_extension = '.nii'
 
@@ -660,7 +673,7 @@ class TestPARRECAPI(LoadImageAPI):
 #    standard_extension = '.v'
 
 
-class TestMGHAPI(ImageHeaderAPI):
+class TestMGHAPI(ImageHeaderAPI, SerializeMixin):
     klass = image_maker = MGHImage
     example_shapes = ((2, 3, 4), (2, 3, 4, 5))  # MGH can only do >= 3D
     has_scaling = True
