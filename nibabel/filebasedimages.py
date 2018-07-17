@@ -513,6 +513,18 @@ class FileBasedImage(object):
         return klass.header_class.may_contain_header(sniff[0]), sniff
 
     def serialize(self):
+        """ Return a ``bytes`` object with the contents of the file that would
+        be written if the image were saved.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        bytes
+            Serialized image
+        """
         bio = io.BytesIO()
         file_map = self.make_file_map({'image': bio, 'header': bio})
         self.to_file_map(file_map)
