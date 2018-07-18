@@ -1575,8 +1575,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         labels.remove('unknown')
 
         matching_labels = []
-        # reversing the order so that "alternative" go last
-        for label in sorted(labels, reverse=True):
+        for label in labels:
             if np.all(st_order == self._slice_time_order(
                     label,
                     n_timed)):
