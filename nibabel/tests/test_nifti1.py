@@ -38,7 +38,12 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 
-from ..testing import data_path, suppress_warnings, runif_extra_has
+from ..testing import (
+    clear_and_catch_warnings,
+    data_path,
+    runif_extra_has,
+    suppress_warnings,
+)
 
 from . import test_analyze as tana
 from . import test_spm99analyze as tspm
@@ -563,7 +568,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr2.set_dim_info(slice=2)
         hdr2.set_slice_duration(0.1)
         hdr2.set_data_shape((1, 1, 2))
-        hdr2.set_slice_times([0.1, 0])  # will generate warning that multiple match
+        with clear_and_catch_warnings() as w:
+            hdr2.set_slice_times([0.1, 0])
+            assert len(w) == 1
         # but always must be choosing sequential one first
         assert_equal(hdr2.get_value_label('slice_code'), 'sequential decreasing')
         # and the other direction
