@@ -569,6 +569,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr2.set_slice_duration(0.1)
         hdr2.set_data_shape((1, 1, 2))
         with clear_and_catch_warnings() as w:
+            warnings.simplefilter("always")
             hdr2.set_slice_times([0.1, 0])
             assert len(w) == 1
         # but always must be choosing sequential one first
