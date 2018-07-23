@@ -9,6 +9,8 @@ language: python
 # Run jobs on container-based infrastructure, can be overridden per job
 sudo: false
 
+dist: xenial
+
 cache:
   directories:
     - $HOME/.cache/pip
