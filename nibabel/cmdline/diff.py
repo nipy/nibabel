@@ -161,29 +161,38 @@ def display_diff(files, diff):
     return output
 
 
-def main():
+def main(args=None):
     """Getting the show on the road"""
+    try:
+        parser = get_opt_parser()
+        (opts, files) = parser.parse_args()
 
-    parser = get_opt_parser()
-    (opts, files) = parser.parse_args()
+        nibabel.cmdline.utils.verbose_level = opts.verbose
 
-    nibabel.cmdline.utils.verbose_level = opts.verbose
+        if nibabel.cmdline.utils.verbose_level < 3:
+            # suppress nibabel format-compliance warnings
+            nib.imageglobals.logger.level = 50
+
+    except SystemExit:
+        opts = None
+        files = None
+
+    if args:
+        files = args
 
     assert len(files) >= 2, "Please enter at least two files"
 
-    if nibabel.cmdline.utils.verbose_level < 3:
-        # suppress nibabel format-compliance warnings
-        nib.imageglobals.logger.level = 50
-
     file_headers = [nib.load(f).header for f in files]
 
-    if opts.header_fields:  # will almost always have a header field
+    if opts:  # will almost always have a header field
         # signals "all fields"
         if opts.header_fields == 'all':
             # TODO: header fields might vary across file types, thus prior sensing would be needed
             header_fields = file_headers[0].keys()
         else:
             header_fields = opts.header_fields.split(',')
+    else:
+        header_fields = file_headers[0].keys()
 
     diff = get_headers_diff(file_headers, header_fields)
     data_diff = get_data_md5sums(files)
@@ -192,8 +201,11 @@ def main():
         diff['DATA(md5)'] = data_diff
 
     if diff:
-        sys.stdout.write(display_diff(files, diff))
-        raise SystemExit(1)
+        if opts:
+            sys.stdout.write(display_diff(files, diff))
+            raise SystemExit(1)
+        else:
+            return diff  # this functionality specifically for testing main
 
     else:
         print("These files are identical.")
