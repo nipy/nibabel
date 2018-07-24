@@ -25,6 +25,7 @@ python:
     - 3.4
     - 3.5
     - 3.6
+    - 3.7-dev
 matrix:
   include:
     - python: 2.7
@@ -80,8 +81,6 @@ matrix:
     - python: 3.5
       env:
         - DOC_DOC_TEST=1
-    - python: 3.7
-      dist: xenial
     # Run tests with indexed_gzip present
     - python: 2.7
       env:
