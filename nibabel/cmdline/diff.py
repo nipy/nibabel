@@ -161,24 +161,17 @@ def display_diff(files, diff):
     return output
 
 
-def main(args=None):
+def main(args=None, out=None):
     """Getting the show on the road"""
-    try:
-        parser = get_opt_parser()
-        (opts, files) = parser.parse_args()
+    out = out or sys.stdout
+    parser = get_opt_parser()
+    (opts, files) = parser.parse_args(args)
 
-        nibabel.cmdline.utils.verbose_level = opts.verbose
+    nibabel.cmdline.utils.verbose_level = opts.verbose
 
-        if nibabel.cmdline.utils.verbose_level < 3:
-            # suppress nibabel format-compliance warnings
-            nib.imageglobals.logger.level = 50
-
-    except SystemExit:
-        opts = None
-        files = None
-
-    if args:
-        files = args
+    if nibabel.cmdline.utils.verbose_level < 3:
+        # suppress nibabel format-compliance warnings
+        nib.imageglobals.logger.level = 50
 
     assert len(files) >= 2, "Please enter at least two files"
 
@@ -201,11 +194,8 @@ def main(args=None):
         diff['DATA(md5)'] = data_diff
 
     if diff:
-        if opts:
-            sys.stdout.write(display_diff(files, diff))
-            raise SystemExit(1)
-        else:
-            return diff  # this functionality specifically for testing main
+        out.write(display_diff(files, diff))
+        raise SystemExit(1)
 
     else:
-        print("These files are identical.")
+        out.write("These files are identical.\n")

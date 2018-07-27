@@ -15,6 +15,7 @@ from nibabel.cmdline.diff import get_headers_diff, display_diff, main
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
+from io import StringIO
 
 
 def test_table2string():
@@ -111,7 +112,7 @@ def test_display_diff():
 
 def test_main():
     test_names = [pjoin(data_path, f)
-              for f in ('standard.nii.gz', 'example4d.nii.gz')]
+                  for f in ('standard.nii.gz', 'example4d.nii.gz')]
     expected_difference = OrderedDict([
         ("regular", [np.asarray("".encode("utf-8")), np.asarray("r".encode("utf-8"))]),
         ("dim_info", [np.asarray(0).astype(dtype="uint8"), np.asarray(57).astype(dtype="uint8")]),
@@ -147,4 +148,5 @@ def test_main():
                               -7.24879837e+00]).astype(dtype="float32")]),
         ('DATA(md5)', ['0a2576dd6badbb25bfb3b12076df986b', 'b0abbc492b4fd533b2c80d82570062cf'])])
 
-    np.testing.assert_equal(main(test_names), expected_difference)
+    with assert_raises(SystemExit):
+        np.testing.assert_equal(main(test_names, StringIO()), expected_difference)
