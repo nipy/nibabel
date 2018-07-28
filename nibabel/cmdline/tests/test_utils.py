@@ -11,7 +11,7 @@ from numpy.testing import assert_raises
 import nibabel as nib
 import numpy as np
 from nibabel.cmdline.utils import *
-from nibabel.cmdline.diff import get_headers_diff, display_diff, main
+from nibabel.cmdline.diff import get_headers_diff, display_diff, main, get_data_diff
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
@@ -110,6 +110,13 @@ def test_display_diff():
     assert_equal(display_diff(bogus_names, dict_values), expected_output)
 
 
+def test_get_data_diff():
+    #  testing for identical files specifically as md5 may vary by computer
+    test_names = [pjoin(data_path, f)
+                  for f in ('standard.nii.gz', 'standard.nii.gz')]
+    assert_equal(get_data_diff(test_names), [])
+
+
 def test_main():
     test_names = [pjoin(data_path, f)
                   for f in ('standard.nii.gz', 'example4d.nii.gz')]
@@ -150,3 +157,8 @@ def test_main():
 
     with assert_raises(SystemExit):
         np.testing.assert_equal(main(test_names, StringIO()), expected_difference)
+
+    test_names_2 = [pjoin(data_path, f) for f in ('standard.nii.gz', 'standard.nii.gz')]
+
+    with assert_raises(SystemExit):
+        assert_equal(main(test_names_2, StringIO()), "These files are identical.")

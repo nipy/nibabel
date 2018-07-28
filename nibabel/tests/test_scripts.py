@@ -75,7 +75,7 @@ def check_nib_diff_examples():
     checked_fields = ["Field", "regular", "dim_info", "dim", "datatype", "bitpix", "pixdim", "slice_end",
                       "xyzt_units", "cal_max", "descrip", "qform_code", "sform_code", "quatern_b",
                       "quatern_c", "quatern_d", "qoffset_x", "qoffset_y", "qoffset_z", "srow_x",
-                      "srow_y", "srow_z"]
+                      "srow_y", "srow_z", "DATA(md5)"]
     for item in checked_fields:
         assert_true(item in stdout)
 
@@ -83,6 +83,18 @@ def check_nib_diff_examples():
               for f in ('example4d.nii.gz', 'example4d.nii.gz')]
     code, stdout, stderr = run_command(['nib-diff'] + fnames2, check_code=False)
     assert_equal(stdout, "These files are identical.")
+
+    fnames3 = [pjoin(DATA_PATH, f)
+               for f in ('standard.nii.gz', 'example4d.nii.gz', 'example_nifti2.nii.gz')]
+    code, stdout, stderr = run_command(['nib-diff'] + fnames3, check_code=False)
+    for item in checked_fields:
+        assert_true(item in stdout)
+
+    fnames4 = [pjoin(DATA_PATH, f)
+               for f in ('standard.nii.gz', 'standard.nii.gz', 'standard.nii.gz')]
+    code, stdout, stderr = run_command(['nib-diff'] + fnames4, check_code=False)
+    assert_equal(stdout, "These files are identical.")
+
 
 
 @script_test

@@ -62,10 +62,7 @@ def are_values_different(*values):
         if type(value0) != type(value):  # if types are different, then we consider them different
             return True
         elif isinstance(value0, np.ndarray):
-            if np.any(value0 != value):  # special test for ndarray
-                return True
-            else:
-                return False
+            return np.any(value0 != value)
 
         elif value0 != value:
             return True
@@ -104,7 +101,18 @@ def get_headers_diff(file_headers, names=None):
     return difference
 
 
-def get_data_md5sums(files):
+def get_data_diff(files):
+    """Get difference between md5 values
+
+        Parameters
+        ----------
+        files: list of actual files
+
+        Returns
+        -------
+        list
+          np.array: md5 values of respective files
+        """
 
     md5sums = [
         hashlib.md5(np.ascontiguousarray(nib.load(f).get_data(), dtype=np.float32)).hexdigest()
@@ -177,18 +185,15 @@ def main(args=None, out=None):
 
     file_headers = [nib.load(f).header for f in files]
 
-    if opts:  # will almost always have a header field
-        # signals "all fields"
-        if opts.header_fields == 'all':
-            # TODO: header fields might vary across file types, thus prior sensing would be needed
-            header_fields = file_headers[0].keys()
-        else:
-            header_fields = opts.header_fields.split(',')
-    else:
+    # signals "all fields"
+    if opts.header_fields == 'all':
+        # TODO: header fields might vary across file types, thus prior sensing would be needed
         header_fields = file_headers[0].keys()
+    else:
+        header_fields = opts.header_fields.split(',')
 
     diff = get_headers_diff(file_headers, header_fields)
-    data_diff = get_data_md5sums(files)
+    data_diff = get_data_diff(files)
 
     if data_diff:
         diff['DATA(md5)'] = data_diff
@@ -199,3 +204,4 @@ def main(args=None, out=None):
 
     else:
         out.write("These files are identical.\n")
+        raise SystemExit(0)
