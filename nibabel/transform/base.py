@@ -51,9 +51,60 @@ class TransformBase(object):
     def reference(self, image):
         self._reference = ImageSpace(image)
 
-    def resample(self, moving, order=3, dtype=None):
-        '''A virtual method to resample the moving image in the reference space'''
-        raise NotImplementedError
+    def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
+                 output_dtype=None):
+        '''Resample the moving image in reference space
+
+        Parameters
+        ----------
+
+        moving : `spatialimage`
+            The image object containing the data to be resampled in reference
+            space
+        order : int, optional
+            The order of the spline interpolation, default is 3.
+            The order has to be in the range 0-5.
+        mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+            Determines how the input image is extended when the resamplings overflows
+            a border. Default is 'constant'.
+        cval : float, optional
+            Constant value for ``mode='constant'``. Default is 0.0.
+        prefilter: bool, optional
+            Determines if the moving image's data array is prefiltered with
+            a spline filter before interpolation. The default is ``True``,
+            which will create a temporary *float64* array of filtered values
+            if *order > 1*. If setting this to ``False``, the output will be
+            slightly blurred if *order > 1*, unless the input is prefiltered,
+            i.e. it is the result of calling the spline filter on the original
+            input.
+
+        Returns
+        -------
+
+        moved_image : `spatialimage`
+            The moving imaged after resampling to reference space.
+
+        '''
+
+        if output_dtype is None:
+            output_dtype = moving.header.get_data_dtype()
+
+        moving_data = moving.get_data()
+        moved = ndi.geometric_transform(
+            moving_data,
+            mapping=self.map_voxel,
+            output_shape=self.reference.shape,
+            output=output_dtype,
+            order=order,
+            mode=mode,
+            cval=cval,
+            prefilter=prefilter,
+            extra_keywords={'moving': moving},
+        )
+
+        moved_image = moving.__class__(moved, self.reference.affine, moving.header)
+        moved_image.header.set_data_dtype(output_dtype)
+        return moved_image
 
     def map_point(self, coords):
         '''Find the coordinates in moving space corresponding to the
@@ -164,10 +215,10 @@ class Affine(TransformBase):
             output_shape=reference.shape, order=order, mode=mode,
             cval=cval, prefilter=prefilter)
 
-        img = moving.__class__(moved, moving.affine, moving.header)
-        img.header.set_data_dtype(output_dtype)
+        moved_image = moving.__class__(moved, reference.affine, moving.header)
+        moved_image.header.set_data_dtype(output_dtype)
 
-        return img
+        return moved_image
 
     def map_point(self, coords, forward=True):
         coords = np.array(coords)
