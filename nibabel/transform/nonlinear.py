@@ -21,8 +21,11 @@ class DeformationFieldTransform(TransformBase):
     def __init__(self, field):
         super(DeformationFieldTransform, self).__init__()
         self.reference = four_to_three(field)[0]
-        # Cache the new indexes
         self._field = field.get_data()
+        self._moving = None
+
+    def _cache_moving(self, moving):
+        # Cache the new indexes
         ndim = self._field.ndim - 1
         if ndim == 2:
             grid = np.meshgrid(
@@ -42,14 +45,24 @@ class DeformationFieldTransform(TransformBase):
         flatgrid = grid.reshape(ndim, -1)
         flatxyz = np.tensordot(
             self.reference.affine,
-            np.vstack((flatgrid, np.ones((1, ndim)))),
+            np.vstack((flatgrid, np.ones((1, flatgrid.shape[1])))),
             axes=1
         )
 
-        delta = np.moveaxis(
-            flatxyz[0:3, :].reshape((ndim, ) + self._field.shape[:-1]),
+        newxyz = flatxyz + np.vstack((self._field.reshape(ndim , -1),
+                                     np.zeros((1, flatgrid.shape[1]))))
+        newijk = np.tensordot(np.linalg.inv(moving.affine),
+                              newxyz, axes=1)
+
+        self._moving = np.moveaxis(
+            newijk[0:3, :].reshape((ndim, ) + self._field.shape[:-1]),
             0, -1)
-        self._moving = self._field + delta
+
+    def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
+                 output_dtype=None):
+        self._cache_moving(moving)
+        return super(DeformationFieldTransform, self).resample(
+            moving, order=order, mode=mode, cval=cval, prefilter=prefilter)
 
     def map_voxel(self, index, moving=None):
         '''
