@@ -119,6 +119,7 @@ def main(**extra_args):
                           pjoin('bin', 'nib-nifti-dx'),
                           pjoin('bin', 'nib-tck2trk'),
                           pjoin('bin', 'nib-trk2tck'),
+                          pjoin('bin', 'nib-diff'),
                           ],
           cmdclass = cmdclass,
           **extra_args
