@@ -16,12 +16,40 @@ from ..funcs import four_to_three
 
 class DeformationFieldTransform(TransformBase):
     '''Represents linear transforms on image data'''
-    __slots__ = ['_field']
+    __slots__ = ['_field', '_moving']
 
     def __init__(self, field):
+        super(DeformationFieldTransform, self).__init__()
         self.reference = four_to_three(field)[0]
-        # Set the field components in front
+        # Cache the new indexes
         self._field = field.get_data()
+        ndim = self._field.ndim - 1
+        if ndim == 2:
+            grid = np.meshgrid(
+                np.arange(self._field.shape[0]),
+                np.arange(self._field.shape[1]),
+                indexing='ij')
+        elif ndim == 3:
+            grid = np.meshgrid(
+                np.arange(self._field.shape[0]),
+                np.arange(self._field.shape[1]),
+                np.arange(self._field.shape[2]),
+                indexing='ij')
+        else:
+            raise ValueError('Wrong dimensions (%d)' % ndim)
+
+        grid = np.array(grid)
+        flatgrid = grid.reshape(ndim, -1)
+        flatxyz = np.tensordot(
+            self.reference.affine,
+            np.vstack((flatgrid, np.ones((1, ndim)))),
+            axes=1
+        )
+
+        delta = np.moveaxis(
+            flatxyz[0:3, :].reshape((ndim, ) + self._field.shape[:-1]),
+            0, -1)
+        self._moving = self._field + delta
 
     def map_voxel(self, index, moving=None):
         '''
@@ -40,16 +68,10 @@ class DeformationFieldTransform(TransformBase):
         >>> new.to_filename('deffield.nii.gz')
 
         '''
-        vox2ras = self.reference.affine
-        ras2vox = np.linalg.inv(vox2ras if moving is None
-                                else moving.affine)
+        ras2vox = np.linalg.inv(
+            self.reference.affine if moving is None
+            else moving.affine)
 
-        index = np.array(index)
-        if index.shape[0] == vox2ras.shape[0] - 1:
-            index = np.append(index, [1.0])
-
-        idx = tuple([int(i) for i in index[:-1]])
-        point = vox2ras.dot(index)[:-1]
-        delta = np.squeeze(self._field[idx + (slice(None), )])
-        newindex = ras2vox.dot(np.append(point + delta, [1]))[:-1]
+        point = self._moving[index + (slice(None), )]
+        newindex = ras2vox.dot(np.append(point, [1]))[:-1]
         return tuple(newindex)
