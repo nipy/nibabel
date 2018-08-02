@@ -81,10 +81,5 @@ class DeformationFieldTransform(TransformBase):
         >>> new.to_filename('deffield.nii.gz')
 
         '''
-        ras2vox = np.linalg.inv(
-            self.reference.affine if moving is None
-            else moving.affine)
+        return tuple(self._moving[index + (slice(None), )])
 
-        point = self._moving[index + (slice(None), )]
-        newindex = ras2vox.dot(np.append(point, [1]))[:-1]
-        return tuple(newindex)
