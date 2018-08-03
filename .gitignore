@@ -84,3 +84,4 @@ Thumbs.db
 doc/source/reference
 venv/
 .buildbot.patch
+nibabel/maths/bspline.c

@@ -105,3 +105,31 @@ class DeformationFieldTransform(TransformBase):
 
     def map_voxel(self, index, moving=None):
         return tuple(self._moving[index + self.__s])
+
+    def map_coordinates(self, coordinates, order=3, mode='constant', cval=0.0,
+                        prefilter=True):
+        coordinates = np.array(coordinates)
+        # Extract shapes and dimensions, then flatten
+        ndim = coordinates.shape[-1]
+        output_shape = coordinates.shape[:-1]
+        flatcoord = np.moveaxis(coordinates, -1, 0).reshape(ndim, -1)
+
+        # Convert coordinates to voxel indices
+        ijk = np.tensordot(
+            np.linalg.inv(self.reference.affine),
+            np.vstack((flatcoord, np.ones((1, flatcoord.shape[1])))),
+            axes=1)
+        deltas = ndi.map_coordinates(
+            self._field,
+            ijk,
+            order=order,
+            mode=mode,
+            cval=cval,
+            prefilter=prefilter)
+
+        print(deltas)
+
+        deltas = np.moveaxis(deltas[0:3, :].reshape((ndim, ) + output_shape),
+                             0, -1)
+
+        return coordinates + deltas
