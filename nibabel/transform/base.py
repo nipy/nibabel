@@ -30,6 +30,13 @@ class ImageSpace(object):
     def shape(self):
         return self._shape
 
+    def __eq__(self, other):
+        try:
+            return np.allclose(self.affine, other.affine) and self.shape == other.shape
+        except AttributeError:
+            pass
+        return False
+
 
 class TransformBase(object):
     '''
@@ -245,4 +252,4 @@ class Affine(TransformBase):
             index = np.append(index, [1])
 
         matrix = reference.affine.dot(self._matrix.dot(np.linalg.inv(moving.affine)))
-        return matrix.dot(index)[:-1]
+        return tuple(matrix.dot(index)[:-1])
