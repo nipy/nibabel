@@ -13,14 +13,18 @@ from scipy import ndimage as ndi
 
 
 class ImageSpace(object):
-    '''
-    Abstract class to represent spaces of gridded data (images)
-    '''
-    __slots__ = ['_affine', '_shape']
+    '''Class to represent spaces of gridded data (images)'''
+    __slots__ = ['_affine', '_shape', '_ndim', '_ndindex', '_coords', '_nvox']
 
     def __init__(self, image):
         self._affine = image.affine
         self._shape = image.shape
+        self._ndim = len(image.shape)
+        self._nvox = np.prod(image.shape)
+        self._ndindex = None
+        self._coords = None
+        if self._ndim not in [2, 3]:
+            raise ValueError('Invalid image space (%d-D)' % self._ndim)
 
     @property
     def affine(self):
@@ -29,6 +33,41 @@ class ImageSpace(object):
     @property
     def shape(self):
         return self._shape
+
+    @property
+    def ndim(self):
+        return self._ndim
+
+    @property
+    def nvox(self):
+        return self._nvox
+
+    @property
+    def ndindex(self):
+        if self._ndindex is None:
+            indexes = tuple([np.arange(s) for s in self._shape])
+            self._ndindex = np.array(np.meshgrid(
+                *indexes, indexing='ij')).reshape(self._ndim, self._nvox)
+        return self._ndindex
+
+    @property
+    def ndcoords(self):
+        if self._coords is None:
+            self._coords = np.tensordot(
+                self._affine,
+                np.vstack((self.ndindex, np.ones((1, self._nvox)))),
+                axes=1
+            )[:3, ...]
+        return self._coords
+
+    def map_voxels(self, coordinates):
+        coordinates = np.array(coordinates)
+        ncoords = coordinates.shape[-1]
+        coordinates = np.vstack((coordinates, np.ones((1, ncoords))))
+
+        # Back to grid coordinates
+        return np.tensordot(np.linalg.inv(self._affine),
+                            coordinates, axes=1)[:3, ...]
 
     def __eq__(self, other):
         try:
