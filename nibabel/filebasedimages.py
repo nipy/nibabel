@@ -261,6 +261,21 @@ class FileBasedImage(object):
         return klass.from_file_map(file_map)
 
     @classmethod
+    def from_bytes(klass, bstring):
+        """ Construct image from a byte string
+
+        Class method
+
+        Parameters
+        ----------
+        bstring : bytes
+            Byte string containing the on-disk representation of an image
+        """
+        bio = io.BytesIO(bstring)
+        file_map = self.make_file_map({'image': bio, 'header': bio})
+        return klass.from_file_map(file_map)
+
+    @classmethod
     def from_file_map(klass, file_map):
         raise NotImplementedError
 
@@ -333,6 +348,24 @@ class FileBasedImage(object):
         '''
         self.file_map = self.filespec_to_file_map(filename)
         self.to_file_map()
+
+    def to_bytes(self):
+        """ Return a ``bytes`` object with the contents of the file that would
+        be written if the image were saved.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        bytes
+            Serialized image
+        """
+        bio = io.BytesIO()
+        file_map = self.make_file_map({'image': bio, 'header': bio})
+        self.to_file_map(file_map)
+        return bio.getvalue()
 
     @deprecate_with_version('to_filespec method is deprecated.\n'
                             'Please use the "to_filename" method instead.',
@@ -512,21 +545,3 @@ class FileBasedImage(object):
         if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
             return False, sniff
         return klass.header_class.may_contain_header(sniff[0]), sniff
-
-    def serialize(self):
-        """ Return a ``bytes`` object with the contents of the file that would
-        be written if the image were saved.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        bytes
-            Serialized image
-        """
-        bio = io.BytesIO()
-        file_map = self.make_file_map({'image': bio, 'header': bio})
-        self.to_file_map(file_map)
-        return bio.getvalue()
