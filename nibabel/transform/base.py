@@ -20,7 +20,7 @@ class ImageSpace(object):
         self._affine = image.affine
         self._shape = image.shape
         self._ndim = len(image.shape)
-        self._nvox = np.prod(image.shape)
+        self._nvox = np.prod(image.shape)  # Do not access data array
         self._ndindex = None
         self._coords = None
         if self._ndim not in [2, 3]:
