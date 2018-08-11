@@ -10,6 +10,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 from scipy import ndimage as ndi
+# from gridbspline.interpolate import BsplineNDInterpolator
 
 from .base import ImageSpace, TransformBase
 from ..funcs import four_to_three
@@ -106,7 +107,7 @@ class DeformationFieldTransform(TransformBase):
     def map_voxel(self, index, moving=None):
         return tuple(self._moving[index + self.__s])
 
-    def map_coordinates(self, coordinates, order=3, mode='constant', cval=0.0,
+    def map_coordinates(self, coordinates, order=3, mode='mirror', cval=0.0,
                         prefilter=True):
         coordinates = np.array(coordinates)
         # Extract shapes and dimensions, then flatten
@@ -126,8 +127,6 @@ class DeformationFieldTransform(TransformBase):
             mode=mode,
             cval=cval,
             prefilter=prefilter)
-
-        print(deltas)
 
         deltas = np.moveaxis(deltas[0:3, :].reshape((ndim, ) + output_shape),
                              0, -1)
