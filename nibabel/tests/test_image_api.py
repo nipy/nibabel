@@ -494,16 +494,35 @@ class AffineMixin(object):
 
 
 class SerializeMixin(object):
-
-    def validate_serialize(self, imaker, params):
+    def validate_to_bytes(self, imaker, params):
         img = imaker()
-        serialized = img.serialize()
+        serialized = img.to_bytes()
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
             img.to_filename(fname)
             with open(fname, 'rb') as fobj:
                 file_contents = fobj.read()
         assert serialized == file_contents
+
+    def validate_from_bytes(self, imaker, params):
+        for img_params in self.example_images:
+            img_a = self.klass.from_filename(img_params['fname'])
+            with open(img_params['fname'], 'rb') as fobj:
+                img_b = self.klass.from_bytes(fobj.read())
+
+            assert img_a.header == img_b.header
+            assert np.array_equal(img_a.get_data(), img_b.get_data())
+
+    def validate_round_trip(self, imaker, params):
+        for img_params in self.example_images:
+            img_a = self.klass.from_filename(img_params['fname'])
+            bytes_a = img_a.to_bytes()
+
+            img_b = self.klass.from_bytes(bytes_a)
+
+            assert img_b.to_bytes() == bytes_a
+            assert img_a.header == img_b.header
+            assert np.array_equal(img_a.get_data(), img_b.get_data())
 
 
 class LoadImageAPI(GenericImageAPI,
