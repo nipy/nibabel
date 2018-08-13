@@ -10,7 +10,7 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 from scipy import ndimage as ndi
-# from gridbspline.interpolate import BsplineNDInterpolator
+from gridbspline.maths import cubic
 
 from .base import ImageSpace, TransformBase
 from ..funcs import four_to_three
@@ -174,39 +174,34 @@ class BSplineFieldTransform(TransformBase):
             np.vstack((self.reference.ndcoords, np.ones((1, self.reference.nvox)))),
             axes=1)[..., :3].reshape(self.reference.shape + (self._knots.ndim, ))
 
-
     def map_voxel(self, index, moving=None):
-
-        indexes = []
+        '''Find the corresponding coordinates for a voxel in reference space'''
+        neighbors = []
         offset = 0.0 if self._order & 1 else 0.5
+        # Calculate neighbors along each dimension
         for dim in range(self.ndim):
-            first = int(np.floor(xi[dim] + offset) - self._order // 2)
-            indexes.append(list(range(first, first + self._order + 1)))
+            first = int(np.floor(index[dim] + offset) - self._order // 2)
+            neighbors.append(list(range(first, first + self._order + 1)))
 
+        # Get indexes of the neighborings clique
         ndindex = np.moveaxis(
-            np.array(np.meshgrid(*indexes, indexing='ij')), 0, -1).reshape(
+            np.array(np.meshgrid(*neighbors, indexing='ij')), 0, -1).reshape(
             -1, self.ndim)
 
+        # Calculate the tensor B-spline weights of each neighbor
         vbspl = np.vectorize(cubic)
-        weights = np.prod(vbspl(ndindex - xi), axis=-1)
+        weights = np.prod(vbspl(ndindex - index), axis=-1)
         ndindex = [tuple(v) for v in ndindex]
 
+        # Retrieve coefficients and deal with boundary conditions
         zero = np.zeros(self.ndim)
         shape = np.array(self.shape)
         coeffs = []
         for ijk in ndindex:
             offbounds = (zero > ijk) | (shape <= ijk)
-            if np.any(offbounds):
-                # Deal with offbounds samples
-                if self._off_bounds == 'constant':
-                    coeffs.append([self._fill_value] * self.ncomp)
-                    continue
-                ijk = np.array(ijk, dtype=int)
-                ijk[ijk < 0] *= -1
-                ijk[ijk >= shape] = (2 * shape[ijk >= shape] - ijk[ijk >= shape] - 1).astype(int)
-                ijk = tuple(ijk.tolist())
-
-            coeffs.append(self._coeffs[ijk])
+            coeffs.append(
+                self._coeffs[ijk] if not np.any(offbounds)
+                else [0.0] * self.ndim)
         return weights.dot(np.array(coeffs, dtype=float))
 
 
