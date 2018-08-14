@@ -520,6 +520,8 @@ class SerializeMixin(object):
 
                 assert self._header_eq(img_a.header, img_b.header)
                 assert np.array_equal(img_a.get_data(), img_b.get_data())
+                del img_a
+                del img_b
 
     def validate_to_from_bytes(self, imaker, params):
         img = imaker()
@@ -538,6 +540,8 @@ class SerializeMixin(object):
                 assert img_b.to_bytes() == bytes_a
                 assert self._header_eq(img_a.header, img_b.header)
                 assert np.array_equal(img_a.get_data(), img_b.get_data())
+                del img_a
+                del img_b
 
     @staticmethod
     def _header_eq(header_a, header_b):
