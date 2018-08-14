@@ -505,24 +505,36 @@ class SerializeMixin(object):
         assert serialized == file_contents
 
     def validate_from_bytes(self, imaker, params):
-        for img_params in self.example_images:
-            img_a = self.klass.from_filename(img_params['fname'])
-            with open(img_params['fname'], 'rb') as fobj:
-                img_b = self.klass.from_bytes(fobj.read())
+        img = imaker()
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
 
-            assert img_a.header == img_b.header
-            assert np.array_equal(img_a.get_data(), img_b.get_data())
+            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            for img_params in all_images:
+                img_a = self.klass.from_filename(img_params['fname'])
+                with open(img_params['fname'], 'rb') as fobj:
+                    img_b = self.klass.from_bytes(fobj.read())
 
-    def validate_round_trip(self, imaker, params):
-        for img_params in self.example_images:
-            img_a = self.klass.from_filename(img_params['fname'])
-            bytes_a = img_a.to_bytes()
+                assert img_a.header == img_b.header
+                assert np.array_equal(img_a.get_data(), img_b.get_data())
 
-            img_b = self.klass.from_bytes(bytes_a)
+    def validate_to_from_bytes(self, imaker, params):
+        img = imaker()
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
 
-            assert img_b.to_bytes() == bytes_a
-            assert img_a.header == img_b.header
-            assert np.array_equal(img_a.get_data(), img_b.get_data())
+            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            for img_params in all_images:
+                img_a = self.klass.from_filename(img_params['fname'])
+                bytes_a = img_a.to_bytes()
+
+                img_b = self.klass.from_bytes(bytes_a)
+
+                assert img_b.to_bytes() == bytes_a
+                assert img_a.header == img_b.header
+                assert np.array_equal(img_a.get_data(), img_b.get_data())
 
 
 class LoadImageAPI(GenericImageAPI,

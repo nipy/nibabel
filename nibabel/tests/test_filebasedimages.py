@@ -5,7 +5,7 @@ from itertools import product
 
 import numpy as np
 
-from ..filebasedimages import FileBasedHeader, FileBasedImage
+from ..filebasedimages import FileBasedHeader, FileBasedImage, SerializableImage
 
 from .test_image_api import GenericImageAPI, SerializeMixin
 
@@ -50,8 +50,11 @@ class FBNumpyImage(FileBasedImage):
         self.arr = self.arr.astype(dtype)
 
 
-class TestFBImageAPI(GenericImageAPI,
-                     SerializeMixin):
+class SerializableNumpyImage(FBNumpyImage, SerializableImage):
+    pass
+
+
+class TestFBImageAPI(GenericImageAPI):
     """ Validation for FileBasedImage instances
     """
     # A callable returning an image from ``image_maker(data, header)``
@@ -79,6 +82,10 @@ class TestFBImageAPI(GenericImageAPI,
                 shape=shape,
                 is_proxy=False)
             yield func, params
+
+
+class TestSerializableImageAPI(TestFBImageAPI, SerializeMixin):
+    image_maker = SerializableNumpyImage
 
 
 def test_filebased_header():

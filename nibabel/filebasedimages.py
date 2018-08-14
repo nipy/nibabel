@@ -567,7 +567,7 @@ class SerializableImage(FileBasedImage):
         bstring : bytes
             Byte string containing the on-disk representation of an image
         """
-        bio = io.BytesIO(bstring)
+        bio = io.BytesIO(bytestring)
         file_map = klass.make_file_map({'image': bio, 'header': bio})
         return klass.from_file_map(file_map)
 
