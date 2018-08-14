@@ -506,35 +506,54 @@ class SerializeMixin(object):
 
     def validate_from_bytes(self, imaker, params):
         img = imaker()
+        klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
             img.to_filename(fname)
 
             all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
             for img_params in all_images:
-                img_a = self.klass.from_filename(img_params['fname'])
+                img_a = klass.from_filename(img_params['fname'])
                 with open(img_params['fname'], 'rb') as fobj:
-                    img_b = self.klass.from_bytes(fobj.read())
+                    img_b = klass.from_bytes(fobj.read())
 
-                assert img_a.header == img_b.header
+                assert self._header_eq(img_a.header, img_b.header)
                 assert np.array_equal(img_a.get_data(), img_b.get_data())
 
     def validate_to_from_bytes(self, imaker, params):
         img = imaker()
+        klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
             img.to_filename(fname)
 
             all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
             for img_params in all_images:
-                img_a = self.klass.from_filename(img_params['fname'])
+                img_a = klass.from_filename(img_params['fname'])
                 bytes_a = img_a.to_bytes()
 
-                img_b = self.klass.from_bytes(bytes_a)
+                img_b = klass.from_bytes(bytes_a)
 
                 assert img_b.to_bytes() == bytes_a
-                assert img_a.header == img_b.header
+                assert self._header_eq(img_a.header, img_b.header)
                 assert np.array_equal(img_a.get_data(), img_b.get_data())
+
+    @staticmethod
+    def _header_eq(header_a, header_b):
+        """ Quick-and-dirty header equality check
+
+        Abstract classes may have undefined equality, in which case test for
+        same type
+        """
+        not_implemented = False
+        header_eq = True
+        try:
+            header_eq = header_a == header_b
+        except NotImplementedError:
+            header_eq = type(header_a) == type(header_b)
+
+        return header_eq
+
 
 
 class LoadImageAPI(GenericImageAPI,
