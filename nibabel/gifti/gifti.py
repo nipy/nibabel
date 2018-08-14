@@ -18,7 +18,7 @@ import sys
 import numpy as np
 
 from .. import xmlutils as xml
-from ..filebasedimages import FileBasedImage
+from ..filebasedimages import SerializableImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
@@ -534,7 +534,7 @@ class GiftiDataArray(xml.XmlSerializable):
         return self.meta.metadata
 
 
-class GiftiImage(xml.XmlSerializable, FileBasedImage):
+class GiftiImage(xml.XmlSerializable, SerializableImage):
     """ GIFTI image object
 
     The Gifti spec suggests using the following suffixes to your
@@ -723,6 +723,9 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """ + xml.XmlSerializable.to_xml(self, enc)
+
+    # Avoid the indirection of going through to_file_map
+    to_bytes = to_xml
 
     def to_file_map(self, file_map=None):
         """ Save the current image to the specified file_map

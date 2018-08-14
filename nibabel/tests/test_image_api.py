@@ -38,6 +38,7 @@ _, have_h5py, _ = optional_package('h5py')
 
 from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                GiftiImage,
                 MGHImage, Minc1Image, Minc2Image, is_proxy)
 from ..spatialimages import SpatialImage
 from .. import minc1, minc2, parrec, brikhead
@@ -729,6 +730,12 @@ class TestMGHAPI(ImageHeaderAPI, SerializeMixin):
     has_scaling = True
     can_save = True
     standard_extension = '.mgh'
+
+
+class TestGiftiAPI(LoadImageAPI, SerializeMixin):
+    klass = image_maker = GiftiImage
+    can_save = True
+    standard_extension = '.gii'
 
 
 class TestAFNIAPI(LoadImageAPI):
