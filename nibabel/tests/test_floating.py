@@ -60,7 +60,6 @@ def test_type_info():
     ld_dict = dtt2dict(np.longdouble)
     dbl_dict = dtt2dict(np.float64)
     infod = type_info(np.longdouble)
-    ld_dict['width'] = np.dtype(np.longdouble).itemsize
     vals = tuple(ld_dict[k] for k in ('nmant', 'nexp', 'width'))
     # Information for PPC head / tail doubles from:
     # https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man3/float.3.html
@@ -70,9 +69,8 @@ def test_type_info():
                 (106, 11, 16)):  # PPC head, tail doubles, expected values
         pass
     elif vals == (105, 11, 16):  # bust info for PPC head / tail longdoubles
-        # min and max broken.
-        ld_dict['min'] = infod['min']
-        ld_dict['max'] = infod['max']
+        # min and max broken, copy from infod
+        ld_dict.update({k: infod[k] for k in ('min', 'max')})
     elif vals == (1, 1, 16):  # another bust info for PPC head / tail longdoubles
         ld_dict = dbl_dict.copy()
         ld_dict.update(dict(nmant=106, width=16))
