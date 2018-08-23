@@ -75,6 +75,7 @@ def test_type_info():
         ld_dict = dbl_dict.copy()
         ld_dict.update(dict(nmant=106, width=16))
     elif vals == (52, 15, 12):
+        width = ld_dict['width']
         ld_dict = dbl_dict.copy()
         ld_dict['width'] = width
     else:
