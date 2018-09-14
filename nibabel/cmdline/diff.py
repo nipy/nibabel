@@ -217,7 +217,7 @@ def display_diff(files, diff):
     value_width = "{:<55}"
 
     output += "These files are different.\n"
-    output += field_width.format('Field')
+    output += field_width.format('Field/File')
 
     for i, f in enumerate(files, 1):
         output += "%d:%s" % (i, value_width.format(os.path.basename(f)))
