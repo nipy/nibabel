@@ -11,7 +11,7 @@ from numpy.testing import assert_raises
 import nibabel as nib
 import numpy as np
 from nibabel.cmdline.utils import *
-from nibabel.cmdline.diff import get_headers_diff, display_diff, main, get_data_diff
+from nibabel.cmdline.diff import get_headers_diff, display_diff, main, get_data_md5_diff
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
@@ -96,8 +96,8 @@ def test_display_diff():
         ("bitpix", [np.array(8).astype(dtype="uint8"), np.array(16).astype(dtype="uint8")])
     ])
 
-    expected_output = "These files are different.\n" + "Field          hellokitty.nii.gz" \
-                                                       "                                      " \
+    expected_output = "These files are different.\n" + "Field/File          hellokitty.nii.gz" \
+                                                       "                                 " \
                                                        "privettovarish.nii.gz                                  \n" \
                                                        "datatype       " \
                                                        "2                                                      " \
@@ -114,7 +114,7 @@ def test_get_data_diff():
     #  testing for identical files specifically as md5 may vary by computer
     test_names = [pjoin(data_path, f)
                   for f in ('standard.nii.gz', 'standard.nii.gz')]
-    assert_equal(get_data_diff(test_names), [])
+    assert_equal(get_data_md5_diff(test_names), [])
 
 
 def test_main():
