@@ -96,9 +96,9 @@ def test_display_diff():
         ("bitpix", [np.array(8).astype(dtype="uint8"), np.array(16).astype(dtype="uint8")])
     ])
 
-    expected_output = "These files are different.\n" + "Field/File          hellokitty.nii.gz" \
-                                                       "                                 " \
-                                                       "privettovarish.nii.gz                                  \n" \
+    expected_output = "These files are different.\n" + "Field/File     1:hellokitty.nii.gz" \
+                                                       "                                    " \
+                                                       "2:privettovarish.nii.gz                                \n" \
                                                        "datatype       " \
                                                        "2                                                      " \
                                                        "4                                                      \n" \

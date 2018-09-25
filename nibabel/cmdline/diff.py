@@ -165,41 +165,44 @@ def get_data_diff(files, max_abs=0, max_rel=0):
 
         for j, d2 in enumerate(data[i + 1:], i + 1):
 
-            abs_diff = np.abs(d1 - d2)
-            mean_abs = (np.abs(d1) + np.abs(d2)) * 0.5
-            candidates = np.logical_or(mean_abs != 0, abs_diff != 0)
+            if d1.shape == d2.shape:
+                abs_diff = np.abs(d1 - d2)
+                mean_abs = (np.abs(d1) + np.abs(d2)) * 0.5
+                candidates = np.logical_or(mean_abs != 0, abs_diff != 0)
 
-            if max_abs:
-                candidates[abs_diff <= max_abs] = False
+                if max_abs:
+                    candidates[abs_diff <= max_abs] = False
 
-            max_abs_diff = np.max(abs_diff)
-            if np.any(candidates):
-                rel_diff = abs_diff[candidates] / mean_abs[candidates]
-                if max_rel:
-                    sub_thr = rel_diff <= max_rel
-                    # Since we operated on sub-selected values already, we need
-                    # to plug them back in
-                    candidates[
-                        tuple((indexes[sub_thr] for indexes in np.where(candidates)))
-                    ] = False
-                max_rel_diff = np.max(rel_diff)
+                max_abs_diff = np.max(abs_diff)
+                if np.any(candidates):
+                    rel_diff = abs_diff[candidates] / mean_abs[candidates]
+                    if max_rel:
+                        sub_thr = rel_diff <= max_rel
+                        # Since we operated on sub-selected values already, we need
+                        # to plug them back in
+                        candidates[
+                            tuple((indexes[sub_thr] for indexes in np.where(candidates)))
+                        ] = False
+                    max_rel_diff = np.max(rel_diff)
+                else:
+                    max_rel_diff = 0
+
+                if np.any(candidates):
+
+                    diff_rec = OrderedDict()  # so that abs goes before relative
+
+                    diff_rec['abs'] = max_abs_diff
+                    diff_rec['rel'] = max_rel_diff
+                    diffs1.append(diff_rec)
+                else:
+                    diffs1.append(None)
+
             else:
-                max_rel_diff = 0
-
-            if np.any(candidates):
-
-                diff_rec = OrderedDict()  # so that abs goes before relative
-
-                diff_rec['abs'] = max_abs_diff
-                diff_rec['rel'] = max_rel_diff
-                diffs1.append(diff_rec)
-            else:
-                diffs1.append(None)
+                diffs1.append({'CMP': "incompat"})
 
         if any(diffs1):
 
             diffs['DATA(diff %d:)' % (i + 1)] = diffs1
-
 
     return diffs
 
@@ -219,13 +222,14 @@ def display_diff(files, diff):
     """
     output = ""
     field_width = "{:<15}"
+    filename_width = "{:<53}"
     value_width = "{:<55}"
 
     output += "These files are different.\n"
     output += field_width.format('Field/File')
 
     for i, f in enumerate(files, 1):
-        output += "%d:%s" % (i, value_width.format(os.path.basename(f)))
+        output += "%d:%s" % (i, filename_width.format(os.path.basename(f)))
 
     output += "\n"
 
