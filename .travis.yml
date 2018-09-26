@@ -152,3 +152,8 @@ after_success:
 
 notifications:
     webhooks: http://nipy.bic.berkeley.edu:54856/travis
+
+# Skip building on branches that start with "appveyor"
+branches:
+  except:
+    - /appveyor.*/
