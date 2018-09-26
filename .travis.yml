@@ -4,10 +4,9 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 
+dist: xenial
+sudo: true
 language: python
-
-# Run jobs on container-based infrastructure, can be overridden per job
-sudo: false
 
 cache:
   directories:
@@ -22,11 +21,15 @@ env:
         - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
         - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
 python:
-    - 3.4
+    - 2.7
     - 3.5
     - 3.6
+    - 3.7
 matrix:
   include:
+    - python: 3.4
+      dist: trusty
+      sudo: false
     - python: 2.7
       env:
         - COVERAGE=1
@@ -149,3 +152,8 @@ after_success:
 
 notifications:
     webhooks: http://nipy.bic.berkeley.edu:54856/travis
+
+# Skip building on branches that start with "appveyor"
+branches:
+  except:
+    - /appveyor.*/
