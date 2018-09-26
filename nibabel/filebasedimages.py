@@ -79,8 +79,8 @@ class FileBasedImage(object):
 
     methods:
 
-       * .get_header() (deprecated, use header property instead)
-       * .to_filename(fname) - writes data to filename(s) derived from
+       * get_header() (deprecated, use header property instead)
+       * to_filename(fname) - writes data to filename(s) derived from
          ``fname``, where the derivation may differ between formats.
        * to_file_map() - save image to files with which the image is already
          associated.
@@ -524,20 +524,26 @@ class SerializableImage(FileBasedImage):
 
     methods:
 
-       * .to_bytes() - serialize image to byte string
+       * to_bytes() - serialize image to byte string
 
     classmethods:
 
        * from_bytes(bytestring) - make instance by deserializing a byte string
 
-    The following properties should hold:
+    Loading from byte strings should provide round-trip equivalence:
 
-      * ``klass.from_bytes(bstr).to_bytes() == bstr``
-      * if ``img = orig.__class__.from_bytes(orig.to_bytes())``, then
-        ``img.header == orig.header`` and ``img.get_data() == orig.get_data()``
+    .. code:: python
+
+        img_a = klass.from_bytes(bstr)
+        img_b = klass.from_bytes(img_a.to_bytes())
+
+        np.allclose(img_a.get_fdata(), img_b.get_fdata())
+        np.allclose(img_a.affine, img_b.affine)
 
     Further, for images that are single files on disk, the following methods of loading
     the image must be equivalent:
+
+    .. code:: python
 
         img = klass.from_filename(fname)
 
@@ -546,15 +552,15 @@ class SerializableImage(FileBasedImage):
 
     And the following methods of saving a file must be equivalent:
 
+    .. code:: python
+
         img.to_filename(fname)
 
         with open(fname, 'wb') as fobj:
             fobj.write(img.to_bytes())
 
-    Images that consist of separate header and data files will generally
-    place the header with the data, but if the header is not of fixed
-    size and does not define its own size, a new format may need to be
-    defined.
+    Images that consist of separate header and data files (e.g., Analyze
+    images) currently do not support this interface.
     '''
     @classmethod
     def from_bytes(klass, bytestring):
