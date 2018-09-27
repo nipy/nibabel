@@ -81,24 +81,24 @@ def _read_volume_info(fobj):
     return volume_info
 
 
-def _pack_rgba(rgba):
-    """Pack an RGBA sequence into a single integer.
+def _pack_rgb(rgb):
+    """Pack an RGB sequence into a single integer.
 
     Used by :func:`read_annot` and :func:`write_annot` to generate
     "annotation values" for a Freesurfer ``.annot`` file.
 
     Parameters
     ----------
-    rgba : ndarray, shape (n, 4)
-        RGBA colors
+    rgb : ndarray, shape (n, 3)
+        RGB colors
 
     Returns
     -------
     out : ndarray, shape (n, 1)
         Annotation values for each color.
     """
-    bitshifts = 2 ** np.array([[0], [8], [16], [24]], dtype=rgba.dtype)
-    return rgba.dot(bitshifts)
+    bitshifts = 2 ** np.array([[0], [8], [16]], dtype=rgb.dtype)
+    return rgb.dot(bitshifts)
 
 
 def read_geometry(filepath, read_metadata=False, read_stamp=False):
@@ -384,7 +384,7 @@ def read_annot(filepath, orig_ids=False):
             ctab, names = _read_annot_ctab_new_format(fobj, -n_entries)
 
     # generate annotation values for each LUT entry
-    ctab[:, [4]] = _pack_rgba(ctab[:, :4])
+    ctab[:, [4]] = _pack_rgb(ctab[:, :3])
 
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
@@ -523,8 +523,8 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
 
         # Generate annotation values for each ctab entry
         if fill_ctab:
-            ctab = np.hstack((ctab[:, :4], _pack_rgba(ctab[:, :4])))
-        elif not np.array_equal(ctab[:, [4]], _pack_rgba(ctab[:, :4])):
+            ctab = np.hstack((ctab[:, :4], _pack_rgb(ctab[:, :3])))
+        elif not np.array_equal(ctab[:, [4]], _pack_rgb(ctab[:, :3])):
             warnings.warn('Annotation values in {} will be incorrect'.format(
                 filepath))
 
