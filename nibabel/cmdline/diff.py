@@ -145,6 +145,8 @@ def get_data_diff(files, max_abs=0, max_rel=0):
 
     Parameters
     ----------
+    files: list of (str or ndarray)
+      If list of strings is provided -- they must be existing file names
     max_abs: float, optional
       Maximal absolute difference to tolerate.
     max_rel: float, optional
@@ -157,7 +159,7 @@ def get_data_diff(files, max_abs=0, max_rel=0):
     TODO
     """
     # we are doomed to keep them in RAM now
-    data = [nib.load(f).get_data() for f in files]
+    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_data() for f in files]
     diffs = OrderedDict()
     for i, d1 in enumerate(data[:-1]):
         # populate empty entries for non-compared

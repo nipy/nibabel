@@ -11,7 +11,7 @@ from numpy.testing import assert_raises
 import nibabel as nib
 import numpy as np
 from nibabel.cmdline.utils import *
-from nibabel.cmdline.diff import get_headers_diff, display_diff, main, get_data_md5_diff
+from nibabel.cmdline.diff import get_headers_diff, display_diff, main, get_data_md5_diff, get_data_diff
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
@@ -115,6 +115,36 @@ def test_get_data_diff():
     test_names = [pjoin(data_path, f)
                   for f in ('standard.nii.gz', 'standard.nii.gz')]
     assert_equal(get_data_md5_diff(test_names), [])
+
+    #  testing the maximum relative and absolute differences' different use cases
+    test_array = np.arange(16).reshape(4, 4)
+    test_array_2 = np.arange(1, 17).reshape(4, 4)
+    test_array_3 = np.arange(2, 18).reshape(4, 4)
+    test_array_4 = np.arange(100).reshape(10, 10)
+    test_array_5 = np.arange(64).reshape(8, 8)
+
+    # same shape, 2 files
+    assert_equal(get_data_diff([test_array, test_array_2]),
+                 OrderedDict([('DATA(diff 1:)', [None, OrderedDict([('abs', 1), ('rel', 2.0)])])]))
+
+    # same shape, 3 files
+    assert_equal(get_data_diff([test_array, test_array_2, test_array_3]),
+                 OrderedDict([('DATA(diff 1:)', [None, OrderedDict([('abs', 1), ('rel', 2.0)]),
+                                                 OrderedDict([('abs', 2), ('rel', 2.0)])]),
+                              ('DATA(diff 2:)', [None, None,
+                                                 OrderedDict([('abs', 1), ('rel', 0.66666666666666663)])])]))
+
+    # same shape, 2 files, modified maximum abs/rel
+    assert_equal(get_data_diff([test_array, test_array_2], max_abs=2, max_rel=2), OrderedDict())
+
+    # different shape, 2 files
+    assert_equal(get_data_diff([test_array_2, test_array_4]),
+                 OrderedDict([('DATA(diff 1:)', [None, {'CMP': 'incompat'}])]))
+
+    # different shape, 3 files
+    assert_equal(get_data_diff([test_array_4, test_array_5, test_array_2]),
+                 OrderedDict([('DATA(diff 1:)', [None, {'CMP': 'incompat'}, {'CMP': 'incompat'}]),
+                              ('DATA(diff 2:)', [None, None, {'CMP': 'incompat'}])]))
 
 
 def test_main():
