@@ -77,9 +77,6 @@ def check_nib_diff_examples():
                       "quatern_c", "quatern_d", "qoffset_x", "qoffset_y", "qoffset_z", "srow_x",
                       "srow_y", "srow_z", "DATA(md5)", "DATA(diff 1:)"]
     for item in checked_fields:
-        if item not in stdout:
-            print(item)
-            print(stdout)
         assert_true(item in stdout)
 
     fnames2 = [pjoin(DATA_PATH, f)

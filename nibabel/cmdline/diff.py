@@ -156,7 +156,8 @@ def get_data_diff(files, max_abs=0, max_rel=0):
 
     Returns
     -------
-    TODO
+    OrderedDict
+        str: absolute and relative differences of each file, given as float
     """
     # we are doomed to keep them in RAM now
     data = [f if isinstance(f, np.ndarray) else nib.load(f).get_data() for f in files]
