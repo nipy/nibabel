@@ -21,7 +21,6 @@ env:
         - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
         - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
 python:
-    - 2.7
     - 3.5
     - 3.6
     - 3.7
