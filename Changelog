@@ -20,7 +20,7 @@ Nibabel releases
 
 Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
 Ben Cipollini (BC), Marc-Alexandre Côté (MC), Chris Markiewicz (CM), Stephan
-Gerhard (SG) and Eric Larson (EL).
+Gerhard (SG), Eric Larson (EL), Yaroslav Halchenko (YOH) and Chris Cheng (CC).
 
 References like "pr/298" refer to github pull request numbers.
 
@@ -30,7 +30,7 @@ Upcoming release
 New features
 ------------
 * ``nib-diff`` command line tool for comparing image files (pr/617)
-  (Chris Cheng, reviewed by Yaroslav Halchenko, Pradeep Raamana and CM)
+  (CC, reviewed by YOH, Pradeep Raamana and CM)
 
 Enhancements
 ------------
@@ -40,7 +40,7 @@ Enhancements
 Bug fixes
 ---------
 * Deterministic deduction of slice ordering in degenerate cases (pr/647)
-  (Yaroslav Halchenko, reviewed by CM)
+  (YOH, reviewed by CM)
 * Allow 0ms TR in MGH files (pr/653) (EL, reviewed by CM)
 * Allow for PPC64 little-endian long doubles (pr/658) (MB, reviewed by CM)
 * Correct construction of FreeSurfer annotation labels (pr/666) (CM, reviewed
