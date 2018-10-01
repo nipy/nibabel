@@ -159,6 +159,8 @@ def test_set_zooms():
                   (1, 1, 1, 1, 5)):
         with assert_raises(HeaderDataError):
             h.set_zooms(zooms)
+    # smoke test for tr=0
+    h.set_zooms((1, 1, 1, 0))
 
 
 def bad_dtype_mgh():

@@ -12,6 +12,8 @@ environment:
     - PYTHON: C:\Python35-x64
     - PYTHON: C:\Python36
     - PYTHON: C:\Python36-x64
+    - PYTHON: C:\Python37
+    - PYTHON: C:\Python37-x64
 
 install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
@@ -20,8 +22,7 @@ install:
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
 
   # Install the dependencies of the project.
-  - pip install numpy scipy matplotlib nose h5py mock
-  - pip install pydicom
+  - pip install numpy scipy matplotlib nose h5py mock hypothesis pydicom
   - pip install .
   - SET NIBABEL_DATA_DIR=%CD%\nibabel-data
 

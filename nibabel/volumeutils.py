@@ -13,6 +13,7 @@ import sys
 import warnings
 import gzip
 import bz2
+from collections import OrderedDict
 from os.path import exists, splitext
 from operator import mul
 from functools import reduce
@@ -22,6 +23,7 @@ import numpy as np
 from .casting import (shared_range, type_info, OK_FLOATS)
 from .openers import Opener
 from .deprecated import deprecate_with_version
+from .externals.oset import OrderedSet
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -78,7 +80,7 @@ class Recoder(object):
     2
     '''
 
-    def __init__(self, codes, fields=('code',), map_maker=dict):
+    def __init__(self, codes, fields=('code',), map_maker=OrderedDict):
         ''' Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
@@ -97,7 +99,7 @@ class Recoder(object):
 
         Parameters
         ----------
-        codes : seqence of sequences
+        codes : sequence of sequences
             Each sequence defines values (codes) that are equivalent
         fields : {('code',) string sequence}, optional
             names by which elements in sequences can be accessed
@@ -133,13 +135,15 @@ class Recoder(object):
 
         Examples
         --------
-        >>> code_syn_seqs = ((1, 'one'), (2, 'two'))
+        >>> code_syn_seqs = ((2, 'two'), (1, 'one'))
         >>> rc = Recoder(code_syn_seqs)
         >>> rc.value_set() == set((1,2))
         True
         >>> rc.add_codes(((3, 'three'), (1, 'first')))
         >>> rc.value_set() == set((1,2,3))
         True
+        >>> print(rc.value_set())  # set is actually ordered
+        OrderedSet([2, 1, 3])
         '''
         for code_syns in code_syn_seqs:
             # Add all the aliases
@@ -186,7 +190,7 @@ class Recoder(object):
         return self.field1.keys()
 
     def value_set(self, name=None):
-        ''' Return set of possible returned values for column
+        ''' Return OrderedSet of possible returned values for column
 
         By default, the column is the first column.
 
@@ -212,7 +216,7 @@ class Recoder(object):
             d = self.field1
         else:
             d = self.__dict__[name]
-        return set(d.values())
+        return OrderedSet(d.values())
 
 
 # Endian code aliases
