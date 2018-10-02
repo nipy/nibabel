@@ -130,7 +130,7 @@ def get_data_hash_diff(files):
         """
 
     md5sums = [
-        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata())).hexdigest()
+        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata(dtype=np.float32))).hexdigest()
         for f in files
     ]
 
@@ -157,14 +157,17 @@ def get_data_diff(files, max_abs=0, max_rel=0):
     Returns
     -------
     diffs: OrderedDict
-        An ordered dict with a record per each file which has differences with other files subsequent detected.
-        Each record is a list of difference records, one per each file pair. Each difference record is an Ordered
-        Dict with possible keys 'abs' or 'rel' showing maximal absolute or relative differences in the file 
-        or record ('CMP': 'incompat') if file shapes are incompatible.
+        An ordered dict with a record per each file which has differences
+        with other files subsequent detected. Each record is a list of
+        difference records, one per each file pair.
+        Each difference record is an Ordered Dict with possible keys
+        'abs' or 'rel' showing maximal absolute or relative differences
+        in the file or the record ('CMP': 'incompat') if file shapes
+        are incompatible.
     """
-    
+
     # we are doomed to keep them in RAM now
-    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata() for f in files]
+    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata(dtype=np.float32) for f in files]
     diffs = OrderedDict()
     for i, d1 in enumerate(data[:-1]):
         # populate empty entries for non-compared
