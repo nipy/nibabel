@@ -51,7 +51,7 @@ def get_opt_parser():
                type=float,
                default=0.0,
                help="Maximal relative difference in data between files to tolerate."
-                    " If also --data-max-abs-diff specified, only the data points "
+                    " If --data-max-abs-diff is also specified, only the data points "
                     " with absolute difference greater than that value would be "
                     " considered for relative difference check."),
     ])
@@ -116,7 +116,7 @@ def get_headers_diff(file_headers, names=None):
     return difference
 
 
-def get_data_md5_diff(files):
+def get_data_hash_diff(files):
     """Get difference between md5 values of data
 
         Parameters
@@ -130,7 +130,7 @@ def get_data_md5_diff(files):
         """
 
     md5sums = [
-        hashlib.md5(np.ascontiguousarray(nib.load(f).get_data(), dtype=np.float32)).hexdigest()
+        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata())).hexdigest()
         for f in files
     ]
 
@@ -156,11 +156,15 @@ def get_data_diff(files, max_abs=0, max_rel=0):
 
     Returns
     -------
-    OrderedDict
-        str: absolute and relative differences of each file, given as float
+    diffs: OrderedDict
+        An ordered dict with a record per each file which has differences with other files subsequent detected.
+        Each record is a list of difference records, one per each file pair. Each difference record is an Ordered
+        Dict with possible keys 'abs' or 'rel' showing maximal absolute or relative differences in the file 
+        or record ('CMP': 'incompat') if file shapes are incompatible.
     """
+    
     # we are doomed to keep them in RAM now
-    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_data() for f in files]
+    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata() for f in files]
     diffs = OrderedDict()
     for i, d1 in enumerate(data[:-1]):
         # populate empty entries for non-compared
@@ -274,7 +278,7 @@ def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=N
 
     diff = get_headers_diff(file_headers, header_fields)
 
-    data_md5_diffs = get_data_md5_diff(files)
+    data_md5_diffs = get_data_hash_diff(files)
     if data_md5_diffs:
         # provide details, possibly triggering the ignore of the difference
         # in data
