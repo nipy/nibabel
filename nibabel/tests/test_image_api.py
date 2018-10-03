@@ -202,6 +202,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Check get data returns array, and caches
         img = imaker()
         assert_equal(img.shape, img.dataobj.shape)
+        assert_equal(len(img.shape), img.dataobj.ndim)
         assert_data_similar(img.dataobj, params)
         for meth_name in self.meth_names:
             if params['is_proxy']:
