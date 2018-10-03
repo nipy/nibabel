@@ -130,7 +130,7 @@ def get_data_hash_diff(files):
         """
 
     md5sums = [
-        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata(dtype=np.float32))).hexdigest()
+        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata())).hexdigest()
         for f in files
     ]
 
@@ -167,7 +167,8 @@ def get_data_diff(files, max_abs=0, max_rel=0):
     """
 
     # we are doomed to keep them in RAM now
-    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata(dtype=np.float32) for f in files]
+    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata()
+            for f in files]
     diffs = OrderedDict()
     for i, d1 in enumerate(data[:-1]):
         # populate empty entries for non-compared
