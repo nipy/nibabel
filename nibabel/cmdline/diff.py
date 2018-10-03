@@ -54,6 +54,10 @@ def get_opt_parser():
                     " If --data-max-abs-diff is also specified, only the data points "
                     " with absolute difference greater than that value would be "
                     " considered for relative difference check."),
+        Option("--dt", "--datatype",
+               dest="dtype",
+               default=np.float64,
+               help="Enter a numpy datatype such as 'float32'.")
     ])
 
     return p
@@ -116,7 +120,7 @@ def get_headers_diff(file_headers, names=None):
     return difference
 
 
-def get_data_hash_diff(files):
+def get_data_hash_diff(files, dtype=np.float64):
     """Get difference between md5 values of data
 
         Parameters
@@ -130,7 +134,7 @@ def get_data_hash_diff(files):
         """
 
     md5sums = [
-        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata())).hexdigest()
+        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata(dtype=dtype))).hexdigest()
         for f in files
     ]
 
@@ -140,7 +144,7 @@ def get_data_hash_diff(files):
     return md5sums
 
 
-def get_data_diff(files, max_abs=0, max_rel=0):
+def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
     """Get difference between data
 
     Parameters
@@ -153,6 +157,8 @@ def get_data_diff(files, max_abs=0, max_rel=0):
       Maximal relative (`abs(diff)/mean(diff)`) difference to tolerate.
       If `max_abs` is specified, then those data points with lesser than that
       absolute difference, are not considered for relative difference testing
+    dtype: np, optional
+      Datatype to be used when extracting data from files
 
     Returns
     -------
@@ -167,7 +173,7 @@ def get_data_diff(files, max_abs=0, max_rel=0):
     """
 
     # we are doomed to keep them in RAM now
-    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata()
+    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata(dtype=dtype)
             for f in files]
     diffs = OrderedDict()
     for i, d1 in enumerate(data[:-1]):
@@ -268,7 +274,7 @@ def display_diff(files, diff):
     return output
 
 
-def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=None):
+def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=None, dtype=np.float64):
     assert len(files) >= 2, "Please enter at least two files"
 
     file_headers = [nib.load(f).header for f in files]
@@ -282,13 +288,14 @@ def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=N
 
     diff = get_headers_diff(file_headers, header_fields)
 
-    data_md5_diffs = get_data_hash_diff(files)
+    data_md5_diffs = get_data_hash_diff(files, dtype)
     if data_md5_diffs:
         # provide details, possibly triggering the ignore of the difference
         # in data
         data_diffs = get_data_diff(files,
                                    max_abs=data_max_abs_diff,
-                                   max_rel=data_max_rel_diff)
+                                   max_rel=data_max_rel_diff,
+                                   dtype=dtype)
         if data_diffs:
             diff['DATA(md5)'] = data_md5_diffs
             diff.update(data_diffs)
@@ -313,7 +320,8 @@ def main(args=None, out=None):
         files,
         header_fields=opts.header_fields,
         data_max_abs_diff=opts.data_max_abs_diff,
-        data_max_rel_diff=opts.data_max_rel_diff
+        data_max_rel_diff=opts.data_max_rel_diff,
+        dtype=opts.dtype
     )
 
     if files_diff:
