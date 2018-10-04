@@ -7,9 +7,13 @@ from __future__ import division, print_function, absolute_import
 from os.path import (dirname, join as pjoin, abspath)
 import numpy as np
 
-from hypothesis import given
-import hypothesis.strategies as st
-
+try:
+    import hypothesis
+    from hypothesis import given
+    import hypothesis.strategies as st
+except Exception as exc:
+    from nose import SkipTest
+    raise SkipTest("Failed to import hypothesis or its components: %s" % exc)
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
