@@ -208,8 +208,8 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
 
                     diff_rec = OrderedDict()  # so that abs goes before relative
 
-                    diff_rec['abs'] = max_abs_diff
-                    diff_rec['rel'] = max_rel_diff
+                    diff_rec['abs'] = max_abs_diff.astype(dtype)
+                    diff_rec['rel'] = max_rel_diff.astype(dtype)
                     diffs1.append(diff_rec)
                 else:
                     diffs1.append(None)
@@ -274,7 +274,8 @@ def display_diff(files, diff):
     return output
 
 
-def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=None, dtype=np.float64):
+def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=None,
+         dtype=np.float64):
     assert len(files) >= 2, "Please enter at least two files"
 
     file_headers = [nib.load(f).header for f in files]

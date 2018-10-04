@@ -11,7 +11,7 @@ from numpy.testing import assert_raises
 import nibabel as nib
 import numpy as np
 from nibabel.cmdline.utils import *
-from nibabel.cmdline.diff import get_headers_diff, display_diff, main, get_data_hash_diff, get_data_diff
+from nibabel.cmdline.diff import *
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
@@ -145,6 +145,16 @@ def test_get_data_diff():
     assert_equal(get_data_diff([test_array_4, test_array_5, test_array_2]),
                  OrderedDict([('DATA(diff 1:)', [None, {'CMP': 'incompat'}, {'CMP': 'incompat'}]),
                               ('DATA(diff 2:)', [None, None, {'CMP': 'incompat'}])]))
+
+    test_return = get_data_diff([test_array, test_array_2], dtype=np.float32)
+    assert_equal(type(test_return['DATA(diff 1:)'][1]['abs']), np.float32)
+    assert_equal(type(test_return['DATA(diff 1:)'][1]['rel']), np.float32)
+
+    test_return_2 = get_data_diff([test_array, test_array_2, test_array_3])
+    assert_equal(type(test_return_2['DATA(diff 1:)'][1]['abs']), np.float64)
+    assert_equal(type(test_return_2['DATA(diff 1:)'][1]['rel']), np.float64)
+    assert_equal(type(test_return_2['DATA(diff 2:)'][2]['abs']), np.float64)
+    assert_equal(type(test_return_2['DATA(diff 2:)'][2]['rel']), np.float64)
 
 
 def test_main():
