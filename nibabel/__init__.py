@@ -86,3 +86,10 @@ from .pkg_info import get_pkg_info as _get_pkg_info
 
 def get_info():
     return _get_pkg_info(os.path.dirname(__file__))
+
+def print_numpy_info():
+    import numpy as np
+    print("NUMPY:  ID(numpy): %d   ID(numpy.float64): %d" % (id(np), id(np.float64)))
+
+def setup_package():
+    print_numpy_info()
