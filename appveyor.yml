@@ -4,16 +4,10 @@
 environment:
 
   matrix:
-    - PYTHON: C:\Python27
-    - PYTHON: C:\Python27-x64
     - PYTHON: C:\Python34
     - PYTHON: C:\Python34-x64
     - PYTHON: C:\Python35
     - PYTHON: C:\Python35-x64
-    - PYTHON: C:\Python36
-    - PYTHON: C:\Python36-x64
-    - PYTHON: C:\Python37
-    - PYTHON: C:\Python37-x64
 
 install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
@@ -32,4 +26,14 @@ test_script:
   # Change into an innocuous directory and find tests from installation
   - mkdir for_testing
   - cd for_testing
+  # Numpy debug information
+  - python -c "import sys, numpy; print('numpy', numpy.__version__); print('python', sys.version)"
+  # Show all environment variables to ease possible future debugging
+  - set
   - nosetests --with-doctest nibabel
+
+
+on_failure:
+  # enable the next to let the build VM block for up to 60min to log in via RDP and debug
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
