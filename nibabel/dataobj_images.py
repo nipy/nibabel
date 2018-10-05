@@ -344,7 +344,7 @@ class DataobjImage(FileBasedImage):
         if self._fdata_cache is not None:
             if self._fdata_cache.dtype.type == dtype.type:
                 return self._fdata_cache
-        data = np.asanyarray(self._dataobj).astype(dtype, copy=False)
+        data = np.asanyarray(self._dataobj).astype(dtype)
         if caching == 'fill':
             self._fdata_cache = data
         return data
