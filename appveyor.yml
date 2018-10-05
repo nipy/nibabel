@@ -27,7 +27,7 @@ test_script:
   - mkdir for_testing
   - cd for_testing
   # Numpy debug information
-  - python -c 'import sys, numpy; print("numpy", numpy.__version__); print("python", sys.version)'
+  - python -c "import sys, numpy; print('numpy', numpy.__version__); print('python', sys.version)"
   # Show all environment variables to ease possible future debugging
   - set
   - nosetests --with-doctest nibabel
