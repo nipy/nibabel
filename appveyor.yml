@@ -26,6 +26,8 @@ test_script:
   # Change into an innocuous directory and find tests from installation
   - mkdir for_testing
   - cd for_testing
+  # Show all environment variables to ease possible future debugging
+  - set
   - nosetests --with-doctest nibabel
 
 
