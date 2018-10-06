@@ -45,25 +45,41 @@ def get_opt_parser():
 
 
 def are_values_different(*values):
-    """Generically compares values, returns true if different"""
+    """Generically compare values, return True if different
+
+    Note that comparison is targetting reporting of comparison of the headers
+    so has following specifics:
+    - even a difference in data types is considered a difference, i.e. 1 != 1.0
+    - NaNs are considered to be the "same", although generally NaN != NaN  
+    """
     value0 = values[0]
-    values = values[1:]  # to ensure that the first value isn't compared with itself
 
-    for value in values:
-        try:  # we sometimes don't want NaN values
-            if np.any(np.isnan(value0)) and np.any(np.isnan(value)):  # if they're both NaN
-                break
-            elif np.any(np.isnan(value0)) or np.any(np.isnan(value)):  # if only 1 is NaN
-                return True
+    # to not recompute over again
+    if isinstance(value0, np.ndarray):
+        value0_nans = np.isnan(value0)
+        if not np.any(value0_nans):
+            value0_nans = None
 
-        except TypeError:
-            pass
-
+    for value in values[1:]:
         if type(value0) != type(value):  # if types are different, then we consider them different
             return True
         elif isinstance(value0, np.ndarray):
-            return np.any(value0 != value)
-
+            if value0.dtype != value.dtype or \
+               value0.shape != value.shape:
+                return True
+            # there might be NaNs and they need special treatment
+            if value0_nans is not None:
+                value_nans = np.isnan(value)
+                if np.any(value0_nans != value_nans):
+                    return True
+                if np.any(value0[np.logical_not(value0_nans)]
+                          != value[np.logical_not(value0_nans)]):
+                    return True
+            elif np.any(value0 != value):
+                return True
+        elif value0 is np.NaN:
+            if value is not np.NaN:
+                return True
         elif value0 != value:
             return True
 
