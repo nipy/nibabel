@@ -56,9 +56,15 @@ def are_values_different(*values):
 
     # to not recompute over again
     if isinstance(value0, np.ndarray):
-        value0_nans = np.isnan(value0)
-        if not np.any(value0_nans):
-            value0_nans = None
+        try:
+            value0_nans = np.isnan(value0)
+            if not np.any(value0_nans):
+                value0_nans = None
+        except TypeError as exc:
+            if "not supported" in str(exc):
+                value0_nans = None
+            else:
+                raise
 
     for value in values[1:]:
         if type(value0) != type(value):  # if types are different, then we consider them different
