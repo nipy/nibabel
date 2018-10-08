@@ -50,7 +50,7 @@ def are_values_different(*values):
     Note that comparison is targetting reporting of comparison of the headers
     so has following specifics:
     - even a difference in data types is considered a difference, i.e. 1 != 1.0
-    - NaNs are considered to be the "same", although generally NaN != NaN  
+    - nans are considered to be the "same", although generally nan != nan  
     """
     value0 = values[0]
 
@@ -67,7 +67,7 @@ def are_values_different(*values):
             if value0.dtype != value.dtype or \
                value0.shape != value.shape:
                 return True
-            # there might be NaNs and they need special treatment
+            # there might be nans and they need special treatment
             if value0_nans is not None:
                 value_nans = np.isnan(value)
                 if np.any(value0_nans != value_nans):
@@ -77,8 +77,8 @@ def are_values_different(*values):
                     return True
             elif np.any(value0 != value):
                 return True
-        elif value0 is np.NaN:
-            if value is not np.NaN:
+        elif value0 is np.nan:
+            if value is not np.nan:
                 return True
         elif value0 != value:
             return True

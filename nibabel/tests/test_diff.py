@@ -16,13 +16,13 @@ from nibabel.cmdline.diff import are_values_different
 
 
 def test_diff_values_int():
-    long = 10**30
+    large = 10**30
     assert not are_values_different(0, 0)
     assert not are_values_different(1, 1)
-    assert not are_values_different(long, long)
+    assert not are_values_different(large, large)
     assert are_values_different(0, 1)
     assert are_values_different(1, 2)
-    assert are_values_different(1, long)
+    assert are_values_different(1, large)
 
 
 def test_diff_values_float():
@@ -44,7 +44,7 @@ def test_diff_values_mixed():
 
 
 def test_diff_values_array():
-    from numpy import NaN, array, inf
+    from numpy import nan, array, inf
     a_int = array([1, 2])
     a_float = a_int.astype(float)
 
@@ -58,16 +58,16 @@ def test_diff_values_array():
     assert not are_values_different(a_int, a_int)
     assert not are_values_different(a_float, a_float)
 
-    # NaNs - we consider them "the same" for the purpose of these comparisons
-    assert not are_values_different(NaN, NaN)
-    assert not are_values_different(NaN, NaN, NaN)
-    assert are_values_different(NaN, NaN, 1)
-    assert are_values_different(1, NaN, NaN)
-    assert not are_values_different(array([NaN, NaN]), array([NaN, NaN]))
-    assert not are_values_different(array([NaN, NaN]), array([NaN, NaN]), array([NaN, NaN]))
-    assert not are_values_different(array([NaN, 1]), array([NaN, 1]))
-    assert are_values_different(array([NaN, NaN]), array([NaN, 1]))
-    assert are_values_different(array([0, NaN]), array([NaN, 0]))
+    # nans - we consider them "the same" for the purpose of these comparisons
+    assert not are_values_different(nan, nan)
+    assert not are_values_different(nan, nan, nan)
+    assert are_values_different(nan, nan, 1)
+    assert are_values_different(1, nan, nan)
+    assert not are_values_different(array([nan, nan]), array([nan, nan]))
+    assert not are_values_different(array([nan, nan]), array([nan, nan]), array([nan, nan]))
+    assert not are_values_different(array([nan, 1]), array([nan, 1]))
+    assert are_values_different(array([nan, nan]), array([nan, 1]))
+    assert are_values_different(array([0, nan]), array([nan, 0]))
     # and some inf should not be a problem
     assert not are_values_different(array([0, inf]), array([0, inf]))
     assert are_values_different(array([0, inf]), array([inf, 0]))
