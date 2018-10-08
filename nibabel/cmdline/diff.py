@@ -61,7 +61,9 @@ def are_values_different(*values):
             if not np.any(value0_nans):
                 value0_nans = None
         except TypeError as exc:
-            if "not supported" in str(exc):
+            str_exc = str(exc)
+            # Not implemented in numpy 1.7.1
+            if "not supported" in str_exc or "ot implemented" in str_exc:
                 value0_nans = None
             else:
                 raise
