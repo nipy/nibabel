@@ -57,7 +57,12 @@ def are_values_different(*values):
     # to not recompute over again
     if isinstance(value0, np.ndarray):
         try:
-            value0_nans = np.isnan(value0)
+            # np.asarray for elderly numpys, e.g. 1.7.1 where for
+            # degenerate arrays (shape ()) it would return a pure scalar
+            value0_nans = np.asanyarray(np.isnan(value0))
+            value0_nonnans = np.asanyarray(np.logical_not(value0_nans))
+            # if value0_nans.size == 1:
+            #     import pdb; pdb.set_trace()
             if not np.any(value0_nans):
                 value0_nans = None
         except TypeError as exc:
@@ -80,8 +85,7 @@ def are_values_different(*values):
                 value_nans = np.isnan(value)
                 if np.any(value0_nans != value_nans):
                     return True
-                if np.any(value0[np.logical_not(value0_nans)]
-                          != value[np.logical_not(value0_nans)]):
+                if np.any(value0[value0_nonnans] != value[value0_nonnans]):
                     return True
             elif np.any(value0 != value):
                 return True
