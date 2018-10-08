@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 from __future__ import division, print_function, absolute_import
+import sys
 
 from os.path import join as pjoin
 
@@ -156,7 +157,17 @@ class _TestMincFile(object):
         for tp in self.test_files:
             mnc_obj = self.opener(tp['fname'], 'r')
             mnc = self.file_class(mnc_obj)
-            assert_equal(mnc.get_data_dtype().type, tp['dtype'])
+            try:
+                assert_equal(mnc.get_data_dtype().type, tp['dtype'])
+            except AssertionError:
+                from nibabel import print_numpy_info
+                print()
+                for l, t in (('mnc.get_data_dtype().type', mnc.get_data_dtype().type),
+                             ("tp['dtype']", tp['dtype'])):
+                    print("%30s  ID: %s, __module__: %s, id(sys[__module__]): %s"
+                          % (l, id(t), t.__module__, id(sys.modules[t.__module__])))
+                print_numpy_info()
+                raise
             assert_equal(mnc.get_data_shape(), tp['shape'])
             assert_equal(mnc.get_zooms(), tp['zooms'])
             assert_array_equal(mnc.get_affine(), tp['affine'])
