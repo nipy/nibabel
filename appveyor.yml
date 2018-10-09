@@ -30,7 +30,7 @@ test_script:
   - python -c "import sys, numpy; print('Python', sys.version); print('numpy', numpy.__version__)"
   # Show all environment variables to ease possible future debugging
   - set
-  - nosetests --with-doctest nibabel
+  - nosetests --with-doctest -s -v nibabel
 
 
 on_failure:
