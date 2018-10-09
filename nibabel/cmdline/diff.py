@@ -50,7 +50,7 @@ def are_values_different(*values):
     Note that comparison is targetting reporting of comparison of the headers
     so has following specifics:
     - even a difference in data types is considered a difference, i.e. 1 != 1.0
-    - nans are considered to be the "same", although generally nan != nan  
+    - nans are considered to be the "same", although generally nan != nan
     """
     value0 = values[0]
 
