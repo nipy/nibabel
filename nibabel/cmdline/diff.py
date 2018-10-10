@@ -304,12 +304,13 @@ def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=N
     return diff
 
 
-def main(args=None, out=None):
+def main(args=None, out=None, dtype=None):
     """Getting the show on the road"""
 
     out = out or sys.stdout
     parser = get_opt_parser()
     (opts, files) = parser.parse_args(args)
+    dtype = dtype or opts.dtype
 
     nibabel.cmdline.utils.verbose_level = opts.verbose
 
@@ -322,7 +323,7 @@ def main(args=None, out=None):
         header_fields=opts.header_fields,
         data_max_abs_diff=opts.data_max_abs_diff,
         data_max_rel_diff=opts.data_max_rel_diff,
-        dtype=opts.dtype
+        dtype=dtype
     )
 
     if files_diff:
