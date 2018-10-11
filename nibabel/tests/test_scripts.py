@@ -72,10 +72,10 @@ def check_nib_diff_examples():
     fnames = [pjoin(DATA_PATH, f)
                for f in ('standard.nii.gz', 'example4d.nii.gz')]
     code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
-    checked_fields = ["Field", "regular", "dim_info", "dim", "datatype", "bitpix", "pixdim", "slice_end",
+    checked_fields = ["Field/File", "regular", "dim_info", "dim", "datatype", "bitpix", "pixdim", "slice_end",
                       "xyzt_units", "cal_max", "descrip", "qform_code", "sform_code", "quatern_b",
                       "quatern_c", "quatern_d", "qoffset_x", "qoffset_y", "qoffset_z", "srow_x",
-                      "srow_y", "srow_z", "DATA(md5)"]
+                      "srow_y", "srow_z", "DATA(md5)", "DATA(diff 1:)"]
     for item in checked_fields:
         assert_true(item in stdout)
 
