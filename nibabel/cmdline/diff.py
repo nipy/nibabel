@@ -67,26 +67,53 @@ def get_opt_parser():
 
 
 def are_values_different(*values):
-    """Generically compares values, returns true if different"""
+    """Generically compare values, return True if different
+
+    Note that comparison is targetting reporting of comparison of the headers
+    so has following specifics:
+    - even a difference in data types is considered a difference, i.e. 1 != 1.0
+    - nans are considered to be the "same", although generally nan != nan
+    """
     value0 = values[0]
-    # to ensure that the first value isn't compared with itself
-    values = values[1:]
 
-    for value in values:
-        try:  # we sometimes don't want NaN values
-            if np.any(np.isnan(value0)) and np.any(np.isnan(value)):  # if they're both NaN
-                break
-            elif np.any(np.isnan(value0)) or np.any(np.isnan(value)):  # if only 1 is NaN
-                return True
+    # to not recompute over again
+    if isinstance(value0, np.ndarray):
+        try:
+            # np.asarray for elderly numpys, e.g. 1.7.1 where for
+            # degenerate arrays (shape ()) it would return a pure scalar
+            value0_nans = np.asanyarray(np.isnan(value0))
+            value0_nonnans = np.asanyarray(np.logical_not(value0_nans))
+            # if value0_nans.size == 1:
+            #     import pdb; pdb.set_trace()
+            if not np.any(value0_nans):
+                value0_nans = None
+        except TypeError as exc:
+            str_exc = str(exc)
+            # Not implemented in numpy 1.7.1
+            if "not supported" in str_exc or "ot implemented" in str_exc:
+                value0_nans = None
+            else:
+                raise
 
-        except TypeError:
-            pass
-
+    for value in values[1:]:
         if type(value0) != type(value):  # if types are different, then we consider them different
             return True
         elif isinstance(value0, np.ndarray):
-            return np.any(value0 != value)
-
+            if value0.dtype != value.dtype or \
+               value0.shape != value.shape:
+                return True
+            # there might be nans and they need special treatment
+            if value0_nans is not None:
+                value_nans = np.isnan(value)
+                if np.any(value0_nans != value_nans):
+                    return True
+                if np.any(value0[value0_nonnans] != value[value0_nonnans]):
+                    return True
+            elif np.any(value0 != value):
+                return True
+        elif value0 is np.nan:
+            if value is not np.nan:
+                return True
         elif value0 != value:
             return True
 
