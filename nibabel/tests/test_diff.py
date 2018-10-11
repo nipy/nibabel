@@ -12,8 +12,6 @@ DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 from nibabel.cmdline.diff import are_values_different
 
-# TODO: MAJOR TO DO IS TO FIGURE OUT HOW TO USE HYPOTHESIS FOR LONGER LIST LENGTHS WHILE STILL CONTROLLING FOR OUTCOMES
-
 
 def test_diff_values_int():
     large = 10**30
@@ -68,6 +66,9 @@ def test_diff_values_array():
     assert not are_values_different(array([nan, 1]), array([nan, 1]))
     assert are_values_different(array([nan, nan]), array([nan, 1]))
     assert are_values_different(array([0, nan]), array([nan, 0]))
+    assert are_values_different(array([1, 2, 3, nan]), array([nan, 3, 5, 4]))
+    assert are_values_different(nan, 1.0)
+    assert are_values_different(array([1, 2, 3, nan]), array([3, 4, 5, nan]))
     # and some inf should not be a problem
     assert not are_values_different(array([0, inf]), array([0, inf]))
     assert are_values_different(array([0, inf]), array([inf, 0]))
