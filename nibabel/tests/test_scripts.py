@@ -95,6 +95,10 @@ def check_nib_diff_examples():
     code, stdout, stderr = run_command(['nib-diff'] + fnames4, check_code=False)
     assert_equal(stdout, "These files are identical.")
 
+    code, stdout, stderr = run_command(['nib-diff', '--dt', 'float64'] + fnames, check_code=False)
+    for item in checked_fields:
+        assert_true(item in stdout)
+
 
 
 @script_test
