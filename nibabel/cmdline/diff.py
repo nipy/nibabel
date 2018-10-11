@@ -38,22 +38,25 @@ def get_opt_parser():
 
         Option("-H", "--header-fields",
                dest="header_fields", default='all',
-               help="Header fields (comma separated) to be printed as well (if present)"),
+               help="Header fields (comma separated) to be printed as well"
+                    " (if present)"),
 
         Option("--ma", "--data-max-abs-diff",
                dest="data_max_abs_diff",
                type=float,
                default=0.0,
-               help="Maximal absolute difference in data between files to tolerate."),
+               help="Maximal absolute difference in data between files"
+                    " to tolerate."),
 
         Option("--mr", "--data-max-rel-diff",
                dest="data_max_rel_diff",
                type=float,
                default=0.0,
-               help="Maximal relative difference in data between files to tolerate."
-                    " If --data-max-abs-diff is also specified, only the data points "
-                    " with absolute difference greater than that value would be "
-                    " considered for relative difference check."),
+               help="Maximal relative difference in data between files to"
+                    " tolerate. If --data-max-abs-diff is also specified,"
+                    " only the data points with absolute difference greater"
+                    " than that value would be considered for relative"
+                    " difference check."),
         Option("--dt", "--datatype",
                dest="dtype",
                default=np.float64,
@@ -66,7 +69,8 @@ def get_opt_parser():
 def are_values_different(*values):
     """Generically compares values, returns true if different"""
     value0 = values[0]
-    values = values[1:]  # to ensure that the first value isn't compared with itself
+    # to ensure that the first value isn't compared with itself
+    values = values[1:]
 
     for value in values:
         try:  # we sometimes don't want NaN values
@@ -274,15 +278,16 @@ def display_diff(files, diff):
     return output
 
 
-def diff(files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=None,
-         dtype=np.float64):
+def diff(files, header_fields='all', data_max_abs_diff=None,
+         data_max_rel_diff=None, dtype=np.float64):
     assert len(files) >= 2, "Please enter at least two files"
 
     file_headers = [nib.load(f).header for f in files]
 
     # signals "all fields"
     if header_fields == 'all':
-        # TODO: header fields might vary across file types, thus prior sensing would be needed
+        # TODO: header fields might vary across file types,
+        # thus prior sensing would be needed
         header_fields = file_headers[0].keys()
     else:
         header_fields = header_fields.split(',')
