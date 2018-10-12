@@ -29,13 +29,15 @@ Upcoming release
 
 New features
 ------------
-* ``nib-diff`` command line tool for comparing image files (pr/617)
-  (CC, reviewed by YOH, Pradeep Raamana and CM)
+* ``nib-diff`` command line tool for comparing image files (pr/617, pr/672,
+  pr/678) (CC, reviewed by YOH, Pradeep Raamana and CM)
 
 Enhancements
 ------------
 * Speed up reading of numeric arrays in CIFTI2 (pr/655) (Michiel Cottaar,
   reviewed by CM)
+* Add ``ndim`` property to ``ArrayProxy`` and ``DataobjImage`` (pr/674) (CM,
+  reviewed by MB)
 
 Bug fixes
 ---------
