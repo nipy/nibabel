@@ -7,62 +7,68 @@ from __future__ import division, print_function, absolute_import
 from os.path import (dirname, join as pjoin, abspath)
 import numpy as np
 
-from hypothesis import given
-import hypothesis.strategies as st
-
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
 from nibabel.cmdline.diff import are_values_different
 
-# TODO: MAJOR TO DO IS TO FIGURE OUT HOW TO USE HYPOTHESIS FOR LONGER LIST LENGTHS WHILE STILL CONTROLLING FOR OUTCOMES
+
+def test_diff_values_int():
+    large = 10**30
+    assert not are_values_different(0, 0)
+    assert not are_values_different(1, 1)
+    assert not are_values_different(large, large)
+    assert are_values_different(0, 1)
+    assert are_values_different(1, 2)
+    assert are_values_different(1, large)
 
 
-@given(st.data())
-def test_diff_values_int(data):
-    x = data.draw(st.integers(), label='x')
-    y = data.draw(st.integers(min_value=x + 1), label='x+1')
-    z = data.draw(st.integers(max_value=x - 1), label='x-1')
-
-    assert not are_values_different(x, x)
-    assert are_values_different(x, y)
-    assert are_values_different(x, z)
-    assert are_values_different(y, z)
+def test_diff_values_float():
+    assert not are_values_different(0., 0.)
+    assert not are_values_different(0., 0., 0.) # can take more
+    assert not are_values_different(1.1, 1.1)
+    assert are_values_different(0., 1.1)
+    assert are_values_different(0., 0, 1.1)
+    assert are_values_different(1., 2.)
 
 
-@given(st.data())
-def test_diff_values_float(data):
-    x = data.draw(st.just(0), label='x')
-    y = data.draw(st.floats(min_value=1e8), label='y')
-    z = data.draw(st.floats(max_value=-1e8), label='z')
-
-    assert not are_values_different(x, x)
-    assert are_values_different(x, y)
-    assert are_values_different(x, z)
-    assert are_values_different(y, z)
-
-
-@given(st.data())
-def test_diff_values_mixed(data):
-    type_float = data.draw(st.floats(), label='float')
-    type_int = data.draw(st.integers(), label='int')
-    type_none = data.draw(st.none(), label='none')
-
-    assert are_values_different(type_float, type_int)
-    assert are_values_different(type_float, type_none)
-    assert are_values_different(type_int, type_none)
+def test_diff_values_mixed():
+    assert are_values_different(1.0, 1)
+    assert are_values_different(1.0, "1")
+    assert are_values_different(1, "1")
+    assert are_values_different(1, None)
     assert are_values_different(np.ndarray([0]), 'hey')
-    assert not are_values_different(type_none, type_none)
+    assert not are_values_different(None, None)
 
 
-@given(st.data())
-def test_diff_values_array(data):
-    a = data.draw(st.lists(elements=st.integers(min_value=0), min_size=1))
-    b = data.draw(st.lists(elements=st.integers(max_value=-1), min_size=1))
-    c = data.draw(st.lists(elements=st.floats(min_value=1e8), min_size=1))
-    d = data.draw(st.lists(elements=st.floats(max_value=-1e8), min_size=1))
-    # TODO: Figure out a way to include 0 in lists (arrays)
+def test_diff_values_array():
+    from numpy import nan, array, inf
+    a_int = array([1, 2])
+    a_float = a_int.astype(float)
 
-    assert are_values_different(a, b)
-    assert are_values_different(c, d)
-    assert not are_values_different(a, a)
+    assert are_values_different(a_int, a_float)
+    assert are_values_different(a_int, a_int, a_float)
+    assert are_values_different(np.arange(3), np.arange(1, 4))
+    assert are_values_different(np.arange(3), np.arange(4))
+    assert are_values_different(np.arange(4), np.arange(4).reshape((2, 2)))
+    # no broadcasting should kick in - shape difference
+    assert are_values_different(array([1]), array([1, 1]))
+    assert not are_values_different(a_int, a_int)
+    assert not are_values_different(a_float, a_float)
+
+    # nans - we consider them "the same" for the purpose of these comparisons
+    assert not are_values_different(nan, nan)
+    assert not are_values_different(nan, nan, nan)
+    assert are_values_different(nan, nan, 1)
+    assert are_values_different(1, nan, nan)
+    assert not are_values_different(array([nan, nan]), array([nan, nan]))
+    assert not are_values_different(array([nan, nan]), array([nan, nan]), array([nan, nan]))
+    assert not are_values_different(array([nan, 1]), array([nan, 1]))
+    assert are_values_different(array([nan, nan]), array([nan, 1]))
+    assert are_values_different(array([0, nan]), array([nan, 0]))
+    assert are_values_different(array([1, 2, 3, nan]), array([nan, 3, 5, 4]))
+    assert are_values_different(nan, 1.0)
+    assert are_values_different(array([1, 2, 3, nan]), array([3, 4, 5, nan]))
+    # and some inf should not be a problem
+    assert not are_values_different(array([0, inf]), array([0, inf]))
+    assert are_values_different(array([0, inf]), array([inf, 0]))
