@@ -357,7 +357,12 @@ def _count_ImageOpeners(proxy, data, voxels):
 
 def test_keep_file_open_true_false_invalid():
     # Test the behaviour of the keep_file_open __init__ flag, when it is set to
-    # True or False.
+    # True or False. Expected behaviour is as follows:
+    # igzip present | keep_file_open | persist ImageOpener | igzip.drop_handles
+    # False         | False          | False               | n/a
+    # False         | True           | True                | n/a
+    # True          | False          | True                | True
+    # True          | True           | True                | False
     CountingImageOpener.num_openers = 0
     fname = 'testdata'
     dtype = np.float32
@@ -366,10 +371,11 @@ def test_keep_file_open_true_false_invalid():
     with InTemporaryDirectory():
         with open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
-        # Test that ArrayProxy(keep_file_open=True) only creates one file
-        # handle, and that ArrayProxy(keep_file_open=False) creates a file
-        # handle on every data access.
-        with mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
+        # Without indexed_gzip, test that ArrayProxy(keep_file_open=True) only
+        # creates one ImageOpener, and that ArrayProxy(keep_file_open=False)
+        # creates an ImageOpener on every data access.
+        with mock.patch('nibabel.openers.ImageOpener', CountingImageOpener), \
+             patch_indexed_gzip(False):
             proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
                                       keep_file_open=False)
             assert not proxy_no_kfp._keep_file_open
@@ -378,6 +384,26 @@ def test_keep_file_open_true_false_invalid():
                                    keep_file_open=True)
             assert proxy_kfp._keep_file_open
             assert _count_ImageOpeners(proxy_kfp, data, voxels) == 1
+            del proxy_kfp
+            del proxy_no_kfp
+        # With indexed_gzip, test that both ArrayProxy(keep_file_open=True)
+        # and ArrayProxy(keep_file_open=False) only create one ImageOpener,
+        # but that the drop_handles parameter passed to the IndexedGzipFile
+        # is set appropriately
+        with mock.patch('nibabel.openers.ImageOpener', CountingImageOpener), \
+             patch_indexed_gzip(True):
+            proxy_no_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                      keep_file_open=False)
+            assert proxy_no_kfp._keep_file_open
+            assert _count_ImageOpeners(proxy_no_kfp, data, voxels) == 1
+            # check that the drop_handles flag is set - the fobj attribute
+            # should be a MockIndexedGzipFile, defined in test_openers.
+            assert proxy_no_kfp._opener.fobj._drop_handles
+            proxy_kfp = ArrayProxy(fname, ((10, 10, 10), dtype),
+                                   keep_file_open=True)
+            assert proxy_kfp._keep_file_open
+            assert _count_ImageOpeners(proxy_kfp, data, voxels) == 1
+            assert not proxy_no_kfp._opener.fobj._drop_handles
             del proxy_kfp
             del proxy_no_kfp
         # Test that the keep_file_open flag has no effect if an open file
@@ -405,9 +431,10 @@ def test_keep_file_open_true_false_invalid():
 
 def test_keep_file_open_auto():
     # Test the behaviour of the keep_file_open __init__ flag, when it is set to
-    # 'auto'.
-    # if indexed_gzip is present, the ArrayProxy should persist its ImageOpener.
-    # Otherwise the ArrayProxy should drop openers.
+    # 'auto'. Expected behaviour is as follows:
+    # igzip present | keep_file_open | persist ImageOpener | igzip.drop_handles
+    # False         | 'auto'         | False               | n/a
+    # True          | 'auto'         | False               | False
     dtype = np.float32
     data = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
     voxels = np.random.randint(0, 10, (10, 3))
@@ -415,24 +442,27 @@ def test_keep_file_open_auto():
         fname  = 'testdata.gz'
         with gzip.open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
-        # If have_indexed_gzip, then the arrayproxy should create one
-        # ImageOpener
-        with patch_indexed_gzip(True), \
-             mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
-            CountingImageOpener.num_openers = 0
-            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
-                               keep_file_open='auto')
-            assert proxy._keep_file_open == 'auto'
-            assert _count_ImageOpeners(proxy, data, voxels) == 1
-        # If no have_indexed_gzip, then keep_file_open should be False
+        # If no have_indexed_gzip, then a separate ImageOpener should be
+        # created on every access.
         with patch_indexed_gzip(False), \
              mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
             CountingImageOpener.num_openers = 0
             proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
                                keep_file_open='auto')
-            assert proxy._keep_file_open is False
+            assert not proxy._keep_file_open
             assert _count_ImageOpeners(proxy, data, voxels) == 10
-        # If not a gzip file,  keep_file_open should be False
+        # If have_indexed_gzip, then the arrayproxy should create one
+        # ImageOpener, and the IndexedGzipFile drop_handles parameter should
+        # be set to False, so the file handle stays open.
+        with patch_indexed_gzip(True), \
+             mock.patch('nibabel.openers.ImageOpener', CountingImageOpener):
+            CountingImageOpener.num_openers = 0
+            proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                               keep_file_open='auto')
+            assert proxy._keep_file_open
+            assert _count_ImageOpeners(proxy, data, voxels) == 1
+            assert not proxy._opener.fobj._drop_handles
+        # If not a gzip file, keep_file_open should be False
         fname  = 'testdata'
         with open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))

@@ -107,7 +107,7 @@ def test_BinOpener():
 
 class MockIndexedGzipFile(GzipFile):
     def __init__(self, *args, **kwargs):
-        kwargs.pop('drop_handles', False)
+        self._drop_handles = kwargs.pop('drop_handles', False)
         super(MockIndexedGzipFile, self).__init__(*args, **kwargs)
 
 
