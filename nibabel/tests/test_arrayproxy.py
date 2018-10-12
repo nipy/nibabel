@@ -427,15 +427,22 @@ def test_keep_file_open_true_false_invalid():
             else:
                 with open(fname, 'wb') as fobj:
                     fobj.write(data.tostring(order='F'))
+            # pass in a file name or open file handle. If the latter, we open
+            # two file handles, because we're going to create two proxies
+            # below.
             if filetype == 'open':
-                fname = open(fname, 'rb')
+                fobj1 = open(fname, 'rb')
+                fobj2 = open(fname, 'rb')
+            else:
+                fobj1 = fname
+                fobj2 = fname
             try:
-                proxy = ArrayProxy(fname, ((10, 10, 10), dtype),
+                proxy = ArrayProxy(fobj1, ((10, 10, 10), dtype),
                                    keep_file_open=kfo)
                 # We also test that we get the same behaviour when the
                 # KEEP_FILE_OPEN_DEFAULT flag is changed
                 with patch_keep_file_open_default(kfo):
-                    proxy_def = ArrayProxy(fname, ((10, 10, 10), dtype))
+                    proxy_def = ArrayProxy(fobj2, ((10, 10, 10), dtype))
                 # check internal flags
                 assert proxy._persist_opener == exp_persist
                 assert proxy._keep_file_open == exp_kfo
@@ -458,13 +465,17 @@ def test_keep_file_open_true_false_invalid():
                 # if we were using an open file handle, check that the proxy
                 # didn't close it
                 if filetype == 'open':
-                    assert not fname.closed
+                    assert not fobj1.closed
+                    assert not fobj2.closed
             except Exception:
                 print('Failed test', test)
                 raise
             finally:
+                del proxy
+                del proxy_def
                 if filetype == 'open':
-                    fname.close()
+                    fobj1.close()
+                    fobj2.close()
     # Test invalid values of keep_file_open
     print('testinv')
     with InTemporaryDirectory():
