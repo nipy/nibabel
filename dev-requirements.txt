@@ -2,4 +2,4 @@
 -r requirements.txt
 nose
 mock
-hypothesis>=3.7
+hypothesis
