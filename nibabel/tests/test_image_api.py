@@ -202,6 +202,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Check get data returns array, and caches
         img = imaker()
         assert_equal(img.shape, img.dataobj.shape)
+        assert_equal(img.ndim, len(img.shape))
         assert_data_similar(img.dataobj, params)
         for meth_name in self.meth_names:
             if params['is_proxy']:
@@ -210,6 +211,8 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 self._check_array_interface(imaker, meth_name)
             # Data shape is same as image shape
             assert_equal(img.shape, getattr(img, meth_name)().shape)
+            # Data ndim is same as image ndim
+            assert_equal(img.ndim, getattr(img, meth_name)().ndim)
             # Values to get_data caching parameter must be 'fill' or
             # 'unchanged'
             assert_raises(ValueError, img.get_data, caching='something')
@@ -393,6 +396,17 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert_equal(img.shape, params['data'].shape)
         # Read only
         assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
+
+    def validate_ndim(self, imaker, params):
+        # Validate shape
+        img = imaker()
+        # Same as expected ndim
+        assert_equal(img.ndim, len(params['shape']))
+        # Same as array ndim if passed
+        if 'data' in params:
+            assert_equal(img.ndim, params['data'].ndim)
+        # Read only
+        assert_raises(AttributeError, setattr, img, 'ndim', 5)
 
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
