@@ -467,9 +467,6 @@ def test_keep_file_open_true_false_invalid():
                 if filetype == 'open':
                     assert not fobj1.closed
                     assert not fobj2.closed
-            except Exception:
-                print('Failed test', test)
-                raise
             finally:
                 del proxy
                 del proxy_def
@@ -477,7 +474,6 @@ def test_keep_file_open_true_false_invalid():
                     fobj1.close()
                     fobj2.close()
     # Test invalid values of keep_file_open
-    print('testinv')
     with InTemporaryDirectory():
         fname = 'testdata'
         with open(fname, 'wb') as fobj:
