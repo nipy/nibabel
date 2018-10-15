@@ -81,24 +81,24 @@ def _read_volume_info(fobj):
     return volume_info
 
 
-def _pack_rgb(rgb):
-    """Pack an RGB sequence into a single integer.
+def _pack_rgba(rgba):
+    """Pack an RGBA sequence into a single integer.
 
     Used by :func:`read_annot` and :func:`write_annot` to generate
     "annotation values" for a Freesurfer ``.annot`` file.
 
     Parameters
     ----------
-    rgb : ndarray, shape (n, 3)
-        RGB colors
+    rgba : ndarray, shape (n, 4)
+        RGBA colors
 
     Returns
     -------
     out : ndarray, shape (n, 1)
         Annotation values for each color.
     """
-    bitshifts = 2 ** np.array([[0], [8], [16]], dtype=rgb.dtype)
-    return rgb.dot(bitshifts)
+    bitshifts = 2 ** np.array([[0], [8], [16], [24]], dtype=rgba.dtype)
+    return rgba.dot(bitshifts)
 
 
 def read_geometry(filepath, read_metadata=False, read_stamp=False):
@@ -333,13 +333,9 @@ def read_annot(filepath, orig_ids=False):
     Annotation file format versions 1 and 2 are supported, corresponding to
     the "old-style" and "new-style" color table layout.
 
-    Note that the output color table ``ctab`` is in RGBT form, where T
-    (transparency) is 255 - alpha.
-
     See:
      * https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
      * https://github.com/freesurfer/freesurfer/blob/dev/matlab/read_annotation.m
-     * https://github.com/freesurfer/freesurfer/blob/8b88b34/utils/colortab.c
 
     Parameters
     ----------
@@ -356,7 +352,7 @@ def read_annot(filepath, orig_ids=False):
         Annotation id at each vertex. If a vertex does not belong
         to any label and orig_ids=False, its id will be set to -1.
     ctab : ndarray, shape (n_labels, 5)
-        RGBT + label id colortable array.
+        RGBA + label id colortable array.
     names : list of str (python 2), list of bytes (python 3)
         The names of the labels. The length of the list is n_labels.
     """
@@ -388,7 +384,7 @@ def read_annot(filepath, orig_ids=False):
             ctab, names = _read_annot_ctab_new_format(fobj, -n_entries)
 
     # generate annotation values for each LUT entry
-    ctab[:, [4]] = _pack_rgb(ctab[:, :3])
+    ctab[:, [4]] = _pack_rgba(ctab[:, :4])
 
     if not orig_ids:
         ord = np.argsort(ctab[:, -1])
@@ -400,9 +396,6 @@ def read_annot(filepath, orig_ids=False):
 
 def _read_annot_ctab_old_format(fobj, n_entries):
     """Read in an old-style Freesurfer color table from `fobj`.
-
-    Note that the output color table ``ctab`` is in RGBT form, where T
-    (transparency) is 255 - alpha.
 
     This function is used by :func:`read_annot`.
 
@@ -419,7 +412,7 @@ def _read_annot_ctab_old_format(fobj, n_entries):
     -------
 
     ctab : ndarray, shape (n_entries, 5)
-        RGBT colortable array - the last column contains all zeros.
+        RGBA colortable array - the last column contains all zeros.
     names : list of str
         The names of the labels. The length of the list is n_entries.
     """
@@ -437,7 +430,7 @@ def _read_annot_ctab_old_format(fobj, n_entries):
         name_length = np.fromfile(fobj, dt, 1)[0]
         name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
         names.append(name)
-        # read RGBT for this entry
+        # read RGBA for this entry
         ctab[i, :4] = np.fromfile(fobj, dt, 4)
 
     return ctab, names
@@ -445,9 +438,6 @@ def _read_annot_ctab_old_format(fobj, n_entries):
 
 def _read_annot_ctab_new_format(fobj, ctab_version):
     """Read in a new-style Freesurfer color table from `fobj`.
-
-    Note that the output color table ``ctab`` is in RGBT form, where T
-    (transparency) is 255 - alpha.
 
     This function is used by :func:`read_annot`.
 
@@ -464,7 +454,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     -------
 
     ctab : ndarray, shape (n_labels, 5)
-        RGBT colortable array - the last column contains all zeros.
+        RGBA colortable array - the last column contains all zeros.
     names : list of str
         The names of the labels. The length of the list is n_labels.
     """
@@ -490,7 +480,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
         name_length = np.fromfile(fobj, dt, 1)[0]
         name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
         names.append(name)
-        # RGBT
+        # RGBA
         ctab[idx, :4] = np.fromfile(fobj, dt, 4)
 
     return ctab, names
@@ -499,13 +489,9 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
 def write_annot(filepath, labels, ctab, names, fill_ctab=True):
     """Write out a "new-style" Freesurfer annotation file.
 
-    Note that the color table ``ctab`` is in RGBT form, where T (transparency)
-    is 255 - alpha.
-
     See:
      * https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation
      * https://github.com/freesurfer/freesurfer/blob/dev/matlab/write_annotation.m
-     * https://github.com/freesurfer/freesurfer/blob/8b88b34/utils/colortab.c
 
     Parameters
     ----------
@@ -514,7 +500,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
     labels : ndarray, shape (n_vertices,)
         Annotation id at each vertex.
     ctab : ndarray, shape (n_labels, 5)
-        RGBT + label id colortable array.
+        RGBA + label id colortable array.
     names : list of str
         The names of the labels. The length of the list is n_labels.
     fill_ctab : {True, False} optional
@@ -537,8 +523,8 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
 
         # Generate annotation values for each ctab entry
         if fill_ctab:
-            ctab = np.hstack((ctab[:, :4], _pack_rgb(ctab[:, :3])))
-        elif not np.array_equal(ctab[:, [4]], _pack_rgb(ctab[:, :3])):
+            ctab = np.hstack((ctab[:, :4], _pack_rgba(ctab[:, :4])))
+        elif not np.array_equal(ctab[:, [4]], _pack_rgba(ctab[:, :4])):
             warnings.warn('Annotation values in {} will be incorrect'.format(
                 filepath))
 

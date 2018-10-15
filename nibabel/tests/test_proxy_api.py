@@ -108,14 +108,6 @@ class _TestProxyAPI(ValidateAPI):
         # Read only
         assert_raises(AttributeError, setattr, prox, 'shape', params['shape'])
 
-    def validate_ndim(self, pmaker, params):
-        # Check shape
-        prox, fio, hdr = pmaker()
-        assert_equal(prox.ndim, len(params['shape']))
-        # Read only
-        assert_raises(AttributeError, setattr, prox,
-                      'ndim', len(params['shape']))
-
     def validate_is_proxy(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()

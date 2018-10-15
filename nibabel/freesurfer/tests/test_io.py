@@ -16,7 +16,7 @@ from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
                 write_geometry, write_morph_data, write_annot)
-from ..io import _pack_rgb
+from ..io import _pack_rgba
 
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
@@ -236,7 +236,8 @@ def test_read_write_annot():
     # Generate the annotation values for each LUT entry
     rgbal[:, 4] = (rgbal[:, 0] +
                    rgbal[:, 1] * (2 ** 8) +
-                   rgbal[:, 2] * (2 ** 16))
+                   rgbal[:, 2] * (2 ** 16) +
+                   rgbal[:, 3] * (2 ** 24))
     annot_path = 'c.annot'
     with InTemporaryDirectory():
         write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
@@ -286,7 +287,8 @@ def test_write_annot_fill_ctab():
         rgbal = np.hstack((rgba, np.zeros((nlabels, 1), dtype=np.int32)))
         rgbal[:, 4] = (rgbal[:, 0] +
                        rgbal[:, 1] * (2 ** 8) +
-                       rgbal[:, 2] * (2 ** 16))
+                       rgbal[:, 2] * (2 ** 16) +
+                       rgbal[:, 3] * (2 ** 24))
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         assert_true(
@@ -305,7 +307,7 @@ def test_read_annot_old_format():
         dt = '>i'
         vdata = np.zeros((nverts, 2), dtype=dt)
         vdata[:, 0] = np.arange(nverts)
-        vdata[:, [1]] = _pack_rgb(rgba[labels, :3])
+        vdata[:, [1]] = _pack_rgba(rgba[labels, :])
         fbytes = b''
         # number of vertices
         fbytes += struct.pack(dt, nverts)
