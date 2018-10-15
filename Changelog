@@ -47,6 +47,8 @@ Bug fixes
 * Allow for PPC64 little-endian long doubles (pr/658) (MB, reviewed by CM)
 * Correct construction of FreeSurfer annotation labels (pr/666) (CM, reviewed
   by EL, Paul D. McCarthy)
+* Fix logic for persisting filehandles with indexed-gzip (pr/679) (Paul D.
+  McCarthy, reviewed by CM)
 
 Maintenance
 -----------
