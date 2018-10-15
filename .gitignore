@@ -16,7 +16,6 @@
 .project
 .pydevproject
 *.py.orig
-.DS_Store
 
 # Not sure what the next one is for
 *.kpf

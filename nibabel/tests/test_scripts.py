@@ -8,7 +8,6 @@ from __future__ import division, print_function, absolute_import
 
 import sys
 import os
-import shutil
 from os.path import (dirname, join as pjoin, abspath, splitext, basename,
                      exists)
 import csv
@@ -16,7 +15,6 @@ from glob import glob
 
 import numpy as np
 
-import nibabel as nib
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
@@ -24,7 +22,7 @@ from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 from nose.tools import assert_true, assert_false, assert_equal
 from nose import SkipTest
 
-from numpy.testing import assert_almost_equal, assert_array_equal
+from numpy.testing import assert_almost_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data
@@ -129,25 +127,6 @@ def test_nib_ls_multiple():
         ]
     )
 
-
-@script_test
-def test_help():
-    for cmd in ['parrec2nii', 'nib-dicomfs', 'nib-ls', 'nib-nifti-dx']:
-        if cmd == 'nib-dicomfs':
-            # needs special treatment since depends on fuse module which
-            # might not be available.
-            try:
-                import fuse
-            except Exception:
-                continue  # do not test this one
-        code, stdout, stderr = run_command([cmd, '--help'])
-        assert_equal(code, 0)
-        assert_re_in(".*%s" % cmd, stdout)
-        assert_re_in(".*Usage", stdout)
-        # Some third party modules might like to announce some Deprecation
-        # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
-        if 'warning' not in stderr.lower():
-            assert_equal(stderr, '')
 
 
 @script_test
@@ -378,92 +357,3 @@ def test_parrec2nii_with_data():
         assert_equal(sorted(csv_keys), ['diffusion b value number',
                                         'gradient orientation number'])
         assert_equal(nlines, 8)  # 8 volumes present in DTI.PAR
-
-
-@script_test
-def test_nib_trk2tck():
-    simple_trk = pjoin(DATA_PATH, "simple.trk")
-    standard_trk = pjoin(DATA_PATH, "standard.trk")
-
-    with InTemporaryDirectory() as tmpdir:
-        # Copy input files to convert.
-        shutil.copy(simple_trk, tmpdir)
-        shutil.copy(standard_trk, tmpdir)
-        simple_trk = pjoin(tmpdir, "simple.trk")
-        standard_trk = pjoin(tmpdir, "standard.trk")
-        simple_tck = pjoin(tmpdir, "simple.tck")
-        standard_tck = pjoin(tmpdir, "standard.tck")
-
-        # Convert one file.
-        cmd = ["nib-trk2tck", simple_trk]
-        code, stdout, stderr = run_command(cmd)
-        assert_equal(len(stdout), 0)
-        assert_true(os.path.isfile(simple_tck))
-        trk = nib.streamlines.load(simple_trk)
-        tck = nib.streamlines.load(simple_tck)
-        assert_array_equal(tck.streamlines.data, trk.streamlines.data)
-        assert_true(isinstance(tck, nib.streamlines.TckFile))
-
-        # Skip non TRK files.
-        cmd = ["nib-trk2tck", simple_tck]
-        code, stdout, stderr = run_command(cmd)
-        assert_true("Skipping non TRK file" in stdout)
-
-        # By default, refuse to overwrite existing output files.
-        cmd = ["nib-trk2tck", simple_trk]
-        code, stdout, stderr = run_command(cmd)
-        assert_true("Skipping existing file" in stdout)
-
-        # Convert multiple files and with --force.
-        cmd = ["nib-trk2tck", "--force", simple_trk, standard_trk]
-        code, stdout, stderr = run_command(cmd)
-        assert_equal(len(stdout), 0)
-        trk = nib.streamlines.load(standard_trk)
-        tck = nib.streamlines.load(standard_tck)
-        assert_array_equal(tck.streamlines.data, trk.streamlines.data)
-
-
-@script_test
-def test_nib_tck2trk():
-    anat = pjoin(DATA_PATH, "standard.nii.gz")
-    standard_tck = pjoin(DATA_PATH, "standard.tck")
-
-    with InTemporaryDirectory() as tmpdir:
-        # Copy input file to convert.
-        shutil.copy(standard_tck, tmpdir)
-        standard_trk = pjoin(tmpdir, "standard.trk")
-        standard_tck = pjoin(tmpdir, "standard.tck")
-
-        # Anatomical image not found as first argument.
-        cmd = ["nib-tck2trk", standard_tck, anat]
-        code, stdout, stderr = run_command(cmd, check_code=False)
-        assert_equal(code, 2)  # Parser error.
-        assert_true("Expecting anatomical image as first agument" in stderr)
-
-        # Convert one file.
-        cmd = ["nib-tck2trk", anat, standard_tck]
-        code, stdout, stderr = run_command(cmd)
-        assert_equal(len(stdout), 0)
-        assert_true(os.path.isfile(standard_trk))
-        tck = nib.streamlines.load(standard_tck)
-        trk = nib.streamlines.load(standard_trk)
-        assert_array_equal(trk.streamlines.data, tck.streamlines.data)
-        assert_true(isinstance(trk, nib.streamlines.TrkFile))
-
-        # Skip non TCK files.
-        cmd = ["nib-tck2trk", anat, standard_trk]
-        code, stdout, stderr = run_command(cmd)
-        assert_true("Skipping non TCK file" in stdout)
-
-        # By default, refuse to overwrite existing output files.
-        cmd = ["nib-tck2trk", anat, standard_tck]
-        code, stdout, stderr = run_command(cmd)
-        assert_true("Skipping existing file" in stdout)
-
-        # Convert multiple files and with --force.
-        cmd = ["nib-tck2trk", "--force", anat, standard_tck, standard_tck]
-        code, stdout, stderr = run_command(cmd)
-        assert_equal(len(stdout), 0)
-        tck = nib.streamlines.load(standard_tck)
-        trk = nib.streamlines.load(standard_trk)
-        assert_array_equal(tck.streamlines.data, trk.streamlines.data)

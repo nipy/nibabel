@@ -16,7 +16,6 @@ Run this benchmark with:
 from __future__ import division, print_function
 
 import sys
-from io import BytesIO  # NOQA
 
 import numpy as np
 

@@ -15,6 +15,7 @@ Run this benchmark with:
 """
 
 from timeit import timeit
+import contextlib
 import gc
 import itertools as it
 import numpy as np
@@ -50,12 +51,22 @@ SLICEOBJS = [
     ('?', '?', '?', ':'),
 ]
 
-KEEP_OPENS = [False, True, 'auto']
+KEEP_OPENS = [False, True]
 
 if HAVE_INDEXED_GZIP:
     HAVE_IGZIP = [False, True]
 else:
     HAVE_IGZIP = [False]
+
+
+@contextlib.contextmanager
+def patch_indexed_gzip(have_igzip):
+
+    atts = ['nibabel.openers.HAVE_INDEXED_GZIP',
+            'nibabel.arrayproxy.HAVE_INDEXED_GZIP']
+
+    with mock.patch(atts[0], have_igzip), mock.patch(atts[1], have_igzip):
+        yield
 
 
 def bench_arrayproxy_slicing():
@@ -143,15 +154,14 @@ def bench_arrayproxy_slicing():
             # load uncompressed and compressed versions of the image
             img = nib.load(testfile, keep_file_open=keep_open)
 
-            with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', have_igzip):
+            with patch_indexed_gzip(have_igzip):
                 imggz = nib.load(testfilegz, keep_file_open=keep_open)
 
             def basefunc():
                 img.dataobj[fix_sliceobj(sliceobj)]
 
             def testfunc():
-                with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP',
-                                have_igzip):
+                with patch_indexed_gzip(have_igzip):
                     imggz.dataobj[fix_sliceobj(sliceobj)]
 
             # make sure nothing is floating around from the previous test
