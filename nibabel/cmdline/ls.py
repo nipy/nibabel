@@ -21,7 +21,8 @@ import nibabel as nib
 import nibabel.cmdline.utils
 from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
 
-__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko ' \
+__author__ = 'Yaroslav Halchenko'
+__copyright__ = 'Copyright (c) 2011-2016 Yaroslav Halchenko ' \
                 'and NiBabel contributors'
 __license__ = 'MIT'
 
@@ -152,11 +153,11 @@ def proc_file(f, opts):
     return row
 
 
-def main(args=None):
+def main():
     """Show must go on"""
 
     parser = get_opt_parser()
-    (opts, files) = parser.parse_args(args=args)
+    (opts, files) = parser.parse_args()
 
     nibabel.cmdline.utils.verbose_level = opts.verbose
 

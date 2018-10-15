@@ -12,10 +12,9 @@ import contextlib
 from gzip import GzipFile
 from bz2 import BZ2File
 from io import BytesIO, UnsupportedOperation
-from distutils.version import StrictVersion
 
 from ..py3k import asstr, asbytes
-from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP
+from ..openers import Opener, ImageOpener
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
@@ -68,8 +67,6 @@ def test_Opener_various():
     # Check we can do all sorts of files here
     message = b"Oh what a giveaway"
     bz2_fileno = hasattr(BZ2File, 'fileno')
-    if HAVE_INDEXED_GZIP:
-        import indexed_gzip as igzip
     with InTemporaryDirectory():
         sobj = BytesIO()
         for input in ('test.txt',
@@ -89,11 +86,6 @@ def test_Opener_various():
                     assert_raises(UnsupportedOperation, fobj.fileno)
                 elif input.endswith('.bz2') and not bz2_fileno:
                     assert_raises(AttributeError, fobj.fileno)
-                # indexed gzip is used by default, and drops file
-                # handles by default, so we don't have a fileno.
-                elif input.endswith('gz') and HAVE_INDEXED_GZIP and \
-                     StrictVersion(igzip.__version__) >= StrictVersion('0.7.0'):
-                    assert_raises(igzip.NoHandleError, fobj.fileno)
                 else:
                     # Just check there is a fileno
                     assert_not_equal(fobj.fileno(), 0)
@@ -105,10 +97,9 @@ def test_BinOpener():
                       BinOpener, 'test.txt', 'r')
 
 
-class MockIndexedGzipFile(GzipFile):
+class MockIndexedGzipFile(object):
     def __init__(self, *args, **kwargs):
-        kwargs.pop('drop_handles', False)
-        super(MockIndexedGzipFile, self).__init__(*args, **kwargs)
+        pass
 
 
 @contextlib.contextmanager
@@ -116,11 +107,12 @@ def patch_indexed_gzip(state):
     # Make it look like we do (state==True) or do not (state==False) have
     # the indexed gzip module.
     if state:
-        values = (True, MockIndexedGzipFile)
+        values = (True, True, MockIndexedGzipFile)
     else:
-        values = (False, GzipFile)
+        values = (False, False, GzipFile)
     with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), \
-         mock.patch('nibabel.openers.IndexedGzipFile', values[1],
+         mock.patch('nibabel.arrayproxy.HAVE_INDEXED_GZIP', values[1]), \
+         mock.patch('nibabel.openers.SafeIndexedGzipFile', values[2],
                     create=True):
         yield
 
@@ -140,18 +132,14 @@ def test_Opener_gzip_type():
         # Each test is specified by a tuple containing:
         #   (indexed_gzip present, Opener kwargs, expected file type)
         tests = [
-            (False, {'mode' : 'rb', 'keep_open' : True},   GzipFile),
-            (False, {'mode' : 'rb', 'keep_open' : False},  GzipFile),
-            (False, {'mode' : 'rb', 'keep_open' : 'auto'}, GzipFile),
-            (False, {'mode' : 'wb', 'keep_open' : True},   GzipFile),
-            (False, {'mode' : 'wb', 'keep_open' : False},  GzipFile),
-            (False, {'mode' : 'wb', 'keep_open' : 'auto'}, GzipFile),
-            (True,  {'mode' : 'rb', 'keep_open' : True},   MockIndexedGzipFile),
-            (True,  {'mode' : 'rb', 'keep_open' : False},  MockIndexedGzipFile),
-            (True,  {'mode' : 'rb', 'keep_open' : 'auto'}, MockIndexedGzipFile),
-            (True,  {'mode' : 'wb', 'keep_open' : True},   GzipFile),
-            (True,  {'mode' : 'wb', 'keep_open' : False},  GzipFile),
-            (True,  {'mode' : 'wb', 'keep_open' : 'auto'}, GzipFile),
+            (False, {'mode' : 'rb', 'keep_open' : True},  GzipFile),
+            (False, {'mode' : 'rb', 'keep_open' : False}, GzipFile),
+            (False, {'mode' : 'wb', 'keep_open' : True},  GzipFile),
+            (False, {'mode' : 'wb', 'keep_open' : False}, GzipFile),
+            (True,  {'mode' : 'rb', 'keep_open' : True},  MockIndexedGzipFile),
+            (True,  {'mode' : 'rb', 'keep_open' : False}, GzipFile),
+            (True,  {'mode' : 'wb', 'keep_open' : True},  GzipFile),
+            (True,  {'mode' : 'wb', 'keep_open' : False}, GzipFile),
         ]
 
         for test in tests:
@@ -268,10 +256,11 @@ def test_compressed_ext_case():
                 assert_true(isinstance(fobj.fobj, file_class))
             elif lext == 'gz':
                 try:
-                    from ..openers import IndexedGzipFile
+                    from indexed_gzip import SafeIndexedGzipFile
                 except ImportError:
-                    IndexedGzipFile = GzipFile
-                assert_true(isinstance(fobj.fobj, (GzipFile, IndexedGzipFile)))
+                    SafeIndexedGzipFile = GzipFile
+                assert_true(isinstance(fobj.fobj, (GzipFile,
+                                                   SafeIndexedGzipFile)))
             else:
                 assert_true(isinstance(fobj.fobj, BZ2File))
 

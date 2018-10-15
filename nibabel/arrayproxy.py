@@ -34,7 +34,7 @@ from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice
 from .keywordonly import kw_only_meth
-from . import openers
+from .openers import ImageOpener, HAVE_INDEXED_GZIP
 
 
 """This flag controls whether a new file handle is created every time an image
@@ -43,18 +43,14 @@ used for the lifetime of the ``ArrayProxy``. It should be set to one of
 ``True``, ``False``, or ``'auto'``.
 
 If ``True``, a single file handle is created and used. If ``False``, a new
-file handle is created every time the image is accessed. For gzip files, if
-``'auto'``, and the optional ``indexed_gzip`` dependency is present, a single
-file handle is created and persisted. If ``indexed_gzip`` is not available,
-behaviour is the same as if ``keep_file_open is False``.
+file handle is created every time the image is accessed. If ``'auto'``, and
+the optional ``indexed_gzip`` dependency is present, a single file handle is
+created and persisted. If ``indexed_gzip`` is not available, behaviour is the
+same as if ``keep_file_open is False``.
 
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
-
-.. warning:: Setting this flag to a value of ``'auto'`` will become deprecated
-             behaviour in version 2.4.0. Support for ``'auto'`` will be removed
-             in version 3.0.0.
 """
 KEEP_FILE_OPEN_DEFAULT = False
 
@@ -191,9 +187,9 @@ class ArrayProxy(object):
 
           - If ``file_like`` is a file(-like) object, ``False`` is returned.
             Otherwise, ``file_like`` is assumed to be a file name.
-          - If ``keep_file_open`` is ``auto``, and ``indexed_gzip`` is
-            not available, ``False`` is returned.
-          - Otherwise, the value of ``keep_file_open`` is returned unchanged.
+          - if ``file_like`` ends with ``'gz'``, and the ``indexed_gzip``
+            library is available, ``True`` is returned.
+          - Otherwise, ``False`` is returned.
 
         Parameters
         ----------
@@ -207,21 +203,23 @@ class ArrayProxy(object):
         -------
 
         The value of ``keep_file_open`` that will be used by this
-        ``ArrayProxy``, and passed through to ``ImageOpener`` instances.
+        ``ArrayProxy``.
         """
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
-        if keep_file_open not in ('auto', True, False):
+        # if keep_file_open is True/False, we do what the user wants us to do
+        if isinstance(keep_file_open, bool):
+            return keep_file_open
+        if keep_file_open != 'auto':
             raise ValueError('keep_file_open should be one of {None, '
                              '\'auto\', True, False}')
+
         # file_like is a handle - keep_file_open is irrelevant
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False
-        # don't have indexed_gzip - auto -> False
-        if keep_file_open == 'auto' and not (openers.HAVE_INDEXED_GZIP and
-                                             file_like.endswith('.gz')):
-            return False
-        return keep_file_open
+        # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
+        # keep_file_open to True, else we set it to False
+        return HAVE_INDEXED_GZIP and file_like.endswith('gz')
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
@@ -267,11 +265,10 @@ class ArrayProxy(object):
         """
         if self._keep_file_open:
             if not hasattr(self, '_opener'):
-                self._opener = openers.ImageOpener(
-                    self.file_like, keep_open=self._keep_file_open)
+                self._opener = ImageOpener(self.file_like, keep_open=True)
             yield self._opener
         else:
-            with openers.ImageOpener(self.file_like) as opener:
+            with ImageOpener(self.file_like, keep_open=False) as opener:
                 yield opener
 
     def get_unscaled(self):
