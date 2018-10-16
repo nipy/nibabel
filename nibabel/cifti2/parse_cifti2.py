@@ -517,28 +517,28 @@ class Cifti2Parser(xml.XmlParser):
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             vertices = self.struct_state[-1]
-            vertices.extend(np.genfromtxt(c, dtype=np.int))
+            vertices.extend(np.loadtxt(c, dtype=np.int))
             c.close()
 
         elif self.write_to == 'VoxelIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             parent = self.struct_state[-1]
-            parent.voxel_indices_ijk.extend(np.genfromtxt(c, dtype=np.int).reshape(-1, 3))
+            parent.voxel_indices_ijk.extend(np.loadtxt(c, dtype=np.int).reshape(-1, 3))
             c.close()
 
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             index = self.struct_state[-1]
-            index.extend(np.genfromtxt(c, dtype=np.int))
+            index.extend(np.loadtxt(c, dtype=np.int))
             c.close()
 
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             transform = self.struct_state[-1]
-            transform.matrix = np.genfromtxt(c, dtype=np.float)
+            transform.matrix = np.loadtxt(c, dtype=np.float)
             c.close()
 
         elif self.write_to == 'Label':
