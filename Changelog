@@ -24,8 +24,8 @@ Gerhard (SG), Eric Larson (EL), Yaroslav Halchenko (YOH) and Chris Cheng (CC).
 
 References like "pr/298" refer to github pull request numbers.
 
-Upcoming release
-================
+2.3.1 (Tuesday 16 October 2018)
+===============================
 
 New features
 ------------
@@ -56,9 +56,6 @@ Maintenance
   Rokem, reviewed by CM, MB)
 * Test on Python 3.7, minor associated fixes (pr/651) (CM, reviewed by Gregory
   R. Lee, MB)
-
-API changes and deprecations
-----------------------------
 
 2.3 (Tuesday 12 June 2018)
 ==========================
