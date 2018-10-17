@@ -5,29 +5,29 @@ environment:
   appveyor_build_worker_cloud: gce
   matrix:
     - PYTHON: C:\Python34
-      NUMPY: 1.14.2
+      NUMPY: 1.14.0
     - PYTHON: C:\Python34-x64
-      NUMPY: 1.14.2
+      NUMPY: 1.14.0
     - PYTHON: C:\Python35
-      NUMPY: 1.14.2
+      NUMPY: 1.14.0
     - PYTHON: C:\Python35-x64
-      NUMPY: 1.14.2
+      NUMPY: 1.14.0
     - PYTHON: C:\Python34
-      NUMPY: 1.14.4
+      NUMPY: 1.13.0
     - PYTHON: C:\Python34-x64
-      NUMPY: 1.14.4
+      NUMPY: 1.13.0
     - PYTHON: C:\Python35
-      NUMPY: 1.14.4
+      NUMPY: 1.13.0
     - PYTHON: C:\Python35-x64
-      NUMPY: 1.14.4
+      NUMPY: 1.13.0
     - PYTHON: C:\Python34
-      NUMPY: 1.15.2
+      NUMPY: 1.12.0
     - PYTHON: C:\Python34-x64
-      NUMPY: 1.15.2
+      NUMPY: 1.12.0
     - PYTHON: C:\Python35
-      NUMPY: 1.15.2
+      NUMPY: 1.12.0
     - PYTHON: C:\Python35-x64
-      NUMPY: 1.15.2
+      NUMPY: 1.12.0
 
 install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
