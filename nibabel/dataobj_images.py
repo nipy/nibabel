@@ -28,8 +28,8 @@ class DataobjImage(FileBasedImage):
         ----------
         dataobj : object
            Object containg image data.  It should be some object that retuns an
-           array from ``np.asanyarray``.  It should have a ``shape`` attribute
-           or property
+           array from ``np.asanyarray``.  It should have ``shape`` and ``ndim``
+           attributes or properties
         header : None or mapping or header instance, optional
            metadata for this image format
         extra : None or mapping, optional
@@ -344,7 +344,7 @@ class DataobjImage(FileBasedImage):
         if self._fdata_cache is not None:
             if self._fdata_cache.dtype.type == dtype.type:
                 return self._fdata_cache
-        data = np.asanyarray(self._dataobj).astype(dtype)
+        data = np.asanyarray(self._dataobj).astype(dtype, copy=False)
         if caching == 'fill':
             self._fdata_cache = data
         return data
@@ -391,6 +391,10 @@ class DataobjImage(FileBasedImage):
     @property
     def shape(self):
         return self._dataobj.shape
+
+    @property
+    def ndim(self):
+        return self._dataobj.ndim
 
     @deprecate_with_version('get_shape method is deprecated.\n'
                             'Please use the ``img.shape`` property '

@@ -101,7 +101,7 @@ showing the middle slice of :download:`an image
            [  0.  ,   2.75,   0.  , -91.  ],
            [  0.  ,   0.  ,   2.75, -91.  ],
            [  0.  ,   0.  ,   0.  ,   1.  ]])
-    >>> img_data = img.get_data()
+    >>> img_data = img.get_fdata()
     >>> a_slice = img_data[:, :, 28]
     >>> # Need transpose to put first axis left-right, second bottom-top
     >>> plt.imshow(a_slice.T, cmap="gray", origin="lower")  # doctest: +SKIP

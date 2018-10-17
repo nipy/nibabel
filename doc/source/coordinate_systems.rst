@@ -34,7 +34,7 @@ We can load up the EPI image to get the image data array:
 
     >>> import nibabel as nib
     >>> epi_img = nib.load('downloads/someones_epi.nii.gz')
-    >>> epi_img_data = epi_img.get_data()
+    >>> epi_img_data = epi_img.get_fdata()
     >>> epi_img_data.shape
     (53, 61, 33)
 
@@ -64,7 +64,7 @@ and look at slices in the three axes:
     :context:
 
     >>> anat_img = nib.load('downloads/someones_anatomy.nii.gz')
-    >>> anat_img_data = anat_img.get_data()
+    >>> anat_img_data = anat_img.get_fdata()
     >>> anat_img_data.shape
     (57, 67, 56)
     >>> show_slices([anat_img_data[28, :, :],
@@ -255,7 +255,7 @@ axes *starts* on the right, anterior, superior of the subject, rather than
 *ending* on the right, anterior, superior.  In other words, they would use
 "RAS" to refer to a coordinate system we would call "LPI".  To be safe, we'll
 call our interpretation of the RAS convention "RAS+", meaning that Right,
-Anterior, Posterior are all positive values on these axes.
+Anterior, Superior are all positive values on these axes.
 
 Some people also use "right" to mean the right hand side when an observer
 looks at the front of the scanner, from the foot the scanner bed.
