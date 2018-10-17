@@ -5,9 +5,29 @@ environment:
   appveyor_build_worker_cloud: gce
   matrix:
     - PYTHON: C:\Python34
+      NUMPY: 1.14.2
     - PYTHON: C:\Python34-x64
+      NUMPY: 1.14.2
     - PYTHON: C:\Python35
+      NUMPY: 1.14.2
     - PYTHON: C:\Python35-x64
+      NUMPY: 1.14.2
+    - PYTHON: C:\Python34
+      NUMPY: 1.14.4
+    - PYTHON: C:\Python34-x64
+      NUMPY: 1.14.4
+    - PYTHON: C:\Python35
+      NUMPY: 1.14.4
+    - PYTHON: C:\Python35-x64
+      NUMPY: 1.14.4
+    - PYTHON: C:\Python34
+      NUMPY: 1.15.2
+    - PYTHON: C:\Python34-x64
+      NUMPY: 1.15.2
+    - PYTHON: C:\Python35
+      NUMPY: 1.15.2
+    - PYTHON: C:\Python35-x64
+      NUMPY: 1.15.2
 
 install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
@@ -16,7 +36,7 @@ install:
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
 
   # Install the dependencies of the project.
-  - pip install numpy scipy matplotlib nose h5py mock pydicom
+  - pip install numpy==%NUMPY% scipy matplotlib nose h5py mock pydicom
   - pip install .
   - SET NIBABEL_DATA_DIR=%CD%\nibabel-data
 
