@@ -255,7 +255,7 @@ class MGHHeader(LabeledWrapStruct):
         .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         '''
         # Do not return time zoom (TR) if 3D image
-        tzoom = (self['tr'],)[:self._ndims() > 3]
+        tzoom = (self['tr'],) if self._ndims() > 3 else ()
         return tuple(self._structarr['delta']) + tzoom
 
     def set_zooms(self, zooms):
@@ -276,10 +276,15 @@ class MGHHeader(LabeledWrapStruct):
         ndims = self._ndims()
         if len(zooms) > ndims:
             raise HeaderDataError('Expecting %d zoom values' % ndims)
-        if np.any(zooms <= 0):
-            raise HeaderDataError('zooms must be positive')
+        if np.any(zooms[:3] <= 0):
+            raise HeaderDataError('Spatial (first three) zooms must be '
+                                  'positive; got {!r}'
+                                  ''.format(tuple(zooms[:3])))
         hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
+            if zooms[3] < 0:
+                raise HeaderDataError('TR must be non-negative; got {!r}'
+                                      ''.format(zooms[3]))
             hdr['tr'] = zooms[3]
 
     def get_data_shape(self):

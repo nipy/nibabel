@@ -9,6 +9,7 @@
 ''' Define supported image classes and names '''
 
 from .analyze import AnalyzeImage
+from .brikhead import AFNIImage
 from .cifti2 import Cifti2Image
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
@@ -31,7 +32,7 @@ all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
                      Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
                      Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
                      Minc1Image, Minc2Image, MGHImage,
-                     PARRECImage, GiftiImage]
+                     PARRECImage, GiftiImage, AFNIImage]
 
 
 # DEPRECATED: mapping of names to classes and class functionality
@@ -88,7 +89,12 @@ class_map = ClassMapDict(
          'ext': '.par',
          'has_affine': True,
          'makeable': False,
-         'rw': False})
+         'rw': False},
+    afni={'class': AFNIImage,
+          'ext': '.brik',
+          'has_affine': True,
+          'makeable': False,
+          'rw': False})
 
 
 class ExtMapRecoder(Recoder):
@@ -107,6 +113,7 @@ ext_map = ExtMapRecoder((
     ('mgh', '.mgh'),
     ('mgz', '.mgz'),
     ('par', '.par'),
+    ('brik', '.brik')
 ))
 
 # Image classes known to require spatial axes to be first in index ordering.
@@ -114,7 +121,7 @@ ext_map = ExtMapRecoder((
 # here.
 KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
                        Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                       MGHImage, PARRECImage)
+                       MGHImage, PARRECImage, AFNIImage)
 
 
 def spatial_axes_first(img):

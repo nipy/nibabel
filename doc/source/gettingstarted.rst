@@ -66,7 +66,7 @@ This information is available without the need to load anything of the main
 image data into the memory. Of course there is also access to the image data as
 a NumPy_ array
 
->>> data = img.get_data()
+>>> data = img.get_fdata()
 >>> data.shape
 (128, 96, 24, 2)
 >>> type(data)

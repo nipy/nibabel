@@ -80,6 +80,13 @@ contributed code and discussion (in rough order of appearance):
 * Mark Hymers
 * Jasper J.F. van den Bosch
 * Bennet Fauber
+* Kesshi Jordan
+* Jon Stutters
+* Serge Koudoro
+* Christopher P. Cheng
+* Mathias Goncalves
+* Jakub Kaczmarzyk
+* Dimitri Papadopoulos Orfanos
 
 License reprise
 ===============
