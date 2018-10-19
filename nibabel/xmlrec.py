@@ -52,6 +52,12 @@ xml_type_dict = {'Float': np.float32,
                  'Date': str,
                  'Time': str}
 
+# choose appropriate string length for use within the structured array dtype
+str_length_dict = {'Enumeration': '|S32',
+                   'String': '|S128',
+                   'Date': '|S16',
+                   'Time': '|S16'}
+
 # for use with parrec.py, the Enumeration strings must be converted to ints
 par_type_dict = copy(xml_type_dict)
 par_type_dict['Enumeration'] = int
@@ -276,6 +282,8 @@ def _process_gen_dict_XML(xml_root):
         a = e.attrib
         if 'Name' in a:
             entry_type = xml_type_dict[a['Type']]
+            if entry_type in ['S16', 'S32', 'S128']:
+                entry_type = str
             if 'ArraySize' in a:
                 val = [entry_type(i) for i in e.text.strip().split()]
             else:
@@ -320,15 +328,23 @@ def _get_image_def_attributes(xml_root, dtype_format='xml'):
     if not np.all(['Name' in k.attrib for k in img_keys]):
         raise XMLRECError("Expected each Key attribute to have a Name")
 
+    def _get_type(name, type_dict, str_length_dict=str_length_dict):
+        t = type_dict[name]
+        if t is str:  # convert from str to a specific length such as |S32
+            t = str_length_dict[name]
+        return t
+
     dtype_format = dtype_format.lower()
     if dtype_format == 'xml':
         # xml_type_dict keeps enums as their string representation
         key_attributes = [
-            (k.get('Name'), xml_type_dict[k.get('Type')]) for k in img_keys]
+            (k.get('Name'), _get_type(k.get('Type'), xml_type_dict))
+            for k in img_keys]
     elif dtype_format == 'par':
         # par_type_dict converts enums to int as used in PAR/REC
         key_attributes = [
-            (image_def_XML_to_PAR[k.get('Name')], par_type_dict[k.get('Type')])
+            (image_def_XML_to_PAR[k.get('Name')],
+             _get_type(k.get('Type'), par_type_dict))
             for k in img_keys]
     else:
         raise XMLRECError("dtype_format must be 'par' or 'xml'")
@@ -343,9 +359,9 @@ def _get_image_def_attributes(xml_root, dtype_format='xml'):
             #     print("enum_type = {}".format(enum_type))
             name = a['Name']
             if dtype_format == 'xml':
-                entry_type = xml_type_dict[a['Type']]
+                entry_type = _get_type(a['Type'], xml_type_dict)
             else:
-                entry_type = par_type_dict[a['Type']]
+                entry_type = _get_type(a['Type'], par_type_dict)
                 if name in image_def_XML_to_PAR:
                     name = image_def_XML_to_PAR[name]
             if 'ArraySize' in a:
@@ -477,6 +493,17 @@ def _process_image_lines_xml(xml_root, dtype_format='xml'):
         # image_defs based on conversion of types in composite_PAR_keys
         image_def_dtd = _composite_attributes_xml_to_par(image_def_dtd)
 
+    def _get_val(entry_dtype, text):
+        if entry_dtype == '|S16':
+            val = text[:16]
+        elif entry_dtype == '|S32':
+            val = text[:32]
+        elif entry_dtype == '|S128':
+            val = text[:128]
+        else:
+            val = entry_dtype(text)
+        return val
+
     image_defs = np.zeros(len(image_defs_array), dtype=image_def_dtd)
     already_warned = []
     for i, image_def in enumerate(image_defs_array):
@@ -506,7 +533,7 @@ def _process_image_lines_xml(xml_root, dtype_format='xml'):
                         already_warned.append((name, key.text))
             else:
                 val = key.text
-            image_defs[name][i] = dtype_dict[name](val)
+            image_defs[name][i] = _get_val(dtype_dict[name], val)
 
         # for all image properties we know about
         for element in image_def[1:]:
@@ -537,7 +564,7 @@ def _process_image_lines_xml(xml_root, dtype_format='xml'):
                                 # avoid repeated warnings for this enum
                                 already_warned.append((name, text))
                     else:
-                        val = entry_dtype(text)
+                        val = _get_val(entry_dtype, text)
                 if dtype_format == 'par' and name in composite_PAR_keys:
                     # conversion of types in composite_PAR_keys
                     name, vec_index = _get_composite_key_index(name)
