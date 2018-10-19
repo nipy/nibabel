@@ -48,7 +48,7 @@ str_length_dict = {'Enumeration': '|S32',
 supported_xml_versions = ['PRIDE_V5']
 
 
-def _process_gen_dict_XML(xml_root):
+def _process_gen_dict_xml(xml_root):
     """Read the general_info from an XML file.
 
     This is the equivalent of _process_gen_dict() for .PAR files
@@ -79,7 +79,7 @@ def _get_image_def_attributes(xml_root):
     Paramters
     ---------
     xml_root :
-        The root of the XML tree
+        The root of the XML tree.
 
     Returns
     -------
@@ -141,7 +141,12 @@ def _process_image_lines_xml(xml_root):
     Parameters
     ----------
     xml_root :
-        The root of the XML tree
+        The root of the XML tree.
+
+    Returns
+    -------
+    image_defs : np.ndarray
+        A structured array with the labels for each 2D image frame.
     """
     image_defs_array = xml_root.find('Image_Array')
     if image_defs_array is None:
@@ -165,7 +170,6 @@ def _process_image_lines_xml(xml_root):
         return val
 
     image_defs = np.zeros(len(image_defs_array), dtype=image_def_dtd)
-    already_warned = []
     for i, image_def in enumerate(image_defs_array):
 
         if image_def.find('Key') != image_def[0]:
@@ -208,11 +212,8 @@ def parse_XML_header(fobj):
         Structured array with fields giving all "Image information" in the
         header
     """
-    # single pass through the header
     tree = ET.parse(fobj)
     root = tree.getroot()
-
-    # _split_header() equivalent
 
     version = root.tag  # e.g. PRIDE_V5
     if version not in supported_xml_versions:
@@ -223,7 +224,7 @@ def parse_XML_header(fobj):
             adding support for this version.
             """.format(version)))
     try:
-        general_info = _process_gen_dict_XML(root)
+        general_info = _process_gen_dict_xml(root)
         image_defs = _process_image_lines_xml(root)
     except ET.ParseError:
             raise XMLRECError(
@@ -235,7 +236,7 @@ def parse_XML_header(fobj):
 
 
 def _truncation_checks(general_info, image_defs, permit_truncated):
-    """ Check for presence of truncation in PAR file parameters
+    """ Check for presence of truncation in XML file parameters
 
     Raise error if truncation present and `permit_truncated` is False.
     """
@@ -268,7 +269,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
 
 
 class XMLRECHeader(PARRECHeader):
-    """PAR/REC header"""
+    """XML/REC header"""
 
     def __init__(self, info, image_defs, permit_truncated=False,
                  strict_sort=False):
@@ -276,11 +277,11 @@ class XMLRECHeader(PARRECHeader):
         Parameters
         ----------
         info : dict
-            "General information" from the PAR file (as returned by
-            `parse_PAR_header()`).
+            "General information" from the XML file (as returned by
+            `parse_XML_header()`).
         image_defs : array
-            Structured array with image definitions from the PAR file (as
-            returned by `parse_PAR_header()`).
+            Structured array with image definitions from the XML file (as
+            returned by `parse_XML_header()`).
         permit_truncated : bool, optional
             If True, a warning is emitted instead of an error when a truncated
             recording is detected.
@@ -288,7 +289,7 @@ class XMLRECHeader(PARRECHeader):
             If True, a larger number of header fields are used while sorting
             the REC data array.  This may produce a different sort order than
             `strict_sort=False`, where volumes are sorted by the order in which
-            the slices appear in the .PAR file.
+            the slices appear in the .xml file.
         """
         self.general_info = info.copy()
         self.image_defs = image_defs.copy()
@@ -331,10 +332,10 @@ class XMLRECHeader(PARRECHeader):
                             self.strict_sort)
 
     def as_analyze_map(self):
-        """Convert PAR parameters to NIFTI1 format"""
+        """Convert XML parameters to NIFTI1 format"""
         # Entries in the dict correspond to the parameters found in
         # the NIfTI1 header, specifically in nifti1.py `header_dtd` defs.
-        # Here we set the parameters we can to simplify PAR/REC
+        # Here we set the parameters we can to simplify XML/REC
         # to NIfTI conversion.
         exam_date = '{}/{}'.format(
             self.general_info['Examination Date'],
@@ -390,10 +391,6 @@ class XMLRECHeader(PARRECHeader):
         bvecs = apply_affine(np.linalg.inv(permute_to_psl), bvecs)
         return bvals, bvecs
 
-    @deprecate_with_version('get_voxel_size deprecated. '
-                            'Please use "get_zooms" instead.',
-                            '2.0', '4.0')
-
     def _get_unique_resolution(self):
         """Return the 2D image plane shape.
 
@@ -406,6 +403,9 @@ class XMLRECHeader(PARRECHeader):
                               'not suppported.')
         return (resx[0], resy[0])
 
+    @deprecate_with_version('get_voxel_size deprecated. '
+                            'Please use "get_zooms" instead.',
+                            '2.0', '4.0')
     def get_voxel_size(self):
         """Returns the spatial extent of a voxel.
 
@@ -425,7 +425,6 @@ class XMLRECHeader(PARRECHeader):
                             voxsize_inplane[1],
                             slice_thickness))
         return voxsize
-
 
     def _calc_zooms(self):
         """Compute image zooms from header data.
@@ -482,8 +481,8 @@ class XMLRECHeader(PARRECHeader):
         Notes
         -----
         Transformations appear to be specified in (ap, fh, rl) axes.  The
-        orientation of data is recorded in the "slice orientation" field of the
-        PAR header "General Information".
+        orientation of data is recorded in the "Slice Orientation" field of the
+        XML header "General Information".
 
         We need to:
 
@@ -579,7 +578,7 @@ class XMLRECHeader(PARRECHeader):
 
         Notes
         -----
-        The PAR header contains two different scaling settings: 'dv' (value on
+        The XML header contains two different scaling settings: 'dv' (value on
         console) and 'fp' (floating point value). Here is how they are defined:
 
         DV = PV * RS + RI
@@ -635,14 +634,15 @@ class XMLRECHeader(PARRECHeader):
         The fields taken into consideration, if present, are (in order from
         slowest to fastest variation after sorting):
 
-            - image_defs['image_type_mr']                # Re, Im, Mag, Phase
-            - image_defs['dynamic scan number']          # repetition
-            - image_defs['label type']                   # ASL tag/control
-            - image_defs['diffusion b value number']     # diffusion b value
-            - image_defs['gradient orientation number']  # diffusion directoin
-            - image_defs['cardiac phase number']         # cardiac phase
-            - image_defs['echo number']                  # echo
-            - image_defs['slice number']                 # slice
+            - image_defs['Type']              # Re, Im, Mag, Phase
+            - image_defs['Dynamicr']          # repetition
+            - image_defs['Label Type']        # ASL tag/control
+            - image_defs['BValue']            # diffusion b value
+            - image_defs['Grad Orientation']  # diffusion directoin
+            - image_defs['Phase']             # cardiac phase
+            - image_defs['Echo']              # echo
+            - image_defs['Slice']             # slice
+            - image_defs['Index']             # index in the REC file
 
         Data sorting is done in two stages:
 
@@ -655,11 +655,8 @@ class XMLRECHeader(PARRECHeader):
                 * a sort key based on `vol_is_full` to identify truncated
                   volumes
 
-        A case where the initial sort may not create a unique label for each
-        volume is diffusion scans acquired in the older V4 .PAR format, where
-        diffusion direction info is not available.
         """
-        # sort keys present in all supported .PAR versions
+        # sort keys present in all supported .xml versions
         idefs = self.image_defs
         index_nos = idefs['Index']
         slice_nos = idefs['Slice']
@@ -667,8 +664,6 @@ class XMLRECHeader(PARRECHeader):
         phases = idefs['Phase']
         echos = idefs['Echo']
         image_type = idefs['Type']
-
-        # sort keys only present in a subset of .PAR files
         asl_keys = (idefs['Label Type'], )
         diffusion_keys = (idefs['BValue'], idefs['Grad Orientation'])
 
@@ -725,10 +720,6 @@ class XMLRECHeader(PARRECHeader):
                         'Sequence',
                         'Grad Orient',
                         'BValue']
-
-        # remove dynamic keys that may not be present in older .PAR versions
-        dynamic_keys = [d for d in dynamic_keys if d in
-                        image_defs.dtype.fields]
 
         non_unique_keys = []
         for key in dynamic_keys:
