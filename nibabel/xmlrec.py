@@ -621,6 +621,7 @@ def parse_XML_header(fobj, dtype_format='xml'):
 
 
 class XMLRECHeader(PARRECHeader):
+
     @classmethod
     def from_fileobj(klass, fileobj, permit_truncated=False,
                      strict_sort=False):
@@ -628,6 +629,7 @@ class XMLRECHeader(PARRECHeader):
         # convert to PAR/REC format general_info
         info = general_info_xml_to_par(info)
         return klass(info, image_defs, permit_truncated, strict_sort)
+
     @classmethod
     def from_header(klass, header=None):
         if header is None:
@@ -636,6 +638,7 @@ class XMLRECHeader(PARRECHeader):
             return header.copy()
         raise XMLRECError('Cannot create XMLREC header from '
                           'non-XMLREC header.')
+
     def copy(self):
         return XMLRECHeader(deepcopy(self.general_info),
                             self.image_defs.copy(),
@@ -645,7 +648,7 @@ class XMLRECHeader(PARRECHeader):
 class XMLRECImage(PARRECImage):
     """XML/REC image"""
     header_class = XMLRECHeader
-    valid_exts = ('.REC', '.xml')
-    files_types = (('image', '.REC'), ('header', '.xml'))
+    valid_exts = ('.rec', '.xml')
+    files_types = (('image', '.rec'), ('header', '.xml'))
 
 load = XMLRECImage.load
