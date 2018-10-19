@@ -154,9 +154,6 @@ def proc_file(infile, opts):
     if (ext == '.xml' or
             (ext == '.rec' and os.path.exists(basefilename + '.xml'))):
         pr_module = xr
-        if opts.permit_truncated:
-            raise ValueError("The permit_truncated option is not currently "
-                             "supported for .xml/.REC data")
     else:
         pr_module = pr
 
