@@ -469,6 +469,7 @@ def _process_image_lines_xml(xml_root, dtype_format='xml'):
         image_def_dtd = _composite_attributes_xml_to_par(image_def_dtd)
 
     image_defs = np.zeros(len(image_defs_array), dtype=image_def_dtd)
+    already_warned = []
     for i, image_def in enumerate(image_defs_array):
 
         if image_def.find('Key') != image_def[0]:
@@ -477,11 +478,23 @@ def _process_image_lines_xml(xml_root, dtype_format='xml'):
         key_def = image_def[0]
         for key in key_def:
             name = key.get('Name')
-            if name in image_def_XML_to_PAR:
+            if dtype_format == 'par' and name in image_def_XML_to_PAR:
                 name = image_def_XML_to_PAR[name]
             if dtype_format == 'par' and name in enums_dict_PAR:
                 # string -> int
-                val = enums_dict_PAR[name][key.text]
+                if key.text in enums_dict_PAR[name]:
+                    val = enums_dict_PAR[name][key.text]
+                else:
+                    if (name, key.text) not in already_warned:
+                        warnings.warn(
+                            ("Unknown enumerated value for {} with name {}. "
+                             "Setting the value to -1.  Please contact the "
+                             "nibabel developers about adding support for "
+                             "this to the XML/REC reader.").format(
+                                name, key.text))
+                        val = -1
+                        # avoid repeated warnings for this enum
+                        already_warned.append((name, key.text))
             else:
                 val = key.text
             image_defs[name][i] = dtype_dict[name](val)
@@ -501,7 +514,19 @@ def _process_image_lines_xml(xml_root, dtype_format='xml'):
                 else:
                     if dtype_format == 'par' and name in enums_dict_PAR:
                         # string -> int
-                        val = enums_dict_PAR[name][text]
+                        if text in enums_dict_PAR[name]:
+                            val = enums_dict_PAR[name][text]
+                        else:
+                            if (name, text) not in already_warned:
+                                warnings.warn(
+                                    ("Unknown enumerated value for {} with "
+                                     "name {}. Setting the value to -1.  "
+                                     "Please contact the nibabel developers "
+                                     "about adding support for this to the "
+                                     "XML/REC reader.").format(name, text))
+                                val = -1
+                                # avoid repeated warnings for this enum
+                                already_warned.append((name, text))
                     else:
                         val = entry_dtype(text)
                 if dtype_format == 'par' and name in composite_PAR_keys:
@@ -518,8 +543,8 @@ def parse_XML_header(fobj, dtype_format='xml'):
 
     Parameters
     ----------
-    fobj : file-object
-        The PAR header file object.
+    fobj : file-object or str
+        The XML header file object or file name.
     dtype_format : {'xml', 'par'}
         If 'par' the image_defs will be converted to a format matching that
         found in PARRECHeader.
@@ -546,9 +571,15 @@ def parse_XML_header(fobj, dtype_format='xml'):
             Please email the NiBabel mailing list, if you are interested in
             adding support for this version.
             """.format(version)))
-    general_info = _process_gen_dict_XML(root)
-    image_defs = _process_image_lines_xml(
-        root, dtype_format=dtype_format)
+    try:
+        general_info = _process_gen_dict_XML(root)
+        image_defs = _process_image_lines_xml(
+            root, dtype_format=dtype_format)
+    except ET.ParseError:
+            raise XMLRECError(
+                "A ParseError occured in the ElementTree library while "
+                "reading the XML file. This may be due to a truncated XML "
+                "file.")
 
     return general_info, image_defs
 
