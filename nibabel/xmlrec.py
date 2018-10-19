@@ -14,19 +14,28 @@ class XMLRECError(Exception):
     XML/REC.
     """
 
-# Dictionary of conversions from enumerated types to integer values.
-# The following named Enums are used in XML files.
-# I do not know thefull definitions for these.
-# This was partially adapted from:
-#   https://github.com/xiangruili/dicm2nii/blob/6855498a702b06bbc7d1de716f4e9bdfe50c74fc/xml2par.m#L356
+# Dictionary of conversions from enumerated types to integer value for use in
+# converting from XML enum names to PAR-style integers.
+# The keys in enums_dict are the names of the enum keys used in XML files.
+# The present conversions for strings to enumerated values was determined
+# empirically via comparison of simultaneously exported .PAR and .xml files
+# from a range of different scan types. Any enum labels that are not recognized
+# will result in a warning encouraging the user to report the unkown case to
+# the nibabel developers.
 enums_dict = {
-    'Label Type': {'-': 1},
-    'Type': {'M': 0, 'R': 1, 'I': 2, 'P': 3},  # TODO: 'B0', etc...
-    'Sequence': {'SE': 1, 'FFE': 2},
-    'Image Type Ed Es': {'U': 2},  # TODO: others?
-    'Display Orientation': {'-': 0, 'NONE': 0},  # TODO: correct value for None
+    'Label Type': {'CONTROL': 1, 'LABEL': 2, '-': 1},
+    'Type': {'M': 0, 'R': 1, 'I': 2, 'P': 3, 'T1': 6, 'T2': 7, 'ADC': 11,
+             'EADC': 17, 'B0': 18, 'PERFUSION': 30, 'F': 31, 'IP': 32,
+             'FF': 34, 'R2': -1, 'R2_STAR': -1, 'T2_STAR': -1, 'W': -1,
+             'STIFF': -1, 'WAVE': -1, 'SW_M': -1, 'SW_P': -1},
+    'Sequence': {'IR': 0, 'SE': 1, 'FFE': 2, 'PCA': 4, 'UNSPECIFIED': 5,
+                 'DERIVED': 7, 'B1': 9, 'MRE': 10},
+    'Image Type Ed Es': {'U': 2},
+    'Display Orientation': {'-': 0, 'NONE': 0},
     'Slice Orientation': {'Transversal': 1, 'Sagittal': 2, 'Coronal': 3},
-    'Contrast Type': {'DIFFUSION': 0, 'T2': 4, 'TAGGING': 6, 'T1': 7},
+    'Contrast Type': {'DIFFUSION': 0, 'FLOW_ENCODED': 1, 'PERFUSION': 3,
+                      'PROTON_DENSITY': 4, 'TAGGING': 6, 'T1': 7, 'T2': 8,
+                      'UNKNOWN': 11},
     'Diffusion Anisotropy Type': {'-': 0}}
 
 # Dict for converting XML/REC types to appropriate python types
