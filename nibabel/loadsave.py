@@ -19,6 +19,7 @@ from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .py3k import FileNotFoundError
 from .deprecated import deprecate_with_version
+from .parrec import PARRECImage
 
 
 def load(filename, **kwargs):
@@ -46,6 +47,15 @@ def load(filename, **kwargs):
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
         if is_valid:
+            if image_klass is PARRECImage and '.REC' in filename:
+                # a .REC file can have either a .PAR of .xml header.
+                # This skip case assumes PARRECImage is beforeXMLRECImage in
+                # all_image_classes.
+                par_exists = os.path.exists(filename.replace('.REC', '.PAR'))
+                xml_exists = os.path.exists(filename.replace('.REC', '.xml'))
+                if not par_exists and xml_exists:
+                    continue  # skip trying .PAR and proceed to .xml
+            print(image_klass)
             img = image_klass.from_filename(filename, **kwargs)
             return img
 
