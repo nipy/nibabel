@@ -1,4 +1,5 @@
 from copy import copy, deepcopy
+import os
 import warnings
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
@@ -746,5 +747,16 @@ class XMLRECImage(PARRECImage):
     header_class = XMLRECHeader
     valid_exts = ('.rec', '.xml')
     files_types = (('image', '.rec'), ('header', '.xml'))
+
+    @classmethod
+    def filespec_to_file_map(klass, filespec):
+        file_map = super(PARRECImage, klass).filespec_to_file_map(filespec)
+        # fix case of .REC (.xml/.REC tends to have mixed case file extensions)
+        fname = file_map['image'].filename
+        fname_upper = fname.replace('.rec', '.REC')
+        if (not os.path.exists(fname) and
+                os.path.exists(fname_upper)):
+            file_map['image'].filename = fname_upper
+        return file_map
 
 load = XMLRECImage.load
