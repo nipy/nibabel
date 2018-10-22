@@ -639,7 +639,7 @@ class XMLRECHeader(PARRECHeader):
             - image_defs['Dynamicr']          # repetition
             - image_defs['Label Type']        # ASL tag/control
             - image_defs['BValue']            # diffusion b value
-            - image_defs['Grad Orientation']  # diffusion directoin
+            - image_defs['Grad Orient']  # diffusion directoin
             - image_defs['Phase']             # cardiac phase
             - image_defs['Echo']              # echo
             - image_defs['Slice']             # slice
@@ -666,7 +666,7 @@ class XMLRECHeader(PARRECHeader):
         echos = idefs['Echo']
         image_type = idefs['Type']
         asl_keys = (idefs['Label Type'], )
-        diffusion_keys = (idefs['BValue'], idefs['Grad Orientation'])
+        diffusion_keys = (idefs['BValue'], idefs['Grad Orient'])
 
         # initial sort (last key is highest precedence)
         keys = (index_nos, slice_nos, echos, phases) + \
