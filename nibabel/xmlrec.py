@@ -28,6 +28,15 @@ slice_orientation_rename = dict(Transversal='transverse',
 
 # Dict for converting XML/REC types to appropriate python types
 # could convert the Enumeration strings to int, but enums_dict is incomplete
+
+def _xml_str_to_bool(s):
+    if isinstance(s, bytes):
+        s = s.decode()
+    if s == 'Y':
+        return True
+    else:
+        return False
+
 # and the strings are more easily interpretable
 xml_type_dict = {'Float': np.float32,
                  'Double': np.float64,
@@ -62,12 +71,15 @@ def _process_gen_dict_xml(xml_root):
         a = e.attrib
         if 'Name' in a:
             entry_type = xml_type_dict[a['Type']]
-            if entry_type in ['S16', 'S32', 'S128']:
-                entry_type = str
-            if 'ArraySize' in a:
-                val = [entry_type(i) for i in e.text.strip().split()]
+            if entry_type == bool:
+                # convert string such as 'N' or 'Y' to boolean
+                cast = _xml_str_to_bool
             else:
-                val = entry_type(e.text)
+                cast = entry_type
+            if 'ArraySize' in a:
+                val = [cast(i) for i in e.text.strip().split()]
+            else:
+                val = cast(e.text)
             general_info[a['Name']] = val
     return general_info
 
@@ -166,6 +178,9 @@ def _process_image_lines_xml(xml_root):
             val = text[:32]
         elif entry_dtype == '|S128':
             val = text[:128]
+        elif entry_dtype == bool:
+            # convert string 'Y' or 'N' to boolean
+            val = _xml_str_to_bool(text)
         else:
             val = entry_dtype(text)
         return val
@@ -371,7 +386,7 @@ class XMLRECHeader(PARRECHeader):
             Array of b vectors, shape (n_directions, 3), or None if not a
             diffusion acquisition.
         """
-        if self.general_info['Diffusion'] == 0:
+        if not self.general_info['Diffusion']:
             return None, None
         reorder = self.get_sorted_slice_indices()
         if len(self.get_data_shape()) == 3:
