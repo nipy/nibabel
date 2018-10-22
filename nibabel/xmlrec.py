@@ -374,7 +374,10 @@ class XMLRECHeader(PARRECHeader):
         if self.general_info['Diffusion'] == 0:
             return None, None
         reorder = self.get_sorted_slice_indices()
-        n_slices, n_vols = self.get_data_shape()[-2:]
+        if len(self.get_data_shape()) == 3:
+            n_slices, n_vols = self.get_data_shape()[-1], 1
+        else:
+            n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['Diffusion B Factor'][reorder].reshape(
             (n_slices, n_vols), order='F')
         # All bvals within volume should be the same
