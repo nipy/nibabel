@@ -1545,7 +1545,7 @@ def rec2dict(rec):
     for key in rec.dtype.fields:
         val = rec[key]
         try:
-            val = np.asscalar(val)
+            val = val.item()
         except ValueError:
             pass
         dct[key] = val
