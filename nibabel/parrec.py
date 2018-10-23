@@ -786,8 +786,8 @@ class PARRECHeader(SpatialHeader):
         reorder = self.get_sorted_slice_indices()
         if len(self.get_data_shape()) == 3:
             # Any original diffusion scans will have >=2 volumes. However, a
-            # single dynamic is possible for a post-processed difusion volume
-            # such as an ADC map. The b-values are unavailble in this case.
+            # single dynamic is possible for a post-processed diffusion volume
+            # such as an ADC map. The b-values are unavailable in this case.
             return None, None
         else:
             n_slices, n_vols = self.get_data_shape()[-2:]
