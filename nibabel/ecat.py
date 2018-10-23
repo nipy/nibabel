@@ -657,8 +657,8 @@ class EcatSubHeader(object):
         subhdr = self.subheaders[frame]
         raw_data = self.raw_data_from_fileobj(frame, orientation)
         # Scale factors have to be set to scalars to force scalar upcasting
-        data = raw_data * np.asscalar(header['ecat_calibration_factor'])
-        data = data * np.asscalar(subhdr['scale_factor'])
+        data = raw_data * header['ecat_calibration_factor'].item()
+        data = data * subhdr['scale_factor'].item()
         return data
 
 
