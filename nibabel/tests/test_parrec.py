@@ -144,7 +144,7 @@ EXAMPLE_IMAGES = [
         # We disagree with Philips about the right affine, for the moment, so
         # use our own affine as determined from a previous load in nibabel
         affine=AN_OLD_AFFINE,
-        zooms=(3.75, 3.75, 8.0, 2.0),
+        zooms=(3.75, 3.75, 8.0, 2000.0),
         data_summary=dict(
             min=0.0,
             max=2299.4110643863678,
@@ -179,7 +179,7 @@ def test_header():
             hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
             assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
             assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
-            assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
+            assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2000.0))
             assert_equal(hdr.get_data_offset(), 0)
             si = np.array(
                 [np.unique(x) for x in hdr.get_data_scaling()]).ravel()
@@ -548,7 +548,7 @@ def test_epi_params():
         with open(epi_par, 'rt') as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         assert_equal(len(epi_hdr.get_data_shape()), 4)
-        assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
+        assert_almost_equal(epi_hdr.get_zooms()[-1], 2000.0)
 
 
 def test_truncations():
@@ -832,7 +832,7 @@ def test_dualTR():
         assert_array_equal(dualTR_hdr.general_info['repetition_time'],
                            expected_TRs)
         # zoom on 4th dimensions is the first TR (in seconds)
-        assert_equal(dualTR_hdr.get_zooms()[3], expected_TRs[0]/1000)
+        assert_equal(dualTR_hdr.get_zooms()[3], expected_TRs[0])
 
 
 def test_ADC_map():

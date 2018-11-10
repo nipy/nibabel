@@ -897,11 +897,11 @@ class PARRECHeader(SpatialHeader):
         zooms[:2] = self._get_unique_image_prop('pixel spacing')
         slice_thickness = self._get_unique_image_prop('slice thickness')
         zooms[2] = slice_thickness + slice_gap
-        # If 4D dynamic scan, convert time from milliseconds to seconds
+        # If 4D dynamic scan, save repetition time in miliseconds
         if len(zooms) > 3 and self.general_info['dyn_scan']:
             if len(self.general_info['repetition_time']) > 1:
                 warnings.warn("multiple TRs found in .PAR file")
-            zooms[3] = self.general_info['repetition_time'][0] / 1000.
+            zooms[3] = self.general_info['repetition_time'][0]
         return zooms
 
     def get_affine(self, origin='scanner'):
