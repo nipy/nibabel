@@ -27,7 +27,7 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
-from .testing import setup_test  # flake8: noqa F401
+from .testing import setup_test  # noqa
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -1787,7 +1787,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
     :meth:`set_qform` methods can be used to update the codes after an image
     has been created - see those methods, and the :ref:`manual
     <default-sform-qform-codes>` for more details.  '''
-
 
     def update_header(self):
         ''' Harmonize header with image data and affine
