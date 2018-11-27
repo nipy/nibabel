@@ -2,18 +2,17 @@
 # CI on Windows via appveyor
 
 environment:
-
   matrix:
-    - PYTHON: C:\Python27
-    - PYTHON: C:\Python27-x64
-    - PYTHON: C:\Python34
-    - PYTHON: C:\Python34-x64
-    - PYTHON: C:\Python35
-    - PYTHON: C:\Python35-x64
-    - PYTHON: C:\Python36
-    - PYTHON: C:\Python36-x64
-    - PYTHON: C:\Python37
-    - PYTHON: C:\Python37-x64
+    - PYTHON: C:\Miniconda
+    - PYTHON: C:\Miniconda-x64
+    - PYTHON: C:\Miniconda34
+    - PYTHON: C:\Miniconda34-x64
+    - PYTHON: C:\Miniconda35
+    - PYTHON: C:\Miniconda35-x64
+    - PYTHON: C:\Miniconda36
+    - PYTHON: C:\Miniconda36-x64
+    - PYTHON: C:\Miniconda37
+    - PYTHON: C:\Miniconda37-x64
 
 install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
