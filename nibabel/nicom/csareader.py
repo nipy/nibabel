@@ -18,7 +18,7 @@ _CONVERTERS = {
     'IS': int,    # integer string
 }
 
-MAX_CSA_ITEMS = 199
+MAX_CSA_ITEMS = 1000
 
 
 class CSAError(Exception):
