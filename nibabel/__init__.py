@@ -41,9 +41,10 @@ def setup_test():
 
     If imported into a file, nosetest will run this before any doctests.
     """
+    import numpy
     from distutils.version import LooseVersion
-    if LooseVersion(np.__version__) >= LooseVersion('1.14'):
-        np.set_printoptions(legacy="1.13")
+    if LooseVersion(numpy.__version__) >= LooseVersion('1.14'):
+        numpy.set_printoptions(legacy="1.13")
 
 
 # module imports
