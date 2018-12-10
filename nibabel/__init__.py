@@ -80,17 +80,18 @@ from . import mriutils
 from . import streamlines
 from . import viewers
 
-# Note test requirement for "mock".  Requirement for "nose" tested by numpy.
-try:
-    import mock
-except ImportError:
+import pkgutil
+
+if not pkgutil.find_loader('mock'):
     def test(*args, **kwargs):
         raise RuntimeError('Need "mock" package for tests')
 else:
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench
-    del mock, Tester
+    del Tester
+
+del pkgutil
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 
