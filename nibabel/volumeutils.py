@@ -538,9 +538,13 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
                           n_read,
                           getattr(infile, 'name', 'object')))
     arr = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
+    if not needs_copy:
+        try:
+            arr.flags.writeable = True
+        except ValueError:
+            needs_copy = True
     if needs_copy:
-        return arr.copy()
-    arr.flags.writeable = True
+        arr = arr.copy()
     return arr
 
 

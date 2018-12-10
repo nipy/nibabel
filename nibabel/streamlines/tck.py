@@ -432,10 +432,8 @@ class TckFile(TractogramFile):
                 for point_part in point_parts:
                     # Read floats.
                     pts = np.frombuffer(point_part, dtype=dtype)
-                    # Enforce ability to write to underlying bytes object
-                    pts.flags.writeable = True
                     # Convert data to little-endian if needed.
-                    yield pts.astype('<f4', copy=False).reshape([-1, 3])
+                    yield pts.astype('<f4').reshape([-1, 3])
 
                 n_streams += len(point_parts)
 
