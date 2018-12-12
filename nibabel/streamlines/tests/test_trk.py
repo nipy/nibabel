@@ -105,7 +105,8 @@ class TestTRK(unittest.TestCase):
         with open(DATA[trk_key], 'rb') as fobj:
             trk_bytes = fobj.read()
         dt = trk_module.header_2_dtype.newbyteorder(endian)
-        trk_struct = np.ndarray((1,), dt, buffer=trk_bytes).copy()
+        trk_struct = np.ndarray((1,), dt, buffer=trk_bytes)
+        trk_struct.flags.writeable = True
         return trk_struct, trk_bytes
 
     def test_load_file_with_wrong_information(self):
