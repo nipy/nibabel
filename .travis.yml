@@ -96,7 +96,7 @@ before_install:
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install -U pip wheel  # needed at one point
+    - pip install -U pip setuptools>=27.0 wheel
     - retry pip install nose flake8 mock  # always
     - pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
     - if [ "${COVERAGE}" == "1" ]; then
