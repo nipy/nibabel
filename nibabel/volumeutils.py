@@ -42,9 +42,6 @@ default_compresslevel = 1
 #: file-like classes known to hold compressed data
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, bz2.BZ2File)
 
-#: file-like classes known to return string values that are safe to modify
-SAFE_STRINGERS = (gzip.GzipFile, bz2.BZ2File)
-
 
 class Recoder(object):
     ''' class to return canonical code(s) from code or aliases
@@ -530,7 +527,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     else:
         data_bytes = infile.read(n_bytes)
         n_read = len(data_bytes)
-        needs_copy = not isinstance(infile, SAFE_STRINGERS)
+        needs_copy = True
     if n_bytes != n_read:
         raise IOError('Expected {0} bytes, got {1} bytes from {2}\n'
                       ' - could the file be damaged?'.format(
