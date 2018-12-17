@@ -579,7 +579,7 @@ class Nifti1Extensions(list):
             # otherwise there should be a full extension header
             if not len(ext_def) == 8:
                 raise HeaderDataError('failed to read extension header')
-            ext_def = np.fromstring(ext_def, dtype=np.int32)
+            ext_def = np.frombuffer(ext_def, dtype=np.int32)
             if byteswap:
                 ext_def = ext_def.byteswap()
             # be extra verbose
