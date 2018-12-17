@@ -209,6 +209,9 @@ class Opener(object):
     def read(self, *args, **kwargs):
         return self.fobj.read(*args, **kwargs)
 
+    def readinto(self, *args, **kwargs):
+        return self.fobj.readinto(*args, **kwargs)
+
     def write(self, *args, **kwargs):
         return self.fobj.write(*args, **kwargs)
 
