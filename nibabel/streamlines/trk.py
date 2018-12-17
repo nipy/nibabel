@@ -559,8 +559,8 @@ class TrkFile(TractogramFile):
 
             # Read the header in one block.
             header_str = f.read(header_2_dtype.itemsize)
-            header_rec = np.fromstring(string=header_str, dtype=header_2_dtype)
-
+            header_rec = np.frombuffer(buffer=header_str, dtype=header_2_dtype)
+            header_rec.setflags(write=1)
             # Check endianness
             endianness = native_code
             if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
