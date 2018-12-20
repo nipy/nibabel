@@ -32,7 +32,7 @@ __version__ = "%s.%s.%s%s" % (_version_major,
 def _parse_version(version_str):
     """ Parse version string `version_str` in our format
     """
-    match = re.match('([0-9.]*\d)(.*)', version_str)
+    match = re.match(r'([0-9.]*\d)(.*)', version_str)
     if match is None:
         raise ValueError('Invalid version ' + version_str)
     return match.groups()
