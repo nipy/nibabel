@@ -209,5 +209,5 @@ MICRO = _version_micro
 ISRELEASE = _version_extra == ''
 VERSION = __version__
 PROVIDES = ["nibabel", 'nisext']
-REQUIRES = ["numpy (>=%s)" % NUMPY_MIN_VERSION,
+REQUIRES = ["numpy>=%s" % NUMPY_MIN_VERSION,
             'bz2file; python_version < "3.0"']

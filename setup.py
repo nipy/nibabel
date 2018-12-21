@@ -19,14 +19,7 @@ from functools import partial
 if os.path.exists('MANIFEST'):
     os.remove('MANIFEST')
 
-# For some commands, use setuptools.
-if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
-            'install_egg_info', 'egg_info', 'easy_install', 'bdist_wheel',
-            'bdist_mpkg')).intersection(sys.argv)) > 0:
-    # setup_egg imports setuptools setup, thus monkeypatching distutils.
-    import setup_egg  # noqa
-
-from distutils.core import setup
+from setuptools import setup
 
 # Commit hash writing, and dependency checking
 from nisext.sexts import (get_comrec_build, package_check, install_scripts_bat,
@@ -77,8 +70,8 @@ def main(**extra_args):
           author_email=INFO.AUTHOR_EMAIL,
           platforms=INFO.PLATFORMS,
           version=INFO.VERSION,
-          requires=INFO.REQUIRES,
           provides=INFO.PROVIDES,
+          install_requires=INFO.REQUIRES,
           packages     = ['nibabel',
                           'nibabel.externals',
                           'nibabel.externals.tests',
