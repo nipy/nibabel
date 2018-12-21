@@ -408,6 +408,8 @@ class TckFile(TractogramFile):
                 buff = bytearray(buffer_size)
                 n_read = f.readinto(buff)
                 eof = n_read != buffer_size
+                if eof:
+                    buff = buff[:n_read]
 
                 buffs.append(buff)
 
