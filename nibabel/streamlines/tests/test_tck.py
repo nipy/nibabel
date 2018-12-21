@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from os.path import join as pjoin
 
-from six import BytesIO
+from io import BytesIO
 from nibabel.py3k import asbytes
 
 from ..array_sequence import ArraySequence
