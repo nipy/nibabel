@@ -103,7 +103,8 @@ def test_fobj_string_assumptions():
             # Read back from file
             fobj_r = opener(fname, 'rb')
             try:
-                contents1 = fobj_r.read()
+                contents1 = bytearray(4 * n)
+                fobj_r.readinto(contents1)
                 # Second element is 1
                 assert_false(contents1[0:8] == b'\x00' * 8)
                 out_arr = make_array(n, contents1)
@@ -114,7 +115,8 @@ def test_fobj_string_assumptions():
                 assert_equal(contents1[:8], b'\x00' * 8)
                 # Reread, to get unmodified contents
                 fobj_r.seek(0)
-                contents2 = fobj_r.read()
+                contents2 = bytearray(4 * n)
+                fobj_r.readinto(contents2)
                 out_arr2 = make_array(n, contents2)
                 assert_array_equal(in_arr, out_arr2)
                 assert_equal(out_arr[1], 0)
