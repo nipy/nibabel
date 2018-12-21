@@ -46,7 +46,7 @@ from ..volumeutils import (array_from_file,
                            _dt_min_max,
                            _write_data,
                            )
-from ..openers import Opener
+from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
@@ -71,7 +71,7 @@ def test__is_compressed_fobj():
     with InTemporaryDirectory():
         for ext, opener, compressed in (('', open, False),
                                         ('.gz', gzip.open, True),
-                                        ('.bz2', bz2.BZ2File, True)):
+                                        ('.bz2', BZ2File, True)):
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
                 fobj = opener(fname, mode)
@@ -94,7 +94,7 @@ def test_fobj_string_assumptions():
     with InTemporaryDirectory():
         for n, opener in itertools.product(
                 (256, 1024, 2560, 25600),
-                (open, gzip.open, bz2.BZ2File)):
+                (open, gzip.open, BZ2File)):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
