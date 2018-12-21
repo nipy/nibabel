@@ -22,7 +22,7 @@ install:
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
 
   # Install the dependencies of the project.
-  - pip install --upgrade pip setuptools wheel
+  - python -m pip install --upgrade pip setuptools wheel
   - pip install numpy scipy matplotlib nose h5py mock pydicom
   - pip install .
   - SET NIBABEL_DATA_DIR=%CD%\nibabel-data
