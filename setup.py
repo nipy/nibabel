@@ -120,4 +120,6 @@ def main(**extra_args):
 
 
 if __name__ == "__main__":
+    # Do not use nisext's dynamically updated install_requires
+    extra_setuptools_args.pop('install_requires', None)
     main(**extra_setuptools_args)
