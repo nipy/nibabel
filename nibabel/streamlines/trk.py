@@ -556,8 +556,8 @@ class TrkFile(TractogramFile):
         start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
 
         with Opener(fileobj) as f:
-
-            # Read the header into a bytearray.
+            # Reading directly from a file into a (mutable) bytearray enables a zero-copy
+            # cast to a mutable numpy object with frombuffer
             header_buf = bytearray(header_2_dtype.itemsize)
             f.readinto(header_buf)
             header_rec = np.frombuffer(buffer=header_buf, dtype=header_2_dtype)
