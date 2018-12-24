@@ -505,8 +505,6 @@ class OrthoSlicer3D(object):
             if self._cross:
                 for line in self._crosshairs[ii].values():
                     ax.draw_artist(line)
-            else:
-                pass
             ax.figure.canvas.blit(ax.bbox)
         if self.n_volumes > 1 and len(self._axes) > 3:
             ax = self._axes[3]
