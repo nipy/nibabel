@@ -341,7 +341,7 @@ def _process_gen_dict(gen_dict):
             value = props[1](value)
         elif len(props) == 3:
             # array with dtype and shape
-            value = np.fromstring(value, props[1], sep=' ')
+            value = np.frombuffer(value, props[1], sep=' ')
             # if shape is None, allow arbitrary length
             if props[2] is not None:
                 value.shape = props[2]
