@@ -20,7 +20,7 @@ def is_array_sequence(obj):
 def is_ndarray_of_int_or_bool(obj):
     return (isinstance(obj, np.ndarray) and
             (np.issubdtype(obj.dtype, np.integer) or
-            np.issubdtype(obj.dtype, np.bool)))
+            np.issubdtype(obj.dtype, np.bool_)))
 
 
 class _BuildCache(object):
