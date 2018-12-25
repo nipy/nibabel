@@ -69,6 +69,7 @@ class OrthoSlicer3D(object):
         mpl_patch = optional_package('matplotlib.patches')[0]
         self._title = title
         self._closed = False
+        self._cross = True
 
         data = np.asanyarray(data)
         if data.ndim < 3:
@@ -490,6 +491,9 @@ class OrthoSlicer3D(object):
             new_idx = max(self._data_idx[3] - 1, 0)
             self._set_volume_index(new_idx, update_slices=True)
             self._draw()
+        elif event.key == 'ctrl+x':
+            self._cross = not self._cross
+            self._draw()
 
     def _draw(self):
         """Update all four (or three) plots"""
@@ -498,8 +502,9 @@ class OrthoSlicer3D(object):
         for ii in range(3):
             ax = self._axes[ii]
             ax.draw_artist(self._ims[ii])
-            for line in self._crosshairs[ii].values():
-                ax.draw_artist(line)
+            if self._cross:
+                for line in self._crosshairs[ii].values():
+                    ax.draw_artist(line)
             ax.figure.canvas.blit(ax.bbox)
         if self.n_volumes > 1 and len(self._axes) > 3:
             ax = self._axes[3]
