@@ -405,18 +405,21 @@ class TckFile(TractogramFile):
             n_streams = 0
 
             while not eof:
+                buff = bytearray(buffer_size)
+                n_read = f.readinto(buff)
+                eof = n_read != buffer_size
+                if eof:
+                    buff = buff[:n_read]
 
-                bytes_read = f.read(buffer_size)
-                buffs.append(bytes_read)
-                eof = len(bytes_read) != buffer_size
+                buffs.append(buff)
 
                 # Make sure we've read enough to find a streamline delimiter.
-                if fiber_marker not in bytes_read:
+                if fiber_marker not in buff:
                     # If we've read the whole file, then fail.
                     if eof:
                         # Could have minimal buffering, and have read only the
                         # EOF delimiter
-                        buffs = [b''.join(buffs)]
+                        buffs = [bytearray().join(buffs)]
                         if not buffs[0] == eof_marker:
                             raise DataError(
                                 "Cannot find a streamline delimiter. This file"
@@ -425,15 +428,13 @@ class TckFile(TractogramFile):
                         # Otherwise read a bit more.
                         continue
 
-                all_parts = b''.join(buffs).split(fiber_marker)
+                all_parts = bytearray().join(buffs).split(fiber_marker)
                 point_parts, buffs = all_parts[:-1], all_parts[-1:]
                 point_parts = [p for p in point_parts if p != b'']
 
                 for point_part in point_parts:
                     # Read floats.
                     pts = np.frombuffer(point_part, dtype=dtype)
-                    # Enforce ability to write to underlying bytes object
-                    pts.flags.writeable = True
                     # Convert data to little-endian if needed.
                     yield pts.astype('<f4', copy=False).reshape([-1, 3])
 

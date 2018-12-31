@@ -12,7 +12,6 @@ from __future__ import division, print_function
 import sys
 import warnings
 import gzip
-import bz2
 from collections import OrderedDict
 from os.path import exists, splitext
 from operator import mul
@@ -21,7 +20,7 @@ from functools import reduce
 import numpy as np
 
 from .casting import (shared_range, type_info, OK_FLOATS)
-from .openers import Opener
+from .openers import Opener, BZ2File
 from .deprecated import deprecate_with_version
 from .externals.oset import OrderedSet
 
@@ -40,10 +39,7 @@ endian_codes = (  # numpy code, aliases
 default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
-COMPRESSED_FILE_LIKES = (gzip.GzipFile, bz2.BZ2File)
-
-#: file-like classes known to return string values that are safe to modify
-SAFE_STRINGERS = (gzip.GzipFile, bz2.BZ2File)
+COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File)
 
 
 class Recoder(object):
@@ -530,7 +526,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     else:
         data_bytes = infile.read(n_bytes)
         n_read = len(data_bytes)
-        needs_copy = not isinstance(infile, SAFE_STRINGERS)
+        needs_copy = True
     if n_bytes != n_read:
         raise IOError('Expected {0} bytes, got {1} bytes from {2}\n'
                       ' - could the file be damaged?'.format(

@@ -9,7 +9,11 @@
 """ Context manager openers for various fileobject types
 """
 
-import bz2
+import sys
+if sys.version_info[0] < 3:
+    from bz2file import BZ2File
+else:
+    from bz2 import BZ2File
 import gzip
 import sys
 import warnings
@@ -127,7 +131,7 @@ class Opener(object):
         for \*args
     """
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
-    bz2_def = (bz2.BZ2File, ('mode', 'buffering', 'compresslevel'))
+    bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
@@ -208,6 +212,9 @@ class Opener(object):
 
     def read(self, *args, **kwargs):
         return self.fobj.read(*args, **kwargs)
+
+    def readinto(self, *args, **kwargs):
+        return self.fobj.readinto(*args, **kwargs)
 
     def write(self, *args, **kwargs):
         return self.fobj.write(*args, **kwargs)

@@ -47,7 +47,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         dec = base64.b64decode(data.encode('ascii'))
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        newarr = np.fromstring(dec, dtype=dt)
+        newarr = np.frombuffer(dec, dtype=dt)
         if len(newarr.shape) != len(sh):
             newarr = newarr.reshape(sh, order=ord)
 
@@ -59,7 +59,7 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
         zdec = zlib.decompress(dec)
         dt = data_type_codes.type[datatype]
         sh = tuple(shape)
-        newarr = np.fromstring(zdec, dtype=dt)
+        newarr = np.frombuffer(zdec, dtype=dt)
         if len(newarr.shape) != len(sh):
             newarr = newarr.reshape(sh, order=ord)
 

@@ -46,7 +46,7 @@ from ..volumeutils import (array_from_file,
                            _dt_min_max,
                            _write_data,
                            )
-from ..openers import Opener
+from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
@@ -71,7 +71,7 @@ def test__is_compressed_fobj():
     with InTemporaryDirectory():
         for ext, opener, compressed in (('', open, False),
                                         ('.gz', gzip.open, True),
-                                        ('.bz2', bz2.BZ2File, True)):
+                                        ('.bz2', BZ2File, True)):
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
                 fobj = opener(fname, mode)
@@ -94,7 +94,7 @@ def test_fobj_string_assumptions():
     with InTemporaryDirectory():
         for n, opener in itertools.product(
                 (256, 1024, 2560, 25600),
-                (open, gzip.open, bz2.BZ2File)):
+                (open, gzip.open, BZ2File)):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
@@ -103,7 +103,8 @@ def test_fobj_string_assumptions():
             # Read back from file
             fobj_r = opener(fname, 'rb')
             try:
-                contents1 = fobj_r.read()
+                contents1 = bytearray(4 * n)
+                fobj_r.readinto(contents1)
                 # Second element is 1
                 assert_false(contents1[0:8] == b'\x00' * 8)
                 out_arr = make_array(n, contents1)
@@ -114,7 +115,8 @@ def test_fobj_string_assumptions():
                 assert_equal(contents1[:8], b'\x00' * 8)
                 # Reread, to get unmodified contents
                 fobj_r.seek(0)
-                contents2 = fobj_r.read()
+                contents2 = bytearray(4 * n)
+                fobj_r.readinto(contents2)
                 out_arr2 = make_array(n, contents2)
                 assert_array_equal(in_arr, out_arr2)
                 assert_equal(out_arr[1], 0)
