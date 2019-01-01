@@ -23,8 +23,8 @@ install:
 
   # Install the dependencies of the project.
   - python -m pip install --upgrade pip setuptools wheel
-  - pip install numpy scipy matplotlib nose h5py mock pydicom
-  - pip install .
+  - python -m pip install numpy scipy matplotlib nose h5py mock pydicom
+  - python -m pip install .
   - SET NIBABEL_DATA_DIR=%CD%\nibabel-data
 
 build: false  # Not a C# project, build stuff at the test step instead.
