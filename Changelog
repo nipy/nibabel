@@ -24,6 +24,45 @@ Gerhard (SG), Eric Larson (EL), Yaroslav Halchenko (YOH) and Chris Cheng (CC).
 
 References like "pr/298" refer to github pull request numbers.
 
+2.3.2 (Wedmesday 2 January 2019)
+================================
+
+Enhancements
+------------
+* Enable toggling crosshair with ``Ctrl-x`` in ``OrthoSlicer3D`` viewer (pr/701)
+  (Miguel Estevan Moreno, reviewed by CM)
+
+Bug fixes
+---------
+* Read .PAR files corresponding to ADC maps (pr/685) (Gregory R. Lee, reviewed
+  by CM)
+* Increase maximum number of items read from Siemens CSA format (Igor Solovey,
+  reviewed by CM, MB)
+* Check boolean dtypes with ``numpy.issubdtype(..., np.bool_)`` (pr/707)
+  (Jon Haitz Legarreta Gorroño, reviewed by CM)
+
+Maintenance
+-----------
+* Fix small typos in parrec2nii help text (pr/682) (Thomas Roos, reviewed by
+  MB)
+* Remove deprecated calls to ``numpy.asscalar`` (pr/686) (CM, reviewed by
+  Gregory R. Lee)
+* Update QA directives to accommodate Flake8 3.6 (pr/695) (CM)
+* Update DOI links to use ``https://doi.org`` (pr/703) (Katrin Leinweber,
+  reviewed by CM)
+* Remove deprecated calls to ``numpy.fromstring`` (pr/700) (Ariel Rokem,
+  reviewed by CM, MB)
+* Drop ``distutils`` support, require ``bz2file`` for Python 2.7 (pr/700)
+  (CM, reviewed by MB)
+* Replace mutable ``bytes`` hack, disabled in numpy pre-release, with
+  ``bytearray``/``readinto`` strategy (pr/700) (Ariel Rokem, CM, reviewed by
+  CM, MB)
+
+API changes and deprecations
+----------------------------
+* Add ``Opener.readinto`` method to read file contents into pre-allocated buffers
+  (pr/700) (Ariel Rokem, reviewed by CM, MB)
+
 2.3.1 (Tuesday 16 October 2018)
 ===============================
 

@@ -556,11 +556,11 @@ class TrkFile(TractogramFile):
         start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
 
         with Opener(fileobj) as f:
-
-            # Read the header in one block.
-            header_str = f.read(header_2_dtype.itemsize)
-            header_rec = np.fromstring(string=header_str, dtype=header_2_dtype)
-
+            # Reading directly from a file into a (mutable) bytearray enables a zero-copy
+            # cast to a mutable numpy object with frombuffer
+            header_buf = bytearray(header_2_dtype.itemsize)
+            f.readinto(header_buf)
+            header_rec = np.frombuffer(buffer=header_buf, dtype=header_2_dtype)
             # Check endianness
             endianness = native_code
             if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:

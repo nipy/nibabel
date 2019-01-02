@@ -19,8 +19,8 @@ from distutils.version import StrictVersion
 _version_major = 2
 _version_minor = 3
 _version_micro = 2
-_version_extra = 'dev'
-# _version_extra = ''
+# _version_extra = 'dev'
+_version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s%s" % (_version_major,
@@ -209,4 +209,5 @@ MICRO = _version_micro
 ISRELEASE = _version_extra == ''
 VERSION = __version__
 PROVIDES = ["nibabel", 'nisext']
-REQUIRES = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
+REQUIRES = ["numpy>=%s" % NUMPY_MIN_VERSION,
+            'bz2file; python_version < "3.0"']

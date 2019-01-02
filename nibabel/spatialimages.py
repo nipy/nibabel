@@ -137,7 +137,7 @@ import numpy as np
 
 from .filebasedimages import FileBasedHeader
 from .dataobj_images import DataobjImage
-from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
+from .filebasedimages import ImageFileError  # noqa
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 from .fileslice import canonical_slicers
@@ -165,7 +165,7 @@ class SpatialHeader(FileBasedHeader):
         self.set_data_dtype(data_dtype)
         self._zooms = ()
         self.set_data_shape(shape)
-        if not zooms is None:
+        if zooms is not None:
             self.set_zooms(zooms)
 
     @classmethod
@@ -576,7 +576,6 @@ class SpatialImage(DataobjImage):
         """
         return self.ImageSlicer(self)
 
-
     def __getitem__(self, idx):
         ''' No slicing or dictionary interface for images
 
@@ -605,7 +604,6 @@ class SpatialImage(DataobjImage):
         """
         return OrthoSlicer3D(self.dataobj, self.affine,
                              title=self.get_filename())
-
 
     def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image

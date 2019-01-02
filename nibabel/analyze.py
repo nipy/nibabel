@@ -1057,10 +1057,8 @@ class AnalyzeImage(SpatialImage):
         # Store consumable values for later restore
         offset = hdr.get_data_offset()
         # Scalars of slope, offset to get immutable values
-        slope = (np.asscalar(hdr['scl_slope']) if hdr.has_data_slope
-                 else np.nan)
-        inter = (np.asscalar(hdr['scl_inter']) if hdr.has_data_intercept
-                 else np.nan)
+        slope = hdr['scl_slope'].item() if hdr.has_data_slope else np.nan
+        inter = hdr['scl_inter'].item() if hdr.has_data_intercept else np.nan
         # Check whether to calculate slope / inter
         scale_me = np.all(np.isnan((slope, inter)))
         if scale_me:

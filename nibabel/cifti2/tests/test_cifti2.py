@@ -58,7 +58,7 @@ def test_cifti2_metadata():
     assert_equal(md.data, dict(metadata_test))
 
     assert_equal(list(iter(md)), list(iter(collections.OrderedDict(metadata_test))))
-    
+
     md.update({'a': 'aval', 'b': 'bval'})
     assert_equal(md.data, dict(metadata_test))
 
@@ -310,7 +310,7 @@ def test_matrix():
 
     assert_raises(ci.Cifti2HeaderError, m.insert, 0, mim_none)
     assert_equal(m.mapped_indices, [])
-   
+
     h = ci.Cifti2Header(matrix=m)
     assert_equal(m.mapped_indices, [])
     m.insert(0, mim_0)

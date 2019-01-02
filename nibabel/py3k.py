@@ -67,7 +67,7 @@ else:
     class FileNotFoundError(IOError):
         pass
 
-    import __builtin__ as builtins  # flake8: noqa F401
+    import __builtin__ as builtins  # noqa
 
 
 def getexception():

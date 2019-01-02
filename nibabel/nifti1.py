@@ -27,7 +27,7 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
-from .testing import setup_test  # flake8: noqa F401
+from .testing import setup_test  # noqa
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -579,7 +579,7 @@ class Nifti1Extensions(list):
             # otherwise there should be a full extension header
             if not len(ext_def) == 8:
                 raise HeaderDataError('failed to read extension header')
-            ext_def = np.fromstring(ext_def, dtype=np.int32)
+            ext_def = np.frombuffer(ext_def, dtype=np.int32)
             if byteswap:
                 ext_def = ext_def.byteswap()
             # be extra verbose
@@ -1330,7 +1330,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code]) if known_intent else 0
         params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
-        name = asstr(np.asscalar(hdr['intent_name']))
+        name = asstr(hdr['intent_name'].item())
         return label, tuple(params), name
 
     def set_intent(self, code, params=(), name='', allow_unknown=False):
@@ -1679,7 +1679,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     @staticmethod
     def _chk_magic(hdr, fix=False):
         rep = Report(HeaderDataError)
-        magic = np.asscalar(hdr['magic'])
+        magic = hdr['magic'].item()
         if magic in (hdr.pair_magic, hdr.single_magic):
             return hdr, rep
         rep.problem_msg = ('magic string "%s" is not valid' %
@@ -1693,8 +1693,8 @@ class Nifti1Header(SpmAnalyzeHeader):
     def _chk_offset(hdr, fix=False):
         rep = Report(HeaderDataError)
         # for ease of later string formatting, use scalar of byte string
-        magic = np.asscalar(hdr['magic'])
-        offset = np.asscalar(hdr['vox_offset'])
+        magic = hdr['magic'].item()
+        offset = hdr['vox_offset'].item()
         if offset == 0:
             return hdr, rep
         if magic == hdr.single_magic and offset < hdr.single_vox_offset:
@@ -1787,7 +1787,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
     :meth:`set_qform` methods can be used to update the codes after an image
     has been created - see those methods, and the :ref:`manual
     <default-sform-qform-codes>` for more details.  '''
-
 
     def update_header(self):
         ''' Harmonize header with image data and affine

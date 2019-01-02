@@ -156,7 +156,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     hdr = np.ndarray(shape=(),
                      dtype=header_2_dtype,
                      buffer=hdr_str)
-    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
+    if hdr['id_string'].item()[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
     if hdr['hdr_size'] == 1000:
@@ -492,7 +492,7 @@ def _check_hdr_points_space(hdr, points_space):
             raise HeaderError('Affine zooms %s differ from voxel_size '
                               'field value %s' % (aff_zooms, zooms))
         aff_order = ''.join(aff2axcodes(affine))
-        voxel_order = asstr(np.asscalar(hdr['voxel_order']))
+        voxel_order = asstr(hdr['voxel_order'].item())
         if voxel_order == '':
             voxel_order = 'LPS'  # trackvis default
         if not voxel_order == aff_order:
@@ -526,7 +526,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
     for key, value in mapping.items():
         hdr[key] = value
     # check header values
-    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
+    if hdr['id_string'].item()[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characaters of id_string')
     if hdr['version'] not in (1, 2):
@@ -556,7 +556,7 @@ def empty_header(endianness=None, version=2):
     >>> hdr = empty_header()
     >>> print(hdr['version'])
     2
-    >>> np.asscalar(hdr['id_string']) == b'TRACK'
+    >>> hdr['id_string'].item() == b'TRACK'
     True
     >>> endian_codes[hdr['version'].dtype.byteorder] == native_code
     True
@@ -654,7 +654,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     aff = np.dot(DPCS_TO_TAL, aff)
     # Next we check against the 'voxel_order' field if present and not empty.
     try:
-        voxel_order = asstr(np.asscalar(trk_hdr['voxel_order']))
+        voxel_order = asstr(trk_hdr['voxel_order'].item())
     except (KeyError, ValueError):
         voxel_order = ''
     if voxel_order == '':
