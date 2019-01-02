@@ -87,6 +87,11 @@ contributed code and discussion (in rough order of appearance):
 * Mathias Goncalves
 * Jakub Kaczmarzyk
 * Dimitri Papadopoulos Orfanos
+* Miguel Estevan Moreno
+* Thomas Roos
+* Igor Solovey
+* Jon Haitz Legarreta Gorroño
+* Katrin Leinweber
 
 License reprise
 ===============
