@@ -21,8 +21,11 @@ Filename is ``CIFTI-2_Main_FINAL_1March2014.pdf``.
 '''
 from __future__ import division, print_function, absolute_import
 import re
-import collections
-
+try:
+    from collections.abc import MutableSequence, MutableMapping, Iterable
+except ImportError:
+    from collections import MutableSequence, MutableMapping, Iterable
+from collections import OrderedDict
 from .. import xmlutils as xml
 from ..filebasedimages import FileBasedHeader
 from ..dataobj_images import DataobjImage
@@ -104,7 +107,7 @@ def _underscore(string):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
 
-class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
+class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
     """ A list of name-value pairs
 
     * Description - Provides a simple method for user-supplied metadata that
@@ -124,7 +127,7 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
     data : list of (name, value) tuples
     """
     def __init__(self, metadata=None):
-        self.data = collections.OrderedDict()
+        self.data = OrderedDict()
         if metadata is not None:
             self.update(metadata)
 
@@ -173,7 +176,7 @@ class Cifti2MetaData(xml.XmlSerializable, collections.MutableMapping):
         return metadata
 
 
-class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
+class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
     """ CIFTI2 label table: a sequence of ``Cifti2Label``s
 
     * Description - Used by NamedMap when IndicesMapToDataType is
@@ -191,7 +194,7 @@ class Cifti2LabelTable(xml.XmlSerializable, collections.MutableMapping):
     """
 
     def __init__(self):
-        self._labels = collections.OrderedDict()
+        self._labels = OrderedDict()
 
     def __len__(self):
         return len(self._labels)
@@ -427,7 +430,7 @@ class Cifti2Surface(xml.XmlSerializable):
         return surf
 
 
-class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
+class Cifti2VoxelIndicesIJK(xml.XmlSerializable, MutableSequence):
     """CIFTI2 VoxelIndicesIJK: Set of voxel indices contained in a structure
 
     * Description - Identifies the voxels that model a brain structure, or
@@ -509,7 +512,7 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, collections.MutableSequence):
         return vox_ind
 
 
-class Cifti2Vertices(xml.XmlSerializable, collections.MutableSequence):
+class Cifti2Vertices(xml.XmlSerializable, MutableSequence):
     """CIFTI2 vertices - association of brain structure and a list of vertices
 
     * Description - Contains a BrainStructure type and a list of vertex indices
@@ -733,7 +736,7 @@ class Cifti2Volume(xml.XmlSerializable):
         return volume
 
 
-class Cifti2VertexIndices(xml.XmlSerializable, collections.MutableSequence):
+class Cifti2VertexIndices(xml.XmlSerializable, MutableSequence):
     """CIFTI2 vertex indices: vertex indices for an associated brain model
 
     The vertex indices (which are independent for each surface, and
@@ -889,7 +892,7 @@ class Cifti2BrainModel(xml.XmlSerializable):
         return brain_model
 
 
-class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
+class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
     """Class for Matrix Indices Map
 
     * Description - Provides a mapping between matrix indices and their
@@ -1076,7 +1079,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, collections.MutableSequence):
         return mat_ind_map
 
 
-class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
+class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
     """ CIFTI2 Matrix object
 
     This is a list-like container where the elements are instances of
@@ -1122,7 +1125,7 @@ class Cifti2Matrix(xml.XmlSerializable, collections.MutableSequence):
         applies_to_matrix_dimension = mim.applies_to_matrix_dimension
         if not isinstance(
             applies_to_matrix_dimension,
-            collections.Iterable
+            Iterable
         ):
             applies_to_matrix_dimension = (int(applies_to_matrix_dimension),)
         return applies_to_matrix_dimension

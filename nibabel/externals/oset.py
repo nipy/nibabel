@@ -15,7 +15,10 @@ License: BSD-3
 
 from __future__ import absolute_import
 
-from collections import MutableSet
+try:
+    from collections.abc import MutableSet
+except ImportError:
+    from collections import MutableSet
 
 KEY, PREV, NEXT = range(3)
 
