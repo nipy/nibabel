@@ -24,6 +24,7 @@ import re
 try:
     from collections.abc import MutableSequence, MutableMapping, Iterable
 except ImportError:
+    # PY2 compatibility
     from collections import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
 from .. import xmlutils as xml
