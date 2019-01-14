@@ -18,6 +18,7 @@ from __future__ import absolute_import
 try:
     from collections.abc import MutableSet
 except ImportError:
+    # PY2 compatibility
     from collections import MutableSet
 
 KEY, PREV, NEXT = range(3)
