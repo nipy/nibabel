@@ -24,14 +24,14 @@ Gerhard (SG), Eric Larson (EL), Yaroslav Halchenko (YOH) and Chris Cheng (CC).
 
 References like "pr/298" refer to github pull request numbers.
 
-2.3.3 (Wedmesday 16 January 2019)
+2.3.3 (Wednesday 16 January 2019)
 =================================
 
 Maintenance
 -----------
 * Restore ``six`` dependency (pr/714) (CM, reviewed by Gael Varoquaux, MB)
 
-2.3.2 (Wedmesday 2 January 2019)
+2.3.2 (Wednesday 2 January 2019)
 ================================
 
 Enhancements
