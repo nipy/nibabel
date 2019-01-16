@@ -210,4 +210,5 @@ ISRELEASE = _version_extra == ''
 VERSION = __version__
 PROVIDES = ["nibabel", 'nisext']
 REQUIRES = ["numpy>=%s" % NUMPY_MIN_VERSION,
+            "six>=%s" % SIX_MIN_VERSION,
             'bz2file; python_version < "3.0"']
