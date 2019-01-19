@@ -2020,7 +2020,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
             # otherwise check where we have mapped it to
             if value is None:
                 continue
-            new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
+            new_dim[idx] = ornt[value, 0]
 
         img.header.set_dim_info(*new_dim)
 
