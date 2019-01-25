@@ -199,7 +199,8 @@ class ArraySequence(object):
             self._data.resize(new_shape)
 
     def shrink_data(self):
-        self._data.resize((self._get_next_offset(),) + self.common_shape)
+        self._data.resize((self._get_next_offset(),) + self.common_shape,
+                          refcheck=False)
 
     def extend(self, elements):
         """ Appends all `elements` to this array sequence.
