@@ -385,14 +385,9 @@ class TckFile(TractogramFile):
             Streamline points
         """
         dtype = header["_dtype"]
-        coordinate_size = 3 * dtype.itemsize
-        # Make buffer_size an integer and a multiple of coordinate_size.
-        buffer_size = int(buffer_size * MEGABYTE)
-        buffer_size += coordinate_size - (buffer_size % coordinate_size)
 
-        # Markers for streamline end and file end
-        fiber_marker = cls.FIBER_DELIMITER.astype(dtype).tostring()
-        eof_marker = cls.EOF_DELIMITER.astype(dtype).tostring()
+        #align batch_size to be multiple of 3 within the specified buffer size
+        batch_size = int(buffer_size * MEGABYTE / dtype.itemsize / 3) * 3
 
         with Opener(fileobj) as f:
             start_position = f.tell()
@@ -401,46 +396,36 @@ class TckFile(TractogramFile):
             f.seek(header["_offset_data"], os.SEEK_SET)
 
             eof = False
-            buffs = []
             n_streams = 0
-
+            leftover = np.empty([0,3])
             while not eof:
-                buff = bytearray(buffer_size)
-                n_read = f.readinto(buff)
-                eof = n_read != buffer_size
-                if eof:
-                    buff = buff[:n_read]
 
-                buffs.append(buff)
+                # read raw files from file
+                raw_values = np.fromfile(f.fobj, dtype, batch_size)
+                if len(raw_values) < batch_size:
+                    eof = True
 
-                # Make sure we've read enough to find a streamline delimiter.
-                if fiber_marker not in buff:
-                    # If we've read the whole file, then fail.
-                    if eof:
-                        # Could have minimal buffering, and have read only the
-                        # EOF delimiter
-                        buffs = [bytearray().join(buffs)]
-                        if not buffs[0] == eof_marker:
-                            raise DataError(
-                                "Cannot find a streamline delimiter. This file"
-                                " might be corrupted.")
-                    else:
-                        # Otherwise read a bit more.
-                        continue
+                # Convert raw_values into a list of little-endian tuples (for x,y,z coord)
+                coords = raw_values.astype('<f4', copy=False).reshape([-1, 3])
 
-                all_parts = bytearray().join(buffs).split(fiber_marker)
-                point_parts, buffs = all_parts[:-1], all_parts[-1:]
-                point_parts = [p for p in point_parts if p != b'']
+                # find stream delimiter locations (all NaNs)
+                delims = np.where(np.all(np.isnan(coords), axis=1))[0]
 
-                for point_part in point_parts:
-                    # Read floats.
-                    pts = np.frombuffer(point_part, dtype=dtype)
-                    # Convert data to little-endian if needed.
-                    yield pts.astype('<f4', copy=False).reshape([-1, 3])
+                # for each delimiters, yeild new streams
+                begin = 0
+                for i in range(0, len(delims)):
+                    end = delims[i]
+                    stream = np.append(leftover, coords[begin:end], axis=0)
+                    leftover = np.empty([0,3])
+                    yield stream
+                    n_streams += 1
 
-                n_streams += len(point_parts)
+                    begin = end+1 #skip the delimiter
 
-            if not buffs[-1] == eof_marker:
+                # the rest gets appended to the leftover
+                leftover = np.append(leftover, coords[begin:], axis=0)
+
+            if not np.all(np.isinf(leftover), axis=1):
                 raise DataError("Expecting end-of-file marker 'inf inf inf'")
 
             # In case the 'count' field was not provided.
