@@ -397,7 +397,7 @@ class TckFile(TractogramFile):
 
             eof = False
             n_streams = 0
-            leftover = np.empty([0,3])
+            leftover = np.empty((0,3), dtype='<f4')
             while not eof:
 
                 # read raw files from file
@@ -415,15 +415,18 @@ class TckFile(TractogramFile):
                 begin = 0
                 for i in range(0, len(delims)):
                     end = delims[i]
-                    stream = np.append(leftover, coords[begin:end], axis=0)
-                    leftover = np.empty([0,3])
+                    if i == 0:
+                        stream = np.vstack((leftover, coords[begin:end]))
+                    else:
+                        stream = coords[begin:end]
+                    leftover = np.empty((0,3), dtype='<f4')
                     yield stream
                     n_streams += 1
 
                     begin = end+1 #skip the delimiter
 
                 # the rest gets appended to the leftover
-                leftover = np.append(leftover, coords[begin:], axis=0)
+                leftover = np.vstack((leftover, coords[begin:]))
 
             if not np.all(np.isinf(leftover), axis=1):
                 raise DataError("Expecting end-of-file marker 'inf inf inf'")
