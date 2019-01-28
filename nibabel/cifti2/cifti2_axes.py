@@ -54,7 +54,7 @@ def to_header(axes):
 
 class Axis(object):
     """
-    Generic object describing the rows or columns of a CIFTI vector/matrix
+    Abstract class for any object describing the rows or columns of a CIFTI vector/matrix
 
     Attributes
     ----------
