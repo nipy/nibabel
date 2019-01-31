@@ -431,7 +431,7 @@ class TckFile(TractogramFile):
                 # the rest gets appended to the leftover
                 leftover = coords[begin:]
 
-            if not np.isinf(leftover).all():
+            if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
                 raise DataError("Expecting end-of-file marker 'inf inf inf'")
 
             # In case the 'count' field was not provided.
