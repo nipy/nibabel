@@ -386,8 +386,10 @@ class TckFile(TractogramFile):
         """
         dtype = header["_dtype"]
 
-        #align batch_size to be multiple of 3 within the specified buffer size
-        batch_size = int(buffer_size * MEGABYTE / dtype.itemsize / 3) * 3
+        coordinate_size = 3 * dtype.itemsize
+        # Make buffer_size an integer and a multiple of coordinate_size.
+        buffer_size = int(buffer_size * MEGABYTE)
+        buffer_size += coordinate_size - (buffer_size % coordinate_size)
 
         with Opener(fileobj) as f:
             start_position = f.tell()
@@ -397,38 +399,39 @@ class TckFile(TractogramFile):
 
             eof = False
             n_streams = 0
-            leftover = np.empty((0,3), dtype='<f4')
+            leftover = np.empty((0, 3), dtype='<f4')
             while not eof:
+                buff = bytearray(buffer_size)
+                n_read = f.readinto(buff)
+                eof = n_read != buffer_size
+                if eof:
+                    buff = buff[:n_read]
 
                 # read raw files from file
-                raw_values = np.fromfile(f.fobj, dtype, batch_size)
-                if len(raw_values) < batch_size:
-                    eof = True
+                raw_values = np.frombuffer(buff, dtype=dtype)
 
-                # Convert raw_values into a list of little-endian tuples (for x,y,z coord)
-                coords = raw_values.astype('<f4', copy=False).reshape([-1, 3])
+                # Convert raw_values into a list of little-endian triples (for x,y,z coord)
+                coords = raw_values.astype('<f4', copy=False).reshape((-1, 3))
 
-                # find stream delimiter locations (all NaNs)
-                delims = np.where(np.all(np.isnan(coords), axis=1))[0]
+                # Find stream delimiter locations (all NaNs)
+                delims = np.where(np.isnan(coords).all(axis=1))[0]
 
-                # for each delimiters, yeild new streams
+                if leftover.size:
+                    delims += leftover.shape[0]
+                    coords = np.vstack((leftover, coords))
+
                 begin = 0
-                for i in range(0, len(delims)):
-                    end = delims[i]
-                    if i == 0:
-                        stream = np.vstack((leftover, coords[begin:end]))
-                    else:
-                        stream = coords[begin:end]
-                    leftover = np.empty((0,3), dtype='<f4')
-                    yield stream
-                    n_streams += 1
-
-                    begin = end+1 #skip the delimiter
+                for delim in delims:
+                    pts = coords[begin:delim]
+                    if pts.size:
+                        yield coords[begin:delim]
+                        n_streams += 1
+                    begin = delim + 1
 
                 # the rest gets appended to the leftover
-                leftover = np.vstack((leftover, coords[begin:]))
+                leftover = coords[begin:]
 
-            if not np.all(np.isinf(leftover), axis=1):
+            if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
                 raise DataError("Expecting end-of-file marker 'inf inf inf'")
 
             # In case the 'count' field was not provided.
