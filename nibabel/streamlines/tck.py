@@ -432,7 +432,11 @@ class TckFile(TractogramFile):
                 leftover = coords[begin:]
 
             if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
-                raise DataError("Expecting end-of-file marker 'inf inf inf'")
+                if n_streams == 0:
+                    msg = "Cannot find a streamline delimiter. This file might be corrupted."
+                else:
+                    msg = "Expecting end-of-file marker 'inf inf inf'"
+                raise DataError(msg)
 
             # In case the 'count' field was not provided.
             header[Field.NB_STREAMLINES] = n_streams
