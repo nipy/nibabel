@@ -385,7 +385,6 @@ class TckFile(TractogramFile):
             Streamline points
         """
         dtype = header["_dtype"]
-
         coordinate_size = 3 * dtype.itemsize
         # Make buffer_size an integer and a multiple of coordinate_size.
         buffer_size = int(buffer_size * MEGABYTE)
@@ -398,8 +397,9 @@ class TckFile(TractogramFile):
             f.seek(header["_offset_data"], os.SEEK_SET)
 
             eof = False
-            n_streams = 0
             leftover = np.empty((0, 3), dtype='<f4')
+            n_streams = 0
+
             while not eof:
                 buff = bytearray(buffer_size)
                 n_read = f.readinto(buff)
@@ -407,7 +407,6 @@ class TckFile(TractogramFile):
                 if eof:
                     buff = buff[:n_read]
 
-                # read raw files from file
                 raw_values = np.frombuffer(buff, dtype=dtype)
 
                 # Convert raw_values into a list of little-endian triples (for x,y,z coord)
@@ -416,6 +415,7 @@ class TckFile(TractogramFile):
                 # Find stream delimiter locations (all NaNs)
                 delims = np.where(np.isnan(coords).all(axis=1))[0]
 
+                # Recover leftovers, which can't have delimiters in them
                 if leftover.size:
                     delims += leftover.shape[0]
                     coords = np.vstack((leftover, coords))
@@ -428,7 +428,7 @@ class TckFile(TractogramFile):
                         n_streams += 1
                     begin = delim + 1
 
-                # the rest gets appended to the leftover
+                # The rest gets appended to the leftover
                 leftover = coords[begin:]
 
             if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
