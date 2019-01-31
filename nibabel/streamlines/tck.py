@@ -386,8 +386,10 @@ class TckFile(TractogramFile):
         """
         dtype = header["_dtype"]
 
-        # Align batch_size to be multiple of 3 within the specified buffer size
-        batch_size = int(buffer_size * MEGABYTE / dtype.itemsize / 3) * 3
+        coordinate_size = 3 * dtype.itemsize
+        # Make buffer_size an integer and a multiple of coordinate_size.
+        buffer_size = int(buffer_size * MEGABYTE)
+        buffer_size += coordinate_size - (buffer_size % coordinate_size)
 
         with Opener(fileobj) as f:
             start_position = f.tell()
@@ -399,11 +401,14 @@ class TckFile(TractogramFile):
             n_streams = 0
             leftover = np.empty((0, 3), dtype='<f4')
             while not eof:
+                buff = bytearray(buffer_size)
+                n_read = f.readinto(buff)
+                eof = n_read != buffer_size
+                if eof:
+                    buff = buff[:n_read]
 
                 # read raw files from file
-                raw_values = np.fromfile(f.fobj, dtype, batch_size)
-                if len(raw_values) < batch_size:
-                    eof = True
+                raw_values = np.frombuffer(buff, dtype=dtype)
 
                 # Convert raw_values into a list of little-endian triples (for x,y,z coord)
                 coords = raw_values.astype('<f4', copy=False).reshape((-1, 3))
