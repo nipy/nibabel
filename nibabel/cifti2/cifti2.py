@@ -287,7 +287,7 @@ class Cifti2Label(xml.XmlSerializable):
         return (self.red, self.green, self.blue, self.alpha)
 
     def _to_xml_element(self):
-        if self.label is '':
+        if self.label == '':
             raise Cifti2HeaderError('Label needs a name')
         try:
             v = int(self.key)
