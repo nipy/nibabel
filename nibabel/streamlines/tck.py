@@ -424,7 +424,7 @@ class TckFile(TractogramFile):
                 for delim in delims:
                     pts = coords[begin:delim]
                     if pts.size:
-                        yield coords[begin:delim]
+                        yield pts
                         n_streams += 1
                     begin = delim + 1
 
