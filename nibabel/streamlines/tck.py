@@ -428,7 +428,7 @@ class TckFile(TractogramFile):
                         n_streams += 1
                     begin = delim + 1
 
-                # The rest gets appended to the leftover
+                # The rest becomes the new leftover.
                 leftover = coords[begin:]
 
             if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
