@@ -219,6 +219,10 @@ class TestArraySequence(unittest.TestCase):
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
         assert_raises(ValueError, seq.extend, data)
 
+        # Extend after extracting some slice
+        working_slice = seq[:2]
+        seq.extend(ArraySequence(new_data))
+
     def test_arraysequence_getitem(self):
         # Get one item
         for i, e in enumerate(SEQ_DATA['seq']):
