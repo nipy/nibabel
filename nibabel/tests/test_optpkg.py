@@ -38,7 +38,12 @@ def test_basic():
     assert_good('os.path')
     # We never have package _not_a_package
     assert_bad('_not_a_package')
+
+    # setup_module imports nose, so make sure we don't disrupt that
+    orig_import = builtins.__import__
     def raise_Exception(*args, **kwargs):
+        if args[0] == 'nose':
+            return orig_import(*args, **kwargs)
         raise Exception(
             "non ImportError could be thrown by some malfunctioning module "
             "upon import, and optional_package should catch it too")

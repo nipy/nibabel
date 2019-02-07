@@ -34,6 +34,19 @@ Quickstart
 
 For more detailed information see the :ref:`manual`.
 """
+
+
+def setup_test():
+    """ Set numpy print options to "legacy" for new versions of numpy
+
+    If imported into a file, nosetest will run this before any doctests.
+    """
+    import numpy
+    from distutils.version import LooseVersion
+    if LooseVersion(numpy.__version__) >= LooseVersion('1.14'):
+        numpy.set_printoptions(legacy="1.13")
+
+
 # module imports
 from . import analyze as ana
 from . import spm99analyze as spm99
@@ -67,19 +80,19 @@ from . import trackvis
 from . import mriutils
 from . import streamlines
 from . import viewers
-from .testing import setup_test
 
-# Note test requirement for "mock".  Requirement for "nose" tested by numpy.
-try:
-    import mock
-except ImportError:
+import pkgutil
+
+if not pkgutil.find_loader('mock'):
     def test(*args, **kwargs):
         raise RuntimeError('Need "mock" package for tests')
 else:
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench
-    del mock, Tester
+    del Tester
+
+del pkgutil
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 
