@@ -30,12 +30,6 @@ matrix:
     - python: 3.4
       dist: trusty
       sudo: false
-    - python: 2.7
-      env:
-        - COVERAGE=1
-    - python: 3.5
-      env:
-        - COVERAGE=1
     # Absolute minimum dependencies
     - python: 2.7
       env:
@@ -99,25 +93,20 @@ matrix:
       env:
         - OPTIONAL_DEPENDS="indexed_gzip"
 before_install:
-    - source tools/travis_tools.sh
-    - python -m pip install --upgrade pip
-    - pip install --upgrade virtualenv
+    - travis_retry python -m pip install --upgrade pip
+    - travis_retry pip install --upgrade virtualenv
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install -U pip setuptools>=27.0 wheel
+    - travis_retry pip install -U pip setuptools>=27.0 wheel
+    - travis_retry pip install coverage
     - if [ "${CHECK_TYPE}" == "test" ]; then
-      retry pip install nose mock;
+      travis_retry pip install nose mock;
       fi
     - if [ "${CHECK_TYPE}" == "style" ]; then
-      retry pip install flake8;
+      travis_retry pip install flake8;
       fi
-    - pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
-    - if [ "${COVERAGE}" == "1" ]; then
-      pip install coverage;
-      pip install coveralls;
-      pip install codecov;
-      fi
+    - travis_retry pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
 # command to install dependencies
 install:
     - |
@@ -128,7 +117,6 @@ install:
           python setup_egg.py sdist
           pip install $EXTRA_PIP_FLAGS dist/*.tar.gz
       elif [ "$INSTALL_TYPE" == "wheel" ]; then
-          pip install wheel
           python setup_egg.py bdist_wheel
           pip install $EXTRA_PIP_FLAGS dist/*.whl
       elif [ "$INSTALL_TYPE" == "requirements" ]; then
@@ -146,7 +134,9 @@ script:
       elif [ "${CHECK_TYPE}" == "import" ]; then
           # Import nibabel without attempting to test
           # Allows us to check missing dependencies masked by testing libraries
-          python -c 'import nibabel; print(nibabel.__version__)'
+          printf 'import nibabel\nprint(nibabel.__version__)\n' > import_only.py
+          cat import_only.py
+          coverage run import_only.py
       elif [ "${CHECK_TYPE}" == "doc_doctests" ]; then
           cd doc
           pip install -r ../doc-requirements.txt
@@ -156,16 +146,17 @@ script:
           # Change into an innocuous directory and find tests from installation
           mkdir for_testing
           cd for_testing
-          if [ "${COVERAGE}" == "1" ]; then
-              cp ../.coveragerc .;
-              COVER_ARGS="--with-coverage --cover-package nibabel";
-          fi
-          nosetests --with-doctest $COVER_ARGS nibabel;
+          nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
       else
           false
       fi
 after_success:
-    - if [ "${COVERAGE}" == "1" ]; then coveralls; codecov; fi
+    - |
+      if [ "${CHECK_TYPE}" == "test" ]; then
+        travis_retry pip install coveralls codecov
+        coveralls
+        codecov
+      fi
 
 notifications:
     webhooks: http://nipy.bic.berkeley.edu:54856/travis
