@@ -23,7 +23,8 @@ install:
 
   # Install the dependencies of the project.
   - python -m pip install --upgrade pip setuptools wheel
-  - pip install numpy scipy matplotlib nose h5py mock pydicom
+  - pip install numpy scipy matplotlib h5py pydicom
+  - pip install nose mock coverage codecov
   - pip install .
   - SET NIBABEL_DATA_DIR=%CD%\nibabel-data
 
@@ -33,4 +34,8 @@ test_script:
   # Change into an innocuous directory and find tests from installation
   - mkdir for_testing
   - cd for_testing
-  - nosetests --with-doctest nibabel
+  - cp ../.coveragerc .
+  - nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
+
+after_test:
+  - codecov
