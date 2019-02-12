@@ -16,6 +16,7 @@ env:
         - DEPENDS="six numpy scipy matplotlib h5py pillow pydicom"
         - OPTIONAL_DEPENDS=""
         - INSTALL_TYPE="setup"
+        - CHECK_TYPE="test"
         - EXTRA_WHEELS="https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
         - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
         - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
@@ -29,13 +30,15 @@ matrix:
     - python: 3.4
       dist: trusty
       sudo: false
-    - python: 2.7
-      env:
-        - COVERAGE=1
     # Absolute minimum dependencies
     - python: 2.7
       env:
         - DEPENDS="numpy==1.7.1"
+    # Absolute minimum dependencies
+    - python: 2.7
+      env:
+        - DEPENDS="numpy==1.7.1"
+        - CHECK_TYPE="import"
     # Absolute minimum dependencies plus oldest MPL
     # Check these against:
     # nibabel/info.py
@@ -60,10 +63,6 @@ matrix:
     - python: 3.5
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # Documentation doctests
-    - python: 2.7
-      env:
-        - DOC_DOC_TEST=1
     - python: 2.7
       env:
         - INSTALL_TYPE=sdist
@@ -75,13 +74,17 @@ matrix:
         - INSTALL_TYPE=requirements
     - python: 2.7
       env:
-        - STYLE=1
+        - CHECK_TYPE="style"
     - python: 3.5
       env:
-        - STYLE=1
+        - CHECK_TYPE="style"
+    # Documentation doctests
+    - python: 2.7
+      env:
+        - CHECK_TYPE="doc_doctests"
     - python: 3.5
       env:
-        - DOC_DOC_TEST=1
+        - CHECK_TYPE="doc_doctests"
     # Run tests with indexed_gzip present
     - python: 2.7
       env:
@@ -90,20 +93,20 @@ matrix:
       env:
         - OPTIONAL_DEPENDS="indexed_gzip"
 before_install:
-    - source tools/travis_tools.sh
-    - python -m pip install --upgrade pip
-    - pip install --upgrade virtualenv
+    - travis_retry python -m pip install --upgrade pip
+    - travis_retry pip install --upgrade virtualenv
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - pip install -U pip wheel  # needed at one point
-    - retry pip install nose flake8 mock  # always
-    - pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
-    - if [ "${COVERAGE}" == "1" ]; then
-      pip install coverage;
-      pip install coveralls;
-      pip install codecov;
+    - travis_retry pip install -U pip setuptools>=27.0 wheel
+    - travis_retry pip install coverage
+    - if [ "${CHECK_TYPE}" == "test" ]; then
+      travis_retry pip install nose mock;
       fi
+    - if [ "${CHECK_TYPE}" == "style" ]; then
+      travis_retry pip install flake8;
+      fi
+    - travis_retry pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
 # command to install dependencies
 install:
     - |
@@ -114,7 +117,6 @@ install:
           python setup_egg.py sdist
           pip install $EXTRA_PIP_FLAGS dist/*.tar.gz
       elif [ "$INSTALL_TYPE" == "wheel" ]; then
-          pip install wheel
           python setup_egg.py bdist_wheel
           pip install $EXTRA_PIP_FLAGS dist/*.whl
       elif [ "$INSTALL_TYPE" == "requirements" ]; then
@@ -126,28 +128,36 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
     - |
-      if [ "${STYLE}" == "1" ]; then
+      if [ "${CHECK_TYPE}" == "style" ]; then
           # Run styles only on core nibabel code.
           flake8 nibabel
-      else
+      elif [ "${CHECK_TYPE}" == "import" ]; then
+          # Import nibabel without attempting to test
+          # Allows us to check missing dependencies masked by testing libraries
+          printf 'import nibabel\nprint(nibabel.__version__)\n' > import_only.py
+          cat import_only.py
+          coverage run import_only.py
+      elif [ "${CHECK_TYPE}" == "doc_doctests" ]; then
+          cd doc
+          pip install -r ../doc-requirements.txt
+          make html;
+          make doctest;
+      elif [ "${CHECK_TYPE}" == "test" ]; then
           # Change into an innocuous directory and find tests from installation
           mkdir for_testing
           cd for_testing
-          if [ "${COVERAGE}" == "1" ]; then
-              cp ../.coveragerc .;
-              COVER_ARGS="--with-coverage --cover-package nibabel";
-          fi
-          if [ "$DOC_DOC_TEST" == "1" ]; then
-              cd ../doc;
-              pip install -r ../doc-requirements.txt
-              make html;
-              make doctest;
-          else
-              nosetests --with-doctest $COVER_ARGS nibabel;
-          fi
+          cp ../.coveragerc .
+          nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
+      else
+          false
       fi
 after_success:
-    - if [ "${COVERAGE}" == "1" ]; then coveralls; codecov; fi
+    - |
+      if [ "${CHECK_TYPE}" == "test" ]; then
+        travis_retry pip install coveralls codecov
+        coveralls
+        codecov
+      fi
 
 notifications:
     webhooks: http://nipy.bic.berkeley.edu:54856/travis

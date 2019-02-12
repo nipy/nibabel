@@ -20,7 +20,17 @@ def is_array_sequence(obj):
 def is_ndarray_of_int_or_bool(obj):
     return (isinstance(obj, np.ndarray) and
             (np.issubdtype(obj.dtype, np.integer) or
-            np.issubdtype(obj.dtype, np.bool)))
+            np.issubdtype(obj.dtype, np.bool_)))
+
+
+def _safe_resize(a, shape):
+    """ Resize an ndarray safely, using minimal memory """
+    try:
+        a.resize(shape)
+    except ValueError:
+        a = a.copy()
+        a.resize(shape, refcheck=False)
+    return a
 
 
 class _BuildCache(object):
@@ -196,10 +206,11 @@ class ArraySequence(object):
         if self._data.size == 0:
             self._data = np.empty(new_shape, dtype=build_cache.dtype)
         else:
-            self._data.resize(new_shape)
+            self._data = _safe_resize(self._data, new_shape)
 
     def shrink_data(self):
-        self._data.resize((self._get_next_offset(),) + self.common_shape)
+        self._data.resize((self._get_next_offset(),) + self.common_shape,
+                          refcheck=False)
 
     def extend(self, elements):
         """ Appends all `elements` to this array sequence.

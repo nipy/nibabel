@@ -27,7 +27,7 @@ from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
 from .pydicom_compat import have_dicom, pydicom as pdcm
-from .testing import setup_test  # flake8: noqa F401
+from . import setup_test  # noqa
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
@@ -579,7 +579,7 @@ class Nifti1Extensions(list):
             # otherwise there should be a full extension header
             if not len(ext_def) == 8:
                 raise HeaderDataError('failed to read extension header')
-            ext_def = np.fromstring(ext_def, dtype=np.int32)
+            ext_def = np.frombuffer(ext_def, dtype=np.int32)
             if byteswap:
                 ext_def = ext_def.byteswap()
             # be extra verbose
@@ -1787,7 +1787,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
     :meth:`set_qform` methods can be used to update the codes after an image
     has been created - see those methods, and the :ref:`manual
     <default-sform-qform-codes>` for more details.  '''
-
 
     def update_header(self):
         ''' Harmonize header with image data and affine

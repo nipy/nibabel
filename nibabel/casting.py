@@ -8,7 +8,7 @@ from numbers import Integral
 from platform import processor, machine
 
 import numpy as np
-from .testing import setup_test  # flake8: noqa F401
+from . import setup_test  # noqa
 
 
 class CastingError(Exception):
@@ -268,7 +268,7 @@ def type_info(np_type):
         # 80) but in calculations nexp in fact appears to be 11 as for float64
         ret.update(dict(width=width))
         return ret
-    if vals == (105, 11, 16): # correctly detected double double
+    if vals == (105, 11, 16):  # correctly detected double double
         ret.update(dict(nmant=nmant, nexp=nexp, width=width))
         return ret
     # Oh dear, we don't recognize the type information.  Try some known types

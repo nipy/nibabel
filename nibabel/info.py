@@ -17,10 +17,10 @@ from distutils.version import StrictVersion
 # We usually use `dev` as `_version_extra` to label this as a development
 # (pre-release) version.
 _version_major = 2
-_version_minor = 3
-_version_micro = 1
-# _version_extra = 'dev'
-_version_extra = ''
+_version_minor = 4
+_version_micro = 0
+_version_extra = 'dev'
+# _version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 __version__ = "%s.%s.%s%s" % (_version_major,
@@ -32,7 +32,7 @@ __version__ = "%s.%s.%s%s" % (_version_major,
 def _parse_version(version_str):
     """ Parse version string `version_str` in our format
     """
-    match = re.match('([0-9.]*\d)(.*)', version_str)
+    match = re.match(r'([0-9.]*\d)(.*)', version_str)
     if match is None:
         raise ValueError('Invalid version ' + version_str)
     return match.groups()
@@ -209,4 +209,6 @@ MICRO = _version_micro
 ISRELEASE = _version_extra == ''
 VERSION = __version__
 PROVIDES = ["nibabel", 'nisext']
-REQUIRES = ["numpy (>=%s)" % NUMPY_MIN_VERSION]
+REQUIRES = ["numpy>=%s" % NUMPY_MIN_VERSION,
+            "six>=%s" % SIX_MIN_VERSION,
+            'bz2file; python_version < "3.0"']
