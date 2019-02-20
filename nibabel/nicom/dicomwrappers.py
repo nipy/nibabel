@@ -21,7 +21,7 @@ from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
-from ..pydicom_compat import tag_for_keyword
+from ..pydicom_compat import tag_for_keyword, Sequence
 
 
 class WrapperError(Exception):
@@ -461,10 +461,19 @@ class MultiframeWrapper(Wrapper):
         Wrapper.__init__(self, dcm_data)
         self.dcm_data = dcm_data
         self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
+        self._nframes = self.get('NumberOfFrames')
         try:
             self.frames[0]
         except TypeError:
             raise WrapperError("PerFrameFunctionalGroupsSequence is empty.")
+        # DWI image where derived isotropic, ADC or trace volume was appended to the series
+        if self.frames[0].get([0x18, 0x9117]):
+            self.frames = Sequence(
+                frame for frame in self.frames if
+                frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
+                != 'ISOTROPIC'
+            )
+            self._nframes = len(self.frames)
         try:
             self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         except TypeError:
@@ -503,8 +512,7 @@ class MultiframeWrapper(Wrapper):
         if None in (rows, cols):
             raise WrapperError("Rows and/or Columns are empty.")
         # Check number of frames
-        n_frames = self.get('NumberOfFrames')
-        assert len(self.frames) == n_frames
+        assert len(self.frames) == self._nframes
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
              for frame in self.frames])
@@ -528,12 +536,15 @@ class MultiframeWrapper(Wrapper):
         # Store frame indices
         self._frame_indices = frame_indices
         if n_dim < 4:  # 3D volume
-            return rows, cols, n_frames
+            return rows, cols, self._nframes
         # More than 3 dimensions
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
+        if len(ns_unique) == 3:
+            # derived volume is included
+            ns_unique.pop(1)
         shape = (rows, cols) + tuple(ns_unique)
         n_vols = np.prod(shape[3:])
-        if n_frames != n_vols * shape[2]:
+        if self._nframes != n_vols * shape[2]:
             raise WrapperError("Calculated shape does not match number of "
                                "frames.")
         return tuple(shape)

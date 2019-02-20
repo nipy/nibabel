@@ -35,6 +35,7 @@ DATA_FILE_B0 = pjoin(IO_DATA_PATH, 'siemens_dwi_0.dcm.gz')
 DATA_FILE_SLC_NORM = pjoin(IO_DATA_PATH, 'csa_slice_norm.dcm')
 DATA_FILE_DEC_RSCL = pjoin(IO_DATA_PATH, 'decimal_rescale.dcm')
 DATA_FILE_4D = pjoin(IO_DATA_PATH, '4d_multiframe_test.dcm')
+DATA_FILE_4D_DERIVED = pjoin(IO_DATA_PATH, '4d_multiframe_with_derived.dcm')
 
 # This affine from our converted image was shown to match our image spatially
 # with an image from SPM DICOM conversion. We checked the matching with SPM
@@ -615,6 +616,13 @@ class TestMultiFrameWrapper(TestCase):
         dat_str = data.tostring()
         assert_equal(sha1(dat_str).hexdigest(),
                      '149323269b0af92baa7508e19ca315240f77fa8c')
+
+    @dicom_test
+    def test_data_derived_shape(self):
+        # Test 4D diffusion data with an additional trace volume included
+        # Excludes the trace volume and generates the correct shape
+        dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
+        assert_equal(dw.image_shape, (96, 96, 60, 33))
 
     @dicom_test
     def test_data_fake(self):

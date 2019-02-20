@@ -40,6 +40,7 @@ else:  # dicom module available
     read_file = pydicom.read_file
 
 if have_dicom:
+    from pydicom.sequence import Sequence
     try:
         # Versions >= 1.0
         tag_for_keyword = pydicom.datadict.tag_for_keyword
