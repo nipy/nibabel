@@ -27,6 +27,7 @@ try:
     import dicom as pydicom
     # Values not imported by default
     import dicom.values
+    from dicom.sequence import Sequence
 except ImportError:
     try:
         import pydicom
@@ -34,13 +35,13 @@ except ImportError:
         have_dicom = False
     else:  # pydicom module available
         from pydicom.dicomio import read_file
+        from pydicom.sequence import Sequence
         # Values not imported by default
         import pydicom.values
 else:  # dicom module available
     read_file = pydicom.read_file
 
 if have_dicom:
-    from pydicom.sequence import Sequence
     try:
         # Versions >= 1.0
         tag_for_keyword = pydicom.datadict.tag_for_keyword
