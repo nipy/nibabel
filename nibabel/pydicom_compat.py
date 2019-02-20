@@ -21,7 +21,7 @@ without error, and always defines:
 import numpy as np
 
 have_dicom = True
-pydicom = read_file = tag_for_keyword = None
+pydicom = read_file = tag_for_keyword = Sequence = None
 
 try:
     import dicom as pydicom

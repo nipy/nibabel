@@ -467,7 +467,7 @@ class MultiframeWrapper(Wrapper):
         except TypeError:
             raise WrapperError("PerFrameFunctionalGroupsSequence is empty.")
         # DWI image where derived isotropic, ADC or trace volume was appended to the series
-        if self.frames[0].get([0x18, 0x9117]):
+        if self.frames[0] and self.frames[0].get([0x18, 0x9117], None):
             self.frames = Sequence(
                 frame for frame in self.frames if
                 frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
