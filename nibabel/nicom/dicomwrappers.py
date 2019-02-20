@@ -466,14 +466,18 @@ class MultiframeWrapper(Wrapper):
             self.frames[0]
         except TypeError:
             raise WrapperError("PerFrameFunctionalGroupsSequence is empty.")
-        # DWI image where derived isotropic, ADC or trace volume was appended to the series
-        if self.frames[0] and self.frames[0].get([0x18, 0x9117], None):
-            self.frames = Sequence(
-                frame for frame in self.frames if
-                frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
-                != 'ISOTROPIC'
-            )
-            self._nframes = len(self.frames)
+        try:
+            # DWI image where derived isotropic, ADC or trace volume
+            # was appended to the series
+            if self.frames[0].get([0x18, 0x9117], None):
+                self.frames = Sequence(
+                    frame for frame in self.frames if
+                    frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
+                    != 'ISOTROPIC'
+                    )
+                self._nframes = len(self.frames)
+        except AttributeError:
+            pass
         try:
             self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         except TypeError:
