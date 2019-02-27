@@ -461,23 +461,10 @@ class MultiframeWrapper(Wrapper):
         Wrapper.__init__(self, dcm_data)
         self.dcm_data = dcm_data
         self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
-        self._nframes = self.get('NumberOfFrames')
         try:
             self.frames[0]
         except TypeError:
             raise WrapperError("PerFrameFunctionalGroupsSequence is empty.")
-        try:
-            # DWI image where derived isotropic, ADC or trace volume
-            # was appended to the series
-            if self.frames[0].get([0x18, 0x9117], None):
-                self.frames = Sequence(
-                    frame for frame in self.frames if
-                    frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
-                    != 'ISOTROPIC'
-                    )
-                self._nframes = len(self.frames)
-        except AttributeError:
-            pass
         try:
             self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         except TypeError:
@@ -515,8 +502,23 @@ class MultiframeWrapper(Wrapper):
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError("Rows and/or Columns are empty.")
+
         # Check number of frames
-        assert len(self.frames) == self._nframes
+        first_frame = self.frames[0]
+        n_frames = self.get('NumberOfFrames')
+        # some Philips may have derived images appended
+        has_derived = False
+        if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
+            # DWI image may include derived isotropic, ADC or trace volume
+            # check and remove
+            self.frames = Sequence(
+                frame for frame in self.frames if
+                frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
+                != 'ISOTROPIC'
+                )
+            n_frames = len(self.frames)
+            has_derived = True
+        assert len(self.frames) == n_frames
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
              for frame in self.frames])
@@ -540,15 +542,15 @@ class MultiframeWrapper(Wrapper):
         # Store frame indices
         self._frame_indices = frame_indices
         if n_dim < 4:  # 3D volume
-            return rows, cols, self._nframes
+            return rows, cols, n_frames
         # More than 3 dimensions
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
-        if len(ns_unique) == 3:
+        if len(ns_unique) == 3 and has_derived:
             # derived volume is included
             ns_unique.pop(1)
         shape = (rows, cols) + tuple(ns_unique)
         n_vols = np.prod(shape[3:])
-        if self._nframes != n_vols * shape[2]:
+        if n_frames == self.get('NumberOfFrames') and n_frames != n_vols * shape[2]:
             raise WrapperError("Calculated shape does not match number of "
                                "frames.")
         return tuple(shape)
