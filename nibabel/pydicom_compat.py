@@ -25,9 +25,6 @@ pydicom = read_file = tag_for_keyword = Sequence = None
 
 try:
     import dicom as pydicom
-    # Values not imported by default
-    import dicom.values
-    from dicom.sequence import Sequence
 except ImportError:
     try:
         import pydicom
@@ -39,6 +36,9 @@ except ImportError:
         # Values not imported by default
         import pydicom.values
 else:  # dicom module available
+    # Values not imported by default
+    import dicom.values
+    from dicom.sequence import Sequence
     read_file = pydicom.read_file
 
 if have_dicom:
