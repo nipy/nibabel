@@ -1,8 +1,11 @@
 .. -*- rest -*-
 .. vim:syntax=rst
 
-.. image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
-    :target: https://coveralls.io/r/nipy/nibabel?branch=master
+.. image:: https://codecov.io/gh/nipy/nibabel/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/nipy/nibabel
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
+   :target: https://doi.org/10.5281/zenodo.591597
 
 .. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
