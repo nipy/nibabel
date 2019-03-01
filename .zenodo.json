@@ -1,0 +1,255 @@
+{
+  "creators": [
+    {
+      "name": "Brett, Matthew"
+    },
+    {
+      "affiliation": "Stanford University",
+      "name": "Markiewicz, Christopher J.",
+      "orcid": "0000-0002-6533-164X"
+    },
+    {
+      "affiliation": "Otto-von-Guericke-University Magdeburg, Germany",
+      "name": "Hanke, Michael",
+      "orcid": "0000-0001-6398-6370"
+    },
+    {
+      "name": "C\u00f4t\u00e9, Marc-Alexandre"
+    },
+    {
+      "affiliation": "UC San Diego",
+      "name": "Cipollini, Ben",
+      "orcid": "0000-0002-7782-0790"
+    },
+    {
+      "name": "McCarthy, Paul"
+    },
+    {
+      "name": "Cheng, Christopher P."
+    },
+    {
+      "affiliation": "Dartmouth College: Hanover, NH, United States",
+      "name": "Halchenko, Yaroslav O.",
+      "orcid": "0000-0003-3456-2493"
+    },
+    {
+      "affiliation": "MIT, HMS",
+      "name": "Ghosh, Satrajit",
+      "orcid": "0000-0002-5312-6729"
+    },
+    {
+      "affiliation": "Athena EPI, Inria Sophia-Antipolis",
+      "name": "Wassermann, Demian",
+      "orcid": "0000-0001-5194-6056"
+    },
+    {
+      "name": "Larson, Eric"
+    },
+    {
+      "affiliation": "Institute of Neuroinformatics, ETH/University of Zurich",
+      "name": "Gerhard, Stephan",
+      "orcid": "0000-0003-4454-6171"
+    },
+    {
+      "name": "Lee, Gregory R."
+    },
+    {
+      "affiliation": "Harvard University - Psychology",
+      "name": "Kastman, Erik",
+      "orcid": "0000-0001-7221-9042"
+    },
+    {
+      "affiliation": "The University of Washington eScience Institute",
+      "name": "Rokem, Ariel",
+      "orcid": "0000-0003-0679-1985"
+    },
+    {
+      "name": "Madison, Cindee"
+    },
+    {
+      "name": "Morency, F\u00e9lix C."
+    },
+    {
+      "name": "Moloney, Brendan"
+    },
+    {
+      "name": "Cottaar, Michiel"
+    },
+    {
+      "name": "Burns, Christopher"
+    },
+    {
+      "name": "Millman, Jarrod"
+    },
+    {
+      "affiliation": "CNRS LTCI, Telecom ParisTech, Universit\u00e9 Paris-Saclay",
+      "name": "Gramfort, Alexandre",
+      "orcid": "0000-0001-9791-4404"
+    },
+    {
+      "name": "Lepp\u00e4kangas, Jaakko"
+    },
+    {
+      "affiliation": "Montreal Neurological Institute and Hospital",
+      "name": "Markello, Ross",
+      "orcid": "0000-0003-1057-1336"
+    },
+    {
+      "name": "van den Bosch, Jasper J.F."
+    },
+    {
+      "name": "Vincent, Robert D."
+    },
+    {
+      "name": "Subramaniam, Krish"
+    },
+    {
+      "name": "Raamana, Pradeep Reddy"
+    },
+    {
+      "affiliation": "SRI International",
+      "name": "Nichols, B. Nolan",
+      "orcid": "0000-0003-1099-3328"
+    },
+    {
+      "name": "Baker, Eric M."
+    },
+    {
+      "affiliation": "MIT",
+      "name": "Goncalves, Mathias",
+      "orcid": "0000-0002-7252-7771"
+    },
+    {
+      "name": "Hayashi, Soichi"
+    },
+    {
+      "name": "Pinsard, Basile"
+    },
+    {
+      "name": "Haselgrove, Christian"
+    },
+    {
+      "name": "Hymers, Mark"
+    },
+    {
+      "name": "Koudoro, Serge"
+    },
+    {
+      "name": "Oosterhof, Nikolaas N."
+    },
+    {
+      "name": "Amirbekian, Bago"
+    },
+    {
+      "name": "Nimmo-Smith, Ian"
+    },
+    {
+      "name": "Nguyen, Ly"
+    },
+    {
+      "name": "St-Jean, Samuel"
+    },
+    {
+      "name": "Garyfallidis, Eleftherios"
+    },
+    {
+      "affiliation": "INRIA",
+      "name": "Varoquaux, Gael",
+      "orcid": "0000-0003-1076-5122"
+    },
+    {
+      "affiliation": "MIT",
+      "name": "Kaczmarzyk, Jakub",
+      "orcid": "0000-0002-5544-7577"
+    },
+    {
+      "name": "Hahn, Kevin S."
+    },
+    {
+      "name": "Hinds, Oliver P."
+    },
+    {
+      "name": "Fauber, Bennet"
+    },
+    {
+      "affiliation": "McGill University",
+      "name": "Poline, Jean-Baptiste",
+      "orcid": "0000-0002-9794-749X"
+    },
+    {
+      "name": "Stutters, Jon"
+    },
+    {
+      "affiliation": "University of California, San Francisco",
+      "name": "Jordan, Kesshi",
+      "orcid": "0000-0001-6313-0580"
+    },
+    {
+      "name": "Moreno, Miguel Estevan"
+    },
+    {
+      "name": "Haenel, Valentin"
+    },
+    {
+      "name": "Schwartz, Yannick"
+    },
+    {
+      "affiliation": "INRIA",
+      "name": "Thirion, Bertrand",
+      "orcid": "0000-0001-5018-7895"
+    },
+    {
+      "affiliation": "CEA",
+      "name": "Papadopoulos Orfanos, Dimitri",
+      "orcid": "0000-0002-1242-8990"
+    },
+    {
+      "affiliation": "University College London",
+      "name": "P\u00e9rez-Garc\u00eda, Fernando",
+      "orcid": "0000-0001-9090-3024"
+    },
+    {
+      "name": "Solovey, Igor"
+    },
+    {
+      "name": "Gonzalez, Ivan"
+    },
+    {
+      "name": "Legarreta, Jon Haitz"
+    },
+    {
+      "name": "Lecher, Justin"
+    },
+    {
+      "affiliation": "TIB \u2013 Leibniz Information Centre for Science and Technology and University Library, Hannover, Germany",
+      "name": "Leinweber, Katrin",
+      "orcid": "0000-0001-5135-5758"
+    },
+    {
+      "name": "Fischer, Peter"
+    },
+    {
+      "name": "Gervais, Philippe"
+    },
+    {
+      "name": "Gadde, Syam"
+    },
+    {
+      "name": "Ballinger, Thomas"
+    },
+    {
+      "name": "Roos, Thomas"
+    },
+    {
+      "name": "Venky Reddy"
+    },
+    {
+      "name": "freec84"
+    }
+  ],
+  "keywords": [
+    "neuroimaging"
+  ],
+  "license": "mit-license",
+  "upload_type": "software"
+}
