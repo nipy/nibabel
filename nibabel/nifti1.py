@@ -125,7 +125,9 @@ xform_codes = Recoder((  # code, label, niistring
     (1, 'scanner', "NIFTI_XFORM_SCANNER_ANAT"),
     (2, 'aligned', "NIFTI_XFORM_ALIGNED_ANAT"),
     (3, 'talairach', "NIFTI_XFORM_TALAIRACH"),
-    (4, 'mni', "NIFTI_XFORM_MNI_152")), fields=('code', 'label', 'niistring'))
+    (4, 'mni', "NIFTI_XFORM_MNI_152"),
+    (5, 'template', "NIFTI_XFORM_TEMPLATE_OTHER"),
+    ), fields=('code', 'label', 'niistring'))
 
 # unit codes
 unit_codes = Recoder((  # code, label
