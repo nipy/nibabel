@@ -73,8 +73,7 @@ def test_passing_kwds():
 
 @dicom_test
 def test_slices_to_series():
-    test_data_path = abspath(pjoin(IO_DATA_PATH, "..", "..", "..", "tests", "data"))
-    dicom_files = (pjoin(test_data_path, "%d.dcm" % i) for i in range(2))
+    dicom_files = (pjoin(IO_DATA_PATH, "%d.dcm" % i) for i in range(2))
     wrappers = [didr.wrapper_from_file(f) for f in dicom_files]
     series = didr.slices_to_series(wrappers)
     assert_equal(len(series), 1)
