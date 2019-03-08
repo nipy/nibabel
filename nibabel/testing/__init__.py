@@ -23,15 +23,7 @@ try:
     skipif = dec.skipif
     slow = dec.slow
 except ImportError:
-    from numpy.testing.decorators import skipif
-
-    # Recent (1.2) versions of numpy have this decorator
-    try:
-        from numpy.testing.decorators import slow
-    except ImportError:
-        def slow(t):
-            t.slow = True
-            return t
+    from numpy.testing.decorators import (skipif, slow)
 
 # Allow failed import of nose if not now running tests
 try:
