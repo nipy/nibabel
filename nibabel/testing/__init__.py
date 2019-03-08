@@ -21,8 +21,18 @@ from numpy.testing import assert_array_equal
 try:
     from numpy.testing import dec
     skipif = dec.skipif
+    slow = dec.slow
 except ImportError:
     from numpy.testing.decorators import skipif
+
+    # Recent (1.2) versions of numpy have this decorator
+    try:
+        from numpy.testing.decorators import slow
+    except ImportError:
+        def slow(t):
+            t.slow = True
+            return t
+
 # Allow failed import of nose if not now running tests
 try:
     from nose.tools import (assert_equal, assert_not_equal,
