@@ -1,7 +1,9 @@
 {
   "creators": [
     {
-      "name": "Brett, Matthew"
+      "affiliation": "School of Psychology, University of Birmingham, Birmingham, UK",
+      "name": "Brett, Matthew",
+      "orcid": "0000-0001-5500-2546"
     },
     {
       "affiliation": "Stanford University",
@@ -14,7 +16,9 @@
       "orcid": "0000-0001-6398-6370"
     },
     {
-      "name": "C\u00f4t\u00e9, Marc-Alexandre"
+      "affiliation": "Microsoft Research, Montr\u00e9al, Qu\u00e9bec, Canada",
+      "name": "C\u00f4t\u00e9, Marc-Alexandre",
+      "orcid": "0000-0002-5147-7859"
     },
     {
       "affiliation": "UC San Diego",
@@ -25,7 +29,9 @@
       "name": "McCarthy, Paul"
     },
     {
-      "name": "Cheng, Christopher P."
+      "affiliation": "Center for Open Neuroscience, Dartmouth College",
+      "name": "Cheng, Christopher P.",
+      "orcid": "0000-0001-9112-9464"
     },
     {
       "affiliation": "Dartmouth College: Hanover, NH, United States",
@@ -38,14 +44,14 @@
       "orcid": "0000-0002-5312-6729"
     },
     {
-      "affiliation": "Athena EPI, Inria Sophia-Antipolis",
-      "name": "Wassermann, Demian",
-      "orcid": "0000-0001-5194-6056"
-    },
-    {
       "affiliation": "University of Washington: Seattle, WA, United States",
       "name": "Larson, Eric",
       "orcid": "0000-0003-4782-5360"
+    },
+    {
+      "affiliation": "Athena EPI, Inria Sophia-Antipolis",
+      "name": "Wassermann, Demian",
+      "orcid": "0000-0001-5194-6056"
     },
     {
       "affiliation": "Institute of Neuroinformatics, ETH/University of Zurich",
@@ -53,7 +59,9 @@
       "orcid": "0000-0003-4454-6171"
     },
     {
-      "name": "Lee, Gregory R."
+      "affiliation": "Deptartment of Radiology, University of Cincinnati College of Medicine, Cincinnati, OH",
+      "name": "Lee, Gregory R.",
+      "orcid": "0000-0001-8895-2740"
     },
     {
       "affiliation": "Harvard University - Psychology",
@@ -75,13 +83,17 @@
       "name": "Moloney, Brendan"
     },
     {
-      "name": "Cottaar, Michiel"
+      "affiliation": "Wellcome Centre for Integrative Neuroimaging, University of Oxford, UK",
+      "name": "Cottaar, Michiel",
+      "orcid": "0000-0003-4679-7724"
     },
     {
       "name": "Burns, Christopher"
     },
     {
-      "name": "Millman, Jarrod"
+      "affiliation": "Berkeley Institute for Data Science, UC Berkeley",
+      "name": "Millman, Jarrod",
+      "orcid": "0000-0002-5263-5070"
     },
     {
       "affiliation": "CNRS LTCI, Telecom ParisTech, Universit\u00e9 Paris-Saclay",
@@ -106,7 +118,9 @@
       "name": "Subramaniam, Krish"
     },
     {
-      "name": "Raamana, Pradeep Reddy"
+      "affiliation": "Rotman Research Institute, Baycrest Health Sciences, Toronto, ON, Canada",
+      "name": "Raamana, Pradeep Reddy",
+      "orcid": "0000-0003-4662-0558"
     },
     {
       "affiliation": "SRI International",
@@ -179,7 +193,14 @@
       "orcid": "0000-0002-9794-749X"
     },
     {
-      "name": "Stutters, Jon"
+      "affiliation": "Universit\u00e9 de Sherbrooke",
+      "name": "Legarreta, Jon Haitz",
+      "orcid": "0000-0002-9661-1396"
+    },
+    {
+      "affiliation": "University College London, London, UK",
+      "name": "Stutters, Jon",
+      "orcid": "0000-0002-9151-0844"
     },
     {
       "affiliation": "University of California, San Francisco",
@@ -214,12 +235,9 @@
       "name": "Solovey, Igor"
     },
     {
-      "name": "Gonzalez, Ivan"
-    },
-    {
-      "affiliation": "Universit\u00e9 de Sherbrooke",
-      "name": "Legarreta, Jon Haitz",
-      "orcid": "0000-0002-9661-1396"
+      "affiliation": "Athinoula A. Martinos Center for Biomedical Imaging, Charlestown, MA",
+      "name": "Gonzalez, Ivan",
+      "orcid": "0000-0002-6451-6909"
     },
     {
       "name": "Lecher, Justin"
@@ -230,7 +248,9 @@
       "orcid": "0000-0001-5135-5758"
     },
     {
-      "name": "Fischer, Peter"
+      "affiliation": "Friedrich-Alexander-Universit\u00e4t Erlangen-N\u00fcrnberg, Erlangen, Germany",
+      "name": "Fischer, Peter",
+      "orcid": "0000-0003-3242-9867"
     },
     {
       "name": "Gervais, Philippe"
