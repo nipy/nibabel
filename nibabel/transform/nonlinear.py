@@ -15,6 +15,8 @@ from gridbspline.maths import cubic
 from .base import ImageSpace, TransformBase
 from ..funcs import four_to_three
 
+vbspl = np.vectorize(cubic)
+
 
 class DeformationFieldTransform(TransformBase):
     '''Represents a dense field of displacements (one vector per voxel)'''
@@ -152,11 +154,13 @@ class DeformationFieldTransform(TransformBase):
 
 
 class BSplineFieldTransform(TransformBase):
-    __slots__ = ['_coeffs', '_knots', '_refknots']
+    __slots__ = ['_coeffs', '_knots', '_refknots', '_order', '_moving']
+    __s = (slice(None), )
 
     def __init__(self, reference, coefficients, order=3):
         '''Create a smooth deformation field using B-Spline basis'''
         super(BSplineFieldTransform, self).__init__()
+        self._order = order
         self.reference = reference
 
         if coefficients.shape[-1] != self.ndim:
@@ -164,23 +168,29 @@ class BSplineFieldTransform(TransformBase):
                 'Number of components of the coefficients does '
                 'not match the number of dimensions')
 
-        self._coeffs = coefficients.get_data().reshape(-1, self.ndim)
+        self._coeffs = coefficients.get_data()
         self._knots = ImageSpace(four_to_three(coefficients)[0])
+        self._cache_moving()
 
-        # Calculate the voxel coordinates of the reference image
-        # in the B-spline basis space.
-        self._refknots = np.tensordot(
-            np.linalg.inv(self.knots.affine),
-            np.vstack((self.reference.ndcoords, np.ones((1, self.reference.nvox)))),
-            axes=1)[..., :3].reshape(self.reference.shape + (self._knots.ndim, ))
+    def _cache_moving(self):
+        self._moving = np.zeros((self.reference.shape) + (3, ),
+                                dtype='float32')
+        ijk = np.moveaxis(self.reference.ndindex, 0, -1).reshape(-1, self.ndim)
+        xyz = np.moveaxis(self.reference.ndcoords, 0, -1).reshape(-1, self.ndim)
+        print(np.shape(xyz))
 
-    def map_voxel(self, index, moving=None):
-        '''Find the corresponding coordinates for a voxel in reference space'''
+        for i in range(np.shape(xyz)[0]):
+            print(i, xyz[i, :])
+            self._moving[tuple(ijk[i]) + self.__s] = self._interp_transform(xyz[i, :])
+
+    def _interp_transform(self, coords):
+        # Calculate position in the grid of control points
+        knots_ijk = self._knots.inverse.dot(np.hstack((coords, 1)))[:3]
         neighbors = []
         offset = 0.0 if self._order & 1 else 0.5
         # Calculate neighbors along each dimension
         for dim in range(self.ndim):
-            first = int(np.floor(index[dim] + offset) - self._order // 2)
+            first = int(np.floor(knots_ijk[dim] + offset) - self._order // 2)
             neighbors.append(list(range(first, first + self._order + 1)))
 
         # Get indexes of the neighborings clique
@@ -189,45 +199,49 @@ class BSplineFieldTransform(TransformBase):
             -1, self.ndim)
 
         # Calculate the tensor B-spline weights of each neighbor
-        vbspl = np.vectorize(cubic)
-        weights = np.prod(vbspl(ndindex - index), axis=-1)
+        weights = np.prod(vbspl(ndindex - knots_ijk), axis=-1)
         ndindex = [tuple(v) for v in ndindex]
 
         # Retrieve coefficients and deal with boundary conditions
         zero = np.zeros(self.ndim)
-        shape = np.array(self.shape)
+        shape = np.array(self._knots.shape)
         coeffs = []
         for ijk in ndindex:
             offbounds = (zero > ijk) | (shape <= ijk)
             coeffs.append(
                 self._coeffs[ijk] if not np.any(offbounds)
                 else [0.0] * self.ndim)
-        return weights.dot(np.array(coeffs, dtype=float))
 
+        coords[:3] += weights.dot(np.array(coeffs, dtype=float))
+        return self.reference.inverse.dot(np.hstack((coords, 1)))[:3]
 
-    # def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
-    #              output_dtype=None):
-    #     '''
+    def map_voxel(self, index, moving=None):
+        '''Find the corresponding coordinates for a voxel in reference space'''
+        return tuple(self._moving[index + self.__s])
 
-    #     Examples
-    #     --------
+    def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
+                 output_dtype=None):
+        '''
 
-    #     >>> import numpy as np
-    #     >>> import nibabel as nb
-    #     >>> ref = nb.load('t1_weighted.nii.gz')
-    #     >>> coeffs = np.zeros((6, 6, 6, 3))
-    #     >>> coeffs[2, 2, 2, ...] = [10.0, -20.0, 0]
-    #     >>> aff = ref.affine
-    #     >>> aff[:3, :3] = aff.dot(np.eye(3) * np.array(ref.header.get_zooms()[:3] / 6.0)
-    #     >>> coeffsimg = nb.Nifti1Image(coeffs, ref.affine, ref.header)
-    #     >>> xfm = nb.transform.BSplineFieldTransform(ref, coeffsimg)
-    #     >>> new = xfm.resample(ref)
-    #     >>> new.to_filename('deffield.nii.gz')
+        Examples
+        --------
 
-    #     '''
+        >>> import numpy as np
+        >>> import nibabel as nb
+        >>> ref = nb.load('t1_weighted.nii.gz')
+        >>> coeffs = np.zeros((6, 6, 6, 3))
+        >>> coeffs[2, 2, 2, ...] = [10.0, -20.0, 0]
+        >>> aff = ref.affine
+        >>> aff[:3, :3] = aff.dot(np.eye(3) * np.array(ref.header.get_zooms()[:3] / 6.0)
+        >>> coeffsimg = nb.Nifti1Image(coeffs, ref.affine, ref.header)
+        >>> xfm = nb.transform.BSplineFieldTransform(ref, coeffsimg)
+        >>> new = xfm.resample(ref)
+        >>> new.to_filename('deffield.nii.gz')
 
-    #     return super(BSplineFieldTransform, self).resample(
-    #         moving, order=order, mode=mode, cval=cval, prefilter=prefilter)
+        '''
+        self._cache_moving()
+        return super(BSplineFieldTransform, self).resample(
+            moving, order=order, mode=mode, cval=cval, prefilter=prefilter)
 
 
 def _pprint(inlist):
