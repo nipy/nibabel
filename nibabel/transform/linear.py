@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Linear transforms '''
 from __future__ import division, print_function, absolute_import
+import h5py
 import numpy as np
 from scipy import ndimage as ndi
 
@@ -43,7 +44,7 @@ class Affine(TransformBase):
 
         '''
         self._matrix = np.array(matrix)
-        assert self._matrix.ndim == 2, 'affine matrix should be 2D'
+        assert self._matrix.ndim in (2, 3), 'affine matrix should be 2D or 3D'
         assert self._matrix.shape[0] == self._matrix.shape[1], 'affine matrix is not square'
         super(Affine, self).__init__()
 
@@ -148,4 +149,18 @@ class Affine(TransformBase):
     def to_filename(self, filename):
         '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
         '''
-        raise NotImplementedError
+        with h5py.File(filename, 'w') as out_file:
+            root = out_file.create_group('/0')
+            root.create_dataset('/0/Transform', data=self._matrix[:3, :])
+            root.create_dataset('/0/Inverse', data=np.linalg.inv(self._matrix)[:3, :])
+            root['Type'] = 'affine'
+
+            if self._reference:
+                refgrp = root.create_group('/0/Reference')
+                refgrp.create_dataset('/0/Reference/vox2ras', data=self.reference.affine)
+                refgrp.create_dataset('/0/Reference/ras2vox', data=self.reference.inverse)
+                refgrp.create_dataset('/0/Reference/shape', data=self.reference.shape)
+                refgrp.create_dataset('/0/Reference/ndim', data=self.reference.ndim)
+                refgrp['Type'] = 'image'
+
+        return filename

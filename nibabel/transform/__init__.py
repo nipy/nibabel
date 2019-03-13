@@ -16,5 +16,8 @@
    transform
 """
 from __future__ import absolute_import
-from .base import ImageSpace, Affine
+from .linear import Affine
 from .nonlinear import DeformationFieldTransform
+
+
+__all__ = ['Affine', 'DeformationFieldTransform']

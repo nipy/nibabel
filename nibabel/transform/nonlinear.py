@@ -10,12 +10,12 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
 from scipy import ndimage as ndi
-from gridbspline.maths import cubic
+# from gridbspline.maths import cubic
 
 from .base import ImageSpace, TransformBase
 from ..funcs import four_to_three
 
-vbspl = np.vectorize(cubic)
+# vbspl = np.vectorize(cubic)
 
 
 class DeformationFieldTransform(TransformBase):
@@ -199,7 +199,7 @@ class BSplineFieldTransform(TransformBase):
             -1, self.ndim)
 
         # Calculate the tensor B-spline weights of each neighbor
-        weights = np.prod(vbspl(ndindex - knots_ijk), axis=-1)
+        # weights = np.prod(vbspl(ndindex - knots_ijk), axis=-1)
         ndindex = [tuple(v) for v in ndindex]
 
         # Retrieve coefficients and deal with boundary conditions
