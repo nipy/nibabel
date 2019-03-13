@@ -17,13 +17,9 @@ from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
 from numpy.testing import assert_array_equal
-
-try:
-    from numpy.testing import dec
-    skipif = dec.skipif
-    slow = dec.slow
-except ImportError:
-    from numpy.testing.decorators import (skipif, slow)
+from numpy.testing import dec
+skipif = dec.skipif
+slow = dec.slow
 
 # Allow failed import of nose if not now running tests
 try:
