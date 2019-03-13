@@ -12,7 +12,7 @@ from .. import dwiparams as dwp
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing.decorators import skipif
+from ...testing import skipif
 
 from nibabel.pydicom_compat import dicom_test, pydicom
 from .test_dicomwrappers import (IO_DATA_PATH, DATA)
