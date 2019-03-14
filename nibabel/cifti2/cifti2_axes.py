@@ -1,8 +1,8 @@
 import numpy as np
 from nibabel.cifti2 import cifti2
-from six import string_types
+from six import string_types, add_metaclass
 from operator import xor
-from abc import ABC, abstractmethod
+import abc
 
 
 def from_mapping(mim):
@@ -53,7 +53,8 @@ def to_header(axes):
     return cifti2.Cifti2Header(matrix)
 
 
-class Axis(ABC):
+@add_metaclass(abc.ABCMeta)
+class Axis(object):
     """
     Abstract class for any object describing the rows or columns of a CIFTI vector/matrix
 
@@ -64,11 +65,11 @@ class Axis(ABC):
     def size(self, ):
         return len(self)
 
-    @abstractmethod
+    @abc.abstractmethod
     def __len__(self):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def __eq__(self, other):
         """
         Compares whether two Axes are equal
@@ -84,7 +85,7 @@ class Axis(ABC):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def __add__(self, other):
         """
         Concatenates two Axes of the same type
@@ -100,7 +101,7 @@ class Axis(ABC):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def __getitem__(self, item):
         """
         Extracts definition of single row/column or new Axis describing a subset of the rows/columns
