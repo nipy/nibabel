@@ -231,14 +231,14 @@ def test_series():
     assert sr[2].unit == 'SECOND'
     assert sr[3].unit == 'HERTZ'
 
-    assert (sr[0].arr == np.arange(4) * 10 + 3).all()
-    assert (sr[1].arr == np.arange(3) * 10 + 8).all()
-    assert (sr[2].arr == np.arange(4) * 2 + 3).all()
-    assert ((sr[0] + sr[1]).arr == np.arange(7) * 10 + 3).all()
-    assert ((sr[1] + sr[0]).arr == np.arange(7) * 10 + 8).all()
-    assert ((sr[1] + sr[0] + sr[0]).arr == np.arange(11) * 10 + 8).all()
+    assert (sr[0].time == np.arange(4) * 10 + 3).all()
+    assert (sr[1].time == np.arange(3) * 10 + 8).all()
+    assert (sr[2].time == np.arange(4) * 2 + 3).all()
+    assert ((sr[0] + sr[1]).time == np.arange(7) * 10 + 3).all()
+    assert ((sr[1] + sr[0]).time == np.arange(7) * 10 + 8).all()
+    assert ((sr[1] + sr[0] + sr[0]).time == np.arange(11) * 10 + 8).all()
     assert sr[1][2] == 28
-    assert sr[1][-2] == sr[1].arr[-2]
+    assert sr[1][-2] == sr[1].time[-2]
     assert_raises(ValueError, lambda: sr[0] + sr[2])
     assert_raises(ValueError, lambda: sr[2] + sr[1])
     assert_raises(ValueError, lambda: sr[0] + sr[3])
@@ -246,16 +246,16 @@ def test_series():
     assert_raises(ValueError, lambda: sr[3] + sr[2])
 
     # test slicing
-    assert (sr[0][1:3].arr == sr[0].arr[1:3]).all()
-    assert (sr[0][1:].arr == sr[0].arr[1:]).all()
-    assert (sr[0][:-2].arr == sr[0].arr[:-2]).all()
-    assert (sr[0][1:-1].arr == sr[0].arr[1:-1]).all()
-    assert (sr[0][1:-1:2].arr == sr[0].arr[1:-1:2]).all()
-    assert (sr[0][::2].arr == sr[0].arr[::2]).all()
-    assert (sr[0][:10:2].arr == sr[0].arr[::2]).all()
-    assert (sr[0][10::-1].arr == sr[0].arr[::-1]).all()
-    assert (sr[0][3:1:-1].arr == sr[0].arr[3:1:-1]).all()
-    assert (sr[0][1:3:-1].arr == sr[0].arr[1:3:-1]).all()
+    assert (sr[0][1:3].time == sr[0].time[1:3]).all()
+    assert (sr[0][1:].time == sr[0].time[1:]).all()
+    assert (sr[0][:-2].time == sr[0].time[:-2]).all()
+    assert (sr[0][1:-1].time == sr[0].time[1:-1]).all()
+    assert (sr[0][1:-1:2].time == sr[0].time[1:-1:2]).all()
+    assert (sr[0][::2].time == sr[0].time[::2]).all()
+    assert (sr[0][:10:2].time == sr[0].time[::2]).all()
+    assert (sr[0][10::-1].time == sr[0].time[::-1]).all()
+    assert (sr[0][3:1:-1].time == sr[0].time[3:1:-1]).all()
+    assert (sr[0][1:3:-1].time == sr[0].time[1:3:-1]).all()
 
 
 def test_writing():
@@ -276,10 +276,6 @@ def test_common_interface():
         assert axis1 == axis2
         concatenated = axis1 + axis2
         assert axis1 != concatenated
-        print(type(axis1))
-        if isinstance(axis1, axes.Series):
-            print(concatenated.start, axis1.start)
-            print(concatenated[:axis1.size].start, axis1.start)
         assert axis1 == concatenated[:axis1.size]
         if isinstance(axis1, axes.Series):
             assert axis2 != concatenated[axis1.size:]

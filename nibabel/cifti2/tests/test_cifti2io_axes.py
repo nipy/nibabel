@@ -139,7 +139,7 @@ def test_read_conte69_dtseries():
     assert axes[0].start == 0
     assert axes[0].step == 1
     assert axes[0].size == arr.shape[0]
-    assert (axes[0].arr == [0, 1]).all()
+    assert (axes[0].time == [0, 1]).all()
     check_Conte69(axes[1])
     check_rewrite(arr, axes)
 
@@ -169,7 +169,7 @@ def test_read_conte69_ptseries():
     assert axes[0].start == 0
     assert axes[0].step == 1
     assert axes[0].size == arr.shape[0]
-    assert (axes[0].arr == [0, 1]).all()
+    assert (axes[0].time == [0, 1]).all()
 
     assert len(axes[1]) == 54
     voxels, vertices = axes[1]['ER_FRB08']
