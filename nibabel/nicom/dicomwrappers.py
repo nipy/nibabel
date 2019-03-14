@@ -14,6 +14,7 @@ than in a property, or property-like thing.
 from __future__ import division
 
 import operator
+import warnings
 
 import numpy as np
 
@@ -511,13 +512,20 @@ class MultiframeWrapper(Wrapper):
         if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
             # DWI image may include derived isotropic, ADC or trace volume
             # check and remove
-            self.frames = Sequence(
-                frame for frame in self.frames if
-                frame.get([0x18, 0x9117])[0].get([0x18, 0x9075]).value
-                != 'ISOTROPIC'
-                )
-            n_frames = len(self.frames)
-            has_derived = True
+            try:
+                self.frames = Sequence(
+                    frame for frame in self.frames if
+                    frame.MRDiffusionSequence[0].DiffusionDirectionality
+                    != 'ISOTROPIC'
+                    )
+                n_frames = len(self.frames)
+                has_derived = True
+            except IndexError:
+                # Sequence tag is found but missing items!
+                raise WrapperError("Diffusion file missing information")
+            except AttributeError:
+                # DiffusionDirectionality tag is not required
+                pass
         assert len(self.frames) == n_frames
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
@@ -536,6 +544,9 @@ class MultiframeWrapper(Wrapper):
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)
             frame_indices = np.delete(frame_indices, stackid_dim_idx, axis=1)
+        if has_derived:
+            # derived volume is included
+            frame_indices = np.delete(frame_indices, 1, axis=1)
         # account for the 2 additional dimensions (row and column) not included
         # in the indices
         n_dim = frame_indices.shape[1] + 2
@@ -545,9 +556,6 @@ class MultiframeWrapper(Wrapper):
             return rows, cols, n_frames
         # More than 3 dimensions
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
-        if len(ns_unique) == 3 and has_derived:
-            # derived volume is included
-            ns_unique.pop(1)
         shape = (rows, cols) + tuple(ns_unique)
         n_vols = np.prod(shape[3:])
         if n_frames != n_vols * shape[2]:
