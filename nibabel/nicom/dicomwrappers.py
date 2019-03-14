@@ -511,21 +511,23 @@ class MultiframeWrapper(Wrapper):
         has_derived = False
         if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
             # DWI image may include derived isotropic, ADC or trace volume
-            # check and remove
             try:
                 self.frames = Sequence(
                     frame for frame in self.frames if
                     frame.MRDiffusionSequence[0].DiffusionDirectionality
                     != 'ISOTROPIC'
                     )
-                n_frames = len(self.frames)
-                has_derived = True
+                if n_frames != len(self.frames):
+                    warnings.warn("Derived images found and removed")
+                    n_frames = len(self.frames)
+                    has_derived = True
             except IndexError:
                 # Sequence tag is found but missing items!
                 raise WrapperError("Diffusion file missing information")
             except AttributeError:
                 # DiffusionDirectionality tag is not required
                 pass
+
         assert len(self.frames) == n_frames
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
