@@ -9,6 +9,8 @@
 ''' Common interface for transforms '''
 from __future__ import division, print_function, absolute_import
 import numpy as np
+import h5py
+
 from scipy import ndimage as ndi
 
 
@@ -172,7 +174,17 @@ class TransformBase(object):
         input reference voxel'''
         raise NotImplementedError
 
+    def _to_hdf5(self, x5_root):
+        '''Serialize this object into the x5 file format'''
+        raise NotImplementedError
+
     def to_filename(self, filename):
         '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
         '''
-        raise NotImplementedError
+        with h5py.File(filename, 'w') as out_file:
+            out_file['Format'] = 'X5'
+            out_file['Version'] = np.uint16(1)
+            root = out_file.create_group('/0')
+            self._to_hdf5(root)
+
+        return filename

@@ -8,19 +8,17 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Linear transforms '''
 from __future__ import division, print_function, absolute_import
-import h5py
 import numpy as np
 from scipy import ndimage as ndi
 
-from .base import ImageSpace, TransformBase
-from ..funcs import four_to_three
+from .base import TransformBase
 
 
 class Affine(TransformBase):
     '''Represents linear transforms on image data'''
     __slots__ = ['_matrix']
 
-    def __init__(self, matrix):
+    def __init__(self, matrix=None):
         '''Initialize a transform
 
         Parameters
@@ -43,6 +41,9 @@ class Affine(TransformBase):
                [0, 0, 0, 1]])
 
         '''
+        if matrix is None:
+            matrix = np.eye(4)
+
         self._matrix = np.array(matrix)
         assert self._matrix.ndim in (2, 3), 'affine matrix should be 2D or 3D'
         assert self._matrix.shape[0] == self._matrix.shape[1], 'affine matrix is not square'
@@ -146,21 +147,15 @@ class Affine(TransformBase):
         matrix = reference.affine.dot(self._matrix.dot(np.linalg.inv(moving.affine)))
         return tuple(matrix.dot(index)[:-1])
 
-    def to_filename(self, filename):
-        '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
-        '''
-        with h5py.File(filename, 'w') as out_file:
-            root = out_file.create_group('/0')
-            root.create_dataset('/0/Transform', data=self._matrix[:3, :])
-            root.create_dataset('/0/Inverse', data=np.linalg.inv(self._matrix)[:3, :])
-            root['Type'] = 'affine'
+    def _to_hdf5(self, x5_root):
+        print('to hdf5')
+        x5_root.create_dataset('Transform', data=self._matrix[:3, :])
+        x5_root.create_dataset('Inverse', data=np.linalg.inv(self._matrix)[:3, :])
+        x5_root['Type'] = 'affine'
 
-            if self._reference:
-                refgrp = root.create_group('/0/Reference')
-                refgrp.create_dataset('/0/Reference/vox2ras', data=self.reference.affine)
-                refgrp.create_dataset('/0/Reference/ras2vox', data=self.reference.inverse)
-                refgrp.create_dataset('/0/Reference/shape', data=self.reference.shape)
-                refgrp.create_dataset('/0/Reference/ndim', data=self.reference.ndim)
-                refgrp['Type'] = 'image'
-
-        return filename
+        if self._reference:
+            refgrp = x5_root.create_group('Reference')
+            refgrp.create_dataset('affine', data=self.reference.affine)
+            refgrp.create_dataset('shape', data=self.reference.shape)
+            refgrp.create_dataset('ndim', data=self.reference.ndim)
+            refgrp['Type'] = 'image'
