@@ -6,6 +6,7 @@ import nibabel.cifti2.cifti2_axes as axes
 
 rand_affine = np.random.randn(4, 4)
 vol_shape = (5, 10, 3)
+use_label = {0: ('something', (0.2, 0.4, 0.1, 0.5)), 1: ('even better', (0.3, 0.8, 0.43, 0.9))}
 
 
 def get_brain_models():
@@ -52,7 +53,7 @@ def get_scalar():
     -------
     Scalar axis
     """
-    return axes.Scalar.from_names(['one', 'two', 'three'])
+    return axes.Scalar(['one', 'two', 'three'])
 
 
 def get_label():
@@ -63,8 +64,8 @@ def get_label():
     -------
     Label axis
     """
-    return axes.Scalar.from_names(['one', 'two', 'three']).to_label({0: ('something', (0.2, 0.4, 0.1, 0.5)),
-                                                                     1: ('even better', (0.3, 0.8, 0.43, 0.9))})
+    return axes.Scalar(['one', 'two', 'three']).to_label(use_label)
+
 
 def get_series():
     """
@@ -190,12 +191,34 @@ def test_scalar():
     assert len(sc) == 3
     assert isinstance(sc, axes.Scalar)
     assert (sc.name == ['one', 'two', 'three']).all()
+    assert (sc.meta == [{}] * 3).all()
     assert sc[1] == ('two', {})
     sc2 = sc + sc
     assert len(sc2) == 6
     assert (sc2.name == ['one', 'two', 'three', 'one', 'two', 'three']).all()
+    assert (sc2.meta == [{}] * 6).all()
     assert sc2[:3] == sc
     assert sc2[3:] == sc
+
+
+def test_label():
+    """
+    Test the introspection and creation of CIFTI2 Scalar axes
+    """
+    lab = get_label()
+    assert len(lab) == 3
+    assert isinstance(lab, axes.Label)
+    assert (lab.name == ['one', 'two', 'three']).all()
+    assert (lab.meta == [{}] * 3).all()
+    assert (lab.label == [use_label] * 3).all()
+    assert lab[1] == ('two', use_label, {})
+    lab2 = lab + lab
+    assert len(lab2) == 6
+    assert (lab2.name == ['one', 'two', 'three', 'one', 'two', 'three']).all()
+    assert (lab2.meta == [{}] * 6).all()
+    assert (lab2.label == [use_label] * 6).all()
+    assert lab2[:3] == lab
+    assert lab2[3:] == lab
 
 
 def test_series():
@@ -243,3 +266,25 @@ def test_writing():
         for ax2 in get_axes():
             arr = np.random.randn(len(ax1), len(ax2))
             check_rewrite(arr, (ax1, ax2))
+
+
+def test_common_interface():
+    """
+    Tests the common interface for all custom created CIFTI2 axes
+    """
+    for axis1, axis2 in zip(get_axes(), get_axes()):
+        assert axis1 == axis2
+        concatenated = axis1 + axis2
+        assert axis1 != concatenated
+        print(type(axis1))
+        if isinstance(axis1, axes.Series):
+            print(concatenated.start, axis1.start)
+            print(concatenated[:axis1.size].start, axis1.start)
+        assert axis1 == concatenated[:axis1.size]
+        if isinstance(axis1, axes.Series):
+            assert axis2 != concatenated[axis1.size:]
+        else:
+            assert axis2 == concatenated[axis1.size:]
+
+        assert len(axis1) == axis1.size
+

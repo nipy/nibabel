@@ -42,17 +42,21 @@ def check_hcp_grayordinates(brain_model):
             assert bm.volume_shape == (91, 109, 91)
         assert name == cifti2_axes.BrainModel.to_cifti_brain_structure_name(label)
         assert len(bm) == nel
-        assert (bm.arr == brain_model.arr[idx_start:idx_start + nel]).all()
+        assert (bm.name == brain_model.name[idx_start:idx_start + nel]).all()
+        assert (bm.voxel == brain_model.voxel[idx_start:idx_start + nel]).all()
+        assert (bm.vertex == brain_model.vertex[idx_start:idx_start + nel]).all()
         idx_start += nel
     assert idx_start == len(brain_model)
 
-    assert (brain_model.arr[:5]['vertex'] == np.arange(5)).all()
+    assert (brain_model.vertex[:5] == np.arange(5)).all()
     assert structures[0][2].vertex[-1] == 32491
     assert structures[1][2].vertex[0] == 0
     assert structures[1][2].vertex[-1] == 32491
-    assert (structures[-1][2].arr[-1] == brain_model.arr[-1]).all()
-    assert (brain_model.arr[-1]['voxel'] == [38, 55, 46]).all()
-    assert (brain_model.arr[70000]['voxel'] == [56, 22, 19]).all()
+    assert structures[-1][2].name[-1] == brain_model.name[-1]
+    assert (structures[-1][2].voxel[-1] == brain_model.voxel[-1]).all()
+    assert structures[-1][2].vertex[-1] == brain_model.vertex[-1]
+    assert (brain_model.voxel[-1] == [38, 55, 46]).all()
+    assert (brain_model.voxel[70000] == [56, 22, 19]).all()
 
 
 def check_Conte69(brain_model):
@@ -67,7 +71,7 @@ def check_Conte69(brain_model):
     assert structures[1][2].is_surface.all()
     assert (brain_model.voxel == -1).all()
 
-    assert (brain_model.arr[:5]['vertex'] == np.arange(5)).all()
+    assert (brain_model.vertex[:5] == np.arange(5)).all()
     assert structures[0][2].vertex[-1] == 32491
     assert structures[1][2].vertex[0] == 0
     assert structures[1][2].vertex[-1] == 32491
