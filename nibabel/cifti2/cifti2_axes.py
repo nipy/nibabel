@@ -123,12 +123,14 @@ class BrainModel(Axis):
         (N, ) array with the vertex indices
     """
 
-    def __init__(self, name, voxel=None, vertex=None, affine=None, volume_shape=None, nvertices=None):
+    def __init__(self, name, voxel=None, vertex=None, affine=None,
+                 volume_shape=None, nvertices=None):
         """
-        Creates a new BrainModel axis defining the vertices and voxels represented by each row/column
+        Creates a BrainModel axis defining the vertices and voxels represented by each row/column
 
         A more convenient way to create BrainModel axes is provided by the factory methods:
-        - `from_mask`: creates a surface or volumetric BrainModel axis from respectively 1D and 3D masks
+        - `from_mask`: creates surface or volumetric BrainModel axis from respectively
+          1D or 3D masks
         - `from_surface`: creates a volumetric BrainModel axis
 
         The resulting BrainModel axes can be concatenated by adding them together.
@@ -138,13 +140,16 @@ class BrainModel(Axis):
         name : str or np.ndarray
             brain structure name or (N, ) array with the brain structure names
         voxel : np.ndarray
-            (N, 3) array with the voxel indices (can be omitted for CIFTI files only covering the surface)
+            (N, 3) array with the voxel indices (can be omitted for CIFTI files only
+            covering the surface)
         vertex :  np.ndarray
             (N, ) array with the vertex indices (can be omitted for volumetric CIFTI files)
         affine : np.ndarray
-            (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only covering the surface)
+            (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
+            covering the surface)
         volume_shape : Tuple[int, int, int]
-            shape of the volume in which the voxels were defined (not needed for CIFTI files only covering the surface)
+            shape of the volume in which the voxels were defined (not needed for CIFTI files only
+            covering the surface)
         nvertices : dict[String -> int]
             maps names of surface elements to integers (not needed for volumetric CIFTI files)
         """
@@ -157,7 +162,10 @@ class BrainModel(Axis):
             nelements = len(voxel)
             self.voxel = np.asarray(voxel, dtype=int)
 
-        self.vertex = -np.ones(nelements, dtype=int) if vertex is None else np.asarray(vertex, dtype=int)
+        if vertex is None:
+            self.vertex = -np.ones(nelements, dtype=int)
+        else:
+            self.vertex = np.asarray(vertex, dtype=int)
 
         if isinstance(name, string_types):
             name = [self.to_cifti_brain_structure_name(name)] * self.vertex.size
@@ -280,7 +288,10 @@ class BrainModel(Axis):
                 else:
                     if shape != mim.volume.volume_dimensions:
                         raise ValueError("All volume masks should be defined in the same volume")
-                    if (affine != mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix).any():
+                    if (
+                            affine !=
+                            mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix
+                    ).any():
                         raise ValueError("All volume masks should have the same affine")
         return cls(name, voxel, vertex, affine, shape, nvertices)
 
@@ -309,11 +320,13 @@ class BrainModel(Axis):
                 vertices = None
                 nvertex = None
                 if mim.volume is None:
-                    affine = cifti2.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, matrix=self.affine)
+                    affine = cifti2.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, self.affine)
                     mim.volume = cifti2.Cifti2Volume(self.volume_shape, affine)
-            cifti_bm = cifti2.Cifti2BrainModel(to_slice.start, len(bm),
-                                               'CIFTI_MODEL_TYPE_SURFACE' if is_surface else 'CIFTI_MODEL_TYPE_VOXELS',
-                                               name, nvertex, voxels, vertices)
+            cifti_bm = cifti2.Cifti2BrainModel(
+                    to_slice.start, len(bm),
+                    'CIFTI_MODEL_TYPE_SURFACE' if is_surface else 'CIFTI_MODEL_TYPE_VOXELS',
+                    name, nvertex, voxels, vertices
+            )
             mim.append(cifti_bm)
         return mim
 
@@ -401,8 +414,8 @@ class BrainModel(Axis):
         else:
             proposed_name = 'CIFTI_STRUCTURE_%s_%s' % (structure.upper(), orientation.upper())
         if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES:
-            raise ValueError('%s was interpreted as %s, which is not a valid CIFTI brain structure' %
-                             (name, proposed_name))
+            raise ValueError('%s was interpreted as %s, which is not a valid CIFTI brain structure'
+                             % (name, proposed_name))
         return proposed_name
 
     @property
@@ -460,7 +473,7 @@ class BrainModel(Axis):
     def name(self, values):
         self._name = np.array([self.to_cifti_brain_structure_name(name) for name in values])
 
-    def __len__(self ):
+    def __len__(self):
         return self.name.size
 
     def __eq__(self, other):
@@ -496,14 +509,17 @@ class BrainModel(Axis):
                 affine, shape = other.affine, other.volume_shape
             else:
                 affine, shape = self.affine, self.volume_shape
-                if other.affine is not None and ((other.affine != affine).all() or
-                                                  other.volume_shape != shape):
-                    raise ValueError("Trying to concatenate two BrainModels defined in a different brain volume")
+                if other.affine is not None and (
+                        (other.affine != affine).all() or
+                        other.volume_shape != shape
+                ):
+                    raise ValueError("Trying to concatenate two BrainModels defined " +
+                                     "in a different brain volume")
             nvertices = dict(self.nvertices)
             for name, value in other.nvertices.items():
                 if name in nvertices.keys() and nvertices[name] != value:
-                    raise ValueError("Trying to concatenate two BrainModels with inconsistent number of vertices for %s"
-                                     % name)
+                    raise ValueError("Trying to concatenate two BrainModels with inconsistent " +
+                                     "number of vertices for %s" % name)
                 nvertices[name] = value
             return type(self)(
                     np.append(self.name, other.name),
@@ -570,7 +586,7 @@ class Parcels(Axis):
 
     def __init__(self, name, voxels, vertices, affine=None, volume_shape=None, nvertices=None):
         """
-        Creates a new BrainModel axis defining the vertices and voxels represented by each row/column
+        Creates a Parcels axis defining the vertices and voxels represented by each row/column
 
         Parameters
         ----------
@@ -581,9 +597,11 @@ class Parcels(Axis):
         vertices :  np.ndarray
             (N, ) object array each containing a sequence of vertices
         affine : np.ndarray
-            (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only covering the surface)
+            (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
+            covering the surface)
         volume_shape : Tuple[int, int, int]
-            shape of the volume in which the voxels were defined (not needed for CIFTI files only covering the surface)
+            shape of the volume in which the voxels were defined (not needed for CIFTI files only
+            covering the surface)
         nvertices : dict[String -> int]
             maps names of surface elements to integers (not needed for volumetric CIFTI files)
         """
@@ -632,15 +650,16 @@ class Parcels(Axis):
                     volume_shape = bm.volume_shape
                 else:
                     if (affine != bm.affine).any() or (volume_shape != bm.volume_shape):
-                        raise ValueError(
-                                "Can not combine brain models defined in different volumes into a single Parcel axis")
+                        raise ValueError("Can not combine brain models defined in different " +
+                                         "volumes into a single Parcel axis")
             all_voxels.append(voxels)
 
             vertices = {}
             for name, _, bm_part in bm.iter_structures():
                 if name in bm.nvertices.keys():
                     if name in nvertices.keys() and nvertices[name] != bm.nvertices[name]:
-                        raise ValueError("Got multiple conflicting number of vertices for surface structure %s" % name)
+                        raise ValueError("Got multiple conflicting number of " +
+                                         "vertices for surface structure %s" % name)
                     nvertices[name] = bm.nvertices[name]
                     vertices[name] = bm_part.vertex
             all_vertices.append(vertices)
@@ -665,7 +684,9 @@ class Parcels(Axis):
         all_vertices = np.zeros(nparcels, dtype='object')
 
         volume_shape = None if mim.volume is None else mim.volume.volume_dimensions
-        affine = None if mim.volume is None else mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix
+        affine = None
+        if mim.volume is not None:
+            affine = mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix
         nvertices = {}
         for surface in mim.surfaces:
             nvertices[surface.brain_structure] = surface.surface_number_of_vertices
@@ -679,7 +700,8 @@ class Parcels(Axis):
                 name = vertex.brain_structure
                 vertices[vertex.brain_structure] = np.array(vertex)
                 if name not in nvertices.keys():
-                    raise ValueError("Number of vertices for surface structure %s not defined" % name)
+                    raise ValueError("Number of vertices for surface structure %s not defined" %
+                                     name)
             all_voxels[idx_parcel] = voxels
             all_vertices[idx_parcel] = vertices
             all_names.append(parcel.name)
@@ -749,9 +771,11 @@ class Parcels(Axis):
                 any((vox1 != vox2).any() for vox1, vox2 in zip(self.voxels, other.voxels))):
             return False
         if self.affine is not None:
-            if (  other.affine is None or
+            if (
+                    other.affine is None or
                     abs(self.affine - other.affine).max() > 1e-8 or
-                    self.volume_shape != other.volume_shape):
+                    self.volume_shape != other.volume_shape
+            ):
                 return False
         elif other.affine is not None:
             return False
@@ -783,11 +807,13 @@ class Parcels(Axis):
                 affine, shape = self.affine, self.volume_shape
                 if other.affine is not None and ((other.affine != affine).all() or
                                                  other.volume_shape != shape):
-                    raise ValueError("Trying to concatenate two Parcels defined in a different brain volume")
+                    raise ValueError("Trying to concatenate two Parcels defined " +
+                                     "in a different brain volume")
             nvertices = dict(self.nvertices)
             for name, value in other.nvertices.items():
                 if name in nvertices.keys() and nvertices[name] != value:
-                    raise ValueError("Trying to concatenate two Parcels with inconsistent number of vertices for %s"
+                    raise ValueError("Trying to concatenate two Parcels with inconsistent " +
+                                     "number of vertices for %s"
                                      % name)
                 nvertices[name] = value
             return type(self)(
@@ -838,7 +864,8 @@ class Parcels(Axis):
 
 class Scalar(Axis):
     """
-    Along this axis of the CIFTI vector/matrix each row/column has been given a unique name and optionally metadata
+    Along this axis of the CIFTI vector/matrix each row/column has been given
+    a unique name and optionally metadata
     """
 
     def __init__(self, name, meta=None):
@@ -850,7 +877,8 @@ class Scalar(Axis):
         name : np.ndarray
             (N, ) string array with the parcel names
         meta :  np.ndarray
-            (N, ) object array with a dictionary of metadata for each row/column. Defaults to empty dictionary
+            (N, ) object array with a dictionary of metadata for each row/column.
+            Defaults to empty dictionary
         """
         self.name = np.asarray(name, dtype='U')
         if meta is None:
@@ -977,8 +1005,9 @@ class Label(Axis):
         name : np.ndarray
             (N, ) string array with the parcel names
         label : np.ndarray
-            single dictionary or (N, ) object array with dictionaries mapping from integers to (name, (R, G, B, A)),
-            where name is a string and R, G, B, and A are floats between 0 and 1 giving the colour and alpha
+            single dictionary or (N, ) object array with dictionaries mapping
+            from integers to (name, (R, G, B, A)), where name is a string and R, G, B, and A are
+            floats between 0 and 1 giving the colour and alpha (i.e., transparency)
         meta :  np.ndarray
             (N, ) object array with a dictionary of metadata for each row/column
         """
@@ -1056,7 +1085,11 @@ class Label(Axis):
         """
         if not isinstance(other, Label) or self.size != other.size:
             return False
-        return (self.name == other.name).all() and (self.meta == other.meta).all() and (self.label == other.label).all()
+        return (
+                (self.name == other.name).all() and
+                (self.meta == other.meta).all() and
+                (self.label == other.label).all()
+        )
 
     def __add__(self, other):
         """
@@ -1191,7 +1224,8 @@ class Series(Axis):
     @unit.setter
     def unit(self, value):
         if value.upper() not in ("SECOND", "HERTZ", "METER", "RADIAN"):
-            raise ValueError("Series unit should be one of ('second', 'hertz', 'meter', or 'radian'")
+            raise ValueError("Series unit should be one of " +
+                             "('second', 'hertz', 'meter', or 'radian'")
         self._unit = value.upper()
 
     def extend(self, other_axis):
@@ -1270,10 +1304,12 @@ class Series(Axis):
             nelements = (idx_end - idx_start) // step
             if nelements < 0:
                 nelements = 0
-            return Series(idx_start * self.step + self.start, self.step * step, nelements, self.unit)
+            return Series(idx_start * self.step + self.start, self.step * step,
+                          nelements, self.unit)
         elif isinstance(item, int):
             return self.get_element(item)
-        raise IndexError('Series can only be indexed with integers or slices without breaking the regular structure')
+        raise IndexError('Series can only be indexed with integers or slices ' +
+                         'without breaking the regular structure')
 
     def get_element(self, index):
         """
@@ -1291,5 +1327,6 @@ class Series(Axis):
         if index < 0:
             index = self.size + index
         if index >= self.size:
-            raise IndexError("index %i is out of range for get_series with size %i" % (index, self.size))
+            raise IndexError("index %i is out of range for get_series with size %i" %
+                             (index, self.size))
         return self.start + self.step * index
