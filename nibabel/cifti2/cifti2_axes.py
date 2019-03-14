@@ -899,24 +899,6 @@ class Scalar(Axis):
             mim.append(named_map)
         return mim
 
-    def to_label(self, labels):
-        """
-        Creates a new Label axis based on the Scalar axis
-
-        Parameters
-        ----------
-        labels : list[dict] or dict
-            mapping from integers to (name, (R, G, B, A)), where `name` is a string and R, G, B, and A are floats
-            between 0 and 1 giving the colour and alpha (transparency)
-
-        Returns
-        -------
-        Label
-        """
-        if isinstance(labels, dict):
-            labels = [dict(labels) for _ in range(self.size)]
-        return Label(self.name, labels, self.meta)
-
     def __len__(self, ):
         return self.name.size
 
@@ -986,7 +968,7 @@ class Label(Axis):
     get_label table, and optionally metadata
     """
 
-    def __init__(self, name, label, meta):
+    def __init__(self, name, label, meta=None):
         """
         Creates a new Label axis from (name, meta-data) pairs
 
@@ -994,14 +976,19 @@ class Label(Axis):
         ----------
         name : np.ndarray
             (N, ) string array with the parcel names
+        label : np.ndarray
+            single dictionary or (N, ) object array with dictionaries mapping from integers to (name, (R, G, B, A)),
+            where name is a string and R, G, B, and A are floats between 0 and 1 giving the colour and alpha
         meta :  np.ndarray
             (N, ) object array with a dictionary of metadata for each row/column
-        label : np.ndarray
-            (N, ) object array with dictionaries mapping integer values to get_label names and RGBA colors
         """
         self.name = np.asarray(name, dtype='U')
-        self.meta = np.asarray(meta, dtype='object')
+        if isinstance(label, dict):
+            label = [label] * self.name.size
         self.label = np.asarray(label, dtype='object')
+        if meta is None:
+            meta = [{} for _ in range(self.name.size)]
+        self.meta = np.asarray(meta, dtype='object')
 
         for check_name in ('name', 'meta', 'label'):
             if getattr(self, check_name).shape != (self.size, ):
@@ -1023,7 +1010,8 @@ class Label(Axis):
         """
         tables = [{key: (value.label, value.rgba) for key, value in nm.label_table.items()}
                   for nm in mim.named_maps]
-        return Scalar.from_mapping(mim).to_label(tables)
+        rest = Scalar.from_mapping(mim)
+        return Label(rest.name, tables, rest.meta)
 
     def to_mapping(self, dim):
         """

@@ -64,7 +64,7 @@ def get_label():
     -------
     Label axis
     """
-    return axes.Scalar(['one', 'two', 'three']).to_label(use_label)
+    return axes.Label(['one', 'two', 'three'], use_label)
 
 
 def get_series():
