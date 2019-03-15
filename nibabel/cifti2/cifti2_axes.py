@@ -113,33 +113,25 @@ class BrainModel(Axis):
     Each row/column in the CIFTI vector/matrix represents a single vertex or voxel
 
     This Axis describes which vertex/voxel is represented by each row/column.
-
-    Attributes
-    ----------
-    name : np.ndarray
-        (N, ) array with the brain structure objects
-    voxel : np.ndarray
-        (N, 3) array with the voxel indices
-    vertex :  np.ndarray
-        (N, ) array with the vertex indices
     """
 
     def __init__(self, name, voxel=None, vertex=None, affine=None,
                  volume_shape=None, nvertices=None):
         """
-        Creates a BrainModel axis defining the vertices and voxels represented by each row/column
+        New BrainModel axes can be constructed by passing on the greyordinate brain-structure
+        names and voxel/vertex indices to the constructor or by one of the
+        factory methods:
 
-        A more convenient way to create BrainModel axes is provided by the factory methods:
-        - `from_mask`: creates surface or volumetric BrainModel axis from respectively
+        - :py:meth:`~BrainModel.from_mask`: creates surface or volumetric BrainModel axis from respectively
           1D or 3D masks
-        - `from_surface`: creates a volumetric BrainModel axis
+        - :py:meth:`~BrainModel.from_surface`: creates a volumetric BrainModel axis
 
         The resulting BrainModel axes can be concatenated by adding them together.
 
         Parameters
         ----------
         name : str or np.ndarray
-            brain structure name or (N, ) array with the brain structure names
+            brain structure name or (N, ) string array with the brain structure names
         voxel : np.ndarray
             (N, 3) array with the voxel indices (can be omitted for CIFTI files only
             covering the surface)
@@ -337,7 +329,7 @@ class BrainModel(Axis):
 
         Yields
         ------
-        tuple with
+        tuple with 3 elements:
         - CIFTI brain structure name
         - slice to select the data associated with the brain structure from the tensor
         - brain model covering that specific brain structure
@@ -357,14 +349,16 @@ class BrainModel(Axis):
         Attempts to convert the name of an anatomical region in a format recognized by CIFTI
 
         This function returns:
-        * the name if it is in the CIFTI format already
-        * if the name is a tuple the first element is assumed to be the structure name while
-        the second is assumed to be the hemisphere (left, right or both). The latter will default
-        to both.
-        * names like left_cortex, cortex_left, LeftCortex, or CortexLeft will be converted to
-        CIFTI_STRUCTURE_CORTEX_LEFT
 
-        see ``nibabel.cifti2.tests.test_name`` for examples of which conversions are possible
+        - the name if it is in the CIFTI format already
+        - if the name is a tuple the first element is assumed to be the structure name while
+          the second is assumed to be the hemisphere (left, right or both). The latter will default
+          to both.
+        - names like left_cortex, cortex_left, LeftCortex, or CortexLeft will be converted to
+          CIFTI_STRUCTURE_CORTEX_LEFT
+
+        see :py:func:`nibabel.cifti2.tests.test_name` for examples of
+        which conversions are possible
 
         Parameters
         ----------
@@ -587,8 +581,6 @@ class Parcels(Axis):
 
     def __init__(self, name, voxels, vertices, affine=None, volume_shape=None, nvertices=None):
         """
-        Creates a Parcels axis defining the vertices and voxels represented by each row/column
-
         Parameters
         ----------
         name : np.ndarray
@@ -618,7 +610,7 @@ class Parcels(Axis):
 
         for check_name in ('name', 'voxels', 'vertices'):
             if getattr(self, check_name).shape != (self.size, ):
-                raise ValueError("Input {} has incorrect shape ({}) for Label axis".format(
+                raise ValueError("Input {} has incorrect shape ({}) for Parcel axis".format(
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
@@ -710,7 +702,7 @@ class Parcels(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the get_parcels to a MatrixIndicesMap for storage in CIFTI format
+        Converts the Parsel to a MatrixIndicesMap for storage in CIFTI format
 
         Parameters
         ----------
@@ -739,6 +731,9 @@ class Parcels(Axis):
 
     @property
     def affine(self, ):
+        """
+        Affine of the volumetric image in which the greyordinate voxels were defined
+        """
         return self._affine
 
     @affine.setter
@@ -753,6 +748,9 @@ class Parcels(Axis):
 
     @property
     def volume_shape(self, ):
+        """
+        Shape of the volumetric image in which the greyordinate voxels were defined
+        """
         return self._volume_shape
 
     @volume_shape.setter
@@ -828,6 +826,7 @@ class Parcels(Axis):
     def __getitem__(self, item):
         """
         Extracts subset of the axes based on the type of ``item``:
+
         - `int`: 3-element tuple of (parcel name, parcel voxels, parcel vertices)
         - `string`: 2-element tuple of (parcel voxels, parcel vertices
         - other object that can index 1D arrays: new Parcel axis
@@ -837,7 +836,7 @@ class Parcels(Axis):
             if len(idx) == 0:
                 raise IndexError("Parcel %s not found" % item)
             if len(idx) > 1:
-                raise IndexError("Multiple get_parcels with name %s found" % item)
+                raise IndexError("Multiple parcels with name %s found" % item)
             return self.voxels[idx[0]], self.vertices[idx[0]]
         if isinstance(item, integer_types):
             return self.get_element(item)
@@ -871,8 +870,6 @@ class Scalar(Axis):
 
     def __init__(self, name, meta=None):
         """
-        Creates a new Scalar axis from (name, meta-data) pairs
-
         Parameters
         ----------
         name : np.ndarray
@@ -894,7 +891,7 @@ class Scalar(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new get_scalar axis based on a CIFTI dataset
+        Creates a new Scalar axis based on a CIFTI dataset
 
         Parameters
         ----------
@@ -985,7 +982,7 @@ class Scalar(Axis):
         Returns
         -------
         tuple with 2 elements
-        - unicode name of the get_scalar
+        - unicode name of the row/column
         - dictionary with the element metadata
         """
         return self.name[index], self.meta[index]
@@ -993,14 +990,14 @@ class Scalar(Axis):
 
 class Label(Axis):
     """
+    Defines CIFTI axis for label array.
+
     Along this axis of the CIFTI vector/matrix each row/column has been given a unique name,
-    get_label table, and optionally metadata
+    label table, and optionally metadata
     """
 
     def __init__(self, name, label, meta=None):
         """
-        Creates a new Label axis from (name, meta-data) pairs
-
         Parameters
         ----------
         name : np.ndarray
@@ -1028,7 +1025,7 @@ class Label(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new get_scalar axis based on a CIFTI dataset
+        Creates a new Label axis based on a CIFTI dataset
 
         Parameters
         ----------
@@ -1036,7 +1033,7 @@ class Label(Axis):
 
         Returns
         -------
-        Scalar
+        Label
         """
         tables = [{key: (value.label, value.rgba) for key, value in nm.label_table.items()}
                   for nm in mim.named_maps]
@@ -1099,7 +1096,7 @@ class Label(Axis):
         Parameters
         ----------
         other : Label
-            scalar axis to be appended to the current one
+            label axis to be appended to the current one
 
         Returns
         -------
@@ -1130,8 +1127,8 @@ class Label(Axis):
         Returns
         -------
         tuple with 2 elements
-        - unicode name of the get_scalar
-        - dictionary with the get_label table
+        - unicode name of the row/column
+        - dictionary with the label table
         - dictionary with the element metadata
         """
         return self.name[index], self.label[index], self.meta[index]
@@ -1197,7 +1194,7 @@ class Series(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the get_series to a MatrixIndicesMap for storage in CIFTI format
+        Converts the Series to a MatrixIndicesMap for storage in CIFTI format
 
         Parameters
         ----------
@@ -1231,7 +1228,7 @@ class Series(Axis):
 
     def extend(self, other_axis):
         """
-        Concatenates two get_series
+        Concatenates two Series
 
         Note: this will ignore the start point of the other axis
 
@@ -1272,18 +1269,18 @@ class Series(Axis):
         Parameters
         ----------
         other : Series
-            Time get_series to append at the end of the current time get_series.
-            Note that the starting time of the other time get_series is ignored.
+            Time Series to append at the end of the current time Series.
+            Note that the starting time of the other time Series is ignored.
 
         Returns
         -------
         Series
-            New time get_series with the concatenation of the two
+            New time Series with the concatenation of the two
 
         Raises
         ------
         ValueError
-            raised if the repetition time of the two time get_series is different
+            raised if the repetition time of the two time Series is different
         """
         if isinstance(other, Series):
             return self.extend(other)
@@ -1328,6 +1325,6 @@ class Series(Axis):
         if index < 0:
             index = self.size + index
         if index >= self.size:
-            raise IndexError("index %i is out of range for get_series with size %i" %
+            raise IndexError("index %i is out of range for Series with size %i" %
                              (index, self.size))
         return self.start + self.step * index
