@@ -107,7 +107,7 @@ class Affine(TransformBase):
             reference = moving
 
         # Compose an index to index affine matrix
-        matrix = reference.affine.dot(self._matrix.dot(np.linalg.inv(moving.affine)))
+        matrix = np.linalg.inv(moving.affine).dot(self._matrix.dot(reference.affine))
         mdata = moving.get_data()
         moved = ndi.affine_transform(
             mdata, matrix=matrix[:mdata.ndim, :mdata.ndim],
@@ -159,3 +159,22 @@ class Affine(TransformBase):
             refgrp.create_dataset('shape', data=self.reference.shape)
             refgrp.create_dataset('ndim', data=self.reference.ndim)
             refgrp['Type'] = 'image'
+
+
+def load(filename):
+    ''' Load a linear transform '''
+    from ..affines import from_matvec
+    with open(filename) as itkfile:
+        itkxfm = itkfile.read().splitlines()
+
+    parameters = np.fromstring(itkxfm[3].split(':')[-1].strip(), dtype=float, sep=' ')
+    offset = np.fromstring(itkxfm[4].split(':')[-1].strip(), dtype=float, sep=' ')
+    if len(parameters) == 12:
+        matrix = np.vstack((parameters.reshape((4, 3)).T, [0, 0, 0, 1]))
+        matrix[:2, -1] *= -1.0  # Traslation - LPS to RAS
+        c_neg = from_matvec(np.eye(3), offset * -1.0)
+        c_pos = from_matvec(np.eye(3), offset)
+        matrix = np.diag([-1, -1, 1, 1]).dot(
+            c_pos.dot(matrix.dot(c_neg.dot(np.diag([-1, -1, 1, 1])))))
+
+    return Affine(matrix)
