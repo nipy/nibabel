@@ -1,6 +1,6 @@
 import numpy as np
 from nibabel.cifti2 import cifti2
-from six import string_types, add_metaclass
+from six import string_types, add_metaclass, integer_types
 from operator import xor
 import abc
 
@@ -156,7 +156,7 @@ class BrainModel(Axis):
         """
         if voxel is None:
             if vertex is None:
-                raise ValueError("Voxel and vertex indices not defined")
+                raise ValueError("At least one of voxel or vertex indices should be defined")
             nelements = len(vertex)
             self.voxel = -np.ones((nelements, 3), dtype=int)
         else:
@@ -458,7 +458,7 @@ class BrainModel(Axis):
             value = tuple(value)
             if len(value) != 3:
                 raise ValueError("Volume shape should be a tuple of length 3")
-            if not all(isinstance(v, int) for v in value):
+            if not all(isinstance(v, integer_types) for v in value):
                 raise ValueError("All elements of the volume shape should be integers")
         self._volume_shape = value
 
@@ -547,7 +547,7 @@ class BrainModel(Axis):
 
         Otherwise returns a new BrainModel
         """
-        if isinstance(item, int):
+        if isinstance(item, integer_types):
             return self.get_element(item)
         if isinstance(item, string_types):
             raise IndexError("Can not index an Axis with a string (except for Parcels)")
@@ -839,7 +839,7 @@ class Parcels(Axis):
             if len(idx) > 1:
                 raise IndexError("Multiple get_parcels with name %s found" % item)
             return self.voxels[idx[0]], self.vertices[idx[0]]
-        if isinstance(item, int):
+        if isinstance(item, integer_types):
             return self.get_element(item)
         return type(self)(self.name[item], self.voxels[item], self.vertices[item],
                           self.affine, self.volume_shape, self.nvertices)
@@ -969,7 +969,7 @@ class Scalar(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, int):
+        if isinstance(item, integer_types):
             return self.get_element(item)
         return type(self)(self.name[item], self.meta[item])
 
@@ -1114,7 +1114,7 @@ class Label(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, int):
+        if isinstance(item, integer_types):
             return self.get_element(item)
         return type(self)(self.name[item], self.label[item], self.meta[item])
 
@@ -1307,7 +1307,7 @@ class Series(Axis):
                 nelements = 0
             return Series(idx_start * self.step + self.start, self.step * step,
                           nelements, self.unit)
-        elif isinstance(item, int):
+        elif isinstance(item, integer_types):
             return self.get_element(item)
         raise IndexError('Series can only be indexed with integers or slices ' +
                          'without breaking the regular structure')
