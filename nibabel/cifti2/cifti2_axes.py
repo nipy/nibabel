@@ -122,9 +122,9 @@ class BrainModel(Axis):
         names and voxel/vertex indices to the constructor or by one of the
         factory methods:
 
-        - :py:meth:`~BrainModel.from_mask`: creates surface or volumetric BrainModel axis from respectively
-          1D or 3D masks
-        - :py:meth:`~BrainModel.from_surface`: creates a volumetric BrainModel axis
+        - :py:meth:`~BrainModel.from_mask`: creates surface or volumetric BrainModel axis
+        from respectively 1D or 3D masks
+        - :py:meth:`~BrainModel.from_surface`: creates a surface BrainModel axis
 
         The resulting BrainModel axes can be concatenated by adding them together.
 
