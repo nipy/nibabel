@@ -92,6 +92,7 @@ contributed code and discussion (in rough order of appearance):
 * Igor Solovey
 * Jon Haitz Legarreta Gorroño
 * Katrin Leinweber
+* Soichi Hayashi
 
 License reprise
 ===============

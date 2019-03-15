@@ -179,6 +179,11 @@
       "orcid": "0000-0002-5544-7577"
     },
     {
+      "affiliation": "Universit\u00e9 de Sherbrooke",
+      "name": "Legarreta, Jon Haitz",
+      "orcid": "0000-0002-9661-1396"
+    },
+    {
       "name": "Hahn, Kevin S."
     },
     {
@@ -191,11 +196,6 @@
       "affiliation": "McGill University",
       "name": "Poline, Jean-Baptiste",
       "orcid": "0000-0002-9794-749X"
-    },
-    {
-      "affiliation": "Universit\u00e9 de Sherbrooke",
-      "name": "Legarreta, Jon Haitz",
-      "orcid": "0000-0002-9661-1396"
     },
     {
       "affiliation": "University College London, London, UK",
@@ -265,7 +265,9 @@
       "name": "Roos, Thomas"
     },
     {
-      "name": "Reddy, Venky"
+      "affiliation": "National Institute of Mental Health and Neuro-Sciences, India",
+      "name": "Reddam, Venkateswara Reddy",
+      "orcid": "0000-0001-6817-2966"
     },
     {
       "name": "freec84"
