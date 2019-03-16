@@ -178,7 +178,7 @@ class TransformBase(object):
         '''Serialize this object into the x5 file format'''
         raise NotImplementedError
 
-    def to_filename(self, filename):
+    def to_filename(self, filename, format='X5'):
         '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
         '''
         with h5py.File(filename, 'w') as out_file:

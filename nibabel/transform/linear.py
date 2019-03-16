@@ -14,6 +14,9 @@ from scipy import ndimage as ndi
 from .base import TransformBase
 
 
+LPS = np.diag([-1, -1, 1, 1])
+
+
 class Affine(TransformBase):
     '''Represents linear transforms on image data'''
     __slots__ = ['_matrix']
@@ -160,6 +163,25 @@ class Affine(TransformBase):
             refgrp.create_dataset('ndim', data=self.reference.ndim)
             refgrp['Type'] = 'image'
 
+    def to_filename(self, filename, fmt='X5'):
+        '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
+        '''
+
+        if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
+            parameters = LPS.dot(self.matrix.dot(LPS))
+            parameters = parameters[:3, :3].reshape(-1).tolist() + parameters[:3, 3].tolist()
+            with open(filename, 'w') as f:
+                itkfmt = """\
+#Insight Transform File V1.0
+#Transform 0
+Transform: MatrixOffsetTransformBase_double_3_3
+Parameters: {}
+FixedParameters: 0 0 0\n""".format
+                f.write(itkfmt(' '.join([str(p) for p in parameters])))
+            return filename
+
+        return super(Affine, self).to_filename(filename, fmt=fmt)
+
 
 def load(filename):
     ''' Load a linear transform '''
@@ -170,11 +192,9 @@ def load(filename):
     parameters = np.fromstring(itkxfm[3].split(':')[-1].strip(), dtype=float, sep=' ')
     offset = np.fromstring(itkxfm[4].split(':')[-1].strip(), dtype=float, sep=' ')
     if len(parameters) == 12:
-        matrix = np.vstack((parameters.reshape((4, 3)).T, [0, 0, 0, 1]))
-        matrix[:2, -1] *= -1.0  # Traslation - LPS to RAS
+        matrix = from_matvec(parameters[:9].reshape((3, 3)), parameters[9:])
         c_neg = from_matvec(np.eye(3), offset * -1.0)
         c_pos = from_matvec(np.eye(3), offset)
-        matrix = np.diag([-1, -1, 1, 1]).dot(
-            c_pos.dot(matrix.dot(c_neg.dot(np.diag([-1, -1, 1, 1])))))
+        matrix = LPS.dot(c_pos.dot(matrix.dot(c_neg.dot(LPS))))
 
     return Affine(matrix)
