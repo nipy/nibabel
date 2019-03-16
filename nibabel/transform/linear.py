@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Linear transforms '''
 from __future__ import division, print_function, absolute_import
+import sys
 import numpy as np
 from scipy import ndimage as ndi
 
@@ -106,7 +107,8 @@ class Affine(TransformBase):
         try:
             reference = self.reference
         except ValueError:
-            print('Warning: no reference space defined, using moving as reference')
+            print('Warning: no reference space defined, using moving as reference',
+                  file=sys.stderr)
             reference = moving
 
         # Compose an index to index affine matrix
@@ -134,7 +136,8 @@ class Affine(TransformBase):
         try:
             reference = self.reference
         except ValueError:
-            print('Warning: no reference space defined, using moving as reference')
+            print('Warning: no reference space defined, using moving as reference',
+                  file=sys.stderr)
             reference = moving
         else:
             if moving is None:
@@ -170,13 +173,13 @@ class Affine(TransformBase):
         if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
             parameters = LPS.dot(self.matrix.dot(LPS))
             parameters = parameters[:3, :3].reshape(-1).tolist() + parameters[:3, 3].tolist()
-            with open(filename, 'w') as f:
-                itkfmt = """\
+            itkfmt = """\
 #Insight Transform File V1.0
 #Transform 0
 Transform: MatrixOffsetTransformBase_double_3_3
 Parameters: {}
 FixedParameters: 0 0 0\n""".format
+            with open(filename, 'w') as f:
                 f.write(itkfmt(' '.join([str(p) for p in parameters])))
             return filename
 
