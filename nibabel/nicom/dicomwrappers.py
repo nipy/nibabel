@@ -547,9 +547,15 @@ class MultiframeWrapper(Wrapper):
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)
             frame_indices = np.delete(frame_indices, stackid_dim_idx, axis=1)
+            dim_seq.pop(stackid_dim_idx)
         if has_derived:
             # derived volume is included
-            frame_indices = np.delete(frame_indices, 1, axis=1)
+            derived_tag = tag_for_keyword("DiffusionBValue")
+            if derived_tag not in dim_seq:
+                raise WrapperError("Missing information, cannot remove indices "
+                                   "with confidence.")
+            derived_dim_idx = dim_seq.index(derived_tag)
+            frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
         # account for the 2 additional dimensions (row and column) not included
         # in the indices
         n_dim = frame_indices.shape[1] + 2
