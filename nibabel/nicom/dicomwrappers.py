@@ -517,16 +517,17 @@ class MultiframeWrapper(Wrapper):
                     frame.MRDiffusionSequence[0].DiffusionDirectionality
                     != 'ISOTROPIC'
                     )
-                if n_frames != len(self.frames):
-                    warnings.warn("Derived images found and removed")
-                    n_frames = len(self.frames)
-                    has_derived = True
             except IndexError:
                 # Sequence tag is found but missing items!
                 raise WrapperError("Diffusion file missing information")
             except AttributeError:
                 # DiffusionDirectionality tag is not required
                 pass
+            else:
+                if n_frames != len(self.frames):
+                    warnings.warn("Derived images found and removed")
+                    n_frames = len(self.frames)
+                    has_derived = True
 
         assert len(self.frames) == n_frames
         frame_indices = np.array(
