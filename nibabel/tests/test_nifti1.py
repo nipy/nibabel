@@ -236,6 +236,11 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             hdr.set_sform(affine, code)
             assert_equal(hdr['sform_code'], nifti1.xform_codes[code])
 
+        # Raise KeyError on unknown code
+        for bad_code in (-1, 6, 10):
+            assert_raises(KeyError, hdr.set_qform, affine, bad_code)
+            assert_raises(KeyError, hdr.set_sform, affine, bad_code)
+
     def test_magic_offset_checks(self):
         # magic and offset
         HC = self.header_class
