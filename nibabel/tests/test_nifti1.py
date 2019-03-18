@@ -229,14 +229,12 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     def test_nifti_xform_codes(self):
         # Verify that all xform codes can be set in both qform and sform
         hdr = self.header_class()
-        xform_codes = nifti1.xform_codes
-        all_codes = list(xform_codes.keys())
         affine = np.eye(4)
-        for code in all_codes:
+        for code in nifti1.xform_codes.keys():
             hdr.set_qform(affine, code)
-            assert_equal(hdr['qform_code'], xform_codes[code])
+            assert_equal(hdr['qform_code'], nifti1.xform_codes[code])
             hdr.set_sform(affine, code)
-            assert_equal(hdr['sform_code'], xform_codes[code])
+            assert_equal(hdr['sform_code'], nifti1.xform_codes[code])
 
     def test_magic_offset_checks(self):
         # magic and offset
