@@ -606,7 +606,7 @@ class TrkFile(TractogramFile):
             # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
             if header[Field.VOXEL_ORDER] == b"":
                 msg = ("Voxel order is not specified, will assume 'LPS' since"
-                       "it is Trackvis software's default.")
+                       " it is Trackvis software's default.")
                 warnings.warn(msg, HeaderWarning)
                 header[Field.VOXEL_ORDER] = b"LPS"
 

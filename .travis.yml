@@ -154,8 +154,7 @@ script:
 after_success:
     - |
       if [ "${CHECK_TYPE}" == "test" ]; then
-        travis_retry pip install coveralls codecov
-        coveralls
+        travis_retry pip install codecov
         codecov
       fi
 
