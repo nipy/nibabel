@@ -93,6 +93,8 @@ contributed code and discussion (in rough order of appearance):
 * Jon Haitz Legarreta Gorroño
 * Katrin Leinweber
 * Soichi Hayashi
+* Samir Reddigari
+* Konstantinos Raktivan
 
 License reprise
 ===============
