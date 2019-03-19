@@ -416,7 +416,7 @@ class BrainModel(Axis):
     _affine = None
 
     @property
-    def affine(self, ):
+    def affine(self):
         """
         Affine of the volumetric image in which the greyordinate voxels were defined
         """
@@ -433,7 +433,7 @@ class BrainModel(Axis):
     _volume_shape = None
 
     @property
-    def volume_shape(self, ):
+    def volume_shape(self):
         """
         Shape of the volumetric image in which the greyordinate voxels were defined
         """
@@ -452,7 +452,7 @@ class BrainModel(Axis):
     _name = None
 
     @property
-    def name(self, ):
+    def name(self):
         """The brain structure to which the voxel/vertices of belong
         """
         return self._name
@@ -724,7 +724,7 @@ class Parcels(Axis):
     _affine = None
 
     @property
-    def affine(self, ):
+    def affine(self):
         """
         Affine of the volumetric image in which the greyordinate voxels were defined
         """
@@ -741,7 +741,7 @@ class Parcels(Axis):
     _volume_shape = None
 
     @property
-    def volume_shape(self, ):
+    def volume_shape(self):
         """
         Shape of the volumetric image in which the greyordinate voxels were defined
         """
@@ -755,7 +755,7 @@ class Parcels(Axis):
                 raise ValueError("Volume shape should be a tuple of length 3")
         self._volume_shape = value
 
-    def __len__(self, ):
+    def __len__(self):
         return self.name.size
 
     def __eq__(self, other):
@@ -919,7 +919,7 @@ class Scalar(Axis):
             mim.append(named_map)
         return mim
 
-    def __len__(self, ):
+    def __len__(self):
         return self.name.size
 
     def __eq__(self, other):
@@ -1059,7 +1059,7 @@ class Label(Axis):
             mim.append(named_map)
         return mim
 
-    def __len__(self, ):
+    def __len__(self):
         return self.name.size
 
     def __eq__(self, other):
@@ -1166,7 +1166,7 @@ class Series(Axis):
         self.size = size
 
     @property
-    def time(self, ):
+    def time(self):
         return np.arange(self.size) * self.step + self.start
 
     @classmethod
@@ -1210,7 +1210,7 @@ class Series(Axis):
     _unit = None
 
     @property
-    def unit(self, ):
+    def unit(self):
         return self._unit
 
     @unit.setter
