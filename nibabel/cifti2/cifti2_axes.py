@@ -62,7 +62,7 @@ class Axis(object):
     """
 
     @property
-    def size(self, ):
+    def size(self):
         return len(self)
 
     @abc.abstractmethod
@@ -150,13 +150,13 @@ class BrainModel(Axis):
             if vertex is None:
                 raise ValueError("At least one of voxel or vertex indices should be defined")
             nelements = len(vertex)
-            self.voxel = -np.ones((nelements, 3), dtype=int)
+            self.voxel = np.full((nelements, 3), fill_value=-1, dtype=int)
         else:
             nelements = len(voxel)
             self.voxel = np.asarray(voxel, dtype=int)
 
         if vertex is None:
-            self.vertex = -np.ones(nelements, dtype=int)
+            self.vertex = np.full(nelements, fill_value=-1, dtype=int)
         else:
             self.vertex = np.asarray(vertex, dtype=int)
 
@@ -173,16 +173,17 @@ class BrainModel(Axis):
             if name not in self.name:
                 del self.nvertices[name]
 
-        if self.is_surface.all():
+        is_surface = self.is_surface
+        if is_surface.all():
             self.affine = None
             self.volume_shape = None
         else:
             self.affine = affine
             self.volume_shape = volume_shape
 
-        if (self.vertex[self.is_surface] < 0).any():
+        if np.any(self.vertex[is_surface] < 0):
             raise ValueError('Undefined vertex indices found for surface elements')
-        if (self.voxel[~self.is_surface] < 0).any():
+        if np.any(self.voxel[~is_surface] < 0):
             raise ValueError('Undefined voxel indices found for volumetric elements')
 
         for check_name in ('name', 'voxel', 'vertex'):
@@ -259,9 +260,9 @@ class BrainModel(Axis):
         -------
         BrainModel
         """
-        nbm = np.sum([bm.index_count for bm in mim.brain_models])
-        voxel = -np.ones((nbm, 3))
-        vertex = -np.ones(nbm)
+        nbm = sum(bm.index_count for bm in mim.brain_models)
+        voxel = np.full((nbm, 3), fill_value=-1, dtype=int)
+        vertex = np.full(nbm, fill_value=-1, dtype=int)
         name = []
 
         nvertices = {}
@@ -323,7 +324,7 @@ class BrainModel(Axis):
             mim.append(cifti_bm)
         return mim
 
-    def iter_structures(self, ):
+    def iter_structures(self):
         """
         Iterates over all brain structures in the order that they appear along the axis
 
@@ -414,7 +415,7 @@ class BrainModel(Axis):
         return proposed_name
 
     @property
-    def is_surface(self, ):
+    def is_surface(self):
         """
         (N, ) boolean array which is true for any element on the surface
         """
@@ -499,7 +500,8 @@ class BrainModel(Axis):
         -------
         BrainModel
         """
-        if isinstance(other, BrainModel):
+        if not isinstance(other, BrainModel):
+            return NotImplemented
             if self.affine is None:
                 affine, shape = other.affine, other.volume_shape
             else:
@@ -516,7 +518,7 @@ class BrainModel(Axis):
                     raise ValueError("Trying to concatenate two BrainModels with inconsistent " +
                                      "number of vertices for %s" % name)
                 nvertices[name] = value
-            return type(self)(
+            return self.__class__(
                     np.append(self.name, other.name),
                     np.concatenate((self.voxel, other.voxel), 0),
                     np.append(self.vertex, other.vertex),
@@ -545,7 +547,7 @@ class BrainModel(Axis):
             return self.get_element(item)
         if isinstance(item, string_types):
             raise IndexError("Can not index an Axis with a string (except for Parcels)")
-        return type(self)(self.name[item], self.voxel[item], self.vertex[item],
+        return self.__class__(self.name[item], self.voxel[item], self.vertex[item],
                           self.affine, self.volume_shape, self.nvertices)
 
     def get_element(self, index):
@@ -565,8 +567,8 @@ class BrainModel(Axis):
         - structure.BrainStructure object describing the brain structure the element was taken from
         """
         is_surface = self.name[index] in self.nvertices.keys()
-        name = 'vertex' if is_surface else 'voxel'
-        return is_surface, getattr(self, name)[index], self.name[index]
+        struct = self.vertex if is_surface else self.voxel
+        return is_surface, struct[index], self.name[index]
 
 
 class Parcels(Axis):
