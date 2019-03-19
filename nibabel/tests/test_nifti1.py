@@ -28,8 +28,10 @@ from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
 from ..freesurfer import load as mghload
+from ..orientations import aff2axcodes
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
+from .test_orientations import ALL_ORNTS
 from .test_helpers import bytesio_filemap, bytesio_round_trip
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
@@ -1417,6 +1419,36 @@ class TestNifti1General(object):
                 # Hokey use of max_miss as a std estimate
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert_true(np.abs(bias) < bias_thresh)
+
+    def test_reoriented_dim_info(self):
+        # Check that dim_info is reoriented correctly
+        arr = np.arange(24).reshape((2, 3, 4))
+        # Start as RAS
+        aff = np.diag([2, 3, 4, 1])
+        simg = self.single_class(arr, aff)
+        for freq, phas, slic in ((0, 1, 2),
+                                 (0, 2, 1),
+                                 (1, 0, 2),
+                                 (2, 0, 1),
+                                 (None, None, None),
+                                 (0, 2, None),
+                                 (0, None, None),
+                                 (None, 2, 1),
+                                 (None, None, 1),
+                                 ):
+            simg.header.set_dim_info(freq, phas, slic)
+            fdir = 'RAS'[freq] if freq is not None else None
+            pdir = 'RAS'[phas] if phas is not None else None
+            sdir = 'RAS'[slic] if slic is not None else None
+            for ornt in ALL_ORNTS:
+                rimg = simg.as_reoriented(np.array(ornt))
+                axcode = aff2axcodes(rimg.affine)
+                dirs = ''.join(axcode).replace('P', 'A').replace('I', 'S').replace('L', 'R')
+                new_freq, new_phas, new_slic = rimg.header.get_dim_info()
+                new_fdir = dirs[new_freq] if new_freq is not None else None
+                new_pdir = dirs[new_phas] if new_phas is not None else None
+                new_sdir = dirs[new_slic] if new_slic is not None else None
+                assert_equal((new_fdir, new_pdir, new_sdir), (fdir, pdir, sdir))
 
 
 @runif_extra_has('slow')

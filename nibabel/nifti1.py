@@ -2016,13 +2016,9 @@ class Nifti1Pair(analyze.AnalyzeImage):
             return img
 
         # Also apply the transform to the dim_info fields
-        new_dim = list(img.header.get_dim_info())
-        for idx, value in enumerate(new_dim):
-            # For each value, leave as None if it was that way,
-            # otherwise check where we have mapped it to
-            if value is None:
-                continue
-            new_dim[idx] = np.where(ornt[:, 0] == idx)[0]
+        new_dim = [
+            None if orig_dim is None else int(ornt[orig_dim, 0])
+            for orig_dim in img.header.get_dim_info()]
 
         img.header.set_dim_info(*new_dim)
 
