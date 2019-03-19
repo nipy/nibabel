@@ -761,7 +761,7 @@ class Parcels(Axis):
         return self.name.size
 
     def __eq__(self, other):
-        if (type(self) != type(other) or len(self) != len(other) or
+        if (self.__class__ != other.__class__ or len(self) != len(other) or
                 (self.name != other.name).all() or self.nvertices != other.nvertices or
                 any((vox1 != vox2).any() for vox1, vox2 in zip(self.voxels, other.voxels))):
             return False
@@ -812,7 +812,7 @@ class Parcels(Axis):
                                  "number of vertices for %s"
                                  % name)
             nvertices[name] = value
-        return type(self)(
+        return self.__class__(
                 np.append(self.name, other.name),
                 np.append(self.voxels, other.voxels),
                 np.append(self.vertices, other.vertices),
@@ -964,7 +964,7 @@ class Scalar(Axis):
     def __getitem__(self, item):
         if isinstance(item, integer_types):
             return self.get_element(item)
-        return type(self)(self.name[item], self.meta[item])
+        return self.__class__(self.name[item], self.meta[item])
 
     def get_element(self, index):
         """
@@ -1109,7 +1109,7 @@ class Label(Axis):
     def __getitem__(self, item):
         if isinstance(item, integer_types):
             return self.get_element(item)
-        return type(self)(self.name[item], self.label[item], self.meta[item])
+        return self.__class__(self.name[item], self.label[item], self.meta[item])
 
     def get_element(self, index):
         """
