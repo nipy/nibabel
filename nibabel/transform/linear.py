@@ -180,7 +180,15 @@ Transform: MatrixOffsetTransformBase_double_3_3
 Parameters: {}
 FixedParameters: 0 0 0\n""".format
             with open(filename, 'w') as f:
-                f.write(itkfmt(' '.join([str(p) for p in parameters])))
+                f.write(itkfmt(' '.join(['%g' for p in parameters])))
+            return filename
+
+        if fmt.lower() == 'afni':
+            parameters = LPS.dot(self.matrix.dot(LPS))
+            parameters = parameters[:3, :].reshape(-1).tolist()
+            np.savetxt(filename, np.atleast_2d(parameters),
+                       delimiter='\t', header="""\
+3dvolreg matrices (DICOM-to-DICOM, row-by-row):""")
             return filename
 
         return super(Affine, self).to_filename(filename, fmt=fmt)
