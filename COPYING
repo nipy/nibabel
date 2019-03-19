@@ -18,12 +18,13 @@ documentation is covered by the MIT license.
 
   The MIT License
 
-  Copyright (c) 2009-2014 Matthew Brett <matthew.brett@gmail.com>
+  Copyright (c) 2009-2019 Matthew Brett <matthew.brett@gmail.com>
   Copyright (c) 2010-2013 Stephan Gerhard <git@unidesign.ch>
   Copyright (c) 2006-2014 Michael Hanke <michael.hanke@gmail.com>
   Copyright (c) 2011 Christian Haselgrove <christian.haselgrove@umassmed.edu>
   Copyright (c) 2010-2011 Jarrod Millman <jarrod.millman@gmail.com>
-  Copyright (c) 2011-2014 Yaroslav Halchenko <debian@onerussian.com>
+  Copyright (c) 2011-2019 Yaroslav Halchenko <debian@onerussian.com>
+  Copyright (c) 2015-2019 Chris Markiewicz <effigies@gmail.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
