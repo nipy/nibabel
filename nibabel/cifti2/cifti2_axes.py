@@ -279,14 +279,6 @@ class BrainModel(Axis):
                 if affine is None:
                     shape = mim.volume.volume_dimensions
                     affine = mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix
-                else:
-                    if shape != mim.volume.volume_dimensions:
-                        raise ValueError("All volume masks should be defined in the same volume")
-                    if (
-                            affine !=
-                            mim.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix
-                    ).any():
-                        raise ValueError("All volume masks should have the same affine")
         return cls(name, voxel, vertex, affine, shape, nvertices)
 
     def to_mapping(self, dim):
@@ -478,13 +470,13 @@ class BrainModel(Axis):
         if xor(self.affine is None, other.affine is None):
             return False
         return (
-                ((self.affine is None and other.affine is None) or
-                 (abs(self.affine - other.affine).max() < 1e-8 and
-                  self.volume_shape == other.volume_shape)) and
-                (self.nvertices == other.nvertices) and
-                (self.name == other.name).all() and
-                (self.voxel[~self.is_surface] == other.voxel[~other.is_surface]).all() and
-                (self.vertex[~self.is_surface] == other.vertex[~other.is_surface]).all()
+            (self.affine is None or
+             np.allclose(self.affine, other.affine) and
+             self.volume_shape == other.volume_shape) and
+            self.nvertices == other.nvertices and
+            np.array_equal(self.name, other.name) and
+            np.array_equal(self.voxel[~self.is_surface], other.voxel[~other.is_surface]) and
+            np.array_equal(self.vertex[self.is_surface], other.vertex[other.is_surface])
         )
 
     def __add__(self, other):
@@ -502,29 +494,29 @@ class BrainModel(Axis):
         """
         if not isinstance(other, BrainModel):
             return NotImplemented
-            if self.affine is None:
-                affine, shape = other.affine, other.volume_shape
-            else:
-                affine, shape = self.affine, self.volume_shape
-                if other.affine is not None and (
-                        (other.affine != affine).all() or
-                        other.volume_shape != shape
-                ):
-                    raise ValueError("Trying to concatenate two BrainModels defined " +
-                                     "in a different brain volume")
-            nvertices = dict(self.nvertices)
-            for name, value in other.nvertices.items():
-                if name in nvertices.keys() and nvertices[name] != value:
-                    raise ValueError("Trying to concatenate two BrainModels with inconsistent " +
-                                     "number of vertices for %s" % name)
-                nvertices[name] = value
-            return self.__class__(
-                    np.append(self.name, other.name),
-                    np.concatenate((self.voxel, other.voxel), 0),
-                    np.append(self.vertex, other.vertex),
-                    affine, shape, nvertices
-            )
-        return NotImplemented
+        if self.affine is None:
+            affine, shape = other.affine, other.volume_shape
+        else:
+            affine, shape = self.affine, self.volume_shape
+            if other.affine is not None and (
+                    not np.allclose(other.affine, affine) or
+                    other.volume_shape != shape
+            ):
+                raise ValueError("Trying to concatenate two BrainModels defined " +
+                                 "in a different brain volume")
+
+        nvertices = dict(self.nvertices)
+        for name, value in other.nvertices.items():
+            if name in nvertices.keys() and nvertices[name] != value:
+                raise ValueError("Trying to concatenate two BrainModels with inconsistent " +
+                                 "number of vertices for %s" % name)
+            nvertices[name] = value
+        return self.__class__(
+                np.append(self.name, other.name),
+                np.concatenate((self.voxel, other.voxel), 0),
+                np.append(self.vertex, other.vertex),
+                affine, shape, nvertices
+        )
 
     def __getitem__(self, item):
         """
@@ -548,7 +540,7 @@ class BrainModel(Axis):
         if isinstance(item, string_types):
             raise IndexError("Can not index an Axis with a string (except for Parcels)")
         return self.__class__(self.name[item], self.voxel[item], self.vertex[item],
-                          self.affine, self.volume_shape, self.nvertices)
+                              self.affine, self.volume_shape, self.nvertices)
 
     def get_element(self, index):
         """
