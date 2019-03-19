@@ -788,36 +788,36 @@ class Parcels(Axis):
 
         Parameters
         ----------
-        other : Parcel
+        other : Parcels
             parcel to be appended to the current one
 
         Returns
         -------
         Parcel
         """
-        if type(self) == type(other):
-            if self.affine is None:
-                affine, shape = other.affine, other.volume_shape
-            else:
-                affine, shape = self.affine, self.volume_shape
-                if other.affine is not None and ((other.affine != affine).all() or
-                                                 other.volume_shape != shape):
-                    raise ValueError("Trying to concatenate two Parcels defined " +
-                                     "in a different brain volume")
-            nvertices = dict(self.nvertices)
-            for name, value in other.nvertices.items():
-                if name in nvertices.keys() and nvertices[name] != value:
-                    raise ValueError("Trying to concatenate two Parcels with inconsistent " +
-                                     "number of vertices for %s"
-                                     % name)
-                nvertices[name] = value
-            return type(self)(
-                    np.append(self.name, other.name),
-                    np.append(self.voxels, other.voxels),
-                    np.append(self.vertices, other.vertices),
-                    affine, shape, nvertices
-            )
-        return NotImplemented
+        if not isinstance(other, Parcels):
+            return NotImplemented
+        if self.affine is None:
+            affine, shape = other.affine, other.volume_shape
+        else:
+            affine, shape = self.affine, self.volume_shape
+            if other.affine is not None and ((other.affine != affine).all() or
+                                             other.volume_shape != shape):
+                raise ValueError("Trying to concatenate two Parcels defined " +
+                                 "in a different brain volume")
+        nvertices = dict(self.nvertices)
+        for name, value in other.nvertices.items():
+            if name in nvertices.keys() and nvertices[name] != value:
+                raise ValueError("Trying to concatenate two Parcels with inconsistent " +
+                                 "number of vertices for %s"
+                                 % name)
+            nvertices[name] = value
+        return type(self)(
+                np.append(self.name, other.name),
+                np.append(self.voxels, other.voxels),
+                np.append(self.vertices, other.vertices),
+                affine, shape, nvertices
+        )
 
     def __getitem__(self, item):
         """
