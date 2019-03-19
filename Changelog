@@ -33,12 +33,34 @@ New features
 
 Enhancements
 ------------
+* Accept TCK files produced by tools with other delimiter/EOF defaults
+  (pr/720) (Soichi Hayashi, reviewed by CM, MB, MC)
+* Allow BrainModels or Parcels to contain a single vertex in CIFTI
+  (pr/739) (Michiel Cottaar, reviewed by CM)
+* Support for ``NIFTI_XFORM_TEMPLATE_OTHER`` xform code (pr/743) (CM)
 
 Bug fixes
 ---------
+* Skip refcheck in ArraySequence construction/extension (pr/719) (Ariel
+  Rokem, reviewed by CM, MC)
+* Use safe resizing for ArraySequence extension (pr/724) (CM, reviewed
+  by MC)
+* Fix typo in error message (pr/726) (Jon Haitz Legarreta Gorroño,
+  reviewed by CM)
+* Support DICOM slice sorting in Python 3 (pr/728) (Samir Reddigari,
+  reviewed by CM)
+* Correctly reorient dim_info when reorienting NIfTI images
+  (Konstantinos Raktivan, CM, reviewed by CM)
 
 Maintenance
 -----------
+* Import updates to reduce upstream deprecation warnings (pr/711,
+  pr/705, pr/738) (EL, YOH, reviewed by CM)
+* Delay import of ``nibabel.testing``, ``nose`` and ``mock`` to speed up
+  import (pr/699) (CM)
+* Increase coverage testing, drop coveralls (pr/722, pr/732) (CM)
+* Add Zenodo metadata, sorted by commits (pr/732) (CM + others)
+* Update author listing and copyrights (pr/742) (MB, reviewed by CM)
 
 API changes and deprecations
 ----------------------------
