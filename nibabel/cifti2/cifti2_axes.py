@@ -153,16 +153,16 @@ class BrainModel(Axis):
             self.voxel = np.full((nelements, 3), fill_value=-1, dtype=int)
         else:
             nelements = len(voxel)
-            self.voxel = np.asarray(voxel, dtype=int)
+            self.voxel = np.asanyarray(voxel, dtype=int)
 
         if vertex is None:
             self.vertex = np.full(nelements, fill_value=-1, dtype=int)
         else:
-            self.vertex = np.asarray(vertex, dtype=int)
+            self.vertex = np.asanyarray(vertex, dtype=int)
 
         if isinstance(name, string_types):
             name = [self.to_cifti_brain_structure_name(name)] * self.vertex.size
-        self.name = np.asarray(name, dtype='U')
+        self.name = np.asanyarray(name, dtype='U')
 
         if nvertices is None:
             self.nvertices = {}
@@ -214,7 +214,9 @@ class BrainModel(Axis):
         """
         if affine is None:
             affine = np.eye(4)
-        if np.asarray(affine).shape != (4, 4):
+        else:
+            affine = np.asanyarray(affine)
+        if affine.shape != (4, 4):
             raise ValueError("Affine transformation should be a 4x4 array or None, not %r" % affine)
         if mask.ndim == 1:
             return cls.from_surface(np.where(mask != 0)[0], mask.size, name=name)
@@ -425,7 +427,7 @@ class BrainModel(Axis):
     @affine.setter
     def affine(self, value):
         if value is not None:
-            value = np.asarray(value)
+            value = np.asanyarray(value)
             if value.shape != (4, 4):
                 raise ValueError('Affine transformation should be a 4x4 array')
         self._affine = value
@@ -592,9 +594,9 @@ class Parcels(Axis):
         nvertices : dict[String -> int]
             maps names of surface elements to integers (not needed for volumetric CIFTI files)
         """
-        self.name = np.asarray(name, dtype='U')
-        self.voxels = np.asarray(voxels, dtype='object')
-        self.vertices = np.asarray(vertices, dtype='object')
+        self.name = np.asanyarray(name, dtype='U')
+        self.voxels = np.asanyarray(voxels, dtype='object')
+        self.vertices = np.asanyarray(vertices, dtype='object')
         self.affine = affine
         self.volume_shape = volume_shape
         if nvertices is None:
@@ -733,7 +735,7 @@ class Parcels(Axis):
     @affine.setter
     def affine(self, value):
         if value is not None:
-            value = np.asarray(value)
+            value = np.asanyarray(value)
             if value.shape != (4, 4):
                 raise ValueError('Affine transformation should be a 4x4 array')
         self._affine = value
@@ -872,10 +874,10 @@ class Scalar(Axis):
             (N, ) object array with a dictionary of metadata for each row/column.
             Defaults to empty dictionary
         """
-        self.name = np.asarray(name, dtype='U')
+        self.name = np.asanyarray(name, dtype='U')
         if meta is None:
             meta = [{} for _ in range(self.name.size)]
-        self.meta = np.asarray(meta, dtype='object')
+        self.meta = np.asanyarray(meta, dtype='object')
 
         for check_name in ('name', 'meta'):
             if getattr(self, check_name).shape != (self.size, ):
@@ -1003,13 +1005,13 @@ class Label(Axis):
         meta :  np.ndarray
             (N, ) object array with a dictionary of metadata for each row/column
         """
-        self.name = np.asarray(name, dtype='U')
+        self.name = np.asanyarray(name, dtype='U')
         if isinstance(label, dict):
             label = [label] * self.name.size
-        self.label = np.asarray(label, dtype='object')
+        self.label = np.asanyarray(label, dtype='object')
         if meta is None:
             meta = [{} for _ in range(self.name.size)]
-        self.meta = np.asarray(meta, dtype='object')
+        self.meta = np.asanyarray(meta, dtype='object')
 
         for check_name in ('name', 'meta', 'label'):
             if getattr(self, check_name).shape != (self.size, ):
