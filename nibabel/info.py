@@ -192,7 +192,7 @@ SIX_MIN_VERSION = '1.3'
 
 # Main setup parameters
 NAME = 'nibabel'
-MAINTAINER = "Matthew Brett, Michael Hanke, Eric Larson, Chris Markiewicz"
+MAINTAINER = "Chris Markiewicz"
 MAINTAINER_EMAIL = "neuroimaging@python.org"
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description

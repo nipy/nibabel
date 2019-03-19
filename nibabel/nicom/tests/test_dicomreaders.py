@@ -2,6 +2,8 @@
 
 """
 
+from os.path import join as pjoin, abspath
+
 import numpy as np
 
 from .. import dicomreaders as didr
@@ -68,3 +70,12 @@ def test_passing_kwds():
                       IO_DATA_PATH,
                       csa_glob,
                       dicom_kwargs=dict(force=True))
+
+@dicom_test
+def test_slices_to_series():
+    dicom_files = (pjoin(IO_DATA_PATH, "%d.dcm" % i) for i in range(2))
+    wrappers = [didr.wrapper_from_file(f) for f in dicom_files]
+    series = didr.slices_to_series(wrappers)
+    assert_equal(len(series), 1)
+    assert_equal(len(series[0]), 2)
+
