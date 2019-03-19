@@ -167,7 +167,8 @@ class BrainModel(Axis):
         if nvertices is None:
             self.nvertices = {}
         else:
-            self.nvertices = dict(nvertices)
+            self.nvertices = {self.to_cifti_brain_structure_name(name): number
+                              for name, number in nvertices.items()}
 
         for name in list(self.nvertices.keys()):
             if name not in self.name:
@@ -178,6 +179,9 @@ class BrainModel(Axis):
             self.affine = None
             self.volume_shape = None
         else:
+            if affine is None or volume_shape is None:
+                raise ValueError("Affine and volume shape should be defined " +
+                                 "for BrainModel containing voxels")
             self.affine = affine
             self.volume_shape = volume_shape
 
@@ -189,7 +193,7 @@ class BrainModel(Axis):
         for check_name in ('name', 'voxel', 'vertex'):
             shape = (self.size, 3) if check_name == 'voxel' else (self.size, )
             if getattr(self, check_name).shape != shape:
-                raise ValueError("Input {} has incorrect shape ({}) for Label axis".format(
+                raise ValueError("Input {} has incorrect shape ({}) for BrainModel axis".format(
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
@@ -577,14 +581,20 @@ class Parcels(Axis):
 
     def __init__(self, name, voxels, vertices, affine=None, volume_shape=None, nvertices=None):
         """
+        Use of this constructor is not recommended. New Parcels axes can be constructed more easily
+        from a sequence of BrainModel axes using :py:meth:`~Parcels.from_brain_models`
+
         Parameters
         ----------
         name : np.ndarray
             (N, ) string array with the parcel names
         voxels :  np.ndarray
-            (N, ) object array each containing a sequence of voxels
+            (N, ) object array each containing a sequence of voxels.
+            For each parcel the voxels are represented by a (M, 3) index array
         vertices :  np.ndarray
-            (N, ) object array each containing a sequence of vertices
+            (N, ) object array each containing a sequence of vertices.
+            For each parcel the vertices are represented by a mapping from brain structure name to
+            (M, ) index array
         affine : np.ndarray
             (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
             covering the surface)
@@ -602,7 +612,8 @@ class Parcels(Axis):
         if nvertices is None:
             self.nvertices = {}
         else:
-            self.nvertices = dict(nvertices)
+            self.nvertices = {BrainModel.to_cifti_brain_structure_name(name): number
+                              for name, number in nvertices.items()}
 
         for check_name in ('name', 'voxels', 'vertices'):
             if getattr(self, check_name).shape != (self.size, ):
@@ -623,11 +634,12 @@ class Parcels(Axis):
         -------
         Parcels
         """
+        nparcels = len(named_brain_models)
         affine = None
         volume_shape = None
         all_names = []
-        all_voxels = []
-        all_vertices = []
+        all_voxels = np.zeros(nparcels, dtype='object')
+        all_vertices = np.zeros(nparcels, dtype='object')
         nvertices = {}
         for idx_parcel, (parcel_name, bm) in enumerate(named_brain_models):
             all_names.append(parcel_name)
@@ -641,7 +653,7 @@ class Parcels(Axis):
                     if (affine != bm.affine).any() or (volume_shape != bm.volume_shape):
                         raise ValueError("Can not combine brain models defined in different " +
                                          "volumes into a single Parcel axis")
-            all_voxels.append(voxels)
+            all_voxels[idx_parcel] = voxels
 
             vertices = {}
             for name, _, bm_part in bm.iter_structures():
@@ -651,7 +663,7 @@ class Parcels(Axis):
                                          "vertices for surface structure %s" % name)
                     nvertices[name] = bm.nvertices[name]
                     vertices[name] = bm_part.vertex
-            all_vertices.append(vertices)
+            all_vertices[idx_parcel] = vertices
         return Parcels(all_names, all_voxels, all_vertices, affine, volume_shape, nvertices)
 
     @classmethod
@@ -755,6 +767,8 @@ class Parcels(Axis):
             value = tuple(value)
             if len(value) != 3:
                 raise ValueError("Volume shape should be a tuple of length 3")
+            if not all(isinstance(v, integer_types) for v in value):
+                raise ValueError("All elements of the volume shape should be integers")
         self._volume_shape = value
 
     def __len__(self):
