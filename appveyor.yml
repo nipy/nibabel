@@ -21,8 +21,13 @@ install:
   # the parent CMD process).
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
 
+  - python -m pip install --upgrade pip virtualenv pywin32
+  - virtualenv --python=python venv
+  - venv\Scripts\activate
+  - python --version
+
   # Install the dependencies of the project.
-  - python -m pip install --upgrade pip setuptools wheel
+  - pip install --upgrade pip setuptools>=27.0 wheel
   - pip install numpy scipy matplotlib h5py pydicom
   - pip install nose mock coverage codecov
   - pip install .
