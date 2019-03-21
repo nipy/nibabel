@@ -12,6 +12,8 @@ import sys
 import numpy as np
 from scipy import ndimage as ndi
 
+from ..loadsave import load as loadimg
+from ..affines import from_matvec, voxel_sizes
 from .base import TransformBase
 
 
@@ -22,7 +24,7 @@ class Affine(TransformBase):
     '''Represents linear transforms on image data'''
     __slots__ = ['_matrix']
 
-    def __init__(self, matrix=None):
+    def __init__(self, matrix=None, reference=None):
         '''Initialize a transform
 
         Parameters
@@ -52,6 +54,9 @@ class Affine(TransformBase):
         assert self._matrix.ndim in (2, 3), 'affine matrix should be 2D or 3D'
         assert self._matrix.shape[0] == self._matrix.shape[1], 'affine matrix is not square'
         super(Affine, self).__init__()
+
+        if reference:
+            self.reference = reference
 
     @property
     def matrix(self):
@@ -154,19 +159,14 @@ class Affine(TransformBase):
         return tuple(matrix.dot(index)[:-1])
 
     def _to_hdf5(self, x5_root):
-        print('to hdf5')
         x5_root.create_dataset('Transform', data=self._matrix[:3, :])
         x5_root.create_dataset('Inverse', data=np.linalg.inv(self._matrix)[:3, :])
         x5_root['Type'] = 'affine'
 
         if self._reference:
-            refgrp = x5_root.create_group('Reference')
-            refgrp.create_dataset('affine', data=self.reference.affine)
-            refgrp.create_dataset('shape', data=self.reference.shape)
-            refgrp.create_dataset('ndim', data=self.reference.ndim)
-            refgrp['Type'] = 'image'
+            self.reference._to_hdf5(x5_root.create_group('Reference'))
 
-    def to_filename(self, filename, fmt='X5'):
+    def to_filename(self, filename, fmt='X5', moving=None):
         '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
         '''
 
@@ -191,12 +191,32 @@ FixedParameters: 0 0 0\n""".format
 3dvolreg matrices (DICOM-to-DICOM, row-by-row):""")
             return filename
 
+        if fmt.lower() == 'fsl':
+            if not moving:
+                moving = self.reference
+
+            if isinstance(moving, str):
+                moving = loadimg(moving)
+
+            # Adjust for reference image offset and orientation
+            refswp, refspc = _fsl_aff_adapt(self.reference)
+            pre = self.reference.affine.dot(
+                np.linalg.inv(refspc).dot(np.linalg.inv(refswp)))
+
+            # Adjust for moving image offset and orientation
+            movswp, movspc = _fsl_aff_adapt(moving)
+            post = np.linalg.inv(movswp).dot(movspc.dot(np.linalg.inv(
+                moving.affine)))
+
+            # Compose FSL transform
+            mat = np.linalg.inv(post.dot(self.matrix.dot(pre)))
+            np.savetxt(filename, mat, delimiter=' ', fmt='%g')
+            return filename
         return super(Affine, self).to_filename(filename, fmt=fmt)
 
 
-def load(filename):
+def load(filename, reference=None):
     ''' Load a linear transform '''
-    from ..affines import from_matvec
     with open(filename) as itkfile:
         itkxfm = itkfile.read().splitlines()
 
@@ -208,4 +228,20 @@ def load(filename):
         c_pos = from_matvec(np.eye(3), offset)
         matrix = LPS.dot(c_pos.dot(matrix.dot(c_neg.dot(LPS))))
 
-    return Affine(matrix)
+    if reference and isinstance(reference, str):
+        reference = loadimg(reference)
+
+    return Affine(matrix, reference)
+
+
+def _fsl_aff_adapt(space):
+    """Calculates a matrix to convert from the original RAS image
+    coordinates to FSL's internal coordinate system of transforms
+    """
+    aff = space.affine
+    zooms = list(voxel_sizes(aff)) + [1]
+    swp = np.eye(4)
+    if np.linalg.det(aff) > 0:
+        swp[0, 0] = -1.0
+        swp[0, 3] = (space.shape[0] - 1) * zooms[0]
+    return swp, np.diag(zooms)
