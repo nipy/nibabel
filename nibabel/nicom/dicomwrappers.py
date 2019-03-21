@@ -201,7 +201,7 @@ class Wrapper(object):
         zs = self.get('SpacingBetweenSlices')
         if zs is None:
             zs = self.get('SliceThickness')
-            if zs is None:
+            if zs is None or zs == '':
                 zs = 1
         # Protect from python decimals in pydicom 0.9.7
         zs = float(zs)
