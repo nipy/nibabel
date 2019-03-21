@@ -77,6 +77,12 @@ class ImageSpace(object):
         return np.tensordot(np.linalg.inv(self._affine),
                             coordinates, axes=1)[:3, ...]
 
+    def _to_hdf5(self, group):
+        group['Type'] = 'image'
+        group.create_dataset('affine', data=self.affine)
+        group.create_dataset('shape', data=self.shape)
+        group.create_dataset('ndim', data=self.ndim)
+
     def __eq__(self, other):
         try:
             return np.allclose(self.affine, other.affine) and self.shape == other.shape
@@ -178,7 +184,7 @@ class TransformBase(object):
         '''Serialize this object into the x5 file format'''
         raise NotImplementedError
 
-    def to_filename(self, filename, format='X5'):
+    def to_filename(self, filename, fmt='X5'):
         '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
         '''
         with h5py.File(filename, 'w') as out_file:
