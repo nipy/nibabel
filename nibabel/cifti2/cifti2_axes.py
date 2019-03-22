@@ -180,7 +180,7 @@ class BrainModel(Axis):
             self.volume_shape = None
         else:
             if affine is None or volume_shape is None:
-                raise ValueError("Affine and volume shape should be defined " +
+                raise ValueError("Affine and volume shape should be defined "
                                  "for BrainModel containing voxels")
             self.affine = affine
             self.volume_shape = volume_shape
@@ -508,13 +508,13 @@ class BrainModel(Axis):
                     not np.allclose(other.affine, affine) or
                     other.volume_shape != shape
             ):
-                raise ValueError("Trying to concatenate two BrainModels defined " +
+                raise ValueError("Trying to concatenate two BrainModels defined "
                                  "in a different brain volume")
 
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError("Trying to concatenate two BrainModels with inconsistent " +
+                raise ValueError("Trying to concatenate two BrainModels with inconsistent "
                                  "number of vertices for %s" % name)
             nvertices[name] = value
         return self.__class__(
@@ -651,7 +651,7 @@ class Parcels(Axis):
                     volume_shape = bm.volume_shape
                 else:
                     if not np.allclose(affine, bm.affine) or (volume_shape != bm.volume_shape):
-                        raise ValueError("Can not combine brain models defined in different " +
+                        raise ValueError("Can not combine brain models defined in different "
                                          "volumes into a single Parcel axis")
             all_voxels[idx_parcel] = voxels
 
@@ -659,7 +659,7 @@ class Parcels(Axis):
             for name, _, bm_part in bm.iter_structures():
                 if name in bm.nvertices.keys():
                     if name in nvertices.keys() and nvertices[name] != bm.nvertices[name]:
-                        raise ValueError("Got multiple conflicting number of " +
+                        raise ValueError("Got multiple conflicting number of "
                                          "vertices for surface structure %s" % name)
                     nvertices[name] = bm.nvertices[name]
                     vertices[name] = bm_part.vertex
@@ -817,7 +817,7 @@ class Parcels(Axis):
             affine, shape = self.affine, self.volume_shape
             if other.affine is not None and (not np.allclose(other.affine, affine) or
                                              other.volume_shape != shape):
-                raise ValueError("Trying to concatenate two Parcels defined " +
+                raise ValueError("Trying to concatenate two Parcels defined "
                                  "in a different brain volume")
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
@@ -1290,7 +1290,7 @@ class Series(Axis):
                           nelements, self.unit)
         elif isinstance(item, integer_types):
             return self.get_element(item)
-        raise IndexError('Series can only be indexed with integers or slices ' +
+        raise IndexError('Series can only be indexed with integers or slices '
                          'without breaking the regular structure')
 
     def get_element(self, index):
