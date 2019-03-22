@@ -736,8 +736,8 @@ class Parcels(Axis):
         for name, voxels, vertices in zip(self.name, self.voxels, self.vertices):
             cifti_voxels = cifti2.Cifti2VoxelIndicesIJK(voxels)
             element = cifti2.Cifti2Parcel(name, cifti_voxels)
-            for name, idx_vertices in vertices.items():
-                element.vertices.append(cifti2.Cifti2Vertices(name, idx_vertices))
+            for name_vertex, idx_vertices in vertices.items():
+                element.vertices.append(cifti2.Cifti2Vertices(name_vertex, idx_vertices))
             mim.append(element)
         return mim
 
@@ -783,7 +783,8 @@ class Parcels(Axis):
     def __eq__(self, other):
         if (self.__class__ != other.__class__ or len(self) != len(other) or
                 not np.array_equal(self.name, other.name) or self.nvertices != other.nvertices or
-                any(not np.array_equal(vox1, vox2) for vox1, vox2 in zip(self.voxels, other.voxels))):
+                any(not np.array_equal(vox1, vox2)
+                    for vox1, vox2 in zip(self.voxels, other.voxels))):
             return False
         if self.affine is not None:
             if (
@@ -857,7 +858,7 @@ class Parcels(Axis):
         if isinstance(item, integer_types):
             return self.get_element(item)
         return self.__class__(self.name[item], self.voxels[item], self.vertices[item],
-                          self.affine, self.volume_shape, self.nvertices)
+                              self.affine, self.volume_shape, self.nvertices)
 
     def get_element(self, index):
         """
