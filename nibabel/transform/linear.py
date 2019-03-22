@@ -215,22 +215,27 @@ FixedParameters: 0 0 0\n""".format
         return super(Affine, self).to_filename(filename, fmt=fmt)
 
 
-def load(filename, reference=None):
+def load(filename, fmt='X5', reference=None):
     ''' Load a linear transform '''
-    with open(filename) as itkfile:
-        itkxfm = itkfile.read().splitlines()
 
-    parameters = np.fromstring(itkxfm[3].split(':')[-1].strip(), dtype=float, sep=' ')
-    offset = np.fromstring(itkxfm[4].split(':')[-1].strip(), dtype=float, sep=' ')
-    if len(parameters) == 12:
-        matrix = from_matvec(parameters[:9].reshape((3, 3)), parameters[9:])
-        c_neg = from_matvec(np.eye(3), offset * -1.0)
-        c_pos = from_matvec(np.eye(3), offset)
-        matrix = LPS.dot(c_pos.dot(matrix.dot(c_neg.dot(LPS))))
+    if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
+        with open(filename) as itkfile:
+            itkxfm = itkfile.read().splitlines()
+
+        parameters = np.fromstring(itkxfm[3].split(':')[-1].strip(), dtype=float, sep=' ')
+        offset = np.fromstring(itkxfm[4].split(':')[-1].strip(), dtype=float, sep=' ')
+        if len(parameters) == 12:
+            matrix = from_matvec(parameters[:9].reshape((3, 3)), parameters[9:])
+            c_neg = from_matvec(np.eye(3), offset * -1.0)
+            c_pos = from_matvec(np.eye(3), offset)
+            matrix = LPS.dot(c_pos.dot(matrix.dot(c_neg.dot(LPS))))
+
+    # if fmt.lower() == 'afni':
+    #     parameters = LPS.dot(self.matrix.dot(LPS))
+    #     parameters = parameters[:3, :].reshape(-1).tolist()
 
     if reference and isinstance(reference, str):
         reference = loadimg(reference)
-
     return Affine(matrix, reference)
 
 
