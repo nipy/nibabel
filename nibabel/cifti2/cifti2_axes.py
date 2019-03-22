@@ -959,7 +959,7 @@ class Scalar(Axis):
         """
         if not isinstance(other, Scalar) or self.size != other.size:
             return False
-        return (self.name == other.name).all() and (self.meta == other.meta).all()
+        return np.array_equal(self.name, other.name) and np.array_equal(self.meta, other.meta)
 
     def __add__(self, other):
         """
@@ -1100,9 +1100,9 @@ class Label(Axis):
         if not isinstance(other, Label) or self.size != other.size:
             return False
         return (
-                (self.name == other.name).all() and
-                (self.meta == other.meta).all() and
-                (self.label == other.label).all()
+                np.array_equal(self.name, other.name) and
+                np.array_equal(self.meta, other.meta) and
+                np.array_equal(self.label, other.label)
         )
 
     def __add__(self, other):
