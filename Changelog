@@ -18,9 +18,10 @@ The full VCS changelog is available here:
 Nibabel releases
 ****************
 
-Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
-Ben Cipollini (BC), Marc-Alexandre Côté (MC), Chris Markiewicz (CM), Stephan
-Gerhard (SG), Eric Larson (EL), Yaroslav Halchenko (YOH) and Chris Cheng (CC).
+Most work on NiBabel so far has been by Matthew Brett (MB), Chris Markiewicz
+(CM), Michael Hanke (MH), Marc-Alexandre Côté (MC), Ben Cipollini (BC), Paul
+McCarthy (PM), Chris Cheng (CC), Yaroslav Halchenko (YOH), Satra Ghosh (SG),
+Eric Larson (EL), Demien Wasserman, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
@@ -116,16 +117,16 @@ Enhancements
 * Simplfiy MGHImage and add footer fields (pr/569) (CM, reviewed by MB)
 * Force sform/qform codes to be ints, rather than numpy types (pr/575) (Paul
   McCarthy, reviewed by MB, CM)
-* Auto-fill color table in FreeSurfer annotation file (pr/592) (Paul McCarthy,
+* Auto-fill color table in FreeSurfer annotation file (pr/592) (PM,
   reviewed by CM, MB)
 * Set default intent code for CIFTI2 images (pr/604) (Mathias Goncalves,
-  reviewed by CM, Satra Ghosh, MB, Tim Coalson)
+  reviewed by CM, SG, MB, Tim Coalson)
 * Raise informative error on empty files (pr/611) (Pradeep Raamana, reviewed
   by CM, MB)
 * Accept degenerate filenames such as ``.nii`` (pr/621) (Dimitri
   Papadopoulos-Orfanos, reviewed by Yaroslav Halchenko)
 * Take advantage of ``IndexedGzipFile`` ``drop_handles`` flag to release
-  filehandles by default (pr/614) (Paul McCarthy, reviewed by CM, MB)
+  filehandles by default (pr/614) (PM, reviewed by CM, MB)
 
 Bug fixes
 ---------
@@ -135,7 +136,7 @@ Bug fixes
   CM, MB)
 * Accept lower-case orientation codes in TRK files (pr/600) (Kesshi Jordan,
   MB, reviewed by MB, MC, CM)
-* Annotation file reading (pr/592) (Paul McCarthy, reviewed by CM, MB)
+* Annotation file reading (pr/592) (PM, reviewed by CM, MB)
 * Fix buffer size calculation in ArraySequence (pr/597) (Serge Koudoro,
   reviewed by MC, MB, Eleftherios Garyfallidis, CM)
 * Resolve ``UnboundLocalError`` in Python 3 (pr/607) (Jakub Kaczmarzyk,
@@ -175,14 +176,14 @@ Bug fixes
 
 * Set L/R labels in orthoview correctly (pr/564) (CM)
 * Defer use of ufunc / memmap test - allows "freezing" (pr/572) (MB, reviewed
-  by Satra Ghosh)
+  by SG)
 * Fix doctest failures with pre-release numpy (pr/582) (MB, reviewed by CM)
 
 Maintenance
 -----------
 
-* Update documentation around NIfTI qform/sform codes (pr/576) (Paul McCarthy,
-  reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by Paul McCarthy)
+* Update documentation around NIfTI qform/sform codes (pr/576) (PM,
+  reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by PM)
 * Skip precision test on macOS, newer numpy (pr/583) (MB, reviewed by CM)
 * Simplify AppVeyor script, removing conda (pr/584) (MB, reviewed by CM)
 
@@ -192,12 +193,11 @@ Maintenance
 New features
 ------------
 
-* CIFTI support (pr/249) (Satra Ghosh, Michiel Cottaar, BC, CM, Demian
-  Wassermann, MB)
+* CIFTI support (pr/249) (SG, Michiel Cottaar, BC, CM, Demian Wasserman, MB)
 * Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
   MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
 * Added ``get_fdata()`` as default method to retrieve scaled floating point
-  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, Satra Ghosh)
+  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, SG)
 
 Enhancements
 ------------
@@ -211,19 +211,19 @@ Enhancements
 * Allow dtype specifiers as fileslice input (pr/485) (MB)
 * Support "headerless" ArrayProxy specification, enabling memory-efficient
   ArrayProxy reshaping (pr/521) (CM)
-* Allow unknown NIfTI intent codes, add FSL codes (pr/528) (Paul McCarthy)
+* Allow unknown NIfTI intent codes, add FSL codes (pr/528) (PM)
 * Improve error handling for ``img.__getitem__`` (pr/533) (Ariel Rokem)
 * Delegate reorientation to SpatialImage classes (pr/544) (Mark Hymers, CM,
   reviewed by MB)
 * Enable using ``indexed_gzip`` to reduce memory usage when reading from
-  gzipped NIfTI and MGH files (pr/552) (Paul McCarthy, reviewed by MB, CM)
+  gzipped NIfTI and MGH files (pr/552) (PM, reviewed by MB, CM)
 
 Bug fixes
 ---------
 
 * Miscellaneous MINC reader fixes (pr/493) (Robert D. Vincent, reviewed by CM,
   MB)
-* Fix corner case in ``wrapstruct.get`` (pr/516) (Paul McCarthy, reviewed by
+* Fix corner case in ``wrapstruct.get`` (pr/516) (PM, reviewed by
   CM, MB)
 
 Maintenance
@@ -524,7 +524,7 @@ Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 
 * New feature release
 * Python 3.2 support
-* Substantially enhanced gifti reading support (SG)
+* Substantially enhanced gifti reading support (Stephan Gerhard)
 * Refactoring of trackvis read / write to allow reading and writing of voxel
   points and mm points in tracks.  Deprecate use of negative voxel sizes;
   set voxel_order field in trackvis header.  Thanks to Chris Filo
