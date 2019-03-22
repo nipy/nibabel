@@ -180,7 +180,7 @@ Transform: MatrixOffsetTransformBase_double_3_3
 Parameters: {}
 FixedParameters: 0 0 0\n""".format
             with open(filename, 'w') as f:
-                f.write(itkfmt(' '.join(['%g' for p in parameters])))
+                f.write(itkfmt(' '.join(['%g' % p for p in parameters])))
             return filename
 
         if fmt.lower() == 'afni':
