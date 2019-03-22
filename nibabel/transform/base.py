@@ -78,10 +78,10 @@ class ImageSpace(object):
                             coordinates, axes=1)[:3, ...]
 
     def _to_hdf5(self, group):
-        group['Type'] = 'image'
+        group.attrs['Type'] = 'image'
+        group.attrs['ndim'] = self.ndim
         group.create_dataset('affine', data=self.affine)
         group.create_dataset('shape', data=self.shape)
-        group.create_dataset('ndim', data=self.ndim)
 
     def __eq__(self, other):
         try:
@@ -188,8 +188,8 @@ class TransformBase(object):
         '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
         '''
         with h5py.File(filename, 'w') as out_file:
-            out_file['Format'] = 'X5'
-            out_file['Version'] = np.uint16(1)
+            out_file.attrs['Format'] = 'X5'
+            out_file.attrs['Version'] = np.uint16(1)
             root = out_file.create_group('/0')
             self._to_hdf5(root)
 

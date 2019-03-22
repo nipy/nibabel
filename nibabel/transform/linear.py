@@ -48,14 +48,19 @@ class Affine(TransformBase):
 
         '''
         if matrix is None:
-            matrix = np.eye(4)
+            matrix = [np.eye(4)]
+
+        if np.ndim(matrix) == 2:
+            matrix = [matrix]
 
         self._matrix = np.array(matrix)
-        assert self._matrix.ndim in (2, 3), 'affine matrix should be 2D or 3D'
-        assert self._matrix.shape[0] == self._matrix.shape[1], 'affine matrix is not square'
+        assert self._matrix.ndim == 3, 'affine matrix should be 3D'
+        assert self._matrix.shape[-2] == self._matrix.shape[-1], 'affine matrix is not square'
         super(Affine, self).__init__()
 
         if reference:
+            if isinstance(reference, str):
+                reference = loadimg(reference)
             self.reference = reference
 
     @property
@@ -116,28 +121,55 @@ class Affine(TransformBase):
                   file=sys.stderr)
             reference = moving
 
-        # Compose an index to index affine matrix
-        matrix = np.linalg.inv(moving.affine).dot(self._matrix.dot(reference.affine))
-        mdata = moving.get_data()
-        moved = ndi.affine_transform(
-            mdata, matrix=matrix[:mdata.ndim, :mdata.ndim],
-            offset=matrix[:mdata.ndim, mdata.ndim],
-            output_shape=reference.shape, order=order, mode=mode,
-            cval=cval, prefilter=prefilter)
+        nvols = 1
+        if len(moving.shape) > 3:
+            nvols = moving.shape[3]
 
-        moved_image = moving.__class__(moved, reference.affine, moving.header)
+        movaff = moving.affine
+        movingdata = moving.get_data()
+        if nvols == 1:
+            movingdata = movingdata[..., np.newaxis]
+
+        nmats = self._matrix.shape[0]
+        if nvols != nmats and nmats > 1:
+            raise ValueError("""\
+The moving image contains {0} volumes, while the transform is defined for \
+{1} volumes""".format(nvols, nmats))
+
+        singlemat = None
+        if nmats == 1:
+            singlemat = np.linalg.inv(movaff).dot(self._matrix[0].dot(reference.affine))
+
+        if singlemat is not None and nvols > nmats:
+            print('Warning: resampling a 4D volume with a single affine matrix',
+                  file=sys.stderr)
+
+        # Compose an index to index affine matrix
+        moved = []
+        for i in range(nvols):
+            i2imat = singlemat if singlemat is not None else np.linalg.inv(
+                movaff).dot(self._matrix[i].dot(reference.affine))
+            mdata = movingdata[..., i]
+            moved += [ndi.affine_transform(
+                mdata, matrix=i2imat[:-1, :-1],
+                offset=i2imat[:-1, -1],
+                output_shape=reference.shape, order=order, mode=mode,
+                cval=cval, prefilter=prefilter)]
+
+        moved_image = moving.__class__(
+            np.squeeze(np.stack(moved, -1)), reference.affine, moving.header)
         moved_image.header.set_data_dtype(output_dtype)
 
         return moved_image
 
-    def map_point(self, coords, forward=True):
+    def map_point(self, coords, index=0, forward=True):
         coords = np.array(coords)
-        if coords.shape[0] == self._matrix.shape[0] - 1:
+        if coords.shape[0] == self._matrix[index].shape[0] - 1:
             coords = np.append(coords, [1])
-        affine = self._matrix if forward else np.linalg.inv(self._matrix)
+        affine = self._matrix[index] if forward else np.linalg.inv(self._matrix[index])
         return affine.dot(coords)[:-1]
 
-    def map_voxel(self, index, moving=None):
+    def map_voxel(self, index, nindex=0, moving=None):
         try:
             reference = self.reference
         except ValueError:
@@ -152,16 +184,16 @@ class Affine(TransformBase):
                 raise ValueError('Reference and moving spaces are both undefined')
 
         index = np.array(index)
-        if index.shape[0] == self._matrix.shape[0] - 1:
+        if index.shape[0] == self._matrix[nindex].shape[0] - 1:
             index = np.append(index, [1])
 
-        matrix = reference.affine.dot(self._matrix.dot(np.linalg.inv(moving.affine)))
+        matrix = reference.affine.dot(self._matrix[nindex].dot(np.linalg.inv(moving.affine)))
         return tuple(matrix.dot(index)[:-1])
 
     def _to_hdf5(self, x5_root):
-        x5_root.create_dataset('Transform', data=self._matrix[:3, :])
-        x5_root.create_dataset('Inverse', data=np.linalg.inv(self._matrix)[:3, :])
-        x5_root['Type'] = 'affine'
+        xform = x5_root.create_dataset('Transform', data=self._matrix)
+        xform.attrs['Type'] = 'affine'
+        x5_root.create_dataset('Inverse', data=np.linalg.inv(self._matrix))
 
         if self._reference:
             self.reference._to_hdf5(x5_root.create_group('Reference'))
@@ -171,24 +203,26 @@ class Affine(TransformBase):
         '''
 
         if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
-            parameters = LPS.dot(self.matrix.dot(LPS))
-            parameters = parameters[:3, :3].reshape(-1).tolist() + parameters[:3, 3].tolist()
-            itkfmt = """\
-#Insight Transform File V1.0
-#Transform 0
-Transform: MatrixOffsetTransformBase_double_3_3
-Parameters: {}
-FixedParameters: 0 0 0\n""".format
             with open(filename, 'w') as f:
-                f.write(itkfmt(' '.join(['%g' % p for p in parameters])))
+                f.write('#Insight Transform File V1.0\n')
+
+                for i in range(self.matrix.shape[0]):
+                    parameters = LPS.dot(self.matrix[i].dot(LPS))
+                    parameters = parameters[:3, :3].reshape(-1).tolist() + \
+                        parameters[:3, 3].tolist()
+                    itkfmt = """\
+#Transform {0}
+Transform: MatrixOffsetTransformBase_double_3_3
+Parameters: {1}
+FixedParameters: 0 0 0\n""".format
+                    f.write(itkfmt(i, ' '.join(['%g' % p for p in parameters])))
             return filename
 
         if fmt.lower() == 'afni':
-            parameters = LPS.dot(self.matrix.dot(LPS))
-            parameters = parameters[:3, :].reshape(-1).tolist()
-            np.savetxt(filename, np.atleast_2d(parameters),
-                       delimiter='\t', header="""\
-3dvolreg matrices (DICOM-to-DICOM, row-by-row):""")
+            parameters = np.swapaxes(LPS.dot(self.matrix.dot(LPS)), 0, 1)
+            parameters = parameters[:, :3, :].reshape((self.matrix.shape[0], -1))
+            np.savetxt(filename, parameters, delimiter='\t', header="""\
+3dvolreg matrices (DICOM-to-DICOM, row-by-row):""", fmt='%g')
             return filename
 
         if fmt.lower() == 'fsl':
@@ -209,8 +243,15 @@ FixedParameters: 0 0 0\n""".format
                 moving.affine)))
 
             # Compose FSL transform
-            mat = np.linalg.inv(post.dot(self.matrix.dot(pre)))
-            np.savetxt(filename, mat, delimiter=' ', fmt='%g')
+            mat = np.linalg.inv(
+                np.swapaxes(post.dot(self.matrix.dot(pre)), 0, 1))
+
+            if self.matrix.shape[0] > 1:
+                for i in range(self.matrix.shape[0]):
+                    np.savetxt('%s.%03d' % (filename, i), mat[i],
+                               delimiter=' ', fmt='%g')
+            else:
+                np.savetxt(filename, mat[0], delimiter=' ', fmt='%g')
             return filename
         return super(Affine, self).to_filename(filename, fmt=fmt)
 
@@ -222,17 +263,29 @@ def load(filename, fmt='X5', reference=None):
         with open(filename) as itkfile:
             itkxfm = itkfile.read().splitlines()
 
-        parameters = np.fromstring(itkxfm[3].split(':')[-1].strip(), dtype=float, sep=' ')
-        offset = np.fromstring(itkxfm[4].split(':')[-1].strip(), dtype=float, sep=' ')
-        if len(parameters) == 12:
-            matrix = from_matvec(parameters[:9].reshape((3, 3)), parameters[9:])
-            c_neg = from_matvec(np.eye(3), offset * -1.0)
-            c_pos = from_matvec(np.eye(3), offset)
-            matrix = LPS.dot(c_pos.dot(matrix.dot(c_neg.dot(LPS))))
+        if 'Insight Transform File' not in itkxfm[0]:
+            raise ValueError(
+                "File %s does not look like an ITK transform text file." % filename)
 
-    # if fmt.lower() == 'afni':
+        matlist = []
+        for nxfm in range(len(itkxfm[1:]) // 4):
+            parameters = np.fromstring(itkxfm[nxfm * 4 + 3].split(':')[-1].strip(),
+                                       dtype=float, sep=' ')
+            offset = np.fromstring(itkxfm[nxfm * 4 + 4].split(':')[-1].strip(),
+                                   dtype=float, sep=' ')
+            if len(parameters) == 12:
+                matrix = from_matvec(parameters[:9].reshape((3, 3)), parameters[9:])
+                c_neg = from_matvec(np.eye(3), offset * -1.0)
+                c_pos = from_matvec(np.eye(3), offset)
+                matlist.append(LPS.dot(c_pos.dot(matrix.dot(c_neg.dot(LPS)))))
+        matrix = np.stack(matlist)
+    # elif fmt.lower() == 'afni':
     #     parameters = LPS.dot(self.matrix.dot(LPS))
     #     parameters = parameters[:3, :].reshape(-1).tolist()
+    elif fmt.lower() in ('x5', 'bids'):
+        raise NotImplementedError
+    else:
+        raise NotImplementedError
 
     if reference and isinstance(reference, str):
         reference = loadimg(reference)
