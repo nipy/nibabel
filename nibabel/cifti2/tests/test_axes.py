@@ -171,10 +171,9 @@ def test_brain_models():
 
     # Test the constructor
     bm_vox = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
-    print(bm_vox.name)
-    assert np.all(bm_vox.name == np.full(5, 'CIFTI_STRUCTURE_THALAMUS_LEFT'))
-    assert np.all(bm_vox.vertex == np.full(5, -1))
-    assert np.all(bm_vox.voxel == np.full((5, 3), 1))
+    assert np.all(bm_vox.name == ['CIFTI_STRUCTURE_THALAMUS_LEFT'] * 5)
+    assert np.array_equal(bm_vox.vertex, np.full(5, -1))
+    assert np.array_equal(bm_vox.voxel, np.full((5, 3), 1))
     with assert_raises(ValueError):
         # no volume shape
         axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4))
@@ -195,9 +194,9 @@ def test_brain_models():
         axes.BrainModel('thalamus_left', voxel=np.ones((5, 2), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
 
     bm_vertex = axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
-    assert np.all(bm_vertex.name == np.full(5, 'CIFTI_STRUCTURE_CORTEX_LEFT'))
-    assert np.all(bm_vertex.vertex == np.full(5, 1))
-    assert np.all(bm_vertex.voxel == np.full((5, 3), -1))
+    assert np.array_equal(bm_vertex.name, ['CIFTI_STRUCTURE_CORTEX_LEFT'] * 5)
+    assert np.array_equal(bm_vertex.vertex, np.full(5, 1))
+    assert np.array_equal(bm_vertex.voxel, np.full((5, 3), -1))
     with assert_raises(ValueError):
         axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int))
     with assert_raises(ValueError):
