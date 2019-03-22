@@ -1149,15 +1149,6 @@ class Series(Axis):
     Along this axis of the CIFTI vector/matrix the rows/columns increase monotonously in time
 
     This Axis describes the time point of each row/column.
-
-    Attributes
-    ----------
-    start : float
-        starting time point
-    step :  float
-        sampling time (TR)
-    size : int
-        number of time points
     """
     size = None
 
@@ -1168,11 +1159,11 @@ class Series(Axis):
         Parameters
         ----------
         start : float
-            Time of the first datapoint
-        step : float
-            Step size between data points
+            starting time point
+        step :  float
+            sampling time (TR)
         size : int
-            Number of data points
+            number of time points
         unit : str
             Unit of the step size (one of 'second', 'hertz', 'meter', or 'radian')
         """
