@@ -395,7 +395,9 @@ def test_series():
     assert (sr[0][1:-1:2].time == sr[0].time[1:-1:2]).all()
     assert (sr[0][::2].time == sr[0].time[::2]).all()
     assert (sr[0][:10:2].time == sr[0].time[::2]).all()
-    assert (sr[0][10::-1].time == sr[0].time[::-1]).all()
+    assert (sr[0][10:].time == sr[0].time[10:]).all()
+    assert (sr[0][10:12].time == sr[0].time[10:12]).all()
+    assert (sr[0][10::-1].time == sr[0].time[10::-1]).all()
     assert (sr[0][3:1:-1].time == sr[0].time[3:1:-1]).all()
     assert (sr[0][1:3:-1].time == sr[0].time[1:3:-1]).all()
 

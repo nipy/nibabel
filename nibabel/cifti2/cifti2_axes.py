@@ -1305,7 +1305,7 @@ class Series(Axis):
             idx_end = ((-1 if step < 0 else self.size)
                        if item.stop is None else
                        (item.stop if item.stop >= 0 else self.size + item.stop))
-            if idx_start > self.size:
+            if idx_start > self.size and step < 0:
                 idx_start = self.size - 1
             if idx_end > self.size:
                 idx_end = self.size
