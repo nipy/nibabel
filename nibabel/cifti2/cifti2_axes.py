@@ -1227,27 +1227,6 @@ class Series(Axis):
                              "('second', 'hertz', 'meter', or 'radian'")
         self._unit = value.upper()
 
-    def extend(self, other_axis):
-        """
-        Concatenates two Series
-
-        Note: this will ignore the start point of the other axis
-
-        Parameters
-        ----------
-        other_axis : Series
-            other axis
-
-        Returns
-        -------
-        Series
-        """
-        if other_axis.step != self.step:
-            raise ValueError('Can only concatenate Series with the same step size')
-        if other_axis.unit != self.unit:
-            raise ValueError('Can only concatenate Series with the same unit')
-        return Series(self.start, self.step, self.size + other_axis.size, self.unit)
-
     def __len__(self):
         return self.size
 
@@ -1284,7 +1263,11 @@ class Series(Axis):
             raised if the repetition time of the two time Series is different
         """
         if isinstance(other, Series):
-            return self.extend(other)
+            if other.step != self.step:
+                raise ValueError('Can only concatenate Series with the same step size')
+            if other.unit != self.unit:
+                raise ValueError('Can only concatenate Series with the same unit')
+            return Series(self.start, self.step, self.size + other.size, self.unit)
         return NotImplemented
 
     def __getitem__(self, item):
