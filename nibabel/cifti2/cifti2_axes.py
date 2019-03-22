@@ -605,6 +605,13 @@ class Parcels(Axis):
             maps names of surface elements to integers (not needed for volumetric CIFTI files)
         """
         self.name = np.asanyarray(name, dtype='U')
+        as_array = np.asanyarray(voxels)
+        if as_array.ndim == 1:
+            voxels = as_array.astype('object')
+        else:
+            voxels = np.empty(len(voxels), dtype='object')
+            for idx in range(len(voxels)):
+                voxels[idx] = as_array[idx]
         self.voxels = np.asanyarray(voxels, dtype='object')
         self.vertices = np.asanyarray(vertices, dtype='object')
         self.affine = affine
@@ -649,10 +656,9 @@ class Parcels(Axis):
                 if affine is None:
                     affine = bm.affine
                     volume_shape = bm.volume_shape
-                else:
-                    if not np.allclose(affine, bm.affine) or (volume_shape != bm.volume_shape):
-                        raise ValueError("Can not combine brain models defined in different "
-                                         "volumes into a single Parcel axis")
+                elif not np.allclose(affine, bm.affine) or (volume_shape != bm.volume_shape):
+                    raise ValueError("Can not combine brain models defined in different "
+                                     "volumes into a single Parcel axis")
             all_voxels[idx_parcel] = voxels
 
             vertices = {}

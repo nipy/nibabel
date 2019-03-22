@@ -269,6 +269,11 @@ def test_brain_models():
     assert bm_vox != bm_other
 
     bm_other = deepcopy(bm_vox)
+    bm_other.affine = None
+    assert bm_vox != bm_other
+    assert bm_other != bm_vox
+
+    bm_other = deepcopy(bm_vox)
     bm_other.volume_shape = (10, 3, 4)
     assert bm_vox != bm_other
 
@@ -381,12 +386,23 @@ def test_parcels():
     assert prc != prc_other
 
     prc_other = deepcopy(prc)
+    prc_other.affine = None
+    assert prc != prc_other
+    assert prc_other != prc
+    assert (prc + prc_other).affine is not None
+    assert (prc_other + prc).affine is not None
+
+    prc_other = deepcopy(prc)
     prc_other.volume_shape = (10, 3, 4)
     assert prc != prc_other
+    with assert_raises(ValueError):
+        prc + prc_other
 
     prc_other = deepcopy(prc)
     prc_other.nvertices['CIFTI_STRUCTURE_CORTEX_LEFT'] = 80
     assert prc != prc_other
+    with assert_raises(ValueError):
+        prc + prc_other
 
     prc_other = deepcopy(prc)
     prc_other.voxels[0] = np.ones((2, 3), dtype='i4')
@@ -407,6 +423,24 @@ def test_parcels():
     prc_other = deepcopy(prc)
     prc_other.name[0] = 'new_name'
     assert prc != prc_other
+
+    # test direct initialisation
+    axes.Parcels(
+            voxels=[np.ones((3, 2), dtype=int)],
+            vertices=[{}],
+            name=['single_voxel'],
+            affine=np.eye(4),
+            volume_shape=(2, 3, 4),
+    )
+
+    with assert_raises(ValueError):
+        axes.Parcels(
+                voxels=[np.ones((3, 2), dtype=int)],
+                vertices=[{}],
+                name=[['single_voxel']],  # wrong shape name array
+                affine=np.eye(4),
+                volume_shape=(2, 3, 4),
+        )
 
 
 def test_scalar():
@@ -430,7 +464,9 @@ def test_scalar():
     assert 'a' not in sc.meta
 
     # test equalities
-    assert sc != get_parcels()
+    assert sc != get_label()
+    with assert_raises(Exception):
+        sc + get_label()
 
     sc_other = deepcopy(sc)
     assert sc == sc_other
@@ -444,6 +480,15 @@ def test_scalar():
     assert sc != sc_other
     sc.meta[0]['new_key'] = 'new_entry'
     assert sc == sc_other
+
+    # test constructor
+    assert axes.Scalar(['scalar_name'], [{}]) == axes.Scalar(['scalar_name'])
+
+    with assert_raises(ValueError):
+        axes.Scalar([['scalar_name']])  # wrong shape
+
+    with assert_raises(ValueError):
+        axes.Scalar(['scalar_name'], [{}, {}])  # wrong size
 
 
 def test_label():
@@ -468,6 +513,8 @@ def test_label():
     # test equalities
     lab = get_label()
     assert lab != get_scalar()
+    with assert_raises(Exception):
+        lab + get_scalar()
 
     other_lab = deepcopy(lab)
     assert lab != other_lab[:2]
@@ -488,6 +535,15 @@ def test_label():
     assert 20 not in other_lab.label[1]
     lab.label[0][20] = ('new_label', (0, 0, 0, 1))
     assert lab == other_lab
+
+    # test constructor
+    assert axes.Label(['scalar_name'], [{}], [{}]) == axes.Label(['scalar_name'], [{}])
+
+    with assert_raises(ValueError):
+        axes.Label([['scalar_name']], [{}])  # wrong shape
+
+    with assert_raises(ValueError):
+        axes.Label(['scalar_name'], [{}, {}])  # wrong size
 
 
 def test_series():
@@ -533,8 +589,17 @@ def test_series():
     assert (sr[0][3:1:-1].time == sr[0].time[3:1:-1]).all()
     assert (sr[0][1:3:-1].time == sr[0].time[1:3:-1]).all()
 
+    with assert_raises(IndexError):
+        assert sr[0][[0, 1]]
+    with assert_raises(IndexError):
+        assert sr[0][20]
+    with assert_raises(IndexError):
+        assert sr[0][-20]
+
     # test_equalities
     sr = next(get_series())
+    with assert_raises(Exception):
+        sr + get_scalar()
     assert sr != sr[:2]
     assert sr == sr[:]
 
