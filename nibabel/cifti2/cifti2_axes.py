@@ -1,5 +1,5 @@
 import numpy as np
-from nibabel.cifti2 import cifti2
+from . import cifti2
 from six import string_types, add_metaclass, integer_types
 from operator import xor
 import abc
@@ -650,7 +650,7 @@ class Parcels(Axis):
                     affine = bm.affine
                     volume_shape = bm.volume_shape
                 else:
-                    if (affine != bm.affine).any() or (volume_shape != bm.volume_shape):
+                    if not np.allclose(affine, bm.affine) or (volume_shape != bm.volume_shape):
                         raise ValueError("Can not combine brain models defined in different " +
                                          "volumes into a single Parcel axis")
             all_voxels[idx_parcel] = voxels
@@ -695,7 +695,7 @@ class Parcels(Axis):
             nvoxels = 0 if parcel.voxel_indices_ijk is None else len(parcel.voxel_indices_ijk)
             voxels = np.zeros((nvoxels, 3), dtype='i4')
             if nvoxels != 0:
-                voxels[()] = parcel.voxel_indices_ijk
+                voxels[:] = parcel.voxel_indices_ijk
             vertices = {}
             for vertex in parcel.vertices:
                 name = vertex.brain_structure
@@ -710,7 +710,7 @@ class Parcels(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the Parsel to a MatrixIndicesMap for storage in CIFTI format
+        Converts the Parcel to a MatrixIndicesMap for storage in CIFTI format
 
         Parameters
         ----------
@@ -776,7 +776,7 @@ class Parcels(Axis):
 
     def __eq__(self, other):
         if (self.__class__ != other.__class__ or len(self) != len(other) or
-                (self.name != other.name).all() or self.nvertices != other.nvertices or
+                not np.array_equal(self.name, other.name) or self.nvertices != other.nvertices or
                 any((vox1 != vox2).any() for vox1, vox2 in zip(self.voxels, other.voxels))):
             return False
         if self.affine is not None:
@@ -815,14 +815,14 @@ class Parcels(Axis):
             affine, shape = other.affine, other.volume_shape
         else:
             affine, shape = self.affine, self.volume_shape
-            if other.affine is not None and ((other.affine != affine).all() or
+            if other.affine is not None and (not np.allclose(other.affine, affine) or
                                              other.volume_shape != shape):
                 raise ValueError("Trying to concatenate two Parcels defined " +
                                  "in a different brain volume")
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError("Trying to concatenate two Parcels with inconsistent " +
+                raise ValueError("Trying to concatenate two Parcels with inconsistent "
                                  "number of vertices for %s"
                                  % name)
             nvertices[name] = value
@@ -850,7 +850,7 @@ class Parcels(Axis):
             return self.voxels[idx[0]], self.vertices[idx[0]]
         if isinstance(item, integer_types):
             return self.get_element(item)
-        return type(self)(self.name[item], self.voxels[item], self.vertices[item],
+        return self.__class__(self.name[item], self.voxels[item], self.vertices[item],
                           self.affine, self.volume_shape, self.nvertices)
 
     def get_element(self, index):
@@ -1334,7 +1334,7 @@ class Series(Axis):
         """
         if index < 0:
             index = self.size + index
-        if index >= self.size:
+        if index >= self.size or index < 0:
             raise IndexError("index %i is out of range for Series with size %i" %
                              (index, self.size))
         return self.start + self.step * index
