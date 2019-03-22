@@ -777,12 +777,12 @@ class Parcels(Axis):
     def __eq__(self, other):
         if (self.__class__ != other.__class__ or len(self) != len(other) or
                 not np.array_equal(self.name, other.name) or self.nvertices != other.nvertices or
-                any((vox1 != vox2).any() for vox1, vox2 in zip(self.voxels, other.voxels))):
+                any(not np.array_equal(vox1, vox2) for vox1, vox2 in zip(self.voxels, other.voxels))):
             return False
         if self.affine is not None:
             if (
                     other.affine is None or
-                    abs(self.affine - other.affine).max() > 1e-8 or
+                    not np.allclose(self.affine, other.affine) or
                     self.volume_shape != other.volume_shape
             ):
                 return False
@@ -792,7 +792,7 @@ class Parcels(Axis):
             if len(vert1) != len(vert2):
                 return False
             for name in vert1.keys():
-                if name not in vert2 or (vert1[name] != vert2[name]).all():
+                if name not in vert2 or not np.array_equal(vert1[name], vert2[name]):
                     return False
         return True
 
@@ -1021,7 +1021,7 @@ class Label(Axis):
         """
         self.name = np.asanyarray(name, dtype='U')
         if isinstance(label, dict):
-            label = [label] * self.name.size
+            label = [label.copy() for _ in range(self.name.size)]
         self.label = np.asanyarray(label, dtype='object')
         if meta is None:
             meta = [{} for _ in range(self.name.size)]

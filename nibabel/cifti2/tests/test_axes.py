@@ -2,6 +2,7 @@ import numpy as np
 from nose.tools import assert_raises
 from .test_cifti2io_axes import check_rewrite
 import nibabel.cifti2.cifti2_axes as axes
+from copy import deepcopy
 
 
 rand_affine = np.random.randn(4, 4)
@@ -247,6 +248,55 @@ def test_brain_models():
     with assert_raises(ValueError):
         axes.Parcels.from_brain_models([('a', bm_vertex), ('b', bm_other_number)])
 
+    # test equalities
+    bm_vox = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int),
+                             affine=np.eye(4), volume_shape=(2, 3, 4))
+    bm_other = deepcopy(bm_vox)
+    assert bm_vox == bm_other
+    bm_other.voxel[1, 0] = 0
+    assert bm_vox != bm_other
+
+    bm_other = deepcopy(bm_vox)
+    bm_other.vertex[1] = 10
+    assert bm_vox == bm_other, 'vertices are ignored in volumetric BrainModel'
+
+    bm_other = deepcopy(bm_vox)
+    bm_other.name[1] = 'BRAIN_STRUCTURE_OTHER'
+    assert bm_vox != bm_other
+
+    bm_other = deepcopy(bm_vox)
+    bm_other.affine[0, 0] = 10
+    assert bm_vox != bm_other
+
+    bm_other = deepcopy(bm_vox)
+    bm_other.volume_shape = (10, 3, 4)
+    assert bm_vox != bm_other
+
+    bm_vertex = axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
+    bm_other = deepcopy(bm_vertex)
+    assert bm_vertex == bm_other
+    bm_other.voxel[1, 0] = 0
+    assert bm_vertex == bm_other, 'voxels are ignored in surface BrainModel'
+
+    bm_other = deepcopy(bm_vertex)
+    bm_other.vertex[1] = 10
+    assert bm_vertex != bm_other
+
+    bm_other = deepcopy(bm_vertex)
+    bm_other.name[1] = 'BRAIN_STRUCTURE_CORTEX_RIGHT'
+    assert bm_vertex != bm_other
+
+    bm_other = deepcopy(bm_vertex)
+    bm_other.nvertices['BRAIN_STRUCTURE_CORTEX_LEFT'] = 50
+    assert bm_vertex != bm_other
+
+    bm_other = deepcopy(bm_vertex)
+    bm_other.nvertices['BRAIN_STRUCTURE_CORTEX_RIGHT'] = 20
+    assert bm_vertex != bm_other
+
+    assert bm_vox != get_parcels()
+    assert bm_vertex != get_parcels()
+
 
 def test_parcels():
     """
@@ -319,6 +369,45 @@ def test_parcels():
     with assert_raises(ValueError):
         prc + other_prc
 
+    # test parcel equalities
+    prc = get_parcels()
+    assert prc != get_scalar()
+
+    prc_other = deepcopy(prc)
+    assert prc == prc_other
+    assert prc != prc_other[:2]
+    assert prc == prc_other[:]
+    prc_other.affine[0, 0] = 10
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.volume_shape = (10, 3, 4)
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.nvertices['CIFTI_STRUCTURE_CORTEX_LEFT'] = 80
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.voxels[0] = np.ones((2, 3), dtype='i4')
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.voxels[0] = prc_other.voxels * 2
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.vertices[0]['CIFTI_STRUCTURE_CORTEX_LEFT'] = np.ones((8, ), dtype='i4')
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.vertices[0]['CIFTI_STRUCTURE_CORTEX_LEFT'] *= 2
+    assert prc != prc_other
+
+    prc_other = deepcopy(prc)
+    prc_other.name[0] = 'new_name'
+    assert prc != prc_other
+
 
 def test_scalar():
     """
@@ -336,6 +425,25 @@ def test_scalar():
     assert (sc2.meta == [{}] * 6).all()
     assert sc2[:3] == sc
     assert sc2[3:] == sc
+
+    sc.meta[1]['a'] = 3
+    assert 'a' not in sc.meta
+
+    # test equalities
+    assert sc != get_parcels()
+
+    sc_other = deepcopy(sc)
+    assert sc == sc_other
+    assert sc != sc_other[:2]
+    assert sc == sc_other[:]
+    sc_other.name[0] = 'new_name'
+    assert sc != sc_other
+
+    sc_other = deepcopy(sc)
+    sc_other.meta[0]['new_key'] = 'new_entry'
+    assert sc != sc_other
+    sc.meta[0]['new_key'] = 'new_entry'
+    assert sc == sc_other
 
 
 def test_label():
@@ -356,6 +464,30 @@ def test_label():
     assert (lab2.label == [use_label] * 6).all()
     assert lab2[:3] == lab
     assert lab2[3:] == lab
+
+    # test equalities
+    lab = get_label()
+    assert lab != get_scalar()
+
+    other_lab = deepcopy(lab)
+    assert lab != other_lab[:2]
+    assert lab == other_lab[:]
+    other_lab.name[0] = 'new_name'
+    assert lab != other_lab
+
+    other_lab = deepcopy(lab)
+    other_lab.meta[0]['new_key'] = 'new_item'
+    assert 'new_key' not in other_lab.meta[1]
+    assert lab != other_lab
+    lab.meta[0]['new_key'] = 'new_item'
+    assert lab == other_lab
+
+    other_lab = deepcopy(lab)
+    other_lab.label[0][20] = ('new_label', (0, 0, 0, 1))
+    assert lab != other_lab
+    assert 20 not in other_lab.label[1]
+    lab.label[0][20] = ('new_label', (0, 0, 0, 1))
+    assert lab == other_lab
 
 
 def test_series():
@@ -400,6 +532,22 @@ def test_series():
     assert (sr[0][10::-1].time == sr[0].time[10::-1]).all()
     assert (sr[0][3:1:-1].time == sr[0].time[3:1:-1]).all()
     assert (sr[0][1:3:-1].time == sr[0].time[1:3:-1]).all()
+
+    # test_equalities
+    sr = next(get_series())
+    assert sr != sr[:2]
+    assert sr == sr[:]
+
+    for key, value in (
+            ('start', 20),
+            ('step', 7),
+            ('size', 14),
+            ('unit', 'HERTZ'),
+    ):
+        sr_other = deepcopy(sr)
+        assert sr == sr_other
+        setattr(sr_other, key, value)
+        assert sr != sr_other
 
 
 def test_writing():
