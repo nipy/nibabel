@@ -1306,9 +1306,10 @@ class Series(Axis):
         -------
         float
         """
+        original_index = index
         if index < 0:
             index = self.size + index
         if index >= self.size or index < 0:
             raise IndexError("index %i is out of range for Series with size %i" %
-                             (index, self.size))
+                             (original_index, self.size))
         return self.start + self.step * index
