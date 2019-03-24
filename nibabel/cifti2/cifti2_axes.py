@@ -87,7 +87,7 @@ Parcels can be constructed from selections of these brain models:
 >>> parcel = cifti2.Parcels.from_brain_models([
 ...        ('surface_parcel', bm_cortex[:100]),  # contains first 100 cortical vertices
 ...        ('volume_parcel', bm_thal),  # contains thalamus
-...        ('combined_parcel', bm_full[[1, 8, 10, 50, 120, 127])  # contains selected voxels/vertices
+...        ('combined_parcel', bm_full[[1, 8, 10, 120, 127])  # contains selected voxels/vertices
 ...    ])  # doctest: +SKIP
 
 Time series are represented by their starting time (typically 0), step size
