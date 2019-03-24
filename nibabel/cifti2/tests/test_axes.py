@@ -125,33 +125,34 @@ def test_brain_models():
     assert (bml[4].voxel == -1).all()
     assert (bml[4].vertex == [2, 9, 14]).all()
 
-    for bm, label in zip(bml, ['ThalamusRight', 'Other', 'cortex_left', 'cortex']):
+    for bm, label, is_surface in zip(bml, ['ThalamusRight', 'Other', 'cortex_left', 'Other'],
+                                     (False, False, True, True)):
         structures = list(bm.iter_structures())
         assert len(structures) == 1
         name = structures[0][0]
         assert name == axes.BrainModel.to_cifti_brain_structure_name(label)
-        if 'CORTEX' in name:
+        if is_surface:
             assert bm.nvertices[name] == 15
         else:
             assert name not in bm.nvertices
             assert (bm.affine == rand_affine).all()
             assert bm.volume_shape == vol_shape
 
-    bmt = bml[0] + bml[1] + bml[2] + bml[3]
-    assert len(bmt) == 14
+    bmt = bml[0] + bml[1] + bml[2]
+    assert len(bmt) == 10
     structures = list(bmt.iter_structures())
-    assert len(structures) == 4
-    for bm, (name, _, bm_split) in zip(bml, structures):
+    assert len(structures) == 3
+    for bm, (name, _, bm_split) in zip(bml[:3], structures):
         assert bm == bm_split
         assert (bm_split.name == name).all()
         assert bm == bmt[bmt.name == bm.name[0]]
         assert bm == bmt[np.where(bmt.name == bm.name[0])]
 
-    bmt = bmt + bml[3]
-    assert len(bmt) == 18
+    bmt = bmt + bml[2]
+    assert len(bmt) == 13
     structures = list(bmt.iter_structures())
-    assert len(structures) == 4
-    assert len(structures[-1][2]) == 8
+    assert len(structures) == 3
+    assert len(structures[-1][2]) == 6
 
     # break brain model
     bmt.affine = np.eye(4)
@@ -320,7 +321,7 @@ def test_parcels():
     assert prc[2] == ('surface', ) + prc['surface']
     assert prc['surface'][0].shape == (0, 3)
     assert len(prc['surface'][1]) == 1
-    assert prc['surface'][1]['CIFTI_STRUCTURE_CORTEX'].shape == (4, )
+    assert prc['surface'][1]['CIFTI_STRUCTURE_OTHER'].shape == (4, )
 
     prc2 = prc + prc
     assert len(prc2) == 6

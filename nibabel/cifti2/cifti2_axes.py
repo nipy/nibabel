@@ -232,7 +232,7 @@ class BrainModel(Axis):
                              "3-dimensional (for volumes), not %i-dimensional" % mask.ndim)
 
     @classmethod
-    def from_surface(cls, vertices, nvertex, name='Cortex'):
+    def from_surface(cls, vertices, nvertex, name='Other'):
         """
         Creates a new BrainModel axis describing the vertices on a surface
 
