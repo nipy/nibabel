@@ -31,7 +31,7 @@ def to_header(axes):
 
     Parameters
     ----------
-    axes : iterable[Axis]
+    axes : iterable of :py:class:`Axis` objects
         one or more axes describing each dimension in turn
 
     Returns
@@ -140,10 +140,10 @@ class BrainModel(Axis):
         affine : np.ndarray
             (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
             covering the surface)
-        volume_shape : Tuple[int, int, int]
+        volume_shape : tuple of three integers
             shape of the volume in which the voxels were defined (not needed for CIFTI files only
             covering the surface)
-        nvertices : dict[String -> int]
+        nvertices : dict from string to integer
             maps names of surface elements to integers (not needed for volumetric CIFTI files)
         """
         if voxel is None:
@@ -361,7 +361,7 @@ class BrainModel(Axis):
 
         Parameters
         ----------
-        name: (str, tuple)
+        name: iterable of 2-element tuples of integer and string
             input name of an anatomical region
 
         Returns
@@ -598,7 +598,7 @@ class Parcels(Axis):
         affine : np.ndarray
             (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
             covering the surface)
-        volume_shape : Tuple[int, int, int]
+        volume_shape : tuple of three integers
             shape of the volume in which the voxels were defined (not needed for CIFTI files only
             covering the surface)
         nvertices : dict[String -> int]
@@ -634,7 +634,7 @@ class Parcels(Axis):
 
         Parameters
         ----------
-        named_brain_models : List[Tuple[String, BrainModel]]
+        named_brain_models : iterable of 2-element tuples of string and BrainModel
             list of (parcel name, brain model representation) pairs defining each parcel
 
         Returns
@@ -889,9 +889,9 @@ class Scalar(Axis):
         """
         Parameters
         ----------
-        name : np.ndarray
+        name : np.ndarray of string
             (N, ) string array with the parcel names
-        meta :  np.ndarray
+        meta :  np.ndarray of dict
             (N, ) object array with a dictionary of metadata for each row/column.
             Defaults to empty dictionary
         """
