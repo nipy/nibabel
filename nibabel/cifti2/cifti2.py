@@ -12,12 +12,9 @@ Format of the NIFTI2 container format described here:
 
     http://www.nitrc.org/forum/message.php?msg_id=3738
 
-Definition of the CIFTI2 header format and file extensions attached to this
-email:
+Definition of the CIFTI2 header format and file extensions can be found at:
 
-    http://www.nitrc.org/forum/forum.php?thread_id=4380&forum_id=1955
-
-Filename is ``CIFTI-2_Main_FINAL_1March2014.pdf``.
+    http://www.nitrc.org/projects/cifti
 '''
 from __future__ import division, print_function, absolute_import
 import re

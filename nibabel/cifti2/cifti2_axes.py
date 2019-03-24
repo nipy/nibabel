@@ -1,3 +1,109 @@
+"""
+Defines :class:`Axis` objects to create, read, and manipulate CIfTI2 files
+
+Each type of CIfTI2 axes describing the rows/columns in a CIfTI2 matrix is given a unique class:
+
+* :class:`BrainModel`: each row/column is a voxel or vertex
+* :class:`Parcels`: each row/column is a group of voxels and/or vertices
+* :class:`Scalar`: each row/column has a unique name (with optional meta-data)
+* :class:`Label`: each row/column has a unique name and label table (with optional meta-data)
+* :class:`Series`: each row/column is a timepoint, which increases monotonically
+
+All of these classes are derived from the :class:`Axis` class.
+
+After loading a CIfTI2 file a tuple of axes describing the rows and columns can be obtained
+from the :meth:`.cifti2.Cifti2Header.get_axis` method on the header object
+(e.g. ``nibabel.load(<filename>).header.get_axis()``). Inversely, a new
+:class:`.cifti2.Cifti2Header` object can be created from existing :class:`Axis` objects
+using the :meth:`.cifti2.Cifti2Header.from_axes` factory method.
+
+CIfTI2 :class:`Axis` objects of the same type can be concatenated using the '+'-operator.
+Numpy indexing also works on axes
+(except for Series objects, which have to remain monotonically increasing or decreasing).
+
+Creating new CIfTI2 axes
+-----------------------
+New :class:`Axis` objects can be constructed by providing a description for what is contained
+in each row/column of the described tensor. For each :class:`Axis` sub-class this descriptor is:
+
+* :class:`BrainModel`: a CIfTI2 structure name and a voxel or vertex index
+* :class:`Parcels`: a name and a sequence of voxel and vertex indices
+* :class:`Scalar`: a name and optionally a dict of meta-data
+* :class:`Label`: a name, dict of label index to name and colour,
+  and optionally a dict of meta-data
+* :class:`Series`: the time-point of each row/column is set by setting the start, stop, size,
+  and unit of the time-series
+
+Several helper functions exist to create new :class:`BrainModel` axes:
+
+* :meth:`BrainModel.from_mask` creates a new BrainModel volume covering the
+  non-zero values of a mask
+* :meth:`BrainModel.from_surface` creates a new BrainModel surface covering the provided
+  indices of a surface
+
+A :class:`Parcels` axis can be created from a sequence of :class:`BrainModel` axes using
+:meth:`Parcels.from_brain_models`.
+
+Examples
+--------
+We can create brain models covering the left cortex and left thalamus using:
+
+>>> from nibabel import cifti2
+>>> bm_cortex = cifti2.BrainModel.from_mask(cortex_mask, brain_structure='cortex_left')
+>>> bm_thal = cifti2.BrainModel.from_mask(thalamus_mask, affine=affine,
+                                          brain_structure='thalamus_left')
+
+Brain structure names automatically get converted to valid CIfTI2 indentifiers using
+:meth:`BrainModel.to_cifti_brain_structure_name`.
+A 1-dimensional mask will be automatically interpreted as a surface element and a 3-dimensional
+mask as a volume element.
+
+These can be concatenated in a single brain model covering the left cortex and thalamus by
+simply adding them together
+
+>>> bm_full = bm_cortex + bm_thal
+
+Brain models covering the full HCP grayordinate space can be constructed by adding all the
+volumetric and surface brain models together like this (or by reading one from an already
+existing HCP file).
+
+Getting a specific brain region from the full brain model is as simple as:
+
+>>> assert bm_full[bm_full.name == 'CIFTI_STRUCTURE_CORTEX_LEFT'] == bm_cortex
+>>> assert bm_full[bm_full.name == 'CIFTI_STRUCTURE_THALAMUS_LEFT'] == bm_thal
+
+You can also iterate over all brain structures in a brain model:
+
+>>> for name, slc, bm in bm_full.iter_structures(): ...
+
+In this case there will be two iterations, namely:
+('CIFTI_STRUCTURE_CORTEX_LEFT', slice(0, <size of cortex mask>), bm_cortex)
+and
+('CIFTI_STRUCTURE_THALAMUS_LEFT', slice(<size of cortex mask>, None), bm_thal)
+
+Parcels can be constructed from selections of these brain models:
+
+>>> parcel = cifti2.Parcels.from_brain_models([
+        ('surface_parcel', bm_cortex[:100]),  # contains first 100 cortical vertices
+        ('volume_parcel', bm_thal),  # contains thalamus
+        ('combined_parcel', bm_full[[1, 8, 10, 50, 120, 127])  # contains selected voxels/vertices
+    ])
+
+Time series are represented by their starting time (typically 0), step size
+(i.e. sampling time or TR), and number of elements:
+
+>>> series = cifti2.Series(start=0, step=100, size=5000)
+
+So a header for fMRI data with a TR of 100 ms covering the left cortex and thalamus with
+5000 timepoints could be created with
+
+>>> cifti2.Cifti2Header.from_axes((series, bm_cortex + bm_thal))
+
+Similarly the curvature and cortical thickness on the left cortex could be stored using a header
+like:
+
+>>> cifti2.Cifti2Header.from_axes((cifti.Scalar(['curvature', 'thickness'], bm_cortex))
+"""
 import numpy as np
 from . import cifti2
 from six import string_types, add_metaclass, integer_types
@@ -7,7 +113,7 @@ import abc
 
 def from_mapping(mim):
     """
-    Parses the MatrixIndicesMap to find the appropriate CIFTI axis describing the rows or columns
+    Parses the MatrixIndicesMap to find the appropriate CIfTI2 axis describing the rows or columns
 
     Parameters
     ----------
@@ -27,7 +133,7 @@ def from_mapping(mim):
 
 def to_header(axes):
     """
-    Converts the axes describing the rows/columns of a CIFTI vector/matrix to a Cifti2Header
+    Converts the axes describing the rows/columns of a CIfTI2 vector/matrix to a Cifti2Header
 
     Parameters
     ----------
@@ -56,7 +162,7 @@ def to_header(axes):
 @add_metaclass(abc.ABCMeta)
 class Axis(object):
     """
-    Abstract class for any object describing the rows or columns of a CIFTI vector/matrix
+    Abstract class for any object describing the rows or columns of a CIfTI2 vector/matrix
 
     Mainly used for type checking.
     """
@@ -110,7 +216,7 @@ class Axis(object):
 
 class BrainModel(Axis):
     """
-    Each row/column in the CIFTI vector/matrix represents a single vertex or voxel
+    Each row/column in the CIfTI2 vector/matrix represents a single vertex or voxel
 
     This Axis describes which vertex/voxel is represented by each row/column.
     """
@@ -133,18 +239,18 @@ class BrainModel(Axis):
         name : str or np.ndarray
             brain structure name or (N, ) string array with the brain structure names
         voxel : np.ndarray
-            (N, 3) array with the voxel indices (can be omitted for CIFTI files only
+            (N, 3) array with the voxel indices (can be omitted for CIfTI2 files only
             covering the surface)
         vertex :  np.ndarray
-            (N, ) array with the vertex indices (can be omitted for volumetric CIFTI files)
+            (N, ) array with the vertex indices (can be omitted for volumetric CIfTI2 files)
         affine : np.ndarray
-            (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
+            (4, 4) array mapping voxel indices to mm space (not needed for CIfTI2 files only
             covering the surface)
         volume_shape : tuple of three integers
-            shape of the volume in which the voxels were defined (not needed for CIFTI files only
+            shape of the volume in which the voxels were defined (not needed for CIfTI2 files only
             covering the surface)
         nvertices : dict from string to integer
-            maps names of surface elements to integers (not needed for volumetric CIFTI files)
+            maps names of surface elements to integers (not needed for volumetric CIfTI2 files)
         """
         if voxel is None:
             if vertex is None:
@@ -256,7 +362,7 @@ class BrainModel(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new BrainModel axis based on a CIFTI dataset
+        Creates a new BrainModel axis based on a CIfTI2 dataset
 
         Parameters
         ----------
@@ -289,12 +395,12 @@ class BrainModel(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the brain model axis to a MatrixIndicesMap for storage in CIFTI format
+        Converts the brain model axis to a MatrixIndicesMap for storage in CIfTI2 format
 
         Parameters
         ----------
         dim : int
-            which dimension of the CIFTI vector/matrix is described by this dataset (zero-based)
+            which dimension of the CIfTI2 vector/matrix is described by this dataset (zero-based)
 
         Returns
         -------
@@ -329,7 +435,7 @@ class BrainModel(Axis):
         Yields
         ------
         tuple with 3 elements:
-        - CIFTI brain structure name
+        - CIfTI2 brain structure name
         - slice to select the data associated with the brain structure from the tensor
         - brain model covering that specific brain structure
         """
@@ -345,11 +451,11 @@ class BrainModel(Axis):
     @staticmethod
     def to_cifti_brain_structure_name(name):
         """
-        Attempts to convert the name of an anatomical region in a format recognized by CIFTI
+        Attempts to convert the name of an anatomical region in a format recognized by CIfTI2
 
         This function returns:
 
-        - the name if it is in the CIFTI format already
+        - the name if it is in the CIfTI2 format already
         - if the name is a tuple the first element is assumed to be the structure name while
           the second is assumed to be the hemisphere (left, right or both). The latter will default
           to both.
@@ -366,11 +472,11 @@ class BrainModel(Axis):
 
         Returns
         -------
-        CIFTI2 compatible name
+        CIfTI2 compatible name
 
         Raises
         ------
-        ValueError: raised if the input name does not match a known anatomical structure in CIFTI
+        ValueError: raised if the input name does not match a known anatomical structure in CIfTI2
         """
         if name in cifti2.CIFTI_BRAIN_STRUCTURES:
             return name
@@ -571,7 +677,7 @@ class BrainModel(Axis):
 
 class Parcels(Axis):
     """
-    Each row/column in the CIFTI vector/matrix represents a parcel of voxels/vertices
+    Each row/column in the CIfTI2 vector/matrix represents a parcel of voxels/vertices
 
     This Axis describes which parcel is represented by each row/column.
 
@@ -596,13 +702,13 @@ class Parcels(Axis):
             For each parcel the vertices are represented by a mapping from brain structure name to
             (M, ) index array
         affine : np.ndarray
-            (4, 4) array mapping voxel indices to mm space (not needed for CIFTI files only
+            (4, 4) array mapping voxel indices to mm space (not needed for CIfTI2 files only
             covering the surface)
         volume_shape : tuple of three integers
-            shape of the volume in which the voxels were defined (not needed for CIFTI files only
+            shape of the volume in which the voxels were defined (not needed for CIfTI2 files only
             covering the surface)
         nvertices : dict[String -> int]
-            maps names of surface elements to integers (not needed for volumetric CIFTI files)
+            maps names of surface elements to integers (not needed for volumetric CIfTI2 files)
         """
         self.name = np.asanyarray(name, dtype='U')
         as_array = np.asanyarray(voxels)
@@ -675,7 +781,7 @@ class Parcels(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new Parcels axis based on a CIFTI dataset
+        Creates a new Parcels axis based on a CIfTI2 dataset
 
         Parameters
         ----------
@@ -716,12 +822,12 @@ class Parcels(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the Parcel to a MatrixIndicesMap for storage in CIFTI format
+        Converts the Parcel to a MatrixIndicesMap for storage in CIfTI2 format
 
         Parameters
         ----------
         dim : int
-            which dimension of the CIFTI vector/matrix is described by this dataset (zero-based)
+            which dimension of the CIfTI2 vector/matrix is described by this dataset (zero-based)
 
         Returns
         -------
@@ -881,7 +987,7 @@ class Parcels(Axis):
 
 class Scalar(Axis):
     """
-    Along this axis of the CIFTI vector/matrix each row/column has been given
+    Along this axis of the CIfTI2 vector/matrix each row/column has been given
     a unique name and optionally metadata
     """
 
@@ -908,7 +1014,7 @@ class Scalar(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new Scalar axis based on a CIFTI dataset
+        Creates a new Scalar axis based on a CIfTI2 dataset
 
         Parameters
         ----------
@@ -924,12 +1030,12 @@ class Scalar(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the hcp_labels to a MatrixIndicesMap for storage in CIFTI format
+        Converts the hcp_labels to a MatrixIndicesMap for storage in CIfTI2 format
 
         Parameters
         ----------
         dim : int
-            which dimension of the CIFTI vector/matrix is described by this dataset (zero-based)
+            which dimension of the CIfTI2 vector/matrix is described by this dataset (zero-based)
 
         Returns
         -------
@@ -1007,9 +1113,9 @@ class Scalar(Axis):
 
 class Label(Axis):
     """
-    Defines CIFTI axis for label array.
+    Defines CIfTI2 axis for label array.
 
-    Along this axis of the CIFTI vector/matrix each row/column has been given a unique name,
+    Along this axis of the CIfTI2 vector/matrix each row/column has been given a unique name,
     label table, and optionally metadata
     """
 
@@ -1042,7 +1148,7 @@ class Label(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new Label axis based on a CIFTI dataset
+        Creates a new Label axis based on a CIfTI2 dataset
 
         Parameters
         ----------
@@ -1059,12 +1165,12 @@ class Label(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the hcp_labels to a MatrixIndicesMap for storage in CIFTI format
+        Converts the hcp_labels to a MatrixIndicesMap for storage in CIfTI2 format
 
         Parameters
         ----------
         dim : int
-            which dimension of the CIFTI vector/matrix is described by this dataset (zero-based)
+            which dimension of the CIfTI2 vector/matrix is described by this dataset (zero-based)
 
         Returns
         -------
@@ -1153,7 +1259,7 @@ class Label(Axis):
 
 class Series(Axis):
     """
-    Along this axis of the CIFTI vector/matrix the rows/columns increase monotonously in time
+    Along this axis of the CIfTI2 vector/matrix the rows/columns increase monotonously in time
 
     This Axis describes the time point of each row/column.
     """
@@ -1186,7 +1292,7 @@ class Series(Axis):
     @classmethod
     def from_mapping(cls, mim):
         """
-        Creates a new Series axis based on a CIFTI dataset
+        Creates a new Series axis based on a CIfTI2 dataset
 
         Parameters
         ----------
@@ -1202,12 +1308,12 @@ class Series(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the Series to a MatrixIndicesMap for storage in CIFTI format
+        Converts the Series to a MatrixIndicesMap for storage in CIfTI2 format
 
         Parameters
         ----------
         dim : int
-            which dimension of the CIFTI vector/matrix is described by this dataset (zero-based)
+            which dimension of the CIfTI2 vector/matrix is described by this dataset (zero-based)
 
         Returns
         -------

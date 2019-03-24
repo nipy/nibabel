@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""CIfTI format IO
+"""CIfTI2 format IO
 
 .. currentmodule:: nibabel.cifti2
 
@@ -14,6 +14,7 @@
    :toctree: ../generated
 
    cifti2
+   cifti2_axes
 """
 
 from .parse_cifti2 import Cifti2Extension
