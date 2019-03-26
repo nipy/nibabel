@@ -66,9 +66,9 @@ def check_Conte69(brain_model):
     structures = list(brain_model.iter_structures())
     assert len(structures) == 2
     assert structures[0][0] == 'CIFTI_STRUCTURE_CORTEX_LEFT'
-    assert structures[0][2].is_surface.all()
+    assert structures[0][2].surface_mask.all()
     assert structures[1][0] == 'CIFTI_STRUCTURE_CORTEX_RIGHT'
-    assert structures[1][2].is_surface.all()
+    assert structures[1][2].surface_mask.all()
     assert (brain_model.voxel == -1).all()
 
     assert (brain_model.vertex[:5] == np.arange(5)).all()

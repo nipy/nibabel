@@ -127,6 +127,7 @@ def test_brain_models():
 
     for bm, label, is_surface in zip(bml, ['ThalamusRight', 'Other', 'cortex_left', 'Other'],
                                      (False, False, True, True)):
+        assert np.all(bm.surface_mask == ~bm.volume_mask)
         structures = list(bm.iter_structures())
         assert len(structures) == 1
         name = structures[0][0]

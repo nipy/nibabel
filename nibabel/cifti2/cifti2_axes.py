@@ -284,8 +284,8 @@ class BrainModel(Axis):
             if name not in self.name:
                 del self.nvertices[name]
 
-        is_surface = self.is_surface
-        if is_surface.all():
+        surface_mask = self.surface_mask
+        if surface_mask.all():
             self.affine = None
             self.volume_shape = None
         else:
@@ -295,9 +295,9 @@ class BrainModel(Axis):
             self.affine = affine
             self.volume_shape = volume_shape
 
-        if np.any(self.vertex[is_surface] < 0):
+        if np.any(self.vertex[surface_mask] < 0):
             raise ValueError('Undefined vertex indices found for surface elements')
-        if np.any(self.voxel[~is_surface] < 0):
+        if np.any(self.voxel[~surface_mask] < 0):
             raise ValueError('Undefined voxel indices found for volumetric elements')
 
         for check_name in ('name', 'voxel', 'vertex'):
@@ -523,11 +523,18 @@ class BrainModel(Axis):
         return proposed_name
 
     @property
-    def is_surface(self):
+    def surface_mask(self):
         """
         (N, ) boolean array which is true for any element on the surface
         """
         return np.vectorize(lambda name: name in self.nvertices.keys())(self.name)
+
+    @property
+    def volume_mask(self):
+        """
+        (N, ) boolean array which is true for any element on the surface
+        """
+        return np.vectorize(lambda name: name not in self.nvertices.keys())(self.name)
 
     _affine = None
 
@@ -586,13 +593,13 @@ class BrainModel(Axis):
         if xor(self.affine is None, other.affine is None):
             return False
         return (
-            (self.affine is None or
+                (self.affine is None or
              np.allclose(self.affine, other.affine) and
              self.volume_shape == other.volume_shape) and
-            self.nvertices == other.nvertices and
-            np.array_equal(self.name, other.name) and
-            np.array_equal(self.voxel[~self.is_surface], other.voxel[~other.is_surface]) and
-            np.array_equal(self.vertex[self.is_surface], other.vertex[other.is_surface])
+                self.nvertices == other.nvertices and
+                np.array_equal(self.name, other.name) and
+                np.array_equal(self.voxel[~self.surface_mask], other.voxel[~other.surface_mask]) and
+                np.array_equal(self.vertex[self.surface_mask], other.vertex[other.surface_mask])
         )
 
     def __add__(self, other):
@@ -763,7 +770,7 @@ class Parcels(Axis):
         for idx_parcel, (parcel_name, bm) in enumerate(named_brain_models):
             all_names.append(parcel_name)
 
-            voxels = bm.voxel[~bm.is_surface]
+            voxels = bm.voxel[~bm.surface_mask]
             if voxels.shape[0] != 0:
                 if affine is None:
                     affine = bm.affine
