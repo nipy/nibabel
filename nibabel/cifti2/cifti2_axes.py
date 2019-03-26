@@ -594,8 +594,8 @@ class BrainModel(Axis):
             return False
         return (
                 (self.affine is None or
-             np.allclose(self.affine, other.affine) and
-             self.volume_shape == other.volume_shape) and
+                 np.allclose(self.affine, other.affine) and
+                 self.volume_shape == other.volume_shape) and
                 self.nvertices == other.nvertices and
                 np.array_equal(self.name, other.name) and
                 np.array_equal(self.voxel[~self.surface_mask], other.voxel[~other.surface_mask]) and
