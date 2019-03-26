@@ -107,7 +107,7 @@ def test_brain_models():
     assert len(bml[0]) == 3
     assert (bml[0].vertex == -1).all()
     assert (bml[0].voxel == [[0, 1, 2], [0, 4, 0], [0, 4, 2]]).all()
-    assert bml[0][1][0] == False
+    assert bml[0][1][0] == 'CIFTI_MODEL_TYPE_VOXELS'
     assert (bml[0][1][1] == [0, 4, 0]).all()
     assert bml[0][1][2] == axes.BrainModel.to_cifti_brain_structure_name('thalamus_right')
     assert len(bml[1]) == 4
@@ -116,11 +116,11 @@ def test_brain_models():
     assert len(bml[2]) == 3
     assert (bml[2].voxel == -1).all()
     assert (bml[2].vertex == [0, 5, 10]).all()
-    assert bml[2][1] == (True, 5, 'CIFTI_STRUCTURE_CORTEX_LEFT')
+    assert bml[2][1] == ('CIFTI_MODEL_TYPE_SURFACE', 5, 'CIFTI_STRUCTURE_CORTEX_LEFT')
     assert len(bml[3]) == 4
     assert (bml[3].voxel == -1).all()
     assert (bml[3].vertex == [0, 5, 10, 13]).all()
-    assert bml[4][1] == (True, 9, 'CIFTI_STRUCTURE_CORTEX_RIGHT')
+    assert bml[4][1] == ('CIFTI_MODEL_TYPE_SURFACE', 9, 'CIFTI_STRUCTURE_CORTEX_RIGHT')
     assert len(bml[4]) == 3
     assert (bml[4].voxel == -1).all()
     assert (bml[4].vertex == [2, 9, 14]).all()

@@ -670,13 +670,15 @@ class BrainModel(Axis):
         Returns
         -------
         tuple with 3 elements
-        - boolean, which is True if it is a surface element
+        - str, 'CIFTI_MODEL_TYPE_SURFACE' for vertex or 'CIFTI_MODEL_TYPE_VOXELS' for voxel
         - vertex index if it is a surface element, otherwise array with 3 voxel indices
         - structure.BrainStructure object describing the brain structure the element was taken from
         """
-        is_surface = self.name[index] in self.nvertices.keys()
-        struct = self.vertex if is_surface else self.voxel
-        return is_surface, struct[index], self.name[index]
+        element_type = 'CIFTI_MODEL_TYPE_' + (
+            'SURFACE' if self.name[index] in self.nvertices.keys() else 'VOXELS'
+        )
+        struct = self.vertex if 'SURFACE' in element_type else self.voxel
+        return element_type, struct[index], self.name[index]
 
 
 class Parcels(Axis):
