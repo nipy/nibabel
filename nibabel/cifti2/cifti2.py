@@ -1279,7 +1279,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         axis : cifti2_axes.Axis
         '''
         from . import cifti2_axes
-        return cifti2_axes.from_mapping(self.matrix.get_index_map(index))
+        return cifti2_axes.from_index_mapping(self.matrix.get_index_map(index))
 
     @classmethod
     def from_axes(cls, axes):

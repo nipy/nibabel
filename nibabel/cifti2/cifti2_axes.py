@@ -114,7 +114,7 @@ from operator import xor
 import abc
 
 
-def from_mapping(mim):
+def from_index_mapping(mim):
     """
     Parses the MatrixIndicesMap to find the appropriate CIfTI2 axis describing the rows or columns
 
@@ -131,7 +131,7 @@ def from_mapping(mim):
                    'CIFTI_INDEX_TYPE_SERIES': Series,
                    'CIFTI_INDEX_TYPE_BRAIN_MODELS': BrainModel,
                    'CIFTI_INDEX_TYPE_PARCELS': Parcels}
-    return return_type[mim.indices_map_to_data_type].from_mapping(mim)
+    return return_type[mim.indices_map_to_data_type].from_index_mapping(mim)
 
 
 def to_header(axes):
@@ -364,7 +364,7 @@ class BrainModel(Axis):
                    nvertices={cifti_name: nvertex})
 
     @classmethod
-    def from_mapping(cls, mim):
+    def from_index_mapping(cls, mim):
         """
         Creates a new BrainModel axis based on a CIfTI2 dataset
 
@@ -783,7 +783,7 @@ class Parcels(Axis):
         return Parcels(all_names, all_voxels, all_vertices, affine, volume_shape, nvertices)
 
     @classmethod
-    def from_mapping(cls, mim):
+    def from_index_mapping(cls, mim):
         """
         Creates a new Parcels axis based on a CIfTI2 dataset
 
@@ -1016,7 +1016,7 @@ class Scalar(Axis):
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
-    def from_mapping(cls, mim):
+    def from_index_mapping(cls, mim):
         """
         Creates a new Scalar axis based on a CIfTI2 dataset
 
@@ -1150,7 +1150,7 @@ class Label(Axis):
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
-    def from_mapping(cls, mim):
+    def from_index_mapping(cls, mim):
         """
         Creates a new Label axis based on a CIfTI2 dataset
 
@@ -1164,7 +1164,7 @@ class Label(Axis):
         """
         tables = [{key: (value.label, value.rgba) for key, value in nm.label_table.items()}
                   for nm in mim.named_maps]
-        rest = Scalar.from_mapping(mim)
+        rest = Scalar.from_index_mapping(mim)
         return Label(rest.name, tables, rest.meta)
 
     def to_mapping(self, dim):
@@ -1294,7 +1294,7 @@ class Series(Axis):
         return np.arange(self.size) * self.step + self.start
 
     @classmethod
-    def from_mapping(cls, mim):
+    def from_index_mapping(cls, mim):
         """
         Creates a new Series axis based on a CIfTI2 dataset
 
