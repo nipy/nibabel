@@ -1,6 +1,7 @@
 """
 Defines :class:`Axis` objects to create, read, and manipulate CIfTI2 files
 
+These axes provide an alternative interface to the information in the CIFTI2 header.
 Each type of CIfTI2 axes describing the rows/columns in a CIfTI2 matrix is given a unique class:
 
 * :class:`BrainModel`: each row/column is a voxel or vertex
@@ -146,7 +147,7 @@ def to_header(axes):
     -------
     cifti2.Cifti2Header
     """
-    axes = list(axes)
+    axes = tuple(axes)
     mims_all = []
     matrix = cifti2.Cifti2Matrix()
     for dim, ax in enumerate(axes):
@@ -214,6 +215,7 @@ class Axis(object):
         """
         Extracts definition of single row/column or new Axis describing a subset of the rows/columns
         """
+        pass
 
 
 class BrainModel(Axis):
