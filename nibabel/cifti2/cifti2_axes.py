@@ -172,6 +172,14 @@ class Axis(object):
     Abstract class for any object describing the rows or columns of a CIFTI-2 vector/matrix
 
     Mainly used for type checking.
+
+    Base class for the following concrete CIFTI-2 axes:
+
+    * :class:`BrainModelAxis`: each row/column is a voxel or vertex
+    * :class:`ParcelsAxis`: each row/column is a group of voxels and/or vertices
+    * :class:`ScalarAxis`: each row/column has a unique name (with optional meta-data)
+    * :class:`LabelAxis`: each row/column has a unique name and label table (with optional meta-data)
+    * :class:`SeriesAxis`: each row/column is a timepoint, which increases monotonically
     """
 
     @property
