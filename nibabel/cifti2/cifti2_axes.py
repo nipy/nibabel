@@ -67,7 +67,7 @@ mask as a volume element.
 These can be concatenated in a single brain model covering the left cortex and thalamus by
 simply adding them together
 
->>> bm_full = bm_cortex + bm_thal  # doctest: +SKIP
+>>> bm_full = bm_cortex + bm_thal
 
 Brain models covering the full HCP grayordinate space can be constructed by adding all the
 volumetric and surface brain models together like this (or by reading one from an already
@@ -75,12 +75,12 @@ existing HCP file).
 
 Getting a specific brain region from the full brain model is as simple as:
 
->>> assert bm_full[bm_full.name == 'CIFTI_STRUCTURE_CORTEX_LEFT'] == bm_cortex  # doctest: +SKIP
->>> assert bm_full[bm_full.name == 'CIFTI_STRUCTURE_THALAMUS_LEFT'] == bm_thal  # doctest: +SKIP
+>>> assert bm_full[bm_full.name == 'CIFTI_STRUCTURE_CORTEX_LEFT'] == bm_cortex
+>>> assert bm_full[bm_full.name == 'CIFTI_STRUCTURE_THALAMUS_LEFT'] == bm_thal
 
 You can also iterate over all brain structures in a brain model:
 
->>> for name, slc, bm in bm_full.iter_structures(): ...  # doctest: +SKIP
+>>> for name, slc, bm in bm_full.iter_structures(): ...
 
 In this case there will be two iterations, namely:
 ('CIFTI_STRUCTURE_CORTEX_LEFT', slice(0, <size of cortex mask>), bm_cortex)
@@ -93,23 +93,23 @@ ParcelsAxis can be constructed from selections of these brain models:
 ...        ('surface_parcel', bm_cortex[:100]),  # contains first 100 cortical vertices
 ...        ('volume_parcel', bm_thal),  # contains thalamus
 ...        ('combined_parcel', bm_full[[1, 8, 10, 120, 127])  # contains selected voxels/vertices
-...    ])  # doctest: +SKIP
+...    ])
 
 Time series are represented by their starting time (typically 0), step size
 (i.e. sampling time or TR), and number of elements:
 
->>> series = cifti2.SeriesAxis(start=0, step=100, size=5000)  # doctest: +SKIP
+>>> series = cifti2.SeriesAxis(start=0, step=100, size=5000)
 
 So a header for fMRI data with a TR of 100 ms covering the left cortex and thalamus with
 5000 timepoints could be created with
 
->>> cifti2.Cifti2Header.from_axes((series, bm_cortex + bm_thal))  # doctest: +SKIP
+>>> cifti2.Cifti2Header.from_axes((series, bm_cortex + bm_thal))
 
 Similarly the curvature and cortical thickness on the left cortex could be stored using a header
 like:
 
 >>> cifti2.Cifti2Header.from_axes((cifti.ScalarAxis(['curvature', 'thickness'],
-...                                             bm_cortex))  # doctest: +SKIP
+...                                                 bm_cortex))
 """
 import numpy as np
 from . import cifti2
