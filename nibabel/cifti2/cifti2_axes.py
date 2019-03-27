@@ -252,20 +252,20 @@ class BrainModelAxis(Axis):
 
         Parameters
         ----------
-        name : str or np.ndarray
+        name : array_like
             brain structure name or (N, ) string array with the brain structure names
-        voxel : np.ndarray
+        voxel : array_like, optional
             (N, 3) array with the voxel indices (can be omitted for CIFTI-2 files only
             covering the surface)
-        vertex :  np.ndarray
+        vertex :  array_like, optional
             (N, ) array with the vertex indices (can be omitted for volumetric CIFTI-2 files)
-        affine : np.ndarray
+        affine : array_like, optional
             (4, 4) array mapping voxel indices to mm space (not needed for CIFTI-2 files only
             covering the surface)
-        volume_shape : tuple of three integers
+        volume_shape : tuple of three integers, optional
             shape of the volume in which the voxels were defined (not needed for CIFTI-2 files only
             covering the surface)
-        nvertices : dict from string to integer
+        nvertices : dict from string to integer, optional
             maps names of surface elements to integers (not needed for volumetric CIFTI-2 files)
         """
         if voxel is None:
@@ -304,7 +304,7 @@ class BrainModelAxis(Axis):
             if affine is None or volume_shape is None:
                 raise ValueError("Affine and volume shape should be defined "
                                  "for BrainModelAxis containing voxels")
-            self.affine = affine
+            self.affine = np.asanyarray(affine)
             self.volume_shape = volume_shape
 
         if np.any(self.vertex[surface_mask] < 0):
@@ -325,12 +325,12 @@ class BrainModelAxis(Axis):
 
         Parameters
         ----------
-        mask : np.ndarray
+        mask : array_like
             all non-zero voxels will be included in the BrainModelAxis axis
             should be (Nx, Ny, Nz) array for volume mask or (Nvertex, ) array for surface mask
-        name : str
+        name : str, optional
             Name of the brain structure (e.g. 'CortexRight', 'thalamus_left' or 'brain_stem')
-        affine : np.ndarray
+        affine : array_like, optional
             (4, 4) array with the voxel to mm transformation (defaults to identity matrix)
             Argument will be ignored for surface masks
 
@@ -362,7 +362,7 @@ class BrainModelAxis(Axis):
 
         Parameters
         ----------
-        vertices : np.ndarray
+        vertices : array_like
             indices of the vertices on the surface
         nvertex : int
             total number of vertices on the surface
@@ -384,7 +384,7 @@ class BrainModelAxis(Axis):
 
         Parameters
         ----------
-        mim : cifti2.Cifti2MatrixIndicesMap
+        mim : :class:`.cifti2.Cifti2MatrixIndicesMap`
 
         Returns
         -------
@@ -422,7 +422,7 @@ class BrainModelAxis(Axis):
 
         Returns
         -------
-        cifti2.Cifti2MatrixIndicesMap
+        :class:`.cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_BRAIN_MODELS')
         for name, to_slice, bm in self.iter_structures():
@@ -720,22 +720,22 @@ class ParcelsAxis(Axis):
 
         Parameters
         ----------
-        name : np.ndarray
+        name : array_like
             (N, ) string array with the parcel names
-        voxels :  np.ndarray
+        voxels :  array_like
             (N, ) object array each containing a sequence of voxels.
             For each parcel the voxels are represented by a (M, 3) index array
-        vertices :  np.ndarray
+        vertices :  array_like
             (N, ) object array each containing a sequence of vertices.
             For each parcel the vertices are represented by a mapping from brain structure name to
             (M, ) index array
-        affine : np.ndarray
+        affine : array_like, optional
             (4, 4) array mapping voxel indices to mm space (not needed for CIFTI-2 files only
             covering the surface)
-        volume_shape : tuple of three integers
+        volume_shape : tuple of three integers, optional
             shape of the volume in which the voxels were defined (not needed for CIFTI-2 files only
             covering the surface)
-        nvertices : dict[String -> int]
+        nvertices : dict from string to integer, optional
             maps names of surface elements to integers (not needed for volumetric CIFTI-2 files)
         """
         self.name = np.asanyarray(name, dtype='U')
@@ -748,7 +748,7 @@ class ParcelsAxis(Axis):
                 voxels[idx] = as_array[idx]
         self.voxels = np.asanyarray(voxels, dtype='object')
         self.vertices = np.asanyarray(vertices, dtype='object')
-        self.affine = affine
+        self.affine = np.asanyarray(affine) if affine is not None else None
         self.volume_shape = volume_shape
         if nvertices is None:
             self.nvertices = {}
@@ -813,7 +813,7 @@ class ParcelsAxis(Axis):
 
         Parameters
         ----------
-        mim : cifti2.Cifti2MatrixIndicesMap
+        mim : :class:`cifti2.Cifti2MatrixIndicesMap`
 
         Returns
         -------
@@ -859,7 +859,7 @@ class ParcelsAxis(Axis):
 
         Returns
         -------
-        cifti2.Cifti2MatrixIndicesMap
+        :class:`cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_PARCELS')
         if self.affine is not None:
@@ -1008,7 +1008,8 @@ class ParcelsAxis(Axis):
         tuple with 3 elements
         - unicode name of the parcel
         - (M, 3) int array with voxel indices
-        - Dict[String -> (K, ) int array] with vertex indices for a specific surface brain structure
+        - dict from string to (K, ) int array with vertex indices
+          for a specific surface brain structure
         """
         return self.name[index], self.voxels[index], self.vertices[index]
 
@@ -1023,9 +1024,9 @@ class ScalarAxis(Axis):
         """
         Parameters
         ----------
-        name : np.ndarray of string
+        name : array_like
             (N, ) string array with the parcel names
-        meta :  np.ndarray of dict
+        meta :  array_like
             (N, ) object array with a dictionary of metadata for each row/column.
             Defaults to empty dictionary
         """
@@ -1046,7 +1047,7 @@ class ScalarAxis(Axis):
 
         Parameters
         ----------
-        mim : cifti2.Cifti2MatrixIndicesMap
+        mim : :class:`.cifti2.Cifti2MatrixIndicesMap`
 
         Returns
         -------
@@ -1067,7 +1068,7 @@ class ScalarAxis(Axis):
 
         Returns
         -------
-        cifti2.Cifti2MatrixIndicesMap
+        :class:`.cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_SCALARS')
         for name, meta in zip(self.name, self.meta):
@@ -1151,13 +1152,13 @@ class LabelAxis(Axis):
         """
         Parameters
         ----------
-        name : np.ndarray
+        name : array_like
             (N, ) string array with the parcel names
-        label : np.ndarray
+        label : array_like
             single dictionary or (N, ) object array with dictionaries mapping
             from integers to (name, (R, G, B, A)), where name is a string and R, G, B, and A are
             floats between 0 and 1 giving the colour and alpha (i.e., transparency)
-        meta :  np.ndarray
+        meta :  array_like, optional
             (N, ) object array with a dictionary of metadata for each row/column
         """
         self.name = np.asanyarray(name, dtype='U')
@@ -1180,7 +1181,7 @@ class LabelAxis(Axis):
 
         Parameters
         ----------
-        mim : cifti2.Cifti2MatrixIndicesMap
+        mim : :class:`.cifti2.Cifti2MatrixIndicesMap`
 
         Returns
         -------
@@ -1202,7 +1203,7 @@ class LabelAxis(Axis):
 
         Returns
         -------
-        cifti2.Cifti2MatrixIndicesMap
+        :class:`.cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_LABELS')
         for name, label, meta in zip(self.name, self.label, self.meta):
@@ -1324,7 +1325,7 @@ class SeriesAxis(Axis):
 
         Parameters
         ----------
-        mim : cifti2.Cifti2MatrixIndicesMap
+        mim : :class:`.cifti2.Cifti2MatrixIndicesMap`
 
         Returns
         -------
@@ -1345,7 +1346,7 @@ class SeriesAxis(Axis):
 
         Returns
         -------
-        cifti2.Cifti2MatrixIndicesMap
+        :class:`cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_SERIES')
         mim.series_exponent = 0
