@@ -10,22 +10,22 @@ Each type of CIFTI-2 axes describing the rows/columns in a CIFTI-2 matrix is giv
 * :class:`LabelAxis`: each row/column has a unique name and label table (with optional meta-data)
 * :class:`SeriesAxis`: each row/column is a timepoint, which increases monotonically
 
-All of these classes are derived from the :class:`Axis` class.
+All of these classes are derived from the Axis class.
 
 After loading a CIFTI-2 file a tuple of axes describing the rows and columns can be obtained
 from the :meth:`.cifti2.Cifti2Header.get_axis` method on the header object
 (e.g. ``nibabel.load(<filename>).header.get_axis()``). Inversely, a new
-:class:`.cifti2.Cifti2Header` object can be created from existing :class:`Axis` objects
+:class:`.cifti2.Cifti2Header` object can be created from existing Axis objects
 using the :meth:`.cifti2.Cifti2Header.from_axes` factory method.
 
-CIFTI-2 :class:`Axis` objects of the same type can be concatenated using the '+'-operator.
+CIFTI-2 Axis objects of the same type can be concatenated using the '+'-operator.
 Numpy indexing also works on axes
 (except for SeriesAxis objects, which have to remain monotonically increasing or decreasing).
 
 Creating new CIFTI-2 axes
 -----------------------
-New :class:`Axis` objects can be constructed by providing a description for what is contained
-in each row/column of the described tensor. For each :class:`Axis` sub-class this descriptor is:
+New Axis objects can be constructed by providing a description for what is contained
+in each row/column of the described tensor. For each Axis sub-class this descriptor is:
 
 * :class:`BrainModelAxis`: a CIFTI-2 structure name and a voxel or vertex index
 * :class:`ParcelsAxis`: a name and a sequence of voxel and vertex indices
