@@ -124,11 +124,11 @@ def from_index_mapping(mim):
 
     Parameters
     ----------
-    mim : cifti2.Cifti2MatrixIndicesMap
+    mim : :class:`.cifti2.Cifti2MatrixIndicesMap`
 
     Returns
     -------
-    subtype of Axis
+    subclass of :class:`Axis`
     """
     return_type = {'CIFTI_INDEX_TYPE_SCALARS': ScalarAxis,
                    'CIFTI_INDEX_TYPE_LABELS': LabelAxis,
@@ -149,7 +149,7 @@ def to_header(axes):
 
     Returns
     -------
-    cifti2.Cifti2Header
+    :class:`.cifti2.Cifti2Header`
     """
     axes = tuple(axes)
     mims_all = []
@@ -777,7 +777,7 @@ class ParcelsAxis(Axis):
         for idx_parcel, (parcel_name, bm) in enumerate(named_brain_models):
             all_names.append(parcel_name)
 
-            voxels = bm.voxel[~bm.surface_mask]
+            voxels = bm.voxel[bm.volume_mask]
             if voxels.shape[0] != 0:
                 if affine is None:
                     affine = bm.affine

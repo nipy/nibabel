@@ -1288,7 +1288,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
 
         Parameters
         ----------
-        axes : Tuple[cifti2_axes.Axis]
+        axes : tuple of :class`.cifti2_axes.Axis`
             sequence of Cifti2 axes describing each row/column of the matrix to be stored
 
         Returns
@@ -1328,7 +1328,7 @@ class Cifti2Image(DataobjImage):
             Object containing image data.  It should be some object that
             returns an array from ``np.asanyarray``.  It should have a
             ``shape`` attribute or property.
-        header : Cifti2Header instance or Sequence[cifti2_axes.Axis]
+        header : Cifti2Header instance or sequence of :class:`cifti2_axes.Axis`
             Header with data for / from XML part of CIFTI-2 format.
             Alternatively a sequence of cifti2_axes.Axis objects can be provided
             describing each dimension of the array.
