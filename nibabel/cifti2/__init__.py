@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""CIfTI2 format IO
+"""CIFTI-2 format IO
 
 .. currentmodule:: nibabel.cifti2
 

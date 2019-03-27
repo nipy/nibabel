@@ -10,7 +10,7 @@ equivalents = [('CIFTI_STRUCTURE_CORTEX_LEFT', ('CortexLeft', 'LeftCortex', 'lef
 
 def test_name_conversion():
     """
-    Tests the automatic name conversion to a format recognized by CIFTI2
+    Tests the automatic name conversion to a format recognized by CIFTI-2
     """
     func = cifti2_axes.BrainModel.to_cifti_brain_structure_name
     for base_name, input_names in equivalents:

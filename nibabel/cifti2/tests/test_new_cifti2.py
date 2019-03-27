@@ -1,4 +1,4 @@
-"""Tests the generation of new CIFTI2 files from scratch
+"""Tests the generation of new CIFTI-2 files from scratch
 
 Contains a series of functions to create and check each of the 5 CIFTI index
 types (i.e. BRAIN_MODELS, PARCELS, SCALARS, LABELS, and SERIES).

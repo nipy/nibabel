@@ -101,7 +101,7 @@ def get_axes():
 
 def test_brain_models():
     """
-    Tests the introspection and creation of CIFTI2 BrainModel axes
+    Tests the introspection and creation of CIFTI-2 BrainModel axes
     """
     bml = list(get_brain_models())
     assert len(bml[0]) == 3
@@ -306,7 +306,7 @@ def test_brain_models():
 
 def test_parcels():
     """
-    Test the introspection and creation of CIFTI2 Parcel axes
+    Test the introspection and creation of CIFTI-2 Parcel axes
     """
     prc = get_parcels()
     assert isinstance(prc, axes.Parcels)
@@ -446,7 +446,7 @@ def test_parcels():
 
 def test_scalar():
     """
-    Test the introspection and creation of CIFTI2 Scalar axes
+    Test the introspection and creation of CIFTI-2 Scalar axes
     """
     sc = get_scalar()
     assert len(sc) == 3
@@ -494,7 +494,7 @@ def test_scalar():
 
 def test_label():
     """
-    Test the introspection and creation of CIFTI2 Scalar axes
+    Test the introspection and creation of CIFTI-2 Scalar axes
     """
     lab = get_label()
     assert len(lab) == 3
@@ -549,7 +549,7 @@ def test_label():
 
 def test_series():
     """
-    Test the introspection and creation of CIFTI2 Series axes
+    Test the introspection and creation of CIFTI-2 Series axes
     """
     sr = list(get_series())
     assert sr[0].unit == 'SECOND'
@@ -618,7 +618,7 @@ def test_series():
 
 def test_writing():
     """
-    Tests the writing and reading back in of custom created CIFTI2 axes
+    Tests the writing and reading back in of custom created CIFTI-2 axes
     """
     for ax1 in get_axes():
         for ax2 in get_axes():
@@ -628,7 +628,7 @@ def test_writing():
 
 def test_common_interface():
     """
-    Tests the common interface for all custom created CIFTI2 axes
+    Tests the common interface for all custom created CIFTI-2 axes
     """
     for axis1, axis2 in zip(get_axes(), get_axes()):
         assert axis1 == axis2
