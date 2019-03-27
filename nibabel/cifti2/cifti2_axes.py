@@ -604,7 +604,7 @@ class BrainModelAxis(Axis):
                  self.volume_shape == other.volume_shape) and
                 self.nvertices == other.nvertices and
                 np.array_equal(self.name, other.name) and
-                np.array_equal(self.voxel[~self.surface_mask], other.voxel[~other.surface_mask]) and
+                np.array_equal(self.voxel[self.volume_mask], other.voxel[self.volume_mask]) and
                 np.array_equal(self.vertex[self.surface_mask], other.vertex[other.surface_mask])
         )
 
