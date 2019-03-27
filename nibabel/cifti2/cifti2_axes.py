@@ -177,7 +177,7 @@ class Axis(object):
 
     * :class:`BrainModelAxis`: each row/column is a voxel or vertex
     * :class:`ParcelsAxis`: each row/column is a group of voxels and/or vertices
-    * :class:`ScalarAxis`: each row/column has a unique name (with optional meta-data)
+    * :class:`ScalarAxis`: each row/column has a unique name with optional meta-data
     * :class:`LabelAxis`: each row/column has a unique name and label table with optional meta-data
     * :class:`SeriesAxis`: each row/column is a timepoint, which increases monotonically
     """
