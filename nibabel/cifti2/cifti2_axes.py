@@ -128,7 +128,7 @@ def from_index_mapping(mim):
 
     Returns
     -------
-    subclass of :class:`Axis`
+    axis : subclass of :class:`Axis`
     """
     return_type = {'CIFTI_INDEX_TYPE_SCALARS': ScalarAxis,
                    'CIFTI_INDEX_TYPE_LABELS': LabelAxis,
@@ -149,7 +149,7 @@ def to_header(axes):
 
     Returns
     -------
-    :class:`.cifti2.Cifti2Header`
+    header : :class:`.cifti2.Cifti2Header`
     """
     axes = tuple(axes)
     mims_all = []
