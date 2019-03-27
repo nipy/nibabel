@@ -1276,7 +1276,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
 
         Returns
         -------
-        axis : cifti2_axes.Axis
+        axis : :class:`.cifti2_axes.Axis`
         '''
         from . import cifti2_axes
         return cifti2_axes.from_index_mapping(self.matrix.get_index_map(index))
