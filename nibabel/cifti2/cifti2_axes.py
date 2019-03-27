@@ -50,10 +50,14 @@ Examples
 We can create brain models covering the left cortex and left thalamus using:
 
 >>> from nibabel import cifti2
->>> bm_cortex = cifti2.BrainModelAxis.from_mask(cortex_mask,
-...                                         brain_structure='cortex_left') # doctest: +SKIP
->>> bm_thal = cifti2.BrainModelAxis.from_mask(thalamus_mask, affine=affine,
-...                                       brain_structure='thalamus_left') # doctest: +SKIP
+>>> import numpy as np
+>>> bm_cortex = cifti2.BrainModelAxis.from_mask([True, False, True, True],
+...                                             name='cortex_left')
+>>> bm_thal = cifti2.BrainModelAxis.from_mask(np.ones((2, 2, 2)), affine=np.eye(4),
+...                                           name='thalamus_left')
+
+In this very simple case ``bm_cortex`` describes a left cortical surface skipping the second
+out of four vertices. ``bm_thal`` contains all voxels in a 2x2x2 volume.
 
 Brain structure names automatically get converted to valid CIFTI-2 indentifiers using
 :meth:`BrainModelAxis.to_cifti_brain_structure_name`.
@@ -332,6 +336,8 @@ class BrainModelAxis(Axis):
             affine = np.asanyarray(affine)
         if affine.shape != (4, 4):
             raise ValueError("Affine transformation should be a 4x4 array or None, not %r" % affine)
+
+        mask = np.asanyarray(mask)
         if mask.ndim == 1:
             return cls.from_surface(np.where(mask != 0)[0], mask.size, name=name)
         elif mask.ndim == 3:
