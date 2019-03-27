@@ -22,9 +22,9 @@ hcp_affine = np.array([[  -2.,    0.,    0.,   90.],
 
 
 def check_hcp_grayordinates(brain_model):
-    """Checks that a BrainModel matches the expected 32k HCP grayordinates
+    """Checks that a BrainModelAxis matches the expected 32k HCP grayordinates
     """
-    assert isinstance(brain_model, cifti2_axes.BrainModel)
+    assert isinstance(brain_model, cifti2_axes.BrainModelAxis)
     structures = list(brain_model.iter_structures())
     assert len(structures) == len(hcp_labels)
     idx_start = 0
@@ -40,7 +40,7 @@ def check_hcp_grayordinates(brain_model):
             assert (bm.vertex == -1).all()
             assert (bm.affine == hcp_affine).all()
             assert bm.volume_shape == (91, 109, 91)
-        assert name == cifti2_axes.BrainModel.to_cifti_brain_structure_name(label)
+        assert name == cifti2_axes.BrainModelAxis.to_cifti_brain_structure_name(label)
         assert len(bm) == nel
         assert (bm.name == brain_model.name[idx_start:idx_start + nel]).all()
         assert (bm.voxel == brain_model.voxel[idx_start:idx_start + nel]).all()
@@ -60,9 +60,9 @@ def check_hcp_grayordinates(brain_model):
 
 
 def check_Conte69(brain_model):
-    """Checks that the BrainModel matches the expected Conte69 surface coordinates
+    """Checks that the BrainModelAxis matches the expected Conte69 surface coordinates
     """
-    assert isinstance(brain_model, cifti2_axes.BrainModel)
+    assert isinstance(brain_model, cifti2_axes.BrainModelAxis)
     structures = list(brain_model.iter_structures())
     assert len(structures) == 2
     assert structures[0][0] == 'CIFTI_STRUCTURE_CORTEX_LEFT'
@@ -106,7 +106,7 @@ def test_read_ones():
     arr = img.get_data()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert (arr == 1).all()
-    assert isinstance(axes[0], cifti2_axes.Scalar)
+    assert isinstance(axes[0], cifti2_axes.ScalarAxis)
     assert len(axes[0]) == 1
     assert axes[0].name[0] == 'ones'
     assert axes[0].meta[0] == {}
@@ -120,7 +120,7 @@ def test_read_conte69_dscalar():
     img = nib.load(os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.dscalar.nii'))
     arr = img.get_data()
     axes = [img.header.get_axis(dim) for dim in range(2)]
-    assert isinstance(axes[0], cifti2_axes.Scalar)
+    assert isinstance(axes[0], cifti2_axes.ScalarAxis)
     assert len(axes[0]) == 2
     assert axes[0].name[0] == 'MyelinMap_BC_decurv'
     assert axes[0].name[1] == 'corrThickness'
@@ -134,7 +134,7 @@ def test_read_conte69_dtseries():
     img = nib.load(os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.dtseries.nii'))
     arr = img.get_data()
     axes = [img.header.get_axis(dim) for dim in range(2)]
-    assert isinstance(axes[0], cifti2_axes.Series)
+    assert isinstance(axes[0], cifti2_axes.SeriesAxis)
     assert len(axes[0]) == 2
     assert axes[0].start == 0
     assert axes[0].step == 1
@@ -149,7 +149,7 @@ def test_read_conte69_dlabel():
     img = nib.load(os.path.join(test_directory, 'Conte69.parcellations_VGD11b.32k_fs_LR.dlabel.nii'))
     arr = img.get_data()
     axes = [img.header.get_axis(dim) for dim in range(2)]
-    assert isinstance(axes[0], cifti2_axes.Label)
+    assert isinstance(axes[0], cifti2_axes.LabelAxis)
     assert len(axes[0]) == 3
     assert (axes[0].name == ['Composite Parcellation-lh (FRB08_OFP03_retinotopic)',
                              'Brodmann lh (from colin.R via pals_R-to-fs_LR)', 'MEDIAL WALL lh (fs_LR)']).all()
@@ -164,7 +164,7 @@ def test_read_conte69_ptseries():
     img = nib.load(os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.ptseries.nii'))
     arr = img.get_data()
     axes = [img.header.get_axis(dim) for dim in range(2)]
-    assert isinstance(axes[0], cifti2_axes.Series)
+    assert isinstance(axes[0], cifti2_axes.SeriesAxis)
     assert len(axes[0]) == 2
     assert axes[0].start == 0
     assert axes[0].step == 1

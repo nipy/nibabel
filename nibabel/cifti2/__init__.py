@@ -26,4 +26,4 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Image, Cifti2Label,
                      Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
                      Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
                      Cifti2HeaderError, CIFTI_MODEL_TYPES, load, save)
-from .cifti2_axes import (Axis, BrainModel, Parcels, Series, Label, Scalar)
+from .cifti2_axes import (Axis, BrainModelAxis, ParcelsAxis, SeriesAxis, LabelAxis, ScalarAxis)

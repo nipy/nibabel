@@ -4,11 +4,11 @@ Defines :class:`Axis` objects to create, read, and manipulate CIFTI-2 files
 These axes provide an alternative interface to the information in the CIFTI-2 header.
 Each type of CIFTI-2 axes describing the rows/columns in a CIFTI-2 matrix is given a unique class:
 
-* :class:`BrainModel`: each row/column is a voxel or vertex
-* :class:`Parcels`: each row/column is a group of voxels and/or vertices
-* :class:`Scalar`: each row/column has a unique name (with optional meta-data)
-* :class:`Label`: each row/column has a unique name and label table (with optional meta-data)
-* :class:`Series`: each row/column is a timepoint, which increases monotonically
+* :class:`BrainModelAxis`: each row/column is a voxel or vertex
+* :class:`ParcelsAxis`: each row/column is a group of voxels and/or vertices
+* :class:`ScalarAxis`: each row/column has a unique name (with optional meta-data)
+* :class:`LabelAxis`: each row/column has a unique name and label table (with optional meta-data)
+* :class:`SeriesAxis`: each row/column is a timepoint, which increases monotonically
 
 All of these classes are derived from the :class:`Axis` class.
 
@@ -20,43 +20,43 @@ using the :meth:`.cifti2.Cifti2Header.from_axes` factory method.
 
 CIFTI-2 :class:`Axis` objects of the same type can be concatenated using the '+'-operator.
 Numpy indexing also works on axes
-(except for Series objects, which have to remain monotonically increasing or decreasing).
+(except for SeriesAxis objects, which have to remain monotonically increasing or decreasing).
 
 Creating new CIFTI-2 axes
 -----------------------
 New :class:`Axis` objects can be constructed by providing a description for what is contained
 in each row/column of the described tensor. For each :class:`Axis` sub-class this descriptor is:
 
-* :class:`BrainModel`: a CIFTI-2 structure name and a voxel or vertex index
-* :class:`Parcels`: a name and a sequence of voxel and vertex indices
-* :class:`Scalar`: a name and optionally a dict of meta-data
-* :class:`Label`: a name, dict of label index to name and colour,
+* :class:`BrainModelAxis`: a CIFTI-2 structure name and a voxel or vertex index
+* :class:`ParcelsAxis`: a name and a sequence of voxel and vertex indices
+* :class:`ScalarAxis`: a name and optionally a dict of meta-data
+* :class:`LabelAxis`: a name, dict of label index to name and colour,
   and optionally a dict of meta-data
-* :class:`Series`: the time-point of each row/column is set by setting the start, stop, size,
+* :class:`SeriesAxis`: the time-point of each row/column is set by setting the start, stop, size,
   and unit of the time-series
 
-Several helper functions exist to create new :class:`BrainModel` axes:
+Several helper functions exist to create new :class:`BrainModelAxis` axes:
 
-* :meth:`BrainModel.from_mask` creates a new BrainModel volume covering the
+* :meth:`BrainModelAxis.from_mask` creates a new BrainModelAxis volume covering the
   non-zero values of a mask
-* :meth:`BrainModel.from_surface` creates a new BrainModel surface covering the provided
+* :meth:`BrainModelAxis.from_surface` creates a new BrainModelAxis surface covering the provided
   indices of a surface
 
-A :class:`Parcels` axis can be created from a sequence of :class:`BrainModel` axes using
-:meth:`Parcels.from_brain_models`.
+A :class:`ParcelsAxis` axis can be created from a sequence of :class:`BrainModelAxis` axes using
+:meth:`ParcelsAxis.from_brain_models`.
 
 Examples
 --------
 We can create brain models covering the left cortex and left thalamus using:
 
 >>> from nibabel import cifti2
->>> bm_cortex = cifti2.BrainModel.from_mask(cortex_mask,
+>>> bm_cortex = cifti2.BrainModelAxis.from_mask(cortex_mask,
 ...                                         brain_structure='cortex_left') # doctest: +SKIP
->>> bm_thal = cifti2.BrainModel.from_mask(thalamus_mask, affine=affine,
+>>> bm_thal = cifti2.BrainModelAxis.from_mask(thalamus_mask, affine=affine,
 ...                                       brain_structure='thalamus_left') # doctest: +SKIP
 
 Brain structure names automatically get converted to valid CIFTI-2 indentifiers using
-:meth:`BrainModel.to_cifti_brain_structure_name`.
+:meth:`BrainModelAxis.to_cifti_brain_structure_name`.
 A 1-dimensional mask will be automatically interpreted as a surface element and a 3-dimensional
 mask as a volume element.
 
@@ -83,9 +83,9 @@ In this case there will be two iterations, namely:
 and
 ('CIFTI_STRUCTURE_THALAMUS_LEFT', slice(<size of cortex mask>, None), bm_thal)
 
-Parcels can be constructed from selections of these brain models:
+ParcelsAxis can be constructed from selections of these brain models:
 
->>> parcel = cifti2.Parcels.from_brain_models([
+>>> parcel = cifti2.ParcelsAxis.from_brain_models([
 ...        ('surface_parcel', bm_cortex[:100]),  # contains first 100 cortical vertices
 ...        ('volume_parcel', bm_thal),  # contains thalamus
 ...        ('combined_parcel', bm_full[[1, 8, 10, 120, 127])  # contains selected voxels/vertices
@@ -94,7 +94,7 @@ Parcels can be constructed from selections of these brain models:
 Time series are represented by their starting time (typically 0), step size
 (i.e. sampling time or TR), and number of elements:
 
->>> series = cifti2.Series(start=0, step=100, size=5000)  # doctest: +SKIP
+>>> series = cifti2.SeriesAxis(start=0, step=100, size=5000)  # doctest: +SKIP
 
 So a header for fMRI data with a TR of 100 ms covering the left cortex and thalamus with
 5000 timepoints could be created with
@@ -104,7 +104,7 @@ So a header for fMRI data with a TR of 100 ms covering the left cortex and thala
 Similarly the curvature and cortical thickness on the left cortex could be stored using a header
 like:
 
->>> cifti2.Cifti2Header.from_axes((cifti.Scalar(['curvature', 'thickness'],
+>>> cifti2.Cifti2Header.from_axes((cifti.ScalarAxis(['curvature', 'thickness'],
 ...                                             bm_cortex))  # doctest: +SKIP
 """
 import numpy as np
@@ -126,11 +126,11 @@ def from_index_mapping(mim):
     -------
     subtype of Axis
     """
-    return_type = {'CIFTI_INDEX_TYPE_SCALARS': Scalar,
-                   'CIFTI_INDEX_TYPE_LABELS': Label,
-                   'CIFTI_INDEX_TYPE_SERIES': Series,
-                   'CIFTI_INDEX_TYPE_BRAIN_MODELS': BrainModel,
-                   'CIFTI_INDEX_TYPE_PARCELS': Parcels}
+    return_type = {'CIFTI_INDEX_TYPE_SCALARS': ScalarAxis,
+                   'CIFTI_INDEX_TYPE_LABELS': LabelAxis,
+                   'CIFTI_INDEX_TYPE_SERIES': SeriesAxis,
+                   'CIFTI_INDEX_TYPE_BRAIN_MODELS': BrainModelAxis,
+                   'CIFTI_INDEX_TYPE_PARCELS': ParcelsAxis}
     return return_type[mim.indices_map_to_data_type].from_index_mapping(mim)
 
 
@@ -218,7 +218,7 @@ class Axis(object):
         pass
 
 
-class BrainModel(Axis):
+class BrainModelAxis(Axis):
     """
     Each row/column in the CIFTI-2 vector/matrix represents a single vertex or voxel
 
@@ -228,15 +228,15 @@ class BrainModel(Axis):
     def __init__(self, name, voxel=None, vertex=None, affine=None,
                  volume_shape=None, nvertices=None):
         """
-        New BrainModel axes can be constructed by passing on the greyordinate brain-structure
+        New BrainModelAxis axes can be constructed by passing on the greyordinate brain-structure
         names and voxel/vertex indices to the constructor or by one of the
         factory methods:
 
-        - :py:meth:`~BrainModel.from_mask`: creates surface or volumetric BrainModel axis
+        - :py:meth:`~BrainModelAxis.from_mask`: creates surface or volumetric BrainModelAxis axis
         from respectively 1D or 3D masks
-        - :py:meth:`~BrainModel.from_surface`: creates a surface BrainModel axis
+        - :py:meth:`~BrainModelAxis.from_surface`: creates a surface BrainModelAxis axis
 
-        The resulting BrainModel axes can be concatenated by adding them together.
+        The resulting BrainModelAxis axes can be concatenated by adding them together.
 
         Parameters
         ----------
@@ -291,7 +291,7 @@ class BrainModel(Axis):
         else:
             if affine is None or volume_shape is None:
                 raise ValueError("Affine and volume shape should be defined "
-                                 "for BrainModel containing voxels")
+                                 "for BrainModelAxis containing voxels")
             self.affine = affine
             self.volume_shape = volume_shape
 
@@ -303,18 +303,18 @@ class BrainModel(Axis):
         for check_name in ('name', 'voxel', 'vertex'):
             shape = (self.size, 3) if check_name == 'voxel' else (self.size, )
             if getattr(self, check_name).shape != shape:
-                raise ValueError("Input {} has incorrect shape ({}) for BrainModel axis".format(
+                raise ValueError("Input {} has incorrect shape ({}) for BrainModelAxis axis".format(
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
     def from_mask(cls, mask, name='other', affine=None):
         """
-        Creates a new BrainModel axis describing the provided mask
+        Creates a new BrainModelAxis axis describing the provided mask
 
         Parameters
         ----------
         mask : np.ndarray
-            all non-zero voxels will be included in the BrainModel axis
+            all non-zero voxels will be included in the BrainModelAxis axis
             should be (Nx, Ny, Nz) array for volume mask or (Nvertex, ) array for surface mask
         name : str
             Name of the brain structure (e.g. 'CortexRight', 'thalamus_left' or 'brain_stem')
@@ -324,7 +324,7 @@ class BrainModel(Axis):
 
         Returns
         -------
-        BrainModel which covers the provided mask
+        BrainModelAxis which covers the provided mask
         """
         if affine is None:
             affine = np.eye(4)
@@ -344,7 +344,7 @@ class BrainModel(Axis):
     @classmethod
     def from_surface(cls, vertices, nvertex, name='Other'):
         """
-        Creates a new BrainModel axis describing the vertices on a surface
+        Creates a new BrainModelAxis axis describing the vertices on a surface
 
         Parameters
         ----------
@@ -357,7 +357,7 @@ class BrainModel(Axis):
 
         Returns
         -------
-        BrainModel which covers (part of) the surface
+        BrainModelAxis which covers (part of) the surface
         """
         cifti_name = cls.to_cifti_brain_structure_name(name)
         return cls(cifti_name, vertex=vertices,
@@ -374,7 +374,7 @@ class BrainModel(Axis):
 
         Returns
         -------
-        BrainModel
+        BrainModelAxis
         """
         nbm = sum(bm.index_count for bm in mim.brain_models)
         voxel = np.full((nbm, 3), fill_value=-1, dtype=int)
@@ -588,7 +588,7 @@ class BrainModel(Axis):
         return self.name.size
 
     def __eq__(self, other):
-        if not isinstance(other, BrainModel) or len(self) != len(other):
+        if not isinstance(other, BrainModelAxis) or len(self) != len(other):
             return False
         if xor(self.affine is None, other.affine is None):
             return False
@@ -608,14 +608,14 @@ class BrainModel(Axis):
 
         Parameters
         ----------
-        other : BrainModel
+        other : BrainModelAxis
             brain model to be appended to the current one
 
         Returns
         -------
-        BrainModel
+        BrainModelAxis
         """
-        if not isinstance(other, BrainModel):
+        if not isinstance(other, BrainModelAxis):
             return NotImplemented
         if self.affine is None:
             affine, shape = other.affine, other.volume_shape
@@ -656,12 +656,12 @@ class BrainModel(Axis):
         - vertex index if it is a surface element, otherwise array with 3 voxel indices
         - structure.BrainStructure object describing the brain structure the element was taken from
 
-        Otherwise returns a new BrainModel
+        Otherwise returns a new BrainModelAxis
         """
         if isinstance(item, integer_types):
             return self.get_element(item)
         if isinstance(item, string_types):
-            raise IndexError("Can not index an Axis with a string (except for Parcels)")
+            raise IndexError("Can not index an Axis with a string (except for ParcelsAxis)")
         return self.__class__(self.name[item], self.voxel[item], self.vertex[item],
                               self.affine, self.volume_shape, self.nvertices)
 
@@ -688,7 +688,7 @@ class BrainModel(Axis):
         return element_type, struct[index], self.name[index]
 
 
-class Parcels(Axis):
+class ParcelsAxis(Axis):
     """
     Each row/column in the CIFTI-2 vector/matrix represents a parcel of voxels/vertices
 
@@ -700,8 +700,9 @@ class Parcels(Axis):
 
     def __init__(self, name, voxels, vertices, affine=None, volume_shape=None, nvertices=None):
         """
-        Use of this constructor is not recommended. New Parcels axes can be constructed more easily
-        from a sequence of BrainModel axes using :py:meth:`~Parcels.from_brain_models`
+        Use of this constructor is not recommended. New ParcelsAxis axes can be constructed more
+        easily from a sequence of BrainModelAxis axes using
+        :py:meth:`~ParcelsAxis.from_brain_models`
 
         Parameters
         ----------
@@ -738,7 +739,7 @@ class Parcels(Axis):
         if nvertices is None:
             self.nvertices = {}
         else:
-            self.nvertices = {BrainModel.to_cifti_brain_structure_name(name): number
+            self.nvertices = {BrainModelAxis.to_cifti_brain_structure_name(name): number
                               for name, number in nvertices.items()}
 
         for check_name in ('name', 'voxels', 'vertices'):
@@ -749,16 +750,16 @@ class Parcels(Axis):
     @classmethod
     def from_brain_models(cls, named_brain_models):
         """
-        Creates a Parcel axis from a list of BrainModel axes with names
+        Creates a Parcel axis from a list of BrainModelAxis axes with names
 
         Parameters
         ----------
-        named_brain_models : iterable of 2-element tuples of string and BrainModel
+        named_brain_models : iterable of 2-element tuples of string and BrainModelAxis
             list of (parcel name, brain model representation) pairs defining each parcel
 
         Returns
         -------
-        Parcels
+        ParcelsAxis
         """
         nparcels = len(named_brain_models)
         affine = None
@@ -789,7 +790,7 @@ class Parcels(Axis):
                     nvertices[name] = bm.nvertices[name]
                     vertices[name] = bm_part.vertex
             all_vertices[idx_parcel] = vertices
-        return Parcels(all_names, all_voxels, all_vertices, affine, volume_shape, nvertices)
+        return ParcelsAxis(all_names, all_voxels, all_vertices, affine, volume_shape, nvertices)
 
     @classmethod
     def from_index_mapping(cls, mim):
@@ -802,7 +803,7 @@ class Parcels(Axis):
 
         Returns
         -------
-        Parcels
+        ParcelsAxis
         """
         nparcels = len(list(mim.parcels))
         all_names = []
@@ -928,14 +929,14 @@ class Parcels(Axis):
 
         Parameters
         ----------
-        other : Parcels
+        other : ParcelsAxis
             parcel to be appended to the current one
 
         Returns
         -------
         Parcel
         """
-        if not isinstance(other, Parcels):
+        if not isinstance(other, ParcelsAxis):
             return NotImplemented
         if self.affine is None:
             affine, shape = other.affine, other.volume_shape
@@ -943,12 +944,12 @@ class Parcels(Axis):
             affine, shape = self.affine, self.volume_shape
             if other.affine is not None and (not np.allclose(other.affine, affine) or
                                              other.volume_shape != shape):
-                raise ValueError("Trying to concatenate two Parcels defined "
+                raise ValueError("Trying to concatenate two ParcelsAxis defined "
                                  "in a different brain volume")
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError("Trying to concatenate two Parcels with inconsistent "
+                raise ValueError("Trying to concatenate two ParcelsAxis with inconsistent "
                                  "number of vertices for %s"
                                  % name)
             nvertices[name] = value
@@ -998,7 +999,7 @@ class Parcels(Axis):
         return self.name[index], self.voxels[index], self.vertices[index]
 
 
-class Scalar(Axis):
+class ScalarAxis(Axis):
     """
     Along this axis of the CIFTI-2 vector/matrix each row/column has been given
     a unique name and optionally metadata
@@ -1021,7 +1022,7 @@ class Scalar(Axis):
 
         for check_name in ('name', 'meta'):
             if getattr(self, check_name).shape != (self.size, ):
-                raise ValueError("Input {} has incorrect shape ({}) for Scalar axis".format(
+                raise ValueError("Input {} has incorrect shape ({}) for ScalarAxis axis".format(
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
@@ -1035,7 +1036,7 @@ class Scalar(Axis):
 
         Returns
         -------
-        Scalar
+        ScalarAxis
         """
         names = [nm.map_name for nm in mim.named_maps]
         meta = [{} if nm.metadata is None else dict(nm.metadata) for nm in mim.named_maps]
@@ -1070,14 +1071,14 @@ class Scalar(Axis):
 
         Parameters
         ----------
-        other : Scalar
+        other : ScalarAxis
             scalar axis to be compared
 
         Returns
         -------
         bool : False if type, length or content do not match
         """
-        if not isinstance(other, Scalar) or self.size != other.size:
+        if not isinstance(other, ScalarAxis) or self.size != other.size:
             return False
         return np.array_equal(self.name, other.name) and np.array_equal(self.meta, other.meta)
 
@@ -1087,16 +1088,16 @@ class Scalar(Axis):
 
         Parameters
         ----------
-        other : Scalar
+        other : ScalarAxis
             scalar axis to be appended to the current one
 
         Returns
         -------
-        Scalar
+        ScalarAxis
         """
-        if not isinstance(other, Scalar):
+        if not isinstance(other, ScalarAxis):
             return NotImplemented
-        return Scalar(
+        return ScalarAxis(
                 np.append(self.name, other.name),
                 np.append(self.meta, other.meta),
         )
@@ -1124,7 +1125,7 @@ class Scalar(Axis):
         return self.name[index], self.meta[index]
 
 
-class Label(Axis):
+class LabelAxis(Axis):
     """
     Defines CIFTI-2 axis for label array.
 
@@ -1155,7 +1156,7 @@ class Label(Axis):
 
         for check_name in ('name', 'meta', 'label'):
             if getattr(self, check_name).shape != (self.size, ):
-                raise ValueError("Input {} has incorrect shape ({}) for Label axis".format(
+                raise ValueError("Input {} has incorrect shape ({}) for LabelAxis axis".format(
                         check_name, getattr(self, check_name).shape))
 
     @classmethod
@@ -1169,12 +1170,12 @@ class Label(Axis):
 
         Returns
         -------
-        Label
+        LabelAxis
         """
         tables = [{key: (value.label, value.rgba) for key, value in nm.label_table.items()}
                   for nm in mim.named_maps]
-        rest = Scalar.from_index_mapping(mim)
-        return Label(rest.name, tables, rest.meta)
+        rest = ScalarAxis.from_index_mapping(mim)
+        return LabelAxis(rest.name, tables, rest.meta)
 
     def to_mapping(self, dim):
         """
@@ -1210,14 +1211,14 @@ class Label(Axis):
 
         Parameters
         ----------
-        other : Label
+        other : LabelAxis
             label axis to be compared
 
         Returns
         -------
         bool : False if type, length or content do not match
         """
-        if not isinstance(other, Label) or self.size != other.size:
+        if not isinstance(other, LabelAxis) or self.size != other.size:
             return False
         return (
                 np.array_equal(self.name, other.name) and
@@ -1231,16 +1232,16 @@ class Label(Axis):
 
         Parameters
         ----------
-        other : Label
+        other : LabelAxis
             label axis to be appended to the current one
 
         Returns
         -------
-        Label
+        LabelAxis
         """
-        if not isinstance(other, Label):
+        if not isinstance(other, LabelAxis):
             return NotImplemented
-        return Label(
+        return LabelAxis(
                 np.append(self.name, other.name),
                 np.append(self.label, other.label),
                 np.append(self.meta, other.meta),
@@ -1270,7 +1271,7 @@ class Label(Axis):
         return self.name[index], self.label[index], self.meta[index]
 
 
-class Series(Axis):
+class SeriesAxis(Axis):
     """
     Along this axis of the CIFTI-2 vector/matrix the rows/columns increase monotonously in time
 
@@ -1280,7 +1281,7 @@ class Series(Axis):
 
     def __init__(self, start, step, size, unit="SECOND"):
         """
-        Creates a new Series axis
+        Creates a new SeriesAxis axis
 
         Parameters
         ----------
@@ -1305,7 +1306,7 @@ class Series(Axis):
     @classmethod
     def from_index_mapping(cls, mim):
         """
-        Creates a new Series axis based on a CIFTI-2 dataset
+        Creates a new SeriesAxis axis based on a CIFTI-2 dataset
 
         Parameters
         ----------
@@ -1313,7 +1314,7 @@ class Series(Axis):
 
         Returns
         -------
-        Series
+        SeriesAxis
         """
         start = mim.series_start * 10 ** mim.series_exponent
         step = mim.series_step * 10 ** mim.series_exponent
@@ -1321,7 +1322,7 @@ class Series(Axis):
 
     def to_mapping(self, dim):
         """
-        Converts the Series to a MatrixIndicesMap for storage in CIFTI-2 format
+        Converts the SeriesAxis to a MatrixIndicesMap for storage in CIFTI-2 format
 
         Parameters
         ----------
@@ -1349,7 +1350,7 @@ class Series(Axis):
     @unit.setter
     def unit(self, value):
         if value.upper() not in ("SECOND", "HERTZ", "METER", "RADIAN"):
-            raise ValueError("Series unit should be one of " +
+            raise ValueError("SeriesAxis unit should be one of " +
                              "('second', 'hertz', 'meter', or 'radian'")
         self._unit = value.upper()
 
@@ -1361,7 +1362,7 @@ class Series(Axis):
         True if start, step, size, and unit are the same.
         """
         return (
-                isinstance(other, Series) and
+                isinstance(other, SeriesAxis) and
                 self.start == other.start and
                 self.step == other.step and
                 self.size == other.size and
@@ -1370,30 +1371,30 @@ class Series(Axis):
 
     def __add__(self, other):
         """
-        Concatenates two Series
+        Concatenates two SeriesAxis
 
         Parameters
         ----------
-        other : Series
-            Time Series to append at the end of the current time Series.
-            Note that the starting time of the other time Series is ignored.
+        other : SeriesAxis
+            Time SeriesAxis to append at the end of the current time SeriesAxis.
+            Note that the starting time of the other time SeriesAxis is ignored.
 
         Returns
         -------
-        Series
-            New time Series with the concatenation of the two
+        SeriesAxis
+            New time SeriesAxis with the concatenation of the two
 
         Raises
         ------
         ValueError
-            raised if the repetition time of the two time Series is different
+            raised if the repetition time of the two time SeriesAxis is different
         """
-        if isinstance(other, Series):
+        if isinstance(other, SeriesAxis):
             if other.step != self.step:
-                raise ValueError('Can only concatenate Series with the same step size')
+                raise ValueError('Can only concatenate SeriesAxis with the same step size')
             if other.unit != self.unit:
-                raise ValueError('Can only concatenate Series with the same unit')
-            return Series(self.start, self.step, self.size + other.size, self.unit)
+                raise ValueError('Can only concatenate SeriesAxis with the same unit')
+            return SeriesAxis(self.start, self.step, self.size + other.size, self.unit)
         return NotImplemented
 
     def __getitem__(self, item):
@@ -1412,11 +1413,11 @@ class Series(Axis):
             nelements = (idx_end - idx_start) // step
             if nelements < 0:
                 nelements = 0
-            return Series(idx_start * self.step + self.start, self.step * step,
-                          nelements, self.unit)
+            return SeriesAxis(idx_start * self.step + self.start, self.step * step,
+                              nelements, self.unit)
         elif isinstance(item, integer_types):
             return self.get_element(item)
-        raise IndexError('Series can only be indexed with integers or slices '
+        raise IndexError('SeriesAxis can only be indexed with integers or slices '
                          'without breaking the regular structure')
 
     def get_element(self, index):
@@ -1436,6 +1437,6 @@ class Series(Axis):
         if index < 0:
             index = self.size + index
         if index >= self.size or index < 0:
-            raise IndexError("index %i is out of range for Series with size %i" %
+            raise IndexError("index %i is out of range for SeriesAxis with size %i" %
                              (original_index, self.size))
         return self.start + self.step * index

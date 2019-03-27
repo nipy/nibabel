@@ -12,26 +12,26 @@ use_label = {0: ('something', (0.2, 0.4, 0.1, 0.5)), 1: ('even better', (0.3, 0.
 
 def get_brain_models():
     """
-    Generates a set of practice BrainModel axes
+    Generates a set of practice BrainModelAxis axes
 
     Yields
     ------
-    BrainModel axis
+    BrainModelAxis axis
     """
     mask = np.zeros(vol_shape)
     mask[0, 1, 2] = 1
     mask[0, 4, 2] = True
     mask[0, 4, 0] = True
-    yield axes.BrainModel.from_mask(mask, 'ThalamusRight', rand_affine)
+    yield axes.BrainModelAxis.from_mask(mask, 'ThalamusRight', rand_affine)
     mask[0, 0, 0] = True
-    yield axes.BrainModel.from_mask(mask, affine=rand_affine)
+    yield axes.BrainModelAxis.from_mask(mask, affine=rand_affine)
 
-    yield axes.BrainModel.from_surface([0, 5, 10], 15, 'CortexLeft')
-    yield axes.BrainModel.from_surface([0, 5, 10, 13], 15)
+    yield axes.BrainModelAxis.from_surface([0, 5, 10], 15, 'CortexLeft')
+    yield axes.BrainModelAxis.from_surface([0, 5, 10, 13], 15)
 
     surface_mask = np.zeros(15, dtype='bool')
     surface_mask[[2, 9, 14]] = True
-    yield axes.BrainModel.from_mask(surface_mask, name='CortexRight')
+    yield axes.BrainModelAxis.from_mask(surface_mask, name='CortexRight')
 
 
 def get_parcels():
@@ -43,43 +43,43 @@ def get_parcels():
     Parcel axis
     """
     bml = list(get_brain_models())
-    return axes.Parcels.from_brain_models([('mixed', bml[0] + bml[2]), ('volume', bml[1]), ('surface', bml[3])])
+    return axes.ParcelsAxis.from_brain_models([('mixed', bml[0] + bml[2]), ('volume', bml[1]), ('surface', bml[3])])
 
 
 def get_scalar():
     """
-    Generates a practice Scalar axis with names ('one', 'two', 'three')
+    Generates a practice ScalarAxis axis with names ('one', 'two', 'three')
 
     Returns
     -------
-    Scalar axis
+    ScalarAxis axis
     """
-    return axes.Scalar(['one', 'two', 'three'])
+    return axes.ScalarAxis(['one', 'two', 'three'])
 
 
 def get_label():
     """
-    Generates a practice Label axis with names ('one', 'two', 'three') and two labels
+    Generates a practice LabelAxis axis with names ('one', 'two', 'three') and two labels
 
     Returns
     -------
-    Label axis
+    LabelAxis axis
     """
-    return axes.Label(['one', 'two', 'three'], use_label)
+    return axes.LabelAxis(['one', 'two', 'three'], use_label)
 
 
 def get_series():
     """
-    Generates a set of 4 practice Series axes with different starting times/lengths/time steps and units
+    Generates a set of 4 practice SeriesAxis axes with different starting times/lengths/time steps and units
 
     Yields
     ------
-    Series axis
+    SeriesAxis axis
     """
-    yield axes.Series(3, 10, 4)
-    yield axes.Series(8, 10, 3)
-    yield axes.Series(3, 2, 4)
-    yield axes.Series(5, 10, 5, "HERTZ")
+    yield axes.SeriesAxis(3, 10, 4)
+    yield axes.SeriesAxis(8, 10, 3)
+    yield axes.SeriesAxis(3, 2, 4)
+    yield axes.SeriesAxis(5, 10, 5, "HERTZ")
 
 
 def get_axes():
@@ -101,7 +101,7 @@ def get_axes():
 
 def test_brain_models():
     """
-    Tests the introspection and creation of CIFTI-2 BrainModel axes
+    Tests the introspection and creation of CIFTI-2 BrainModelAxis axes
     """
     bml = list(get_brain_models())
     assert len(bml[0]) == 3
@@ -109,7 +109,7 @@ def test_brain_models():
     assert (bml[0].voxel == [[0, 1, 2], [0, 4, 0], [0, 4, 2]]).all()
     assert bml[0][1][0] == 'CIFTI_MODEL_TYPE_VOXELS'
     assert (bml[0][1][1] == [0, 4, 0]).all()
-    assert bml[0][1][2] == axes.BrainModel.to_cifti_brain_structure_name('thalamus_right')
+    assert bml[0][1][2] == axes.BrainModelAxis.to_cifti_brain_structure_name('thalamus_right')
     assert len(bml[1]) == 4
     assert (bml[1].vertex == -1).all()
     assert (bml[1].voxel == [[0, 0, 0], [0, 1, 2], [0, 4, 0], [0, 4, 2]]).all()
@@ -131,7 +131,7 @@ def test_brain_models():
         structures = list(bm.iter_structures())
         assert len(structures) == 1
         name = structures[0][0]
-        assert name == axes.BrainModel.to_cifti_brain_structure_name(label)
+        assert name == axes.BrainModelAxis.to_cifti_brain_structure_name(label)
         if is_surface:
             assert bm.nvertices[name] == 15
         else:
@@ -172,51 +172,51 @@ def test_brain_models():
         bmt['thalamus_left']
 
     # Test the constructor
-    bm_vox = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
+    bm_vox = axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
     assert np.all(bm_vox.name == ['CIFTI_STRUCTURE_THALAMUS_LEFT'] * 5)
     assert np.array_equal(bm_vox.vertex, np.full(5, -1))
     assert np.array_equal(bm_vox.voxel, np.full((5, 3), 1))
     with assert_raises(ValueError):
         # no volume shape
-        axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4))
+        axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4))
     with assert_raises(ValueError):
         # no affine
-        axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int), volume_shape=(2, 3, 4))
+        axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int), volume_shape=(2, 3, 4))
     with assert_raises(ValueError):
         # incorrect name
-        axes.BrainModel('random_name', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
+        axes.BrainModelAxis('random_name', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
     with assert_raises(ValueError):
         # negative voxel indices
-        axes.BrainModel('thalamus_left', voxel=-np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
+        axes.BrainModelAxis('thalamus_left', voxel=-np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
     with assert_raises(ValueError):
         # no voxels or vertices
-        axes.BrainModel('thalamus_left', affine=np.eye(4), volume_shape=(2, 3, 4))
+        axes.BrainModelAxis('thalamus_left', affine=np.eye(4), volume_shape=(2, 3, 4))
     with assert_raises(ValueError):
         # incorrect voxel shape
-        axes.BrainModel('thalamus_left', voxel=np.ones((5, 2), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
+        axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 2), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4))
 
-    bm_vertex = axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
+    bm_vertex = axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
     assert np.array_equal(bm_vertex.name, ['CIFTI_STRUCTURE_CORTEX_LEFT'] * 5)
     assert np.array_equal(bm_vertex.vertex, np.full(5, 1))
     assert np.array_equal(bm_vertex.voxel, np.full((5, 3), -1))
     with assert_raises(ValueError):
-        axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int))
+        axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int))
     with assert_raises(ValueError):
-        axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_right': 20})
+        axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_right': 20})
     with assert_raises(ValueError):
-        axes.BrainModel('cortex_left', vertex=-np.ones(5, dtype=int), nvertices={'cortex_left': 20})
+        axes.BrainModelAxis('cortex_left', vertex=-np.ones(5, dtype=int), nvertices={'cortex_left': 20})
 
     # test from_mask errors
     with assert_raises(ValueError):
         # affine should be 4x4 matrix
-        axes.BrainModel.from_mask(np.arange(5) > 2, affine=np.ones(5))
+        axes.BrainModelAxis.from_mask(np.arange(5) > 2, affine=np.ones(5))
     with assert_raises(ValueError):
         # only 1D or 3D masks accepted
-        axes.BrainModel.from_mask(np.ones((5, 3)))
+        axes.BrainModelAxis.from_mask(np.ones((5, 3)))
 
-    # tests error in adding together or combining as Parcels
-    bm_vox = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int),
-                             affine=np.eye(4), volume_shape=(2, 3, 4))
+    # tests error in adding together or combining as ParcelsAxis
+    bm_vox = axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int),
+                                 affine=np.eye(4), volume_shape=(2, 3, 4))
     bm_vox + bm_vox
     assert (bm_vertex + bm_vox)[:bm_vertex.size] == bm_vertex
     assert (bm_vox + bm_vertex)[:bm_vox.size] == bm_vox
@@ -225,33 +225,33 @@ def test_brain_models():
         assert np.all(bm_added.affine == bm_vox.affine)
         assert bm_added.volume_shape == bm_vox.volume_shape
 
-    axes.Parcels.from_brain_models([('a', bm_vox), ('b', bm_vox)])
+    axes.ParcelsAxis.from_brain_models([('a', bm_vox), ('b', bm_vox)])
     with assert_raises(Exception):
         bm_vox + get_label()
 
-    bm_other_shape = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int),
-                                     affine=np.eye(4), volume_shape=(4, 3, 4))
+    bm_other_shape = axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int),
+                                         affine=np.eye(4), volume_shape=(4, 3, 4))
     with assert_raises(ValueError):
         bm_vox + bm_other_shape
     with assert_raises(ValueError):
-        axes.Parcels.from_brain_models([('a', bm_vox), ('b', bm_other_shape)])
-    bm_other_affine = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int),
-                                      affine=np.eye(4) * 2, volume_shape=(2, 3, 4))
+        axes.ParcelsAxis.from_brain_models([('a', bm_vox), ('b', bm_other_shape)])
+    bm_other_affine = axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int),
+                                          affine=np.eye(4) * 2, volume_shape=(2, 3, 4))
     with assert_raises(ValueError):
         bm_vox + bm_other_affine
     with assert_raises(ValueError):
-        axes.Parcels.from_brain_models([('a', bm_vox), ('b', bm_other_affine)])
+        axes.ParcelsAxis.from_brain_models([('a', bm_vox), ('b', bm_other_affine)])
 
-    bm_vertex = axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
-    bm_other_number = axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 30})
+    bm_vertex = axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
+    bm_other_number = axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 30})
     with assert_raises(ValueError):
         bm_vertex + bm_other_number
     with assert_raises(ValueError):
-        axes.Parcels.from_brain_models([('a', bm_vertex), ('b', bm_other_number)])
+        axes.ParcelsAxis.from_brain_models([('a', bm_vertex), ('b', bm_other_number)])
 
     # test equalities
-    bm_vox = axes.BrainModel('thalamus_left', voxel=np.ones((5, 3), dtype=int),
-                             affine=np.eye(4), volume_shape=(2, 3, 4))
+    bm_vox = axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int),
+                                 affine=np.eye(4), volume_shape=(2, 3, 4))
     bm_other = deepcopy(bm_vox)
     assert bm_vox == bm_other
     bm_other.voxel[1, 0] = 0
@@ -259,7 +259,7 @@ def test_brain_models():
 
     bm_other = deepcopy(bm_vox)
     bm_other.vertex[1] = 10
-    assert bm_vox == bm_other, 'vertices are ignored in volumetric BrainModel'
+    assert bm_vox == bm_other, 'vertices are ignored in volumetric BrainModelAxis'
 
     bm_other = deepcopy(bm_vox)
     bm_other.name[1] = 'BRAIN_STRUCTURE_OTHER'
@@ -278,11 +278,11 @@ def test_brain_models():
     bm_other.volume_shape = (10, 3, 4)
     assert bm_vox != bm_other
 
-    bm_vertex = axes.BrainModel('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
+    bm_vertex = axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20})
     bm_other = deepcopy(bm_vertex)
     assert bm_vertex == bm_other
     bm_other.voxel[1, 0] = 0
-    assert bm_vertex == bm_other, 'voxels are ignored in surface BrainModel'
+    assert bm_vertex == bm_other, 'voxels are ignored in surface BrainModelAxis'
 
     bm_other = deepcopy(bm_vertex)
     bm_other.vertex[1] = 10
@@ -309,7 +309,7 @@ def test_parcels():
     Test the introspection and creation of CIFTI-2 Parcel axes
     """
     prc = get_parcels()
-    assert isinstance(prc, axes.Parcels)
+    assert isinstance(prc, axes.ParcelsAxis)
     assert prc[0] == ('mixed', ) + prc['mixed']
     assert prc['mixed'][0].shape == (3, 3)
     assert len(prc['mixed'][1]) == 1
@@ -426,7 +426,7 @@ def test_parcels():
     assert prc != prc_other
 
     # test direct initialisation
-    axes.Parcels(
+    axes.ParcelsAxis(
             voxels=[np.ones((3, 2), dtype=int)],
             vertices=[{}],
             name=['single_voxel'],
@@ -435,7 +435,7 @@ def test_parcels():
     )
 
     with assert_raises(ValueError):
-        axes.Parcels(
+        axes.ParcelsAxis(
                 voxels=[np.ones((3, 2), dtype=int)],
                 vertices=[{}],
                 name=[['single_voxel']],  # wrong shape name array
@@ -446,11 +446,11 @@ def test_parcels():
 
 def test_scalar():
     """
-    Test the introspection and creation of CIFTI-2 Scalar axes
+    Test the introspection and creation of CIFTI-2 ScalarAxis axes
     """
     sc = get_scalar()
     assert len(sc) == 3
-    assert isinstance(sc, axes.Scalar)
+    assert isinstance(sc, axes.ScalarAxis)
     assert (sc.name == ['one', 'two', 'three']).all()
     assert (sc.meta == [{}] * 3).all()
     assert sc[1] == ('two', {})
@@ -483,22 +483,22 @@ def test_scalar():
     assert sc == sc_other
 
     # test constructor
-    assert axes.Scalar(['scalar_name'], [{}]) == axes.Scalar(['scalar_name'])
+    assert axes.ScalarAxis(['scalar_name'], [{}]) == axes.ScalarAxis(['scalar_name'])
 
     with assert_raises(ValueError):
-        axes.Scalar([['scalar_name']])  # wrong shape
+        axes.ScalarAxis([['scalar_name']])  # wrong shape
 
     with assert_raises(ValueError):
-        axes.Scalar(['scalar_name'], [{}, {}])  # wrong size
+        axes.ScalarAxis(['scalar_name'], [{}, {}])  # wrong size
 
 
 def test_label():
     """
-    Test the introspection and creation of CIFTI-2 Scalar axes
+    Test the introspection and creation of CIFTI-2 ScalarAxis axes
     """
     lab = get_label()
     assert len(lab) == 3
-    assert isinstance(lab, axes.Label)
+    assert isinstance(lab, axes.LabelAxis)
     assert (lab.name == ['one', 'two', 'three']).all()
     assert (lab.meta == [{}] * 3).all()
     assert (lab.label == [use_label] * 3).all()
@@ -538,18 +538,18 @@ def test_label():
     assert lab == other_lab
 
     # test constructor
-    assert axes.Label(['scalar_name'], [{}], [{}]) == axes.Label(['scalar_name'], [{}])
+    assert axes.LabelAxis(['scalar_name'], [{}], [{}]) == axes.LabelAxis(['scalar_name'], [{}])
 
     with assert_raises(ValueError):
-        axes.Label([['scalar_name']], [{}])  # wrong shape
+        axes.LabelAxis([['scalar_name']], [{}])  # wrong shape
 
     with assert_raises(ValueError):
-        axes.Label(['scalar_name'], [{}, {}])  # wrong size
+        axes.LabelAxis(['scalar_name'], [{}, {}])  # wrong size
 
 
 def test_series():
     """
-    Test the introspection and creation of CIFTI-2 Series axes
+    Test the introspection and creation of CIFTI-2 SeriesAxis axes
     """
     sr = list(get_series())
     assert sr[0].unit == 'SECOND'
@@ -635,7 +635,7 @@ def test_common_interface():
         concatenated = axis1 + axis2
         assert axis1 != concatenated
         assert axis1 == concatenated[:axis1.size]
-        if isinstance(axis1, axes.Series):
+        if isinstance(axis1, axes.SeriesAxis):
             assert axis2 != concatenated[axis1.size:]
         else:
             assert axis2 == concatenated[axis1.size:]
