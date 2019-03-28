@@ -80,7 +80,12 @@ Getting a specific brain region from the full brain model is as simple as:
 
 You can also iterate over all brain structures in a brain model:
 
->>> for name, slc, bm in bm_full.iter_structures(): ...
+>>> for idx, (name, slc, bm) in enumerate(bm_full.iter_structures()):
+...     print(name, slc)
+...     assert bm == bm_full[slc]
+...     assert bm == bm_cortex if idx == 0 else bm_thal
+CIFTI_STRUCTURE_CORTEX_LEFT slice(0, 3, None)
+CIFTI_STRUCTURE_THALAMUS_LEFT slice(3, None, None)
 
 In this case there will be two iterations, namely:
 ('CIFTI_STRUCTURE_CORTEX_LEFT', slice(0, <size of cortex mask>), bm_cortex)
@@ -90,9 +95,9 @@ and
 ParcelsAxis can be constructed from selections of these brain models:
 
 >>> parcel = cifti2.ParcelsAxis.from_brain_models([
-...        ('surface_parcel', bm_cortex[:100]),  # contains first 100 cortical vertices
+...        ('surface_parcel', bm_cortex[:2]),  # contains first 2 cortical vertices
 ...        ('volume_parcel', bm_thal),  # contains thalamus
-...        ('combined_parcel', bm_full[[1, 8, 10, 120, 127])  # contains selected voxels/vertices
+...        ('combined_parcel', bm_full[[1, 8, 10]]),  # contains selected voxels/vertices
 ...    ])
 
 Time series are represented by their starting time (typically 0), step size
@@ -103,13 +108,15 @@ Time series are represented by their starting time (typically 0), step size
 So a header for fMRI data with a TR of 100 ms covering the left cortex and thalamus with
 5000 timepoints could be created with
 
->>> cifti2.Cifti2Header.from_axes((series, bm_cortex + bm_thal))
+>>> type(cifti2.Cifti2Header.from_axes((series, bm_cortex + bm_thal)))
+<class 'nibabel.cifti2.cifti2.Cifti2Header'>
 
 Similarly the curvature and cortical thickness on the left cortex could be stored using a header
 like:
 
->>> cifti2.Cifti2Header.from_axes((cifti.ScalarAxis(['curvature', 'thickness'],
-...                                                 bm_cortex))
+>>> type(cifti2.Cifti2Header.from_axes((cifti2.ScalarAxis(['curvature', 'thickness']),
+...                                     bm_cortex)))
+<class 'nibabel.cifti2.cifti2.Cifti2Header'>
 """
 import numpy as np
 from . import cifti2
