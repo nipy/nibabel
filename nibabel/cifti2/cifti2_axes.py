@@ -81,11 +81,11 @@ Getting a specific brain region from the full brain model is as simple as:
 You can also iterate over all brain structures in a brain model:
 
 >>> for idx, (name, slc, bm) in enumerate(bm_full.iter_structures()):
-...     print(name, slc)
+...     print((str(name), slc))
 ...     assert bm == bm_full[slc]
 ...     assert bm == bm_cortex if idx == 0 else bm_thal
-CIFTI_STRUCTURE_CORTEX_LEFT slice(0, 3, None)
-CIFTI_STRUCTURE_THALAMUS_LEFT slice(3, None, None)
+('CIFTI_STRUCTURE_CORTEX_LEFT', slice(0, 3, None))
+('CIFTI_STRUCTURE_THALAMUS_LEFT', slice(3, None, None))
 
 In this case there will be two iterations, namely:
 ('CIFTI_STRUCTURE_CORTEX_LEFT', slice(0, <size of cortex mask>), bm_cortex)
