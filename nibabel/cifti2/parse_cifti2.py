@@ -94,7 +94,7 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
 
     @staticmethod
     def _chk_qfac(hdr, fix=False):
-        # Allow qfac of 0 without complaint for CIFTI2
+        # Allow qfac of 0 without complaint for CIFTI-2
         rep = Report(HeaderDataError)
         if hdr['pixdim'][0] in (-1, 0, 1):
             return hdr, rep
@@ -127,7 +127,7 @@ class _Cifti2AsNiftiImage(Nifti2Image):
 
 
 class Cifti2Parser(xml.XmlParser):
-    '''Class to parse an XML string into a CIFTI2 header object'''
+    '''Class to parse an XML string into a CIFTI-2 header object'''
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
         super(Cifti2Parser, self).__init__(encoding=encoding,
                                            buffer_size=buffer_size,
@@ -164,7 +164,7 @@ class Cifti2Parser(xml.XmlParser):
             parent = self.struct_state[-1]
             if not isinstance(parent, Cifti2Header):
                 raise Cifti2HeaderError(
-                    'Matrix element can only be a child of the CIFTI2 Header element'
+                    'Matrix element can only be a child of the CIFTI-2 Header element'
                 )
             parent.matrix = matrix
             self.struct_state.append(matrix)
@@ -175,7 +175,8 @@ class Cifti2Parser(xml.XmlParser):
             parent = self.struct_state[-1]
             if not isinstance(parent, (Cifti2Matrix, Cifti2NamedMap)):
                 raise Cifti2HeaderError(
-                    'MetaData element can only be a child of the CIFTI2 Matrix or NamedMap elements'
+                    'MetaData element can only be a child of the CIFTI-2 Matrix '
+                    'or NamedMap elements'
                 )
 
             self.struct_state.append(meta)
@@ -207,7 +208,7 @@ class Cifti2Parser(xml.XmlParser):
             matrix = self.struct_state[-1]
             if not isinstance(matrix, Cifti2Matrix):
                 raise Cifti2HeaderError(
-                    'MatrixIndicesMap element can only be a child of the CIFTI2 Matrix element'
+                    'MatrixIndicesMap element can only be a child of the CIFTI-2 Matrix element'
                 )
             matrix.append(mim)
             self.struct_state.append(mim)
@@ -218,7 +219,7 @@ class Cifti2Parser(xml.XmlParser):
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'NamedMap element can only be a child of the CIFTI2 MatrixIndicesMap element'
+                    'NamedMap element can only be a child of the CIFTI-2 MatrixIndicesMap element'
                 )
             self.struct_state.append(named_map)
             mim.append(named_map)
@@ -234,7 +235,7 @@ class Cifti2Parser(xml.XmlParser):
             lata = Cifti2LabelTable()
             if not isinstance(named_map, Cifti2NamedMap):
                 raise Cifti2HeaderError(
-                    'LabelTable element can only be a child of the CIFTI2 NamedMap element'
+                    'LabelTable element can only be a child of the CIFTI-2 NamedMap element'
                 )
             self.fsm_state.append('LabelTable')
             self.struct_state.append(lata)
@@ -244,7 +245,7 @@ class Cifti2Parser(xml.XmlParser):
             lata = self.struct_state[-1]
             if not isinstance(lata, Cifti2LabelTable):
                 raise Cifti2HeaderError(
-                    'Label element can only be a child of the CIFTI2 LabelTable element'
+                    'Label element can only be a child of the CIFTI-2 LabelTable element'
                 )
             label = Cifti2Label()
             label.key = int(attrs["Key"])
@@ -260,7 +261,7 @@ class Cifti2Parser(xml.XmlParser):
             named_map = self.struct_state[-1]
             if not isinstance(named_map, Cifti2NamedMap):
                 raise Cifti2HeaderError(
-                    'MapName element can only be a child of the CIFTI2 NamedMap element'
+                    'MapName element can only be a child of the CIFTI-2 NamedMap element'
                 )
 
             self.fsm_state.append('MapName')
@@ -271,7 +272,7 @@ class Cifti2Parser(xml.XmlParser):
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'Surface element can only be a child of the CIFTI2 MatrixIndicesMap element'
+                    'Surface element can only be a child of the CIFTI-2 MatrixIndicesMap element'
                 )
             if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_PARCELS":
                 raise Cifti2HeaderError(
@@ -287,7 +288,7 @@ class Cifti2Parser(xml.XmlParser):
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'Parcel element can only be a child of the CIFTI2 MatrixIndicesMap element'
+                    'Parcel element can only be a child of the CIFTI-2 MatrixIndicesMap element'
                 )
             parcel.name = attrs["Name"]
             mim.append(parcel)
@@ -299,7 +300,7 @@ class Cifti2Parser(xml.XmlParser):
             parcel = self.struct_state[-1]
             if not isinstance(parcel, Cifti2Parcel):
                 raise Cifti2HeaderError(
-                    'Vertices element can only be a child of the CIFTI2 Parcel element'
+                    'Vertices element can only be a child of the CIFTI-2 Parcel element'
                 )
             vertices.brain_structure = attrs["BrainStructure"]
             if vertices.brain_structure not in CIFTI_BRAIN_STRUCTURES:
@@ -315,7 +316,7 @@ class Cifti2Parser(xml.XmlParser):
             parent = self.struct_state[-1]
             if not isinstance(parent, (Cifti2Parcel, Cifti2BrainModel)):
                 raise Cifti2HeaderError(
-                    'VoxelIndicesIJK element can only be a child of the CIFTI2 '
+                    'VoxelIndicesIJK element can only be a child of the CIFTI-2 '
                     'Parcel or BrainModel elements'
                 )
             parent.voxel_indices_ijk = Cifti2VoxelIndicesIJK()
@@ -325,7 +326,7 @@ class Cifti2Parser(xml.XmlParser):
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'Volume element can only be a child of the CIFTI2 MatrixIndicesMap element'
+                    'Volume element can only be a child of the CIFTI-2 MatrixIndicesMap element'
                 )
             dimensions = tuple([int(val) for val in
                                 attrs["VolumeDimensions"].split(',')])
@@ -339,7 +340,7 @@ class Cifti2Parser(xml.XmlParser):
             if not isinstance(volume, Cifti2Volume):
                 raise Cifti2HeaderError(
                     'TransformationMatrixVoxelIndicesIJKtoXYZ element can only be a child '
-                    'of the CIFTI2 Volume element'
+                    'of the CIFTI-2 Volume element'
                 )
             transform = Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ()
             transform.meter_exponent = int(attrs["MeterExponent"])
@@ -354,7 +355,7 @@ class Cifti2Parser(xml.XmlParser):
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
                     'BrainModel element can only be a child '
-                    'of the CIFTI2 MatrixIndicesMap element'
+                    'of the CIFTI-2 MatrixIndicesMap element'
                 )
             if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_BRAIN_MODELS":
                 raise Cifti2HeaderError(
@@ -386,7 +387,7 @@ class Cifti2Parser(xml.XmlParser):
             if not isinstance(model, Cifti2BrainModel):
                 raise Cifti2HeaderError(
                     'VertexIndices element can only be a child '
-                    'of the CIFTI2 BrainModel element'
+                    'of the CIFTI-2 BrainModel element'
                 )
             self.fsm_state.append('VertexIndices')
             model.vertex_indices = index
