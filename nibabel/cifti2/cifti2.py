@@ -6,18 +6,15 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to CIfTI2 image format
+''' Read / write access to CIFTI-2 image format
 
 Format of the NIFTI2 container format described here:
 
     http://www.nitrc.org/forum/message.php?msg_id=3738
 
-Definition of the CIFTI2 header format and file extensions attached to this
-email:
+Definition of the CIFTI-2 header format and file extensions can be found at:
 
-    http://www.nitrc.org/forum/forum.php?thread_id=4380&forum_id=1955
-
-Filename is ``CIFTI-2_Main_FINAL_1March2014.pdf``.
+    http://www.nitrc.org/projects/cifti
 '''
 from __future__ import division, print_function, absolute_import
 import re
@@ -42,7 +39,7 @@ def _float_01(val):
 
 
 class Cifti2HeaderError(Exception):
-    """ Error in CIFTI2 header
+    """ Error in CIFTI-2 header
     """
 
 
@@ -178,7 +175,7 @@ class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
 
 
 class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
-    """ CIFTI2 label table: a sequence of ``Cifti2Label``s
+    """ CIFTI-2 label table: a sequence of ``Cifti2Label``s
 
     * Description - Used by NamedMap when IndicesMapToDataType is
       "CIFTI_INDEX_TYPE_LABELS" in order to associate names and display colors
@@ -236,7 +233,7 @@ class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
 
 
 class Cifti2Label(xml.XmlSerializable):
-    """ CIFTI2 label: association of integer key with a name and RGBA values
+    """ CIFTI-2 label: association of integer key with a name and RGBA values
 
     For all color components, value is floating point with range 0.0 to 1.0.
 
@@ -314,7 +311,7 @@ class Cifti2Label(xml.XmlSerializable):
 
 
 class Cifti2NamedMap(xml.XmlSerializable):
-    """CIFTI2 named map: association of name and optional data with a map index
+    """CIFTI-2 named map: association of name and optional data with a map index
 
     Associates a name, optional metadata, and possibly a LabelTable with an
     index in a map.
@@ -432,7 +429,7 @@ class Cifti2Surface(xml.XmlSerializable):
 
 
 class Cifti2VoxelIndicesIJK(xml.XmlSerializable, MutableSequence):
-    """CIFTI2 VoxelIndicesIJK: Set of voxel indices contained in a structure
+    """CIFTI-2 VoxelIndicesIJK: Set of voxel indices contained in a structure
 
     * Description - Identifies the voxels that model a brain structure, or
       participate in a parcel. Note that when this is a child of BrainModel,
@@ -514,7 +511,7 @@ class Cifti2VoxelIndicesIJK(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2Vertices(xml.XmlSerializable, MutableSequence):
-    """CIFTI2 vertices - association of brain structure and a list of vertices
+    """CIFTI-2 vertices - association of brain structure and a list of vertices
 
     * Description - Contains a BrainStructure type and a list of vertex indices
       within a Parcel.
@@ -580,7 +577,7 @@ class Cifti2Vertices(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2Parcel(xml.XmlSerializable):
-    """CIFTI2 parcel: association of a name with vertices and/or voxels
+    """CIFTI-2 parcel: association of a name with vertices and/or voxels
 
     * Description - Associates a name, plus vertices and/or voxels, with an
       index.
@@ -695,7 +692,7 @@ class Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(xml.XmlSerializable):
 
 
 class Cifti2Volume(xml.XmlSerializable):
-    """CIFTI2 volume: information about a volume for mappings that use voxels
+    """CIFTI-2 volume: information about a volume for mappings that use voxels
 
     * Description - Provides information about the volume for any mappings that
       use voxels.
@@ -738,7 +735,7 @@ class Cifti2Volume(xml.XmlSerializable):
 
 
 class Cifti2VertexIndices(xml.XmlSerializable, MutableSequence):
-    """CIFTI2 vertex indices: vertex indices for an associated brain model
+    """CIFTI-2 vertex indices: vertex indices for an associated brain model
 
     The vertex indices (which are independent for each surface, and
     zero-based) that are used in this brain model[.] The parent
@@ -1081,7 +1078,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
-    """ CIFTI2 Matrix object
+    """ CIFTI-2 Matrix object
 
     This is a list-like container where the elements are instances of
     :class:`Cifti2MatrixIndicesMap`.
@@ -1213,7 +1210,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
-    ''' Class for CIFTI2 header extension '''
+    ''' Class for CIFTI-2 header extension '''
 
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
@@ -1268,9 +1265,43 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         '''
         return self.matrix.get_index_map(index)
 
+    def get_axis(self, index):
+        '''
+        Generates the Cifti2 axis for a given dimension
+
+        Parameters
+        ----------
+        index : int
+            Dimension for which we want to obtain the mapping.
+
+        Returns
+        -------
+        axis : :class:`.cifti2_axes.Axis`
+        '''
+        from . import cifti2_axes
+        return cifti2_axes.from_index_mapping(self.matrix.get_index_map(index))
+
+    @classmethod
+    def from_axes(cls, axes):
+        '''
+        Creates a new Cifti2 header based on the Cifti2 axes
+
+        Parameters
+        ----------
+        axes : tuple of :class`.cifti2_axes.Axis`
+            sequence of Cifti2 axes describing each row/column of the matrix to be stored
+
+        Returns
+        -------
+        header : Cifti2Header
+            new header describing the rows/columns in a format consistent with Cifti2
+        '''
+        from . import cifti2_axes
+        return cifti2_axes.to_header(axes)
+
 
 class Cifti2Image(DataobjImage):
-    """ Class for single file CIFTI2 format image
+    """ Class for single file CIFTI-2 format image
     """
     header_class = Cifti2Header
     valid_exts = Nifti2Image.valid_exts
@@ -1297,8 +1328,10 @@ class Cifti2Image(DataobjImage):
             Object containing image data.  It should be some object that
             returns an array from ``np.asanyarray``.  It should have a
             ``shape`` attribute or property.
-        header : Cifti2Header instance
-            Header with data for / from XML part of CIFTI2 format.
+        header : Cifti2Header instance or sequence of :class:`cifti2_axes.Axis`
+            Header with data for / from XML part of CIFTI-2 format.
+            Alternatively a sequence of cifti2_axes.Axis objects can be provided
+            describing each dimension of the array.
         nifti_header : None or mapping or NIfTI2 header instance, optional
             Metadata for NIfTI2 component of this format.
         extra : None or mapping
@@ -1306,6 +1339,8 @@ class Cifti2Image(DataobjImage):
         file_map : mapping, optional
             Mapping giving file information for this image format.
         '''
+        if not isinstance(header, Cifti2Header) and header:
+            header = Cifti2Header.from_axes(header)
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
         self._nifti_header = Nifti2Header.from_header(nifti_header)
@@ -1321,7 +1356,7 @@ class Cifti2Image(DataobjImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        """ Load a CIFTI2 image from a file_map
+        """ Load a CIFTI-2 image from a file_map
 
         Parameters
         ----------
@@ -1341,7 +1376,7 @@ class Cifti2Image(DataobjImage):
                 cifti_header = item.get_content()
                 break
         else:
-            raise ValueError('NIfTI2 header does not contain a CIFTI2 '
+            raise ValueError('NIfTI2 header does not contain a CIFTI-2 '
                              'extension')
 
         # Construct cifti image.
@@ -1400,7 +1435,7 @@ class Cifti2Image(DataobjImage):
         img.to_file_map(file_map or self.file_map)
 
     def update_headers(self):
-        ''' Harmonize CIFTI2 and NIfTI headers with image data
+        ''' Harmonize CIFTI-2 and NIfTI headers with image data
 
         >>> import numpy as np
         >>> data = np.zeros((2,3,4))

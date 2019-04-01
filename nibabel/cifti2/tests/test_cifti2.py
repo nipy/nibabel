@@ -1,4 +1,4 @@
-""" Testing CIFTI2 objects
+""" Testing CIFTI-2 objects
 """
 import collections
 from xml.etree import ElementTree

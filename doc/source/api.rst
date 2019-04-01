@@ -23,6 +23,7 @@ File Formats
    analyze
    spm2analyze
    spm99analyze
+   cifti2
    gifti
    freesurfer
    minc1
