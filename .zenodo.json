@@ -39,6 +39,11 @@
       "orcid": "0000-0003-3456-2493"
     },
     {
+      "affiliation": "Wellcome Centre for Integrative Neuroimaging, University of Oxford, UK",
+      "name": "Cottaar, Michiel",
+      "orcid": "0000-0003-4679-7724"
+    },
+    {
       "affiliation": "MIT, HMS",
       "name": "Ghosh, Satrajit",
       "orcid": "0000-0002-5312-6729"
@@ -81,11 +86,6 @@
     },
     {
       "name": "Moloney, Brendan"
-    },
-    {
-      "affiliation": "Wellcome Centre for Integrative Neuroimaging, University of Oxford, UK",
-      "name": "Cottaar, Michiel",
-      "orcid": "0000-0003-4679-7724"
     },
     {
       "name": "Burns, Christopher"
@@ -163,7 +163,9 @@
       "name": "Nguyen, Ly"
     },
     {
-      "name": "Reddigari, Samir"
+      "affiliation": "BrainSpec, Boston, MA",
+      "name": "Reddigari, Samir",
+      "orcid": "0000-0003-1472-5881"
     },
     {
       "name": "St-Jean, Samuel"
@@ -209,6 +211,9 @@
       "affiliation": "University of California, San Francisco",
       "name": "Jordan, Kesshi",
       "orcid": "0000-0001-6313-0580"
+    },
+    {
+      "name": "Cieslak, Matt"
     },
     {
       "name": "Moreno, Miguel Estevan"
