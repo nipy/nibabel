@@ -95,6 +95,7 @@ contributed code and discussion (in rough order of appearance):
 * Soichi Hayashi
 * Samir Reddigari
 * Konstantinos Raktivan
+* Matt Cieslak
 
 License reprise
 ===============
