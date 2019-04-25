@@ -23,8 +23,8 @@ their brain, a single EPI volume, and a structural scan.  In general we never
 use the person's name in the image filenames, but we make an
 exception in this case:
 
-* :download:`somones_epi.nii.gz </downloads/someones_epi.nii.gz>`.
-* :download:`somones_anatomy.nii.gz </downloads/someones_anatomy.nii.gz>`.
+* :download:`someones_epi.nii.gz </downloads/someones_epi.nii.gz>`.
+* :download:`someones_anatomy.nii.gz </downloads/someones_anatomy.nii.gz>`.
 
 We can load up the EPI image to get the image data array:
 
