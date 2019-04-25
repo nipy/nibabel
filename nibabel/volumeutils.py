@@ -10,6 +10,7 @@
 from __future__ import division, print_function
 
 import sys
+import re
 import warnings
 import gzip
 from collections import OrderedDict
@@ -40,6 +41,13 @@ default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File)
+
+_OVERFLOW_FILTER = (
+     'ignore',
+     re.compile(r'.*overflow.*', re.IGNORECASE | re.UNICODE),
+     RuntimeWarning,
+     re.compile(r'', re.UNICODE),
+     0)
 
 
 class Recoder(object):
@@ -1334,7 +1342,9 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     tst_arr = np.atleast_1d(tst_arr)
     slope = np.atleast_1d(slope)
     inter = np.atleast_1d(inter)
-    warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
+    warnings.filters.insert(0, _OVERFLOW_FILTER)
+    getattr(warnings, '_filters_mutated', lambda: None)()  # PY2
+    # warnings._filters_mutated()  # PY3
     try:
         for ftype in OK_FLOATS[def_ind:]:
             tst_trans = tst_arr.copy()
@@ -1353,7 +1363,12 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
             if np.all(np.isfinite(tst_trans)):
                 return ftype
     finally:
-        warnings.filters.pop(0)
+        try:
+            warnings.filters.remove(_OVERFLOW_FILTER)
+            getattr(warnings, '_filters_mutated', lambda: None)()  # PY2
+            # warnings._filters_mutated()  # PY3
+        except ValueError:
+            pass
     raise ValueError('Overflow using highest floating point type')
 
 
