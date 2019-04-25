@@ -21,7 +21,7 @@ Nibabel releases
 Most work on NiBabel so far has been by Matthew Brett (MB), Chris Markiewicz
 (CM), Michael Hanke (MH), Marc-Alexandre Côté (MC), Ben Cipollini (BC), Paul
 McCarthy (PM), Chris Cheng (CC), Yaroslav Halchenko (YOH), Satra Ghosh (SG),
-Eric Larson (EL), Demien Wasserman, and Stephan Gerhard.
+Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
@@ -31,7 +31,7 @@ References like "pr/298" refer to github pull request numbers.
 New features
 ------------
 * Alternative ``Axis``-based interface for manipulating CIFTI-2 headers
-  (pr/641) (Michiel Cottaar, reviewed by Demien Wasserman, CM, SG)
+  (pr/641) (Michiel Cottaar, reviewed by Demian Wassermann, CM, SG)
 
 Enhancements
 ------------
@@ -232,7 +232,7 @@ Maintenance
 New features
 ------------
 
-* CIFTI support (pr/249) (SG, Michiel Cottaar, BC, CM, Demian Wasserman, MB)
+* CIFTI support (pr/249) (SG, Michiel Cottaar, BC, CM, Demian Wassermann, MB)
 * Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
   MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
 * Added ``get_fdata()`` as default method to retrieve scaled floating point
