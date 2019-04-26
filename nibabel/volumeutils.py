@@ -10,7 +10,6 @@
 from __future__ import division, print_function
 
 import sys
-import re
 import warnings
 import gzip
 from collections import OrderedDict
@@ -41,13 +40,6 @@ default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File)
-
-_OVERFLOW_FILTER = (
-     'ignore',
-     re.compile(r'.*overflow.*', re.IGNORECASE | re.UNICODE),
-     RuntimeWarning,
-     re.compile(r'', re.UNICODE),
-     0)
 
 
 class Recoder(object):
@@ -1342,32 +1334,36 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     tst_arr = np.atleast_1d(tst_arr)
     slope = np.atleast_1d(slope)
     inter = np.atleast_1d(inter)
-    warnings.filters.insert(0, _OVERFLOW_FILTER)
-    getattr(warnings, '_filters_mutated', lambda: None)()  # PY2
-    # warnings._filters_mutated()  # PY3
-    try:
-        for ftype in OK_FLOATS[def_ind:]:
-            tst_trans = tst_arr.copy()
-            slope = slope.astype(ftype)
-            inter = inter.astype(ftype)
+    overflow_filter = ('error', '.*overflow.*', RuntimeWarning)
+    for ftype in OK_FLOATS[def_ind:]:
+        tst_trans = tst_arr.copy()
+        slope = slope.astype(ftype)
+        inter = inter.astype(ftype)
+        try:
             if direction == 'read':  # as in reading of image from disk
                 if slope != 1.0:
-                    tst_trans = tst_trans * slope
+                    # Keep warning contexts small to reduce the odds of a race
+                    with warnings.catch_warnings():
+                        # Error on overflows to short circuit the logic
+                        warnings.filterwarnings(*overflow_filter)
+                        tst_trans = tst_trans * slope
                 if inter != 0.0:
-                    tst_trans = tst_trans + inter
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(*overflow_filter)
+                        tst_trans = tst_trans + inter
             elif direction == 'write':
                 if inter != 0.0:
-                    tst_trans = tst_trans - inter
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(*overflow_filter)
+                        tst_trans = tst_trans - inter
                 if slope != 1.0:
-                    tst_trans = tst_trans / slope
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(*overflow_filter)
+                        tst_trans = tst_trans / slope
+            # Double-check that result is finite
             if np.all(np.isfinite(tst_trans)):
                 return ftype
-    finally:
-        try:
-            warnings.filters.remove(_OVERFLOW_FILTER)
-            getattr(warnings, '_filters_mutated', lambda: None)()  # PY2
-            # warnings._filters_mutated()  # PY3
-        except ValueError:
+        except RuntimeWarning:
             pass
     raise ValueError('Overflow using highest floating point type')
 
