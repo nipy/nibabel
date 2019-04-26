@@ -18,7 +18,7 @@ from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
 
 from .keywordonly import kw_only_meth
-from .deprecated import FutureWarningMixin
+from .deprecated import deprecate_with_version
 
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
@@ -331,13 +331,13 @@ load = Minc1Image.load
 
 
 # Backwards compatibility
-class MincFile(FutureWarningMixin, Minc1File):
-    """ Deprecated alternative name for Minc1File
-    """
-    warn_message = 'MincFile is deprecated; please use Minc1File instead'
+@deprecate_with_version('MincFile is deprecated; please use Minc1File instead',
+                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
+class MincFile(Minc1File):
+    pass
 
 
-class MincImage(FutureWarningMixin, Minc1Image):
-    """ Deprecated alternative name for Minc1Image
-    """
-    warn_message = 'MincImage is deprecated; please use Minc1Image instead'
+@deprecate_with_version('MincImage is deprecated; please use Minc1Image instead',
+                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
+class MincImage(Minc1Image):
+    pass

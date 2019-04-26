@@ -16,7 +16,7 @@ import warnings
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_warns
 from numpy.testing import dec
 skipif = dec.skipif
 slow = dec.slow
