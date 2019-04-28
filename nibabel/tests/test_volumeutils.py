@@ -1256,7 +1256,7 @@ def test__ftype4scaled_finite_warningfilters():
     # 32MiB reliably produces the error on my machine; use 128 for safety
     shape = (1024, 1024, 32)
     tst_arr = np.zeros(shape, dtype=np.float32)
-    # Ensure that an overflow will happen
+    # Ensure that an overflow will happen for < float64
     tst_arr[0, 0, 0] = np.finfo(np.float32).max
     tst_arr[-1, -1, -1] = np.finfo(np.float32).min
     go = threading.Event()
@@ -1274,7 +1274,7 @@ def test__ftype4scaled_finite_warningfilters():
         def run(self):
             go.wait()
             try:
-                # Use float16 to buy us two failures
+                # Use float16 to ensure two failures and increase time in function
                 _ftype4scaled_finite(tst_arr, 2.0, 1.0, default=np.float16)
             except Exception as e:
                 err.append(e)
