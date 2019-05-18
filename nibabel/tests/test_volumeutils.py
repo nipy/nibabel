@@ -1253,12 +1253,12 @@ def test_array_from_file_overflow():
 def test__ftype4scaled_finite_warningfilters():
     # This test checks our ability to properly manage the thread-unsafe
     # warnings filter list.
-    # 32MiB reliably produces the error on my machine; use 128 for safety
-    shape = (1024, 1024, 32)
-    tst_arr = np.zeros(shape, dtype=np.float32)
+
+    # _ftype4scaled_finite always operates on one-or-two element arrays
     # Ensure that an overflow will happen for < float64
-    tst_arr[0, 0, 0] = np.finfo(np.float32).max
-    tst_arr[-1, -1, -1] = np.finfo(np.float32).min
+    finfo = np.finfo(np.float32)
+    tst_arr = np.array((finfo.min, finfo.max), dtype=np.float32)
+
     go = threading.Event()
     stop = threading.Event()
     err = []
@@ -1269,21 +1269,29 @@ def test__ftype4scaled_finite_warningfilters():
                 go.set()
                 while not stop.is_set():
                     warnings.filters[:] = []
-                    time.sleep(0.01)
+                    time.sleep(0)
     class CheckScaling(threading.Thread):
         def run(self):
             go.wait()
-            try:
-                # Use float16 to ensure two failures and increase time in function
-                _ftype4scaled_finite(tst_arr, 2.0, 1.0, default=np.float16)
-            except Exception as e:
-                err.append(e)
+            # Give ourselves a few bites at the apple
+            # 200 loops through the function takes ~10ms
+            # The highest number of iterations I've seen before hitting interference
+            # is 131, with 99% under 30, so this should be reasonably reliable.
+            for i in range(200):
+                try:
+                    # Use float16 to ensure two failures and increase time in function
+                    _ftype4scaled_finite(tst_arr, 2.0, 1.0, default=np.float16)
+                except Exception as e:
+                    err.append(e)
+                    break
             stop.set()
+
     thread_a = CheckScaling()
     thread_b = MakeTotalDestroy()
     thread_a.start()
     thread_b.start()
     thread_a.join()
     thread_b.join()
+
     if err:
         raise err[0]
