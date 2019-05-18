@@ -227,6 +227,10 @@ class AFNIArrayProxy(ArrayProxy):
         """
         Initialize AFNI array proxy
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         file_like : file-like object
@@ -240,18 +244,14 @@ class AFNIArrayProxy(ArrayProxy):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behavior is the same as if
-            ``keep_file_open is False``. If ``file_like`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            If ``file_like`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         super(AFNIArrayProxy, self).__init__(file_like,
@@ -506,6 +506,10 @@ class AFNIImage(SpatialImage):
         """
         Creates an AFNIImage instance from `file_map`
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         file_map : dict
@@ -518,18 +522,14 @@ class AFNIImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
-        keep_file_open : {None, 'auto', True, False}, optional, keyword only
+        keep_file_open : {None, True, False}, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behavior is the same as if
-            ``keep_file_open is False``. If ``file_like`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            If ``file_like`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
@@ -547,6 +547,10 @@ class AFNIImage(SpatialImage):
         """
         Creates an AFNIImage instance from `filename`
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         filename : str
@@ -558,18 +562,13 @@ class AFNIImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
-        keep_file_open : {None, 'auto', True, False}, optional, keyword only
+        keep_file_open : {None, True, False}, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behavior is the same as if
-            ``keep_file_open is False``. If ``file_like`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         file_map = klass.filespec_to_file_map(filename)
