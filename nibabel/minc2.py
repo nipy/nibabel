@@ -108,7 +108,7 @@ class Minc2File(Minc1File):
 
     def _get_scalar(self, var):
         """ Get scalar value from HDF5 scalar """
-        return var.value
+        return var[()]
 
     def _get_array(self, var):
         """ Get array from HDF5 array """
