@@ -1340,25 +1340,18 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
         slope = slope.astype(ftype)
         inter = inter.astype(ftype)
         try:
-            if direction == 'read':  # as in reading of image from disk
-                if slope != 1.0:
-                    # Keep warning contexts small to reduce the odds of a race
-                    with warnings.catch_warnings():
-                        # Error on overflows to short circuit the logic
-                        warnings.filterwarnings(*overflow_filter)
+            with warnings.catch_warnings():
+                # Error on overflows to short circuit the logic
+                warnings.filterwarnings(*overflow_filter)
+                if direction == 'read':  # as in reading of image from disk
+                    if slope != 1.0:
                         tst_trans = tst_trans * slope
-                if inter != 0.0:
-                    with warnings.catch_warnings():
-                        warnings.filterwarnings(*overflow_filter)
+                    if inter != 0.0:
                         tst_trans = tst_trans + inter
-            elif direction == 'write':
-                if inter != 0.0:
-                    with warnings.catch_warnings():
-                        warnings.filterwarnings(*overflow_filter)
+                elif direction == 'write':
+                    if inter != 0.0:
                         tst_trans = tst_trans - inter
-                if slope != 1.0:
-                    with warnings.catch_warnings():
-                        warnings.filterwarnings(*overflow_filter)
+                    if slope != 1.0:
                         tst_trans = tst_trans / slope
             # Double-check that result is finite
             if np.all(np.isfinite(tst_trans)):
