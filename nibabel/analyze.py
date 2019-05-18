@@ -988,47 +988,6 @@ class AnalyzeImage(SpatialImage):
                            'file_map': copy_file_map(file_map)}
         return img
 
-    @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open=None):
-        '''Class method to create image from filename `filename`
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
-
-        Parameters
-        ----------
-        filename : str
-            Filename of image to load
-        mmap : {True, False, 'c', 'r'}, optional, keyword only
-            `mmap` controls the use of numpy memory mapping for reading image
-            array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
-            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
-            image data file cannot be memory-mapped, ignore `mmap` value and
-            read array from file.
-        keep_file_open : { None, True, False }, optional, keyword only
-            `keep_file_open` controls whether a new file handle is created
-            every time the image is accessed, or a single file handle is
-            created and used for the lifetime of this ``ArrayProxy``. If
-            ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed.
-            The default value (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
-
-        Returns
-        -------
-        img : Analyze Image instance
-        '''
-        if mmap not in (True, False, 'c', 'r'):
-            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap,
-                                   keep_file_open=keep_file_open)
-
-    load = from_filename
-
     @staticmethod
     def _get_fileholders(file_map):
         """ Return fileholder for header and image
