@@ -414,7 +414,7 @@ class OrthoSlicer3D(object):
             idx = [slice(None)] * len(self._axes)
             for ii in range(3):
                 idx[self._order[ii]] = self._data_idx[ii]
-            vdata = self._data[idx].ravel()
+            vdata = self._data[tuple(idx)].ravel()
             vdata = np.concatenate((vdata, [vdata[-1]]))
             self._volume_ax_objs['patch'].set_x(self._data_idx[3] - 0.5)
             self._volume_ax_objs['step'].set_ydata(vdata)
