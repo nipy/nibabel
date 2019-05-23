@@ -356,3 +356,17 @@ def test_label():
     labels, scalars = read_label(label_path, True)
     assert_true(np.all(labels == label))
     assert_true(len(labels) == len(scalars))
+
+
+def test_write_annot_maxstruct():
+    """Verify we can write files with repeated labels - test by reading"""
+    with InTemporaryDirectory():
+        nlabels = 3
+        names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+        # max label < n_labels
+        labels = np.array([1, 1, 1], dtype=np.int32)
+        rgba = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
+        annot_path = 'c.annot'
+
+        write_annot(annot_path, labels, rgba, names)
+        read_annot(annot_path)
