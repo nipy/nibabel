@@ -1334,26 +1334,30 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     tst_arr = np.atleast_1d(tst_arr)
     slope = np.atleast_1d(slope)
     inter = np.atleast_1d(inter)
-    warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
-    try:
-        for ftype in OK_FLOATS[def_ind:]:
-            tst_trans = tst_arr.copy()
-            slope = slope.astype(ftype)
-            inter = inter.astype(ftype)
-            if direction == 'read':  # as in reading of image from disk
-                if slope != 1.0:
-                    tst_trans = tst_trans * slope
-                if inter != 0.0:
-                    tst_trans = tst_trans + inter
-            elif direction == 'write':
-                if inter != 0.0:
-                    tst_trans = tst_trans - inter
-                if slope != 1.0:
-                    tst_trans = tst_trans / slope
+    overflow_filter = ('error', '.*overflow.*', RuntimeWarning)
+    for ftype in OK_FLOATS[def_ind:]:
+        tst_trans = tst_arr.copy()
+        slope = slope.astype(ftype)
+        inter = inter.astype(ftype)
+        try:
+            with warnings.catch_warnings():
+                # Error on overflows to short circuit the logic
+                warnings.filterwarnings(*overflow_filter)
+                if direction == 'read':  # as in reading of image from disk
+                    if slope != 1.0:
+                        tst_trans = tst_trans * slope
+                    if inter != 0.0:
+                        tst_trans = tst_trans + inter
+                elif direction == 'write':
+                    if inter != 0.0:
+                        tst_trans = tst_trans - inter
+                    if slope != 1.0:
+                        tst_trans = tst_trans / slope
+            # Double-check that result is finite
             if np.all(np.isfinite(tst_trans)):
                 return ftype
-    finally:
-        warnings.filters.pop(0)
+        except RuntimeWarning:
+            pass
     raise ValueError('Overflow using highest floating point type')
 
 
