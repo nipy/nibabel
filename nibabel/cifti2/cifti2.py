@@ -29,6 +29,7 @@ from ..filebasedimages import FileBasedHeader
 from ..dataobj_images import DataobjImage
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
+from ..keywordonly import kw_only_meth
 
 
 def _float_01(val):
@@ -1355,7 +1356,8 @@ class Cifti2Image(DataobjImage):
         return self._nifti_header
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
         """ Load a CIFTI-2 image from a file_map
 
         Parameters
@@ -1368,7 +1370,8 @@ class Cifti2Image(DataobjImage):
             Returns a Cifti2Image
          """
         from .parse_cifti2 import _Cifti2AsNiftiImage, Cifti2Extension
-        nifti_img = _Cifti2AsNiftiImage.from_file_map(file_map)
+        nifti_img = _Cifti2AsNiftiImage.from_file_map(file_map, mmap=mmap,
+                                                      keep_file_open=keep_file_open)
 
         # Get cifti2 header
         for item in nifti_img.header.extensions:
@@ -1380,7 +1383,7 @@ class Cifti2Image(DataobjImage):
                              'extension')
 
         # Construct cifti image.
-        # User array proxy object where possible
+        # Use array proxy object where possible
         dataobj = nifti_img.dataobj
         return Cifti2Image(reshape_dataobj(dataobj, dataobj.shape[4:]),
                            header=cifti_header,
@@ -1455,33 +1458,5 @@ class Cifti2Image(DataobjImage):
         self._nifti_header.set_data_dtype(dtype)
 
 
-def load(filename):
-    """ Load cifti2 from `filename`
-
-    Parameters
-    ----------
-    filename : str
-        filename of image to be loaded
-
-    Returns
-    -------
-    img : Cifti2Image
-        cifti image instance
-
-    Raises
-    ------
-    ImageFileError: if `filename` doesn't look like cifti
-    IOError : if `filename` does not exist
-    """
-    return Cifti2Image.from_filename(filename)
-
-
-def save(img, filename):
-    """ Save cifti to `filename`
-
-    Parameters
-    ----------
-    filename : str
-        filename to which to save image
-    """
-    Cifti2Image.instance_to_filename(img, filename)
+load = Cifti2Image.from_filename
+save = Cifti2Image.instance_to_filename

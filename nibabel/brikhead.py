@@ -542,40 +542,6 @@ class AFNIImage(SpatialImage):
                      file_map=file_map)
 
     @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open=None):
-        """
-        Creates an AFNIImage instance from `filename`
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
-
-        Parameters
-        ----------
-        filename : str
-            Path to BRIK or HEAD file to be loaded
-        mmap : {True, False, 'c', 'r'}, optional, keyword only
-            `mmap` controls the use of numpy memory mapping for reading image
-            array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
-            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
-            image data file cannot be memory-mapped, ignore `mmap` value and
-            read array from file.
-        keep_file_open : {None, True, False}, optional, keyword only
-            `keep_file_open` controls whether a new file handle is created
-            every time the image is accessed, or a single file handle is
-            created and used for the lifetime of this ``ArrayProxy``. If
-            ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed.
-            The default value (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
-        """
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap,
-                                   keep_file_open=keep_file_open)
-
-    @classmethod
     def filespec_to_file_map(klass, filespec):
         """
         Make `file_map` from filename `filespec`
@@ -619,8 +585,6 @@ class AFNIImage(SpatialImage):
                         break
             file_map[key].filename = fname
         return file_map
-
-    load = from_filename
 
 
 load = AFNIImage.load
