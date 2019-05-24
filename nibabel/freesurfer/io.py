@@ -561,7 +561,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         write(-2)
 
         # maxstruc
-        write(np.max(labels) + 1)
+        write(max(np.max(labels) + 1, ctab.shape[0]))
 
         # File of LUT is unknown.
         write_string('NOFILE')

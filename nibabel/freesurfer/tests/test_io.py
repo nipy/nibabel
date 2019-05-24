@@ -359,7 +359,7 @@ def test_label():
 
 
 def test_write_annot_maxstruct():
-    """Verify we can write files with repeated labels - test by reading"""
+    """Test writing ANNOT files with repeated labels"""
     with InTemporaryDirectory():
         nlabels = 3
         names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
