@@ -27,6 +27,7 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
 from threading import RLock
+import warnings
 
 import numpy as np
 
@@ -40,23 +41,22 @@ from . import openers
 """This flag controls whether a new file handle is created every time an image
 is accessed through an ``ArrayProxy``, or a single file handle is created and
 used for the lifetime of the ``ArrayProxy``. It should be set to one of
-``True``, ``False``, or ``'auto'``.
+``True`` or ``False``.
 
 Management of file handles will be performed either by ``ArrayProxy`` objects,
 or by the ``indexed_gzip`` package if it is used.
 
 If this flag is set to ``True``, a single file handle is created and used. If
-``False``, a new file handle is created every time the image is accessed. For
-gzip files, if ``'auto'``, and the optional ``indexed_gzip`` dependency is
-present, a single file handle is created and persisted. If ``indexed_gzip`` is
-not available, behaviour is the same as if ``keep_file_open is False``.
+``False``, a new file handle is created every time the image is accessed.
+If this flag is set to ``'auto'``, a ``DeprecationWarning`` will be raised, which
+will become a ``ValueError`` in nibabel 3.0.0.
 
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
 
-.. warning:: Setting this flag to a value of ``'auto'`` will become deprecated
-             behaviour in version 2.4.0. Support for ``'auto'`` will be removed
+.. warning:: Setting this flag to a value of ``'auto'`` became deprecated
+             behaviour in version 2.4.1. Support for ``'auto'`` will be removed
              in version 3.0.0.
 """
 KEEP_FILE_OPEN_DEFAULT = False
@@ -100,6 +100,10 @@ class ArrayProxy(object):
     def __init__(self, file_like, spec, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         file_like : object
@@ -127,18 +131,15 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. If ``file_like`` is an open file
-            handle, this setting has no effect. The default value (``None``)
-            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
+            a new file handle is created every time the image is accessed.
+            If ``file_like`` is an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
+            ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -236,17 +237,9 @@ class ArrayProxy(object):
            In this case, file handle management is delegated to the
            ``indexed_gzip`` library.
 
-        5. If ``keep_file_open`` is ``'auto'``, ``file_like`` is a path to a
-           ``.gz`` file, and ``indexed_gzip`` is present, both internal flags
-           are set to ``True``.
-
-        6. If ``keep_file_open`` is ``'auto'``, and ``file_like`` is not a
-           path to a ``.gz`` file, or ``indexed_gzip`` is not present, both
-           internal flags are set to ``False``.
-
-        Note that a value of ``'auto'`` for ``keep_file_open`` will become
-        deprecated behaviour in version 2.4.0, and support for ``'auto'`` will
-        be removed in version 3.0.0.
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will be removed in nibabel 3.0.
 
         Parameters
         ----------
@@ -266,20 +259,26 @@ class ArrayProxy(object):
         """
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
-        if keep_file_open not in ('auto', True, False):
-            raise ValueError('keep_file_open should be one of {None, '
-                             '\'auto\', True, False}')
+            if keep_file_open == 'auto':
+                warnings.warn("Setting nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT to 'auto' is "
+                              "deprecated and will become an error in v3.0.", DeprecationWarning)
+        if keep_file_open == 'auto':
+            warnings.warn("A value of 'auto' for keep_file_open is deprecated and will become an "
+                          "error in v3.0. You probably want False.", DeprecationWarning)
+        elif keep_file_open not in (True, False):
+            raise ValueError('keep_file_open should be one of {None, True, False}')
+
         # file_like is a handle - keep_file_open is irrelevant
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False, False
         # if the file is a gzip file, and we have_indexed_gzip,
         have_igzip = openers.HAVE_INDEXED_GZIP and file_like.endswith('.gz')
+        # XXX Remove in v3.0
         if keep_file_open == 'auto':
             return have_igzip, have_igzip
-        elif keep_file_open:
-            return True, True
-        else:
-            return False, have_igzip
+
+        persist_opener = keep_file_open or have_igzip
+        return keep_file_open, persist_opener
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')

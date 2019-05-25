@@ -12,7 +12,7 @@ from ...tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true
 import numpy as np
-from numpy.testing import assert_equal, assert_raises, dec, assert_allclose
+from numpy.testing import assert_equal, assert_raises, dec, assert_allclose, assert_array_equal
 
 from .. import (read_geometry, read_morph_data, read_annot, read_label,
                 write_geometry, write_morph_data, write_annot)
@@ -356,3 +356,22 @@ def test_label():
     labels, scalars = read_label(label_path, True)
     assert_true(np.all(labels == label))
     assert_true(len(labels) == len(scalars))
+
+
+def test_write_annot_maxstruct():
+    """Test writing ANNOT files with repeated labels"""
+    with InTemporaryDirectory():
+        nlabels = 3
+        names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+        # max label < n_labels
+        labels = np.array([1, 1, 1], dtype=np.int32)
+        rgba = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
+        annot_path = 'c.annot'
+
+        write_annot(annot_path, labels, rgba, names)
+        # Validate the file can be read
+        rt_labels, rt_ctab, rt_names = read_annot(annot_path)
+        # Check round-trip
+        assert_array_equal(labels, rt_labels)
+        assert_array_equal(rgba, rt_ctab[:, :4])
+        assert_equal(names, [n.decode('ascii') for n in rt_names])

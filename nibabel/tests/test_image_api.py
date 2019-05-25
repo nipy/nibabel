@@ -416,6 +416,34 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert_equal(img.get_shape(), params['shape'])
             assert_equal(len(w), 1)
 
+    def validate_mmap_parameter(self, imaker, params):
+        img = imaker()
+        fname = img.get_filename()
+        with InTemporaryDirectory():
+            # Load test files with mmap parameters
+            # or
+            # Save a generated file so we can test it
+            if fname is None:
+                # Skip only formats we can't write
+                if not img.rw or not img.valid_exts:
+                    return
+                fname = 'image' + img.valid_exts[0]
+                img.to_filename(fname)
+            rt_img = img.__class__.from_filename(fname, mmap=True)
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap=False)
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap='c')
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap='r')
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            # r+ is specifically not valid for images
+            assert_raises(ValueError,
+                          img.__class__.from_filename, fname, mmap='r+')
+            assert_raises(ValueError,
+                          img.__class__.from_filename, fname, mmap='invalid')
+            del rt_img  # to allow windows to delete the directory
+
 
 class HeaderShapeMixin(object):
     """ Tests that header shape can be set and got

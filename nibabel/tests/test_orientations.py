@@ -117,7 +117,7 @@ def same_transform(taff, ornt, shape):
     o2t_pts = np.dot(itaff[:3, :3], arr_pts) + itaff[:3, 3][:, None]
     assert np.allclose(np.round(o2t_pts), o2t_pts)
     # fancy index out the t_arr values
-    vals = t_arr[list(o2t_pts.astype('i'))]
+    vals = t_arr[tuple(o2t_pts.astype('i'))]
     return np.all(vals == arr.ravel())
 
 
