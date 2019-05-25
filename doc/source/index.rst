@@ -97,6 +97,7 @@ contributed code and discussion (in rough order of appearance):
 * Konstantinos Raktivan
 * Matt Cieslak
 * Egor Pafilov
+* Jath Palasubramaniam
 
 License reprise
 ===============
