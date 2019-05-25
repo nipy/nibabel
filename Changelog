@@ -28,7 +28,8 @@ References like "pr/298" refer to github pull request numbers.
 2.4.1 (Monday 27 May 2019)
 ============================
 
-Contributions from Egor Pafilov and Dave Allured.
+Contributions from Egor Pafilov, Jath Palasubramaniam, Richard Nemec, and
+Dave Allured.
 
 Enhancements
 ------------
@@ -41,6 +42,8 @@ Bug fixes
   reviewed by PM)
 * Safer warning registry manipulation when checking for overflows (pr/753)
   (CM, reviewed by MB)
+* Correctly write .annot files with duplicate lables (pr/763) (Richard Nemec
+  with CM)
 
 Maintenance
 -----------
@@ -48,10 +51,12 @@ Maintenance
   CM)
 * Replace invalid MINC1 test file with fixed file (pr/754) (Dave Allured
   with CM)
-* Update Sphinx config to support recent Sphinx/numpydoc (p4/749) (CM,
+* Update Sphinx config to support recent Sphinx/numpydoc (pr/749) (CM,
   reviewed by PM)
 * Pacify ``FutureWarning`` and ``DeprecationWarning`` from h5py, numpy
   (pr/760) (CM)
+* Accommodate Python 3.8 deprecation of collections.MutableMapping
+  (pr/762) (Jath Palasubramaniam, reviewed by CM)
 
 API changes and deprecations
 ----------------------------
