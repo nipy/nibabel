@@ -1,31 +1,16 @@
-import os
 import sys
-import subprocess
-try:
-    from ConfigParser import RawConfigParser as ConfigParser
-except ImportError:
-    from configparser import RawConfigParser as ConfigParser  # python 3
-
-COMMIT_INFO_FNAME = 'COMMIT_INFO.txt'
+from . import _version
 
 
-def pkg_commit_hash(pkg_path):
-    ''' Get short form of commit hash given directory `pkg_path`
+def pkg_commit_hash(pkg_path=None):
+    ''' Get short form of commit hash
 
-    There should be a file called 'COMMIT_INFO.txt' in `pkg_path`.  This is a
-    file in INI file format, with at least one section: ``commit hash``, and
-    two variables ``archive_subst_hash`` and ``install_hash``.  The first has a
-    substitution pattern in it which may have been filled by the execution of
-    ``git archive`` if this is an archive generated that way.  The second is
-    filled in by the installation, if the installation is from a git archive.
+    Versioneer placed a ``_version.py`` file in the package directory. This file
+    gets updated on installation or ``git archive``.
+    We inspect the contents of ``_version`` to detect whether we are in a
+    repository, an archive of the repository, or an installed package.
 
-    We get the commit hash from (in order of preference):
-
-    * A substituted value in ``archive_subst_hash``
-    * A written commit hash value in ``install_hash`
-    * git's output, if we are in a git repository
-
-    If all these fail, we return a not-found placeholder tuple
+    If detection fails, we return a not-found placeholder tuple
 
     Parameters
     ----------
@@ -39,27 +24,17 @@ def pkg_commit_hash(pkg_path):
     hash_str : str
        short form of hash
     '''
-    # Try and get commit from written commit text file
-    pth = os.path.join(pkg_path, COMMIT_INFO_FNAME)
-    if not os.path.isfile(pth):
-        raise IOError('Missing commit info file %s' % pth)
-    cfg_parser = ConfigParser()
-    cfg_parser.read(pth)
-    archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
-    if not archive_subst.startswith('$Format'):  # it has been substituted
-        return 'archive substitution', archive_subst
-    install_subst = cfg_parser.get('commit hash', 'install_hash')
-    if install_subst != '':
-        return 'installation', install_subst
-    # maybe we are in a repository
-    proc = subprocess.Popen('git rev-parse --short HEAD',
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd=pkg_path, shell=True)
-    repo_commit, _ = proc.communicate()
-    if repo_commit:
-        return 'repository', repo_commit.strip()
-    return '(none found)', '<not found>'
+    versions = _version.get_versions()
+    hash_str = versions['full-revisionid'][:7]
+    if hasattr(_version, 'version_json'):
+        hash_from = 'installation'
+    elif not _version.get_keywords()['full'].startswith('$Format:'):
+        hash_from = 'archive substitution'
+    elif versions['version'] == '0+unknown':
+        hash_from, hash_str = '(none found)', '<not found>'
+    else:
+        hash_from = 'repository'
+    return hash_from, hash_str
 
 
 def get_pkg_info(pkg_path):
@@ -75,7 +50,7 @@ def get_pkg_info(pkg_path):
     context : dict
        with named parameters of interest
     '''
-    src, hsh = pkg_commit_hash(pkg_path)
+    src, hsh = pkg_commit_hash()
     import numpy
     return dict(
         pkg_path=pkg_path,
