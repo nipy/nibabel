@@ -13,13 +13,7 @@ import sys
 import os
 
 from setuptools import setup
-
-# nisext is nipy setup extensions, which we're mostly moving away from
-# get_comrec_build stores the current commit in COMMIT_HASH.txt at build time
-# read_vars_from evaluates a python file and makes variables available
-from nisext.sexts import get_comrec_build, read_vars_from
-
-INFO = read_vars_from(os.path.join('nibabel', 'info.py'))
+import versioneer
 
 # Give setuptools a hint to complain if it's too old a version
 # 30.3.0 allows us to put most metadata in setup.cfg
@@ -30,6 +24,6 @@ SETUP_REQUIRES += ['wheel'] if 'bdist_wheel' in sys.argv else []
 
 if __name__ == "__main__":
     setup(name='nibabel',
-          version=INFO.VERSION,
           setup_requires=SETUP_REQUIRES,
-          cmdclass={'build_py': get_comrec_build('nibabel')})
+          version=versioneer.get_version(),
+          cmdclass=versioneer.get_cmdclass())
