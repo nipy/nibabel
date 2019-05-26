@@ -9,11 +9,7 @@
 
 import os
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
-from .info import long_description as __doc__
+from .info import __version__, long_description as __doc__
 __doc__ += """
 Quickstart
 ==========

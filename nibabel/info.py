@@ -1,4 +1,4 @@
-""" Define distrubution parameters for nibabel, including package version
+""" Define distribution parameters for nibabel, including package version
 
 This file contains defines parameters for nibabel that we use to fill settings
 in setup.py, the nibabel top-level docstring, and for building the docs.  In
@@ -8,25 +8,9 @@ setup.py in particular, we exec this file, so it cannot import nibabel.
 import re
 from distutils.version import StrictVersion
 
-# nibabel version information.  An empty _version_extra corresponds to a
-# full release.  *Any string* in `_version_extra` labels the version as
-# pre-release.  So, if `_version_extra` is not empty, the version is taken to
-# be earlier than the same version where `_version_extra` is empty (see
-# `cmp_pkg_version` below).
-#
-# We usually use `dev` as `_version_extra` to label this as a development
-# (pre-release) version.
-_version_major = 3
-_version_minor = 0
-_version_micro = 0
-_version_extra = 'dev'
-# _version_extra = ''
-
-# Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-__version__ = "%s.%s.%s%s" % (_version_major,
-                              _version_minor,
-                              _version_micro,
-                              _version_extra)
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
 
 
 def _parse_version(version_str):
