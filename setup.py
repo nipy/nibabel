@@ -57,7 +57,7 @@ pkg_chk('dicom',
         messages = custom_pydicom_messages)
 
 def main(**extra_args):
-    setup(name=INFO.NAME,
+    setup(name='nibabel',
           maintainer=INFO.MAINTAINER,
           maintainer_email=INFO.MAINTAINER_EMAIL,
           description=INFO.DESCRIPTION,
