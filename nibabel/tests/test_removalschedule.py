@@ -1,4 +1,3 @@
-import importlib
 from ..info import cmp_pkg_version
 from ..testing import assert_raises, assert_false
 
@@ -21,7 +20,7 @@ def test_module_removal():
         if cmp_pkg_version(version) < 1:
             for module in to_remove:
                 with assert_raises(ImportError, msg="Time to remove " + module):
-                    importlib.__import__(module)
+                    __import__(module)
 
 
 def test_object_removal():
@@ -29,7 +28,7 @@ def test_object_removal():
         if cmp_pkg_version(version) < 1:
             for module_name, obj in to_remove:
                 try:
-                    module = importlib.__import__(module_name)
+                    module = __import__(module_name)
                 except ImportError:
                     continue
                 assert_false(hasattr(module, obj), msg="Time to remove %s.%s" % (module_name, obj))
