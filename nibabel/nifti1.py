@@ -1759,7 +1759,7 @@ class Nifti1PairHeader(Nifti1Header):
     is_single = False
 
 
-class Nifti1Pair(analyze.AnalyzeImage, SerializableImage):
+class Nifti1Pair(analyze.AnalyzeImage):
     """ Class for NIfTI1 format image, header pair
     """
     header_class = Nifti1PairHeader
@@ -2026,7 +2026,7 @@ class Nifti1Pair(analyze.AnalyzeImage, SerializableImage):
         return img
 
 
-class Nifti1Image(Nifti1Pair):
+class Nifti1Image(Nifti1Pair, SerializableImage):
     """ Class for single file NIfTI1 format image
     """
     header_class = Nifti1Header
