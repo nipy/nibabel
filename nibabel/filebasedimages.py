@@ -561,7 +561,10 @@ class SerializableImage(FileBasedImage):
 
     Images that consist of separate header and data files (e.g., Analyze
     images) currently do not support this interface.
+    For multi-file images, ``to_bytes()`` and ``from_bytes()`` must be
+    overridden, and any encoding details should be documented.
     '''
+
     @classmethod
     def from_bytes(klass, bytestring):
         """ Construct image from a byte string
