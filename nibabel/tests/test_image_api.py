@@ -545,19 +545,13 @@ class SerializeMixin(object):
 
     @staticmethod
     def _header_eq(header_a, header_b):
-        """ Quick-and-dirty header equality check
+        """ Header equality check that can be overridden by a subclass of this test
 
-        Abstract classes may have undefined equality, in which case test for
-        same type
+        This allows us to retain the same tests above when testing an image that uses an
+        abstract class as a header, namely when testing the FileBasedImage API, which
+        raises a NotImplementedError for __eq__
         """
-        not_implemented = False
-        header_eq = True
-        try:
-            header_eq = header_a == header_b
-        except NotImplementedError:
-            header_eq = type(header_a) == type(header_b)
-
-        return header_eq
+        return header_a == header_b
 
 
 
