@@ -573,6 +573,8 @@ class SerializableImage(FileBasedImage):
         bstring : bytes
             Byte string containing the on-disk representation of an image
         """
+        if len(klass.files_types) > 1:
+            raise NotImplementedError("from_bytes is undefined for multi-file images")
         bio = io.BytesIO(bytestring)
         file_map = klass.make_file_map({'image': bio, 'header': bio})
         return klass.from_file_map(file_map)
@@ -590,6 +592,8 @@ class SerializableImage(FileBasedImage):
         bytes
             Serialized image
         """
+        if len(self.__class__.files_types) > 1:
+            raise NotImplementedError("to_bytes() is undefined for multi-file images")
         bio = io.BytesIO()
         file_map = self.make_file_map({'image': bio, 'header': bio})
         self.to_file_map(file_map)
