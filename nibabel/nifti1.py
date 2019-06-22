@@ -19,6 +19,7 @@ import numpy as np
 import numpy.linalg as npl
 
 from .py3k import asstr
+from .filebasedimages import SerializableImage
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
 from .batteryrunners import Report
@@ -2025,7 +2026,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         return img
 
 
-class Nifti1Image(Nifti1Pair):
+class Nifti1Image(Nifti1Pair, SerializableImage):
     """ Class for single file NIfTI1 format image
     """
     header_class = Nifti1Header

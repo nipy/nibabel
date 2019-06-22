@@ -16,6 +16,7 @@ import numpy as np
 from ..affines import voxel_sizes, from_matvec
 from ..volumeutils import (array_to_file, array_from_file, endian_codes,
                            Recoder)
+from ..filebasedimages import SerializableImage
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
@@ -503,7 +504,7 @@ class MGHHeader(LabeledWrapStruct):
             super(MGHHeader, self).__setitem__(item, value)
 
 
-class MGHImage(SpatialImage):
+class MGHImage(SpatialImage, SerializableImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader

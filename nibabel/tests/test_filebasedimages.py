@@ -5,9 +5,9 @@ from itertools import product
 
 import numpy as np
 
-from nibabel.filebasedimages import FileBasedHeader, FileBasedImage
+from ..filebasedimages import FileBasedHeader, FileBasedImage, SerializableImage
 
-from nibabel.tests.test_image_api import GenericImageAPI
+from .test_image_api import GenericImageAPI, SerializeMixin
 
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal)
@@ -50,6 +50,10 @@ class FBNumpyImage(FileBasedImage):
         self.arr = self.arr.astype(dtype)
 
 
+class SerializableNumpyImage(FBNumpyImage, SerializableImage):
+    pass
+
+
 class TestFBImageAPI(GenericImageAPI):
     """ Validation for FileBasedImage instances
     """
@@ -78,6 +82,16 @@ class TestFBImageAPI(GenericImageAPI):
                 shape=shape,
                 is_proxy=False)
             yield func, params
+
+
+class TestSerializableImageAPI(TestFBImageAPI, SerializeMixin):
+    image_maker = SerializableNumpyImage
+
+    @staticmethod
+    def _header_eq(header_a, header_b):
+        """ FileBasedHeader is an abstract class, so __eq__ is undefined.
+        Checking for the same header type is sufficient, here. """
+        return type(header_a) == type(header_b) == FileBasedHeader
 
 
 def test_filebased_header():
