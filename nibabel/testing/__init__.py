@@ -16,10 +16,12 @@ import warnings
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_warns
 from numpy.testing import dec
 skipif = dec.skipif
 slow = dec.slow
+
+from ..deprecated import deprecate_with_version as _deprecate_with_version
 
 # Allow failed import of nose if not now running tests
 try:
@@ -187,12 +189,11 @@ class suppress_warnings(error_warnings):
     filter = 'ignore'
 
 
+@_deprecate_with_version('catch_warn_reset is deprecated; use '
+                         'nibabel.testing.clear_and_catch_warnings.',
+                         since='2.1.0', until='3.0.0')
 class catch_warn_reset(clear_and_catch_warnings):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn('catch_warn_reset is deprecated and will be removed in '
-                      'nibabel v3.0; use nibabel.testing.clear_and_catch_warnings.',
-                      FutureWarning)
+    pass
 
 
 EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
