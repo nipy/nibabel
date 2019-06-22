@@ -700,7 +700,7 @@ def test_a2f_non_numeric():
     # Some versions of numpy can cast structured types to float, others not
     try:
         arr.astype(float)
-    except ValueError:
+    except (TypeError, ValueError):
         pass
     else:
         back_arr = write_return(arr, fobj, float)
