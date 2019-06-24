@@ -129,9 +129,6 @@ class ScriptRunner(object):
             # the script through the Python interpreter
             cmd = [sys.executable,
                    pjoin(self.local_script_dir, cmd[0])] + cmd[1:]
-        elif os.name == 'nt':
-            # Need .bat file extension for windows
-            cmd[0] += '.bat'
         if os.name == 'nt':
             # Quote any arguments with spaces. The quotes delimit the arguments
             # on Windows, and the arguments might be file paths with spaces.
