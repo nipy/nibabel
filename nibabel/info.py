@@ -173,3 +173,5 @@ the top of the release notes.  Click on the badge for more information.
 .. _zenodo: https://zenodo.org
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
 """
+
+VERSION = __version__

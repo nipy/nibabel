@@ -19,7 +19,11 @@ if os.path.exists('MANIFEST'):
 from setuptools import setup
 
 # Commit hash writing
-from nisext.sexts import get_comrec_build
+from nisext.sexts import get_comrec_build, read_vars_from
+
+INFO = read_vars_from(os.path.join('nibabel', 'info.py'))
 
 if __name__ == "__main__":
-    setup(cmdclass={'build_py': get_comrec_build('nibabel')})
+    setup(name='nibabel',
+          version=INFO.VERSION,
+          cmdclass={'build_py': get_comrec_build('nibabel')})
