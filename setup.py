@@ -11,12 +11,7 @@
 
 import os
 
-# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
-# update it when the contents of directories change.
-if os.path.exists('MANIFEST'):
-    os.remove('MANIFEST')
-
-from setuptools import setup
+import setuptools
 
 # Commit hash writing
 from nisext.sexts import get_comrec_build, read_vars_from
@@ -24,6 +19,7 @@ from nisext.sexts import get_comrec_build, read_vars_from
 INFO = read_vars_from(os.path.join('nibabel', 'info.py'))
 
 if __name__ == "__main__":
-    setup(name='nibabel',
-          version=INFO.VERSION,
-          cmdclass={'build_py': get_comrec_build('nibabel')})
+    setuptools.setup(name='nibabel',
+                     version=INFO.VERSION,
+                     setup_requires=['setuptools>=30.3.0'],
+                     cmdclass={'build_py': get_comrec_build('nibabel')})
