@@ -19,7 +19,7 @@ with open('README.rst', 'rt') as fobj:
 
 rel = runpy.run_path(os.path.join('nibabel', 'info.py'))
 
-readme = ''.join(readme_lines) + '\n' + rel['LONG_DESCRIPTION']
+readme = ''.join(readme_lines) + '\n' + rel['long_description']
 
 with open('README.rst', 'wt') as fobj:
     fobj.write(readme)

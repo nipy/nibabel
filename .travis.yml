@@ -33,7 +33,7 @@ matrix:
     # Absolute minimum dependencies
     - python: 2.7
       env:
-        - DEPENDS="numpy==1.8"
+        - DEPENDS="numpy==1.8 setuptools==30.3.0"
     # Absolute minimum dependencies
     - python: 2.7
       env:
