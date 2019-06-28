@@ -1,4 +1,4 @@
-include AUTHOR COPYING Makefile* MANIFEST.in setup* README.*
+include AUTHOR COPYING Makefile* MANIFEST.in setup* README.* pyproject.toml
 include Changelog TODO requirements.txt
 recursive-include doc *
 recursive-include bin *
