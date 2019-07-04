@@ -13,6 +13,7 @@ from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true, assert_equal, assert_raises
+from nibabel.testing import clear_and_catch_warnings, error_warnings, suppress_warnings
 
 affine = [[-1.5, 0, 0, 90],
           [0, 1.5, 0, -85],
@@ -516,6 +517,10 @@ def test_wrong_shape():
         np.random.randn(3, 10),
         np.random.randn(2, 9),
     ):
-        img = ci.Cifti2Image(data, hdr)
+        with clear_and_catch_warnings():
+            with error_warnings():
+                assert_raises(UserWarning, ci.Cifti2Image, data, hdr)
+        with suppress_warnings():
+            img = ci.Cifti2Image(data, hdr)
         assert_raises(ValueError, img.to_file_map)
 

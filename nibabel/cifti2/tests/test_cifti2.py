@@ -7,7 +7,7 @@ import numpy as np
 
 from nibabel import cifti2 as ci
 from nibabel.nifti2 import Nifti2Header
-from nibabel.cifti2.cifti2 import _float_01, _value_if_klass, Cifti2HeaderError, Cifti2NamedMap, Cifti2MatrixIndicesMap
+from nibabel.cifti2.cifti2 import _float_01, _value_if_klass, Cifti2HeaderError
 
 from nose.tools import assert_true, assert_equal, assert_raises, assert_is_none
 
@@ -359,7 +359,7 @@ class TestCifti2ImageAPI(_TDA):
 
     def make_imaker(self, arr, header=None, ni_header=None):
         for idx, sz in enumerate(arr.shape):
-            maps = [Cifti2NamedMap(str(value)) for value in range(sz)]
+            maps = [ci.Cifti2NamedMap(str(value)) for value in range(sz)]
             mim = ci.Cifti2MatrixIndicesMap(
                 (idx, ), 'CIFTI_INDEX_TYPE_SCALARS', maps=maps
             )
