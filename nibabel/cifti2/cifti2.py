@@ -30,6 +30,7 @@ from ..dataobj_images import DataobjImage
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from ..keywordonly import kw_only_meth
+from warnings import warn
 
 
 def _float_01(val):
@@ -1374,11 +1375,18 @@ class Cifti2Image(DataobjImage):
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
         self._nifti_header = Nifti2Header.from_header(nifti_header)
+
         # if NIfTI header not specified, get data type from input array
         if nifti_header is None:
             if hasattr(dataobj, 'dtype'):
                 self._nifti_header.set_data_dtype(dataobj.dtype)
         self.update_headers()
+
+        if self._nifti_header.get_data_shape() != self.header.matrix.get_data_shape():
+            warn("Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
+                self._dataobj.shape, self.header.matrix.get_data_shape()
+            ))
+
 
     @property
     def nifti_header(self):
