@@ -1387,7 +1387,6 @@ class Cifti2Image(DataobjImage):
                 self._dataobj.shape, self.header.matrix.get_data_shape()
             ))
 
-
     @property
     def nifti_header(self):
         return self._nifti_header
