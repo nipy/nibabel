@@ -1463,9 +1463,10 @@ class Cifti2Image(DataobjImage):
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
         if header.get_data_shape() != self.header.matrix.get_data_shape():
-            raise ValueError("Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
-                self._dataobj.shape, self.header.matrix.get_data_shape()
-            ))
+            raise ValueError(
+                "Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
+                    self._dataobj.shape, self.header.matrix.get_data_shape()
+                ))
         # if intent code is not set, default to unknown CIFTI
         if header.get_intent()[0] == 'none':
             header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
