@@ -1233,7 +1233,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         from . import cifti2_axes
         if len(self.mapped_indices) == 0:
             return ()
-        base_shape = [-1 for _ in range(max(self.mapped_indices) + 1)]
+        base_shape = [-1] * (max(self.mapped_indices) + 1)
         for mim in self:
             size = len(cifti2_axes.from_index_mapping(mim))
             for idx in mim.applies_to_matrix_dimension:
@@ -1382,7 +1382,7 @@ class Cifti2Image(DataobjImage):
                 self._nifti_header.set_data_dtype(dataobj.dtype)
         self.update_headers()
 
-        if self._nifti_header.get_data_shape() != self.header.matrix.get_data_shape():
+        if self._dataobj.shape != self.header.matrix.get_data_shape():
             warn("Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
                 self._dataobj.shape, self.header.matrix.get_data_shape()
             ))
@@ -1462,7 +1462,7 @@ class Cifti2Image(DataobjImage):
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
-        if header.get_data_shape() != self.header.matrix.get_data_shape():
+        if self._dataobj.shape != self.header.matrix.get_data_shape():
             raise ValueError(
                 "Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
                     self._dataobj.shape, self.header.matrix.get_data_shape()
