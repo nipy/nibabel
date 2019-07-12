@@ -1230,7 +1230,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         """
         Returns data shape expected based on the CIFTI-2 header
 
-        Any dimensions omitted in the CIFIT-2 header will be given a default size of None.
+        Any dimensions omitted in the CIFTI-2 header will be given a default size of None.
         """
         from . import cifti2_axes
         if len(self.mapped_indices) == 0:
