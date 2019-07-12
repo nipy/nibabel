@@ -1229,11 +1229,13 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
     def get_data_shape(self):
         """
         Returns data shape expected based on the CIFTI-2 header
+
+        Any dimensions omitted in the CIFIT-2 header will be given a default size of None.
         """
         from . import cifti2_axes
         if len(self.mapped_indices) == 0:
             return ()
-        base_shape = [-1] * (max(self.mapped_indices) + 1)
+        base_shape = [None] * (max(self.mapped_indices) + 1)
         for mim in self:
             size = len(cifti2_axes.from_index_mapping(mim))
             for idx in mim.applies_to_matrix_dimension:
