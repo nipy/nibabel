@@ -30,6 +30,7 @@ from ..dataobj_images import DataobjImage
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from ..keywordonly import kw_only_meth
+from warnings import warn
 
 
 def _float_01(val):
@@ -1209,6 +1210,38 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
             mat.append(mim._to_xml_element())
         return mat
 
+    def get_axis(self, index):
+        '''
+        Generates the Cifti2 axis for a given dimension
+
+        Parameters
+        ----------
+        index : int
+            Dimension for which we want to obtain the mapping.
+
+        Returns
+        -------
+        axis : :class:`.cifti2_axes.Axis`
+        '''
+        from . import cifti2_axes
+        return cifti2_axes.from_index_mapping(self.get_index_map(index))
+
+    def get_data_shape(self):
+        """
+        Returns data shape expected based on the CIFTI-2 header
+
+        Any dimensions omitted in the CIFTI-2 header will be given a default size of None.
+        """
+        from . import cifti2_axes
+        if len(self.mapped_indices) == 0:
+            return ()
+        base_shape = [None] * (max(self.mapped_indices) + 1)
+        for mim in self:
+            size = len(cifti2_axes.from_index_mapping(mim))
+            for idx in mim.applies_to_matrix_dimension:
+                base_shape[idx] = size
+        return tuple(base_shape)
+
 
 class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
     ''' Class for CIFTI-2 header extension '''
@@ -1279,8 +1312,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         -------
         axis : :class:`.cifti2_axes.Axis`
         '''
-        from . import cifti2_axes
-        return cifti2_axes.from_index_mapping(self.matrix.get_index_map(index))
+        return self.matrix.get_axis(index)
 
     @classmethod
     def from_axes(cls, axes):
@@ -1345,11 +1377,17 @@ class Cifti2Image(DataobjImage):
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
         self._nifti_header = Nifti2Header.from_header(nifti_header)
+
         # if NIfTI header not specified, get data type from input array
         if nifti_header is None:
             if hasattr(dataobj, 'dtype'):
                 self._nifti_header.set_data_dtype(dataobj.dtype)
         self.update_headers()
+
+        if self._dataobj.shape != self.header.matrix.get_data_shape():
+            warn("Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
+                self._dataobj.shape, self.header.matrix.get_data_shape()
+            ))
 
     @property
     def nifti_header(self):
@@ -1426,6 +1464,11 @@ class Cifti2Image(DataobjImage):
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
         header.extensions.append(extension)
+        if self._dataobj.shape != self.header.matrix.get_data_shape():
+            raise ValueError(
+                "Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
+                    self._dataobj.shape, self.header.matrix.get_data_shape()
+                ))
         # if intent code is not set, default to unknown CIFTI
         if header.get_intent()[0] == 'none':
             header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
@@ -1438,7 +1481,7 @@ class Cifti2Image(DataobjImage):
         img.to_file_map(file_map or self.file_map)
 
     def update_headers(self):
-        ''' Harmonize CIFTI-2 and NIfTI headers with image data
+        ''' Harmonize NIfTI headers with image data
 
         >>> import numpy as np
         >>> data = np.zeros((2,3,4))

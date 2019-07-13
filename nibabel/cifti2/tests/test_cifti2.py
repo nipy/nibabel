@@ -358,4 +358,10 @@ class TestCifti2ImageAPI(_TDA):
     standard_extension = '.nii'
 
     def make_imaker(self, arr, header=None, ni_header=None):
+        for idx, sz in enumerate(arr.shape):
+            maps = [ci.Cifti2NamedMap(str(value)) for value in range(sz)]
+            mim = ci.Cifti2MatrixIndicesMap(
+                (idx, ), 'CIFTI_INDEX_TYPE_SCALARS', maps=maps
+            )
+            header.matrix.append(mim)
         return lambda: self.image_maker(arr.copy(), header, ni_header)

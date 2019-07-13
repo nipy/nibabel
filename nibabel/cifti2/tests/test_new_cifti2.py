@@ -12,11 +12,13 @@ import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true, assert_equal, assert_raises
+from nibabel.testing import clear_and_catch_warnings, error_warnings, suppress_warnings
 
 affine = [[-1.5, 0, 0, 90],
           [0, 1.5, 0, -85],
-          [0, 0, 1.5, -71]]
+          [0, 0, 1.5, -71],
+          [0, 0, 0, 1.]]
 
 dimensions = (120, 83, 78)
 
@@ -234,7 +236,7 @@ def test_dtseries():
     matrix.append(series_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(13, 9)
+    data = np.random.randn(13, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
 
@@ -257,7 +259,7 @@ def test_dscalar():
     matrix.append(scalar_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 9)
+    data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS')
 
@@ -279,7 +281,7 @@ def test_dlabel():
     matrix.append(label_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 9)
+    data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS')
 
@@ -299,7 +301,7 @@ def test_dconn():
     matrix = ci.Cifti2Matrix()
     matrix.append(mapping)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(9, 9)
+    data = np.random.randn(10, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE')
 
@@ -322,7 +324,7 @@ def test_ptseries():
     matrix.append(series_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(13, 3)
+    data = np.random.randn(13, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES')
 
@@ -344,7 +346,7 @@ def test_pscalar():
     matrix.append(scalar_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR')
 
@@ -366,7 +368,7 @@ def test_pdconn():
     matrix.append(geometry_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(10, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE')
 
@@ -388,7 +390,7 @@ def test_dpconn():
     matrix.append(parcel_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(4, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED')
 
@@ -410,7 +412,7 @@ def test_plabel():
     matrix.append(label_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
@@ -429,7 +431,7 @@ def test_pconn():
     matrix = ci.Cifti2Matrix()
     matrix.append(mapping)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(3, 3)
+    data = np.random.randn(4, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED')
 
@@ -453,7 +455,7 @@ def test_pconnseries():
     matrix.append(parcel_map)
     matrix.append(series_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(3, 3, 13)
+    data = np.random.randn(4, 4, 13)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
                                 'PARCELLATED_SERIES')
@@ -479,7 +481,7 @@ def test_pconnscalar():
     matrix.append(parcel_map)
     matrix.append(scalar_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(3, 3, 13)
+    data = np.random.randn(4, 4, 2)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
                                 'PARCELLATED_SCALAR')
@@ -496,3 +498,29 @@ def test_pconnscalar():
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_scalar_map(img2.header.matrix.get_index_map(2))
         del img2
+
+
+def test_wrong_shape():
+    scalar_map = create_scalar_map((0, ))
+    brain_model_map = create_geometry_map((1, ))
+
+    matrix = ci.Cifti2Matrix()
+    matrix.append(scalar_map)
+    matrix.append(brain_model_map)
+    hdr = ci.Cifti2Header(matrix)
+
+    # correct shape is (2, 10)
+    for data in (
+        np.random.randn(1, 11),
+        np.random.randn(2, 10, 1),
+        np.random.randn(1, 2, 10),
+        np.random.randn(3, 10),
+        np.random.randn(2, 9),
+    ):
+        with clear_and_catch_warnings():
+            with error_warnings():
+                assert_raises(UserWarning, ci.Cifti2Image, data, hdr)
+        with suppress_warnings():
+            img = ci.Cifti2Image(data, hdr)
+        assert_raises(ValueError, img.to_file_map)
+
