@@ -561,7 +561,7 @@ class EcatSubHeader(object):
             i = iter(affs)
             first = i.next()
             for item in i:
-                if not np.all(first == item):
+                if not np.allclose(first, item):
                     return False
         return True
 
@@ -760,7 +760,7 @@ class EcatImage(SpatialImage):
 
         Parameters
         ----------
-        dataabj : array-like
+        dataobj : array-like
             image data
         affine : None or (4,4) array-like
             homogeneous affine giving relationship between voxel coords and
@@ -811,6 +811,7 @@ class EcatImage(SpatialImage):
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
         self._data_cache = None
+        self._fdata_cache = None
 
     @property
     def affine(self):
