@@ -36,27 +36,27 @@ For more detailed information see the :ref:`manual`.
 """
 
 # Package-wide test setup and teardown
-# Numpy changed print options in 1.14; we can update docstrings and remove
-# these when our minimum for building docs exceeds that
-_save_printopts = None
+_test_states = {
+    # Numpy changed print options in 1.14; we can update docstrings and remove
+    # these when our minimum for building docs exceeds that
+    'legacy_printopt': None,
+    }
 
 def setup_package():
     """ Set numpy print style to legacy="1.13" for newer versions of numpy """
-    import nibabel as nb
     import numpy as np
     from distutils.version import LooseVersion
-    if nb._save_printopts is None:
-        nb._save_printopts = np.get_printoptions().get('legacy')
     if LooseVersion(np.__version__) >= LooseVersion('1.14'):
+        if _test_states.get('legacy_printopt') is None:
+            _test_states['legacy_printopt'] = np.get_printoptions().get('legacy')
         np.set_printoptions(legacy="1.13")
 
 def teardown_package():
     """ Reset print options when tests finish """
-    import nibabel as nb
     import numpy as np
-    if nb._save_printopts is not None:
-        np.set_printoptions(legacy=nb._save_printopts)
-        nb._save_printopts = None
+    if _test_states.get('legacy_printopt') is not None:
+        np.set_printoptions(legacy=_test_states['legacy_printopt'])
+        _test_states['legacy_printopt'] = None
 
 
 # module imports
