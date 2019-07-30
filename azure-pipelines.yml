@@ -1,0 +1,10 @@
+# Adapted from https://github.com/pandas-dev/pandas/blob/master/azure-pipelines.yml
+jobs:
+- template: .azure-pipelines/windows.yml
+  parameters:
+    name: Windows
+    vmImage: vs2017-win2016
+    matrix:
+      py35:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
