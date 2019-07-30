@@ -21,7 +21,6 @@ The B matrix ``B`` is a symmetric positive semi-definite matrix.  If
 '''
 import numpy as np
 import numpy.linalg as npl
-from .. import setup_test as setup_module  # noqa
 
 
 def B2q(B, tol=None):
