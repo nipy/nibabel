@@ -559,7 +559,7 @@ class EcatSubHeader(object):
         affs = [self.get_frame_affine(i) for i in range(nframes)]
         if affs:
             i = iter(affs)
-            first = i.next()
+            first = next(i)
             for item in i:
                 if not np.allclose(first, item):
                     return False
