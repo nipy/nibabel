@@ -269,7 +269,8 @@ class TrkFile(TractogramFile):
     def _default_structarr(cls):
         """ Return an empty compliant TRK header as numpy structured array
         """
-        st_arr = np.zeros((), dtype=header_2_dtype)
+        # Enforce little-endian byte order for header
+        st_arr = np.zeros((), dtype=header_2_dtype).newbyteorder('<')
 
         # Default values
         st_arr[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
@@ -395,8 +396,7 @@ class TrkFile(TractogramFile):
             pointing to TRK file (and ready to write from the beginning
             of the TRK header data).
         """
-        # Enforce little-endian byte order for header
-        header = self._default_structarr().newbyteorder('<')
+        header = self._default_structarr()
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
