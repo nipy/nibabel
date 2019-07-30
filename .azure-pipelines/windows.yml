@@ -8,8 +8,6 @@ jobs:
 - job: ${{ parameters.name }}
   pool:
     vmImage: ${{ parameters.vmImage }}
-  variables:
-    VIRTUALENV: 'testvenv'
   strategy:
     matrix:
       ${{ insert }}: ${{ parameters.matrix }}
@@ -21,31 +19,23 @@ jobs:
         addToPath: true
         architecture: '$(PYTHON_ARCH)'
     - script: |
-        python -m pip install --upgrade pip virtualenv
-        virtualenv --python=python venv
-        venv\\scripts\\activate
-        python --version
         python -m pip install --upgrade pip setuptools>=30.3.0 wheel
-      displayName: 'Install virtualenv'
+      displayName: 'Update build tools'
     - script: |
-        venv\\scripts\\activate
         python -m pip install numpy scipy matplotlib h5py pydicom
         python -m pip install nose mock coverage codecov
       displayName: 'Install dependencies'
     - script: |
-        venv\\scripts\\activate
         python -m pip install .
         SET NIBABEL_DATA_DIR=%CD%\\nibabel-data
       displayName: 'Install nibabel'
     - script: |
-        venv\\scripts\\activate
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
         nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
       displayName: 'Install nibabel'
     - script: |
-        venv\\scripts\\activate
         cd for_testing
         codecov
       displayName: 'Upload To Codecov'
