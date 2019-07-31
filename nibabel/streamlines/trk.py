@@ -13,7 +13,7 @@ import nibabel as nib
 
 from nibabel.openers import Opener
 from nibabel.py3k import asstr
-from nibabel.volumeutils import (native_code, swapped_code)
+from nibabel.volumeutils import (native_code, swapped_code, endian_codes)
 from nibabel.orientations import (aff2axcodes, axcodes2ornt)
 
 from .array_sequence import create_arraysequences_from_generator
@@ -266,11 +266,14 @@ class TrkFile(TractogramFile):
             return magic_number == cls.MAGIC_NUMBER
 
     @classmethod
-    def _default_structarr(cls):
+    def _default_structarr(cls, endianness=None):
         """ Return an empty compliant TRK header as numpy structured array
         """
-        # Enforce little-endian byte order for header
-        st_arr = np.zeros((), dtype=header_2_dtype).newbyteorder('<')
+        dt = header_2_dtype
+        if endianness is not None:
+            endianness = endian_codes[endianness]
+            dt = dt.newbyteorder(endianness)
+        st_arr = np.zeros((), dtype=dt)
 
         # Default values
         st_arr[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
@@ -284,10 +287,10 @@ class TrkFile(TractogramFile):
         return st_arr
 
     @classmethod
-    def create_empty_header(cls):
+    def create_empty_header(cls, endianness=None):
         """ Return an empty compliant TRK header as dict
         """
-        st_arr = cls._default_structarr()
+        st_arr = cls._default_structarr(endianness)
         return dict(zip(st_arr.dtype.names, st_arr.tolist()))
 
     @classmethod
@@ -396,7 +399,8 @@ class TrkFile(TractogramFile):
             pointing to TRK file (and ready to write from the beginning
             of the TRK header data).
         """
-        header = self._default_structarr()
+        # Enforce little-endian byte order for header
+        header = self._default_structarr(endianness='little')
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
