@@ -55,8 +55,7 @@ def teardown_package():
     """ Reset print options when tests finish """
     import numpy as np
     if _test_states.get('legacy_printopt') is not None:
-        np.set_printoptions(legacy=_test_states['legacy_printopt'])
-        _test_states['legacy_printopt'] = None
+        np.set_printoptions(legacy=_test_states.pop('legacy_printopt'))
 
 
 # module imports
