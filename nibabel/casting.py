@@ -8,7 +8,6 @@ from numbers import Integral
 from platform import processor, machine
 
 import numpy as np
-from . import setup_test  # noqa
 
 
 class CastingError(Exception):
