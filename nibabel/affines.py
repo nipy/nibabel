@@ -6,7 +6,6 @@
 import numpy as np
 
 from six.moves import reduce
-from . import setup_test  # noqa
 
 
 class AffineError(ValueError):
