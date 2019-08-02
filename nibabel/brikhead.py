@@ -295,8 +295,8 @@ class AFNIHeader(SpatialHeader):
         --------
         >>> fname = os.path.join(datadir, 'example4d+orig.HEAD')
         >>> header = AFNIHeader(parse_AFNI_header(fname))
-        >>> header.get_data_dtype()
-        dtype('int16')
+        >>> header.get_data_dtype().str
+        '<i2'
         >>> header.get_zooms()
         (3.0, 3.0, 3.0, 3.0)
         >>> header.get_data_shape()
