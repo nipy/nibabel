@@ -25,8 +25,42 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
+2.5.0 (To be decided)
+=====================
+
+Thanks for the test ECAT file and fix provided by Andrew Crabb.
+
+Enhancements
+------------
+* Add SerializableImage class with to/from_bytes methods (pr/644) (CM,
+  reviewed by MB)
+* Check CIFTI-2 data shape matches shape described by header (pr/774)
+  (Michiel Cottaar, reviewed by CM)
+
+Bug fixes
+---------
+* Handle stricter numpy casting rules in tests (pr/768) (CM)
+  reviewed by PM)
+* TRK header fields flipped in files written on big-endian systems
+  (pr/782) (CM, reviewed by YOH, MB)
+* Load multiframe ECAT images with Python 3 (CM and Andrew Crabb)
+
+Maintenance
+-----------
+* Fix CodeCov paths on Appveyor for more accurate coverage (pr/769) (CM)
+* Move to setuptools and reduce use ``nisext`` functions (pr/764) (CM,
+  reviewed by YOH)
+* Better handle test setup/teardown (pr/785) (CM, reviewed by YOH)
+
+API changes and deprecations
+----------------------------
+* Effect threatened warnings and set some deprecation timelines (pr/755) (CM)
+  * Trackvis methods now default to v2 formats
+  * ``nibabel.trackvis`` scheduled for removal in nibabel 4.0
+  * ``nibabel.minc`` and ``nibabel.MincImage`` will be removed in nibabel 3.0
+
 2.4.1 (Monday 27 May 2019)
-============================
+==========================
 
 Contributions from Egor Pafilov, Jath Palasubramaniam, Richard Nemec, and
 Dave Allured.
