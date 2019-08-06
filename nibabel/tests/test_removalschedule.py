@@ -1,4 +1,4 @@
-from ..info import cmp_pkg_version
+from ..pkg_info import cmp_pkg_version
 from ..testing import assert_raises, assert_false
 
 MODULE_SCHEDULE = [

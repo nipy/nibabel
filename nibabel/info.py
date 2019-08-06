@@ -1,72 +1,10 @@
-""" Define distribution parameters for nibabel, including package version
+""" Define long_description parameter
 
-This file contains defines parameters for nibabel that we use to fill settings
-in setup.py, the nibabel top-level docstring, and for building the docs.  In
-setup.py in particular, we exec this file, so it cannot import nibabel.
+This parameter is used to fill settings in setup.py, the nibabel top-level
+docstring, and in building the docs.
+We exec this file in several places, so it cannot import nibabel or use
+relative imports.
 """
-
-import re
-from distutils.version import StrictVersion
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
-
-def _parse_version(version_str):
-    """ Parse version string `version_str` in our format
-    """
-    match = re.match(r'([0-9.]*\d)(.*)', version_str)
-    if match is None:
-        raise ValueError('Invalid version ' + version_str)
-    return match.groups()
-
-
-def _cmp(a, b):
-    """ Implementation of ``cmp`` for Python 3
-    """
-    return (a > b) - (a < b)
-
-
-def cmp_pkg_version(version_str, pkg_version_str=__version__):
-    """ Compare `version_str` to current package version
-
-    To be valid, a version must have a numerical major version followed by a
-    dot, followed by a numerical minor version.  It may optionally be followed
-    by a dot and a numerical micro version, and / or by an "extra" string.
-    *Any* extra string labels the version as pre-release, so `1.2.0somestring`
-    compares as prior to (pre-release for) `1.2.0`, where `somestring` can be
-    any string.
-
-    Parameters
-    ----------
-    version_str : str
-        Version string to compare to current package version
-    pkg_version_str : str, optional
-        Version of our package.  Optional, set fom ``__version__`` by default.
-
-    Returns
-    -------
-    version_cmp : int
-        1 if `version_str` is a later version than `pkg_version_str`, 0 if
-        same, -1 if earlier.
-
-    Examples
-    --------
-    >>> cmp_pkg_version('1.2.1', '1.2.0')
-    1
-    >>> cmp_pkg_version('1.2.0dev', '1.2.0')
-    -1
-    """
-    version, extra = _parse_version(version_str)
-    pkg_version, pkg_extra = _parse_version(pkg_version_str)
-    if version != pkg_version:
-        return _cmp(StrictVersion(version), StrictVersion(pkg_version))
-    return (0 if extra == pkg_extra
-            else 1 if extra == ''
-            else -1 if pkg_extra == ''
-            else _cmp(extra, pkg_extra))
-
 
 # Note: this long_description is the canonical place to edit this text.
 # It also appears in README.rst, but it should get there by running
@@ -157,5 +95,3 @@ the top of the release notes.  Click on the badge for more information.
 .. _zenodo: https://zenodo.org
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
 """
-
-VERSION = __version__
