@@ -20,7 +20,7 @@ import itertools
 
 import numpy as np
 
-from six import BytesIO, StringIO
+from io import BytesIO, StringIO
 from ..spatialimages import (HeaderDataError, HeaderTypeError,
                              supported_np_types)
 from ..analyze import AnalyzeHeader, AnalyzeImage
