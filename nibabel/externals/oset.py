@@ -14,11 +14,7 @@ License: BSD-3
 """
 
 
-try:
-    from collections.abc import MutableSet
-except ImportError:
-    # PY2 compatibility
-    from collections import MutableSet
+from collections.abc import MutableSet
 
 KEY, PREV, NEXT = range(3)
 

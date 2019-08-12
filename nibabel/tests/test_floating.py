@@ -2,8 +2,6 @@
 """
 import sys
 
-PY2 = sys.version_info[0] < 3
-
 from distutils.version import LooseVersion
 
 import numpy as np
@@ -186,11 +184,6 @@ def test_int_to_float():
     i = 2**(nmant + 1) - 1
     assert_equal(as_int(int_to_float(i, LD)), i)
     assert_equal(as_int(int_to_float(-i, LD)), -i)
-    # Test no error for longs
-    if PY2:
-        i = long(i)
-        assert_equal(as_int(int_to_float(i, LD)), i)
-        assert_equal(as_int(int_to_float(-i, LD)), -i)
     # If longdouble can cope with 2**64, test
     if nmant >= 63:
         # Check conversion to int; the line below causes an error subtracting
