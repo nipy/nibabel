@@ -9,10 +9,8 @@
 """ Context manager openers for various fileobject types
 """
 
-import sys
 from bz2 import BZ2File
 import gzip
-import sys
 import warnings
 from os.path import splitext
 from distutils.version import StrictVersion
