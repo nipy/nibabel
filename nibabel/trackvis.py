@@ -18,11 +18,6 @@ from .orientations import aff2axcodes
 from .affines import apply_affine
 from .deprecated import deprecate_with_version
 
-try:
-    basestring
-except NameError:  # python 3
-    basestring = str
-
 warnings.warn("The trackvis interface has been deprecated and will be removed "
               "in v4.0; please use the 'nibabel.streamlines' interface.",
               DeprecationWarning,
@@ -831,15 +826,13 @@ class TrackvisFile(object):
     @classmethod
     def from_file(klass, file_like, points_space=None):
         streamlines, header = read(file_like, points_space=points_space)
-        filename = (file_like if isinstance(file_like, basestring)
-                    else None)
+        filename = file_like if isinstance(file_like, str) else None
         return klass(streamlines, header, None, filename, points_space)
 
     def to_file(self, file_like):
         write(file_like, self.streamlines, self.header, self.endianness,
               points_space=self.points_space)
-        self.filename = (file_like if isinstance(file_like, basestring)
-                         else None)
+        self.filename = file_like if isinstance(file_like, str) else None
 
     def get_affine(self, atleast_v2=True):
         """ Get affine from header in object

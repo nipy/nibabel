@@ -18,22 +18,8 @@ from os.path import (dirname, join as pjoin, isfile, isdir, realpath, pathsep)
 
 from subprocess import Popen, PIPE
 
-try:  # Python 2
-    string_types = basestring,
-except NameError:  # Python 3
-    string_types = str,
 
-
-def _get_package():
-    """ Workaround for missing ``__package__`` in Python 3.2
-    """
-    if '__package__' in globals() and not __package__ is None:
-        return __package__
-    return __name__.split('.', 1)[0]
-
-
-# Same as __package__ for Python 2.6, 2.7 and >= 3.3
-MY_PACKAGE = _get_package()
+MY_PACKAGE = __package__
 
 
 def local_script_dir(script_sdir):
@@ -117,7 +103,7 @@ class ScriptRunner(object):
         stderr : bytes
             stderr from `cmd`
         """
-        if isinstance(cmd, string_types):
+        if isinstance(cmd, str):
             cmd = [cmd]
         else:
             cmd = list(cmd)
