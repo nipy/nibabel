@@ -84,8 +84,8 @@ Requirements
 .. check these against setup.cfg
 
 *  Python_ 3.5 or greater
-*  NumPy_ 1.10.1 or greater
-*  Six_ 1.3 or greater
+*  NumPy_ 1.12 or greater
+*  Six_ 1.7 or greater
 *  SciPy_ (optional, for full SPM-ANALYZE support)
 *  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
