@@ -355,7 +355,7 @@ def read_annot(filepath, orig_ids=False):
         to any label and orig_ids=False, its id will be set to -1.
     ctab : ndarray, shape (n_labels, 5)
         RGBT + label id colortable array.
-    names : list of str (python 2), list of bytes (python 3)
+    names : list of bytes
         The names of the labels. The length of the list is n_labels.
     """
     with open(filepath, "rb") as fobj:

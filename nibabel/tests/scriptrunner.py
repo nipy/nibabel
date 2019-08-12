@@ -112,9 +112,9 @@ class ScriptRunner(object):
         -------
         returncode : int
             return code from execution of `cmd`
-        stdout : bytes (python 3) or str (python 2)
+        stdout : bytes
             stdout from `cmd`
-        stderr : bytes (python 3) or str (python 2)
+        stderr : bytes
             stderr from `cmd`
         """
         if isinstance(cmd, string_types):

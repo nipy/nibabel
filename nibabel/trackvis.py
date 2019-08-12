@@ -325,7 +325,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
     >>> pts1 = np.random.uniform(size=(10,3))
     >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
     >>> write(file_obj, streamlines)
-    >>> _ = file_obj.seek(0) # returns 0 in python 3
+    >>> _ = file_obj.seek(0)  # returns 0
     >>> streams, hdr = read(file_obj)
     >>> len(streams)
     2
