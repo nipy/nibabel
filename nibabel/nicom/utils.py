@@ -1,7 +1,7 @@
 """ Utilities for working with DICOM datasets
 """
 
-from ..py3k import asstr
+from numpy.compat.py3k import asstr
 
 
 def find_private_section(dcm_data, group_no, creator):

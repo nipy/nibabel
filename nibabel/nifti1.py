@@ -15,8 +15,8 @@ from io import BytesIO
 
 import numpy as np
 import numpy.linalg as npl
+from numpy.compat.py3k import asstr
 
-from .py3k import asstr
 from .filebasedimages import SerializableImage
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError

@@ -4,6 +4,7 @@
 import mock
 import types
 import sys
+import builtins
 from distutils.version import LooseVersion
 
 from nose import SkipTest
@@ -11,7 +12,6 @@ from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal)
 
 
-from nibabel.py3k import builtins
 from nibabel.optpkg import optional_package
 from nibabel.tripwire import TripWire, TripWireError
 

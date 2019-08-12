@@ -35,7 +35,7 @@ from operator import mul
 from mmap import mmap, ACCESS_READ
 
 import numpy as np  # noqa
-from ..py3k import asbytes, asstr
+from numpy.compat.py3k import asbytes, asstr
 from numpy import frombuffer, ndarray, dtype, empty, array, asarray
 from numpy import little_endian as LITTLE_ENDIAN
 from functools import reduce

@@ -10,8 +10,8 @@ import itertools
 
 import numpy as np
 import numpy.linalg as npl
+from numpy.compat.py3k import asstr
 
-from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
 from .openers import ImageOpener
 from .orientations import aff2axcodes

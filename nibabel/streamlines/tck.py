@@ -8,9 +8,9 @@ import os
 import warnings
 
 import numpy as np
+from numpy.compat.py3k import asbytes, asstr
 
 from nibabel.openers import Opener
-from nibabel.py3k import asbytes, asstr
 
 from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile

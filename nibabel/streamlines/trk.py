@@ -8,10 +8,11 @@ import string
 import warnings
 
 import numpy as np
+from numpy.compat.py3k import asstr
+
 import nibabel as nib
 
 from nibabel.openers import Opener
-from nibabel.py3k import asstr
 from nibabel.volumeutils import (native_code, swapped_code, endian_codes)
 from nibabel.orientations import (aff2axcodes, axcodes2ornt)
 
