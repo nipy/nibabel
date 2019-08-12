@@ -21,7 +21,6 @@ from numpy.testing import (assert_almost_equal,
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
-from ..py3k import FileNotFoundError
 
 data_path = pjoin(dirname(__file__), 'data')
 

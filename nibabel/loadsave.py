@@ -17,7 +17,6 @@ from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
-from .py3k import FileNotFoundError
 from .deprecated import deprecate_with_version
 
 
