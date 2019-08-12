@@ -33,7 +33,6 @@ import os
 import re
 
 import numpy as np
-from six import string_types
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
@@ -203,7 +202,7 @@ def parse_AFNI_header(fobj):
     [1, 1, 1]
     """
     # edge case for being fed a filename instead of a file object
-    if isinstance(fobj, string_types):
+    if isinstance(fobj, str):
         with open(fobj, 'rt') as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file

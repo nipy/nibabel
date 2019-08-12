@@ -12,7 +12,6 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 '''
 import warnings
 from io import BytesIO
-from six import string_types
 
 import numpy as np
 import numpy.linalg as npl
@@ -1389,7 +1388,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if not known_intent:
             # We can set intent via an unknown integer code, but can't via an
             # unknown string label
-            if not allow_unknown or isinstance(code, string_types):
+            if not allow_unknown or isinstance(code, str):
                 raise KeyError('Unknown intent code: ' + str(code))
         if known_intent:
             icode = intent_codes.code[code]
