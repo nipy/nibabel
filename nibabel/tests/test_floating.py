@@ -108,9 +108,7 @@ def test_check_nmant_nexp():
             assert_true(_check_nmant(t, ti['nmant']))
         # Test fails for longdouble after blacklisting of OSX powl as of numpy
         # 1.12 - see https://github.com/numpy/numpy/issues/8307
-        if (t != np.longdouble or
-              sys.platform != 'darwin' or
-              LooseVersion(np.__version__) < LooseVersion('1.12')):
+        if t != np.longdouble or sys.platform != 'darwin':
             assert_true(_check_maxexp(t, ti['maxexp']))
 
 
