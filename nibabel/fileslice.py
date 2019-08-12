@@ -5,7 +5,7 @@ import operator
 from numbers import Integral
 from mmap import mmap
 
-from six.moves import reduce
+from functools import reduce
 
 import numpy as np
 

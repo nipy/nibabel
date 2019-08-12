@@ -29,7 +29,7 @@ try:
 except ImportError:
     pass
 
-from six.moves import zip_longest
+from itertools import zip_longest
 
 # set path to example data
 data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))

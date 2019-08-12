@@ -16,7 +16,6 @@ Run this benchmark with:
 
 import numpy as np
 
-from six.moves import zip
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_equal
