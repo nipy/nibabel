@@ -120,7 +120,7 @@ like:
 """
 import numpy as np
 from . import cifti2
-from six import string_types, add_metaclass, integer_types
+from six import string_types, integer_types
 from operator import xor
 import abc
 
@@ -173,8 +173,7 @@ def to_header(axes):
     return cifti2.Cifti2Header(matrix)
 
 
-@add_metaclass(abc.ABCMeta)
-class Axis(object):
+class Axis(abc.ABC):
     """
     Abstract class for any object describing the rows or columns of a CIFTI-2 vector/matrix
 
