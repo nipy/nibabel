@@ -10,7 +10,6 @@
 """
 Quick summary of the differences among a set of neuroimaging files
 """
-from __future__ import division, print_function, absolute_import
 
 import re
 import sys

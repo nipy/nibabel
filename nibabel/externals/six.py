@@ -1,6 +1,5 @@
 """ Shim allowing some grace time for removal of six.py copy """
 # Remove around version 4.0
-from __future__ import absolute_import
 
 import warnings
 

@@ -10,7 +10,6 @@
 
 NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 '''
-from __future__ import division, print_function
 import warnings
 from io import BytesIO
 from six import string_types

@@ -23,7 +23,6 @@ What is the image API?
 * ``img.in_memory`` is True for an array image, and for a proxy image that is
   cached, but False otherwise.
 """
-from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial

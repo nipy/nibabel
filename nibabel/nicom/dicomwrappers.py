@@ -11,7 +11,6 @@ than an AttributeError - breaking the 'properties manifesto'.   So, any
 processing that needs to raise an error, should be in a method, rather
 than in a property, or property-like thing.
 """
-from __future__ import division
 
 import operator
 

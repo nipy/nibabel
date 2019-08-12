@@ -11,7 +11,6 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 

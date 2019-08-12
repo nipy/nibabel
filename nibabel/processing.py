@@ -14,7 +14,6 @@
 
 Smoothing and resampling routines need scipy
 """
-from __future__ import print_function, division, absolute_import
 
 import numpy as np
 import numpy.linalg as npl

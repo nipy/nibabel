@@ -1,4 +1,3 @@
-from __future__ import division
 
 import numbers
 from operator import mul

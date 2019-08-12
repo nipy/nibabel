@@ -6,7 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import division, print_function, absolute_import
 
 import base64
 import sys

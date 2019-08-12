@@ -1,4 +1,3 @@
-from __future__ import division
 
 # Definition of trackvis header structure:
 # http://www.trackvis.org/docs/?subsect=fileformat

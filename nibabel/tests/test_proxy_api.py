@@ -27,7 +27,6 @@ And:
 
 These last are to allow the proxy to be re-used with different images.
 """
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 import warnings

@@ -2,7 +2,6 @@
 
 See docstring of :mod:`nibabel.arraywriters` for API.
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 from platform import python_compiler, machine

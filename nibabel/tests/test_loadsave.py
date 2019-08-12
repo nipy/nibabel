@@ -1,6 +1,5 @@
 """ Testing loadsave module
 """
-from __future__ import print_function
 
 from os.path import dirname, join as pjoin
 import shutil

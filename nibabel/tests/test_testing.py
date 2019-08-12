@@ -1,6 +1,5 @@
 """ Tests for warnings context managers
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 import warnings

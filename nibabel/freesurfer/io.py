@@ -1,6 +1,5 @@
 """ Read / write FreeSurfer geometry, morphometry, label, annotation formats
 """
-from __future__ import division, print_function, absolute_import
 
 import warnings
 import numpy as np

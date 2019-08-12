@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Testing processing module
 """
-from __future__ import division, print_function
 
 from os.path import dirname, join as pjoin
 

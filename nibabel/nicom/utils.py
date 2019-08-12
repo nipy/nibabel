@@ -1,6 +1,5 @@
 """ Utilities for working with DICOM datasets
 """
-from __future__ import division, print_function, absolute_import
 
 from ..py3k import asstr
 

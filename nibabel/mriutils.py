@@ -9,7 +9,6 @@
 """
 Utilities for calculations related to MRI
 """
-from __future__ import division
 
 __all__ = ['calculate_dwell_time']
 

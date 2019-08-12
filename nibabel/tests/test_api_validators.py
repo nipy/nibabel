@@ -1,6 +1,5 @@
 """ Metaclass and class for validating instance APIs
 """
-from __future__ import division, print_function, absolute_import
 
 from six import with_metaclass
 

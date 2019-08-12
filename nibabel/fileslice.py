@@ -1,6 +1,5 @@
 """ Utilities for getting array slices out of file-like objects
 """
-from __future__ import division
 
 import operator
 from numbers import Integral
