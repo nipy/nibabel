@@ -99,6 +99,8 @@ please try the following steps:
 
 * If you don't feel able to do that, or that didn't work, please contact Chris Markiewicz directly
   by email (<markiewicz@stanford.edu>), and he will do his best to resolve it.
+  If you don't feel comfortable contacting Chris, please email Matthew Brett
+  (<matthew.brett@gmail.com>) instead.
 
 ## Attribution
 
