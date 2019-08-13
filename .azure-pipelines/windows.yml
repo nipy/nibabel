@@ -32,9 +32,16 @@ jobs:
         SET NIBABEL_DATA_DIR=%CD%\\nibabel-data
       displayName: 'Install nibabel'
     - script: |
+        python -c 'import random; print(random.randint(0, 4294967295)' > hashseed.txt
+        SET /p PYTHONHASHSEED=<hashseed.txt
+        echo %PYTHONHASHSEED%
+      displayName: 'Generate hash seed'
+    - script: |
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
+        SET /p PYTHONHASHSEED=<hashseed.txt
+        echo %PYTHONHASHSEED%
         nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
       displayName: 'Nose tests'
     - script: |
