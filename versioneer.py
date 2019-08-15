@@ -287,6 +287,7 @@ import os
 import re
 import subprocess
 import sys
+import runpy
 
 
 class VersioneerConfig:
@@ -435,6 +436,7 @@ import os
 import re
 import subprocess
 import sys
+import runpy
 
 
 def get_keywords():
@@ -575,6 +577,11 @@ def git_get_keywords(versionfile_abs):
         f.close()
     except EnvironmentError:
         pass
+    try:
+        rel = runpy.run_path(os.path.join(os.path.dirname(versionfile_abs), "info.py"))
+        keywords["fallback"] = rel["VERSION"]
+    except (FileNotFoundError, KeyError):
+        pass
     return keywords
 
 
@@ -625,10 +632,10 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
                     "full-revisionid": keywords["full"].strip(),
                     "dirty": False, "error": None,
                     "date": date}
-    # no suitable tags, so version is "0+unknown", but full hex is still there
+    # no suitable tags, so inspect ./info.py
     if verbose:
-        print("no suitable tags, using unknown + full revision id")
-    return {"version": "0+unknown",
+        print("no suitable tags, falling back to info.VERSION or 0+unknown")
+    return {"version": keywords.get("fallback", "0+unknown"),
             "full-revisionid": keywords["full"].strip(),
             "dirty": False, "error": "no suitable tags", "date": None}
 
@@ -967,6 +974,11 @@ def git_get_keywords(versionfile_abs):
         f.close()
     except EnvironmentError:
         pass
+    try:
+        rel = runpy.run_path(os.path.join(os.path.dirname(versionfile_abs), "info.py"))
+        keywords["fallback"] = rel["VERSION"]
+    except (FileNotFoundError, KeyError):
+        pass
     return keywords
 
 
@@ -1017,10 +1029,10 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
                     "full-revisionid": keywords["full"].strip(),
                     "dirty": False, "error": None,
                     "date": date}
-    # no suitable tags, so version is "0+unknown", but full hex is still there
+    # no suitable tags, so inspect ./info.py
     if verbose:
-        print("no suitable tags, using unknown + full revision id")
-    return {"version": "0+unknown",
+        print("no suitable tags, falling back to info.VERSION or 0+unknown")
+    return {"version": keywords.get("fallback", "0+unknown"),
             "full-revisionid": keywords["full"].strip(),
             "dirty": False, "error": "no suitable tags", "date": None}
 
