@@ -3,12 +3,13 @@
 
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
+from ..info import VERSION
 
 from nose.tools import (assert_raises, assert_equal)
 
 
 def test_pkg_info():
-    """Simple smoke test
+    """Smoke test nibabel.get_info()
     
     Hits:
         - nibabel.get_info
@@ -21,6 +22,20 @@ def test_pkg_info():
 def test_version():
     # Test info version is the same as our own version
     assert_equal(nib.pkg_info.__version__, nib.__version__)
+
+
+def test_fallback_version():
+    """Test fallback version is up-to-date
+
+    This should only fail if we fail to bump nibabel.info.VERSION immediately
+    after release
+    """
+    assert (
+        # dev version should be larger than tag+commit-githash
+        cmp_pkg_version(VERSION) >= 0 or
+        # Allow VERSION bump to lag releases by one commit
+        VERSION == nib.__version__ + 'dev'), \
+        "nibabel.info.VERSION does not match current tag information"
 
 
 def test_cmp_pkg_version():
