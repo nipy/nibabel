@@ -11,11 +11,10 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
-
 import numpy as np
+import base64
 
 from .. import xmlutils as xml
 from ..filebasedimages import SerializableImage
@@ -23,11 +22,6 @@ from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
 from ..deprecated import deprecate_with_version
-
-# {en,de}codestring in deprecated in Python3, but
-# {en,de}codebytes not available in Python2.
-# Therefore set the proper functions depending on the Python version.
-import base64
 
 
 class GiftiMetaData(xml.XmlSerializable):

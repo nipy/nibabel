@@ -2,7 +2,6 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """ Test diff
 """
-from __future__ import division, print_function, absolute_import
 
 from os.path import (dirname, join as pjoin, abspath)
 import numpy as np

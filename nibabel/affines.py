@@ -5,7 +5,7 @@
 
 import numpy as np
 
-from six.moves import reduce
+from functools import reduce
 
 
 class AffineError(ValueError):

@@ -23,12 +23,10 @@ What is the image API?
 * ``img.in_memory`` is True for an array image, and for a proxy image that is
   cached, but False otherwise.
 """
-from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial
 from itertools import product
-from six import string_types
 
 import numpy as np
 
@@ -578,7 +576,7 @@ class LoadImageAPI(GenericImageAPI,
             assert_true(isinstance(test, bool))
             if sniff is not None:
                 assert isinstance(sniff[0], bytes)
-                assert isinstance(sniff[1], string_types)
+                assert isinstance(sniff[1], str)
 
 
 class MakeImageAPI(LoadImageAPI):

@@ -7,12 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for nifti reading package '''
-from __future__ import division, print_function, absolute_import
 import os
 import warnings
 import struct
-
-import six
 
 import numpy as np
 
@@ -943,16 +940,16 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     def test_sqform_code_type(self):
         # make sure get_s/qform returns codes as integers
         img = self.image_class(np.zeros((2, 3, 4)), None)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, 3)
         img.set_qform(None, 3)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, 2.0)
         img.set_qform(None, 4.0)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, img.get_sform(coded=True)[1])
         img.set_qform(None, img.get_qform(coded=True)[1])
 

@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for calculating and applying affine orientations '''
 
-from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import numpy.linalg as npl

@@ -3,7 +3,6 @@
 Includes version of OrthoSlicer3D code originally written by our own
 Paul Ivanov.
 """
-from __future__ import division, print_function
 
 import numpy as np
 import weakref

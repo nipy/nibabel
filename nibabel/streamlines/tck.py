@@ -3,15 +3,14 @@
 TCK format is defined at
 http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight=format#tracks-file-format-tck
 """
-from __future__ import division
 
 import os
 import warnings
 
 import numpy as np
+from numpy.compat.py3k import asbytes, asstr
 
 from nibabel.openers import Opener
-from nibabel.py3k import asbytes, asstr
 
 from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile

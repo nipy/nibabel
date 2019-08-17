@@ -120,7 +120,6 @@ like:
 """
 import numpy as np
 from . import cifti2
-from six import string_types, add_metaclass, integer_types
 from operator import xor
 import abc
 
@@ -173,8 +172,7 @@ def to_header(axes):
     return cifti2.Cifti2Header(matrix)
 
 
-@add_metaclass(abc.ABCMeta)
-class Axis(object):
+class Axis(abc.ABC):
     """
     Abstract class for any object describing the rows or columns of a CIFTI-2 vector/matrix
 
@@ -289,7 +287,7 @@ class BrainModelAxis(Axis):
         else:
             self.vertex = np.asanyarray(vertex, dtype=int)
 
-        if isinstance(name, string_types):
+        if isinstance(name, str):
             name = [self.to_cifti_brain_structure_name(name)] * self.vertex.size
         self.name = np.asanyarray(name, dtype='U')
 
@@ -505,7 +503,7 @@ class BrainModelAxis(Axis):
         """
         if name in cifti2.CIFTI_BRAIN_STRUCTURES:
             return name
-        if not isinstance(name, string_types):
+        if not isinstance(name, str):
             if len(name) == 1:
                 structure = name[0]
                 orientation = 'both'
@@ -589,7 +587,7 @@ class BrainModelAxis(Axis):
             value = tuple(value)
             if len(value) != 3:
                 raise ValueError("Volume shape should be a tuple of length 3")
-            if not all(isinstance(v, integer_types) for v in value):
+            if not all(isinstance(v, int) for v in value):
                 raise ValueError("All elements of the volume shape should be integers")
         self._volume_shape = value
 
@@ -679,9 +677,9 @@ class BrainModelAxis(Axis):
 
         Otherwise returns a new BrainModelAxis
         """
-        if isinstance(item, integer_types):
+        if isinstance(item, int):
             return self.get_element(item)
-        if isinstance(item, string_types):
+        if isinstance(item, str):
             raise IndexError("Can not index an Axis with a string (except for ParcelsAxis)")
         return self.__class__(self.name[item], self.voxel[item], self.vertex[item],
                               self.affine, self.volume_shape, self.nvertices)
@@ -914,7 +912,7 @@ class ParcelsAxis(Axis):
             value = tuple(value)
             if len(value) != 3:
                 raise ValueError("Volume shape should be a tuple of length 3")
-            if not all(isinstance(v, integer_types) for v in value):
+            if not all(isinstance(v, int) for v in value):
                 raise ValueError("All elements of the volume shape should be integers")
         self._volume_shape = value
 
@@ -989,14 +987,14 @@ class ParcelsAxis(Axis):
         - `string`: 2-element tuple of (parcel voxels, parcel vertices
         - other object that can index 1D arrays: new Parcel axis
         """
-        if isinstance(item, string_types):
+        if isinstance(item, str):
             idx = np.where(self.name == item)[0]
             if len(idx) == 0:
                 raise IndexError("Parcel %s not found" % item)
             if len(idx) > 1:
                 raise IndexError("Multiple parcels with name %s found" % item)
             return self.voxels[idx[0]], self.vertices[idx[0]]
-        if isinstance(item, integer_types):
+        if isinstance(item, int):
             return self.get_element(item)
         return self.__class__(self.name[item], self.voxels[item], self.vertices[item],
                               self.affine, self.volume_shape, self.nvertices)
@@ -1125,7 +1123,7 @@ class ScalarAxis(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, integer_types):
+        if isinstance(item, int):
             return self.get_element(item)
         return self.__class__(self.name[item], self.meta[item])
 
@@ -1270,7 +1268,7 @@ class LabelAxis(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, integer_types):
+        if isinstance(item, int):
             return self.get_element(item)
         return self.__class__(self.name[item], self.label[item], self.meta[item])
 
@@ -1437,7 +1435,7 @@ class SeriesAxis(Axis):
                 nelements = 0
             return SeriesAxis(idx_start * self.step + self.start, self.step * step,
                               nelements, self.unit)
-        elif isinstance(item, integer_types):
+        elif isinstance(item, int):
             return self.get_element(item)
         raise IndexError('SeriesAxis can only be indexed with integers or slices '
                          'without breaking the regular structure')

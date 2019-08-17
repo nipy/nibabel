@@ -27,7 +27,6 @@ And:
 
 These last are to allow the proxy to be re-used with different images.
 """
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 import warnings
@@ -36,7 +35,6 @@ from io import BytesIO
 
 import numpy as np
 
-from six import string_types
 from ..volumeutils import apply_read_scaling
 from ..analyze import AnalyzeHeader
 from ..spm99analyze import Spm99AnalyzeHeader
@@ -153,7 +151,7 @@ class _TestProxyAPI(ValidateAPI):
     def validate_fileobj_isolated(self, pmaker, params):
         # Check file position of read independent of file-like object
         prox, fio, hdr = pmaker()
-        if isinstance(fio, string_types):
+        if isinstance(fio, str):
             return
         assert_array_equal(prox, params['arr_out'])
         fio.read()  # move to end of file

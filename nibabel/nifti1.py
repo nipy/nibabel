@@ -10,15 +10,13 @@
 
 NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 '''
-from __future__ import division, print_function
 import warnings
 from io import BytesIO
-from six import string_types
 
 import numpy as np
 import numpy.linalg as npl
+from numpy.compat.py3k import asstr
 
-from .py3k import asstr
 from .filebasedimages import SerializableImage
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
@@ -1390,7 +1388,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if not known_intent:
             # We can set intent via an unknown integer code, but can't via an
             # unknown string label
-            if not allow_unknown or isinstance(code, string_types):
+            if not allow_unknown or isinstance(code, str):
                 raise KeyError('Unknown intent code: ' + str(code))
         if known_intent:
             icode = intent_codes.code[code]

@@ -1,6 +1,5 @@
 """ Read / write FreeSurfer geometry, morphometry, label, annotation formats
 """
-from __future__ import division, print_function, absolute_import
 
 import warnings
 import numpy as np
@@ -8,7 +7,6 @@ import getpass
 import time
 
 from collections import OrderedDict
-from six.moves import xrange
 from ..openers import Opener
 
 
@@ -357,7 +355,7 @@ def read_annot(filepath, orig_ids=False):
         to any label and orig_ids=False, its id will be set to -1.
     ctab : ndarray, shape (n_labels, 5)
         RGBT + label id colortable array.
-    names : list of str (python 2), list of bytes (python 3)
+    names : list of bytes
         The names of the labels. The length of the list is n_labels.
     """
     with open(filepath, "rb") as fobj:
@@ -432,7 +430,7 @@ def _read_annot_ctab_old_format(fobj, n_entries):
     orig_tab = orig_tab[:-1]
     names = list()
     ctab = np.zeros((n_entries, 5), dt)
-    for i in xrange(n_entries):
+    for i in range(n_entries):
         # structure name length + string
         name_length = np.fromfile(fobj, dt, 1)[0]
         name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
@@ -483,7 +481,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     # number of LUT entries present in the file
     entries_to_read = np.fromfile(fobj, dt, 1)[0]
     names = list()
-    for _ in xrange(entries_to_read):
+    for _ in range(entries_to_read):
         # index of this entry
         idx = np.fromfile(fobj, dt, 1)[0]
         # structure name length + string

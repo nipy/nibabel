@@ -81,14 +81,10 @@ is for you.
 Requirements
 ------------
 
-.. check these against:
-    nibabel/info.py
-    requirements.txt
-    .travis.yml
+.. check these against setup.cfg
 
-*  Python_ 2.7, or >= 3.4
-*  NumPy_ 1.8 or greater
-*  Six_ 1.3 or greater
+*  Python_ 3.5.1 or greater
+*  NumPy_ 1.12 or greater
 *  SciPy_ (optional, for full SPM-ANALYZE support)
 *  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)

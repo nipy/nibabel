@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utility functions for analyze-like formats '''
-from __future__ import division, print_function
 
 import sys
 import warnings
@@ -480,7 +479,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     >>> from io import BytesIO
     >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
+    >>> _ = bio.write(arr.tostring('F'))  # outputs int
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
@@ -610,7 +609,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
-    >>> _ = sio.truncate(0); _ = sio.seek(0) # outputs 0 in python 3
+    >>> _ = sio.truncate(0); _ = sio.seek(0)  # outputs 0
     >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True

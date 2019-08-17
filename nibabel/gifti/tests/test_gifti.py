@@ -7,7 +7,6 @@ from io import BytesIO
 import numpy as np
 
 import nibabel as nib
-from six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
                            GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
                            GiftiCoordSystem)
@@ -176,11 +175,11 @@ def test_to_xml_open_close_deprecations():
     da = GiftiDataArray(np.ones((1,)), 'triangle')
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
-        assert_true(isinstance(da.to_xml_open(), string_types))
+        assert_true(isinstance(da.to_xml_open(), str))
         assert_equal(len(w), 1)
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
-        assert_true(isinstance(da.to_xml_close(), string_types))
+        assert_true(isinstance(da.to_xml_close(), str))
         assert_equal(len(w), 1)
 
 

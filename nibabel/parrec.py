@@ -121,7 +121,6 @@ The volume sorting described above can be enabled in the parrec2nii command
 utility via the option "--strict-sort".  The dimension info can be exported
 to a CSV file by adding the option "--volume-info".
 """
-from __future__ import print_function, division
 
 import warnings
 import numpy as np

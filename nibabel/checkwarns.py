@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Contexts for *with* statement allowing checks for warnings
 '''
-from __future__ import division, print_function
 
 import warnings
 

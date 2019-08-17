@@ -1,6 +1,5 @@
 """Code for PAR/REC to NIfTI converter command
 """
-from __future__ import division, print_function, absolute_import
 
 from optparse import OptionParser, Option
 import numpy as np

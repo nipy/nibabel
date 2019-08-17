@@ -20,7 +20,7 @@ import itertools
 
 import numpy as np
 
-from six import BytesIO, StringIO
+from io import BytesIO, StringIO
 from ..spatialimages import (HeaderDataError, HeaderTypeError,
                              supported_np_types)
 from ..analyze import AnalyzeHeader, AnalyzeImage
@@ -698,8 +698,6 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
     image_class = AnalyzeImage
     can_save = True
     supported_np_types = TestAnalyzeHeader.supported_np_types
-    # Flag to skip bz2 save tests if they are going to break
-    bad_bz2 = False
 
     def test_supported_types(self):
         img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
@@ -794,9 +792,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img_ext = img_klass.files_types[0][1]
-        compressed_exts = ['', '.gz']
-        if not self.bad_bz2:
-            compressed_exts.append('.bz2')
+        compressed_exts = ['', '.gz', '.bz2']
         with InTemporaryDirectory():
             for offset in (0, 2048):
                 # Set offset in in-memory image
