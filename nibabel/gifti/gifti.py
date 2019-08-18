@@ -695,7 +695,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         Returns
         -------
         all_data : tuple of ndarray or ndarray
-            If the input is a tuple, the returned tuple will match the order.           
+            If the input is a tuple, the returned tuple will match the order.
         """
 
         # Allow multiple intents to specify the order
@@ -716,7 +716,6 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         else:
             return all_data
 
-    
     @deprecate_with_version(
         'getArraysFromIntent method deprecated. '
         "Use get_arrays_from_intent instead.",
