@@ -680,6 +680,43 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         it = intent_codes.code[intent]
         return [x for x in self.darrays if x.intent == it]
 
+    def agg_data(self, intent_code=None):
+        """
+        Retrun a numpy arrary of aggregated GiftiDataArray of the same intent code
+        or
+        Retrun GiftiDataArray in tuples for surface files
+
+        Parameters
+        ----------
+        intent_code : None, string, integer or tuple of string, optional
+            Intent code, or string describing code.
+            Accept tuple that contains multiple intents to specify the order.
+
+        Returns
+        -------
+        all_data : tuple of ndarray or ndarray
+            If the input is a tuple, the returned tuple will match the order.           
+        """
+
+        # Allow multiple intents to specify the order
+        # e.g., agg_data(('pointset', 'triangle')) ensures consistent order
+
+        if isinstance(intent_code, tuple):
+            return tuple(self.agg_data(intent_code=code) for code in intent_code)
+
+        darrays = self.darrays if intent_code is None else self.get_arrays_from_intent(intent_code)
+        all_data = tuple(da.data for da in darrays)
+        all_intent = tuple(intent_codes.niistring[da.intent] for da in darrays)
+
+        # Gifti files allows usually one or more data array of the same intent code
+        # surf.gii is a special case of having two data array of different intent code
+
+        if (self.numDA > 1 and all(el == all_intent[0] for el in all_intent)):
+            return np.column_stack(all_data)
+        else:
+            return all_data
+
+    
     @deprecate_with_version(
         'getArraysFromIntent method deprecated. '
         "Use get_arrays_from_intent instead.",
