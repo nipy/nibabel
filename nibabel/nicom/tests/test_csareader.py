@@ -12,7 +12,7 @@ from .. import dwiparams as dwp
 
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
 
-from numpy.testing.decorators import skipif
+from ...testing import skipif
 
 from nibabel.pydicom_compat import dicom_test, pydicom
 from .test_dicomwrappers import (IO_DATA_PATH, DATA)
@@ -21,7 +21,7 @@ CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()
 CSA2_0len = gzip.open(pjoin(IO_DATA_PATH, 'csa2_zero_len.bin.gz'), 'rb').read()
 CSA_STR_valid = open(pjoin(IO_DATA_PATH, 'csa_str_valid.bin'), 'rb').read()
-CSA_STR_200n_items = open(pjoin(IO_DATA_PATH, 'csa_str_200n_items.bin'), 'rb').read()
+CSA_STR_1001n_items = open(pjoin(IO_DATA_PATH, 'csa_str_1001n_items.bin'), 'rb').read()
 
 
 @dicom_test
@@ -70,15 +70,15 @@ def test_csa_len0():
 
 def test_csa_nitem():
     # testing csa.read's ability to raise an error when n_items >= 200
-    assert_raises(csa.CSAReadError, csa.read, CSA_STR_200n_items)
-    # OK when < 200
+    assert_raises(csa.CSAReadError, csa.read, CSA_STR_1001n_items)
+    # OK when < 1000
     csa_info = csa.read(CSA_STR_valid)
     assert_equal(len(csa_info['tags']), 1)
     # OK after changing module global
     n_items_thresh = csa.MAX_CSA_ITEMS
     try:
-        csa.MAX_CSA_ITEMS = 1000
-        csa_info = csa.read(CSA_STR_200n_items)
+        csa.MAX_CSA_ITEMS = 2000
+        csa_info = csa.read(CSA_STR_1001n_items)
         assert_equal(len(csa_info['tags']), 1)
     finally:
         csa.MAX_CSA_ITEMS = n_items_thresh
@@ -130,8 +130,6 @@ def test_ice_dims():
 
 
 @dicom_test
-@skipif(sys.version_info < (2,7) and pydicom.__version__ < '1.0',
-        'Known issue for python 2.6 and pydicom < 1.0')
 def test_missing_csa_elem():
     # Test that we get None instead of raising an Exception when the file has
     # the PrivateCreator element for the CSA dict but not the element with the

@@ -10,7 +10,6 @@
 """
 Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 from optparse import OptionParser, Option

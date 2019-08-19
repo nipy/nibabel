@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Test we can correctly import example ECAT files
 """
-from __future__ import print_function, absolute_import
 
 import os
 from os.path import join as pjoin
@@ -37,7 +36,7 @@ class TestNegatives(object):
         # unit: 1/cm
     )
 
-    @needs_nibabel_data('nitest-minc2')
+    @needs_nibabel_data('nipy-ecattest')
     def test_load(self):
         # Check highest level load of minc works
         img = self.opener(self.example_params['fname'])
@@ -50,3 +49,15 @@ class TestNegatives(object):
         assert_almost_equal(data.min(), self.example_params['min'], 4)
         assert_almost_equal(data.max(), self.example_params['max'], 4)
         assert_almost_equal(data.mean(), self.example_params['mean'], 4)
+
+
+class TestMultiframe(TestNegatives):
+    example_params = dict(
+        fname=os.path.join(ECAT_TEST_PATH, 'ECAT7_testcase_multiframe.v'),
+        shape=(256, 256, 207, 3),
+        type=np.int16,
+        # Zeroed out image
+        min=0.0,
+        max=29170.67905,
+        mean=121.454,
+    )

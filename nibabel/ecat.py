@@ -54,6 +54,7 @@ from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
+from .keywordonly import kw_only_meth
 from .deprecated import deprecate_with_version
 
 BLOCK_SIZE = 512
@@ -558,9 +559,9 @@ class EcatSubHeader(object):
         affs = [self.get_frame_affine(i) for i in range(nframes)]
         if affs:
             i = iter(affs)
-            first = i.next()
+            first = next(i)
             for item in i:
-                if not np.all(first == item):
+                if not np.allclose(first, item):
                     return False
         return True
 
@@ -657,8 +658,8 @@ class EcatSubHeader(object):
         subhdr = self.subheaders[frame]
         raw_data = self.raw_data_from_fileobj(frame, orientation)
         # Scale factors have to be set to scalars to force scalar upcasting
-        data = raw_data * np.asscalar(header['ecat_calibration_factor'])
-        data = data * np.asscalar(subhdr['scale_factor'])
+        data = raw_data * header['ecat_calibration_factor'].item()
+        data = data * subhdr['scale_factor'].item()
         return data
 
 
@@ -679,6 +680,10 @@ class EcatImageArrayProxy(object):
     @property
     def shape(self):
         return self._shape
+
+    @property
+    def ndim(self):
+        return len(self.shape)
 
     @property
     def is_proxy(self):
@@ -755,7 +760,7 @@ class EcatImage(SpatialImage):
 
         Parameters
         ----------
-        dataabj : array-like
+        dataobj : array-like
             image data
         affine : None or (4,4) array-like
             homogeneous affine giving relationship between voxel coords and
@@ -806,6 +811,7 @@ class EcatImage(SpatialImage):
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
         self._data_cache = None
+        self._fdata_cache = None
 
     @property
     def affine(self):
@@ -869,7 +875,8 @@ class EcatImage(SpatialImage):
         return file_map['header'], file_map['image']
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
         """class method to create image from mapping
         specified in file_map
         """

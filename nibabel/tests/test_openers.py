@@ -10,12 +10,11 @@
 import os
 import contextlib
 from gzip import GzipFile
-from bz2 import BZ2File
 from io import BytesIO, UnsupportedOperation
 from distutils.version import StrictVersion
 
-from ..py3k import asstr, asbytes
-from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP
+from numpy.compat.py3k import asstr, asbytes
+from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
@@ -107,7 +106,7 @@ def test_BinOpener():
 
 class MockIndexedGzipFile(GzipFile):
     def __init__(self, *args, **kwargs):
-        kwargs.pop('drop_handles', False)
+        self._drop_handles = kwargs.pop('drop_handles', False)
         super(MockIndexedGzipFile, self).__init__(*args, **kwargs)
 
 

@@ -7,12 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utility functions for analyze-like formats '''
-from __future__ import division, print_function
 
 import sys
 import warnings
 import gzip
-import bz2
+from collections import OrderedDict
 from os.path import exists, splitext
 from operator import mul
 from functools import reduce
@@ -20,8 +19,9 @@ from functools import reduce
 import numpy as np
 
 from .casting import (shared_range, type_info, OK_FLOATS)
-from .openers import Opener
+from .openers import Opener, BZ2File
 from .deprecated import deprecate_with_version
+from .externals.oset import OrderedSet
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -38,10 +38,7 @@ endian_codes = (  # numpy code, aliases
 default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
-COMPRESSED_FILE_LIKES = (gzip.GzipFile, bz2.BZ2File)
-
-#: file-like classes known to return string values that are safe to modify
-SAFE_STRINGERS = (gzip.GzipFile, bz2.BZ2File)
+COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File)
 
 
 class Recoder(object):
@@ -78,7 +75,7 @@ class Recoder(object):
     2
     '''
 
-    def __init__(self, codes, fields=('code',), map_maker=dict):
+    def __init__(self, codes, fields=('code',), map_maker=OrderedDict):
         ''' Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
@@ -97,7 +94,7 @@ class Recoder(object):
 
         Parameters
         ----------
-        codes : seqence of sequences
+        codes : sequence of sequences
             Each sequence defines values (codes) that are equivalent
         fields : {('code',) string sequence}, optional
             names by which elements in sequences can be accessed
@@ -133,13 +130,15 @@ class Recoder(object):
 
         Examples
         --------
-        >>> code_syn_seqs = ((1, 'one'), (2, 'two'))
+        >>> code_syn_seqs = ((2, 'two'), (1, 'one'))
         >>> rc = Recoder(code_syn_seqs)
         >>> rc.value_set() == set((1,2))
         True
         >>> rc.add_codes(((3, 'three'), (1, 'first')))
         >>> rc.value_set() == set((1,2,3))
         True
+        >>> print(rc.value_set())  # set is actually ordered
+        OrderedSet([2, 1, 3])
         '''
         for code_syns in code_syn_seqs:
             # Add all the aliases
@@ -186,7 +185,7 @@ class Recoder(object):
         return self.field1.keys()
 
     def value_set(self, name=None):
-        ''' Return set of possible returned values for column
+        ''' Return OrderedSet of possible returned values for column
 
         By default, the column is the first column.
 
@@ -212,7 +211,7 @@ class Recoder(object):
             d = self.field1
         else:
             d = self.__dict__[name]
-        return set(d.values())
+        return OrderedSet(d.values())
 
 
 # Endian code aliases
@@ -480,7 +479,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     >>> from io import BytesIO
     >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
+    >>> _ = bio.write(arr.tostring('F'))  # outputs int
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
@@ -526,7 +525,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     else:
         data_bytes = infile.read(n_bytes)
         n_read = len(data_bytes)
-        needs_copy = not isinstance(infile, SAFE_STRINGERS)
+        needs_copy = True
     if n_bytes != n_read:
         raise IOError('Expected {0} bytes, got {1} bytes from {2}\n'
                       ' - could the file be damaged?'.format(
@@ -610,7 +609,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> array_to_file(data, sio, np.float)
     >>> sio.getvalue() == data.tostring('F')
     True
-    >>> _ = sio.truncate(0); _ = sio.seek(0) # outputs 0 in python 3
+    >>> _ = sio.truncate(0); _ = sio.seek(0)  # outputs 0
     >>> array_to_file(data, sio, np.int16)
     >>> sio.getvalue() == data.astype(np.int16).tostring()
     True
@@ -1334,26 +1333,30 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
     tst_arr = np.atleast_1d(tst_arr)
     slope = np.atleast_1d(slope)
     inter = np.atleast_1d(inter)
-    warnings.filterwarnings('ignore', '.*overflow.*', RuntimeWarning)
-    try:
-        for ftype in OK_FLOATS[def_ind:]:
-            tst_trans = tst_arr.copy()
-            slope = slope.astype(ftype)
-            inter = inter.astype(ftype)
-            if direction == 'read':  # as in reading of image from disk
-                if slope != 1.0:
-                    tst_trans = tst_trans * slope
-                if inter != 0.0:
-                    tst_trans = tst_trans + inter
-            elif direction == 'write':
-                if inter != 0.0:
-                    tst_trans = tst_trans - inter
-                if slope != 1.0:
-                    tst_trans = tst_trans / slope
+    overflow_filter = ('error', '.*overflow.*', RuntimeWarning)
+    for ftype in OK_FLOATS[def_ind:]:
+        tst_trans = tst_arr.copy()
+        slope = slope.astype(ftype)
+        inter = inter.astype(ftype)
+        try:
+            with warnings.catch_warnings():
+                # Error on overflows to short circuit the logic
+                warnings.filterwarnings(*overflow_filter)
+                if direction == 'read':  # as in reading of image from disk
+                    if slope != 1.0:
+                        tst_trans = tst_trans * slope
+                    if inter != 0.0:
+                        tst_trans = tst_trans + inter
+                elif direction == 'write':
+                    if inter != 0.0:
+                        tst_trans = tst_trans - inter
+                    if slope != 1.0:
+                        tst_trans = tst_trans / slope
+            # Double-check that result is finite
             if np.all(np.isfinite(tst_trans)):
                 return ftype
-    finally:
-        warnings.filters.pop(0)
+        except RuntimeWarning:
+            pass
     raise ValueError('Overflow using highest floating point type')
 
 
@@ -1541,7 +1544,7 @@ def rec2dict(rec):
     for key in rec.dtype.fields:
         val = rec[key]
         try:
-            val = np.asscalar(val)
+            val = val.item()
         except ValueError:
             pass
         dct[key] = val

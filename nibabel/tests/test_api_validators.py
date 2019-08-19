@@ -1,8 +1,5 @@
 """ Metaclass and class for validating instance APIs
 """
-from __future__ import division, print_function, absolute_import
-
-from six import with_metaclass
 
 from nose.tools import assert_equal
 
@@ -33,7 +30,7 @@ class validator2test(type):
         return klass
 
 
-class ValidateAPI(with_metaclass(validator2test)):
+class ValidateAPI(metaclass=validator2test):
     """ A class to validate APIs
 
     Your job is twofold:

@@ -4,7 +4,7 @@
 import warnings
 
 from .deprecator import Deprecator
-from .info import cmp_pkg_version
+from .pkg_info import cmp_pkg_version
 
 
 class ModuleProxy(object):
@@ -52,8 +52,8 @@ class FutureWarningMixin(object):
 
     >>> with warnings.catch_warnings(record=True) as warns:
     ...     d = D()
-    ...     warns[0].message
-    FutureWarning("Please, don't use this class",)
+    ...     warns[0].message.args[0]
+    "Please, don't use this class"
     """
     warn_message = 'This class will be removed in future versions'
 

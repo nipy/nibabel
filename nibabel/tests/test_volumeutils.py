@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for volumeutils module '''
-from __future__ import division
 
 import os
 from os.path import exists
@@ -19,6 +18,8 @@ import functools
 import itertools
 import gzip
 import bz2
+import threading
+import time
 
 import numpy as np
 
@@ -45,8 +46,9 @@ from ..volumeutils import (array_from_file,
                            rec2dict,
                            _dt_min_max,
                            _write_data,
+                           _ftype4scaled_finite,
                            )
-from ..openers import Opener
+from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from numpy.testing import (assert_array_almost_equal,
@@ -71,7 +73,7 @@ def test__is_compressed_fobj():
     with InTemporaryDirectory():
         for ext, opener, compressed in (('', open, False),
                                         ('.gz', gzip.open, True),
-                                        ('.bz2', bz2.BZ2File, True)):
+                                        ('.bz2', BZ2File, True)):
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
                 fobj = opener(fname, mode)
@@ -94,7 +96,7 @@ def test_fobj_string_assumptions():
     with InTemporaryDirectory():
         for n, opener in itertools.product(
                 (256, 1024, 2560, 25600),
-                (open, gzip.open, bz2.BZ2File)):
+                (open, gzip.open, BZ2File)):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
@@ -103,7 +105,8 @@ def test_fobj_string_assumptions():
             # Read back from file
             fobj_r = opener(fname, 'rb')
             try:
-                contents1 = fobj_r.read()
+                contents1 = bytearray(4 * n)
+                fobj_r.readinto(contents1)
                 # Second element is 1
                 assert_false(contents1[0:8] == b'\x00' * 8)
                 out_arr = make_array(n, contents1)
@@ -114,7 +117,8 @@ def test_fobj_string_assumptions():
                 assert_equal(contents1[:8], b'\x00' * 8)
                 # Reread, to get unmodified contents
                 fobj_r.seek(0)
-                contents2 = fobj_r.read()
+                contents2 = bytearray(4 * n)
+                fobj_r.readinto(contents2)
                 out_arr2 = make_array(n, contents2)
                 assert_array_equal(in_arr, out_arr2)
                 assert_equal(out_arr[1], 0)
@@ -695,7 +699,7 @@ def test_a2f_non_numeric():
     # Some versions of numpy can cast structured types to float, others not
     try:
         arr.astype(float)
-    except ValueError:
+    except (TypeError, ValueError):
         pass
     else:
         back_arr = write_return(arr, fobj, float)
@@ -1243,3 +1247,50 @@ def test_array_from_file_overflow():
                  'Expected {0} bytes, got {1} bytes from {2}\n'
                  ' - could the file be damaged?'.format(
                      11390625000000000000, 0, 'object'))
+
+
+def test__ftype4scaled_finite_warningfilters():
+    # This test checks our ability to properly manage the thread-unsafe
+    # warnings filter list.
+
+    # _ftype4scaled_finite always operates on one-or-two element arrays
+    # Ensure that an overflow will happen for < float64
+    finfo = np.finfo(np.float32)
+    tst_arr = np.array((finfo.min, finfo.max), dtype=np.float32)
+
+    go = threading.Event()
+    stop = threading.Event()
+    err = []
+    class MakeTotalDestroy(threading.Thread):
+        def run(self):
+            # Restore the warnings filters when we're done testing
+            with warnings.catch_warnings():
+                go.set()
+                while not stop.is_set():
+                    warnings.filters[:] = []
+                    time.sleep(0)
+    class CheckScaling(threading.Thread):
+        def run(self):
+            go.wait()
+            # Give ourselves a few bites at the apple
+            # 200 loops through the function takes ~10ms
+            # The highest number of iterations I've seen before hitting interference
+            # is 131, with 99% under 30, so this should be reasonably reliable.
+            for i in range(200):
+                try:
+                    # Use float16 to ensure two failures and increase time in function
+                    _ftype4scaled_finite(tst_arr, 2.0, 1.0, default=np.float16)
+                except Exception as e:
+                    err.append(e)
+                    break
+            stop.set()
+
+    thread_a = CheckScaling()
+    thread_b = MakeTotalDestroy()
+    thread_a.start()
+    thread_b.start()
+    thread_a.join()
+    thread_b.join()
+
+    if err:
+        raise err[0]

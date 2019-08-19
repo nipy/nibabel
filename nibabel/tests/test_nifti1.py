@@ -7,12 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for nifti reading package '''
-from __future__ import division, print_function, absolute_import
 import os
 import warnings
 import struct
-
-import six
 
 import numpy as np
 
@@ -28,8 +25,10 @@ from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
 from ..freesurfer import load as mghload
+from ..orientations import aff2axcodes
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
+from .test_orientations import ALL_ORNTS
 from .test_helpers import bytesio_filemap, bytesio_round_trip
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
@@ -38,7 +37,12 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal,
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_raises)
 
-from ..testing import data_path, suppress_warnings, runif_extra_has
+from ..testing import (
+    clear_and_catch_warnings,
+    data_path,
+    runif_extra_has,
+    suppress_warnings,
+)
 
 from . import test_analyze as tana
 from . import test_spm99analyze as tspm
@@ -220,6 +224,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(fhdr['sform_code'], 0)
         assert_equal(message,
                      'sform_code -1 not valid; setting to 0')
+
+    def test_nifti_xform_codes(self):
+        # Verify that all xform codes can be set in both qform and sform
+        hdr = self.header_class()
+        affine = np.eye(4)
+        for code in nifti1.xform_codes.keys():
+            hdr.set_qform(affine, code)
+            assert_equal(hdr['qform_code'], nifti1.xform_codes[code])
+            hdr.set_sform(affine, code)
+            assert_equal(hdr['sform_code'], nifti1.xform_codes[code])
+
+        # Raise KeyError on unknown code
+        for bad_code in (-1, 6, 10):
+            assert_raises(KeyError, hdr.set_qform, affine, bad_code)
+            assert_raises(KeyError, hdr.set_sform, affine, bad_code)
 
     def test_magic_offset_checks(self):
         # magic and offset
@@ -557,6 +576,22 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert_equal(hdr['slice_start'], 1)
         assert_equal(hdr['slice_end'], 5)
         assert_array_almost_equal(hdr['slice_duration'], 0.1)
+
+        # Ambiguous case
+        hdr2 = self.header_class()
+        hdr2.set_dim_info(slice=2)
+        hdr2.set_slice_duration(0.1)
+        hdr2.set_data_shape((1, 1, 2))
+        with clear_and_catch_warnings() as w:
+            warnings.simplefilter("always")
+            hdr2.set_slice_times([0.1, 0])
+            assert len(w) == 1
+        # but always must be choosing sequential one first
+        assert_equal(hdr2.get_value_label('slice_code'), 'sequential decreasing')
+        # and the other direction
+        hdr2.set_slice_times([0, 0.1])
+        assert_equal(hdr2.get_value_label('slice_code'), 'sequential increasing')
+
 
     def test_intents(self):
         ehdr = self.header_class()
@@ -905,16 +940,16 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     def test_sqform_code_type(self):
         # make sure get_s/qform returns codes as integers
         img = self.image_class(np.zeros((2, 3, 4)), None)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, 3)
         img.set_qform(None, 3)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, 2.0)
         img.set_qform(None, 4.0)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, img.get_sform(coded=True)[1])
         img.set_qform(None, img.get_qform(coded=True)[1])
 
@@ -1381,6 +1416,36 @@ class TestNifti1General(object):
                 # Hokey use of max_miss as a std estimate
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert_true(np.abs(bias) < bias_thresh)
+
+    def test_reoriented_dim_info(self):
+        # Check that dim_info is reoriented correctly
+        arr = np.arange(24).reshape((2, 3, 4))
+        # Start as RAS
+        aff = np.diag([2, 3, 4, 1])
+        simg = self.single_class(arr, aff)
+        for freq, phas, slic in ((0, 1, 2),
+                                 (0, 2, 1),
+                                 (1, 0, 2),
+                                 (2, 0, 1),
+                                 (None, None, None),
+                                 (0, 2, None),
+                                 (0, None, None),
+                                 (None, 2, 1),
+                                 (None, None, 1),
+                                 ):
+            simg.header.set_dim_info(freq, phas, slic)
+            fdir = 'RAS'[freq] if freq is not None else None
+            pdir = 'RAS'[phas] if phas is not None else None
+            sdir = 'RAS'[slic] if slic is not None else None
+            for ornt in ALL_ORNTS:
+                rimg = simg.as_reoriented(np.array(ornt))
+                axcode = aff2axcodes(rimg.affine)
+                dirs = ''.join(axcode).replace('P', 'A').replace('I', 'S').replace('L', 'R')
+                new_freq, new_phas, new_slic = rimg.header.get_dim_info()
+                new_fdir = dirs[new_freq] if new_freq is not None else None
+                new_pdir = dirs[new_phas] if new_phas is not None else None
+                new_sdir = dirs[new_slic] if new_slic is not None else None
+                assert_equal((new_fdir, new_pdir, new_sdir), (fdir, pdir, sdir))
 
 
 @runif_extra_has('slow')

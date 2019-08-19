@@ -12,7 +12,6 @@ modules, allowing these modules to be used interchangeably when working
 with NetCDF files.
 """
 
-from __future__ import division, print_function, absolute_import
 
 # TODO:
 # * properly implement ``_FillValue``.
@@ -36,12 +35,10 @@ from operator import mul
 from mmap import mmap, ACCESS_READ
 
 import numpy as np  # noqa
-from ..py3k import asbytes, asstr
-from numpy import fromstring, ndarray, dtype, empty, array, asarray
+from numpy.compat.py3k import asbytes, asstr
+from numpy import frombuffer, ndarray, dtype, empty, array, asarray
 from numpy import little_endian as LITTLE_ENDIAN
 from functools import reduce
-
-from six import integer_types
 
 
 ABSENT = b'\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -480,8 +477,8 @@ class netcdf_file(object):
         if hasattr(values, 'dtype'):
             nc_type = REVERSE[values.dtype.char, values.dtype.itemsize]
         else:
-            types = [(t, NC_INT) for t in integer_types]
-            types += [
+            types = [
+                    (int, NC_INT),
                     (float, NC_FLOAT),
                     (str, NC_CHAR),
                     ]
@@ -519,7 +516,7 @@ class netcdf_file(object):
         if not magic == b'CDF':
             raise TypeError("Error: %s is not a valid NetCDF 3 file" %
                             self.filename)
-        self.__dict__['version_byte'] = fromstring(self.fp.read(1), '>b')[0]
+        self.__dict__['version_byte'] = frombuffer(self.fp.read(1), '>b')[0]
 
         # Read file headers and set data.
         self._read_numrecs()
@@ -608,7 +605,7 @@ class netcdf_file(object):
                 # Calculate size to avoid problems with vsize (above)
                 a_size = reduce(mul, shape, 1) * size
                 if self.file_bytes >= 0 and begin_ + a_size > self.file_bytes:
-                    data = fromstring(b'\x00'*a_size, dtype=dtype_)
+                    data = frombuffer(b'\x00'*a_size, dtype=dtype_)
                 elif self.use_mmap:
                     mm = mmap(self.fp.fileno(), begin_+a_size, access=ACCESS_READ)
                     data = ndarray.__new__(ndarray, shape, dtype=dtype_,
@@ -622,7 +619,7 @@ class netcdf_file(object):
                     buf = self.fp.read(a_size)
                     if len(buf) < a_size:
                         buf = b'\x00'*a_size
-                    data = fromstring(buf, dtype=dtype_)
+                    data = frombuffer(buf, dtype=dtype_)
                     data.shape = shape
                     self.fp.seek(pos)
 
@@ -644,7 +641,7 @@ class netcdf_file(object):
             else:
                 pos = self.fp.tell()
                 self.fp.seek(begin)
-                rec_array = fromstring(self.fp.read(self._recs*self._recsize), dtype=dtypes)
+                rec_array = frombuffer(self.fp.read(self._recs*self._recsize), dtype=dtypes)
                 rec_array.shape = (self._recs,)
                 self.fp.seek(pos)
 
@@ -687,7 +684,7 @@ class netcdf_file(object):
         self.fp.read(-count % 4)  # read padding
 
         if typecode is not 'c':
-            values = fromstring(values, dtype='>%s' % typecode)
+            values = frombuffer(values, dtype='>%s' % typecode)
             if values.shape == (1,):
                 values = values[0]
         else:
@@ -705,14 +702,14 @@ class netcdf_file(object):
     _pack_int32 = _pack_int
 
     def _unpack_int(self):
-        return int(fromstring(self.fp.read(4), '>i')[0])
+        return int(frombuffer(self.fp.read(4), '>i')[0])
     _unpack_int32 = _unpack_int
 
     def _pack_int64(self, value):
         self.fp.write(array(value, '>q').tostring())
 
     def _unpack_int64(self):
-        return fromstring(self.fp.read(8), '>q')[0]
+        return frombuffer(self.fp.read(8), '>q')[0]
 
     def _pack_string(self, s):
         count = len(s)

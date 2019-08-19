@@ -23,12 +23,10 @@ What is the image API?
 * ``img.in_memory`` is True for an array image, and for a proxy image that is
   cached, but False otherwise.
 """
-from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial
 from itertools import product
-from six import string_types
 
 import numpy as np
 
@@ -38,6 +36,7 @@ _, have_h5py, _ = optional_package('h5py')
 
 from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                GiftiImage,
                 MGHImage, Minc1Image, Minc2Image, is_proxy)
 from ..spatialimages import SpatialImage
 from .. import minc1, minc2, parrec, brikhead
@@ -202,6 +201,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Check get data returns array, and caches
         img = imaker()
         assert_equal(img.shape, img.dataobj.shape)
+        assert_equal(img.ndim, len(img.shape))
         assert_data_similar(img.dataobj, params)
         for meth_name in self.meth_names:
             if params['is_proxy']:
@@ -210,6 +210,8 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 self._check_array_interface(imaker, meth_name)
             # Data shape is same as image shape
             assert_equal(img.shape, getattr(img, meth_name)().shape)
+            # Data ndim is same as image ndim
+            assert_equal(img.ndim, getattr(img, meth_name)().ndim)
             # Values to get_data caching parameter must be 'fill' or
             # 'unchanged'
             assert_raises(ValueError, img.get_data, caching='something')
@@ -394,6 +396,17 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Read only
         assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
 
+    def validate_ndim(self, imaker, params):
+        # Validate shape
+        img = imaker()
+        # Same as expected ndim
+        assert_equal(img.ndim, len(params['shape']))
+        # Same as array ndim if passed
+        if 'data' in params:
+            assert_equal(img.ndim, params['data'].ndim)
+        # Read only
+        assert_raises(AttributeError, setattr, img, 'ndim', 5)
+
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
         img = imaker()
@@ -401,6 +414,34 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             warnings.simplefilter('always', DeprecationWarning)
             assert_equal(img.get_shape(), params['shape'])
             assert_equal(len(w), 1)
+
+    def validate_mmap_parameter(self, imaker, params):
+        img = imaker()
+        fname = img.get_filename()
+        with InTemporaryDirectory():
+            # Load test files with mmap parameters
+            # or
+            # Save a generated file so we can test it
+            if fname is None:
+                # Skip only formats we can't write
+                if not img.rw or not img.valid_exts:
+                    return
+                fname = 'image' + img.valid_exts[0]
+                img.to_filename(fname)
+            rt_img = img.__class__.from_filename(fname, mmap=True)
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap=False)
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap='c')
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap='r')
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            # r+ is specifically not valid for images
+            assert_raises(ValueError,
+                          img.__class__.from_filename, fname, mmap='r+')
+            assert_raises(ValueError,
+                          img.__class__.from_filename, fname, mmap='invalid')
+            del rt_img  # to allow windows to delete the directory
 
 
 class HeaderShapeMixin(object):
@@ -451,6 +492,67 @@ class AffineMixin(object):
             assert_true(aff is img.get_affine())
 
 
+class SerializeMixin(object):
+    def validate_to_bytes(self, imaker, params):
+        img = imaker()
+        serialized = img.to_bytes()
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+            with open(fname, 'rb') as fobj:
+                file_contents = fobj.read()
+        assert serialized == file_contents
+
+    def validate_from_bytes(self, imaker, params):
+        img = imaker()
+        klass = getattr(self, 'klass', img.__class__)
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+
+            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            for img_params in all_images:
+                img_a = klass.from_filename(img_params['fname'])
+                with open(img_params['fname'], 'rb') as fobj:
+                    img_b = klass.from_bytes(fobj.read())
+
+                assert self._header_eq(img_a.header, img_b.header)
+                assert np.array_equal(img_a.get_data(), img_b.get_data())
+                del img_a
+                del img_b
+
+    def validate_to_from_bytes(self, imaker, params):
+        img = imaker()
+        klass = getattr(self, 'klass', img.__class__)
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+
+            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            for img_params in all_images:
+                img_a = klass.from_filename(img_params['fname'])
+                bytes_a = img_a.to_bytes()
+
+                img_b = klass.from_bytes(bytes_a)
+
+                assert img_b.to_bytes() == bytes_a
+                assert self._header_eq(img_a.header, img_b.header)
+                assert np.array_equal(img_a.get_data(), img_b.get_data())
+                del img_a
+                del img_b
+
+    @staticmethod
+    def _header_eq(header_a, header_b):
+        """ Header equality check that can be overridden by a subclass of this test
+
+        This allows us to retain the same tests above when testing an image that uses an
+        abstract class as a header, namely when testing the FileBasedImage API, which
+        raises a NotImplementedError for __eq__
+        """
+        return header_a == header_b
+
+
+
 class LoadImageAPI(GenericImageAPI,
                    DataInterfaceMixin,
                    AffineMixin,
@@ -474,7 +576,7 @@ class LoadImageAPI(GenericImageAPI,
             assert_true(isinstance(test, bool))
             if sniff is not None:
                 assert isinstance(sniff[0], bytes)
-                assert isinstance(sniff[1], string_types)
+                assert isinstance(sniff[1], str)
 
 
 class MakeImageAPI(LoadImageAPI):
@@ -571,7 +673,7 @@ class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
     can_save = True
 
 
-class TestNifti1API(TestNifti1PairAPI):
+class TestNifti1API(TestNifti1PairAPI, SerializeMixin):
     klass = image_maker = Nifti1Image
     standard_extension = '.nii'
 
@@ -618,12 +720,18 @@ class TestPARRECAPI(LoadImageAPI):
 #    standard_extension = '.v'
 
 
-class TestMGHAPI(ImageHeaderAPI):
+class TestMGHAPI(ImageHeaderAPI, SerializeMixin):
     klass = image_maker = MGHImage
     example_shapes = ((2, 3, 4), (2, 3, 4, 5))  # MGH can only do >= 3D
     has_scaling = True
     can_save = True
     standard_extension = '.mgh'
+
+
+class TestGiftiAPI(LoadImageAPI, SerializeMixin):
+    klass = image_maker = GiftiImage
+    can_save = True
+    standard_extension = '.gii'
 
 
 class TestAFNIAPI(LoadImageAPI):

@@ -1,6 +1,5 @@
 """ Test we can correctly import example PARREC files
 """
-from __future__ import print_function, absolute_import
 
 from glob import glob
 from os.path import join as pjoin, basename, splitext, exists

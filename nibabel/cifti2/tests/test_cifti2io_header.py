@@ -6,7 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin, dirname
 import io
@@ -43,7 +42,7 @@ datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
 def test_read_nifti2():
-    # Error trying to read a CIFTI2 image from a NIfTI2-only image.
+    # Error trying to read a CIFTI-2 image from a NIfTI2-only image.
     filemap = ci.Cifti2Image.make_file_map()
     for k in filemap:
         filemap[k].fileobj = io.open(NIFTI2_DATA)

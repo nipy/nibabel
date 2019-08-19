@@ -1,4 +1,4 @@
-"""Tests the generation of new CIFTI2 files from scratch
+"""Tests the generation of new CIFTI-2 files from scratch
 
 Contains a series of functions to create and check each of the 5 CIFTI index
 types (i.e. BRAIN_MODELS, PARCELS, SCALARS, LABELS, and SERIES).
@@ -12,11 +12,13 @@ import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_true, assert_equal, assert_raises
+from nibabel.testing import clear_and_catch_warnings, error_warnings, suppress_warnings
 
 affine = [[-1.5, 0, 0, 90],
           [0, 1.5, 0, -85],
-          [0, 0, 1.5, -71]]
+          [0, 0, 1.5, -71],
+          [0, 0, 0, 1.]]
 
 dimensions = (120, 83, 78)
 
@@ -26,7 +28,9 @@ brain_models = [('CIFTI_STRUCTURE_THALAMUS_LEFT', [[60, 60, 60],
                                                    [61, 59, 60],
                                                    [61, 60, 59],
                                                    [80, 90, 92]]),
-                ('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312])]
+                ('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312]),
+                ('CIFTI_STRUCTURE_CORTEX_RIGHT', [207])
+                ]
 
 
 def create_geometry_map(applies_to_matrix_dimension):
@@ -35,25 +39,34 @@ def create_geometry_map(applies_to_matrix_dimension):
                                         model_type='CIFTI_MODEL_TYPE_VOXELS',
                                         brain_structure=brain_models[0][0],
                                         voxel_indices_ijk=voxels)
+
     vertices = ci.Cifti2VertexIndices(np.array(brain_models[1][1]))
     left_cortex = ci.Cifti2BrainModel(index_offset=4, index_count=5,
                                       model_type='CIFTI_MODEL_TYPE_SURFACE',
                                       brain_structure=brain_models[1][0],
                                       vertex_indices=vertices)
     left_cortex.surface_number_of_vertices = number_of_vertices
+
+    vertices = ci.Cifti2VertexIndices(np.array(brain_models[2][1]))
+    right_cortex = ci.Cifti2BrainModel(index_offset=9, index_count=1,
+                                       model_type='CIFTI_MODEL_TYPE_SURFACE',
+                                       brain_structure=brain_models[2][0],
+                                       vertex_indices=vertices)
+    right_cortex.surface_number_of_vertices = number_of_vertices
+
     volume = ci.Cifti2Volume(dimensions,
                      ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3,
                                                                        affine))
     return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
                                      'CIFTI_INDEX_TYPE_BRAIN_MODELS',
-                                     maps=[left_thalamus, left_cortex, volume])
+                                     maps=[left_thalamus, left_cortex, right_cortex, volume])
 
 
 def check_geometry_map(mapping):
     assert_equal(mapping.indices_map_to_data_type,
                  'CIFTI_INDEX_TYPE_BRAIN_MODELS')
-    assert_equal(len(list(mapping.brain_models)), 2)
-    left_thalamus, left_cortex = mapping.brain_models
+    assert_equal(len(list(mapping.brain_models)), 3)
+    left_thalamus, left_cortex, right_cortex = mapping.brain_models
 
     assert_equal(left_thalamus.index_offset, 0)
     assert_equal(left_thalamus.index_count, 4)
@@ -71,8 +84,17 @@ def check_geometry_map(mapping):
     assert_equal(left_cortex.vertex_indices._indices, brain_models[1][1])
     assert_equal(left_cortex.surface_number_of_vertices, number_of_vertices)
 
+    assert_equal(right_cortex.index_offset, 9)
+    assert_equal(right_cortex.index_count, 1)
+    assert_equal(right_cortex.model_type, 'CIFTI_MODEL_TYPE_SURFACE')
+    assert_equal(right_cortex.brain_structure, brain_models[2][0])
+    assert_equal(right_cortex.voxel_indices_ijk, None)
+    assert_equal(right_cortex.vertex_indices._indices, brain_models[2][1])
+    assert_equal(right_cortex.surface_number_of_vertices, number_of_vertices)
+
     assert_equal(mapping.volume.volume_dimensions, dimensions)
     assert_true((mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all())
+
 
 parcels = [('volume_parcel', ([[60, 60, 60],
                                [61, 59, 60],
@@ -84,7 +106,10 @@ parcels = [('volume_parcel', ([[60, 60, 60],
                                 [0, 100, 381]))),
            ('mixed_parcel', ([[71, 81, 39],
                               [53, 21, 91]],
-                             ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999])))]
+                             ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999]))),
+           ('single_element', ([[71, 81, 39]],
+                               ('CIFTI_STRUCTURE_CORTEX_LEFT', [40]))),
+           ]
 
 
 def create_parcel_map(applies_to_matrix_dimension):
@@ -109,7 +134,7 @@ def create_parcel_map(applies_to_matrix_dimension):
 
 def check_parcel_map(mapping):
     assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_PARCELS')
-    assert_equal(len(list(mapping.parcels)), 3)
+    assert_equal(len(list(mapping.parcels)), len(parcels))
     for (name, elements), parcel in zip(parcels, mapping.parcels):
         assert_equal(parcel.name, name)
         idx_surface = 0
@@ -211,7 +236,7 @@ def test_dtseries():
     matrix.append(series_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(13, 9)
+    data = np.random.randn(13, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
 
@@ -234,7 +259,7 @@ def test_dscalar():
     matrix.append(scalar_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 9)
+    data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS')
 
@@ -256,7 +281,7 @@ def test_dlabel():
     matrix.append(label_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 9)
+    data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS')
 
@@ -276,7 +301,7 @@ def test_dconn():
     matrix = ci.Cifti2Matrix()
     matrix.append(mapping)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(9, 9)
+    data = np.random.randn(10, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE')
 
@@ -299,7 +324,7 @@ def test_ptseries():
     matrix.append(series_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(13, 3)
+    data = np.random.randn(13, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES')
 
@@ -321,7 +346,7 @@ def test_pscalar():
     matrix.append(scalar_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR')
 
@@ -343,7 +368,7 @@ def test_pdconn():
     matrix.append(geometry_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(10, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE')
 
@@ -365,7 +390,7 @@ def test_dpconn():
     matrix.append(parcel_map)
     matrix.append(geometry_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(4, 10)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED')
 
@@ -387,7 +412,7 @@ def test_plabel():
     matrix.append(label_map)
     matrix.append(parcel_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(2, 3)
+    data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
@@ -406,7 +431,7 @@ def test_pconn():
     matrix = ci.Cifti2Matrix()
     matrix.append(mapping)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(3, 3)
+    data = np.random.randn(4, 4)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED')
 
@@ -430,7 +455,7 @@ def test_pconnseries():
     matrix.append(parcel_map)
     matrix.append(series_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(3, 3, 13)
+    data = np.random.randn(4, 4, 13)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
                                 'PARCELLATED_SERIES')
@@ -456,7 +481,7 @@ def test_pconnscalar():
     matrix.append(parcel_map)
     matrix.append(scalar_map)
     hdr = ci.Cifti2Header(matrix)
-    data = np.random.randn(3, 3, 13)
+    data = np.random.randn(4, 4, 2)
     img = ci.Cifti2Image(data, hdr)
     img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
                                 'PARCELLATED_SCALAR')
@@ -473,3 +498,29 @@ def test_pconnscalar():
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_scalar_map(img2.header.matrix.get_index_map(2))
         del img2
+
+
+def test_wrong_shape():
+    scalar_map = create_scalar_map((0, ))
+    brain_model_map = create_geometry_map((1, ))
+
+    matrix = ci.Cifti2Matrix()
+    matrix.append(scalar_map)
+    matrix.append(brain_model_map)
+    hdr = ci.Cifti2Header(matrix)
+
+    # correct shape is (2, 10)
+    for data in (
+        np.random.randn(1, 11),
+        np.random.randn(2, 10, 1),
+        np.random.randn(1, 2, 10),
+        np.random.randn(3, 10),
+        np.random.randn(2, 9),
+    ):
+        with clear_and_catch_warnings():
+            with error_warnings():
+                assert_raises(UserWarning, ci.Cifti2Image, data, hdr)
+        with suppress_warnings():
+            img = ci.Cifti2Image(data, hdr)
+        assert_raises(ValueError, img.to_file_map)
+

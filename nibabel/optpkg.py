@@ -1,21 +1,17 @@
 """ Routines to support optional packages """
+import pkgutil
 from distutils.version import LooseVersion
-
-from six import string_types
-
-try:
-    import nose
-except ImportError:
-    have_nose = False
-else:
-    have_nose = True
-
 from .tripwire import TripWire
+
+if pkgutil.find_loader('nose'):
+    have_nose = True
+else:
+    have_nose = False
 
 
 def _check_pkg_version(pkg, min_version):
     # Default version checking function
-    if isinstance(min_version, string_types):
+    if isinstance(min_version, str):
         min_version = LooseVersion(min_version)
     try:
         return min_version <= pkg.__version__
@@ -121,6 +117,7 @@ def optional_package(name, trip_msg=None, min_version=None):
 
     def setup_module():
         if have_nose:
+            import nose
             raise nose.plugins.skip.SkipTest('No %s for these tests'
                                              % name)
     return pkg, False, setup_module

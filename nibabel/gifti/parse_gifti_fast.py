@@ -6,7 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import division, print_function, absolute_import
 
 import base64
 import sys
@@ -33,42 +32,40 @@ class GiftiParseError(ExpatError):
 
 def read_data_block(encoding, endian, ordering, datatype, shape, data):
     """ Tries to unzip, decode, parse the funny string data """
-    ord = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
+    dtype = data_type_codes.type[datatype]
     if enclabel == 'ASCII':
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
-        da = np.loadtxt(c)
-        da = da.astype(data_type_codes.type[datatype])
+        da = np.loadtxt(c, dtype=dtype)
         return da  # independent of the endianness
-
-    elif enclabel == 'B64BIN':
-        # GIFTI_ENCODING_B64BIN
-        dec = base64.b64decode(data.encode('ascii'))
-        dt = data_type_codes.type[datatype]
-        sh = tuple(shape)
-        newarr = np.fromstring(dec, dtype=dt)
-        if len(newarr.shape) != len(sh):
-            newarr = newarr.reshape(sh, order=ord)
-
-    elif enclabel == 'B64GZ':
-        # GIFTI_ENCODING_B64GZ
-        # convert to bytes array for python 3.2
-        # http://www.diveintopython3.net/strings.html#byte-arrays
-        dec = base64.b64decode(data.encode('ascii'))
-        zdec = zlib.decompress(dec)
-        dt = data_type_codes.type[datatype]
-        sh = tuple(shape)
-        newarr = np.fromstring(zdec, dtype=dt)
-        if len(newarr.shape) != len(sh):
-            newarr = newarr.reshape(sh, order=ord)
 
     elif enclabel == 'External':
         # GIFTI_ENCODING_EXTBIN
         raise NotImplementedError("In what format are the external files?")
 
-    else:
+    elif enclabel not in ('B64BIN', 'B64GZ'):
         return 0
+
+    # Numpy arrays created from bytes objects are read-only.
+    # Neither b64decode nor decompress will return bytearrays, and there
+    # are not equivalents to fobj.readinto to allow us to pass them, so
+    # there is not a simple way to avoid making copies.
+    # If this becomes a problem, we should write a decoding interface with
+    # a tunable chunk size.
+    dec = base64.b64decode(data.encode('ascii'))
+    if enclabel == 'B64BIN':
+        # GIFTI_ENCODING_B64BIN
+        buff = bytearray(dec)
+    else:
+        # GIFTI_ENCODING_B64GZ
+        buff = bytearray(zlib.decompress(dec))
+    del dec
+
+    sh = tuple(shape)
+    newarr = np.frombuffer(buff, dtype=dtype)
+    if len(newarr.shape) != len(sh):
+        newarr = newarr.reshape(sh, order=array_index_order_codes.npcode[ordering])
 
     # check if we need to byteswap
     required_byteorder = gifti_endian_codes.byteorder[endian]

@@ -27,6 +27,7 @@ and compare against command line output of::
 """
 import numpy as np
 
+from .keywordonly import kw_only_meth
 from .optpkg import optional_package
 h5py, have_h5py, setup_module = optional_package('h5py')
 
@@ -108,7 +109,7 @@ class Minc2File(Minc1File):
 
     def _get_scalar(self, var):
         """ Get scalar value from HDF5 scalar """
-        return var.value
+        return var[()]
 
     def _get_array(self, var):
         """ Get array from HDF5 array """
@@ -158,7 +159,8 @@ class Minc2Image(Minc1Image):
     header_class = Minc2Header
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
         holder = file_map['image']
         if holder.filename is None:
             raise MincError('MINC2 needs filename for load')

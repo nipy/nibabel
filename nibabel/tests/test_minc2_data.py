@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Test we can correctly import example MINC2_PATH files
 """
-from __future__ import print_function, absolute_import
 
 import os
 from os.path import join as pjoin

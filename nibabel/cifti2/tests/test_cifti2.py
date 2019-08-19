@@ -1,4 +1,4 @@
-""" Testing CIFTI2 objects
+""" Testing CIFTI-2 objects
 """
 import collections
 from xml.etree import ElementTree
@@ -58,7 +58,7 @@ def test_cifti2_metadata():
     assert_equal(md.data, dict(metadata_test))
 
     assert_equal(list(iter(md)), list(iter(collections.OrderedDict(metadata_test))))
-    
+
     md.update({'a': 'aval', 'b': 'bval'})
     assert_equal(md.data, dict(metadata_test))
 
@@ -310,7 +310,7 @@ def test_matrix():
 
     assert_raises(ci.Cifti2HeaderError, m.insert, 0, mim_none)
     assert_equal(m.mapped_indices, [])
-   
+
     h = ci.Cifti2Header(matrix=m)
     assert_equal(m.mapped_indices, [])
     m.insert(0, mim_0)
@@ -358,4 +358,10 @@ class TestCifti2ImageAPI(_TDA):
     standard_extension = '.nii'
 
     def make_imaker(self, arr, header=None, ni_header=None):
+        for idx, sz in enumerate(arr.shape):
+            maps = [ci.Cifti2NamedMap(str(value)) for value in range(sz)]
+            mim = ci.Cifti2MatrixIndicesMap(
+                (idx, ), 'CIFTI_INDEX_TYPE_SCALARS', maps=maps
+            )
+            header.matrix.append(mim)
         return lambda: self.image_maker(arr.copy(), header, ni_header)

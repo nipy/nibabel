@@ -17,7 +17,6 @@ from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
-from .py3k import FileNotFoundError, unicode
 from .deprecated import deprecate_with_version
 
 
@@ -40,7 +39,7 @@ def load(filename, **kwargs):
     if hasattr(filename, '__fspath__'):
         filename = filename.__fspath__()
     else:
-        filename = unicode(filename)
+        filename = str(filename)
 
     #Check file exists and is not empty
     try:

@@ -3,7 +3,6 @@
 Includes version of OrthoSlicer3D code originally written by our own
 Paul Ivanov.
 """
-from __future__ import division, print_function
 
 import numpy as np
 import weakref
@@ -69,6 +68,7 @@ class OrthoSlicer3D(object):
         mpl_patch = optional_package('matplotlib.patches')[0]
         self._title = title
         self._closed = False
+        self._cross = True
 
         data = np.asanyarray(data)
         if data.ndim < 3:
@@ -413,7 +413,7 @@ class OrthoSlicer3D(object):
             idx = [slice(None)] * len(self._axes)
             for ii in range(3):
                 idx[self._order[ii]] = self._data_idx[ii]
-            vdata = self._data[idx].ravel()
+            vdata = self._data[tuple(idx)].ravel()
             vdata = np.concatenate((vdata, [vdata[-1]]))
             self._volume_ax_objs['patch'].set_x(self._data_idx[3] - 0.5)
             self._volume_ax_objs['step'].set_ydata(vdata)
@@ -490,6 +490,9 @@ class OrthoSlicer3D(object):
             new_idx = max(self._data_idx[3] - 1, 0)
             self._set_volume_index(new_idx, update_slices=True)
             self._draw()
+        elif event.key == 'ctrl+x':
+            self._cross = not self._cross
+            self._draw()
 
     def _draw(self):
         """Update all four (or three) plots"""
@@ -498,8 +501,9 @@ class OrthoSlicer3D(object):
         for ii in range(3):
             ax = self._axes[ii]
             ax.draw_artist(self._ims[ii])
-            for line in self._crosshairs[ii].values():
-                ax.draw_artist(line)
+            if self._cross:
+                for line in self._crosshairs[ii].values():
+                    ax.draw_artist(line)
             ax.figure.canvas.blit(ax.bbox)
         if self.n_volumes > 1 and len(self._axes) > 3:
             ax = self._axes[3]

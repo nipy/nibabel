@@ -27,14 +27,12 @@ exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
 am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
-from __future__ import print_function, division
 
 from copy import deepcopy
 import os
 import re
 
 import numpy as np
-from six import string_types
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
@@ -204,7 +202,7 @@ def parse_AFNI_header(fobj):
     [1, 1, 1]
     """
     # edge case for being fed a filename instead of a file object
-    if isinstance(fobj, string_types):
+    if isinstance(fobj, str):
         with open(fobj, 'rt') as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
@@ -227,6 +225,10 @@ class AFNIArrayProxy(ArrayProxy):
         """
         Initialize AFNI array proxy
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         file_like : file-like object
@@ -240,18 +242,14 @@ class AFNIArrayProxy(ArrayProxy):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behavior is the same as if
-            ``keep_file_open is False``. If ``file_like`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            If ``file_like`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         super(AFNIArrayProxy, self).__init__(file_like,
@@ -295,8 +293,8 @@ class AFNIHeader(SpatialHeader):
         --------
         >>> fname = os.path.join(datadir, 'example4d+orig.HEAD')
         >>> header = AFNIHeader(parse_AFNI_header(fname))
-        >>> header.get_data_dtype()
-        dtype('int16')
+        >>> header.get_data_dtype().str
+        '<i2'
         >>> header.get_zooms()
         (3.0, 3.0, 3.0, 3.0)
         >>> header.get_data_shape()
@@ -506,6 +504,10 @@ class AFNIImage(SpatialImage):
         """
         Creates an AFNIImage instance from `file_map`
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         file_map : dict
@@ -518,18 +520,14 @@ class AFNIImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
-        keep_file_open : {None, 'auto', True, False}, optional, keyword only
+        keep_file_open : {None, True, False}, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behavior is the same as if
-            ``keep_file_open is False``. If ``file_like`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            If ``file_like`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
@@ -540,41 +538,6 @@ class AFNIImage(SpatialImage):
                                      keep_file_open=keep_file_open)
         return klass(data, hdr.get_affine(), header=hdr, extra=None,
                      file_map=file_map)
-
-    @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open=None):
-        """
-        Creates an AFNIImage instance from `filename`
-
-        Parameters
-        ----------
-        filename : str
-            Path to BRIK or HEAD file to be loaded
-        mmap : {True, False, 'c', 'r'}, optional, keyword only
-            `mmap` controls the use of numpy memory mapping for reading image
-            array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
-            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
-            image data file cannot be memory-mapped, ignore `mmap` value and
-            read array from file.
-        keep_file_open : {None, 'auto', True, False}, optional, keyword only
-            `keep_file_open` controls whether a new file handle is created
-            every time the image is accessed, or a single file handle is
-            created and used for the lifetime of this ``ArrayProxy``. If
-            ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behavior is the same as if
-            ``keep_file_open is False``. If ``file_like`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
-        """
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap,
-                                   keep_file_open=keep_file_open)
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
@@ -620,8 +583,6 @@ class AFNIImage(SpatialImage):
                         break
             file_map[key].filename = fname
         return file_map
-
-    load = from_filename
 
 
 load = AFNIImage.load

@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Contexts for *with* statement providing temporary directories
 '''
-from __future__ import division, print_function, absolute_import
 import os
 import shutil
 from tempfile import template, mkdtemp

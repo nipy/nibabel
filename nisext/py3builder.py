@@ -1,6 +1,5 @@
 """ distutils utilities for porting to python 3 within 2-compatible tree """
 
-from __future__ import division, print_function, absolute_import
 
 import sys
 import re

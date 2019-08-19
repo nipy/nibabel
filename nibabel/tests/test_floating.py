@@ -2,8 +2,6 @@
 """
 import sys
 
-PY2 = sys.version_info[0] < 3
-
 from distutils.version import LooseVersion
 
 import numpy as np
@@ -30,6 +28,16 @@ if have_float16:
 LD_INFO = type_info(np.longdouble)
 
 
+def dtt2dict(dtt):
+    """ Create info dictionary from numpy type
+    """
+    info = np.finfo(dtt)
+    return dict(min=info.min, max=info.max,
+                nexp=info.nexp, nmant=info.nmant,
+                minexp=info.minexp, maxexp=info.maxexp,
+                width=np.dtype(dtt).itemsize)
+
+
 def test_type_info():
     # Test routine to get min, max, nmant, nexp
     for dtt in np.sctypes['int'] + np.sctypes['uint']:
@@ -42,42 +50,35 @@ def test_type_info():
         assert_equal(infod['min'].dtype.type, dtt)
         assert_equal(infod['max'].dtype.type, dtt)
     for dtt in IEEE_floats + [np.complex64, np.complex64]:
-        info = np.finfo(dtt)
         infod = type_info(dtt)
-        assert_equal(dict(min=info.min, max=info.max,
-                          nexp=info.nexp, nmant=info.nmant,
-                          minexp=info.minexp, maxexp=info.maxexp,
-                          width=np.dtype(dtt).itemsize),
-                     infod)
+        assert_equal(dtt2dict(dtt), infod)
         assert_equal(infod['min'].dtype.type, dtt)
         assert_equal(infod['max'].dtype.type, dtt)
     # What is longdouble?
-    info = np.finfo(np.longdouble)
-    dbl_info = np.finfo(np.float64)
+    ld_dict = dtt2dict(np.longdouble)
+    dbl_dict = dtt2dict(np.float64)
     infod = type_info(np.longdouble)
-    width = np.dtype(np.longdouble).itemsize
-    vals = (info.nmant, info.nexp, width)
+    vals = tuple(ld_dict[k] for k in ('nmant', 'nexp', 'width'))
     # Information for PPC head / tail doubles from:
     # https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man3/float.3.html
     if vals in ((52, 11, 8),  # longdouble is same as double
                 (63, 15, 12), (63, 15, 16),  # intel 80 bit
                 (112, 15, 16),  # real float128
                 (106, 11, 16)):  # PPC head, tail doubles, expected values
-        assert_equal(dict(min=info.min, max=info.max,
-                          minexp=info.minexp, maxexp=info.maxexp,
-                          nexp=info.nexp, nmant=info.nmant, width=width),
-                     infod)
-    elif vals == (1, 1, 16):  # bust info for PPC head / tail longdoubles
-        assert_equal(dict(min=dbl_info.min, max=dbl_info.max,
-                          minexp=-1022, maxexp=1024,
-                          nexp=11, nmant=106, width=16),
-                     infod)
+        pass
+    elif vals == (105, 11, 16):  # bust info for PPC head / tail longdoubles
+        # min and max broken, copy from infod
+        ld_dict.update({k: infod[k] for k in ('min', 'max')})
+    elif vals == (1, 1, 16):  # another bust info for PPC head / tail longdoubles
+        ld_dict = dbl_dict.copy()
+        ld_dict.update(dict(nmant=106, width=16))
     elif vals == (52, 15, 12):
-        exp_res = type_info(np.float64)
-        exp_res['width'] = width
-        assert_equal(exp_res, infod)
+        width = ld_dict['width']
+        ld_dict = dbl_dict.copy()
+        ld_dict['width'] = width
     else:
-        raise ValueError("Unexpected float type to test")
+        raise ValueError("Unexpected float type {} to test".format(np.longdouble))
+    assert_equal(ld_dict, infod)
 
 
 def test_nmant():
@@ -103,13 +104,11 @@ def test_check_nmant_nexp():
     # Check against type_info
     for t in ok_floats():
         ti = type_info(t)
-        if ti['nmant'] != 106:  # This check does not work for PPC double pair
+        if ti['nmant'] not in (105, 106):  # This check does not work for PPC double pair
             assert_true(_check_nmant(t, ti['nmant']))
         # Test fails for longdouble after blacklisting of OSX powl as of numpy
         # 1.12 - see https://github.com/numpy/numpy/issues/8307
-        if (t != np.longdouble or
-              sys.platform != 'darwin' or
-              LooseVersion(np.__version__) < LooseVersion('1.12')):
+        if t != np.longdouble or sys.platform != 'darwin':
             assert_true(_check_maxexp(t, ti['maxexp']))
 
 
@@ -183,11 +182,6 @@ def test_int_to_float():
     i = 2**(nmant + 1) - 1
     assert_equal(as_int(int_to_float(i, LD)), i)
     assert_equal(as_int(int_to_float(-i, LD)), -i)
-    # Test no error for longs
-    if PY2:
-        i = long(i)
-        assert_equal(as_int(int_to_float(i, LD)), i)
-        assert_equal(as_int(int_to_float(-i, LD)), -i)
     # If longdouble can cope with 2**64, test
     if nmant >= 63:
         # Check conversion to int; the line below causes an error subtracting

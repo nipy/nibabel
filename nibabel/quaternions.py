@@ -27,7 +27,6 @@ they are applied on the left of the vector.  For example:
 
 import math
 import numpy as np
-from .testing import setup_test  # flake8: noqa F401
 
 MAX_FLOAT = np.maximum_sctype(np.float)
 FLOAT_EPS = np.finfo(np.float).eps

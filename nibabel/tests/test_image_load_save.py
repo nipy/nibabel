@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for loader function '''
-from __future__ import division, print_function, absolute_import
 from io import BytesIO
 
 import shutil

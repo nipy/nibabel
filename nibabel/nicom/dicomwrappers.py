@@ -11,7 +11,6 @@ than an AttributeError - breaking the 'properties manifesto'.   So, any
 processing that needs to raise an error, should be in a method, rather
 than in a property, or property-like thing.
 """
-from __future__ import division
 
 import operator
 
@@ -201,7 +200,7 @@ class Wrapper(object):
         zs = self.get('SpacingBetweenSlices')
         if zs is None:
             zs = self.get('SliceThickness')
-            if zs is None:
+            if zs is None or zs == '':
                 zs = 1
         # Protect from python decimals in pydicom 0.9.7
         zs = float(zs)

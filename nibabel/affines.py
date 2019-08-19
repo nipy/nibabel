@@ -5,8 +5,7 @@
 
 import numpy as np
 
-from six.moves import reduce
-from .testing import setup_test  # flake8: noqa F401
+from functools import reduce
 
 
 class AffineError(ValueError):
@@ -238,7 +237,7 @@ def append_diag(aff, steps, starts=()):
 
 
 def dot_reduce(*args):
-    """ Apply numpy dot product function from right to left on arrays
+    r""" Apply numpy dot product function from right to left on arrays
 
     For passed arrays :math:`A, B, C, ... Z` returns :math:`A \dot B \dot C ...
     \dot Z` where "." is the numpy array dot product.

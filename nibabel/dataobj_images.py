@@ -11,6 +11,7 @@ This can either be an actual numpy array, or an object that:
 import numpy as np
 
 from .filebasedimages import FileBasedImage
+from .keywordonly import kw_only_meth
 from .deprecated import deprecate_with_version
 
 
@@ -28,8 +29,8 @@ class DataobjImage(FileBasedImage):
         ----------
         dataobj : object
            Object containg image data.  It should be some object that retuns an
-           array from ``np.asanyarray``.  It should have a ``shape`` attribute
-           or property
+           array from ``np.asanyarray``.  It should have ``shape`` and ``ndim``
+           attributes or properties
         header : None or mapping or header instance, optional
            metadata for this image format
         extra : None or mapping, optional
@@ -392,6 +393,10 @@ class DataobjImage(FileBasedImage):
     def shape(self):
         return self._dataobj.shape
 
+    @property
+    def ndim(self):
+        return self._dataobj.ndim
+
     @deprecate_with_version('get_shape method is deprecated.\n'
                             'Please use the ``img.shape`` property '
                             'instead.',
@@ -400,3 +405,82 @@ class DataobjImage(FileBasedImage):
         """ Return shape for image
         """
         return self.shape
+
+    @classmethod
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+        ''' Class method to create image from mapping in ``file_map``
+
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
+        Parameters
+        ----------
+        file_map : dict
+            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            instance giving file-likes for each file needed for this image
+            type.
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
+        keep_file_open : { None, True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed.
+            If ``file_map`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
+
+        Returns
+        -------
+        img : DataobjImage instance
+        '''
+        raise NotImplementedError
+
+    @classmethod
+    @kw_only_meth(1)
+    def from_filename(klass, filename, mmap=True, keep_file_open=None):
+        '''Class method to create image from filename `filename`
+
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
+        Parameters
+        ----------
+        filename : str
+            Filename of image to load
+        mmap : {True, False, 'c', 'r'}, optional, keyword only
+            `mmap` controls the use of numpy memory mapping for reading image
+            array data.  If False, do not try numpy ``memmap`` for data array.
+            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
+            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
+            image data file cannot be memory-mapped, ignore `mmap` value and
+            read array from file.
+        keep_file_open : { None, True, False }, optional, keyword only
+            `keep_file_open` controls whether a new file handle is created
+            every time the image is accessed, or a single file handle is
+            created and used for the lifetime of this ``ArrayProxy``. If
+            ``True``, a single file handle is created and used. If ``False``,
+            a new file handle is created every time the image is accessed.
+            The default value (``None``) will result in the value of
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
+
+        Returns
+        -------
+        img : DataobjImage instance
+        '''
+        if mmap not in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(file_map, mmap=mmap,
+                                   keep_file_open=keep_file_open)
+
+    load = from_filename

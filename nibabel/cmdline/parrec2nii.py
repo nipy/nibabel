@@ -1,6 +1,5 @@
 """Code for PAR/REC to NIfTI converter command
 """
-from __future__ import division, print_function, absolute_import
 
 from optparse import OptionParser, Option
 import numpy as np
@@ -89,7 +88,7 @@ def get_opt_parser():
     p.add_option(
         Option("--minmax", action="store", nargs=2, dest="minmax",
                help=one_line(
-                   """Mininum and maximum settings to be stored in the NIfTI
+                   """Minimum and maximum settings to be stored in the NIfTI
                    header. If any of them is set to 'parse', the scaled data is
                    scanned for the actual minimum and maximum.  To bypass this
                    potentially slow and memory intensive step (the data has to
@@ -103,7 +102,7 @@ def get_opt_parser():
                default=False,
                help=one_line(
                    """If set, all information from the PAR header is stored in
-                   an extension ofthe NIfTI file header.  Default: off""")))
+                   an extension of the NIfTI file header.  Default: off""")))
     p.add_option(
         Option("--scaling", action="store", dest="scaling", default='dv',
                help=one_line(

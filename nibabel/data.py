@@ -8,7 +8,7 @@ import os
 from os.path import join as pjoin
 import glob
 import sys
-from six.moves import configparser
+import configparser
 from distutils.version import LooseVersion
 
 from .environment import get_nipy_user_dir, get_nipy_system_dir

@@ -1,8 +1,8 @@
 import copy
 import numbers
 import numpy as np
-import collections
 from warnings import warn
+from collections.abc import MutableMapping
 
 from nibabel.affines import apply_affine
 
@@ -19,7 +19,7 @@ def is_lazy_dict(obj):
     return is_data_dict(obj) and callable(list(obj.store.values())[0])
 
 
-class SliceableDataDict(collections.MutableMapping):
+class SliceableDataDict(MutableMapping):
     """ Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
@@ -181,7 +181,7 @@ class PerArraySequenceDict(PerArrayDict):
         self[key].extend(value)
 
 
-class LazyDict(collections.MutableMapping):
+class LazyDict(MutableMapping):
     """ Dictionary of generator functions.
 
     This container behaves like a dictionary but it makes sure its elements are

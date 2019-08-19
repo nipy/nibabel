@@ -121,7 +121,6 @@ The volume sorting described above can be enabled in the parrec2nii command
 utility via the option "--strict-sort".  The dimension info can be exported
 to a CSV file by adding the option "--volume-info".
 """
-from __future__ import print_function, division
 
 import warnings
 import numpy as np
@@ -623,6 +622,10 @@ class PARRECArrayProxy(object):
         return self._shape
 
     @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
     def dtype(self):
         return self._dtype
 
@@ -780,7 +783,13 @@ class PARRECHeader(SpatialHeader):
         if self.general_info['diffusion'] == 0:
             return None, None
         reorder = self.get_sorted_slice_indices()
-        n_slices, n_vols = self.get_data_shape()[-2:]
+        if len(self.get_data_shape()) == 3:
+            # Any original diffusion scans will have >=2 volumes. However, a
+            # single dynamic is possible for a post-processed diffusion volume
+            # such as an ADC map. The b-values are unavailable in this case.
+            return None, None
+        else:
+            n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
             (n_slices, n_vols), order='F')
         # All bvals within volume should be the same

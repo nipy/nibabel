@@ -83,6 +83,18 @@ IN_ARRS = [np.array(arr) for arr in IN_ARRS]
 OUT_ORNTS = [np.array(ornt) for ornt in OUT_ORNTS]
 
 
+_LABELS = ['RL', 'AP', 'SI']
+ALL_AXCODES = [(_LABELS[i0][j0], _LABELS[i1][j1], _LABELS[i2][j2])
+               for i0 in range(3) for i1 in range(3) for i2 in range(3)
+               if i0 != i1 != i2 != i0
+               for j0 in range(2) for j1 in range(2) for j2 in range(2)]
+
+ALL_ORNTS = [[[i0, j0], [i1, j1], [i2, j2]]
+             for i0 in range(3) for i1 in range(3) for i2 in range(3)
+             if i0 != i1 != i2 != i0
+             for j0 in [1, -1] for j1 in [1, -1] for j2 in [1, -1]]
+
+
 def same_transform(taff, ornt, shape):
     # Applying transformations implied by `ornt` to a made-up array
     # ``arr`` of shape `shape`, results in ``t_arr``. When the point
@@ -105,7 +117,7 @@ def same_transform(taff, ornt, shape):
     o2t_pts = np.dot(itaff[:3, :3], arr_pts) + itaff[:3, 3][:, None]
     assert np.allclose(np.round(o2t_pts), o2t_pts)
     # fancy index out the t_arr values
-    vals = t_arr[list(o2t_pts.astype('i'))]
+    vals = t_arr[tuple(o2t_pts.astype('i'))]
     return np.all(vals == arr.ravel())
 
 
@@ -125,6 +137,10 @@ def test_apply():
                   apply_orientation,
                   a,
                   [[0, 1], [np.nan, np.nan], [2, 1]])
+    shape = np.array(a.shape)
+    for ornt in ALL_ORNTS:
+        t_arr = apply_orientation(a, ornt)
+        assert_array_equal(a.shape, np.array(t_arr.shape)[np.array(ornt)[:, 0]])
 
 
 def test_flip_axis():
@@ -282,6 +298,9 @@ def test_ornt2axcodes():
     # As do directions not in range
     assert_raises(ValueError, ornt2axcodes, [[0, 0]])
 
+    for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS):
+        assert_equal(ornt2axcodes(ornt), axcodes)
+
 
 def test_axcodes2ornt():
     # Go from axcodes back to orientations
@@ -339,6 +358,9 @@ def test_axcodes2ornt():
     # Duplicate labels
     assert_raises(ValueError, axcodes2ornt, 'blD', ('SD', 'BF', 'lD'))
     assert_raises(ValueError, axcodes2ornt, 'blD', ('SD', 'SF', 'lD'))
+
+    for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS):
+        assert_array_equal(axcodes2ornt(axcodes), ornt)
 
 
 def test_aff2axcodes():
