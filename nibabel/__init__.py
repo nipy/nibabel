@@ -9,7 +9,8 @@
 
 import os
 
-from .info import __version__, long_description as __doc__
+from .pkg_info import __version__
+from .info import long_description as __doc__
 __doc__ += """
 Quickstart
 ==========

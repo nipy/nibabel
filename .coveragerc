@@ -6,3 +6,4 @@ omit =
     */externals/*
     */benchmarks/*
     */tests/*
+    nibabel/_version.py

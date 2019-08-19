@@ -4,7 +4,7 @@
 import warnings
 
 from .deprecator import Deprecator
-from .info import cmp_pkg_version
+from .pkg_info import cmp_pkg_version
 
 
 class ModuleProxy(object):
