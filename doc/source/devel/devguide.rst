@@ -28,7 +28,7 @@ Code Documentation
 
 All documentation should be written using Numpy documentation conventions:
 
-  https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard
+  https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard
 
 
 Git Repository
