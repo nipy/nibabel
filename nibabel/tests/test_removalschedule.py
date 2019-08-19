@@ -14,6 +14,12 @@ OBJECT_SCHEDULE = [
     ('1.0.0', [('nibabel', 'neverexisted')]),
     ]
 
+ATTRIBUTE_SCHEDULE = [
+    ('5.0.0', [('nibabel.dataobj_images', 'DataobjImage', 'get_data')]),
+    # Verify that the test will be quiet if the schedule outlives the modules
+    ('1.0.0', [('nibabel', 'Nifti1Image', 'neverexisted')]),
+    ]
+
 
 def test_module_removal():
     for version, to_remove in MODULE_SCHEDULE:
@@ -32,3 +38,19 @@ def test_object_removal():
                 except ImportError:
                     continue
                 assert_false(hasattr(module, obj), msg="Time to remove %s.%s" % (module_name, obj))
+
+
+def test_attribute_removal():
+    for version, to_remove in ATTRIBUTE_SCHEDULE:
+        if cmp_pkg_version(version) < 1:
+            for module_name, cls, attr in to_remove:
+                try:
+                    module = __import__(module_name)
+                except ImportError:
+                    continue
+                try:
+                    klass = getattr(module, cls)
+                except AttributeError:
+                    continue
+                assert_false(hasattr(klass, attr),
+                             msg="Time to remove %s.%s.%s" % (module_name, cls, attr))
