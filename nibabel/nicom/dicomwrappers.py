@@ -14,6 +14,7 @@ than in a property, or property-like thing.
 from __future__ import division
 
 import operator
+import warnings
 
 import numpy as np
 
@@ -21,7 +22,7 @@ from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
-from ..pydicom_compat import tag_for_keyword
+from ..pydicom_compat import tag_for_keyword, Sequence
 
 
 class WrapperError(Exception):
@@ -502,8 +503,32 @@ class MultiframeWrapper(Wrapper):
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError("Rows and/or Columns are empty.")
+
         # Check number of frames
+        first_frame = self.frames[0]
         n_frames = self.get('NumberOfFrames')
+        # some Philips may have derived images appended
+        has_derived = False
+        if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
+            # DWI image may include derived isotropic, ADC or trace volume
+            try:
+                self.frames = Sequence(
+                    frame for frame in self.frames if
+                    frame.MRDiffusionSequence[0].DiffusionDirectionality
+                    != 'ISOTROPIC'
+                    )
+            except IndexError:
+                # Sequence tag is found but missing items!
+                raise WrapperError("Diffusion file missing information")
+            except AttributeError:
+                # DiffusionDirectionality tag is not required
+                pass
+            else:
+                if n_frames != len(self.frames):
+                    warnings.warn("Derived images found and removed")
+                    n_frames = len(self.frames)
+                    has_derived = True
+
         assert len(self.frames) == n_frames
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
@@ -522,6 +547,15 @@ class MultiframeWrapper(Wrapper):
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)
             frame_indices = np.delete(frame_indices, stackid_dim_idx, axis=1)
+            dim_seq.pop(stackid_dim_idx)
+        if has_derived:
+            # derived volume is included
+            derived_tag = tag_for_keyword("DiffusionBValue")
+            if derived_tag not in dim_seq:
+                raise WrapperError("Missing information, cannot remove indices "
+                                   "with confidence.")
+            derived_dim_idx = dim_seq.index(derived_tag)
+            frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
         # account for the 2 additional dimensions (row and column) not included
         # in the indices
         n_dim = frame_indices.shape[1] + 2
