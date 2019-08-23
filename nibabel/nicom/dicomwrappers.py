@@ -23,6 +23,7 @@ from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
 from ..pydicom_compat import tag_for_keyword, Sequence
+from ..deprecated import deprecate_with_version
 
 
 class WrapperError(Exception):
@@ -286,12 +287,16 @@ class Wrapper(object):
         """ Get values from underlying dicom data """
         return self.dcm_data.get(key, default)
 
+    @deprecate_with_version('get_affine method is deprecated.\n'
+                            'Please use the ``img.affine`` property '
+                            'instead.',
+                            '2.5.1', '4.0')
     def get_affine(self):
-        """ Return mapping between voxel and DICOM coordinate system
+        return self.affine
 
-        Parameters
-        ----------
-        None
+    @property
+    def affine(self):
+        """ Mapping between voxel and DICOM coordinate system
 
         Returns
         -------
