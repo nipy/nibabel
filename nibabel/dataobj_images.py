@@ -56,6 +56,11 @@ class DataobjImage(FileBasedImage):
     def _data(self):
         return self._dataobj
 
+    @deprecate_with_version('get_data() is deprecated in favor of get_fdata(),'
+                            ' which has a more predictable return type. To '
+                            'obtain get_data() behavior going forward, use '
+                            'numpy.asanyarray(img.dataobj).',
+                            '3.0', '5.0')
     def get_data(self, caching='fill'):
         """ Return image data from image with any necessary scaling applied
 
