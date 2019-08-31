@@ -706,13 +706,16 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         darrays = self.darrays if intent_code is None else self.get_arrays_from_intent(intent_code)
         all_data = tuple(da.data for da in darrays)
-        all_intent = tuple(intent_codes.niistring[da.intent] for da in darrays)
+        all_intent = {da.intent for da in darrays}
 
         # Gifti files allows usually one or more data array of the same intent code
         # surf.gii is a special case of having two data array of different intent code
 
-        if (self.numDA > 1 and all(el == all_intent[0] for el in all_intent)):
-            return np.column_stack(all_data)
+        if self.numDA > 1 and len(all_intent) == 1:
+            if all_intent== 'NIFTI_INTENT_TIME_SERIES':  # stack when the gifti is a timeseries
+                return np.column_stack(all_data)
+            else:
+                return all_data
         else:
             return all_data
 
