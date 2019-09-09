@@ -8,7 +8,9 @@ environment:
     - PYTHON: C:\Python27
     - PYTHON: C:\Python27-x64
     - PYTHON: C:\Python34
+      DEPENDS: --prefer-binary numpy scipy matplotlib h5py pydicom
     - PYTHON: C:\Python34-x64
+      DEPENDS: --prefer-binary numpy scipy matplotlib h5py pydicom
     - PYTHON: C:\Python35
     - PYTHON: C:\Python35-x64
     - PYTHON: C:\Python35-x64
