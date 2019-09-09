@@ -39,6 +39,7 @@ jobs:
     - script: |
         SET /p PYTHONHASHSEED=<hashseed.txt
         echo %PYTHONHASHSEED%
+        python diagnose.py
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
