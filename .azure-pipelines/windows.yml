@@ -21,10 +21,10 @@ jobs:
         addToPath: true
         architecture: '$(PYTHON_ARCH)'
     - script: |
-        python -c "print(283137131)" > hashseed.txt
+        python -c "import random; print(random.randint(0, 4294967295))" > hashseed.txt
         SET /p PYTHONHASHSEED=<hashseed.txt
         echo %PYTHONHASHSEED%
-      displayName: 'Set hash seed'
+      displayName: 'Generate hash seed'
     - script: |
         python -m pip install --upgrade pip setuptools>=30.3.0 wheel
       displayName: 'Update build tools'

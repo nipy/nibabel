@@ -17,3 +17,21 @@ jobs:
       py35-x64_1:
         PYTHON_VERSION: '3.5'
         PYTHON_ARCH: 'x64'
+      py35-x86_2:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x86'
+      py35-x64_2:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
+      py35-x86_3:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x86'
+      py35-x64_3:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
+      py35-x86_4:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x86'
+      py35-x64_4:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
