@@ -29,7 +29,7 @@ jobs:
         python -m pip install --upgrade pip setuptools>=30.3.0 wheel
       displayName: 'Update build tools'
     - script: |
-        python -m pip install --find-links %EXTRA_WHEELS% numpy scipy matplotlib h5py pydicom
+        python -m pip install --find-links %EXTRA_WHEELS% "numpy<1.17.2" scipy matplotlib h5py pydicom
         python -m pip install nose mock coverage codecov
       displayName: 'Install dependencies'
     - script: |
