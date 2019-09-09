@@ -12,12 +12,8 @@ from os.path import join as pjoin
 
 import numpy as np
 
-from ..optpkg import optional_package
-
-h5py, have_h5py, setup_module = optional_package('h5py')
-
 from .. import minc2
-from ..minc2 import Minc2File, Minc2Image
+from ..minc2 import Minc2File, Minc2Image, h5py, have_h5py, setup_module
 
 from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
 
