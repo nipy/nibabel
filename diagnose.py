@@ -19,5 +19,5 @@ pprint(nb.pkg_info.get_pkg_info('nibabel'))
 
 pprint(_repr(np.sctypes), width=100)
 
-for fp in np.sctypes['float']:
+for fp in [np.float_, np.float64, np.double, np.longdouble]:
     print((_repr(np.dtype(fp)), _repr(fp)))
