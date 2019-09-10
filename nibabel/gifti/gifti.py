@@ -694,7 +694,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         Returns
         -------
-        all_data : tuple of ndarray or ndarray
+        tuple of ndarrays or ndarray
             If the input is a tuple, the returned tuple will match the order.
         """
 
