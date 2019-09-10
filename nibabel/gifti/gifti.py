@@ -689,7 +689,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         Parameters
         ----------
         intent_code : None, string, integer or tuple of string, optional
-            Intent code, or string describing code.
+            code(s) specifying nifti intent
 
         Returns
         -------
