@@ -690,7 +690,6 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         ----------
         intent_code : None, string, integer or tuple of string, optional
             Intent code, or string describing code.
-            Accept tuple that contains multiple intents to specify the order.
 
         Returns
         -------
