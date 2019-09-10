@@ -10,7 +10,7 @@ import nibabel as nib
 from nibabel.analyze import AnalyzeImage
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
-from ..minc2 import have_h5py
+from .._h5py_compat import have_h5py
 
 from nibabel import imageclasses
 from nibabel.imageclasses import spatial_axes_first, class_map, ext_map

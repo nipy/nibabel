@@ -15,7 +15,7 @@ from os.path import join as pjoin
 
 import numpy as np
 
-from ..minc2 import h5py, have_h5py, setup_module
+from .._h5py_compat import h5py, have_h5py, setup_module
 
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from .. import load as top_load, Nifti1Image
