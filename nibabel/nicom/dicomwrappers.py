@@ -23,6 +23,7 @@ from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
 from ..pydicom_compat import tag_for_keyword, Sequence
+from ..deprecated import deprecate_with_version
 
 
 class WrapperError(Exception):
@@ -95,7 +96,7 @@ class Wrapper(object):
 
     Methods:
 
-    * get_affine()
+    * get_affine() (deprecated, use affine property instead)
     * get_data()
     * get_pixel_array()
     * is_same_series(other)
@@ -104,6 +105,7 @@ class Wrapper(object):
 
     Attributes and things that look like attributes:
 
+    * affine : (4, 4) array
     * dcm_data : object
     * image_shape : tuple
     * image_orient_patient : (3,2) array
@@ -286,18 +288,19 @@ class Wrapper(object):
         """ Get values from underlying dicom data """
         return self.dcm_data.get(key, default)
 
+    @deprecate_with_version('get_affine method is deprecated.\n'
+                            'Please use the ``img.affine`` property '
+                            'instead.',
+                            '2.5.1', '4.0')
     def get_affine(self):
-        """ Return mapping between voxel and DICOM coordinate system
+        return self.affine
 
-        Parameters
-        ----------
-        None
+    @property
+    def affine(self):
+        """ Mapping between voxel and DICOM coordinate system
 
-        Returns
-        -------
-        aff : (4,4) affine
-           Affine giving transformation between voxels in data array and
-           mm in the DICOM patient coordinate system.
+        (4, 4) affine matrix giving transformation between voxels in data array
+        and mm in the DICOM patient coordinate system.
         """
         # rotation matrix already accounts for the ij transpose in the
         # DICOM image orientation patient transform.  So. column 0 is
