@@ -34,7 +34,7 @@ import numpy as np
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
-_, have_h5py, _ = optional_package('h5py')
+from .._h5py_compat import have_h5py
 
 from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,

@@ -2,14 +2,20 @@
 # CI on Windows via appveyor
 
 environment:
+  DEPENDS: numpy scipy matplotlib h5py pydicom
 
   matrix:
     - PYTHON: C:\Python27
     - PYTHON: C:\Python27-x64
     - PYTHON: C:\Python34
+      DEPENDS: --prefer-binary numpy scipy matplotlib h5py pydicom
     - PYTHON: C:\Python34-x64
+      DEPENDS: --prefer-binary numpy scipy matplotlib h5py pydicom
     - PYTHON: C:\Python35
     - PYTHON: C:\Python35-x64
+    - PYTHON: C:\Python35-x64
+      PYTHONHASHSEED: 283137131
+      DEPENDS: "h5py==2.9.0"
     - PYTHON: C:\Python36
     - PYTHON: C:\Python36-x64
     - PYTHON: C:\Python37
@@ -28,7 +34,7 @@ install:
 
   # Install the dependencies of the project.
   - pip install --upgrade pip setuptools>=27.0 wheel
-  - pip install numpy scipy matplotlib h5py pydicom
+  - pip install %DEPENDS%
   - pip install nose mock coverage codecov
   - pip install .
   - SET NIBABEL_DATA_DIR=%CD%\nibabel-data

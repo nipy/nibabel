@@ -15,9 +15,7 @@ from os.path import join as pjoin
 
 import numpy as np
 
-from nibabel.optpkg import optional_package
-
-h5py, have_h5py, setup_module = optional_package('h5py')
+from .._h5py_compat import h5py, have_h5py, setup_module
 
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from .. import load as top_load, Nifti1Image
