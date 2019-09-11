@@ -403,7 +403,7 @@ def test_data_array_round_trip():
     assert_array_equal(vertices, verts)
 
 
-def test_type_coercion():
+def test_darray_dtype_coercion_failures():
     dtypes = (np.uint8, np.int32, np.int64, np.float32, np.float64)
     encodings = ('ASCII', 'B64BIN', 'B64GZ')
     for data_dtype, darray_dtype, encoding in itertools.product(dtypes,

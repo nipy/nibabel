@@ -270,16 +270,21 @@ def data_tag(dataarray, encoding, datatype, ordering):
     return DataTag(dataarray, encoding, datatype, ordering).to_xml()
 
 
-def _data_tag_element(dataarray, encoding, datatype, ordering):
+def _data_tag_element(dataarray, encoding, dtype, ordering):
     """ Creates data tag with given `encoding`, returns as XML element
     """
     import zlib
-    ord = array_index_order_codes.npcode[ordering]
+    order = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
     if enclabel == 'ASCII':
-        da = _arr2txt(dataarray, datatype)
+        # XXX Accommodating data_tag API
+        # On removal (nibabel 4.0) drop str case
+        da = _arr2txt(dataarray, dtype if isinstance(dtype, str) else KIND2FMT[dtype.kind])
     elif enclabel in ('B64BIN', 'B64GZ'):
-        out = dataarray.tostring(ord)
+        # XXX Accommodating data_tag API - don't try to fix dtype
+        if isinstance(dtype, str):
+            dtype = dataarray.dtype
+        out = np.asanyarray(dataarray, dtype).tostring(order)
         if enclabel == 'B64GZ':
             out = zlib.compress(out)
         da = base64.b64encode(out).decode()
@@ -462,11 +467,10 @@ class GiftiDataArray(xml.XmlSerializable):
         if self.coordsys is not None:
             data_array.append(self.coordsys._to_xml_element())
         # write data array depending on the encoding
-        dt_kind = data_type_codes.dtype[self.datatype].kind
         data_array.append(
             _data_tag_element(self.data,
                               gifti_encoding_codes.specs[self.encoding],
-                              KIND2FMT[dt_kind],
+                              data_type_codes.dtype[self.datatype],
                               self.ind_ord))
 
         return data_array
