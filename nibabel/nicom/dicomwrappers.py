@@ -96,7 +96,7 @@ class Wrapper(object):
 
     Methods:
 
-    * get_affine()
+    * get_affine() (deprecated, use affine property instead)
     * get_data()
     * get_pixel_array()
     * is_same_series(other)
@@ -105,6 +105,7 @@ class Wrapper(object):
 
     Attributes and things that look like attributes:
 
+    * affine : (4, 4) array
     * dcm_data : object
     * image_shape : tuple
     * image_orient_patient : (3,2) array
@@ -298,11 +299,8 @@ class Wrapper(object):
     def affine(self):
         """ Mapping between voxel and DICOM coordinate system
 
-        Returns
-        -------
-        aff : (4,4) affine
-           Affine giving transformation between voxels in data array and
-           mm in the DICOM patient coordinate system.
+        (4, 4) affine matrix giving transformation between voxels in data array
+        and mm in the DICOM patient coordinate system.
         """
         # rotation matrix already accounts for the ij transpose in the
         # DICOM image orientation patient transform.  So. column 0 is
