@@ -682,9 +682,46 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
     def agg_data(self, intent_code=None):
         """
-        Retrun a numpy arrary of aggregated GiftiDataArray of the same intent code
-        or
-        Retrun GiftiDataArray in tuples for surface files
+        Aggregate GIFTI data arrays into an ndarray or tuple of ndarray
+
+        In the general case, the numpy data array is extracted from each ``GiftiDataArray``
+        object and returned in a ``tuple``, in the order they are found in the GIFTI image.
+        
+        If all ``GiftiDataArray``s have ``intent`` of 2001 (``NIFTI_INTENT_TIME_SERIES``),
+        then the data arrays are concatenated as columns, producing a vertex-by-time array.
+        If an ``intent_code`` is passed, data arrays are filtered by the selected intents,
+        before being aggregated.
+        This may be useful for images containing several intents, or ensuring an expected
+        data type in an image of uncertain provenance.
+        If ``intent_code`` is a ``tuple``, then a ``tuple`` will be returned with the result of
+        ``agg_data`` for each element, in order.
+        This may be useful for ensuring that expected data arrives in a consistent order.
+
+        Examples:
+        >>> import nibabel as nib
+        >>> gii_fname = # something/something.surf.gii
+        >>> gii_img = nib.load(gii_fname)
+
+        When not passing anything to``intent_code``
+        >>> gii_img.agg_data()
+
+        When passig matching intend codes ``intent_code``
+        >>> gii_img.agg_data('pointset')
+
+        >>> gii_img.agg_data('triangle')
+
+        >>> gii_img.agg_data('time series')
+
+        When passing mismatching intent codes ``intent_code``
+        >>> gii_img.agg_data('time series')
+        ()  # return a empty ``tuple``
+
+        When passing tuple ``intent_code``
+        >>> gii_img.agg_data(('pointset', 'triangle'))
+
+        >>> gii_img.agg_data(('triangle', 'pointset'))
+        
+
 
         Parameters
         ----------
@@ -705,18 +742,15 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         darrays = self.darrays if intent_code is None else self.get_arrays_from_intent(intent_code)
         all_data = tuple(da.data for da in darrays)
-        all_intent = {da.intent for da in darrays}
+        all_intent = {intent_codes.niistring[da.intent] for da in darrays}
 
-        # Gifti files allows usually one or more data array of the same intent code
-        # surf.gii is a special case of having two data array of different intent code
+        if all_intent == {'NIFTI_INTENT_TIME_SERIES'}:  # stack when the gifti is a timeseries
+            return np.column_stack(all_data)
 
-        if self.numDA > 1 and len(all_intent) == 1:
-            if all_intent== 'NIFTI_INTENT_TIME_SERIES':  # stack when the gifti is a timeseries
-                return np.column_stack(all_data)
-            else:
-                return all_data
-        else:
-            return all_data
+        if len(all_data) == 1:
+            all_data = all_data[0]
+
+        return all_data
 
     @deprecate_with_version(
         'getArraysFromIntent method deprecated. '
