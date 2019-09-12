@@ -13,6 +13,7 @@ import re
 import os
 import sys
 import warnings
+from pkg_resources import resource_filename
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
@@ -32,8 +33,23 @@ except ImportError:
 
 from six.moves import zip_longest
 
+
+def test_data(subdir=None, fname=None):
+    if subdir is None:
+        resource = 'tests/data'
+    elif subdir in ('gifti', 'nicom', 'externals'):
+        resource = '%s/tests/data' % subdir
+    else:
+        raise ValueError("Unknown test data directory: %s" % subdir)
+
+    if fname is not None:
+        resource = os.path.join(resource, fname)
+
+    return resource_filename('nibabel', resource)
+
+
 # set path to example data
-data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
+data_path = test_data()
 
 
 from .np_features import memmap_after_ufunc
