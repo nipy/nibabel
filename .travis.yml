@@ -8,9 +8,7 @@ dist: xenial
 sudo: true
 language: python
 
-cache:
-  directories:
-    - $HOME/.cache/pip
+cache: pip
 env:
     global:
         - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
@@ -54,8 +52,8 @@ matrix:
     - python: 3.5
       env:
         - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
-    # test 3.5 against pre-release builds of everything
-    - python: 3.5
+    # test 3.7 against pre-release builds of everything
+    - python: 3.7
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     - python: 3.5
