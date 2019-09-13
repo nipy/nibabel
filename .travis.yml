@@ -8,9 +8,7 @@ dist: xenial
 sudo: true
 language: python
 
-cache:
-  directories:
-    - $HOME/.cache/pip
+cache: pip
 env:
     global:
         - DEPENDS="six numpy scipy matplotlib h5py pillow pydicom"
@@ -59,8 +57,8 @@ matrix:
     - python: 2.7
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # test 3.5 against pre-release builds of everything
-    - python: 3.5
+    # test 3.7 against pre-release builds of everything
+    - python: 3.7
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     - python: 2.7
