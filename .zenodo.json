@@ -88,6 +88,11 @@
       "name": "Moloney, Brendan"
     },
     {
+      "affiliation": "MIT",
+      "name": "Goncalves, Mathias",
+      "orcid": "0000-0002-7252-7771"
+    },
+    {
       "name": "Burns, Christopher"
     },
     {
@@ -129,11 +134,6 @@
     },
     {
       "name": "Baker, Eric M."
-    },
-    {
-      "affiliation": "MIT",
-      "name": "Goncalves, Mathias",
-      "orcid": "0000-0002-7252-7771"
     },
     {
       "name": "Hayashi, Soichi"
@@ -243,6 +243,9 @@
       "affiliation": "University College London",
       "name": "P\u00e9rez-Garc\u00eda, Fernando",
       "orcid": "0000-0001-9090-3024"
+    },
+    {
+      "name": "Braun, Henry"
     },
     {
       "name": "Solovey, Igor"
