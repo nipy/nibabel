@@ -98,6 +98,7 @@ contributed code and discussion (in rough order of appearance):
 * Matt Cieslak
 * Egor Pafilov
 * Jath Palasubramaniam
+* Henry Braun
 
 License reprise
 ===============
