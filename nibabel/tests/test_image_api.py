@@ -150,8 +150,11 @@ class GenericImageAPI(ValidateAPI):
         # to_ / from_ filename
         fname = 'another_image' + self.standard_extension
         with InTemporaryDirectory():
-            img.to_filename(fname)
-            rt_img = img.__class__.from_filename(fname)
+            # Validate that saving or loading a file doesn't use deprecated methods internally
+            with clear_and_catch_warnings() as w:
+                warnings.simplefilter('error', DeprecationWarning)
+                img.to_filename(fname)
+                rt_img = img.__class__.from_filename(fname)
             assert_array_equal(img.shape, rt_img.shape)
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
             # get_data will be deprecated
