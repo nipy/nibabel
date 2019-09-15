@@ -43,7 +43,7 @@ class TestNegatives(object):
         assert_equal(img.shape, self.example_params['shape'])
         assert_equal(img.get_data_dtype(0).type, self.example_params['type'])
         # Check correspondence of data and recorded shape
-        data = img.get_data()
+        data = img.get_fdata()
         assert_equal(data.shape, self.example_params['shape'])
         # min, max, mean values from given parameters
         assert_almost_equal(data.min(), self.example_params['min'], 4)

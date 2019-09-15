@@ -594,7 +594,7 @@ class MGHImage(SpatialImage, SerializableImage):
         '''
         if file_map is None:
             file_map = self.file_map
-        data = self.get_data()
+        data = np.asanyarray(self.dataobj)
         self.update_header()
         hdr = self.header
         with file_map['image'].get_prepare_fileobj('wb') as mghf:

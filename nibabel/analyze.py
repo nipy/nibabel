@@ -1009,7 +1009,7 @@ class AnalyzeImage(SpatialImage):
         '''
         if file_map is None:
             file_map = self.file_map
-        data = self.get_data()
+        data = np.asanyarray(self.dataobj)
         self.update_header()
         hdr = self._header
         out_dtype = self.get_data_dtype()

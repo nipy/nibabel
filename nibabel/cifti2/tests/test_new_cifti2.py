@@ -13,7 +13,8 @@ from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from nose.tools import assert_true, assert_equal, assert_raises
-from nibabel.testing import clear_and_catch_warnings, error_warnings, suppress_warnings
+from nibabel.testing import (
+    clear_and_catch_warnings, error_warnings, suppress_warnings, assert_array_equal)
 
 affine = [[-1.5, 0, 0, 90],
           [0, 1.5, 0, -85],
@@ -246,7 +247,7 @@ def test_dtseries():
         assert_equal(img2.nifti_header.get_intent()[0],
                      'ConnDenseSeries')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_series_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -268,7 +269,7 @@ def test_dscalar():
         img2 = nib.load('test.dscalar.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnDenseScalar')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_scalar_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -290,7 +291,7 @@ def test_dlabel():
         img2 = nib.load('test.dlabel.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnDenseLabel')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_label_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -310,7 +311,7 @@ def test_dconn():
         img2 = nib.load('test.dconn.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnDense')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
         check_geometry_map(img2.header.matrix.get_index_map(0))
@@ -333,7 +334,7 @@ def test_ptseries():
         img2 = nib.load('test.ptseries.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnParcelSries')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_series_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -355,7 +356,7 @@ def test_pscalar():
         img2 = nib.load('test.pscalar.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnParcelScalr')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_scalar_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -377,7 +378,7 @@ def test_pdconn():
         img2 = ci.load('test.pdconn.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnParcelDense')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_geometry_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -399,7 +400,7 @@ def test_dpconn():
         img2 = ci.load('test.dpconn.nii')
         assert_equal(img2.nifti_header.get_intent()[0], 'ConnDenseParcel')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -420,7 +421,7 @@ def test_plabel():
         img2 = ci.load('test.plabel.nii')
         assert_equal(img.nifti_header.get_intent()[0], 'ConnUnknown')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         check_label_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
         del img2
@@ -440,7 +441,7 @@ def test_pconn():
         img2 = ci.load('test.pconn.nii')
         assert_equal(img.nifti_header.get_intent()[0], 'ConnParcels')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
         check_parcel_map(img2.header.matrix.get_index_map(0))
@@ -465,7 +466,7 @@ def test_pconnseries():
         img2 = ci.load('test.pconnseries.nii')
         assert_equal(img.nifti_header.get_intent()[0], 'ConnPPSr')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
         check_parcel_map(img2.header.matrix.get_index_map(0))
@@ -491,7 +492,7 @@ def test_pconnscalar():
         img2 = ci.load('test.pconnscalar.nii')
         assert_equal(img.nifti_header.get_intent()[0], 'ConnPPSc')
         assert_true(isinstance(img2, ci.Cifti2Image))
-        assert_true((img2.get_data() == data).all())
+        assert_array_equal(img2.get_fdata(), data)
         assert_equal(img2.header.matrix.get_index_map(0),
                      img2.header.matrix.get_index_map(1))
 

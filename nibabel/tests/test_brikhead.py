@@ -99,7 +99,7 @@ class TestAFNIImage(object):
             assert_equal(brik.header.get_zooms(), tp['zooms'])
             assert_array_equal(brik.affine, tp['affine'])
             assert_equal(brik.header.get_space(), tp['space'])
-            data = brik.get_data()
+            data = brik.get_fdata()
             assert_equal(data.shape, tp['shape'])
             assert_array_equal(brik.dataobj.scaling, tp['scaling'])
             assert_equal(brik.header.get_volume_labels(), tp['labels'])
@@ -108,20 +108,20 @@ class TestAFNIImage(object):
         # Check highest level load of brikhead works
         for tp in self.test_files:
             img = self.module.load(tp['head'])
-            data = img.get_data()
+            data = img.get_fdata()
             assert_equal(data.shape, tp['shape'])
             # min, max, mean values
             assert_data_similar(data, tp)
             # check if file can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
             assert_array_equal(ni_img.affine, tp['affine'])
-            assert_array_equal(ni_img.get_data(), data)
+            assert_array_equal(ni_img.get_fdata(), data)
 
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
             img = self.module.load(tp['fname'])
-            arr = img.get_data()
+            arr = img.get_fdata()
             prox = img.dataobj
             assert_true(prox.is_proxy)
             for sliceobj in slicer_samples(img.shape):

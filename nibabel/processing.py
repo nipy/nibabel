@@ -233,7 +233,7 @@ def resample_to_output(in_img,
     # looks like when resampled into world coordinates
     if n_dim < 3:  # Expand image to 3D, make voxel sizes match
         new_shape = in_shape + (1,) * (3 - n_dim)
-        data = in_img.get_data().reshape(new_shape)  # 2D data should be small
+        data = np.asanyarray(in_img.dataobj).reshape(new_shape)  # 2D data should be small
         in_img = out_class(data, in_img.affine, in_img.header)
         if voxel_sizes is not None and len(voxel_sizes) == n_dim:
             # Need to pad out voxel sizes to match new image dimensions

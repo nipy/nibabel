@@ -29,7 +29,7 @@ from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises
+from nose.tools import assert_true, assert_equal, assert_not_equal, assert_raises
 
 _, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -38,11 +38,7 @@ MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
 
 def round_trip(img):
     # round trip a nifti single
-    sio = BytesIO()
-    img.file_map['image'].fileobj = sio
-    img.to_file_map()
-    img2 = Nifti1Image.from_file_map(img.file_map)
-    return img2
+    return Nifti1Image.from_bytes(img.to_bytes())
 
 
 def test_conversion_spatialimages():
@@ -61,7 +57,7 @@ def test_conversion_spatialimages():
                 if not w_class.makeable:
                     continue
                 img2 = w_class.from_image(img)
-                assert_array_equal(img2.get_data(), data)
+                assert_array_equal(img2.get_fdata(), data)
                 assert_array_equal(img2.affine, affine)
 
 
@@ -74,13 +70,15 @@ def test_save_load_endian():
     assert_equal(img.header.endianness, native_code)
     img2 = round_trip(img)
     assert_equal(img2.header.endianness, native_code)
-    assert_array_equal(img2.get_data(), data)
+    assert_array_equal(img2.get_fdata(), data)
+    assert_array_equal(np.asanyarray(img2.dataobj), data)
     # byte swapped endian image
     bs_hdr = img.header.as_byteswapped()
     bs_img = Nifti1Image(data, affine, bs_hdr)
     assert_equal(bs_img.header.endianness, swapped_code)
     # of course the data is the same because it's not written to disk
-    assert_array_equal(bs_img.get_data(), data)
+    assert_array_equal(bs_img.get_fdata(), data)
+    assert_array_equal(np.asanyarray(bs_img.dataobj), data)
     # Check converting to another image
     cbs_img = AnalyzeImage.from_image(bs_img)
     # this will make the header native by doing the header conversion
@@ -92,17 +90,21 @@ def test_save_load_endian():
     assert_equal(cbs_hdr2.endianness, native_code)
     # Try byteswapped round trip
     bs_img2 = round_trip(bs_img)
-    bs_data2 = bs_img2.get_data()
+    bs_data2 = np.asanyarray(bs_img2.dataobj)
+    bs_fdata2 = bs_img2.get_fdata()
     # now the data dtype was swapped endian, so the read data is too
     assert_equal(bs_data2.dtype.byteorder, swapped_code)
     assert_equal(bs_img2.header.endianness, swapped_code)
     assert_array_equal(bs_data2, data)
+    # but get_fdata uses native endian
+    assert_not_equal(bs_fdata2.dtype.byteorder, swapped_code)
+    assert_array_equal(bs_fdata2, data)
     # Now mix up byteswapped data and non-byteswapped header
     mixed_img = Nifti1Image(bs_data2, affine)
     assert_equal(mixed_img.header.endianness, native_code)
     m_img2 = round_trip(mixed_img)
     assert_equal(m_img2.header.endianness, native_code)
-    assert_array_equal(m_img2.get_data(), data)
+    assert_array_equal(m_img2.get_fdata(), data)
 
 
 def test_save_load():
@@ -119,7 +121,7 @@ def test_save_load():
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
         assert_true(isinstance(re_img, ni1.Nifti1Image))
-        assert_array_equal(re_img.get_data(), data)
+        assert_array_equal(re_img.get_fdata(), data)
         assert_array_equal(re_img.affine, affine)
         # These and subsequent del statements are to prevent confusing
         # windows errors when trying to open files or delete the
@@ -129,20 +131,20 @@ def test_save_load():
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
             assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
-            assert_array_equal(re_img2.get_data(), data)
+            assert_array_equal(re_img2.get_fdata(), data)
             assert_array_equal(re_img2.affine, affine)
             del re_img2
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
             assert_true(isinstance(re_img3,
                                    spm99.Spm99AnalyzeImage))
-            assert_array_equal(re_img3.get_data(), data)
+            assert_array_equal(re_img3.get_fdata(), data)
             assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
             del re_img3
         re_img = nils.load(nifn)
         assert_true(isinstance(re_img, ni1.Nifti1Image))
-        assert_array_equal(re_img.get_data(), data)
+        assert_array_equal(re_img.get_fdata(), data)
         assert_array_equal(re_img.affine, affine)
         del re_img
 
@@ -173,7 +175,7 @@ def test_two_to_one():
     # the offset stays at zero (but is 352 on disk)
     assert_equal(pimg.header['magic'], b'ni1')
     assert_equal(pimg.header['vox_offset'], 0)
-    assert_array_equal(pimg.get_data(), data)
+    assert_array_equal(pimg.get_fdata(), data)
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
     assert_equal(ana_img.header['vox_offset'], 0)
@@ -211,7 +213,7 @@ def test_negative_load_save():
     img.to_file_map()
     str_io.seek(0)
     re_img = Nifti1Image.from_file_map(img.file_map)
-    assert_array_almost_equal(re_img.get_data(), data, 4)
+    assert_array_almost_equal(re_img.get_fdata(), data, 4)
 
 
 def test_filename_save():
@@ -255,7 +257,7 @@ def test_filename_save():
             fname = pjoin(pth, 'image' + out_ext)
             nils.save(img, fname)
             rt_img = nils.load(fname)
-            assert_array_almost_equal(rt_img.get_data(), data)
+            assert_array_almost_equal(rt_img.get_fdata(), data)
             assert_true(type(rt_img) is loadklass)
             # delete image to allow file close.  Otherwise windows
             # raises an error when trying to delete the directory

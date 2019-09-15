@@ -486,7 +486,7 @@ class AFNIImage(SpatialImage):
            [  0.    ,   0.    ,   3.    , -52.3511],
            [  0.    ,   0.    ,   0.    ,   1.    ]])
     >>> head = load(os.path.join(datadir, 'example4d+orig.HEAD'))
-    >>> np.array_equal(head.get_data(), brik.get_data())
+    >>> np.array_equal(head.get_fdata(), brik.get_fdata())
     True
     """
 
