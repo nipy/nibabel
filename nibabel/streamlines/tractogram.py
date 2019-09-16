@@ -432,11 +432,8 @@ class Tractogram(object):
         if np.all(affine == np.eye(4)):
             return self  # No transformation.
 
-        BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
-        for start in range(0, len(self.streamlines.data), BUFFER_SIZE):
-            end = start + BUFFER_SIZE
-            pts = self.streamlines._data[start:end]
-            self.streamlines.data[start:end] = apply_affine(affine, pts)
+        for i in range(len(self.streamlines)):
+            self.streamlines[i] = apply_affine(affine, self.streamlines[i])
 
         if self.affine_to_rasmm is not None:
             # Update the affine that brings back the streamlines to RASmm.

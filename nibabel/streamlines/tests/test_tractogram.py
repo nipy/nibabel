@@ -688,6 +688,22 @@ class TestTractogram(unittest.TestCase):
                            np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
                                                     np.linalg.inv(affine))))
 
+        # Applying the affine to a tractogram that has been indexed or sliced
+        # shouldn't affect the remaining streamlines.
+        tractogram = DATA['tractogram'].copy()
+        transformed_tractogram = tractogram[::2].apply_affine(affine)
+        assert_true(transformed_tractogram is not tractogram)
+        check_tractogram(tractogram[::2],
+                         streamlines=[s*scaling for s in DATA['streamlines'][::2]],
+                         data_per_streamline=DATA['tractogram'].data_per_streamline[::2],
+                         data_per_point=DATA['tractogram'].data_per_point[::2])
+
+        # Remaining streamlines should match the original ones.
+        check_tractogram(tractogram[1::2],
+                         streamlines=DATA['streamlines'][1::2],
+                         data_per_streamline=DATA['tractogram'].data_per_streamline[1::2],
+                         data_per_point=DATA['tractogram'].data_per_point[1::2])
+
         # Check that applying an affine and its inverse give us back the
         # original streamlines.
         tractogram = DATA['tractogram'].copy()

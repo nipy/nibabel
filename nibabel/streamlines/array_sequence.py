@@ -329,6 +329,54 @@ class ArraySequence(object):
         raise TypeError("Index must be either an int, a slice, a list of int"
                         " or a ndarray of bool! Not " + str(type(idx)))
 
+    def __setitem__(self, idx, elements):
+        """ Set sequence(s) through standard or advanced numpy indexing.
+
+        Parameters
+        ----------
+        idx : int or slice or list or ndarray
+            If int, index of the element to retrieve.
+            If slice, use slicing to retrieve elements.
+            If list, indices of the elements to retrieve.
+            If ndarray with dtype int, indices of the elements to retrieve.
+            If ndarray with dtype bool, only retrieve selected elements.
+        elements: ndarray or :class:`ArraySequence`
+            Data that will overwrite selected sequences.
+            If `idx` is an int, `elements` is expected to be a ndarray.
+            Otherwise, `elements` is expected a :class:`ArraySequence` object.
+        """
+        if isinstance(idx, (numbers.Integral, np.integer)):
+            start = self._offsets[idx]
+            self._data[start:start + self._lengths[idx]] = elements
+            return
+
+        if isinstance(idx, tuple):
+            off_idx = idx[0]
+            data = self._data.__getitem__((slice(None),) + idx[1:])
+        else:
+            off_idx = idx
+            data = self._data
+
+        if isinstance(off_idx, slice):  # Standard list slicing
+            offsets = self._offsets[off_idx]
+            lengths = self._lengths[off_idx]
+
+        elif isinstance(off_idx, list) or is_ndarray_of_int_or_bool(off_idx):
+            # Fancy indexing
+            offsets = self._offsets[off_idx]
+            lengths = self._lengths[off_idx]
+
+        else:
+            raise TypeError("Index must be either an int, a slice, a list of int"
+                            " or a ndarray of bool! Not " + str(type(idx)))
+
+        if len(lengths) != elements.total_nb_rows:
+            msg = "Trying to set {} sequences with {} sequences."
+            raise TypeError(msg.format(len(lengths), elements.total_nb_rows))
+
+        for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
+            data[o1:o1 + l1] = elements._data[o2:o2 + l2]
+
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
             raise ValueError("ArraySequence object corrupted:"

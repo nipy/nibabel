@@ -277,6 +277,67 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq_view(seq_view, SEQ_DATA['seq'])
         check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data'][::-2]])
 
+    def test_arraysequence_setitem(self):
+        # Set one item
+        seq = SEQ_DATA['seq'] * 0
+        for i, e in enumerate(SEQ_DATA['seq']):
+            seq[i] = e
+
+        check_arr_seq(seq, SEQ_DATA['seq'])
+
+        if sys.version_info < (3,):
+            seq = ArraySequence(SEQ_DATA['seq'] * 0)
+            for i, e in enumerate(SEQ_DATA['seq']):
+                seq[long(i)] = e
+
+        check_arr_seq(seq, SEQ_DATA['seq'])
+
+        # Get all items using indexing (creates a view).
+        indices = list(range(len(SEQ_DATA['seq'])))
+        seq_view = SEQ_DATA['seq'][indices]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        # We took all elements so the view should match the original.
+        check_arr_seq(seq_view, SEQ_DATA['seq'])
+
+        # Get multiple items using ndarray of dtype integer.
+        for dtype in [np.int8, np.int16, np.int32, np.int64]:
+            seq_view = SEQ_DATA['seq'][np.array(indices, dtype=dtype)]
+            check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+            # We took all elements so the view should match the original.
+            check_arr_seq(seq_view, SEQ_DATA['seq'])
+
+        # Get multiple items out of order (creates a view).
+        SEQ_DATA['rng'].shuffle(indices)
+        seq_view = SEQ_DATA['seq'][indices]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view, [SEQ_DATA['data'][i] for i in indices])
+
+        # Get slice (this will create a view).
+        seq_view = SEQ_DATA['seq'][::2]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view, SEQ_DATA['data'][::2])
+
+        # Use advanced indexing with ndarray of data type bool.
+        selection = np.array([False, True, True, False, True])
+        seq_view = SEQ_DATA['seq'][selection]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view,
+                      [SEQ_DATA['data'][i]
+                       for i, keep in enumerate(selection) if keep])
+
+        # Test invalid indexing
+        assert_raises(TypeError, SEQ_DATA['seq'].__getitem__, 'abc')
+
+        # Get specific columns.
+        seq_view = SEQ_DATA['seq'][:, 2]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data']])
+
+        # Combining multiple slicing and indexing operations.
+        seq_view = SEQ_DATA['seq'][::-2][:, 2]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+        check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data'][::-2]])
+
     def test_arraysequence_repr(self):
         # Test that calling repr on a ArraySequence object is not falling.
         repr(SEQ_DATA['seq'])
