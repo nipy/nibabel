@@ -14,10 +14,10 @@ What is the image API?
 * ``img.shape`` (shape of data as read with ``np.array(img.dataobj)``
 * ``img.get_fdata()`` (returns floating point data as read with
   ``np.array(img.dataobj)`` and the cast to float);
-* ``img.uncache()`` (``img.get_fdata()`` and ``img.get_data()`` (deprecated) are
-  allowed to cache the result of the array creation.  If they do, this call empties
-  that cache.  Implement this as a no-op if ``get_fdata()``, ``get_data`` do not
-  cache.
+* ``img.uncache()`` (``img.get_fdata()`` (recommended) and ``img.get_data()``
+  (deprecated) are allowed to cache the result of the array creation.  If they
+  do, this call empties that cache.  Implement this as a no-op if
+  ``get_fdata()``, ``get_data()`` do not cache.)
 * ``img[something]`` generates an informative TypeError
 * ``img.in_memory`` is True for an array image, and for a proxy image that is
   cached, but False otherwise.
