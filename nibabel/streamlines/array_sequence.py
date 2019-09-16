@@ -1,5 +1,6 @@
 
 import numbers
+import warnings
 from operator import mul
 from functools import reduce
 
@@ -147,7 +148,22 @@ class ArraySequence(object):
     @property
     def data(self):
         """ Elements in this array sequence. """
-        return self._data
+        warnings.warn("The 'ArraySequence.data' property has been deprecated"
+                      " in favor of 'ArraySequence.get_data()'.",
+                      DeprecationWarning,
+                      stacklevel=2)
+        return self.get_data()
+
+    def get_data(self):
+        """ Returns a copy of the elements in this array sequence.
+
+        Notes
+        -----
+        To modify the data on this array sequence, one can use
+        in-place mathematical operators (e.g., `seq += ...`) or the use
+        assignment operator (i.e, `seq[...] = value`).
+        """
+        return self.copy()._data
 
     def _check_shape(self, arrseq):
         """ Check whether this array sequence is compatible with another. """

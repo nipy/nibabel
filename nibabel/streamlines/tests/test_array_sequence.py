@@ -441,6 +441,15 @@ class TestArraySequence(unittest.TestCase):
             # Make sure we can add new elements to it.
             loaded_seq.append(SEQ_DATA['data'][0])
 
+    def test_get_data(self):
+        seq_view = SEQ_DATA['seq'][::2]
+        check_arr_seq_view(seq_view, SEQ_DATA['seq'])
+
+        # We make sure the array sequence data does not
+        # contain more elements than it is supposed to.
+        data = seq_view.get_data()
+        assert len(data) < len(seq_view._data)
+
 
 def test_concatenate():
     seq = SEQ_DATA['seq'].copy()  # In case there is in-place modification.
