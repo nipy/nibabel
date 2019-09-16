@@ -14,6 +14,7 @@ try:
 except NameError:
     basestring = str
 
+from .loadsave import _stringify_path
 
 class TypesFilenamesError(Exception):
     pass
@@ -190,6 +191,8 @@ def parse_filename(filename,
     >>> parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
     ('/path/fname', 'ext2', '.gz', 't2')
     '''
+    filename = _stringify_path(filename)
+
     ignored = None
     if match_case:
         endswith = _endswith
@@ -257,6 +260,8 @@ def splitext_addext(filename,
     >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
     ('fname', '.ext', '.foo')
     '''
+    filename = _stringify_path(filename)
+    
     if match_case:
         endswith = _endswith
     else:

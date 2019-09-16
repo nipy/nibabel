@@ -63,6 +63,7 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
+    filename = _stringify_path(filename)
 
     #Check file exists and is not empty
     try:
@@ -123,6 +124,7 @@ def save(img, filename):
     -------
     None
     '''
+    filename = _stringify_path(filename)
 
     # Save the type as expected
     try:
