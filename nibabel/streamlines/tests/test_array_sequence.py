@@ -277,6 +277,67 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq_view(seq_view, SEQ_DATA['seq'])
         check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data'][::-2]])
 
+    def test_arraysequence_operators(self):
+        for op in ["__add__", "__sub__", "__mul__", "__floordiv__", "__truediv__",
+                   "__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
+            # Test math operators with a scalar.
+            for scalar in [42, 0.5, True]:
+                seq = getattr(SEQ_DATA['seq'], op)(scalar)
+                assert_true(seq is not SEQ_DATA['seq'])
+                check_arr_seq(seq, [getattr(d, op)(scalar) for d in SEQ_DATA['data']])
+
+            # Test math operators with another ArraySequence.
+            seq = getattr(SEQ_DATA['seq'], op)(SEQ_DATA['seq'])
+            assert_true(seq is not SEQ_DATA['seq'])
+            check_arr_seq(seq, [getattr(d, op)(d) for d in SEQ_DATA['data']])
+
+            # Test math operators with ArraySequence views.
+            orig = SEQ_DATA['seq'][::2]
+            seq = getattr(orig, op)(orig)
+            assert_true(seq is not orig)
+            check_arr_seq(seq, [getattr(d, op)(d) for d in SEQ_DATA['data'][::2]])
+
+        # Test in-place operators.
+        for op in ["__iadd__", "__isub__", "__imul__", "__ifloordiv__", "__itruediv__"]:
+            # Test in-place math operators with a scalar.
+            for scalar in [42, 0.5, True]:
+                seq = seq_orig = SEQ_DATA['seq'].copy()
+                seq = getattr(seq, op)(scalar)
+                assert_true(seq is seq_orig)
+                check_arr_seq(seq, [getattr(d.copy(), op)(scalar) for d in SEQ_DATA['data']])
+
+            # Test in-place math operators with another ArraySequence.
+            seq = seq_orig = SEQ_DATA['seq'].copy()
+            seq = getattr(seq, op)(SEQ_DATA['seq'])
+            assert_true(seq is seq_orig)
+            check_arr_seq(seq, [getattr(d.copy(), op)(d) for d in SEQ_DATA['data']])
+
+            # Test in-place math operators with ArraySequence views.
+            seq = seq_orig = SEQ_DATA['seq'].copy()[::2]
+            seq = getattr(seq, op)(seq)
+            assert_true(seq is seq_orig)
+            check_arr_seq(seq, [getattr(d.copy(), op)(d) for d in SEQ_DATA['data'][::2]])
+
+            # Operations between array sequences of different lengths.
+            seq = SEQ_DATA['seq'].copy()
+            assert_raises(ValueError, getattr(seq, op), SEQ_DATA['seq'][::2])
+
+            # Operations between array sequences with different amount of data.
+            seq1 = ArraySequence(np.arange(10).reshape(5, 2))
+            seq2 = ArraySequence(np.arange(15).reshape(5, 3))
+            assert_raises(ValueError, getattr(seq1, op), seq2)
+
+            # Operations between array sequences with different common shape.
+            seq1 = ArraySequence(np.arange(12).reshape(2, 2, 3))
+            seq2 = ArraySequence(np.arange(8).reshape(2, 2, 2))
+            assert_raises(ValueError, getattr(seq1, op), seq2)
+
+        # Unary operators
+        for op in ["__neg__"]:
+            seq = getattr(SEQ_DATA['seq'], op)()
+            assert_true(seq is not SEQ_DATA['seq'])
+            check_arr_seq(seq, [getattr(d, op)() for d in SEQ_DATA['data']])
+
     def test_arraysequence_setitem(self):
         # Set one item
         seq = SEQ_DATA['seq'] * 0

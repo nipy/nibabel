@@ -53,6 +53,35 @@ class _BuildCache(object):
         arr_seq._lengths = np.array(self.lengths)
 
 
+def _define_operators(cls):
+    """ Decorator which adds support for some Python operators. """
+    def _wrap(cls, op, name=None, inplace=False, unary=False):
+        name = name or op
+        if unary:
+            setattr(cls, name, lambda self: self._op(op))
+        else:
+            setattr(cls, name,
+                    lambda self, value: self._op(op, value, inplace=inplace))
+
+    for op in ["__iadd__", "__isub__", "__imul__", "__idiv__",
+               "__ifloordiv__", "__itruediv__", "__ior__"]:
+        _wrap(cls, op, inplace=True)
+
+    for op in ["__add__", "__sub__", "__mul__", "__div__",
+               "__floordiv__", "__truediv__", "__or__"]:
+        op_ = "__i{}__".format(op.strip("_"))
+        _wrap(cls, op_, name=op)
+
+    for op in ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
+        _wrap(cls, op)
+
+    for op in ["__neg__"]:
+        _wrap(cls, op, unary=True)
+
+    return cls
+
+
+@_define_operators
 class ArraySequence(object):
     """ Sequence of ndarrays having variable first dimension sizes.
 
@@ -119,6 +148,23 @@ class ArraySequence(object):
     def data(self):
         """ Elements in this array sequence. """
         return self._data
+
+    def _check_shape(self, arrseq):
+        """ Check whether this array sequence is compatible with another. """
+        msg = "cannot perform operation - array sequences have different"
+        if len(self._lengths) != len(arrseq._lengths):
+            msg += " lengths: {} vs. {}."
+            raise ValueError(msg.format(len(self._lengths), len(arrseq._lengths)))
+
+        if self.total_nb_rows != arrseq.total_nb_rows:
+            msg += " amount of data: {} vs. {}."
+            raise ValueError(msg.format(self.total_nb_rows, arrseq.total_nb_rows))
+
+        if self.common_shape != arrseq.common_shape:
+            msg += " common shape: {} vs. {}."
+            raise ValueError(msg.format(self.common_shape, arrseq.common_shape))
+
+        return True
 
     def _get_next_offset(self):
         """ Offset in ``self._data`` at which to write next rowelement """
@@ -376,6 +422,37 @@ class ArraySequence(object):
 
         for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
             data[o1:o1 + l1] = elements._data[o2:o2 + l2]
+
+    def _op(self, op, value=None, inplace=False):
+        """ Applies some operator to this arraysequence.
+
+        This handles both unary and binary operators with a scalar or another
+        array sequence. Operations are performed directly on the underlying
+        data, or a copy of it, which depends on the value of `inplace`.
+
+        Parameters
+        ----------
+        op : str
+            Name of the Python operator (e.g., `"__add__"`).
+        value : scalar or :class:`ArraySequence`, optional
+            If None, the operator is assumed to be unary.
+            Otherwise, that value is used in the binary operation.
+        inplace: bool, optional
+            If False, the operation is done on a copy of this array sequence.
+            Otherwise, this array sequence gets modified directly.
+        """
+        seq = self if inplace else self.copy()
+
+        if is_array_sequence(value) and seq._check_shape(value):
+            for o1, l1, o2, l2 in zip(seq._offsets, seq._lengths, value._offsets, value._lengths):
+                seq._data[o1:o1 + l1] = getattr(seq._data[o1:o1 + l1], op)(value._data[o2:o2 + l2])
+
+        else:
+            args = [] if value is None else [value]  # Dealing with unary and binary ops.
+            for o1, l1 in zip(seq._offsets, seq._lengths):
+                seq._data[o1:o1 + l1] = getattr(seq._data[o1:o1 + l1], op)(*args)
+
+        return seq
 
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
