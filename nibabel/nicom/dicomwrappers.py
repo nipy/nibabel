@@ -79,7 +79,12 @@ def wrapper_from_data(dcm_data):
         return MultiframeWrapper(dcm_data)
     # Check for Siemens DICOM format types
     # Only Siemens will have data for the CSA header
-    csa = csar.get_csa_header(dcm_data)
+    try: 
+        csa = csar.get_csa_header(dcm_data)
+    except csar.CSAReadError as e:
+        warnings.warn('Error while attempting to read CSA header: '+ 
+              str(e.args) + '\n ignoring Siemens private (CSA) header info.')
+        csa = None
     if csa is None:
         return Wrapper(dcm_data)
     if csar.is_mosaic(csa):
