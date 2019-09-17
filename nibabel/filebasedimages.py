@@ -12,10 +12,9 @@ import io
 from copy import deepcopy
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
-                              splitext_addext)
+                              splitext_addext, _stringify_path)
 from .openers import ImageOpener
 from .deprecated import deprecate_with_version
-from .loadsave import _stringify_path
 
 
 class ImageFileError(Exception):

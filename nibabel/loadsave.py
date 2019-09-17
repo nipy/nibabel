@@ -11,41 +11,15 @@
 
 import os
 import numpy as np
-import pathlib
 
-from .filename_parser import splitext_addext
+from .filename_parser import splitext_addext, _stringify_path
 from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
-def _stringify_path(filepath_or_buffer):
-    """Attempt to convert a path-like object to a string.
 
-    Parameters
-    ----------
-    filepath_or_buffer : object to be converted
-    Returns
-    -------
-    str_filepath_or_buffer : maybe a string version of the object
-    Notes
-    -----
-    Objects supporting the fspath protocol (python 3.6+) are coerced
-    according to its __fspath__ method.
-    For backwards compatibility with older pythons, pathlib.Path and
-    py.path objects are specially coerced.
-    Any other object is passed through unchanged, which includes bytes,
-    strings, buffers, or anything else that's not even path-like.
-
-    Copied from:
-    https://github.com/pandas-dev/pandas/blob/325dd686de1589c17731cf93b649ed5ccb5a99b4/pandas/io/common.py#L131-L160
-    """
-    if hasattr(filepath_or_buffer, "__fspath__"):
-        return filepath_or_buffer.__fspath__() 
-    elif isinstance(filepath_or_buffer, pathlib.Path):
-        return str(filepath_or_buffer)
-    return filepath_or_buffer
 
 
 def load(filename, **kwargs):
