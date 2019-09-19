@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Common interface for transforms '''
-from __future__ import division, print_function, absolute_import
+"""Common interface for transforms."""
 import numpy as np
 import h5py
 
@@ -15,7 +14,8 @@ from scipy import ndimage as ndi
 
 
 class ImageSpace(object):
-    '''Class to represent spaces of gridded data (images)'''
+    """Class to represent spaces of gridded data (images)."""
+
     __slots__ = ['_affine', '_shape', '_ndim', '_ndindex', '_coords', '_nvox',
                  '_inverse']
 
@@ -92,9 +92,8 @@ class ImageSpace(object):
 
 
 class TransformBase(object):
-    '''
-    Abstract image class to represent transforms
-    '''
+    """Abstract image class to represent transforms."""
+
     __slots__ = ['_reference']
 
     def __init__(self):
@@ -117,11 +116,11 @@ class TransformBase(object):
 
     def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
                  output_dtype=None):
-        '''Resample the moving image in reference space
+        """
+        Resample the moving image in reference space.
 
         Parameters
         ----------
-
         moving : `spatialimage`
             The image object containing the data to be resampled in reference
             space
@@ -144,16 +143,14 @@ class TransformBase(object):
 
         Returns
         -------
-
         moved_image : `spatialimage`
             The moving imaged after resampling to reference space.
 
-        '''
-
+        """
+        moving_data = np.asanyarray(moving.dataobj)
         if output_dtype is None:
-            output_dtype = moving.header.get_data_dtype()
+            output_dtype = moving_data.dtype
 
-        moving_data = moving.get_data()
         moved = ndi.geometric_transform(
             moving_data,
             mapping=self.map_voxel,
@@ -171,22 +168,19 @@ class TransformBase(object):
         return moved_image
 
     def map_point(self, coords):
-        '''Find the coordinates in moving space corresponding to the
-        input reference coordinates'''
+        """Apply y = f(x), where x is the argument `coords`."""
         raise NotImplementedError
 
     def map_voxel(self, index, moving=None):
-        '''Find the voxel indices in the moving image corresponding to the
-        input reference voxel'''
+        """Apply ijk' = f_ijk((i, j, k)), equivalent to the above with indexes."""
         raise NotImplementedError
 
     def _to_hdf5(self, x5_root):
-        '''Serialize this object into the x5 file format'''
+        """Serialize this object into the x5 file format."""
         raise NotImplementedError
 
     def to_filename(self, filename, fmt='X5'):
-        '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
-        '''
+        """Store the transform in BIDS-Transforms HDF5 file format (.x5)."""
         with h5py.File(filename, 'w') as out_file:
             out_file.attrs['Format'] = 'X5'
             out_file.attrs['Version'] = np.uint16(1)

@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Linear transforms '''
-from __future__ import division, print_function, absolute_import
+"""Linear transforms."""
 import sys
 import numpy as np
 from scipy import ndimage as ndi
@@ -21,15 +20,16 @@ LPS = np.diag([-1, -1, 1, 1])
 
 
 class Affine(TransformBase):
-    '''Represents linear transforms on image data'''
+    """Represents linear transforms on image data."""
+
     __slots__ = ['_matrix']
 
     def __init__(self, matrix=None, reference=None):
-        '''Initialize a transform
+        """
+        Initialize a linear transform.
 
         Parameters
         ----------
-
         matrix : ndarray
             The inverse coordinate transformation matrix **in physical
             coordinates**, mapping coordinates from *reference* space
@@ -38,7 +38,6 @@ class Affine(TransformBase):
 
         Examples
         --------
-
         >>> xfm = Affine([[1, 0, 0, 4], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         >>> xfm.matrix  # doctest: +NORMALIZE_WHITESPACE
         array([[1, 0, 0, 4],
@@ -46,7 +45,8 @@ class Affine(TransformBase):
                [0, 0, 1, 0],
                [0, 0, 0, 1]])
 
-        '''
+        """
+        super(Affine, self).__init__()
         if matrix is None:
             matrix = [np.eye(4)]
 
@@ -56,7 +56,6 @@ class Affine(TransformBase):
         self._matrix = np.array(matrix)
         assert self._matrix.ndim == 3, 'affine matrix should be 3D'
         assert self._matrix.shape[-2] == self._matrix.shape[-1], 'affine matrix is not square'
-        super(Affine, self).__init__()
 
         if reference:
             if isinstance(reference, str):
@@ -69,11 +68,11 @@ class Affine(TransformBase):
 
     def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
                  output_dtype=None):
-        '''Resample the moving image in reference space
+        """
+        Resample the moving image in reference space.
 
         Parameters
         ----------
-
         moving : `spatialimage`
             The image object containing the data to be resampled in reference
             space
@@ -96,21 +95,19 @@ class Affine(TransformBase):
 
         Returns
         -------
-
         moved_image : `spatialimage`
             The moving imaged after resampling to reference space.
 
 
         Examples
         --------
-
         >>> import nibabel as nib
         >>> xfm = Affine([[1, 0, 0, 4], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
         >>> ref = nib.load('image.nii.gz')
         >>> xfm.reference = ref
         >>> xfm.resample(ref, order=0)
 
-        '''
+        """
         if output_dtype is None:
             output_dtype = moving.header.get_data_dtype()
 
@@ -163,6 +160,7 @@ The moving image contains {0} volumes, while the transform is defined for \
         return moved_image
 
     def map_point(self, coords, index=0, forward=True):
+        """Apply y = f(x), where x is the argument `coords`."""
         coords = np.array(coords)
         if coords.shape[0] == self._matrix[index].shape[0] - 1:
             coords = np.append(coords, [1])
@@ -170,6 +168,7 @@ The moving image contains {0} volumes, while the transform is defined for \
         return affine.dot(coords)[:-1]
 
     def map_voxel(self, index, nindex=0, moving=None):
+        """Apply ijk' = f_ijk((i, j, k)), equivalent to the above with indexes."""
         try:
             reference = self.reference
         except ValueError:
@@ -191,6 +190,7 @@ The moving image contains {0} volumes, while the transform is defined for \
         return tuple(matrix.dot(index)[:-1])
 
     def _to_hdf5(self, x5_root):
+        """Serialize this object into the x5 file format."""
         xform = x5_root.create_dataset('Transform', data=self._matrix)
         xform.attrs['Type'] = 'affine'
         x5_root.create_dataset('Inverse', data=np.linalg.inv(self._matrix))
@@ -199,9 +199,7 @@ The moving image contains {0} volumes, while the transform is defined for \
             self.reference._to_hdf5(x5_root.create_group('Reference'))
 
     def to_filename(self, filename, fmt='X5', moving=None):
-        '''Store the transform in BIDS-Transforms HDF5 file format (.x5).
-        '''
-
+        """Store the transform in BIDS-Transforms HDF5 file format (.x5)."""
         if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
             with open(filename, 'w') as f:
                 f.write('#Insight Transform File V1.0\n')
@@ -257,8 +255,7 @@ FixedParameters: 0 0 0\n""".format
 
 
 def load(filename, fmt='X5', reference=None):
-    ''' Load a linear transform '''
-
+    """Load a linear transform."""
     if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
         with open(filename) as itkfile:
             itkxfm = itkfile.read().splitlines()
@@ -293,7 +290,10 @@ def load(filename, fmt='X5', reference=None):
 
 
 def _fsl_aff_adapt(space):
-    """Calculates a matrix to convert from the original RAS image
+    """
+    Adapt FSL affines.
+
+    Calculates a matrix to convert from the original RAS image
     coordinates to FSL's internal coordinate system of transforms
     """
     aff = space.affine

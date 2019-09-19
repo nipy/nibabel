@@ -6,7 +6,8 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Geometric transforms
+"""
+Geometric transforms.
 
 .. currentmodule:: nibabel.transform
 
@@ -15,7 +16,6 @@
 
    transform
 """
-from __future__ import absolute_import
 from .linear import Affine
 from .nonlinear import DeformationFieldTransform
 

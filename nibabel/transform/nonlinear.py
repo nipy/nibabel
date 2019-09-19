@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Common interface for transforms '''
-from __future__ import division, print_function, absolute_import
+"""Nonlinear transforms."""
 import numpy as np
 from scipy import ndimage as ndi
 # from gridbspline.maths import cubic
@@ -19,14 +18,13 @@ from ..funcs import four_to_three
 
 
 class DeformationFieldTransform(TransformBase):
-    '''Represents a dense field of displacements (one vector per voxel)'''
+    """Represents a dense field of displacements (one vector per voxel)."""
+
     __slots__ = ['_field', '_moving', '_moving_space']
     __s = (slice(None), )
 
     def __init__(self, field, reference=None):
-        '''
-        Create a dense deformation field transform
-        '''
+        """Create a dense deformation field transform."""
         super(DeformationFieldTransform, self).__init__()
         self._field = field.get_data()
 
@@ -103,11 +101,11 @@ class DeformationFieldTransform(TransformBase):
 
     def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
                  output_dtype=None):
-        '''
+        """
+        Resample the `moving` image applying the deformation field.
 
         Examples
         --------
-
         >>> import numpy as np
         >>> import nibabel as nb
         >>> ref = nb.load('t1_weighted.nii.gz')
@@ -118,16 +116,18 @@ class DeformationFieldTransform(TransformBase):
         >>> new = xfm.resample(ref)
         >>> new.to_filename('deffield.nii.gz')
 
-        '''
+        """
         self._cache_moving(moving)
         return super(DeformationFieldTransform, self).resample(
             moving, order=order, mode=mode, cval=cval, prefilter=prefilter)
 
     def map_voxel(self, index, moving=None):
+        """Apply ijk' = f_ijk((i, j, k)), equivalent to the above with indexes."""
         return tuple(self._moving[index + self.__s])
 
     def map_coordinates(self, coordinates, order=3, mode='mirror', cval=0.0,
                         prefilter=True):
+        """Apply y = f(x), where x is the argument `coords`."""
         coordinates = np.array(coordinates)
         # Extract shapes and dimensions, then flatten
         ndim = coordinates.shape[-1]
@@ -154,11 +154,13 @@ class DeformationFieldTransform(TransformBase):
 
 
 class BSplineFieldTransform(TransformBase):
+    """Represent a nonlinear transform parameterized by BSpline basis."""
+
     __slots__ = ['_coeffs', '_knots', '_refknots', '_order', '_moving']
     __s = (slice(None), )
 
     def __init__(self, reference, coefficients, order=3):
-        '''Create a smooth deformation field using B-Spline basis'''
+        """Create a smooth deformation field using B-Spline basis."""
         super(BSplineFieldTransform, self).__init__()
         self._order = order
         self.reference = reference
@@ -216,16 +218,16 @@ class BSplineFieldTransform(TransformBase):
         return self.reference.inverse.dot(np.hstack((coords, 1)))[:3]
 
     def map_voxel(self, index, moving=None):
-        '''Find the corresponding coordinates for a voxel in reference space'''
+        """Apply ijk' = f_ijk((i, j, k)), equivalent to the above with indexes."""
         return tuple(self._moving[index + self.__s])
 
     def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
                  output_dtype=None):
-        '''
+        """
+        Resample the `moving` image applying the deformation field.
 
         Examples
         --------
-
         >>> import numpy as np
         >>> import nibabel as nb
         >>> ref = nb.load('t1_weighted.nii.gz')
@@ -238,7 +240,7 @@ class BSplineFieldTransform(TransformBase):
         >>> new = xfm.resample(ref)
         >>> new.to_filename('deffield.nii.gz')
 
-        '''
+        """
         self._cache_moving()
         return super(BSplineFieldTransform, self).resample(
             moving, order=order, mode=mode, cval=cval, prefilter=prefilter)
