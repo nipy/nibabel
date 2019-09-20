@@ -7,7 +7,7 @@ import numpy as np
 
 from ..eulerangles import euler2mat
 from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
-                       from_matvec, dot_reduce, voxel_sizes)
+                       from_matvec, dot_reduce, voxel_sizes, obliquity)
 
 
 from nose.tools import assert_equal, assert_raises
@@ -178,3 +178,13 @@ def test_voxel_sizes():
             rot_affine[:3, :3] = rotation
             full_aff = rot_affine.dot(aff)
             assert_almost_equal(voxel_sizes(full_aff), vox_sizes)
+
+
+def test_obliquity():
+    """Check the calculation of inclination of an affine axes."""
+    aligned = np.diag([2.0, 2.0, 2.3, 1.0])
+    aligned[:-1, -1] = [-10, -10, -7]
+    R = from_matvec(euler2mat(x=0.09, y=0.001, z=0.001), [0.0, 0.0, 0.0])
+    oblique = R.dot(aligned)
+    assert_almost_equal(obliquity(aligned), 0.0)
+    assert_almost_equal(obliquity(oblique), 5.1569948883)
