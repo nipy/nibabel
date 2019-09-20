@@ -3,6 +3,7 @@
 """ Utility routines for working with points and affine transforms
 """
 
+from math import acos, pi as PI
 import numpy as np
 
 from functools import reduce
@@ -296,3 +297,24 @@ def voxel_sizes(affine):
     """
     top_left = affine[:-1, :-1]
     return np.sqrt(np.sum(top_left ** 2, axis=0))
+
+
+def obliquity(affine):
+    r"""
+    Estimate the obliquity an affine's axes represent, in degrees from plumb.
+
+    This implementation is inspired by `AFNI's implementation
+    <https://github.com/afni/afni/blob/b6a9f7a21c1f3231ff09efbd861f8975ad48e525/src/thd_coords.c#L660-L698>`_
+
+    >>> affine = np.array([
+    ...    [2.74999725e+00, -2.74999817e-03, 2.74999954e-03, -7.69847980e+01],
+    ...    [2.98603540e-03, 2.73886840e+00, -2.47165887e-01, -8.36692043e+01],
+    ...    [-2.49170222e-03, 2.47168626e-01, 2.73886865e+00, -8.34056848e+01],
+    ...    [ 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+    >>> abs(5.15699 - obliquity(affine)) < 0.0001
+    True
+
+    """
+    vs = voxel_sizes(affine)
+    fig_merit = (affine[:-1, :-1] / vs[np.newaxis, ...]).max(axis=1).min()
+    return abs(acos(fig_merit) * 180 / PI)
