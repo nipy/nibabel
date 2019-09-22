@@ -187,4 +187,4 @@ def test_obliquity():
     R = from_matvec(euler2mat(x=0.09, y=0.001, z=0.001), [0.0, 0.0, 0.0])
     oblique = R.dot(aligned)
     assert_almost_equal(obliquity(aligned), 0.0)
-    assert_almost_equal(obliquity(oblique), 5.1569948883)
+    assert_almost_equal(obliquity(oblique, degrees=True), 5.1569948883)

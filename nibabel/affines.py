@@ -299,7 +299,7 @@ def voxel_sizes(affine):
     return np.sqrt(np.sum(top_left ** 2, axis=0))
 
 
-def obliquity(affine):
+def obliquity(affine, degrees=False):
     r"""
     Estimate the obliquity an affine's axes represent, in degrees from plumb.
 
@@ -309,4 +309,7 @@ def obliquity(affine):
     """
     vs = voxel_sizes(affine)
     fig_merit = (affine[:-1, :-1] / vs[np.newaxis, ...]).max(axis=1).min()
-    return abs(acos(fig_merit) * 180 / PI)
+    radians = abs(acos(fig_merit))
+    if not degrees:
+        return radians
+    return radians * 180 / PI
