@@ -16,8 +16,10 @@ except NameError:
 
 import pathlib
 
+
 class TypesFilenamesError(Exception):
     pass
+
 
 def _stringify_path(filepath_or_buffer):
     """Attempt to convert a path-like object to a string.
@@ -41,7 +43,7 @@ def _stringify_path(filepath_or_buffer):
     https://github.com/pandas-dev/pandas/blob/325dd686de1589c17731cf93b649ed5ccb5a99b4/pandas/io/common.py#L131-L160
     """
     if hasattr(filepath_or_buffer, "__fspath__"):
-        return filepath_or_buffer.__fspath__() 
+        return filepath_or_buffer.__fspath__()
     elif isinstance(filepath_or_buffer, pathlib.Path):
         return str(filepath_or_buffer)
     return filepath_or_buffer
@@ -288,7 +290,7 @@ def splitext_addext(filename,
     ('fname', '.ext', '.foo')
     '''
     filename = _stringify_path(filename)
-    
+
     if match_case:
         endswith = _endswith
     else:

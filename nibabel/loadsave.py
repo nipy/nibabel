@@ -20,8 +20,6 @@ from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
 
-
-
 def load(filename, **kwargs):
     ''' Load file given filename, guessing at file type
 
@@ -39,14 +37,14 @@ def load(filename, **kwargs):
     '''
     filename = _stringify_path(filename)
 
-    #Check file exists and is not empty
+    # Check file exists and is not empty
     try:
         stat_result = os.stat(filename)
     except OSError:
         raise FileNotFoundError("No such file or no access: '%s'" % filename)
     if stat_result.st_size <= 0:
         raise ImageFileError("Empty file: '%s'" % filename)
-        
+
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
