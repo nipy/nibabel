@@ -2,8 +2,6 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """ Utility routines for working with points and affine transforms
 """
-
-from math import acos, pi as PI
 import numpy as np
 
 from functools import reduce
@@ -299,17 +297,27 @@ def voxel_sizes(affine):
     return np.sqrt(np.sum(top_left ** 2, axis=0))
 
 
-def obliquity(affine, degrees=False):
+def obliquity(affine):
     r"""
-    Estimate the obliquity an affine's axes represent, in degrees from plumb.
+    Estimate the *obliquity* an affine's axes represent.
 
+    The term *obliquity* is defined here as the rotation of those axes with
+    respect to the cardinal axes.
     This implementation is inspired by `AFNI's implementation
     <https://github.com/afni/afni/blob/b6a9f7a21c1f3231ff09efbd861f8975ad48e525/src/thd_coords.c#L660-L698>`_
 
+    Parameters
+    ----------
+    affine : 2D array-like
+        Affine transformation array.  Usually shape (4, 4), but can be any 2D
+        array.
+
+    Returns
+    -------
+    angles : 1D array-like
+        The *obliquity* of each axis with respect to the cardinal axes, in radians.
+
     """
     vs = voxel_sizes(affine)
-    fig_merit = (affine[:-1, :-1] / vs[np.newaxis, ...]).max(axis=1).min()
-    radians = abs(acos(fig_merit))
-    if not degrees:
-        return radians
-    return radians * 180 / PI
+    best_cosines = np.abs((affine[:-1, :-1] / vs).max(axis=1))
+    return np.arccos(best_cosines)
