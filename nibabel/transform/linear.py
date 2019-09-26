@@ -10,13 +10,16 @@
 import sys
 import numpy as np
 from scipy import ndimage as ndi
+from pathlib import Path
 
 from ..loadsave import load as loadimg
-from ..affines import from_matvec, voxel_sizes
+from ..affines import from_matvec, voxel_sizes, obliquity
+from ..volumeutils import shape_zoom_affine
 from .base import TransformBase
 
 
 LPS = np.diag([-1, -1, 1, 1])
+OBLIQUITY_THRESHOLD_DEG = 0.01
 
 
 class Affine(TransformBase):
@@ -64,6 +67,7 @@ class Affine(TransformBase):
 
     @property
     def matrix(self):
+        """Access the internal representation of this affine."""
         return self._matrix
 
     def resample(self, moving, order=3, mode='constant', cval=0.0, prefilter=True,
@@ -217,8 +221,35 @@ FixedParameters: 0 0 0\n""".format
             return filename
 
         if fmt.lower() == 'afni':
-            parameters = np.swapaxes(LPS.dot(self.matrix.dot(LPS)), 0, 1)
-            parameters = parameters[:, :3, :].reshape((self.matrix.shape[0], -1))
+            from math import pi
+
+            if moving and isinstance(moving, (str, bytes, Path)):
+                moving = loadimg(str(moving))
+
+            T = self.matrix.copy()
+            pre = LPS
+            post = LPS
+            if any(obliquity(self.reference.affine) * 180 / pi > OBLIQUITY_THRESHOLD_DEG):
+                print('Reference affine axes are oblique.')
+                M = self.reference.affine
+                A = shape_zoom_affine(self.reference.shape,
+                                      voxel_sizes(M), x_flip=True)
+                pre = M.dot(np.linalg.inv(A))
+
+                if not moving:
+                    moving = self.reference
+
+            if moving and any(obliquity(moving.affine) * 180 / pi > OBLIQUITY_THRESHOLD_DEG):
+                print('Moving affine axes are oblique.')
+                M = moving.affine
+                A = shape_zoom_affine(moving.shape,
+                                      voxel_sizes(M), x_flip=True)
+                post = M.dot(np.linalg.inv(A))
+
+            # swapaxes is necessary, as axis 0 encodes series of transforms
+            T = np.swapaxes(post.dot(self.matrix.copy().dot(pre)), 0, 1)
+            parameters = np.swapaxes(post.dot(T.dot(pre)), 0, 1)
+            parameters = parameters[:, :3, :].reshape((T.shape[0], -1))
             np.savetxt(filename, parameters, delimiter='\t', header="""\
 3dvolreg matrices (DICOM-to-DICOM, row-by-row):""", fmt='%g')
             return filename

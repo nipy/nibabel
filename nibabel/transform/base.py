@@ -12,6 +12,8 @@ import h5py
 
 from scipy import ndimage as ndi
 
+EQUALITY_TOL = 1e-5
+
 
 class ImageSpace(object):
     """Class to represent spaces of gridded data (images)."""
@@ -85,7 +87,8 @@ class ImageSpace(object):
 
     def __eq__(self, other):
         try:
-            return np.allclose(self.affine, other.affine) and self.shape == other.shape
+            return np.allclose(
+                self.affine, other.affine, rtol=EQUALITY_TOL) and self.shape == other.shape
         except AttributeError:
             pass
         return False
@@ -98,6 +101,12 @@ class TransformBase(object):
 
     def __init__(self):
         self._reference = None
+
+    def __eq__(self, other):
+        """Overload equals operator."""
+        if not self._reference == other._reference:
+            return False
+        return np.allclose(self.matrix, other.matrix, rtol=EQUALITY_TOL)
 
     @property
     def reference(self):
