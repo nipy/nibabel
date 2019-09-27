@@ -321,5 +321,5 @@ def obliquity(affine):
 
     """
     vs = voxel_sizes(affine)
-    best_cosines = np.abs((affine[:-1, :-1] / vs).max(axis=1))
+    best_cosines = np.abs(affine[:-1, :-1] / vs).max(axis=1)
     return np.arccos(best_cosines)
