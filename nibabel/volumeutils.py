@@ -1456,7 +1456,7 @@ def finite_range(arr, check_nan=False):
     return np.nanmin(mins), np.nanmax(maxes)
 
 
-def shape_zoom_affine(shape, zooms, x_flip=True):
+def shape_zoom_affine(shape, zooms, x_flip=True, y_flip=False):
     ''' Get affine implied by given shape and zooms
 
     We get the translations from the center of the image (implied by
@@ -1471,6 +1471,9 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     x_flip : {True, False}
        whether to flip the X row of the affine.  Corresponds to
        radiological storage on disk.
+    y_flip : {False, True}
+       whether to flip the Y row of the affine.  Corresponds to
+       DICOM storage on disk when x_flip is also True.
 
     Returns
     -------
@@ -1510,6 +1513,9 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
         zooms = full_zooms
     if x_flip:
         zooms[0] *= -1
+
+    if y_flip:
+        zooms[1] *= -1
     # Get translations from center of image
     origin = (shape - 1) / 2.0
     aff = np.eye(4)

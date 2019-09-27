@@ -204,7 +204,7 @@ The moving image contains {0} volumes, while the transform is defined for \
 
     def to_filename(self, filename, fmt='X5', moving=None):
         """Store the transform in BIDS-Transforms HDF5 file format (.x5)."""
-        if fmt.lower() in ['itk', 'ants', 'elastix', 'nifty']:
+        if fmt.lower() in ['itk', 'ants', 'elastix']:
             with open(filename, 'w') as f:
                 f.write('#Insight Transform File V1.0\n')
 
@@ -229,26 +229,25 @@ FixedParameters: 0 0 0\n""".format
             T = self.matrix.copy()
             pre = LPS
             post = LPS
-            if any(obliquity(self.reference.affine) * 180 / pi > OBLIQUITY_THRESHOLD_DEG):
+            if obliquity(self.reference.affine).min() * 180 / pi > OBLIQUITY_THRESHOLD_DEG:
                 print('Reference affine axes are oblique.')
                 M = self.reference.affine
                 A = shape_zoom_affine(self.reference.shape,
-                                      voxel_sizes(M), x_flip=True)
-                pre = M.dot(np.linalg.inv(A))
+                                      voxel_sizes(M), x_flip=False, y_flip=False)
+                pre = M.dot(np.linalg.inv(A)).dot(LPS)
 
                 if not moving:
                     moving = self.reference
 
-            if moving and any(obliquity(moving.affine) * 180 / pi > OBLIQUITY_THRESHOLD_DEG):
+            if moving and obliquity(moving.affine).min() * 180 / pi > OBLIQUITY_THRESHOLD_DEG:
                 print('Moving affine axes are oblique.')
-                M = moving.affine
-                A = shape_zoom_affine(moving.shape,
-                                      voxel_sizes(M), x_flip=True)
-                post = M.dot(np.linalg.inv(A))
+                M2 = moving.affine
+                A2 = shape_zoom_affine(moving.shape,
+                                       voxel_sizes(M2), x_flip=True, y_flip=True)
+                post = A2.dot(np.linalg.inv(M2))
 
             # swapaxes is necessary, as axis 0 encodes series of transforms
-            T = np.swapaxes(post.dot(self.matrix.copy().dot(pre)), 0, 1)
-            parameters = np.swapaxes(post.dot(T.dot(pre)), 0, 1)
+            parameters = np.swapaxes(post.dot(self.matrix.copy().dot(pre)), 0, 1)
             parameters = parameters[:, :3, :].reshape((T.shape[0], -1))
             np.savetxt(filename, parameters, delimiter='\t', header="""\
 3dvolreg matrices (DICOM-to-DICOM, row-by-row):""", fmt='%g')

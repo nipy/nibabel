@@ -57,15 +57,19 @@ def test_affines_save(image_orientation):
     itk = nbl.load(os.path.join(data_path, 'affine-%s-itk.tfm' % image_orientation),
                    fmt='itk')
     fsl = np.loadtxt(os.path.join(data_path, 'affine-%s.fsl' % image_orientation))
+    afni = np.loadtxt(os.path.join(data_path, 'affine-%s.afni' % image_orientation))
 
     with InTemporaryDirectory():
         xfm.to_filename('M.tfm', fmt='itk')
         xfm.to_filename('M.fsl', fmt='fsl')
+        xfm.to_filename('M.afni', fmt='afni')
 
         nb_itk = nbl.load('M.tfm', fmt='itk')
         nb_fsl = np.loadtxt('M.fsl')
+        nb_afni = np.loadtxt('M.afni')
 
     assert_equal(itk, nb_itk)
     assert_almost_equal(fsl, nb_fsl)
+    assert_almost_equal(afni, nb_afni)
 
 # Create version not aligned to canonical
