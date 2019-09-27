@@ -112,7 +112,7 @@ def slice2volume(index, axis, shape=None):
     and then use ``whole_aff`` in ``scipy.ndimage.affine_transform``:
 
         rzs, trans = to_matvec(whole_aff)
-        data = img2.get_data()
+        data = img2.get_fdata()
         new_slice = scipy.ndimage.affine_transform(data, rzs, trans, slice_shape)
 
     Parameters

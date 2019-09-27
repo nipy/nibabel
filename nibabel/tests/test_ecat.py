@@ -193,20 +193,20 @@ class TestEcatImage(TestCase):
         with InTemporaryDirectory():
             self.img.to_filename(tmp_file)
             other = self.image_class.load(tmp_file)
-            assert_equal(self.img.get_data().all(), other.get_data().all())
+            assert_array_equal(self.img.get_fdata(), other.get_fdata())
             # Delete object holding reference to temporary file to make Windows
             # happier.
             del other
 
     def test_data(self):
-        dat = self.img.get_data()
+        dat = self.img.get_fdata()
         assert_equal(dat.shape, self.img.shape)
         frame = self.img.get_frame(0)
         assert_array_equal(frame, dat[:, :, :, 0])
 
     def test_array_proxy(self):
         # Get the cached data copy
-        dat = self.img.get_data()
+        dat = self.img.get_fdata()
         # Make a new one to test arrayproxy
         img = self.image_class.load(self.example_file)
         data_prox = img.dataobj
@@ -218,7 +218,7 @@ class TestEcatImage(TestCase):
 
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
-        arr = self.img.get_data()
+        arr = self.img.get_fdata()
         prox = self.img.dataobj
         assert_true(prox.is_proxy)
         for sliceobj in slicer_samples(self.img.shape):
@@ -227,7 +227,7 @@ class TestEcatImage(TestCase):
     def test_isolation(self):
         # Test image isolated from external changes to affine
         img_klass = self.image_class
-        arr, aff, hdr, sub_hdr, mlist = (self.img.get_data(),
+        arr, aff, hdr, sub_hdr, mlist = (self.img.get_fdata(),
                                          self.img.affine,
                                          self.img.header,
                                          self.img.get_subheaders(),
@@ -240,7 +240,7 @@ class TestEcatImage(TestCase):
     def test_float_affine(self):
         # Check affines get converted to float
         img_klass = self.image_class
-        arr, aff, hdr, sub_hdr, mlist = (self.img.get_data(),
+        arr, aff, hdr, sub_hdr, mlist = (self.img.get_fdata(),
                                          self.img.affine,
                                          self.img.header,
                                          self.img.get_subheaders(),
@@ -256,7 +256,7 @@ class TestEcatImage(TestCase):
         vals = dict(max=248750736458.0,
                     min=1125342630.0,
                     mean=117907565661.46666)
-        data = self.img.get_data()
+        data = self.img.get_fdata()
         assert_equal(data.max(), vals['max'])
         assert_equal(data.min(), vals['min'])
         assert_array_almost_equal(data.mean(), vals['mean'])
@@ -277,4 +277,4 @@ def test_from_filespec_deprecation():
         # Warning for from_filespec
         img_speced = EcatImage.from_filespec(ecat_file)
         assert_equal(len(w), 1)
-        assert_array_equal(img_loaded.get_data(), img_speced.get_data())
+        assert_array_equal(img_loaded.get_fdata(), img_speced.get_fdata())

@@ -120,7 +120,7 @@ class FileBasedImage(object):
 
     You can get the data out again with::
 
-        img.get_data()
+        img.get_fdata()
 
     Less commonly, for some image types that support it, you might want to
     fetch out the unscaled array via the object containing the data::

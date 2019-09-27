@@ -717,8 +717,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
 
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
-        # from img.get_data() is not affected by subsequent changes to
-        # the header.
+        # from np.asanyarray(img.dataobj) and img,get_fdata() are not
+        # affected by subsequent changes to the header.
         IC = self.image_class
         # save an image to a file map
         fm = IC.make_file_map()
@@ -739,7 +739,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_equal(hdr.get_data_shape(), (3, 2, 2))
         hdr.set_data_dtype(np.uint8)
         assert_equal(hdr.get_data_dtype(), np.dtype(np.uint8))
-        assert_array_equal(img2.get_data(), data)
+        assert_array_equal(img2.get_fdata(), data)
+        assert_array_equal(np.asanyarray(img2.dataobj), data)
         # now check read_img_data function - here we do see the changed
         # header
         sc_data = read_img_data(img2)
@@ -830,7 +831,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         hdr_back = img.from_file_map(img.file_map).header
         assert_array_equal(hdr.get_zooms(), (9, 3, 4))
         # Modify data in-place?  Update on save
-        data = img.get_data()
+        data = img.get_fdata()
         data.shape = (3, 2, 4)
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
@@ -843,7 +844,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         img = img_klass(np.zeros((2, 3, 4)), None)
         img_str = pickle.dumps(img)
         img2 = pickle.loads(img_str)
-        assert_array_equal(img.get_data(), img2.get_data())
+        assert_array_equal(img.get_fdata(), img2.get_fdata())
         assert_equal(img.header, img2.header)
         # Save / reload using bytes IO objects
         for key, value in img.file_map.items():
@@ -852,7 +853,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         img_prox = img.from_file_map(img.file_map)
         img_str = pickle.dumps(img_prox)
         img2_prox = pickle.loads(img_str)
-        assert_array_equal(img.get_data(), img2_prox.get_data())
+        assert_array_equal(img.get_fdata(), img2_prox.get_fdata())
 
     def test_no_finite_values(self):
         # save of data with no finite values to int type raises error if we have

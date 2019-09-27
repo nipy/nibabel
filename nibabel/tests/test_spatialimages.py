@@ -22,7 +22,7 @@ from ..imageclasses import spatial_axes_first
 from unittest import TestCase
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_warns
 
 from .test_helpers import bytesio_round_trip
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
@@ -235,7 +235,7 @@ class TestSpatialImage(TestCase):
         # See https://github.com/nipy/nibabel/issues/58
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         img = self.image_class(arr, None)
-        assert_array_equal(img.get_data(), arr)
+        assert_array_equal(img.get_fdata(), arr)
         assert_equal(img.affine, None)
 
     def test_default_header(self):
@@ -252,9 +252,9 @@ class TestSpatialImage(TestCase):
         img = self.image_class(DataLike(), None)
         # Shape may be promoted to higher dimension, but may not reorder or
         # change size
-        assert_array_equal(img.get_data().flatten(), np.arange(3))
-        assert_equal(img.get_shape()[:1], (3,))
-        assert_equal(np.prod(img.get_shape()), 3)
+        assert_array_equal(img.get_fdata().flatten(), np.arange(3))
+        assert_equal(img.shape[:1], (3,))
+        assert_equal(np.prod(img.shape), 3)
 
     def check_dtypes(self, expected, actual):
         # Some images will want dtypes to be equal including endianness,
@@ -389,9 +389,10 @@ class TestSpatialImage(TestCase):
                      "Cannot slice image objects; consider using "
                      "`img.slicer[slice]` to generate a sliced image (see "
                      "documentation for caveats) or slicing image array data "
-                     "with `img.dataobj[slice]` or `img.get_data()[slice]`")
+                     "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
         assert_true(in_data is img.dataobj)
-        out_data = img.get_data()
+        with assert_warns(DeprecationWarning):
+            out_data = img.get_data()
         assert_true(in_data is out_data)
         # and that uncache has no effect
         img.uncache()
@@ -403,15 +404,19 @@ class TestSpatialImage(TestCase):
         rt_img = bytesio_round_trip(img)
         assert_false(in_data is rt_img.dataobj)
         assert_array_equal(rt_img.dataobj, in_data)
-        out_data = rt_img.get_data()
+        with assert_warns(DeprecationWarning):
+            out_data = rt_img.get_data()
         assert_array_equal(out_data, in_data)
         assert_false(rt_img.dataobj is out_data)
         # cache
-        assert_true(rt_img.get_data() is out_data)
+        with assert_warns(DeprecationWarning):
+            assert_true(rt_img.get_data() is out_data)
         out_data[:] = 42
         rt_img.uncache()
-        assert_false(rt_img.get_data() is out_data)
-        assert_array_equal(rt_img.get_data(), in_data)
+        with assert_warns(DeprecationWarning):
+            assert_false(rt_img.get_data() is out_data)
+        with assert_warns(DeprecationWarning):
+            assert_array_equal(rt_img.get_data(), in_data)
 
     def test_slicer(self):
         img_klass = self.image_class
@@ -534,10 +539,14 @@ class TestSpatialImage(TestCase):
                         pass
                     else:
                         sliced_data = in_data[sliceobj]
-                        assert_array_equal(sliced_data, sliced_img.get_data())
+                        with assert_warns(DeprecationWarning):
+                            assert_array_equal(sliced_data, sliced_img.get_data())
+                        assert_array_equal(sliced_data, sliced_img.get_fdata())
                         assert_array_equal(sliced_data, sliced_img.dataobj)
                         assert_array_equal(sliced_data, img.dataobj[sliceobj])
-                        assert_array_equal(sliced_data, img.get_data()[sliceobj])
+                        with assert_warns(DeprecationWarning):
+                            assert_array_equal(sliced_data, img.get_data()[sliceobj])
+                        assert_array_equal(sliced_data, img.get_fdata()[sliceobj])
 
     def test_api_deprecations(self):
 
@@ -632,7 +641,7 @@ class MmapImageMixin(object):
                     if mmap is not None:
                         kwargs['mmap'] = mmap
                     back_img = func(param1, **kwargs)
-                    back_data = back_img.get_data()
+                    back_data = np.asanyarray(back_img.dataobj)
                     if expected_mode is None:
                         assert_false(isinstance(back_data, np.memmap),
                                      'Should not be a %s' % img_klass.__name__)

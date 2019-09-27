@@ -16,7 +16,7 @@ Test reading with something like::
 
     import nibabel as nib
     img = nib.load('my_funny.mnc')
-    data = img.get_data()
+    data = img.get_fdata()
     print(data.mean())
     print(data.max())
     print(data.min())

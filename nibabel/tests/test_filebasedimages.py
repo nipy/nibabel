@@ -2,6 +2,7 @@
 """
 
 from itertools import product
+import warnings
 
 import numpy as np
 
@@ -27,6 +28,11 @@ class FBNumpyImage(FileBasedImage):
         return self.arr.shape
 
     def get_data(self):
+        warnings.warn('Deprecated', DeprecationWarning)
+        return self.arr
+
+    @property
+    def dataobj(self):
         return self.arr
 
     def get_fdata(self):

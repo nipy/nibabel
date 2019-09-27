@@ -23,7 +23,7 @@ Quickstart
    img2 = nib.load('other_file.nii.gz')
    img3 = nib.load('spm_file.img')
 
-   data = img1.get_data()
+   data = img1.get_fdata()
    affine = img1.affine
 
    print(img1)

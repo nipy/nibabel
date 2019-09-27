@@ -93,8 +93,8 @@ def check_rewrite(arr, axes, extension='.nii'):
     (fd, name) = tempfile.mkstemp(extension)
     cifti2.Cifti2Image(arr, header=axes).to_filename(name)
     img = nib.load(name)
-    arr2 = img.get_data()
-    assert (arr == arr2).all()
+    arr2 = img.get_fdata()
+    assert np.allclose(arr, arr2)
     for idx in range(len(img.shape)):
         assert (axes[idx] == img.header.get_axis(idx))
     return img
@@ -103,7 +103,7 @@ def check_rewrite(arr, axes, extension='.nii'):
 @needs_nibabel_data('nitest-cifti2')
 def test_read_ones():
     img = nib.load(os.path.join(test_directory, 'ones.dscalar.nii'))
-    arr = img.get_data()
+    arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert (arr == 1).all()
     assert isinstance(axes[0], cifti2_axes.ScalarAxis)
@@ -118,7 +118,7 @@ def test_read_ones():
 @needs_nibabel_data('nitest-cifti2')
 def test_read_conte69_dscalar():
     img = nib.load(os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.dscalar.nii'))
-    arr = img.get_data()
+    arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert isinstance(axes[0], cifti2_axes.ScalarAxis)
     assert len(axes[0]) == 2
@@ -132,7 +132,7 @@ def test_read_conte69_dscalar():
 @needs_nibabel_data('nitest-cifti2')
 def test_read_conte69_dtseries():
     img = nib.load(os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.dtseries.nii'))
-    arr = img.get_data()
+    arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert isinstance(axes[0], cifti2_axes.SeriesAxis)
     assert len(axes[0]) == 2
@@ -147,7 +147,7 @@ def test_read_conte69_dtseries():
 @needs_nibabel_data('nitest-cifti2')
 def test_read_conte69_dlabel():
     img = nib.load(os.path.join(test_directory, 'Conte69.parcellations_VGD11b.32k_fs_LR.dlabel.nii'))
-    arr = img.get_data()
+    arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert isinstance(axes[0], cifti2_axes.LabelAxis)
     assert len(axes[0]) == 3
@@ -162,7 +162,7 @@ def test_read_conte69_dlabel():
 @needs_nibabel_data('nitest-cifti2')
 def test_read_conte69_ptseries():
     img = nib.load(os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.ptseries.nii'))
-    arr = img.get_data()
+    arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert isinstance(axes[0], cifti2_axes.SeriesAxis)
     assert len(axes[0]) == 2

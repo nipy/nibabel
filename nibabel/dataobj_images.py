@@ -68,8 +68,8 @@ class DataobjImage(FileBasedImage):
 
             We recommend you use the ``get_fdata`` method instead of the
             ``get_data`` method, because it is easier to predict the return
-            data type.  We will deprecate the ``get_data`` method around April
-            2018, and remove it around April 2020.
+            data type.  ``get_data`` will be deprecated around November 2019
+            and removed around November 2021.
 
             If you don't care about the predictability of the return data type,
             and you want the minimum possible data size in memory, you can
