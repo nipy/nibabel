@@ -228,6 +228,7 @@ class netcdf_file(object):
     to be copied to main memory:
 
         >>> data = time[:].copy()
+        >>> del time  # References to mmap'd objects can delay full closure
         >>> f.close()
         >>> data.mean()
         4.5
@@ -240,7 +241,7 @@ class netcdf_file(object):
 
     Delete our temporary directory and file:
 
-        >>> del f, time # needed for windows unlink
+        >>> del f # needed for windows unlink
         >>> os.unlink(fname)
         >>> os.rmdir(tmp_pth)
     """
