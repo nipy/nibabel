@@ -221,8 +221,8 @@ class netcdf_file(object):
     directly to memory-mapped data on disk:
 
         >>> data = time[:]
-        >>> data.base.base
-        <mmap.mmap object at 0x7fe753763180>
+        >>> data.base.base  # doctest: +ELLIPSIS
+        <mmap.mmap object at 0x...>
 
     If the data is to be processed after the file is closed, it needs
     to be copied to main memory:
