@@ -3,15 +3,15 @@
 from __future__ import division, print_function, absolute_import
 
 import sys
+import os
 import warnings
 
 import numpy as np
 
-from nose.tools import assert_equal
-from nose.tools import assert_raises
+from nose.tools import assert_equal, assert_true, assert_false, assert_raises
 from ..testing import (error_warnings, suppress_warnings,
                        clear_and_catch_warnings, assert_allclose_safely,
-                       get_fresh_mod, assert_re_in)
+                       get_fresh_mod, assert_re_in, test_data, data_path)
 
 
 def assert_warn_len_equal(mod, n_in_context):
@@ -163,3 +163,26 @@ def test_assert_re_in():
 
     # Shouldn't "match" the empty list
     assert_raises(AssertionError, assert_re_in, "", [])
+
+
+def test_test_data():
+    assert_equal(test_data(), data_path)
+    assert_equal(test_data(),
+                 os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                              '..', 'tests', 'data')))
+    for subdir in ('nicom', 'gifti', 'externals'):
+        assert_equal(test_data(subdir), data_path[:-10] + '%s/tests/data' % subdir)
+        assert_true(os.path.exists(test_data(subdir)))
+        assert_false(os.path.exists(test_data(subdir, 'doesnotexist')))
+
+    for subdir in ('freesurfer', 'doesnotexist'):
+        with assert_raises(ValueError):
+            test_data(subdir)
+
+    assert_false(os.path.exists(test_data(None, 'doesnotexist')))
+
+    for subdir, fname in [('gifti', 'ascii.gii'),
+                          ('nicom', '0.dcm'),
+                          ('externals', 'example_1.nc'),
+                          (None, 'empty.tck')]:
+        assert_true(os.path.exists(test_data(subdir, fname)))

@@ -699,7 +699,8 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         Examples:
         >>> import nibabel as nib
-        >>> gii_fname = # something/something.surf.gii
+        >>> from nibabel.testing import test_data
+        >>> gii_fname = test_data('gifti', 'ascii.gii')
         >>> gii_img = nib.load(gii_fname)
 
         When not passing anything to``intent_code``
