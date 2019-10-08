@@ -700,29 +700,40 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         Examples:
         >>> import nibabel as nib
         >>> from nibabel.testing import test_data
-        >>> gii_fname = test_data('gifti', 'ascii.gii')
-        >>> gii_img = nib.load(gii_fname)
+        >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
+        >>> surf_gii_img = nib.load(surf_gii_fname)
 
         When not passing anything to``intent_code``
-        >>> gii_img.agg_data()
+        >>> surf_gii_img.agg_data()
+        (array([[-16.07201 , -66.187515,  21.266994],
+        [-16.705893, -66.05434 ,  21.232786],
+        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32),
+        array([0, 1, 2], dtype=int32))
 
         When passig matching intend codes ``intent_code``
-        >>> gii_img.agg_data('pointset')
+        >>> surf_gii_img.agg_data('pointset')
+        array([[-16.07201 , -66.187515,  21.266994],
+        [-16.705893, -66.05434 ,  21.232786],
+        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32)
 
-        >>> gii_img.agg_data('triangle')
-
-        >>> gii_img.agg_data('time series')
+        >>> surf_gii_img.agg_data('triangle')
+        array([0, 1, 2], dtype=int32)
 
         When passing mismatching intent codes ``intent_code``
-        >>> gii_img.agg_data('time series')
+        >>> surf_gii_img.agg_data('time series')
         ()  # return a empty ``tuple``
 
         When passing tuple ``intent_code``
-        >>> gii_img.agg_data(('pointset', 'triangle'))
+        >>> surf_gii_img.agg_data(('pointset', 'triangle'))
+        (array([[-16.07201 , -66.187515,  21.266994],
+        [-16.705893, -66.05434 ,  21.232786],
+        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32),
+        array([0, 1, 2], dtype=int32))
 
-        >>> gii_img.agg_data(('triangle', 'pointset'))
-        
-
+        >>> surf_gii_img.agg_data(('triangle', 'pointset'))
+        (array([0, 1, 2], dtype=int32), array([[-16.07201 , -66.187515,  21.266994],
+        [-16.705893, -66.05434 ,  21.232786],
+        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32))
 
         Parameters
         ----------
