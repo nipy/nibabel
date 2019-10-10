@@ -7,12 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Tests for nifti reading package '''
-from __future__ import division, print_function, absolute_import
 import os
 import warnings
 import struct
-
-import six
 
 import numpy as np
 
@@ -364,7 +361,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         nii = load(os.path.join(nitest_path, 'derivative', 'fsaverage', 'surf',
                                 'lh.orig.avg.area.nii'))
         assert_equal(mgh.shape, nii.shape)
-        assert_array_equal(mgh.get_data(), nii.get_data())
+        assert_array_equal(mgh.get_fdata(), nii.get_fdata())
         assert_array_equal(nii.header._structarr['dim'][1:4],
                            np.array([27307, 1, 6]))
         # Test writing produces consistent nii files
@@ -372,8 +369,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             nii.to_filename('test.nii')
             nii2 = load('test.nii')
             assert_equal(nii.shape, nii2.shape)
-            assert_array_equal(nii.get_data(), nii2.get_data())
-            assert_array_equal(nii.get_affine(), nii2.get_affine())
+            assert_array_equal(nii.get_fdata(), nii2.get_fdata())
+            assert_array_equal(nii.affine, nii2.affine)
 
     def test_qform_sform(self):
         HC = self.header_class
@@ -943,16 +940,16 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     def test_sqform_code_type(self):
         # make sure get_s/qform returns codes as integers
         img = self.image_class(np.zeros((2, 3, 4)), None)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, 3)
         img.set_qform(None, 3)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, 2.0)
         img.set_qform(None, 4.0)
-        assert isinstance(img.get_sform(coded=True)[1], six.integer_types)
-        assert isinstance(img.get_qform(coded=True)[1], six.integer_types)
+        assert isinstance(img.get_sform(coded=True)[1], int)
+        assert isinstance(img.get_qform(coded=True)[1], int)
         img.set_sform(None, img.get_sform(coded=True)[1])
         img.set_qform(None, img.get_qform(coded=True)[1])
 
@@ -978,16 +975,16 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_equal(img.shape, shape)
         img.set_data_dtype(npt)
         img2 = bytesio_round_trip(img)
-        assert_array_equal(img2.get_data(), data)
+        assert_array_equal(img2.get_fdata(), data)
         with InTemporaryDirectory() as tmpdir:
             for ext in ('', '.gz', '.bz2'):
                 fname = os.path.join(tmpdir, 'test' + img_ext + ext)
                 img.to_filename(fname)
                 img3 = IC.load(fname)
                 assert_true(isinstance(img3, img.__class__))
-                assert_array_equal(img3.get_data(), data)
+                assert_array_equal(img3.get_fdata(), data)
                 assert_equal(img3.header, img.header)
-                assert_true(isinstance(img3.get_data(),
+                assert_true(isinstance(np.asanyarray(img3.dataobj),
                                        np.memmap if ext == '' else np.ndarray))
                 # del to avoid windows errors of form 'The process cannot
                 # access the file because it is being used'
@@ -1013,7 +1010,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_equal(img_hdr.get_zooms(), [2, 3, 4])
         # Save to stringio
         re_simg = bytesio_round_trip(simg)
-        assert_array_equal(re_simg.get_data(), arr)
+        assert_array_equal(re_simg.get_fdata(), arr)
         # Check qform, sform, pixdims are the same
         rimg_hdr = re_simg.header
         assert_array_equal(rimg_hdr.get_qform(), qaff)
@@ -1340,7 +1337,7 @@ class TestNifti1General(object):
         lnim = bytesio_round_trip(wnim)
         assert_equal(lnim.get_data_dtype(), np.int16)
         # Scaling applied
-        assert_array_equal(lnim.get_data(), data * 2. + 8.)
+        assert_array_equal(lnim.get_fdata(), data * 2. + 8.)
         # slope, inter reset by image creation, but saved in proxy
         assert_equal(lnim.header.get_slope_inter(), (None, None))
         assert_equal((lnim.dataobj.slope, lnim.dataobj.inter), (2, 8))
@@ -1357,11 +1354,11 @@ class TestNifti1General(object):
         with InTemporaryDirectory():
             for img in (simg, pimg):
                 save(img, 'test.nii')
-                assert_array_equal(arr, load('test.nii').get_data())
+                assert_array_equal(arr, load('test.nii').get_fdata())
                 save(simg, 'test.img')
-                assert_array_equal(arr, load('test.img').get_data())
+                assert_array_equal(arr, load('test.img').get_fdata())
                 save(simg, 'test.hdr')
-                assert_array_equal(arr, load('test.hdr').get_data())
+                assert_array_equal(arr, load('test.hdr').get_fdata())
 
     def test_float_int_min_max(self):
         # Conversion between float and int
@@ -1373,7 +1370,7 @@ class TestNifti1General(object):
             for out_dt in IUINT_TYPES:
                 img = self.single_class(arr, aff)
                 img_back = bytesio_round_trip(img)
-                arr_back_sc = img_back.get_data()
+                arr_back_sc = img_back.get_fdata()
                 assert_true(np.allclose(arr, arr_back_sc))
 
     def test_float_int_spread(self):
@@ -1387,7 +1384,7 @@ class TestNifti1General(object):
             for out_dt in IUINT_TYPES:
                 img = self.single_class(arr_t, aff)
                 img_back = bytesio_round_trip(img)
-                arr_back_sc = img_back.get_data()
+                arr_back_sc = img_back.get_fdata()
                 slope, inter = img_back.header.get_slope_inter()
                 # Get estimate for error
                 max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, slope,
@@ -1410,7 +1407,7 @@ class TestNifti1General(object):
             for out_dt in IUINT_TYPES:
                 img = self.single_class(arr_t, aff)
                 img_back = bytesio_round_trip(img)
-                arr_back_sc = img_back.get_data()
+                arr_back_sc = img_back.get_fdata()
                 slope, inter = img_back.header.get_slope_inter()
                 bias = np.mean(arr_t - arr_back_sc)
                 # Get estimate for error
@@ -1460,7 +1457,7 @@ def test_large_nifti1():
     with InTemporaryDirectory():
         img.to_filename('test.nii.gz')
         del img
-        data = load('test.nii.gz').get_data()
+        data = load('test.nii.gz').get_fdata()
     # Check that the data are all ones
     assert_equal(image_shape, data.shape)
     n_ones = np.sum((data == 1.))

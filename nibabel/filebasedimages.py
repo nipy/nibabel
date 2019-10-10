@@ -10,7 +10,6 @@
 
 import io
 from copy import deepcopy
-from six import string_types
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
@@ -121,7 +120,7 @@ class FileBasedImage(object):
 
     You can get the data out again with::
 
-        img.get_data()
+        img.get_fdata()
 
     Less commonly, for some image types that support it, you might want to
     fetch out the unscaled array via the object containing the data::
@@ -374,7 +373,7 @@ class FileBasedImage(object):
         for key, ext in klass.files_types:
             file_map[key] = FileHolder()
             mapval = mapping.get(key, None)
-            if isinstance(mapval, string_types):
+            if isinstance(mapval, str):
                 file_map[key].filename = mapval
             elif hasattr(mapval, 'tell'):
                 file_map[key].fileobj = mapval

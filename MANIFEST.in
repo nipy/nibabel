@@ -9,4 +9,5 @@ recursive-include nibabel/tests/data *
 recursive-include nibabel/externals/tests/data *
 recursive-include nibabel/nicom/tests/data *
 recursive-include nibabel/gifti/tests/data *
-include nibabel/COMMIT_INFO.txt
+include versioneer.py
+include nibabel/_version.py

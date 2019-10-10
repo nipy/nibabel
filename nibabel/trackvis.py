@@ -4,25 +4,19 @@ See :mod:`nibabel.streamlines` for the new interface.
 
 We will deprecate this, the old interface, in some future release.
 """
-from __future__ import division, print_function
 import warnings
 import struct
 import itertools
 
 import numpy as np
 import numpy.linalg as npl
+from numpy.compat.py3k import asstr
 
-from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
 from .openers import ImageOpener
 from .orientations import aff2axcodes
 from .affines import apply_affine
 from .deprecated import deprecate_with_version
-
-try:
-    basestring
-except NameError:  # python 3
-    basestring = str
 
 warnings.warn("The trackvis interface has been deprecated and will be removed "
               "in v4.0; please use the 'nibabel.streamlines' interface.",
@@ -326,7 +320,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
     >>> pts1 = np.random.uniform(size=(10,3))
     >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
     >>> write(file_obj, streamlines)
-    >>> _ = file_obj.seek(0) # returns 0 in python 3
+    >>> _ = file_obj.seek(0)  # returns 0
     >>> streams, hdr = read(file_obj)
     >>> len(streams)
     2
@@ -832,15 +826,13 @@ class TrackvisFile(object):
     @classmethod
     def from_file(klass, file_like, points_space=None):
         streamlines, header = read(file_like, points_space=points_space)
-        filename = (file_like if isinstance(file_like, basestring)
-                    else None)
+        filename = file_like if isinstance(file_like, str) else None
         return klass(streamlines, header, None, filename, points_space)
 
     def to_file(self, file_like):
         write(file_like, self.streamlines, self.header, self.endianness,
               points_space=self.points_space)
-        self.filename = (file_like if isinstance(file_like, basestring)
-                         else None)
+        self.filename = file_like if isinstance(file_like, str) else None
 
     def get_affine(self, atleast_v2=True):
         """ Get affine from header in object

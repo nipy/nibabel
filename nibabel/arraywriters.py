@@ -28,7 +28,6 @@ Array writers may be able to scale the array or apply an intercept, or do
 something else to make sense of conversions between float and int, or between
 larger ints and smaller.
 """
-from __future__ import division, absolute_import
 
 import warnings
 

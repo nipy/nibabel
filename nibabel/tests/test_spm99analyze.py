@@ -31,7 +31,7 @@ from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 from ..testing import assert_allclose_safely, suppress_warnings
 
 from . import test_analyze
-from .test_helpers import (bytesio_round_trip, bytesio_filemap, bz2_mio_error)
+from .test_helpers import bytesio_round_trip, bytesio_filemap
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
@@ -187,7 +187,7 @@ class ImageScalingMixin(object):
         img = img_class(arr, np.eye(4), input_hdr)
         img_hdr = img.header
         self._set_raw_scaling(input_hdr, slope, inter)
-        assert_array_equal(img.get_data(), arr)
+        assert_array_equal(img.get_fdata(), arr)
         # Scaling has no effect on image as written via header (with rescaling
         # turned off).
         fm = bytesio_filemap(img)
@@ -196,12 +196,12 @@ class ImageScalingMixin(object):
         img_hdr.write_to(hdr_fobj)
         img_hdr.data_to_fileobj(arr, img_fobj, rescale=False)
         raw_rt_img = img_class.from_file_map(fm)
-        assert_array_equal(raw_rt_img.get_data(), arr)
+        assert_array_equal(raw_rt_img.get_fdata(), arr)
         # Scaling makes no difference for image round trip
         fm = bytesio_filemap(img)
         img.to_file_map(fm)
         rt_img = img_class.from_file_map(fm)
-        assert_array_equal(rt_img.get_data(), arr)
+        assert_array_equal(rt_img.get_fdata(), arr)
 
     def test_header_scaling(self):
         # For images that implement scaling, test effect of scaling
@@ -258,20 +258,20 @@ class ImageScalingMixin(object):
         img = img_class(arr, aff)
         self.assert_scale_me_scaling(img.header)
         # Array from image unchanged by scaling
-        assert_array_equal(img.get_data(), arr)
+        assert_array_equal(img.get_fdata(), arr)
         # As does round trip
         img_rt = bytesio_round_trip(img)
         self.assert_scale_me_scaling(img_rt.header)
         # Round trip array is not scaled
-        assert_array_equal(img_rt.get_data(), arr)
+        assert_array_equal(img_rt.get_fdata(), arr)
         # Explicit scaling causes scaling after round trip
         self._set_raw_scaling(img.header, slope, inter)
         self.assert_scaling_equal(img.header, slope, inter)
         # Array from image unchanged by scaling
-        assert_array_equal(img.get_data(), arr)
+        assert_array_equal(img.get_fdata(), arr)
         # But the array scaled after round trip
         img_rt = bytesio_round_trip(img)
-        assert_array_equal(img_rt.get_data(),
+        assert_array_equal(img_rt.get_fdata(),
                            apply_read_scaling(arr,
                                               effective_slope,
                                               effective_inter))
@@ -289,7 +289,7 @@ class ImageScalingMixin(object):
         img.header.set_data_dtype(np.uint8)
         with np.errstate(invalid='ignore'):
             img_rt = bytesio_round_trip(img)
-        assert_array_equal(img_rt.get_data(),
+        assert_array_equal(img_rt.get_fdata(),
                            apply_read_scaling(np.round(arr),
                                               effective_slope,
                                               effective_inter))
@@ -299,7 +299,7 @@ class ImageScalingMixin(object):
         with np.errstate(invalid='ignore'):
             img_rt = bytesio_round_trip(img)
         exp_unscaled_arr = np.clip(np.round(arr), 0, 255)
-        assert_array_equal(img_rt.get_data(),
+        assert_array_equal(img_rt.get_fdata(),
                            apply_read_scaling(exp_unscaled_arr,
                                               effective_slope,
                                               effective_inter))
@@ -313,7 +313,7 @@ class ImageScalingMixin(object):
         img.set_data_dtype(np.uint8)
         self._set_raw_scaling(hdr, 1, 0 if hdr.has_data_intercept else None)
         img_rt = bytesio_round_trip(img)
-        assert_array_equal(img_rt.get_data(), np.clip(arr, 0, 255))
+        assert_array_equal(img_rt.get_fdata(), np.clip(arr, 0, 255))
 
     def test_no_scaling(self):
         # Test writing image converting types when not calculating scaling
@@ -337,7 +337,7 @@ class ImageScalingMixin(object):
             with np.errstate(invalid='ignore'):
                 rt_img = bytesio_round_trip(img)
             with suppress_warnings():  # invalid mult
-                back_arr = rt_img.get_data()
+                back_arr = np.asanyarray(rt_img.dataobj)
             exp_back = arr.copy()
             # If converting to floating point type, casting is direct.
             # Otherwise we will need to do float-(u)int casting at some point
@@ -392,20 +392,18 @@ class ImageScalingMixin(object):
         arr[1, 0, 0] = 256  # to push outside uint8 range
         img = img_class(arr, np.eye(4))
         rt_img = bytesio_round_trip(img)
-        assert_array_equal(rt_img.get_data(), arr)
+        assert_array_equal(rt_img.get_fdata(), arr)
         # Uncontroversial so far, but now check that nan2zero works correctly
         # for int type
         img.set_data_dtype(np.uint8)
         with np.errstate(invalid='ignore'):
             rt_img = bytesio_round_trip(img)
-        assert_equal(rt_img.get_data()[0, 0, 0], 0)
+        assert_equal(rt_img.get_fdata()[0, 0, 0], 0)
 
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     # class for testing images
     image_class = Spm99AnalyzeImage
-    # Flag to skip bz2 save tests if they are going to break
-    bad_bz2 = bz2_mio_error()
 
     # Decorating the old way, before the team invented @
     test_data_hdr_cache = (scipy_skip(
@@ -452,7 +450,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         # Test round trip
         img.to_file_map()
         r_img = img_klass.from_file_map(fm)
-        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_fdata(), arr)
         assert_array_equal(r_img.affine, aff)
         # mat files are for matlab and have 111 voxel origins.  We need to
         # adjust for that, when loading and saving.  Check for signs of that in
@@ -480,7 +478,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
                 dict(M=np.diag([3, 4, 5, 1]), mat=np.diag([6, 7, 8, 1])))
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
-        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_fdata(), arr)
         assert_array_equal(r_img.affine,
                            np.dot(np.diag([6, 7, 8, 1]), to_111))
         # But will use M if present
@@ -488,7 +486,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         mat_fileobj.truncate(0)
         savemat(mat_fileobj, dict(M=np.diag([3, 4, 5, 1])))
         r_img = img_klass.from_file_map(fm)
-        assert_array_equal(r_img.get_data(), arr)
+        assert_array_equal(r_img.get_fdata(), arr)
         assert_array_equal(r_img.affine,
                            np.dot(np.diag([3, 4, 5, 1]), np.dot(flipper, to_111)))
 

@@ -8,7 +8,7 @@ from os.path import join as pjoin
 import nibabel as nib
 from io import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
-from nibabel.py3k import asbytes
+from numpy.compat.py3k import asbytes
 
 from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings

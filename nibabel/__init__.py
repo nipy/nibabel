@@ -9,7 +9,8 @@
 
 import os
 
-from .info import __version__, long_description as __doc__
+from .pkg_info import __version__
+from .info import long_description as __doc__
 __doc__ += """
 Quickstart
 ==========
@@ -22,7 +23,7 @@ Quickstart
    img2 = nib.load('other_file.nii.gz')
    img3 = nib.load('spm_file.img')
 
-   data = img1.get_data()
+   data = img1.get_fdata()
    affine = img1.affine
 
    print(img1)

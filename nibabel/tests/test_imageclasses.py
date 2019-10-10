@@ -6,12 +6,11 @@ import warnings
 
 import numpy as np
 
-from nibabel.optpkg import optional_package
-
 import nibabel as nib
 from nibabel.analyze import AnalyzeImage
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
+from .._h5py_compat import have_h5py
 
 from nibabel import imageclasses
 from nibabel.imageclasses import spatial_axes_first, class_map, ext_map
@@ -22,8 +21,6 @@ from nibabel.testing import clear_and_catch_warnings
 
 
 DATA_DIR = pjoin(dirname(__file__), 'data')
-
-have_h5py = optional_package('h5py')[1]
 
 MINC_3DS = ('minc1_1_scale.mnc',)
 MINC_4DS = ('minc1_4d.mnc',)

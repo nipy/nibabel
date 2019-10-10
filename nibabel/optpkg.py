@@ -1,7 +1,6 @@
 """ Routines to support optional packages """
 import pkgutil
 from distutils.version import LooseVersion
-from six import string_types
 from .tripwire import TripWire
 
 if pkgutil.find_loader('nose'):
@@ -12,7 +11,7 @@ else:
 
 def _check_pkg_version(pkg, min_version):
     # Default version checking function
-    if isinstance(min_version, string_types):
+    if isinstance(min_version, str):
         min_version = LooseVersion(min_version)
     try:
         return min_version <= pkg.__version__

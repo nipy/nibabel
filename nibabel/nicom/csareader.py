@@ -98,9 +98,9 @@ def read(csa_str):
         hdr_type = 1
     csa_dict['type'] = hdr_type
     csa_dict['n_tags'], csa_dict['check'] = up_str.unpack('2I')
-    if not 0 < csa_dict['n_tags'] <= 128:
+    if not 0 < csa_dict['n_tags'] <= MAX_CSA_ITEMS:
         raise CSAReadError('Number of tags `t` should be '
-                           '0 < t <= 128')
+                           '0 < t <= %d' % MAX_CSA_ITEMS)
     for tag_no in range(csa_dict['n_tags']):
         name, vm, vr, syngodt, n_items, last3 = \
             up_str.unpack('64si4s3i')

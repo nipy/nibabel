@@ -6,7 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 
@@ -136,7 +135,7 @@ def test_old_namespace():
         mimg = MincImage(arr, aff)
         # Call to create object created warning
         assert_equal(warns.pop(0).category, FutureWarning)
-        assert_array_equal(mimg.get_data(), arr)
+        assert_array_equal(mimg.get_fdata(), arr)
         # Another old name
         from ..minc1 import MincFile, Minc1File
         assert_false(MincFile is Minc1File)
@@ -186,20 +185,20 @@ class _TestMincFile(object):
         # Check highest level load of minc works
         for tp in self.test_files:
             img = load(tp['fname'])
-            data = img.get_data()
+            data = img.get_fdata()
             assert_equal(data.shape, tp['shape'])
             # min, max, mean values from read in SPM2 / minctools
             assert_data_similar(data, tp)
             # check if mnc can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
             assert_array_equal(ni_img.affine, tp['affine'])
-            assert_array_equal(ni_img.get_data(), data)
+            assert_array_equal(ni_img.get_fdata(), data)
 
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
             img = load(tp['fname'])
-            arr = img.get_data()
+            arr = img.get_fdata()
             prox = img.dataobj
             assert_true(prox.is_proxy)
             for sliceobj in slicer_samples(img.shape):
@@ -221,7 +220,7 @@ class TestMinc1File(_TestMincFile):
                     fobj.write(content)
                     fobj.close()
                     img = self.module.load(fname)
-                    data = img.get_data()
+                    data = img.get_fdata()
                     assert_data_similar(data, tp)
                     del img
 

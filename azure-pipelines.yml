@@ -11,6 +11,11 @@ jobs:
       py35-x64:
         PYTHON_VERSION: '3.5'
         PYTHON_ARCH: 'x64'
+      py35-h5py-check:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
+        PYTHONHASHSEED: 283137131
+        DEPENDS: "h5py==2.9.0"
       py36-x86:
         PYTHON_VERSION: '3.6'
         PYTHON_ARCH: 'x86'

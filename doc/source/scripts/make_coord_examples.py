@@ -15,7 +15,6 @@ Executing this script generates the following files in the current directory:
 * someones_epi.nii.gz (pretend single EPI volume)
 * someones_anatomy.nii.gz (pretend single subject structural)
 """
-from __future__ import division, print_function
 
 import math
 

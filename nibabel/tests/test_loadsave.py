@@ -1,6 +1,5 @@
 """ Testing loadsave module
 """
-from __future__ import print_function
 
 from os.path import dirname, join as pjoin
 import shutil
@@ -22,7 +21,6 @@ from numpy.testing import (assert_almost_equal,
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
-from ..py3k import FileNotFoundError
 
 data_path = pjoin(dirname(__file__), 'data')
 
@@ -37,7 +35,7 @@ def test_read_img_data():
                   ):
         fpath = pjoin(data_path, fname)
         img = load(fpath)
-        data = img.get_data()
+        data = img.get_fdata()
         data2 = read_img_data(img)
         assert_array_equal(data, data2)
         # These examples have null scaling - assert prefer=unscaled is the same
@@ -89,7 +87,7 @@ def test_read_img_data_nifti():
             # Load - now the scaling and offset correctly applied
             img_fname = img.file_map['image'].filename
             img_back = load(img_fname)
-            data_back = img_back.get_data()
+            data_back = img_back.get_fdata()
             assert_array_equal(data_back, read_img_data(img_back))
             # This is the same as if we loaded the image and header separately
             hdr_fname = (img.file_map['header'].filename
@@ -133,7 +131,7 @@ def test_read_img_data_nifti():
             with open(img_fname, 'ab') as fobj:
                 fobj.write(b'\x00\x00')
             img_back = load(img_fname)
-            data_back = img_back.get_data()
+            data_back = img_back.get_fdata()
             assert_array_equal(data_back, read_img_data(img_back))
             img_back.header.set_data_offset(1026)
             # Check we pick up new offset

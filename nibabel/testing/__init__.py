@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for testing '''
-from __future__ import division, print_function
 
 import re
 import os
@@ -31,7 +30,7 @@ try:
 except ImportError:
     pass
 
-from six.moves import zip_longest
+from itertools import zip_longest
 
 
 def test_data(subdir=None, fname=None):

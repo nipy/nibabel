@@ -16,13 +16,8 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 
     http://www.nitrc.org/projects/cifti
 '''
-from __future__ import division, print_function, absolute_import
 import re
-try:
-    from collections.abc import MutableSequence, MutableMapping, Iterable
-except ImportError:
-    # PY2 compatibility
-    from collections import MutableSequence, MutableMapping, Iterable
+from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
 from .. import xmlutils as xml
 from ..filebasedimages import FileBasedHeader

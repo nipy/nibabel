@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Test for image funcs '''
-from __future__ import division, print_function, absolute_import
 
 import numpy as np
 
@@ -109,7 +108,7 @@ def test_concat():
                             else:
                                 assert_false(
                                     expect_error, "Expected a concatenation error, but got none.")
-                                assert_array_equal(all_imgs.get_data(), all_data)
+                                assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
                             # check that not-matching affines raise error
@@ -124,7 +123,7 @@ def test_concat():
                             else:
                                 assert_false(
                                     expect_error, "Expected a concatenation error, but got none.")
-                                assert_array_equal(all_imgs.get_data(), all_data)
+                                assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
 
@@ -141,7 +140,7 @@ def test_closest_canonical():
     img = AnalyzeImage(arr, np.diag([-1, 1, 1, 1]))
     xyz_img = as_closest_canonical(img)
     assert_false(img is xyz_img)
-    out_arr = xyz_img.get_data()
+    out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.flipud(arr))
 
     # Now onto the NIFTI cases (where dim_info also has to be updated)
@@ -160,7 +159,7 @@ def test_closest_canonical():
     xyz_img = as_closest_canonical(img)
     assert_false(img is xyz_img)
     assert_true(img.header.get_dim_info() == xyz_img.header.get_dim_info())
-    out_arr = xyz_img.get_data()
+    out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.flipud(arr))
 
     # no error for enforce_diag in this case
@@ -186,7 +185,7 @@ def test_closest_canonical():
     # Check both the original and new objects
     assert_true(img.header.get_dim_info() == (0, 1, 2))
     assert_true(xyz_img.header.get_dim_info() == (0, 2, 1))
-    out_arr = xyz_img.get_data()
+    out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.transpose(arr, (0, 2, 1, 3)))
 
     # same axis swap but with None dim info (except for slice dim)

@@ -10,7 +10,6 @@
 """
 Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 from optparse import OptionParser, Option
@@ -126,7 +125,7 @@ def proc_file(f, opts):
     if opts.stats or opts.counts:
         # We are doomed to load data
         try:
-            d = vol.get_data()
+            d = np.asarray(vol.dataobj)
             if not opts.stats_zeros:
                 d = d[np.nonzero(d)]
             else:

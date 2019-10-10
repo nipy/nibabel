@@ -11,7 +11,6 @@ Run this benchmark with:
 
     nosetests -s --match '(?:^|[\\b_\\.//-])[Bb]ench' /path/to/bench_fileslice.py
 """
-from __future__ import division, print_function
 
 import sys
 from timeit import timeit

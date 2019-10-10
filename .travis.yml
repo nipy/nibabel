@@ -8,144 +8,118 @@ dist: xenial
 sudo: true
 language: python
 
-cache:
-  directories:
-    - $HOME/.cache/pip
+cache: pip
 env:
     global:
-        - DEPENDS="six numpy scipy matplotlib h5py pillow pydicom"
-        - OPTIONAL_DEPENDS=""
+        - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
+        - DEPENDS="numpy scipy matplotlib h5py pillow pydicom indexed_gzip"
         - INSTALL_TYPE="setup"
         - CHECK_TYPE="test"
         - EXTRA_WHEELS="https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
         - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
         - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
         - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
+
 python:
-    - 3.5
     - 3.6
     - 3.7
+
 matrix:
   include:
-    - python: 3.4
-      dist: trusty
-      sudo: false
-    # Absolute minimum dependencies
-    - python: 2.7
+    # Basic dependencies only
+    - python: 3.5
       env:
-        - DEPENDS="numpy==1.8 setuptools==30.3.0"
-    # Absolute minimum dependencies
-    - python: 2.7
+        - DEPENDS="-r requirements.txt"
+    # Clean install
+    - python: 3.5
       env:
-        - DEPENDS="numpy==1.8"
-        - CHECK_TYPE="import"
+        - DEPENDS=""
+        - CHECK_TYPE=skiptests
+    # Absolute minimum dependencies
+    - python: 3.5
+      env:
+        - SETUP_REQUIRES="setuptools==30.3.0"
+        - DEPENDS="-r min-requirements.txt"
     # Absolute minimum dependencies plus oldest MPL
-    # Check these against:
-    # nibabel/info.py
-    # doc/source/installation.rst
-    # requirements.txt
-    - python: 2.7
+    - python: 3.5
       env:
-        - DEPENDS="numpy==1.8 matplotlib==1.3.1"
+        - DEPENDS="-r min-requirements.txt matplotlib==1.3.1"
     # Minimum pydicom dependency
-    - python: 2.7
+    - python: 3.5
       env:
-        - DEPENDS="numpy==1.8 pydicom==0.9.9 pillow==2.6"
+        - DEPENDS="-r min-requirements.txt pydicom==0.9.9 pillow==2.6"
     # pydicom master branch
     - python: 3.5
       env:
         - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
-    # test 2.7 against pre-release builds of everything
-    - python: 2.7
+    # test 3.7 against pre-release builds of everything
+    - python: 3.7
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # test 3.5 against pre-release builds of everything
     - python: 3.5
       env:
-        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    - python: 2.7
-      env:
         - INSTALL_TYPE=sdist
-    - python: 2.7
+    - python: 3.5
       env:
         - INSTALL_TYPE=wheel
-    - python: 2.7
-      env:
-        - INSTALL_TYPE=requirements
-    - python: 2.7
+    - python: 3.5
       env:
         - INSTALL_TYPE=archive
-    - python: 2.7
-      env:
-        - CHECK_TYPE="style"
     - python: 3.5
       env:
         - CHECK_TYPE="style"
     # Documentation doctests
-    - python: 2.7
-      env:
-        - CHECK_TYPE="doc_doctests"
     - python: 3.5
       env:
-        - CHECK_TYPE="doc_doctests"
-    # Run tests with indexed_gzip present
-    - python: 2.7
-      env:
-        - OPTIONAL_DEPENDS="indexed_gzip"
-    - python: 3.5
-      env:
-        - OPTIONAL_DEPENDS="indexed_gzip"
+        - CHECK_TYPE="doc"
+
+# Set up virtual environment, build package, build from depends
 before_install:
-    - travis_retry python -m pip install --upgrade pip
-    - travis_retry pip install --upgrade virtualenv
+    - travis_retry python -m pip install --upgrade pip virtualenv
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - travis_retry pip install -U pip setuptools>=27.0 wheel
-    - travis_retry pip install coverage
-    - if [ "${CHECK_TYPE}" == "test" ]; then
-      travis_retry pip install nose mock;
+    - travis_retry pip install -U $SETUP_REQUIRES
+    - |
+      if [ "$INSTALL_TYPE" == "sdist" ]; then
+        python setup.py egg_info  # check egg_info while we're here
+        python setup.py sdist
+        export ARCHIVE=$( ls dist/*.tar.gz )
+      elif [ "$INSTALL_TYPE" == "wheel" ]; then
+        python setup.py bdist_wheel
+        export ARCHIVE=$( ls dist/*.whl )
+      elif [ "$INSTALL_TYPE" == "archive" ]; then
+        export ARCHIVE="package.tar.gz"
+        git archive -o $ARCHIVE HEAD
       fi
-    - if [ "${CHECK_TYPE}" == "style" ]; then
-      travis_retry pip install flake8;
-      fi
-    - travis_retry pip install $EXTRA_PIP_FLAGS $DEPENDS $OPTIONAL_DEPENDS
+    - if [ -n "$DEPENDS" ]; then pip install $EXTRA_PIP_FLAGS $DEPENDS; fi
+
 # command to install dependencies
 install:
     - |
       if [ "$INSTALL_TYPE" == "setup" ]; then
           python setup.py install
-      elif [ "$INSTALL_TYPE" == "sdist" ]; then
-          python setup_egg.py egg_info  # check egg_info while we're here
-          python setup_egg.py sdist
-          pip install $EXTRA_PIP_FLAGS dist/*.tar.gz
-      elif [ "$INSTALL_TYPE" == "wheel" ]; then
-          python setup_egg.py bdist_wheel
-          pip install $EXTRA_PIP_FLAGS dist/*.whl
-      elif [ "$INSTALL_TYPE" == "requirements" ]; then
-          pip install $EXTRA_PIP_FLAGS -r requirements.txt
-          python setup.py install
-      elif [ "$INSTALL_TYPE" == "archive" ]; then
-          git archive -o package.tar.gz HEAD
-          pip install $EXTRA_PIP_FLAGS package.tar.gz
+      else
+          pip install $EXTRA_PIP_FLAGS $ARCHIVE
       fi
+    # Basic import check
+    - python -c 'import nibabel; print(nibabel.__version__)'
+    - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
+
+before_script:
     # Point to nibabel data directory
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
+    # Because nibabel is already installed, will just look up the extra
+    - pip install $EXTRA_PIP_FLAGS "nibabel[$CHECK_TYPE]"
+
 # command to run tests, e.g. python setup.py test
 script:
     - |
       if [ "${CHECK_TYPE}" == "style" ]; then
           # Run styles only on core nibabel code.
           flake8 nibabel
-      elif [ "${CHECK_TYPE}" == "import" ]; then
-          # Import nibabel without attempting to test
-          # Allows us to check missing dependencies masked by testing libraries
-          printf 'import nibabel\nprint(nibabel.__version__)\n' > import_only.py
-          cat import_only.py
-          coverage run import_only.py
-      elif [ "${CHECK_TYPE}" == "doc_doctests" ]; then
+      elif [ "${CHECK_TYPE}" == "doc" ]; then
           cd doc
-          pip install -r ../doc-requirements.txt
           make html;
           make doctest;
       elif [ "${CHECK_TYPE}" == "test" ]; then
@@ -157,12 +131,10 @@ script:
       else
           false
       fi
-after_success:
-    - |
-      if [ "${CHECK_TYPE}" == "test" ]; then
-        travis_retry pip install codecov
-        codecov
-      fi
+
+after_script:
+    - travis_retry pip install codecov
+    - codecov
 
 notifications:
     webhooks: http://nipy.bic.berkeley.edu:54856/travis

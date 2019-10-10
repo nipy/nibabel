@@ -71,7 +71,7 @@ def test_files_interface():
     img.to_file_map()  # saves to files
     img2 = Nifti1Image.from_file_map(img.file_map)
     # img still has correct data
-    assert_array_equal(img2.get_data(), img.get_data())
+    assert_array_equal(img2.get_fdata(), img.get_fdata())
     # fileobjs - pair
     img = Nifti1Pair(arr, aff)
     img.file_map['image'].fileobj = BytesIO()
@@ -81,7 +81,7 @@ def test_files_interface():
     img.to_file_map()  # saves to files
     img2 = Nifti1Pair.from_file_map(img.file_map)
     # img still has correct data
-    assert_array_equal(img2.get_data(), img.get_data())
+    assert_array_equal(img2.get_fdata(), img.get_fdata())
 
 
 def test_round_trip_spatialimages():
@@ -99,8 +99,8 @@ def test_round_trip_spatialimages():
         img.to_file_map()
         # read it back again from the written files
         img2 = klass.from_file_map(file_map)
-        assert_array_equal(img2.get_data(), data)
+        assert_array_equal(img2.get_fdata(), data)
         # write, read it again
         img2.to_file_map()
         img3 = klass.from_file_map(file_map)
-        assert_array_equal(img3.get_data(), data)
+        assert_array_equal(img3.get_fdata(), data)

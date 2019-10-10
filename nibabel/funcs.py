@@ -79,8 +79,7 @@ def squeeze_image(img):
     if slen == len(shape):
         return klass.from_image(img)
     shape = shape[:slen]
-    data = img.get_data()
-    data = data.reshape(shape)
+    data = np.asanyarray(img.dataobj).reshape(shape)
     return klass(data,
                  img.affine,
                  img.header,
@@ -144,7 +143,7 @@ def concat_images(images, check_affines=True, axis=None):
             raise ValueError('Affine for image {0} does not match affine '
                              'for first image'.format(i))
         # Do not fill cache in image if it is empty
-        out_data[i] = img.get_data(caching='unchanged')
+        out_data[i] = np.asanyarray(img.dataobj)
 
     if axis is None:
         out_data = np.rollaxis(out_data, 0, out_data.ndim)
@@ -169,7 +168,7 @@ def four_to_three(img):
     imgs : list
        list of 3D images
     '''
-    arr = img.get_data()
+    arr = np.asanyarray(img.dataobj)
     header = img.header
     affine = img.affine
     image_maker = img.__class__

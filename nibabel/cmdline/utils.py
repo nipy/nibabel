@@ -18,8 +18,6 @@ from math import ceil
 
 import numpy as np
 
-from nibabel.py3k import asunicode
-
 verbose_level = 0
 
 
@@ -100,7 +98,7 @@ def table2string(table, out=None):
             string_ += "%%%ds%%s%%%ds " \
                        % (nspacesl, nspacesr) % ('', item, '')
         string += string_.rstrip() + '\n'
-    out.write(asunicode(string))
+    out.write(string)
 
     if print2string:
         value = out.getvalue()

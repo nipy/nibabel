@@ -9,8 +9,12 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
 Quick summary of the differences among a set of neuroimaging files
+
+Notes:
+    - difference in data types for header fields will be detected, but
+      endianness difference will not be detected. It is done so to compare files
+      with native endianness used in data files.
 """
-from __future__ import division, print_function, absolute_import
 
 import re
 import sys
@@ -99,7 +103,8 @@ def are_values_different(*values):
         if type(value0) != type(value):  # if types are different, then we consider them different
             return True
         elif isinstance(value0, np.ndarray):
-            if value0.dtype != value.dtype or \
+            # use .dtype.type to provide endianness agnostic comparison
+            if value0.dtype.type != value.dtype.type or \
                value0.shape != value.shape:
                 return True
             # there might be nans and they need special treatment

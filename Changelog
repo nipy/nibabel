@@ -25,6 +25,33 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
+2.5.1 (Monday 23 September 2019)
+================================
+
+Enhancements
+------------
+* Ignore endianness in ``nib-diff`` if values match (pr/799) (YOH, reviewed
+  by CM)
+
+Bug fixes
+---------
+* Correctly handle Philips DICOMs w/ derived volume (pr/795) (Mathias
+  Goncalves, reviewed by CM)
+* Raise CSA tag limit to 1000, parametrize for future relaxing (pr/798,
+  backported to 2.5.x in pr/800) (Henry Braun, reviewed by CM, MB)
+* Coerce data types to match NIfTI intent codes when writing GIFTI data
+  arrays (pr/806) (CM, reported by Tom Holroyd)
+
+Maintenance
+-----------
+* Require h5py 2.10 for Windows + Python < 3.6 to resolve unexpected dtypes
+  in Minc2 data (pr/804) (CM, reviewed by YOH)
+
+API changes and deprecations
+----------------------------
+* Deprecate ``nicom.dicomwrappers.Wrapper.get_affine()`` in favor of ``affine``
+  property; final removal in nibabel 4.0 (pr/796) (YOH, reviewed by CM)
+
 2.5.0 (Sunday 4 August 2019)
 ============================
 

@@ -13,13 +13,8 @@ Copyright (c) 2009, Raymond Hettinger, and others All rights reserved.
 License: BSD-3
 """
 
-from __future__ import absolute_import
 
-try:
-    from collections.abc import MutableSet
-except ImportError:
-    # PY2 compatibility
-    from collections import MutableSet
+from collections.abc import MutableSet
 
 KEY, PREV, NEXT = range(3)
 

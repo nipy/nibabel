@@ -27,14 +27,12 @@ exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
 am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
-from __future__ import print_function, division
 
 from copy import deepcopy
 import os
 import re
 
 import numpy as np
-from six import string_types
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
@@ -204,7 +202,7 @@ def parse_AFNI_header(fobj):
     [1, 1, 1]
     """
     # edge case for being fed a filename instead of a file object
-    if isinstance(fobj, string_types):
+    if isinstance(fobj, str):
         with open(fobj, 'rt') as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
@@ -488,7 +486,7 @@ class AFNIImage(SpatialImage):
            [  0.    ,   0.    ,   3.    , -52.3511],
            [  0.    ,   0.    ,   0.    ,   1.    ]])
     >>> head = load(os.path.join(datadir, 'example4d+orig.HEAD'))
-    >>> np.array_equal(head.get_data(), brik.get_data())
+    >>> np.array_equal(head.get_fdata(), brik.get_fdata())
     True
     """
 

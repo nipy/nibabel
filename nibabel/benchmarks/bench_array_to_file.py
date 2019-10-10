@@ -13,7 +13,6 @@ Run this benchmark with:
 
     nosetests -s --match '(?:^|[\\b_\\.//-])[Bb]ench' /path/to/bench_load_save.py
 """
-from __future__ import division, print_function
 
 import sys
 from io import BytesIO  # NOQA

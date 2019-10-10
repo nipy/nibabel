@@ -130,8 +130,6 @@ def test_ice_dims():
 
 
 @dicom_test
-@skipif(sys.version_info < (2,7) and pydicom.__version__ < '1.0',
-        'Known issue for python 2.6 and pydicom < 1.0')
 def test_missing_csa_elem():
     # Test that we get None instead of raising an Exception when the file has
     # the PrivateCreator element for the CSA dict but not the element with the

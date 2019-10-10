@@ -4,7 +4,6 @@
 
 Test running scripts
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 import os
@@ -217,7 +216,7 @@ def check_conversion(cmd, pr_data, out_fname):
     img = load(out_fname)
     # Check orientations always LAS
     assert_equal(aff2axcodes(img.affine), tuple('LAS'))
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
     assert_true(np.allclose(img.header['cal_max'], data.max()))
@@ -225,21 +224,21 @@ def check_conversion(cmd, pr_data, out_fname):
     # Check minmax options
     run_command(cmd + ['--minmax', '1', '2'])
     img = load(out_fname)
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], 1))
     assert_true(np.allclose(img.header['cal_max'], 2))
     del img, data  # for windows
     run_command(cmd + ['--minmax', 'parse', '2'])
     img = load(out_fname)
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
     assert_true(np.allclose(img.header['cal_max'], 2))
     del img, data  # for windows
     run_command(cmd + ['--minmax', '1', 'parse'])
     img = load(out_fname)
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], 1))
     assert_true(np.allclose(img.header['cal_max'], data.max()))
@@ -261,7 +260,7 @@ def test_parrec2nii():
             assert_equal(img.shape, eg_dict['shape'])
             assert_dt_equal(img.get_data_dtype(), eg_dict['dtype'])
             # Check against values from Philips converted nifti image
-            data = img.get_data()
+            data = img.get_fdata()
             assert_data_similar(data, eg_dict)
             assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
             # Standard save does not save extensions
@@ -274,7 +273,7 @@ def test_parrec2nii():
             assert_equal(code, 1)
             # Default scaling is dv
             pr_img = load(fname)
-            flipped_data = flip_axis(pr_img.get_data(), 1)
+            flipped_data = flip_axis(pr_img.get_fdata(), 1)
             base_cmd = ['parrec2nii', '--overwrite', fname]
             check_conversion(base_cmd, flipped_data, out_froot)
             check_conversion(base_cmd + ['--scaling=dv'],
@@ -282,7 +281,7 @@ def test_parrec2nii():
                              out_froot)
             # fp
             pr_img = load(fname, scaling='fp')
-            flipped_data = flip_axis(pr_img.get_data(), 1)
+            flipped_data = flip_axis(pr_img.get_fdata(), 1)
             check_conversion(base_cmd + ['--scaling=fp'],
                              flipped_data,
                              out_froot)
@@ -357,7 +356,7 @@ def test_parrec2nii_with_data():
         bvals_trace = np.loadtxt('DTI.bvals')
         assert_almost_equal(bvals_trace, DTI_PAR_BVALS)
         img = load('DTI.nii')
-        data = img.get_data().copy()
+        data = img.get_fdata()
         del img
         # Bvecs in header, transposed from PSL to LPS
         bvecs_LPS = DTI_PAR_BVECS[:, [2, 0, 1]]
@@ -385,7 +384,7 @@ def test_parrec2nii_with_data():
         img = load('DTI.nii')
         bvecs_notrace = np.loadtxt('DTI.bvecs').T
         bvals_notrace = np.loadtxt('DTI.bvals')
-        data_notrace = img.get_data().copy()
+        data_notrace = img.get_fdata()
         assert_equal(data_notrace.shape[-1], len(bvecs_notrace))
         del img
         # ensure correct volume was removed
@@ -400,7 +399,7 @@ def test_parrec2nii_with_data():
         # strict-sort: bvals should be in ascending order
         assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
         img = load('DTI.nii')
-        data_sorted = img.get_data().copy()
+        data_sorted = img.get_fdata()
         assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
         del img
 

@@ -2,11 +2,8 @@
 
 See docstring of :mod:`nibabel.arraywriters` for API.
 """
-from __future__ import division, print_function, absolute_import
 
-import sys
 from platform import python_compiler, machine
-from distutils.version import LooseVersion
 import itertools
 import numpy as np
 
@@ -33,8 +30,6 @@ UINT_TYPES = np.sctypes['uint']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
-
-NP_VERSION = LooseVersion(np.__version__)
 
 
 def round_trip(writer, order='F', apply_scale=True):
@@ -66,29 +61,14 @@ def test_arraywriters():
             assert_array_equal(arr, round_trip(aw))
             # Byteswapped should be OK
             bs_arr = arr.byteswap().newbyteorder('S')
-            # Except on some numpies for complex256, where the array does not
-            # equal itself
-            if not np.all(bs_arr == arr):
-                assert_true(NP_VERSION <= LooseVersion('1.7.0'))
-                assert_true(on_powerpc())
-                assert_true(type == np.complex256)
-            else:
-                bs_aw = klass(bs_arr)
-                bs_aw_rt = round_trip(bs_aw)
-                # On Ubuntu 13.04 with python 3.3 __eq__ comparison on
-                # arrays with complex numbers fails here for some
-                # reason -- not our fault, and to test correct operation we
-                # will just compare element by element
-                if NP_VERSION == '1.7.1' and sys.version_info[:2] == (3, 3):
-                    assert_array_equal_ = lambda x, y: np.all([x_ == y_ for x_, y_ in zip(x, y)])
-                else:
-                    assert_array_equal_ = assert_array_equal
-                # assert against original array because POWER7 was running into
-                # trouble using the byteswapped array (bs_arr)
-                assert_array_equal_(arr, bs_aw_rt)
-                bs_aw2 = klass(bs_arr, arr.dtype)
-                bs_aw2_rt = round_trip(bs_aw2)
-                assert_array_equal(arr, bs_aw2_rt)
+            bs_aw = klass(bs_arr)
+            bs_aw_rt = round_trip(bs_aw)
+            # assert against original array because POWER7 was running into
+            # trouble using the byteswapped array (bs_arr)
+            assert_array_equal(arr, bs_aw_rt)
+            bs_aw2 = klass(bs_arr, arr.dtype)
+            bs_aw2_rt = round_trip(bs_aw2)
+            assert_array_equal(arr, bs_aw2_rt)
             # 2D array
             arr2 = np.reshape(arr, (2, 5))
             a2w = klass(arr2)

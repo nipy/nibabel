@@ -1,31 +1,75 @@
-import os
 import sys
-import subprocess
-try:
-    from ConfigParser import RawConfigParser as ConfigParser
-except ImportError:
-    from configparser import RawConfigParser as ConfigParser  # python 3
+import re
+from distutils.version import StrictVersion
+from . import _version
 
-COMMIT_INFO_FNAME = 'COMMIT_INFO.txt'
+__version__ = _version.get_versions()['version']
 
 
-def pkg_commit_hash(pkg_path):
-    ''' Get short form of commit hash given directory `pkg_path`
+def _parse_version(version_str):
+    """ Parse version string `version_str` in our format
+    """
+    match = re.match(r'([0-9.]*\d)(.*)', version_str)
+    if match is None:
+        raise ValueError('Invalid version ' + version_str)
+    return match.groups()
 
-    There should be a file called 'COMMIT_INFO.txt' in `pkg_path`.  This is a
-    file in INI file format, with at least one section: ``commit hash``, and
-    two variables ``archive_subst_hash`` and ``install_hash``.  The first has a
-    substitution pattern in it which may have been filled by the execution of
-    ``git archive`` if this is an archive generated that way.  The second is
-    filled in by the installation, if the installation is from a git archive.
 
-    We get the commit hash from (in order of preference):
+def _cmp(a, b):
+    """ Implementation of ``cmp`` for Python 3
+    """
+    return (a > b) - (a < b)
 
-    * A substituted value in ``archive_subst_hash``
-    * A written commit hash value in ``install_hash`
-    * git's output, if we are in a git repository
 
-    If all these fail, we return a not-found placeholder tuple
+def cmp_pkg_version(version_str, pkg_version_str=__version__):
+    """ Compare `version_str` to current package version
+
+    To be valid, a version must have a numerical major version followed by a
+    dot, followed by a numerical minor version.  It may optionally be followed
+    by a dot and a numerical micro version, and / or by an "extra" string.
+    *Any* extra string labels the version as pre-release, so `1.2.0somestring`
+    compares as prior to (pre-release for) `1.2.0`, where `somestring` can be
+    any string.
+
+    Parameters
+    ----------
+    version_str : str
+        Version string to compare to current package version
+    pkg_version_str : str, optional
+        Version of our package.  Optional, set fom ``__version__`` by default.
+
+    Returns
+    -------
+    version_cmp : int
+        1 if `version_str` is a later version than `pkg_version_str`, 0 if
+        same, -1 if earlier.
+
+    Examples
+    --------
+    >>> cmp_pkg_version('1.2.1', '1.2.0')
+    1
+    >>> cmp_pkg_version('1.2.0dev', '1.2.0')
+    -1
+    """
+    version, extra = _parse_version(version_str)
+    pkg_version, pkg_extra = _parse_version(pkg_version_str)
+    if version != pkg_version:
+        return _cmp(StrictVersion(version), StrictVersion(pkg_version))
+    return (0 if extra == pkg_extra
+            else 1 if extra == ''
+            else -1 if pkg_extra == ''
+            else _cmp(extra, pkg_extra))
+
+
+def pkg_commit_hash(pkg_path=None):
+    ''' Get short form of commit hash
+
+    Versioneer placed a ``_version.py`` file in the package directory. This file
+    gets updated on installation or ``git archive``.
+    We inspect the contents of ``_version`` to detect whether we are in a
+    repository, an archive of the repository, or an installed package.
+
+    If detection fails, we return a not-found placeholder tuple
 
     Parameters
     ----------
@@ -39,27 +83,17 @@ def pkg_commit_hash(pkg_path):
     hash_str : str
        short form of hash
     '''
-    # Try and get commit from written commit text file
-    pth = os.path.join(pkg_path, COMMIT_INFO_FNAME)
-    if not os.path.isfile(pth):
-        raise IOError('Missing commit info file %s' % pth)
-    cfg_parser = ConfigParser()
-    cfg_parser.read(pth)
-    archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
-    if not archive_subst.startswith('$Format'):  # it has been substituted
-        return 'archive substitution', archive_subst
-    install_subst = cfg_parser.get('commit hash', 'install_hash')
-    if install_subst != '':
-        return 'installation', install_subst
-    # maybe we are in a repository
-    proc = subprocess.Popen('git rev-parse --short HEAD',
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd=pkg_path, shell=True)
-    repo_commit, _ = proc.communicate()
-    if repo_commit:
-        return 'repository', repo_commit.strip()
-    return '(none found)', '<not found>'
+    versions = _version.get_versions()
+    hash_str = versions['full-revisionid'][:7]
+    if hasattr(_version, 'version_json'):
+        hash_from = 'installation'
+    elif not _version.get_keywords()['full'].startswith('$Format:'):
+        hash_from = 'archive substitution'
+    elif versions['version'] == '0+unknown':
+        hash_from, hash_str = '(none found)', '<not found>'
+    else:
+        hash_from = 'repository'
+    return hash_from, hash_str
 
 
 def get_pkg_info(pkg_path):
@@ -75,7 +109,7 @@ def get_pkg_info(pkg_path):
     context : dict
        with named parameters of interest
     '''
-    src, hsh = pkg_commit_hash(pkg_path)
+    src, hsh = pkg_commit_hash()
     import numpy
     return dict(
         pkg_path=pkg_path,

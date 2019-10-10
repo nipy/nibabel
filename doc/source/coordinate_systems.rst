@@ -215,7 +215,7 @@ From scanner to subject
 
 If the subject is lying in the usual position for a brain scan, face up
 and head first in the scanner, then scanner-left/right is also the left-right
-axis of the subject's head, scanner-floor/ceiling is the anterior-posterior
+axis of the subject's head, scanner-floor/ceiling is the posterior-anterior
 axis of the head and scanner-bore is the inferior-superior axis of the head.
 
 Sometimes the subject is not lying in the standard position.  For example, the
@@ -231,14 +231,14 @@ position of the subject.  The most common subject-centered scanner coordinate
 system in neuroimaging is called "scanner RAS" (right, anterior, superior).
 Here the scanner axes are reordered and flipped so that the first axis is the
 scanner axis that is closest to the left to right axis of the subject, the
-second is the closest scanner axis to the anterior-posterior axis of the
+second is the closest scanner axis to the posterior-anterior axis of the
 subject, and the third is the closest scanner axis to the inferior-superior
 axis of the subject.  For example, if the subject was lying face to the right
 in the scanner, then the first (X) axis of the reference system would be
 scanner-floor/ceiling, but reversed so that positive values are towards the
 floor.  This axis goes from left to right in the subject, with positive values
 to the right.  The second (Y) axis would be scanner-left/right
-(anterior-posterior in the subject), and the Z axis would be scanner-bore
+(posterior-anterior in the subject), and the Z axis would be scanner-bore
 (inferior-superior).
 
 Naming reference spaces

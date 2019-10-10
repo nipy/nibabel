@@ -1,12 +1,11 @@
 """ Utilities for getting array slices out of file-like objects
 """
-from __future__ import division
 
 import operator
 from numbers import Integral
 from mmap import mmap
 
-from six.moves import reduce
+from functools import reduce
 
 import numpy as np
 

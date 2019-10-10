@@ -3,7 +3,6 @@
 
 Should be run from nibabel root (containing setup.py)
 """
-from __future__ import print_function
 
 import os
 import runpy

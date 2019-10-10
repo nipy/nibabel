@@ -2,12 +2,7 @@ import copy
 import numbers
 import numpy as np
 from warnings import warn
-
-try:
-    from collections.abc import MutableMapping
-except ImportError:
-    # PY2 compatibility
-    from collections import MutableMapping
+from collections.abc import MutableMapping
 
 from nibabel.affines import apply_affine
 

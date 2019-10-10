@@ -173,7 +173,7 @@ class Minc1File(object):
             applied to `data`
         """
         ddt = self.get_data_dtype()
-        if ddt.type in np.sctypes['float']:
+        if np.issubdtype(ddt.type, np.floating):
             return data
         image_max = self._image_max
         image_min = self._image_min

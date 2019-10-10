@@ -15,7 +15,7 @@ from nibabel.cmdline.diff import *
 from os.path import (join as pjoin)
 from nibabel.testing import data_path
 from collections import OrderedDict
-from six import StringIO
+from io import StringIO
 
 
 def test_table2string():

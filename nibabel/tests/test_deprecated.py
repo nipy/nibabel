@@ -3,7 +3,7 @@
 
 import warnings
 
-from nibabel import info
+from nibabel import pkg_info
 from nibabel.deprecated import (ModuleProxy, FutureWarningMixin,
                                 deprecate_with_version)
 
@@ -14,12 +14,12 @@ from nibabel.tests.test_deprecator import TestDeprecatorFunc as _TestDF
 
 def setup():
     # Hack nibabel version string
-    info.cmp_pkg_version.__defaults__ = ('2.0',)
+    pkg_info.cmp_pkg_version.__defaults__ = ('2.0',)
 
 
 def teardown():
     # Hack nibabel version string back again
-    info.cmp_pkg_version.__defaults__ = (info.__version__,)
+    pkg_info.cmp_pkg_version.__defaults__ = (pkg_info.__version__,)
 
 
 def test_module_proxy():
@@ -76,8 +76,8 @@ def test_dev_version():
         return 99
 
     try:
-        info.cmp_pkg_version.__defaults__ = ('2.0dev',)
+        pkg_info.cmp_pkg_version.__defaults__ = ('2.0dev',)
         # No error, even though version is dev version of current
         assert_equal(func(), 99)
     finally:
-        info.cmp_pkg_version.__defaults__ = ('2.0',)
+        pkg_info.cmp_pkg_version.__defaults__ = ('2.0',)
