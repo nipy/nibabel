@@ -27,6 +27,7 @@ What is the image API?
 import warnings
 from functools import partial
 from itertools import product
+import pathlib
 
 import numpy as np
 
@@ -144,19 +145,21 @@ class GenericImageAPI(ValidateAPI):
         assert_almost_equal(img.get_data(), rt_rt_img.get_data())
         # get_ / set_ filename
         fname = 'an_image' + self.standard_extension
-        img.set_filename(fname)
-        assert_equal(img.get_filename(), fname)
-        assert_equal(img.file_map['image'].filename, fname)
+        for path in (fname, pathlib.Path(fname)):
+            img.set_filename(path)
+            assert_equal(img.get_filename(), path)
+            assert_equal(img.file_map['image'].filename, path)
         # to_ / from_ filename
         fname = 'another_image' + self.standard_extension
-        with InTemporaryDirectory():
-            img.to_filename(fname)
-            rt_img = img.__class__.from_filename(fname)
-            assert_array_equal(img.shape, rt_img.shape)
-            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-            # get_data will be deprecated
-            assert_almost_equal(img.get_data(), rt_img.get_data())
-            del rt_img  # to allow windows to delete the directory
+        for path in (fname, pathlib.Path(fname)):
+            with InTemporaryDirectory():
+                img.to_filename(path)
+                rt_img = img.__class__.from_filename(path)
+                assert_array_equal(img.shape, rt_img.shape)
+                assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+                # get_data will be deprecated
+                assert_almost_equal(img.get_data(), rt_img.get_data())
+                del rt_img  # to allow windows to delete the directory
 
     def validate_no_slicing(self, imaker, params):
         img = imaker()

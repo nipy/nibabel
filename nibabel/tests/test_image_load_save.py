@@ -12,6 +12,7 @@ from io import BytesIO
 import shutil
 from os.path import dirname, join as pjoin
 from tempfile import mkdtemp
+import pathlib
 
 import numpy as np
 
@@ -253,13 +254,14 @@ def test_filename_save():
         try:
             pth = mkdtemp()
             fname = pjoin(pth, 'image' + out_ext)
-            nils.save(img, fname)
-            rt_img = nils.load(fname)
-            assert_array_almost_equal(rt_img.get_data(), data)
-            assert_true(type(rt_img) is loadklass)
-            # delete image to allow file close.  Otherwise windows
-            # raises an error when trying to delete the directory
-            del rt_img
+            for path in (fname, pathlib.Path(fname)):
+                nils.save(img, path)
+                rt_img = nils.load(path)
+                assert_array_almost_equal(rt_img.get_data(), data)
+                assert_true(type(rt_img) is loadklass)
+                # delete image to allow file close.  Otherwise windows
+                # raises an error when trying to delete the directory
+                del rt_img
         finally:
             shutil.rmtree(pth)
 

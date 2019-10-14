@@ -3,6 +3,7 @@
 
 from os.path import dirname, join as pjoin
 import shutil
+import pathlib
 
 import numpy as np
 
@@ -26,13 +27,16 @@ data_path = pjoin(dirname(__file__), 'data')
 
 
 def test_read_img_data():
-    for fname in ('example4d.nii.gz',
-                  'example_nifti2.nii.gz',
-                  'minc1_1_scale.mnc',
-                  'minc1_4d.mnc',
-                  'test.mgz',
-                  'tiny.mnc'
-                  ):
+    fnames_test = [
+        'example4d.nii.gz',
+        'example_nifti2.nii.gz',
+        'minc1_1_scale.mnc',
+        'minc1_4d.mnc',
+        'test.mgz',
+        'tiny.mnc'
+    ]
+    fnames_test += [pathlib.Path(p) for p in fnames_test]
+    for fname in fnames_test:
         fpath = pjoin(data_path, fname)
         img = load(fpath)
         data = img.get_data()
