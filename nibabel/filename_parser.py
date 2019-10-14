@@ -9,11 +9,6 @@
 ''' Create filename pairs, triplets etc, with expected extensions '''
 
 import os
-try:
-    basestring
-except NameError:
-    basestring = str
-
 import pathlib
 
 
@@ -112,7 +107,7 @@ def types_filenames(template_fname, types_exts,
     >>> tfns == {'t1': '/path/test.funny', 't2': '/path/test.ext2'}
     True
     '''
-    if not isinstance(template_fname, basestring):
+    if not isinstance(template_fname, str):
         raise TypesFilenamesError('Need file name as input '
                                   'to set_filenames')
     if template_fname.endswith('.'):
