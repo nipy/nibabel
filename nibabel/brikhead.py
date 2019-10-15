@@ -85,8 +85,8 @@ class AFNIHeaderError(HeaderDataError):
 
 
 DATA_OFFSET = 0
-TYPE_RE = re.compile('type\s*=\s*(string|integer|float)-attribute\s*\n')
-NAME_RE = re.compile('name\s*=\s*(\w+)\s*\n')
+TYPE_RE = re.compile(r'type\s*=\s*(string|integer|float)-attribute\s*\n')
+NAME_RE = re.compile(r'name\s*=\s*(\w+)\s*\n')
 
 
 def _unpack_var(var):
