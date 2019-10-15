@@ -96,7 +96,7 @@ def load(fileobj, lazy_load=False):
 
 
 def save(tractogram, filename, **kwargs):
-    """ Saves a tractogram to a file.
+    r""" Saves a tractogram to a file.
 
     Parameters
     ----------

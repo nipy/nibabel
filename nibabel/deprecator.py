@@ -5,7 +5,7 @@ import functools
 import warnings
 import re
 
-_LEADING_WHITE = re.compile('^(\s*)')
+_LEADING_WHITE = re.compile(r'^(\s*)')
 
 
 class ExpiredDeprecationError(RuntimeError):
