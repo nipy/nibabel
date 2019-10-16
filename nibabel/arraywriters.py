@@ -50,7 +50,7 @@ class ScalingError(WriterError):
 class ArrayWriter(object):
 
     def __init__(self, array, out_dtype=None, **kwargs):
-        """ Initialize array writer
+        r""" Initialize array writer
 
         Parameters
         ----------
@@ -247,7 +247,7 @@ class SlopeArrayWriter(ArrayWriter):
 
     def __init__(self, array, out_dtype=None, calc_scale=True,
                  scaler_dtype=np.float32, **kwargs):
-        """ Initialize array writer
+        r""" Initialize array writer
 
         Parameters
         ----------
@@ -478,7 +478,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
     def __init__(self, array, out_dtype=None, calc_scale=True,
                  scaler_dtype=np.float32, **kwargs):
-        """ Initialize array writer
+        r""" Initialize array writer
 
         Parameters
         ----------
@@ -751,7 +751,7 @@ def get_slope_inter(writer):
 
 def make_array_writer(data, out_type, has_slope=True, has_intercept=True,
                       **kwargs):
-    """ Make array writer instance for array `data` and output type `out_type`
+    r""" Make array writer instance for array `data` and output type `out_type`
 
     Parameters
     ----------
