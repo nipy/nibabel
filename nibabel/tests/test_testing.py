@@ -158,7 +158,7 @@ def test_test_data():
                  os.path.abspath(os.path.join(os.path.dirname(__file__),
                                               '..', 'tests', 'data')))
     for subdir in ('nicom', 'gifti', 'externals'):
-        assert_equal(test_data(subdir), data_path[:-10] + '%s/tests/data' % subdir)
+        assert_equal(test_data(subdir), os.path.join(data_path[:-10], subdir, 'tests', 'data'))
         assert_true(os.path.exists(test_data(subdir)))
         assert_false(os.path.exists(test_data(subdir, 'doesnotexist')))
 
