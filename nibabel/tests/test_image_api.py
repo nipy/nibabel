@@ -144,8 +144,8 @@ class GenericImageAPI(ValidateAPI):
         fname = 'an_image' + self.standard_extension
         for path in (fname, pathlib.Path(fname)):
             img.set_filename(path)
-            assert_equal(img.get_filename(), path)
-            assert_equal(img.file_map['image'].filename, path)
+            assert_equal(img.get_filename(), str(path))
+            assert_equal(img.file_map['image'].filename, str(path))
         # to_ / from_ filename
         fname = 'another_image' + self.standard_extension
         for path in (fname, pathlib.Path(fname)):

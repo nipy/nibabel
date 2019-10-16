@@ -259,7 +259,7 @@ def test_filename_save():
             for path in (fname, pathlib.Path(fname)):
                 nils.save(img, path)
                 rt_img = nils.load(path)
-                assert_array_almost_equal(rt_img.get_data(), data)
+                assert_array_almost_equal(rt_img.get_fdata(), data)
                 assert_true(type(rt_img) is loadklass)
                 # delete image to allow file close.  Otherwise windows
                 # raises an error when trying to delete the directory
