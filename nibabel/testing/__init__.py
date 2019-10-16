@@ -35,9 +35,9 @@ from itertools import zip_longest
 
 def test_data(subdir=None, fname=None):
     if subdir is None:
-        resource = 'tests/data'
+        resource = os.path.join('tests', 'data')
     elif subdir in ('gifti', 'nicom', 'externals'):
-        resource = '%s/tests/data' % subdir
+        resource = os.path.join(subdir, 'tests', 'data')
     else:
         raise ValueError("Unknown test data directory: %s" % subdir)
 
