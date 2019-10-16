@@ -684,7 +684,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         In the general case, the numpy data array is extracted from each ``GiftiDataArray``
         object and returned in a ``tuple``, in the order they are found in the GIFTI image.
-        
+
         If all ``GiftiDataArray`` s have ``intent`` of 2001 (``NIFTI_INTENT_TIME_SERIES``),
         then the data arrays are concatenated as columns, producing a vertex-by-time array.
         If an ``intent_code`` is passed, data arrays are filtered by the selected intents,
@@ -715,57 +715,71 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         >>> from nibabel.testing import test_data
         >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
         >>> surf_gii_img = nib.load(surf_gii_fname)
-        >>> func_gii_fname = test_data('gifti', 'sub-01_task-rhymejudgment_space-xformspaceverage3_hemi-L.func.gii')
+        >>> func_gii_fname = test_data('gifti', 'sub-01_task-rhymejudgment_space-fsaverage3_hemi-L.func.gii')
         >>> func_gii_img = nib.load(func_gii_fname)
 
         When not passing anything to ``intent_code``
 
         >>> surf_gii_img.agg_data()  # surface file
         (array([[-16.07201 , -66.187515,  21.266994],
-        [-16.705893, -66.05434 ,  21.232786],
-        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32),
-        array([0, 1, 2], dtype=int32))
+               [-16.705893, -66.05434 ,  21.232786],
+               [-17.61435 , -65.40164 ,  21.071466]], dtype=float32), array([0, 1, 2], dtype=int32))
         >>> func_gii_img.agg_data()  # functional file
-        array([[545.4326  , 535.8471  , 537.5014  , ..., 540.2762  , 539.53827 ,
-        ...,
-        [268.6521  , 262.0212  , 259.06717 , ..., 262.5381  , 257.8245  ,
-        259.7127  ]], dtype=float32)
+        array([[ 545.4326  ,  535.8471  ,  537.5014  , ...,  540.2762  ,
+                 539.53827 ,  541.3617  ],
+               [ 640.0118  ,  634.727   ,  630.03784 , ...,  635.21936 ,
+                 641.19586 ,  638.7647  ],
+               [ 612.9056  ,  607.3228  ,  606.1355  , ...,  608.2441  ,
+                 615.8239  ,  613.0585  ],
+               ..., 
+               [ 101.28482 ,  101.41192 ,   99.21213 , ...,  100.47232 ,
+                  99.258316,   99.440796],
+               [ 371.81592 ,  367.02896 ,  363.90207 , ...,  365.52597 ,
+                 363.44937 ,  363.10278 ],
+               [ 268.6521  ,  262.0212  ,  259.06717 , ...,  262.5381  ,
+                 257.8245  ,  259.7127  ]], dtype=float32)
 
         When passig matching intend codes ``intent_code``
 
-        >>> surf_gii_img.agg_data('pointset')  # surface pointset 
+        >>> surf_gii_img.agg_data('pointset')  # surface pointset
         array([[-16.07201 , -66.187515,  21.266994],
-        [-16.705893, -66.05434 ,  21.232786],
-        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32)
+               [-16.705893, -66.05434 ,  21.232786],
+               [-17.61435 , -65.40164 ,  21.071466]], dtype=float32)
         >>> surf_gii_img.agg_data('triangle')  # surface triangle
         array([0, 1, 2], dtype=int32)
         >>> func_gii_img.agg_data('time series')  # functional file
-        array([[545.4326  , 535.8471  , 537.5014  , ..., 540.2762  , 539.53827 ,
-        541.3617  ],
-        ...,
-        [268.6521  , 262.0212  , 259.06717 , ..., 262.5381  , 257.8245  ,
-        259.7127  ]], dtype=float32)
-
+        array([[ 545.4326  ,  535.8471  ,  537.5014  , ...,  540.2762  ,
+                 539.53827 ,  541.3617  ],
+               [ 640.0118  ,  634.727   ,  630.03784 , ...,  635.21936 ,
+                 641.19586 ,  638.7647  ],
+               [ 612.9056  ,  607.3228  ,  606.1355  , ...,  608.2441  ,
+                 615.8239  ,  613.0585  ],
+               ..., 
+               [ 101.28482 ,  101.41192 ,   99.21213 , ...,  100.47232 ,
+                  99.258316,   99.440796],
+               [ 371.81592 ,  367.02896 ,  363.90207 , ...,  365.52597 ,
+                 363.44937 ,  363.10278 ],
+               [ 268.6521  ,  262.0212  ,  259.06717 , ...,  262.5381  ,
+                 257.8245  ,  259.7127  ]], dtype=float32)
 
         When passing mismatching ``intent_code``, the function return a empty ``tuple``
 
         >>> surf_gii_img.agg_data('time series')
         ()
-        >>> func_gii_img.agg_data('triangle') 
+        >>> func_gii_img.agg_data('triangle')
         ()
 
-        When passing tuple ``intent_code``, the output will follow 
+        When passing tuple ``intent_code``, the output will follow
         the order of ``intent_code`` in the tuple
 
         >>> surf_gii_img.agg_data(('pointset', 'triangle'))
         (array([[-16.07201 , -66.187515,  21.266994],
-        [-16.705893, -66.05434 ,  21.232786],
-        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32),
-        array([0, 1, 2], dtype=int32))
+               [-16.705893, -66.05434 ,  21.232786],
+               [-17.61435 , -65.40164 ,  21.071466]], dtype=float32), array([0, 1, 2], dtype=int32))
         >>> surf_gii_img.agg_data(('triangle', 'pointset'))
         (array([0, 1, 2], dtype=int32), array([[-16.07201 , -66.187515,  21.266994],
-        [-16.705893, -66.05434 ,  21.232786],
-        [-17.61435 , -65.40164 ,  21.071466]], dtype=float32))
+               [-16.705893, -66.05434 ,  21.232786],
+               [-17.61435 , -65.40164 ,  21.071466]], dtype=float32))
         """
 
         # Allow multiple intents to specify the order
