@@ -25,7 +25,7 @@ def load(filename, **kwargs):
 
     Parameters
     ----------
-    filename : string
+    filename : str or os.PathLike
        specification of file to load
     \*\*kwargs : keyword arguments
         Keyword arguments to format-specific load
@@ -89,7 +89,7 @@ def save(img, filename):
     ----------
     img : ``SpatialImage``
        image to save
-    filename : str
+    filename : str or os.PathLike
        filename (often implying filenames) to which to save `img`.
 
     Returns
