@@ -21,7 +21,7 @@ def _stringify_path(filepath_or_buffer):
 
     Parameters
     ----------
-    filepath_or_buffer : object to be converted
+    filepath_or_buffer : str or os.PathLike
     Returns
     -------
     str_filepath_or_buffer : maybe a string version of the object
@@ -56,7 +56,7 @@ def types_filenames(template_fname, types_exts,
 
     Parameters
     ----------
-    template_fname : str
+    template_fname : str or os.PathLike
        template filename from which to construct output dict of
        filenames, with given `types_exts` type to extension mapping.  If
        ``self.enforce_extensions`` is True, then filename must have one
@@ -177,7 +177,7 @@ def parse_filename(filename,
 
     Parameters
     ----------
-    filename : str
+    filename : str or os.PathLike
        filename in which to search for type extensions
     types_exts : sequence of sequences
        sequence of (name, extension) str sequences defining type to
@@ -260,7 +260,7 @@ def splitext_addext(filename,
 
     Parameters
     ----------
-    filename : str
+    filename : str or os.PathLike
        filename that may end in any or none of `addexts`
     match_case : bool, optional
        If True, match case of `addexts` and `filename`, otherwise do

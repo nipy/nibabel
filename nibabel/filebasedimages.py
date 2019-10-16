@@ -246,7 +246,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
            If the image format only has one file associated with it,
            this will be the only filename set into the image
            ``.file_map`` attribute. Otherwise, the image instance will
@@ -279,7 +279,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filespec : str
+        filespec : str or os.PathLike
             Filename that might be for this image file type.
 
         Returns
@@ -321,7 +321,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
            filename to which to save image.  We will parse `filename`
            with ``filespec_to_file_map`` to work out names for image,
            header etc.
@@ -419,7 +419,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
             Filename for an image, or an image header (metadata) file.
             If `filename` points to an image data file, and the image type has
             a separate "header" file, we work out the name of the header file,
@@ -466,7 +466,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
             Filename for an image, or an image header (metadata) file.
             If `filename` points to an image data file, and the image type has
             a separate "header" file, we work out the name of the header file,
