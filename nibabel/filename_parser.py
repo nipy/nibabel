@@ -22,6 +22,7 @@ def _stringify_path(filepath_or_buffer):
     Parameters
     ----------
     filepath_or_buffer : str or os.PathLike
+
     Returns
     -------
     str_filepath_or_buffer : maybe a string version of the object
