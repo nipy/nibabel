@@ -788,7 +788,7 @@ class EcatImage(SpatialImage):
         >>> frame0 = img.get_frame(0)
         >>> frame0.shape == (10, 10, 3)
         True
-        >>> data4d = img.get_data()
+        >>> data4d = img.get_fdata()
         >>> data4d.shape == (10, 10, 3, 1)
         True
         """
@@ -945,7 +945,7 @@ class EcatImage(SpatialImage):
 
         # It appears to be necessary to load the data before saving even if the
         # data itself is not used.
-        self.get_data()
+        self.get_fdata()
         hdr = self.header
         mlist = self._mlist
         subheaders = self.get_subheaders()

@@ -20,7 +20,8 @@ It has attributes:
 
 methods:
 
-   * .get_data()
+   * .get_fdata()
+   * .get_data() (deprecated, use get_fdata() instead)
    * .get_affine() (deprecated, use affine property instead)
    * .get_header() (deprecated, use header property instead)
    * .to_filename(fname) - writes data to filename(s) derived from
@@ -69,7 +70,7 @@ other storage, you can do::
 
 You can get the data out again with::
 
-    img.get_data()
+    img.get_fdata()
 
 Less commonly, for some image types that support it, you might want to
 fetch out the unscaled array via the object containing the data::
@@ -123,12 +124,12 @@ work:
     >>> img.to_file_map()
     >>> # read it back again from the written files
     >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
-    >>> np.all(img2.get_data() == data)
+    >>> np.all(img2.get_fdata(dtype=np.float32) == data)
     True
     >>> # write, read it again
     >>> img2.to_file_map()
     >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
-    >>> np.all(img3.get_data() == data)
+    >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 
 '''
@@ -586,7 +587,7 @@ class SpatialImage(DataobjImage):
             "Cannot slice image objects; consider using `img.slicer[slice]` "
             "to generate a sliced image (see documentation for caveats) or "
             "slicing image array data with `img.dataobj[slice]` or "
-            "`img.get_data()[slice]`")
+            "`img.get_fdata()[slice]`")
 
     def orthoview(self):
         """Plot the image using OrthoSlicer3D
@@ -630,7 +631,7 @@ class SpatialImage(DataobjImage):
         if np.array_equal(ornt, [[0, 1], [1, 1], [2, 1]]):
             return self
 
-        t_arr = apply_orientation(self.get_data(), ornt)
+        t_arr = apply_orientation(np.asanyarray(self.dataobj), ornt)
         new_aff = self.affine.dot(inv_ornt_aff(ornt, self.shape))
 
         return self.__class__(t_arr, new_aff, self.header)

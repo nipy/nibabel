@@ -54,7 +54,7 @@ def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
 
 class Opener(object):
-    """ Class to accept, maybe open, and context-manage file-likes / filenames
+    r""" Class to accept, maybe open, and context-manage file-likes / filenames
 
     Provides context manager to close files that the constructor opened for
     you.

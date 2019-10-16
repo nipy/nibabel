@@ -10,6 +10,7 @@ jobs:
     vmImage: ${{ parameters.vmImage }}
   variables:
     EXTRA_WHEELS: "https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
+    DEPENDS: numpy scipy matplotlib h5py pydicom
   strategy:
     matrix:
       ${{ insert }}: ${{ parameters.matrix }}
@@ -21,10 +22,13 @@ jobs:
         addToPath: true
         architecture: '$(PYTHON_ARCH)'
     - script: |
+        echo %PYTHONHASHSEED%
+      displayName: 'Display hash seed'
+    - script: |
         python -m pip install --upgrade pip setuptools>=30.3.0 wheel
       displayName: 'Update build tools'
     - script: |
-        python -m pip install --find-links %EXTRA_WHEELS% numpy scipy matplotlib h5py pydicom
+        python -m pip install --find-links %EXTRA_WHEELS% %DEPENDS%
         python -m pip install nose mock coverage codecov
       displayName: 'Install dependencies'
     - script: |

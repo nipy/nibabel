@@ -16,3 +16,6 @@
 [submodule "nibabel-data/nitest-cifti2"]
 	path = nibabel-data/nitest-cifti2
 	url = https://github.com/demianw/nibabel-nitest-cifti2.git
+[submodule "nibabel-data/nitest-dicom"]
+	path = nibabel-data/nitest-dicom
+	url = https://github.com/effigies/nitest-dicom

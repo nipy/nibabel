@@ -20,7 +20,7 @@ def is_lazy_dict(obj):
 
 
 class SliceableDataDict(MutableMapping):
-    """ Dictionary for which key access can do slicing on the values.
+    r""" Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
@@ -73,7 +73,7 @@ class SliceableDataDict(MutableMapping):
 
 
 class PerArrayDict(SliceableDataDict):
-    """ Dictionary for which key access can do slicing on the values.
+    r""" Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray

@@ -44,8 +44,7 @@ from ..freesurfer.mghformat import MGHHeader
 from .. import minc1
 from ..externals.netcdf import netcdf_file
 from .. import minc2
-from ..optpkg import optional_package
-h5py, have_h5py, _ = optional_package('h5py')
+from .._h5py_compat import h5py, have_h5py
 from .. import ecat
 from .. import parrec
 
@@ -378,7 +377,7 @@ class TestEcatAPI(_TestProxyAPI):
     def obj_params(self):
         eg_path = pjoin(DATA_PATH, self.eg_fname)
         img = ecat.load(eg_path)
-        arr_out = img.get_data()
+        arr_out = img.get_fdata()
 
         def eg_func():
             img = ecat.load(eg_path)
@@ -399,7 +398,7 @@ class TestPARRECAPI(_TestProxyAPI):
 
     def _func_dict(self, rec_name):
         img = parrec.load(rec_name)
-        arr_out = img.get_data()
+        arr_out = img.get_fdata()
 
         def eg_func():
             img = parrec.load(rec_name)

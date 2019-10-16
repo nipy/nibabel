@@ -21,7 +21,7 @@ from .deprecated import deprecate_with_version
 
 
 def load(filename, **kwargs):
-    ''' Load file given filename, guessing at file type
+    r''' Load file given filename, guessing at file type
 
     Parameters
     ----------
@@ -160,7 +160,7 @@ def read_img_data(img, prefer='scaled'):
     """ Read data from image associated with files
 
     If you want unscaled data, please use ``img.dataobj.get_unscaled()``
-    instead.  If you want scaled data, use ``img.get_data()`` (which will cache
+    instead.  If you want scaled data, use ``img.get_fdata()`` (which will cache
     the loaded array) or ``np.array(img.dataobj)`` (which won't cache the
     array). If you want to load the data as for a modified header, save the
     image with the modified header, and reload.
@@ -169,7 +169,7 @@ def read_img_data(img, prefer='scaled'):
     ----------
     img : ``SpatialImage``
        Image with valid image file in ``img.file_map``.  Unlike the
-       ``img.get_data()`` method, this function returns the data read
+       ``img.get_fdata()`` method, this function returns the data read
        from the image file, as specified by the *current* image header
        and *current* image files.
     prefer : str, optional

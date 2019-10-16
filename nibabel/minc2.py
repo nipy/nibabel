@@ -16,7 +16,7 @@ Test reading with something like::
 
     import nibabel as nib
     img = nib.load('my_funny.mnc')
-    data = img.get_data()
+    data = img.get_fdata()
     print(data.mean())
     print(data.max())
     print(data.min())
@@ -28,8 +28,7 @@ and compare against command line output of::
 import numpy as np
 
 from .keywordonly import kw_only_meth
-from .optpkg import optional_package
-h5py, have_h5py, setup_module = optional_package('h5py')
+from ._h5py_compat import h5py
 
 from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
 

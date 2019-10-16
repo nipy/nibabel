@@ -13,6 +13,7 @@ than in a property, or property-like thing.
 """
 
 import operator
+import warnings
 
 import numpy as np
 
@@ -20,7 +21,8 @@ from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import setattr_on_read as one_time
-from ..pydicom_compat import tag_for_keyword
+from ..pydicom_compat import tag_for_keyword, Sequence
+from ..deprecated import deprecate_with_version
 
 
 class WrapperError(Exception):
@@ -93,7 +95,7 @@ class Wrapper(object):
 
     Methods:
 
-    * get_affine()
+    * get_affine() (deprecated, use affine property instead)
     * get_data()
     * get_pixel_array()
     * is_same_series(other)
@@ -102,6 +104,7 @@ class Wrapper(object):
 
     Attributes and things that look like attributes:
 
+    * affine : (4, 4) array
     * dcm_data : object
     * image_shape : tuple
     * image_orient_patient : (3,2) array
@@ -284,18 +287,19 @@ class Wrapper(object):
         """ Get values from underlying dicom data """
         return self.dcm_data.get(key, default)
 
+    @deprecate_with_version('get_affine method is deprecated.\n'
+                            'Please use the ``img.affine`` property '
+                            'instead.',
+                            '2.5.1', '4.0')
     def get_affine(self):
-        """ Return mapping between voxel and DICOM coordinate system
+        return self.affine
 
-        Parameters
-        ----------
-        None
+    @property
+    def affine(self):
+        """ Mapping between voxel and DICOM coordinate system
 
-        Returns
-        -------
-        aff : (4,4) affine
-           Affine giving transformation between voxels in data array and
-           mm in the DICOM patient coordinate system.
+        (4, 4) affine matrix giving transformation between voxels in data array
+        and mm in the DICOM patient coordinate system.
         """
         # rotation matrix already accounts for the ij transpose in the
         # DICOM image orientation patient transform.  So. column 0 is
@@ -501,8 +505,32 @@ class MultiframeWrapper(Wrapper):
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError("Rows and/or Columns are empty.")
+
         # Check number of frames
+        first_frame = self.frames[0]
         n_frames = self.get('NumberOfFrames')
+        # some Philips may have derived images appended
+        has_derived = False
+        if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
+            # DWI image may include derived isotropic, ADC or trace volume
+            try:
+                self.frames = Sequence(
+                    frame for frame in self.frames if
+                    frame.MRDiffusionSequence[0].DiffusionDirectionality
+                    != 'ISOTROPIC'
+                    )
+            except IndexError:
+                # Sequence tag is found but missing items!
+                raise WrapperError("Diffusion file missing information")
+            except AttributeError:
+                # DiffusionDirectionality tag is not required
+                pass
+            else:
+                if n_frames != len(self.frames):
+                    warnings.warn("Derived images found and removed")
+                    n_frames = len(self.frames)
+                    has_derived = True
+
         assert len(self.frames) == n_frames
         frame_indices = np.array(
             [frame.FrameContentSequence[0].DimensionIndexValues
@@ -521,6 +549,15 @@ class MultiframeWrapper(Wrapper):
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)
             frame_indices = np.delete(frame_indices, stackid_dim_idx, axis=1)
+            dim_seq.pop(stackid_dim_idx)
+        if has_derived:
+            # derived volume is included
+            derived_tag = tag_for_keyword("DiffusionBValue")
+            if derived_tag not in dim_seq:
+                raise WrapperError("Missing information, cannot remove indices "
+                                   "with confidence.")
+            derived_dim_idx = dim_seq.index(derived_tag)
+            frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
         # account for the 2 additional dimensions (row and column) not included
         # in the indices
         n_dim = frame_indices.shape[1] + 2

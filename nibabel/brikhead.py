@@ -83,8 +83,8 @@ class AFNIHeaderError(HeaderDataError):
 
 
 DATA_OFFSET = 0
-TYPE_RE = re.compile('type\s*=\s*(string|integer|float)-attribute\s*\n')
-NAME_RE = re.compile('name\s*=\s*(\w+)\s*\n')
+TYPE_RE = re.compile(r'type\s*=\s*(string|integer|float)-attribute\s*\n')
+NAME_RE = re.compile(r'name\s*=\s*(\w+)\s*\n')
 
 
 def _unpack_var(var):
@@ -486,7 +486,7 @@ class AFNIImage(SpatialImage):
            [  0.    ,   0.    ,   3.    , -52.3511],
            [  0.    ,   0.    ,   0.    ,   1.    ]])
     >>> head = load(os.path.join(datadir, 'example4d+orig.HEAD'))
-    >>> np.array_equal(head.get_data(), brik.get_data())
+    >>> np.array_equal(head.get_fdata(), brik.get_fdata())
     True
     """
 

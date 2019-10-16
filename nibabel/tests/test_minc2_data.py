@@ -14,9 +14,7 @@ from os.path import join as pjoin
 
 import numpy as np
 
-from nibabel.optpkg import optional_package
-
-h5py, have_h5py, setup_module = optional_package('h5py')
+from .._h5py_compat import h5py, have_h5py, setup_module
 
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from .. import load as top_load, Nifti1Image
@@ -66,7 +64,7 @@ class TestEPIFrame(object):
         assert_almost_equal(img.affine, self.example_params['affine'], 4)
         assert_equal(img.get_data_dtype().type, self.example_params['type'])
         # Check correspondence of data and recorded shape
-        data = img.get_data()
+        data = img.get_fdata()
         assert_equal(data.shape, self.example_params['shape'])
         # min, max, mean values from read in SPM2
         assert_almost_equal(data.min(), self.example_params['min'], 4)
@@ -76,7 +74,7 @@ class TestEPIFrame(object):
         ni_img = Nifti1Image.from_image(img)
         assert_almost_equal(ni_img.get_affine(),
                             self.example_params['affine'], 2)
-        assert_array_equal(ni_img.get_data(), data)
+        assert_array_equal(ni_img.get_fdata(), data)
 
 
 class TestB0(TestEPIFrame):

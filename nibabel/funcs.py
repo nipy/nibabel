@@ -79,8 +79,7 @@ def squeeze_image(img):
     if slen == len(shape):
         return klass.from_image(img)
     shape = shape[:slen]
-    data = img.get_data()
-    data = data.reshape(shape)
+    data = np.asanyarray(img.dataobj).reshape(shape)
     return klass(data,
                  img.affine,
                  img.header,
@@ -88,7 +87,7 @@ def squeeze_image(img):
 
 
 def concat_images(images, check_affines=True, axis=None):
-    ''' Concatenate images in list to single image, along specified dimension
+    r''' Concatenate images in list to single image, along specified dimension
 
     Parameters
     ----------
@@ -102,6 +101,7 @@ def concat_images(images, check_affines=True, axis=None):
         be the same shape.  If not None, concatenates on the specified
         dimension.  This requires all images to be the same shape, except on
         the specified dimension.
+
     Returns
     -------
     concat_img : ``SpatialImage``
@@ -144,7 +144,7 @@ def concat_images(images, check_affines=True, axis=None):
             raise ValueError('Affine for image {0} does not match affine '
                              'for first image'.format(i))
         # Do not fill cache in image if it is empty
-        out_data[i] = img.get_data(caching='unchanged')
+        out_data[i] = np.asanyarray(img.dataobj)
 
     if axis is None:
         out_data = np.rollaxis(out_data, 0, out_data.ndim)
@@ -169,7 +169,7 @@ def four_to_three(img):
     imgs : list
        list of 3D images
     '''
-    arr = img.get_data()
+    arr = np.asanyarray(img.dataobj)
     header = img.header
     affine = img.affine
     image_maker = img.__class__

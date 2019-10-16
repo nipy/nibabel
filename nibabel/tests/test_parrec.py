@@ -764,13 +764,13 @@ def test_varying_scaling():
         scaled_arr[:, :, i] *= slopes[i]
         scaled_arr[:, :, i] += inters[i]
     assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
-                        img.get_data(), 9)
+                        img.get_fdata(), 9)
     # Check fp scaling
     for i in range(arr.shape[2]):
         scaled_arr[:, :, i] /= (slopes[i] * sc_slopes[i])
     dv_img = PARRECImage.load(VARY_REC, scaling='fp')
     assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
-                        dv_img.get_data(), 9)
+                        dv_img.get_fdata(), 9)
 
 
 def test_anonymized():

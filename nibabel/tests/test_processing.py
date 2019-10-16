@@ -411,7 +411,7 @@ def test_against_spm_resample():
     func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
     some_rotations = euler2mat(0.1, 0.2, 0.3)
     extra_affine = from_matvec(some_rotations, [3, 4, 5])
-    moved_anat = nib.Nifti1Image(anat.get_data().astype(float),
+    moved_anat = nib.Nifti1Image(anat.get_fdata(),
                                  extra_affine.dot(anat.affine),
                                  anat.header)
     one_func = nib.Nifti1Image(func.dataobj[..., 0],

@@ -14,11 +14,10 @@ What is the image API?
 * ``img.shape`` (shape of data as read with ``np.array(img.dataobj)``
 * ``img.get_fdata()`` (returns floating point data as read with
   ``np.array(img.dataobj)`` and the cast to float);
-* ``img.get_data()`` (returns data as read with ``np.array(img.dataobj)``);
-* ``img.uncache()`` (``img.get_data()`` and ``img.get_data`` are allowed to
-  cache the result of the array creation.  If they do, this call empties that
-  cache.  Implement this as a no-op if ``get_fdata()``, ``get_data`` do not
-  cache.
+* ``img.uncache()`` (``img.get_fdata()`` (recommended) and ``img.get_data()``
+  (deprecated) are allowed to cache the result of the array creation.  If they
+  do, this call empties that cache.  Implement this as a no-op if
+  ``get_fdata()``, ``get_data()`` do not cache.)
 * ``img[something]`` generates an informative TypeError
 * ``img.in_memory`` is True for an array image, and for a proxy image that is
   cached, but False otherwise.
@@ -33,7 +32,7 @@ import numpy as np
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
-_, have_h5py, _ = optional_package('h5py')
+from .._h5py_compat import have_h5py
 
 from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
@@ -45,7 +44,7 @@ from .. import minc1, minc2, parrec, brikhead
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
 
-from numpy.testing import (assert_almost_equal, assert_array_equal)
+from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns
 from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
@@ -93,7 +92,7 @@ class GenericImageAPI(ValidateAPI):
                 ``data_summary`` : dict with data ``min``, ``max``, ``mean``;
               * ``shape`` : shape of image;
               * ``affine`` : shape (4, 4) affine array for image;
-              * ``dtype`` : dtype of data returned from ``get_data()``;
+              * ``dtype`` : dtype of data returned from ``np.asarray(dataobj)``;
               * ``is_proxy`` : bool, True if image data is proxied;
 
         Notes
@@ -132,8 +131,7 @@ class GenericImageAPI(ValidateAPI):
         rt_img = bytesio_round_trip(img)
         assert_array_equal(img.shape, rt_img.shape)
         assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-        # get_data will be deprecated
-        assert_almost_equal(img.get_data(), rt_img.get_data())
+        assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
         # Give the image a file map
         klass = type(img)
         rt_img.file_map = bytesio_filemap(klass)
@@ -141,8 +139,7 @@ class GenericImageAPI(ValidateAPI):
         rt_img.to_file_map()
         rt_rt_img = klass.from_file_map(rt_img.file_map)
         assert_almost_equal(img.get_fdata(), rt_rt_img.get_fdata())
-        # get_data will be deprecated
-        assert_almost_equal(img.get_data(), rt_rt_img.get_data())
+        assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
         # get_ / set_ filename
         fname = 'an_image' + self.standard_extension
         for path in (fname, pathlib.Path(fname)):
@@ -152,19 +149,28 @@ class GenericImageAPI(ValidateAPI):
         # to_ / from_ filename
         fname = 'another_image' + self.standard_extension
         for path in (fname, pathlib.Path(fname)):
-            with InTemporaryDirectory():
-                img.to_filename(path)
-                rt_img = img.__class__.from_filename(path)
-                assert_array_equal(img.shape, rt_img.shape)
-                assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-                # get_data will be deprecated
-                assert_almost_equal(img.get_data(), rt_img.get_data())
-                del rt_img  # to allow windows to delete the directory
+          with InTemporaryDirectory():
+              # Validate that saving or loading a file doesn't use deprecated methods internally
+              with clear_and_catch_warnings() as w:
+                  warnings.simplefilter('error', DeprecationWarning)
+                  img.to_filename(path)
+                  rt_img = img.__class__.from_filename(path)
+              assert_array_equal(img.shape, rt_img.shape)
+              assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+              assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
+              del rt_img  # to allow windows to delete the directory
 
     def validate_no_slicing(self, imaker, params):
         img = imaker()
         assert_raises(TypeError, img.__getitem__, 'string')
         assert_raises(TypeError, img.__getitem__, slice(None))
+
+    def validate_get_data_deprecated(self, imaker, params):
+        # Check deprecated header API
+        img = imaker()
+        with assert_warns(DeprecationWarning):
+            data = img.get_data()
+        assert_array_equal(np.asanyarray(img.dataobj), data)
 
 
 class GetSetDtypeMixin(object):
@@ -520,7 +526,7 @@ class SerializeMixin(object):
                     img_b = klass.from_bytes(fobj.read())
 
                 assert self._header_eq(img_a.header, img_b.header)
-                assert np.array_equal(img_a.get_data(), img_b.get_data())
+                assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
                 del img_a
                 del img_b
 
@@ -540,7 +546,7 @@ class SerializeMixin(object):
 
                 assert img_b.to_bytes() == bytes_a
                 assert self._header_eq(img_a.header, img_b.header)
-                assert np.array_equal(img_a.get_data(), img_b.get_data())
+                assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
                 del img_a
                 del img_b
 
