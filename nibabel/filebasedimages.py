@@ -252,12 +252,10 @@ class FileBasedImage(object):
            ``.file_map`` attribute. Otherwise, the image instance will
            try and guess the other filenames from this given filename.
         '''
-        filename = _stringify_path(filename)
         self.file_map = self.__class__.filespec_to_file_map(filename)
 
     @classmethod
     def from_filename(klass, filename):
-        filename = _stringify_path(filename)
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map)
 
@@ -332,7 +330,6 @@ class FileBasedImage(object):
         -------
         None
         '''
-        filename = _stringify_path(filename)
         self.file_map = self.filespec_to_file_map(filename)
         self.to_file_map()
 

@@ -107,6 +107,7 @@ def types_filenames(template_fname, types_exts,
     >>> tfns == {'t1': '/path/test.funny', 't2': '/path/test.ext2'}
     True
     '''
+    template_fname = _stringify_path(template_fname)
     if not isinstance(template_fname, str):
         raise TypesFilenamesError('Need file name as input '
                                   'to set_filenames')
