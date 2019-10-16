@@ -87,7 +87,7 @@ def squeeze_image(img):
 
 
 def concat_images(images, check_affines=True, axis=None):
-    ''' Concatenate images in list to single image, along specified dimension
+    r''' Concatenate images in list to single image, along specified dimension
 
     Parameters
     ----------
@@ -101,6 +101,7 @@ def concat_images(images, check_affines=True, axis=None):
         be the same shape.  If not None, concatenates on the specified
         dimension.  This requires all images to be the same shape, except on
         the specified dimension.
+
     Returns
     -------
     concat_img : ``SpatialImage``

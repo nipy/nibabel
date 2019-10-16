@@ -21,7 +21,7 @@ from .deprecated import deprecate_with_version
 
 
 def load(filename, **kwargs):
-    ''' Load file given filename, guessing at file type
+    r''' Load file given filename, guessing at file type
 
     Parameters
     ----------
