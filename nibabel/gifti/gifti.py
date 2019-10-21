@@ -704,41 +704,6 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         -------
         tuple of ndarrays or ndarray
             If the input is a tuple, the returned tuple will match the order.
-
-        Examples
-        --------
-
-        Load two kinds of Gifti files: a surface file containing two types of intent code;
-        a functional file storing time series data only.
-
-        >>> import nibabel as nib
-        >>> from nibabel.testing import test_data
-        >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
-        >>> surf_gii_img = nib.load(surf_gii_fname)
-        >>> func_gii_fname = test_data('gifti', 'task.func.gii')
-        >>> func_gii_img = nib.load(func_gii_fname)
-
-        When not passing anything to ``intent_code``
-
-        >>> surf_gii_img.agg_data()  # surface file
-        >>> func_gii_img.agg_data()  # functional file
-
-        When passig matching intend codes ``intent_code``
-
-        >>> surf_gii_img.agg_data('pointset')  # surface pointset
-        >>> surf_gii_img.agg_data('triangle')  # surface triangle
-        >>> func_gii_img.agg_data('time series')  # functional file
-
-        When passing mismatching ``intent_code``, the function return a empty ``tuple``
-
-        >>> surf_gii_img.agg_data('time series')
-        >>> func_gii_img.agg_data('triangle')
-
-        When passing tuple ``intent_code``, the output will follow
-        the order of ``intent_code`` in the tuple
-
-        >>> surf_gii_img.agg_data(('pointset', 'triangle'))
-        >>> surf_gii_img.agg_data(('triangle', 'pointset'))
         """
 
         # Allow multiple intents to specify the order
