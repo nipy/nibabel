@@ -715,7 +715,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         >>> from nibabel.testing import test_data
         >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
         >>> surf_gii_img = nib.load(surf_gii_fname)
-        >>> func_gii_fname = test_data('gifti', 'task.func.gii')
+        >>> func_gii_fname = test_data('gifti', 'sub-01_task-rhymejudgment_space-fsaverage3_hemi-L.func.gii')
         >>> func_gii_img = nib.load(func_gii_fname)
 
         When not passing anything to ``intent_code``
