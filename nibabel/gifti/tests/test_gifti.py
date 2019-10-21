@@ -17,11 +17,73 @@ from nibabel.fileholders import FileHolder
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
-from nibabel.testing import clear_and_catch_warnings
+from nibabel.testing import clear_and_catch_warnings, test_data
 from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
                                     DATA_FILE4, DATA_FILE5, DATA_FILE6)
 import itertools
 
+
+def test_agg_data():
+    """
+    Aggregate GIFTI data arrays into an ndarray or tuple of ndarray
+
+    Examples
+    --------
+
+    Load two kinds of Gifti files: a surface file containing two types of intent code;
+    a functional file storing time series data only.
+
+    >>> import nibabel as nib
+    >>> from nibabel.testing import test_data
+    >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
+    >>> surf_gii_img = nib.load(surf_gii_fname)
+    >>> func_gii_fname = test_data('gifti', 'task.func.gii')
+    >>> func_gii_img = nib.load(func_gii_fname)
+
+    When not passing anything to ``intent_code``
+
+    >>> surf_gii_img.agg_data()  # surface file
+    >>> func_gii_img.agg_data()  # functional file
+
+    When passig matching intend codes ``intent_code``
+
+    >>> surf_gii_img.agg_data('pointset')  # surface pointset
+    >>> surf_gii_img.agg_data('triangle')  # surface triangle
+    >>> func_gii_img.agg_data('time series')  # functional file
+
+    When passing mismatching ``intent_code``, the function return a empty ``tuple``
+
+    >>> surf_gii_img.agg_data('time series')
+    >>> func_gii_img.agg_data('triangle')
+
+    When passing tuple ``intent_code``, the output will follow
+    the order of ``intent_code`` in the tuple
+
+    >>> surf_gii_img.agg_data(('pointset', 'triangle'))
+    >>> surf_gii_img.agg_data(('triangle', 'pointset'))
+    """
+
+    surf_gii_fname = test_data('gifti', 'ascii.gii')
+    surf_gii_img = nib.load(surf_gii_fname)
+    func_gii_fname = test_data('gifti', 'task.func.gii')
+    func_gii_img = nib.load(func_gii_fname)
+
+    point_data = surf_gii_img.get_arrays_from_intent('pointset')[0].data
+    triangle_data = surf_gii_img.get_arrays_from_intent('triangle')[0].data
+    func_da = func_gii_img.get_arrays_from_intent('time series')
+    func_data = np.column_stack(tuple(da.data for da in func_da))
+
+    assert_equal(surf_gii_img.agg_data(), (point_data, triangle_data))  # surface file
+    assert_array_equal(func_gii_img.agg_data(), func_data)  # functional 
+    assert_array_equal(surf_gii_img.agg_data('pointset'), point_data)  # surface pointset
+    assert_array_equal(surf_gii_img.agg_data('triangle'), triangle_data)  # surface triangle
+    assert_array_equal(func_gii_img.agg_data('time series'), func_data)  # functional 
+
+    assert_equal(surf_gii_img.agg_data('time series'), ())
+    assert_equal(func_gii_img.agg_data('triangle'), ())
+
+    assert_equal(surf_gii_img.agg_data(('pointset', 'triangle')), (point_data, triangle_data))
+    assert_equal(surf_gii_img.agg_data(('triangle', 'pointset')), (triangle_data, point_data))
 
 def test_gifti_image():
     # Check that we're not modifying the default empty list in the default
