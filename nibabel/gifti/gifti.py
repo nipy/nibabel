@@ -704,6 +704,33 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         -------
         tuple of ndarrays or ndarray
             If the input is a tuple, the returned tuple will match the order.
+        
+        Examples
+        --------
+        >>> import nibabel as nib
+        >>> from nibabel.testing import test_data
+        >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
+        >>> surf_gii_img = nib.load(surf_gii_fname)
+        >>> func_gii_fname = test_data('gifti', 'task.func.gii')
+        >>> func_gii_img = nib.load(func_gii_fname)
+
+        Retrieve data without passing ``intent code``
+
+        >>> surf_data = surf_gii_img.agg_data() 
+        >>> func_data = func_gii_img.agg_data()
+
+        When passig matching intend codes ``intent_code``
+        
+        >>> pointset_data = surf_gii_img.agg_data('pointset')  # surface pointset
+        >>> triangle_data = surf_gii_img.agg_data('triangle')  # surface triangle
+        >>> ts_data = func_gii_img.agg_data('time series')  # functional file
+        
+        When passing mismatching ``intent_code``, the function return a empty ``tuple``
+        
+        >>> surf_gii_img.agg_data('time series')
+        ()
+        >>> func_gii_img.agg_data('triangle')
+        ()
         """
 
         # Allow multiple intents to specify the order
