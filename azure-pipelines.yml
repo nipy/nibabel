@@ -28,9 +28,10 @@ jobs:
       py37-x64:
         PYTHON_VERSION: '3.7'
         PYTHON_ARCH: 'x64'
-      py38-x86:
-        PYTHON_VERSION: '3.8'
-        PYTHON_ARCH: 'x86'
-      py38-x64:
-        PYTHON_VERSION: '3.8'
-        PYTHON_ARCH: 'x64'
+      # Pending https://github.com/microsoft/azure-pipelines-image-generation/issues/1317
+      # py38-x86:
+      #   PYTHON_VERSION: '3.8'
+      #   PYTHON_ARCH: 'x86'
+      # py38-x64:
+      #   PYTHON_VERSION: '3.8'
+      #   PYTHON_ARCH: 'x64'
