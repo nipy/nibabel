@@ -23,10 +23,13 @@ env:
 python:
     - 3.6
     - 3.7
-    - 3.8
 
 matrix:
   include:
+    # Basic dependencies only
+    - python: 3.8
+      env:
+        - DEPENDS="-r requirements.txt"
     # Basic dependencies only
     - python: 3.5
       env:
