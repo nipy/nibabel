@@ -704,7 +704,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         -------
         tuple of ndarrays or ndarray
             If the input is a tuple, the returned tuple will match the order.
-        
+
         Examples
         --------
         >>> import nibabel as nib
@@ -716,17 +716,17 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         Retrieve data without passing ``intent code``
 
-        >>> surf_data = surf_gii_img.agg_data() 
+        >>> surf_data = surf_gii_img.agg_data()
         >>> func_data = func_gii_img.agg_data()
 
         When passig matching intend codes ``intent_code``
-        
+
         >>> pointset_data = surf_gii_img.agg_data('pointset')  # surface pointset
         >>> triangle_data = surf_gii_img.agg_data('triangle')  # surface triangle
         >>> ts_data = func_gii_img.agg_data('time series')  # functional file
-        
+
         When passing mismatching ``intent_code``, the function return a empty ``tuple``
-        
+
         >>> surf_gii_img.agg_data('time series')
         ()
         >>> func_gii_img.agg_data('triangle')
