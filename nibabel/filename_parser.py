@@ -26,12 +26,12 @@ def _stringify_path(filepath_or_buffer):
     Returns
     -------
     str_filepath_or_buffer : str
-    
+
     Notes
     -----
     Objects supporting the fspath protocol (python 3.6+) are coerced
     according to its __fspath__ method.
-    For backwards compatibility with older pythons, pathlib.Path objects 
+    For backwards compatibility with older pythons, pathlib.Path objects
     are specially coerced.
     Any other object is passed through unchanged, which includes bytes,
     strings, buffers, or anything else that's not even path-like.
