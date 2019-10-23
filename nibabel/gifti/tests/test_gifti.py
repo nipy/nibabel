@@ -33,7 +33,7 @@ def test_agg_data():
     triangle_data = surf_gii_img.get_arrays_from_intent('triangle')[0].data
     func_da = func_gii_img.get_arrays_from_intent('time series')
     func_data = np.column_stack(tuple(da.data for da in func_da))
-    shape_data = shape_gii_img.get_arrays_from_intent('shape')
+    shape_data = shape_gii_img.get_arrays_from_intent('shape')[0].data
 
     assert_equal(surf_gii_img.agg_data(), (point_data, triangle_data))
     assert_array_equal(func_gii_img.agg_data(), func_data)
