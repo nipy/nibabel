@@ -12,7 +12,7 @@
 import os
 import numpy as np
 
-from .filename_parser import splitext_addext
+from .filename_parser import splitext_addext, _stringify_path
 from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
@@ -25,7 +25,7 @@ def load(filename, **kwargs):
 
     Parameters
     ----------
-    filename : string
+    filename : str or os.PathLike
        specification of file to load
     \*\*kwargs : keyword arguments
         Keyword arguments to format-specific load
@@ -35,12 +35,16 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
+    filename = _stringify_path(filename)
+
+    # Check file exists and is not empty
     try:
         stat_result = os.stat(filename)
     except OSError:
         raise FileNotFoundError("No such file or no access: '%s'" % filename)
     if stat_result.st_size <= 0:
         raise ImageFileError("Empty file: '%s'" % filename)
+
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
@@ -85,13 +89,14 @@ def save(img, filename):
     ----------
     img : ``SpatialImage``
        image to save
-    filename : str
+    filename : str or os.PathLike
        filename (often implying filenames) to which to save `img`.
 
     Returns
     -------
     None
     '''
+    filename = _stringify_path(filename)
 
     # Save the type as expected
     try:

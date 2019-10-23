@@ -9,14 +9,41 @@
 ''' Create filename pairs, triplets etc, with expected extensions '''
 
 import os
-try:
-    basestring
-except NameError:
-    basestring = str
+import pathlib
 
 
 class TypesFilenamesError(Exception):
     pass
+
+
+def _stringify_path(filepath_or_buffer):
+    """Attempt to convert a path-like object to a string.
+
+    Parameters
+    ----------
+    filepath_or_buffer : str or os.PathLike
+
+    Returns
+    -------
+    str_filepath_or_buffer : str
+
+    Notes
+    -----
+    Objects supporting the fspath protocol (python 3.6+) are coerced
+    according to its __fspath__ method.
+    For backwards compatibility with older pythons, pathlib.Path objects
+    are specially coerced.
+    Any other object is passed through unchanged, which includes bytes,
+    strings, buffers, or anything else that's not even path-like.
+
+    Copied from:
+    https://github.com/pandas-dev/pandas/blob/325dd686de1589c17731cf93b649ed5ccb5a99b4/pandas/io/common.py#L131-L160
+    """
+    if hasattr(filepath_or_buffer, "__fspath__"):
+        return filepath_or_buffer.__fspath__()
+    elif isinstance(filepath_or_buffer, pathlib.Path):
+        return str(filepath_or_buffer)
+    return filepath_or_buffer
 
 
 def types_filenames(template_fname, types_exts,
@@ -31,7 +58,7 @@ def types_filenames(template_fname, types_exts,
 
     Parameters
     ----------
-    template_fname : str
+    template_fname : str or os.PathLike
        template filename from which to construct output dict of
        filenames, with given `types_exts` type to extension mapping.  If
        ``self.enforce_extensions`` is True, then filename must have one
@@ -82,7 +109,8 @@ def types_filenames(template_fname, types_exts,
     >>> tfns == {'t1': '/path/test.funny', 't2': '/path/test.ext2'}
     True
     '''
-    if not isinstance(template_fname, basestring):
+    template_fname = _stringify_path(template_fname)
+    if not isinstance(template_fname, str):
         raise TypesFilenamesError('Need file name as input '
                                   'to set_filenames')
     if template_fname.endswith('.'):
@@ -151,7 +179,7 @@ def parse_filename(filename,
 
     Parameters
     ----------
-    filename : str
+    filename : str or os.PathLike
        filename in which to search for type extensions
     types_exts : sequence of sequences
        sequence of (name, extension) str sequences defining type to
@@ -190,6 +218,8 @@ def parse_filename(filename,
     >>> parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
     ('/path/fname', 'ext2', '.gz', 't2')
     '''
+    filename = _stringify_path(filename)
+
     ignored = None
     if match_case:
         endswith = _endswith
@@ -232,7 +262,7 @@ def splitext_addext(filename,
 
     Parameters
     ----------
-    filename : str
+    filename : str or os.PathLike
        filename that may end in any or none of `addexts`
     match_case : bool, optional
        If True, match case of `addexts` and `filename`, otherwise do
@@ -257,6 +287,8 @@ def splitext_addext(filename,
     >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
     ('fname', '.ext', '.foo')
     '''
+    filename = _stringify_path(filename)
+
     if match_case:
         endswith = _endswith
     else:

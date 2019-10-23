@@ -17,6 +17,7 @@ from ..affines import voxel_sizes, from_matvec
 from ..volumeutils import (array_to_file, array_from_file, endian_codes,
                            Recoder)
 from ..filebasedimages import SerializableImage
+from ..filename_parser import _stringify_path
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
@@ -529,6 +530,7 @@ class MGHImage(SpatialImage, SerializableImage):
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
+        filespec = _stringify_path(filespec)
         """ Check for compressed .mgz format, then .mgh format """
         if splitext(filespec)[1].lower() == '.mgz':
             return dict(image=FileHolder(filename=filespec))
