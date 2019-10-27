@@ -707,29 +707,91 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
         Examples
         --------
+
+        Consider a surface GIFTI file:
+
         >>> import nibabel as nib
         >>> from nibabel.testing import test_data
-        >>> surf_gii_fname = test_data('gifti', 'ascii.gii')
-        >>> surf_gii_img = nib.load(surf_gii_fname)
-        >>> func_gii_fname = test_data('gifti', 'task.func.gii')
-        >>> func_gii_img = nib.load(func_gii_fname)
+        >>> surf_img = nib.load(test_data('gifti', 'ascii.gii'))
 
-        Retrieve data without passing ``intent code``
+        The coordinate data, which is indicated by the ``NIFTI_INTENT_POINTSET``
+        intent code, may be retrieved using any of the following equivalent
+        calls:
 
-        >>> surf_data = surf_gii_img.agg_data()
-        >>> func_data = func_gii_img.agg_data()
+        >>> coords = surf_img.agg_data('NIFTI_INTENT_POINTSET')
+        >>> coords_2 = surf_img.agg_data('pointset')
+        >>> coords_3 = surf_img.agg_data(1008)  # Numeric code for pointset
+        >>> print(np.array2string(coords, precision=3))
+        [[-16.072 -66.188  21.267]
+         [-16.706 -66.054  21.233]
+         [-17.614 -65.402  21.071]]
+        >>> np.array_equal(coords, coords_2)
+        True
+        >>> np.array_equal(coords, coords_3)
+        True
 
-        When passig matching intend codes ``intent_code``
+        Similarly, the triangle mesh can be retrieved using various intent
+        specifiers:
 
-        >>> pointset_data = surf_gii_img.agg_data('pointset')  # surface pointset
-        >>> triangle_data = surf_gii_img.agg_data('triangle')  # surface triangle
-        >>> ts_data = func_gii_img.agg_data('time series')  # functional file
+        >>> triangles = surf_img.agg_data('NIFTI_INTENT_TRIANGLE')
+        >>> triangles_2 = surf_img.agg_data('triangle')
+        >>> triangles_3 = surf_img.agg_data(1009)  # Numeric code for pointset
+        >>> print(np.array2string(triangles))
+        [0 1 2]
+        >>> np.array_equal(triangles, triangles_2)
+        True
+        >>> np.array_equal(triangles, triangles_3)
+        True
 
-        When passing mismatching ``intent_code``, the function return a empty ``tuple``
+        All arrays can be retrieved as a ``tuple`` by omitting the intent
+        code:
 
-        >>> surf_gii_img.agg_data('time series')
+        >>> coords_4, triangles_4 = surf_img.agg_data()
+        >>> np.array_equal(coords, coords_4)
+        True
+        >>> np.array_equal(triangles, triangles_4)
+        True
+
+        Finally, a tuple of intent codes may be passed in order to select
+        the arrays in a specific order:
+
+        >>> triangles_5, coords_5 = surf_img.agg_data(('triangle', 'pointset'))
+        >>> np.array_equal(triangles, triangles_5)
+        True
+        >>> np.array_equal(coords, coords_5)
+        True
+
+        The following image is a GIFTI file with ten (10) data arrays of the same
+        size, and with intent code 2001 (``NIFTI_INTENT_TIME_SERIES``):
+
+        >>> func_img = nib.load(test_data('gifti', 'task.func.gii'))
+
+        When aggregating time series data, these arrays are concatenated into
+        a single, vertex-by-timestep array:
+
+        >>> series = func_img.agg_data()
+        >>> series.shape
+        (642, 10)
+
+        In the case of a GIFTI file with unknown data arrays, it may be preferable
+        to specify the intent code, so that a time series array is always returned:
+
+        >>> series_2 = func_img.agg_data('NIFTI_INTENT_TIME_SERIES')
+        >>> series_3 = func_img.agg_data('time series')
+        >>> series_4 = func_img.agg_data(2001)
+        >>> np.array_equal(series, series_2)
+        True
+        >>> np.array_equal(series, series_3)
+        True
+        >>> np.array_equal(series, series_4)
+        True
+
+        Requesting a data array from a GIFTI file with no matching intent codes
+        will result in an empty tuple:
+
+        >>> surf_img.agg_data('time series')
         ()
-        >>> func_gii_img.agg_data('triangle')
+        >>> func_img.agg_data('triangle')
         ()
         """
 
