@@ -17,11 +17,39 @@ from nibabel.fileholders import FileHolder
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
-from nibabel.testing import clear_and_catch_warnings
+from nibabel.testing import clear_and_catch_warnings, test_data
 from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
                                     DATA_FILE4, DATA_FILE5, DATA_FILE6)
 import itertools
 
+
+def test_agg_data():
+    surf_gii_img = nib.load(test_data('gifti', 'ascii.gii'))
+    func_gii_img = nib.load(test_data('gifti', 'task.func.gii'))
+    shape_gii_img = nib.load(test_data('gifti', 'rh.shape.curv.gii'))
+    # add timeseries data with intent code ``none``
+
+    point_data = surf_gii_img.get_arrays_from_intent('pointset')[0].data
+    triangle_data = surf_gii_img.get_arrays_from_intent('triangle')[0].data
+    func_da = func_gii_img.get_arrays_from_intent('time series')
+    func_data = np.column_stack(tuple(da.data for da in func_da))
+    shape_data = shape_gii_img.get_arrays_from_intent('shape')[0].data
+
+    assert_equal(surf_gii_img.agg_data(), (point_data, triangle_data))
+    assert_array_equal(func_gii_img.agg_data(), func_data)
+    assert_array_equal(shape_gii_img.agg_data(), shape_data)
+
+    assert_array_equal(surf_gii_img.agg_data('pointset'), point_data)
+    assert_array_equal(surf_gii_img.agg_data('triangle'), triangle_data)
+    assert_array_equal(func_gii_img.agg_data('time series'), func_data) 
+    assert_array_equal(shape_gii_img.agg_data('shape'), shape_data)
+
+    assert_equal(surf_gii_img.agg_data('time series'), ())
+    assert_equal(func_gii_img.agg_data('triangle'), ())
+    assert_equal(shape_gii_img.agg_data('pointset'), ())
+
+    assert_equal(surf_gii_img.agg_data(('pointset', 'triangle')), (point_data, triangle_data))
+    assert_equal(surf_gii_img.agg_data(('triangle', 'pointset')), (triangle_data, point_data))
 
 def test_gifti_image():
     # Check that we're not modifying the default empty list in the default
