@@ -2,8 +2,7 @@
 """ Utility for git-bisecting nose failures
 """
 DESCRIP = 'Check nose output for given text, set sys exit for git bisect'
-EPILOG = \
-"""
+EPILOG = """
 Imagine you've just detected a nose test failure.  The failure is in a
 particular test or test module - here 'test_analyze.py'.  The failure *is* in
 git branch ``main-master`` but it *is not* in tag ``v1.6.1``. Then you can
@@ -53,6 +52,7 @@ popener = partial(Popen, stdout=PIPE, stderr=PIPE, shell=True)
 UNTESTABLE = 125
 GOOD = 0
 BAD = 1
+
 
 def call_or_untestable(cmd):
     try:

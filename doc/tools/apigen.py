@@ -15,13 +15,13 @@ Extension modules should be discovered and included as well.
 This is a modified version of a script originally shipped with the PyMVPA
 project, then adapted for use first in NIPY and then in skimage. PyMVPA
 is an MIT-licensed project.
+
 """
 
 # Stdlib imports
 import os
 import re
 from inspect import getmodule
-
 from types import BuiltinFunctionType, FunctionType
 
 # suppress print statements (warnings for empty files)
@@ -35,13 +35,14 @@ class ApiDocWriter(object):
     # only separating first two levels
     rst_section_levels = ['*', '=', '-', '~', '^']
 
-    def __init__(self,
-                 package_name,
-                 rst_extension='.txt',
-                 package_skip_patterns=None,
-                 module_skip_patterns=None,
-                 other_defines=True
-                 ):
+    def __init__(
+        self,
+        package_name,
+        rst_extension='.txt',
+        package_skip_patterns=None,
+        module_skip_patterns=None,
+        other_defines=True,
+    ):
         ''' Initialize package for parsing
 
         Parameters
@@ -70,6 +71,7 @@ class ApiDocWriter(object):
         other_defines : {True, False}, optional
             Whether to include classes and functions that are imported in a
             particular module but not defined there.
+
         '''
         if package_skip_patterns is None:
             package_skip_patterns = ['\\.tests$']
@@ -102,8 +104,9 @@ class ApiDocWriter(object):
         self.root_path = root_module.__path__[-1]
         self.written_modules = None
 
-    package_name = property(get_package_name, set_package_name, None,
-                            'get/set package_name')
+    package_name = property(
+        get_package_name, set_package_name, None, 'get/set package_name'
+    )
 
     def _import(self, name):
         ''' Import namespace package '''
@@ -206,6 +209,7 @@ class ApiDocWriter(object):
             A list of (public) function names in the module.
         classes : list of str
             A list of (public) class names in the module.
+
         """
         mod = __import__(uri, fromlist=[uri.split('.')[-1]])
         # find all public objects in the module.
@@ -267,6 +271,7 @@ class ApiDocWriter(object):
             Module name, table of contents.
         body : string
             Function and class docstrings.
+
         '''
         # get the names of all classes and functions
         functions, classes = self._parse_module_with_import(uri)
@@ -293,16 +298,22 @@ class ApiDocWriter(object):
         head += '\n.. currentmodule:: ' + uri + '\n'
         body += '\n.. currentmodule:: ' + uri + '\n\n'
         for c in classes:
-            body += '\n:class:`' + c + '`\n' \
-                  + self.rst_section_levels[3] * \
-                  (len(c)+9) + '\n\n'
+            body += (
+                '\n:class:`'
+                + c
+                + '`\n'
+                + self.rst_section_levels[3] * (len(c) + 9)
+                + '\n\n'
+            )
             body += '\n.. autoclass:: ' + c + '\n'
             # must NOT exclude from index to keep cross-refs working
-            body += '  :members:\n' \
-                '  :undoc-members:\n' \
-                '  :show-inheritance:\n' \
-                '\n' \
+            body += (
+                '  :members:\n'
+                '  :undoc-members:\n'
+                '  :show-inheritance:\n'
+                '\n'
                 '  .. automethod:: __init__\n\n'
+            )
         head += '.. autosummary::\n\n'
         for f in classes + functions:
             head += '   ' + f + '\n'
@@ -336,14 +347,14 @@ class ApiDocWriter(object):
         >>> dw.module_skip_patterns.append('^\\.badmod$')
         >>> dw._survives_exclude('sphinx.badmod', 'module')
         False
+
         '''
         if match_type == 'module':
             patterns = self.module_skip_patterns
         elif match_type == 'package':
             patterns = self.package_skip_patterns
         else:
-            raise ValueError('Cannot interpret match type "%s"'
-                             % match_type)
+            raise ValueError('Cannot interpret match type "%s"' % match_type)
         # Match to URI without package name
         L = len(self.package_name)
         if matchstr[:L] == self.package_name:
@@ -380,39 +391,42 @@ class ApiDocWriter(object):
         >>> dw.package_skip_patterns.append('\.util$')
         >>> 'sphinx.util' in dw.discover_modules()
         False
-        >>>
+
         '''
         modules = [self.package_name]
         # raw directory parsing
         for dirpath, dirnames, filenames in os.walk(self.root_path):
             # Check directory names for packages
-            root_uri = self._path2uri(os.path.join(self.root_path,
-                                                   dirpath))
+            root_uri = self._path2uri(os.path.join(self.root_path, dirpath))
 
             # Normally, we'd only iterate over dirnames, but since
             # dipy does not import a whole bunch of modules we'll
             # include those here as well (the *.py filenames).
-            filenames = [f[:-3] for f in filenames if
-                         f.endswith('.py') and not f.startswith('__init__')]
+            filenames = [
+                f[:-3]
+                for f in filenames
+                if f.endswith('.py') and not f.startswith('__init__')
+            ]
             for filename in filenames:
                 package_uri = '/'.join((dirpath, filename))
 
             for subpkg_name in dirnames + filenames:
                 package_uri = '.'.join((root_uri, subpkg_name))
                 package_path = self._uri2path(package_uri)
-                if (package_path and
-                        self._survives_exclude(package_uri, 'package')):
+                if package_path and self._survives_exclude(package_uri, 'package'):
                     modules.append(package_uri)
 
         return sorted(modules)
 
     def write_modules_api(self, modules, outdir):
         # upper-level modules
-        main_module = modules[0].split('.')[0]
-        ulms = ['.'.join(m.split('.')[:2]) if m.count('.') >= 1
-                else m.split('.')[0] for m in modules]
+        ulms = [
+            '.'.join(m.split('.')[:2]) if m.count('.') >= 1 else m.split('.')[0]
+            for m in modules
+        ]
 
         from collections import OrderedDict
+
         module_by_ulm = OrderedDict()
 
         for v, k in zip(modules, ulms):
@@ -461,6 +475,7 @@ class ApiDocWriter(object):
         Notes
         -----
         Sets self.written_modules to list of written modules
+
         """
         if not os.path.exists(outdir):
             os.mkdir(outdir)
@@ -485,15 +500,15 @@ class ApiDocWriter(object):
             component of the written file path will be removed from
             outdir, in the generated index.  Default is None, meaning,
             leave path as it is.
+
         """
         if self.written_modules is None:
             raise ValueError('No modules written')
         # Get full filename path
-        path = os.path.join(outdir, froot+self.rst_extension)
+        path = os.path.join(outdir, froot + self.rst_extension)
         # Path written into index is relative to rootpath
         if relative_to is not None:
-            relpath = (
-                outdir + os.path.sep).replace(relative_to + os.path.sep, '')
+            relpath = (outdir + os.path.sep).replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
         idx = open(path, 'wt')

@@ -5,19 +5,18 @@ from os.path import join as pjoin, split as psplit, splitext
 import sys
 PY3 = sys.version_info[0] >= 3
 if PY3:
-    string_types = str,
+    string_types = (str,)
 else:
-    string_types = basestring,
+    string_types = (basestring,)
 try:
     from ConfigParser import ConfigParser
 except ImportError:
     from configparser import ConfigParser
-
 from distutils.version import LooseVersion
 from distutils.command.build_py import build_py
 from distutils.command.install_scripts import install_scripts
-
 from distutils import log
+
 
 def get_comrec_build(pkg_dir, build_cmd=build_py):
     """ Return extended build command class for recording commit
@@ -54,15 +53,20 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
     information at the terminal.  See the ``pkg_info.py`` module in the nipy
     package for an example.
     """
+
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
+
         def run(self):
             build_cmd.run(self)
             import subprocess
-            proc = subprocess.Popen('git rev-parse --short HEAD',
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    shell=True)
+
+            proc = subprocess.Popen(
+                'git rev-parse --short HEAD',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+            )
             repo_commit, _ = proc.communicate()
             # Fix for python 3
             repo_commit = str(repo_commit)
@@ -72,6 +76,7 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
             cfg_parser.set('commit hash', 'install_hash', repo_commit)
             out_pth = pjoin(self.build_lib, pkg_dir, 'COMMIT_INFO.txt')
             cfg_parser.write(open(out_pth, 'wt'))
+
     return MyBuildPy
 
 
@@ -88,13 +93,15 @@ def _add_append_key(in_dict, key, value):
 
 
 # Dependency checks
-def package_check(pkg_name, version=None,
-                  optional=False,
-                  checker=LooseVersion,
-                  version_getter=None,
-                  messages=None,
-                  setuptools_args=None
-                  ):
+def package_check(
+    pkg_name,
+    version=None,
+    optional=False,
+    checker=LooseVersion,
+    version_getter=None,
+    messages=None,
+    setuptools_args=None,
+):
     ''' Check if package `pkg_name` is present and has good enough version
 
     Has two modes of operation.  If `setuptools_args` is None (the default),
@@ -137,46 +144,46 @@ def package_check(pkg_name, version=None,
        If None, raise errors / warnings for missing non-optional / optional
        dependencies.  If dict fill key values ``install_requires`` and
        ``extras_require`` for non-optional and optional dependencies.
+
     '''
-    setuptools_mode = not setuptools_args is None
+    setuptools_mode = setuptools_args is not None
     optional_tf = bool(optional)
     if version_getter is None:
+
         def version_getter(pkg_name):
             mod = __import__(pkg_name)
             return mod.__version__
+
     if messages is None:
         messages = {}
     msgs = {
-         'missing': 'Cannot import package "%s" - is it installed?',
-         'missing opt': 'Missing optional package "%s"',
-         'opt suffix' : '; you may get run-time errors',
-         'version too old': 'You have version %s of package "%s"'
-                            ' but we need version >= %s', }
+        'missing': 'Cannot import package "%s" - is it installed?',
+        'missing opt': 'Missing optional package "%s"',
+        'opt suffix': '; you may get run-time errors',
+        'version too old': 'You have version %s of package "%s"'
+        ' but we need version >= %s',
+    }
     msgs.update(messages)
-    status, have_version = _package_status(pkg_name,
-                                           version,
-                                           version_getter,
-                                           checker)
+    status, have_version = _package_status(pkg_name, version, version_getter, checker)
     if status == 'satisfied':
         return
     if not setuptools_mode:
         if status == 'missing':
             if not optional_tf:
                 raise RuntimeError(msgs['missing'] % pkg_name)
-            log.warn(msgs['missing opt'] % pkg_name +
-                     msgs['opt suffix'])
+            log.warn(msgs['missing opt'] % pkg_name + msgs['opt suffix'])
             return
         elif status == 'no-version':
             raise RuntimeError('Cannot find version for %s' % pkg_name)
         assert status == 'low-version'
         if not optional_tf:
-            raise RuntimeError(msgs['version too old'] % (have_version,
-                                                          pkg_name,
-                                                          version))
-        log.warn(msgs['version too old'] % (have_version,
-                                            pkg_name,
-                                            version)
-                    + msgs['opt suffix'])
+            raise RuntimeError(
+                msgs['version too old'] % (have_version, pkg_name, version)
+            )
+        log.warn(
+            msgs['version too old'] % (have_version, pkg_name, version)
+            + msgs['opt suffix']
+        )
         return
     # setuptools mode
     if optional_tf and not isinstance(optional, string_types):
@@ -185,11 +192,9 @@ def package_check(pkg_name, version=None,
     if version:
         dependency += '>=' + version
     if optional_tf:
-        if not 'extras_require' in setuptools_args:
+        if 'extras_require' not in setuptools_args:
             setuptools_args['extras_require'] = {}
-        _add_append_key(setuptools_args['extras_require'],
-                        optional,
-                        dependency)
+        _add_append_key(setuptools_args['extras_require'], optional, dependency)
         return
     _add_append_key(setuptools_args, 'install_requires', dependency)
     return
@@ -211,8 +216,7 @@ def _package_status(pkg_name, version, version_getter, checker):
     return 'satisfied', have_version
 
 
-BAT_TEMPLATE = \
-r"""@echo off
+BAT_TEMPLATE = r"""@echo off
 REM wrapper to use shebang first line of {FNAME}
 set mypath=%~dp0
 set pyscript="%mypath%{FNAME}"
@@ -224,6 +228,7 @@ exit /b 1
 set py_exe=%line1:~2%
 call "%py_exe%" %pyscript% %*
 """
+
 
 class install_scripts_bat(install_scripts):
     """ Make scripts executable on Windows
@@ -241,7 +246,9 @@ class install_scripts_bat(install_scripts):
     https://matthew-brett.github.io/pydagogue/installing_scripts.html and
     example at git://github.com/matthew-brett/myscripter.git for more
     background.
+
     """
+
     def run(self):
         install_scripts.run(self)
         if not os.name == "nt":
@@ -251,10 +258,8 @@ class install_scripts_bat(install_scripts):
             # file, make .bat wrapper for script.
             with open(filepath, 'rt') as fobj:
                 first_line = fobj.readline()
-            if not (first_line.startswith('#!') and
-                    'python' in first_line.lower()):
-                log.info("No #!python executable found, skipping .bat "
-                            "wrapper")
+            if not (first_line.startswith('#!') and 'python' in first_line.lower()):
+                log.info("No #!python executable found, skipping .bat " "wrapper")
                 continue
             pth, fname = psplit(filepath)
             froot, ext = splitext(fname)
@@ -288,6 +293,7 @@ def read_vars_from(ver_file):
     info_vars : Bunch instance
         Bunch object where variables read from `ver_file` appear as
         attributes
+
     """
     # Use exec for compabibility with Python 3
     ns = {}

@@ -15,6 +15,7 @@ OUR_PATH = dirname(__file__)
 OUR_META = pjoin(OUR_PATH, 'meta.ini')
 DISCOVER_INIS = {'user': HOME_INI, 'system': SYS_INI}
 
+
 def main():
     # Get ini file to which to write
     try:
@@ -23,7 +24,7 @@ def main():
         reg_to = 'user'
     if reg_to in ('user', 'system'):
         ini_fname = DISCOVER_INIS[reg_to]
-    else: # it is an ini file name
+    else:  # it is an ini file name
         ini_fname = reg_to
 
     # Read parameters for our distribution

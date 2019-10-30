@@ -11,7 +11,7 @@ from os.path import join as pjoin
 from apigen import ApiDocWriter
 
 # version comparison
-from distutils.version import LooseVersion as V
+from distutils.version import LooseVersion
 
 # *****************************************************************************
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     try:
         __import__(package)
-    except ImportError as e:
+    except ImportError:
         abort("Can not import " + package)
 
     module = sys.modules[package]
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # are not (re)generated. This avoids automatic generation of documentation
     # for older or newer versions if such versions are installed on the system.
 
-    installed_version = V(module.__version__)
+    installed_version = LooseVersion(module.__version__)
 
     info_file = pjoin('..', package, 'info.py')
     info_lines = open(info_file).readlines()

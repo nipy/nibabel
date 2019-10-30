@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-"""Simple script to create a tarball with proper git info.
-"""
+"""Simple script to create a tarball with proper git info."""
 
 import commands
 import os
-import sys
-import shutil
 
-from  toollib import *
+from toollib import cd, c
 
 tag = commands.getoutput('git describe')
 base_name = 'nibabel-%s' % tag
