@@ -84,3 +84,7 @@ Thumbs.db
 doc/source/reference
 venv/
 .buildbot.patch
+
+# IDE Settings #
+############
+.vscode/
