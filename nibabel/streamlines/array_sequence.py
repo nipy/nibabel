@@ -56,27 +56,29 @@ class _BuildCache(object):
 
 def _define_operators(cls):
     """ Decorator which adds support for some Python operators. """
-    def _wrap(cls, op, name=None, inplace=False, unary=False):
-        name = name or op
-        if unary:
-            setattr(cls, name, lambda self: self._op(op))
-        else:
-            setattr(cls, name,
-                    lambda self, value: self._op(op, value, inplace=inplace))
+    def _wrap(cls, op, inplace=False, unary=False):
 
-    for op in ["__iadd__", "__isub__", "__imul__", "__idiv__",
-               "__ifloordiv__", "__itruediv__", "__ior__"]:
-        _wrap(cls, op, inplace=True)
+        def fn_unary_op(self):
+            return self._op(op)
 
-    for op in ["__add__", "__sub__", "__mul__", "__div__",
-               "__floordiv__", "__truediv__", "__or__"]:
-        op_ = "__i{}__".format(op.strip("_"))
-        _wrap(cls, op_, name=op)
+        def fn_binary_op(self, value):
+            return self._op(op, value, inplace=inplace)
+
+        setattr(cls, op, fn_unary_op if unary else fn_binary_op)
+        fn = getattr(cls, op)
+        fn.__name__ = op
+        fn.__doc__ = getattr(np.ndarray, op).__doc__
+
+    for op in ["__add__", "__sub__", "__mul__", "__mod__", "__pow__",
+               "__floordiv__", "__truediv__", "__lshift__", "__rshift__",
+               "__or__", "__and__", "__xor__"]:
+        _wrap(cls, op=op, inplace=False)
+        _wrap(cls, op="__i{}__".format(op.strip("_")), inplace=True)
 
     for op in ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
         _wrap(cls, op)
 
-    for op in ["__neg__"]:
+    for op in ["__neg__", "__abs__", "__invert__"]:
         _wrap(cls, op, unary=True)
 
     return cls
@@ -460,13 +462,31 @@ class ArraySequence(object):
         seq = self if inplace else self.copy()
 
         if is_array_sequence(value) and seq._check_shape(value):
-            for o1, l1, o2, l2 in zip(seq._offsets, seq._lengths, value._offsets, value._lengths):
-                seq._data[o1:o1 + l1] = getattr(seq._data[o1:o1 + l1], op)(value._data[o2:o2 + l2])
+            elements = zip(seq._offsets, seq._lengths,
+                           self._offsets, self._lengths,
+                           value._offsets, value._lengths)
+
+            # Change seq.dtype to match the operation resulting type.
+            o0, l0, o1, l1, o2, l2 = next(elements)
+            tmp = getattr(self._data[o1:o1 + l1], op)(value._data[o2:o2 + l2])
+            seq._data = seq._data.astype(tmp.dtype)
+            seq._data[o0:o0 + l0] = tmp
+
+            for o0, l0, o1, l1, o2, l2 in elements:
+                seq._data[o0:o0 + l0] = getattr(self._data[o1:o1 + l1], op)(value._data[o2:o2 + l2])
 
         else:
             args = [] if value is None else [value]  # Dealing with unary and binary ops.
-            for o1, l1 in zip(seq._offsets, seq._lengths):
-                seq._data[o1:o1 + l1] = getattr(seq._data[o1:o1 + l1], op)(*args)
+            elements = zip(seq._offsets, seq._lengths, self._offsets, self._lengths)
+
+            # Change seq.dtype to match the operation resulting type.
+            o0, l0, o1, l1 = next(elements)
+            tmp = getattr(self._data[o1:o1 + l1], op)(*args)
+            seq._data = seq._data.astype(tmp.dtype)
+            seq._data[o0:o0 + l0] = tmp
+
+            for o0, l0, o1, l1 in elements:
+                seq._data[o0:o0 + l0] = getattr(self._data[o1:o1 + l1], op)(*args)
 
         return seq
 

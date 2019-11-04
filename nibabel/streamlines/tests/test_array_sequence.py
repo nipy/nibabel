@@ -24,7 +24,7 @@ def setup():
 
 
 def generate_data(nb_arrays, common_shape, rng):
-    data = [rng.rand(*(rng.randint(3, 20),) + common_shape)
+    data = [rng.rand(*(rng.randint(3, 20),) + common_shape) * 100
             for _ in range(nb_arrays)]
     return data
 
@@ -228,9 +228,6 @@ class TestArraySequence(unittest.TestCase):
         for i, e in enumerate(SEQ_DATA['seq']):
             assert_array_equal(SEQ_DATA['seq'][i], e)
 
-            if sys.version_info < (3,):
-                assert_array_equal(SEQ_DATA['seq'][long(i)], e)
-
         # Get all items using indexing (creates a view).
         indices = list(range(len(SEQ_DATA['seq'])))
         seq_view = SEQ_DATA['seq'][indices]
@@ -278,49 +275,42 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq(seq_view, [d[:, 2] for d in SEQ_DATA['data'][::-2]])
 
     def test_arraysequence_operators(self):
-        for op in ["__add__", "__sub__", "__mul__", "__floordiv__", "__truediv__",
-                   "__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
-            # Test math operators with a scalar.
-            for scalar in [42, 0.5, True]:
-                seq = getattr(SEQ_DATA['seq'], op)(scalar)
-                assert_true(seq is not SEQ_DATA['seq'])
-                check_arr_seq(seq, [getattr(d, op)(scalar) for d in SEQ_DATA['data']])
+        # Disable division per zero warnings.
+        flags = np.seterr(divide='ignore', invalid='ignore')
+        SCALARS = [42, 0.5, True, -3, 0]
+        CMP_OPS = ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]
+
+        seq = SEQ_DATA['seq'].copy()
+        seq_int = SEQ_DATA['seq'].copy()
+        seq_int._data = seq_int._data.astype(int)
+        seq_bool = SEQ_DATA['seq'].copy() > 30
+
+        ARRSEQS = [seq, seq_int, seq_bool]
+        VIEWS = [seq[::2], seq_int[::2], seq_bool[::2]]
+
+        def _test_unary(op, arrseq):
+            orig = arrseq.copy()
+            seq = getattr(orig, op)()
+            assert_true(seq is not orig)
+            check_arr_seq(seq, [getattr(d, op)() for d in orig])
+
+        def _test_binary(op, arrseq, scalars, seqs, inplace=False):
+            for scalar in scalars:
+                orig = arrseq.copy()
+                seq = getattr(orig, op)(scalar)
+                assert_true((seq is orig) if inplace else (seq is not orig))
+                check_arr_seq(seq, [getattr(e, op)(scalar) for e in arrseq])
 
             # Test math operators with another ArraySequence.
-            seq = getattr(SEQ_DATA['seq'], op)(SEQ_DATA['seq'])
-            assert_true(seq is not SEQ_DATA['seq'])
-            check_arr_seq(seq, [getattr(d, op)(d) for d in SEQ_DATA['data']])
-
-            # Test math operators with ArraySequence views.
-            orig = SEQ_DATA['seq'][::2]
-            seq = getattr(orig, op)(orig)
-            assert_true(seq is not orig)
-            check_arr_seq(seq, [getattr(d, op)(d) for d in SEQ_DATA['data'][::2]])
-
-        # Test in-place operators.
-        for op in ["__iadd__", "__isub__", "__imul__", "__ifloordiv__", "__itruediv__"]:
-            # Test in-place math operators with a scalar.
-            for scalar in [42, 0.5, True]:
-                seq = seq_orig = SEQ_DATA['seq'].copy()
-                seq = getattr(seq, op)(scalar)
-                assert_true(seq is seq_orig)
-                check_arr_seq(seq, [getattr(d.copy(), op)(scalar) for d in SEQ_DATA['data']])
-
-            # Test in-place math operators with another ArraySequence.
-            seq = seq_orig = SEQ_DATA['seq'].copy()
-            seq = getattr(seq, op)(SEQ_DATA['seq'])
-            assert_true(seq is seq_orig)
-            check_arr_seq(seq, [getattr(d.copy(), op)(d) for d in SEQ_DATA['data']])
-
-            # Test in-place math operators with ArraySequence views.
-            seq = seq_orig = SEQ_DATA['seq'].copy()[::2]
-            seq = getattr(seq, op)(seq)
-            assert_true(seq is seq_orig)
-            check_arr_seq(seq, [getattr(d.copy(), op)(d) for d in SEQ_DATA['data'][::2]])
+            for other in seqs:
+                orig = arrseq.copy()
+                seq = getattr(orig, op)(other)
+                assert_true(seq is not SEQ_DATA['seq'])
+                check_arr_seq(seq, [getattr(e1, op)(e2) for e1, e2 in zip(arrseq, other)])
 
             # Operations between array sequences of different lengths.
-            seq = SEQ_DATA['seq'].copy()
-            assert_raises(ValueError, getattr(seq, op), SEQ_DATA['seq'][::2])
+            orig = arrseq.copy()
+            assert_raises(ValueError, getattr(orig, op), orig[::2])
 
             # Operations between array sequences with different amount of data.
             seq1 = ArraySequence(np.arange(10).reshape(5, 2))
@@ -332,24 +322,65 @@ class TestArraySequence(unittest.TestCase):
             seq2 = ArraySequence(np.arange(8).reshape(2, 2, 2))
             assert_raises(ValueError, getattr(seq1, op), seq2)
 
+
+        for op in ["__add__", "__sub__", "__mul__", "__mod__",
+                   "__floordiv__", "__truediv__"] + CMP_OPS:
+            _test_binary(op, seq, SCALARS, ARRSEQS)
+            _test_binary(op, seq_int, SCALARS, ARRSEQS)
+
+            # Test math operators with ArraySequence views.
+            _test_binary(op, seq[::2], SCALARS, VIEWS)
+            _test_binary(op, seq_int[::2], SCALARS, VIEWS)
+
+            if op in CMP_OPS:
+                continue
+
+            op = "__i{}__".format(op.strip("_"))
+            _test_binary(op, seq, SCALARS, ARRSEQS, inplace=True)
+
+            if op == "__itruediv__":
+                continue  # Going to deal with it separately.
+
+            _test_binary(op, seq_int, [42, -3, True, 0], [seq_int, seq_bool, -seq_int], inplace=True)  # int <-- int
+            assert_raises(TypeError, _test_binary, op, seq_int, [0.5], [], inplace=True)  # int <-- float
+            assert_raises(TypeError, _test_binary, op, seq_int, [], [seq], inplace=True)  # int <-- float
+
+        # __pow__ : Integers to negative integer powers are not allowed.
+        _test_binary("__pow__", seq, [42, -3, True, 0], [seq_int, seq_bool, -seq_int])
+        _test_binary("__ipow__", seq, [42, -3, True, 0], [seq_int, seq_bool, -seq_int], inplace=True)
+        assert_raises(ValueError, _test_binary, "__pow__", seq_int, [-3], [])
+        assert_raises(ValueError, _test_binary, "__ipow__", seq_int, [-3], [], inplace=True)
+
+        # __itruediv__ is only valid with float arrseq.
+        for scalar in SCALARS + ARRSEQS:
+            assert_raises(TypeError, getattr(seq_int.copy(), "__itruediv__"), scalar)
+
+        # Bitwise operators
+        for op in ("__lshift__", "__rshift__", "__or__", "__and__", "__xor__"):
+            _test_binary(op, seq_bool, [42, -3, True, 0], [seq_int, seq_bool, -seq_int])
+            assert_raises(TypeError, _test_binary, op, seq_bool, [0.5], [])
+            assert_raises(TypeError, _test_binary, op, seq, [], [seq])
+
         # Unary operators
-        for op in ["__neg__"]:
-            seq = getattr(SEQ_DATA['seq'], op)()
-            assert_true(seq is not SEQ_DATA['seq'])
-            check_arr_seq(seq, [getattr(d, op)() for d in SEQ_DATA['data']])
+        for op in ["__neg__", "__abs__"]:
+            _test_unary(op, seq)
+            _test_unary(op, -seq)
+            _test_unary(op, seq_int)
+            _test_unary(op, -seq_int)
+
+        _test_unary("__abs__", seq_bool)
+        _test_unary("__invert__", seq_bool)
+        assert_raises(TypeError, _test_unary, "__invert__", seq)
+
+        # Restore flags.
+        np.seterr(**flags)
+
 
     def test_arraysequence_setitem(self):
         # Set one item
         seq = SEQ_DATA['seq'] * 0
         for i, e in enumerate(SEQ_DATA['seq']):
             seq[i] = e
-
-        check_arr_seq(seq, SEQ_DATA['seq'])
-
-        if sys.version_info < (3,):
-            seq = ArraySequence(SEQ_DATA['seq'] * 0)
-            for i, e in enumerate(SEQ_DATA['seq']):
-                seq[long(i)] = e
 
         check_arr_seq(seq, SEQ_DATA['seq'])
 

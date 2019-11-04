@@ -539,9 +539,6 @@ class TestTractogram(unittest.TestCase):
         for i, t in enumerate(DATA['tractogram']):
             assert_tractogram_item_equal(DATA['tractogram'][i], t)
 
-            if sys.version_info < (3,):
-                assert_tractogram_item_equal(DATA['tractogram'][long(i)], t)
-
         # Get one TractogramItem out of two.
         tractogram_view = DATA['simple_tractogram'][::2]
         check_tractogram(tractogram_view, DATA['streamlines'][::2])
