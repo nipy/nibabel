@@ -6,6 +6,9 @@ from functools import reduce
 
 import numpy as np
 
+from nibabel.deprecated import deprecate_with_version
+
+
 MEGABYTE = 1024 * 1024
 
 
@@ -148,16 +151,15 @@ class ArraySequence(object):
         return np.sum(self._lengths)
 
     @property
+    @deprecate_with_version("'ArraySequence.data' property is deprecated.\n"
+                            "Please use the 'ArraySequence.get_data()' method instead",
+                            '3.0', '4.0')
     def data(self):
         """ Elements in this array sequence. """
-        warnings.warn("The 'ArraySequence.data' property has been deprecated"
-                      " in favor of 'ArraySequence.get_data()'.",
-                      DeprecationWarning,
-                      stacklevel=2)
         return self.get_data()
 
     def get_data(self):
-        """ Returns a copy of the elements in this array sequence.
+        """ Returns a *copy* of the elements in this array sequence.
 
         Notes
         -----
@@ -384,7 +386,7 @@ class ArraySequence(object):
             seq._lengths = self._lengths[off_idx]
             return seq
 
-        if isinstance(off_idx, list) or is_ndarray_of_int_or_bool(off_idx):
+        if isinstance(off_idx, (list, range)) or is_ndarray_of_int_or_bool(off_idx):
             # Fancy indexing
             seq._offsets = self._offsets[off_idx]
             seq._lengths = self._lengths[off_idx]
@@ -425,7 +427,7 @@ class ArraySequence(object):
             offsets = self._offsets[off_idx]
             lengths = self._lengths[off_idx]
 
-        elif isinstance(off_idx, list) or is_ndarray_of_int_or_bool(off_idx):
+        elif isinstance(off_idx, (list, range)) or is_ndarray_of_int_or_bool(off_idx):
             # Fancy indexing
             offsets = self._offsets[off_idx]
             lengths = self._lengths[off_idx]
@@ -434,12 +436,25 @@ class ArraySequence(object):
             raise TypeError("Index must be either an int, a slice, a list of int"
                             " or a ndarray of bool! Not " + str(type(idx)))
 
-        if len(lengths) != elements.total_nb_rows:
-            msg = "Trying to set {} sequences with {} sequences."
-            raise TypeError(msg.format(len(lengths), elements.total_nb_rows))
+        if is_array_sequence(elements):
+            if len(lengths) != len(elements):
+                msg = "Trying to set {} sequences with {} sequences."
+                raise ValueError(msg.format(len(lengths), len(elements)))
 
-        for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
-            data[o1:o1 + l1] = elements._data[o2:o2 + l2]
+            if sum(lengths) != elements.total_nb_rows:
+                msg = "Trying to set {} points with {} points."
+                raise ValueError(msg.format(sum(lengths), elements.total_nb_rows))
+
+            for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
+                data[o1:o1 + l1] = elements._data[o2:o2 + l2]
+
+        elif isinstance(elements, numbers.Number):
+            for o1, l1 in zip(offsets, lengths):
+                data[o1:o1 + l1] = elements
+
+        else:  # Try to iterate over it.
+            for o1, l1, element in zip(offsets, lengths, elements):
+                data[o1:o1 + l1] = element
 
     def _op(self, op, value=None, inplace=False):
         """ Applies some operator to this arraysequence.
