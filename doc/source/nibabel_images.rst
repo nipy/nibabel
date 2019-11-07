@@ -282,6 +282,80 @@ True
 See :doc:`images_and_memory` for more details on managing image memory and
 controlling the image cache.
 
+.. _image-slicing:
+
+Image slicing
+=============
+
+At times it is useful to manipulate an image's shape while keeping it in the
+same coordinate system.
+The ``slicer`` attribute provides an array-slicing interface to produce new
+images with an appropriately adjusted header, such that the data at a given
+RAS+ location is unchanged.
+
+>>> cropped_img = img.slicer[32:-32, ...]
+>>> cropped_img.shape
+(64, 96, 24, 2)
+
+The data is identical to cropping the data block directly:
+
+>>> np.array_equal(cropped_img.get_fdata(), img.get_fdata()[32:-32, ...])
+True
+
+However, unused data did not need to be loaded into memory or scaled.
+Additionally, the image affine was adjusted so that the X-translation is
+32 voxels (64mm) less:
+
+>>> cropped_img.affine
+array([[ -2.  ,   0.  ,   0.  ,  53.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
+
+>>> img.affine - cropped_img.affine
+array([[ 0.,  0.,  0., 64.],
+       [ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.]])
+
+Another use for the slicer object is to choose specific volumes from a
+time series:
+
+>>> vol0 = img.slicer[..., 0]
+>>> vol0.shape
+(128, 96, 24)
+
+Or a selection of volumes:
+
+>>> img.slicer[..., :1].shape
+(128, 96, 24, 1)
+>>> img.slicer[..., :2].shape
+(128, 96, 24, 2)
+
+It is also possible to use an integer step when slicing, downsampling
+the image without filtering.
+Note that this *will induce artifacts* in the frequency spectrum
+(`aliasing <wikipedia aliasing>`_) along any axis that is down-sampled.
+
+>>> downsampled = vol0.slicer[::2, ::2, ::2]
+>>> downsampled.header.get_zooms()
+(4.0, 4.0, 4.399998)
+
+Finally, an image can be flipped along an axis, maintaining an appropriate
+affine matrix:
+
+>>> nib.orientations.aff2axcodes(img.affine)
+('L', 'A', 'S')
+>>> ras = img.slicer[::-1]
+>>> nib.orientations.aff2axcodes(ras.affine)
+('R', 'A', 'S')
+>>> ras.affine
+array([[  2.  ,   0.  ,   0.  , 117.86],
+       [  0.  ,   1.97,  -0.36, -35.72],
+       [ -0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
+
+
 ******************
 Loading and saving
 ******************
