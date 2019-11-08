@@ -261,13 +261,22 @@ class MincImageArrayProxy(object):
     def is_proxy(self):
         return True
 
+    def _get_scaled(self, dtype, slicer):
+        data = self.minc_file.get_scaled_data(slicer)
+        if dtype is not None and np.dtype(dtype) > data.dtype:
+            data = data.astype(dtype)
+        return data
+
+    def get_scaled(self, dtype=None):
+        return self._get_scaled(dtype=dtype, slicer=())
+
     def __array__(self):
         ''' Read of data from file '''
-        return self.minc_file.get_scaled_data()
+        return self._get_scaled(dtype=None, slicer=())
 
     def __getitem__(self, sliceobj):
         """ Read slice `sliceobj` of data from file """
-        return self.minc_file.get_scaled_data(sliceobj)
+        return self._get_scaled(dtype=None, slicer=sliceobj)
 
 
 class MincHeader(SpatialHeader):

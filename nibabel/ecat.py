@@ -704,6 +704,12 @@ class EcatImageArrayProxy(object):
                 frame_mapping[i][0])
         return data
 
+    def get_scaled(self, dtype=None):
+        data = self.__array__()
+        if dtype is not None and np.dtype(dtype) > data.dtype:
+            data = data.astype(dtype)
+        return data
+
     def __getitem__(self, sliceobj):
         """ Return slice `sliceobj` from ECAT data, optimizing if possible
         """
