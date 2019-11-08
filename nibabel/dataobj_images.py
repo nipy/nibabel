@@ -10,6 +10,7 @@ This can either be an actual numpy array, or an object that:
 
 import numpy as np
 
+from .arrayproxy import is_proxy
 from .filebasedimages import FileBasedImage
 from .keywordonly import kw_only_meth
 from .deprecated import deprecate_with_version
@@ -350,7 +351,14 @@ class DataobjImage(FileBasedImage):
         if self._fdata_cache is not None:
             if self._fdata_cache.dtype.type == dtype.type:
                 return self._fdata_cache
-        data = np.asanyarray(self._dataobj).astype(dtype, copy=False)
+        dataobj = self._dataobj
+        # Attempt to confine data array to dtype during scaling
+        # On overflow, may still upcast
+        if is_proxy(dataobj):
+            dataobj = dataobj.get_scaled(dtype=dtype)
+        # Always return requested data type
+        # For array proxies, will only copy on overflow
+        data = np.asanyarray(dataobj, dtype=dtype)
         if caching == 'fill':
             self._fdata_cache = data
         return data
