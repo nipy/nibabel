@@ -1,6 +1,5 @@
 
 import numbers
-import warnings
 from operator import mul
 from functools import reduce
 
@@ -156,7 +155,9 @@ class ArraySequence(object):
                             '3.0', '4.0')
     def data(self):
         """ Elements in this array sequence. """
-        return self.get_data()
+        view = self._data.view()
+        view.setflags(write=False)
+        return view
 
     def get_data(self):
         """ Returns a *copy* of the elements in this array sequence.
