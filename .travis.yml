@@ -29,7 +29,7 @@ matrix:
     # Basic dependencies only
     - python: 3.8
       env:
-        - DEPENDS="-r requirements.txt"
+        - DEPENDS="numpy scipy pillow pydicom indexed_gzip"
     # Basic dependencies only
     - python: 3.5
       env:
