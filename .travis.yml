@@ -29,7 +29,7 @@ matrix:
     # Basic dependencies only
     - python: 3.8
       env:
-        - DEPENDS="numpy scipy pillow pydicom indexed_gzip"
+        - DEPENDS="numpy scipy matplotlib~=3.2.0rc1 pillow pydicom indexed_gzip"
     # Basic dependencies only
     - python: 3.5
       env:
