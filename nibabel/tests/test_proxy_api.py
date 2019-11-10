@@ -52,7 +52,7 @@ from ..arrayproxy import ArrayProxy, is_proxy
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+                        assert_equal, assert_not_equal, assert_greater_equal)
 
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 
@@ -130,6 +130,22 @@ class _TestProxyAPI(ValidateAPI):
         assert_dt_equal(out.dtype, params['dtype_out'])
         # Shape matches expected shape
         assert_equal(out.shape, params['shape'])
+
+    def validate_get_scaled(self, pmaker, params):
+        # Check proxy returns expected array from asarray
+        prox, fio, hdr = pmaker()
+        out = prox.get_scaled()
+        assert_array_equal(out, params['arr_out'])
+        assert_dt_equal(out.dtype, params['dtype_out'])
+        # Shape matches expected shape
+        assert_equal(out.shape, params['shape'])
+
+        for dtype in (np.float16, np.float32, np.float64, np.float128):
+            out = prox.get_scaled(dtype=dtype)
+            assert_almost_equal(out, params['arr_out'])
+            assert_greater_equal(out.dtype, np.dtype(dtype))
+            # Shape matches expected shape
+            assert_equal(out.shape, params['shape'])
 
     def validate_header_isolated(self, pmaker, params):
         # Confirm altering input header has no effect
