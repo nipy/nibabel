@@ -706,9 +706,10 @@ class EcatImageArrayProxy(object):
 
     def get_scaled(self, dtype=None):
         data = self.__array__()
-        if dtype is not None and np.dtype(dtype) > data.dtype:
-            data = data.astype(dtype)
-        return data
+        if dtype is None:
+            return data
+        final_type = np.promote_types(data.dtype, dtype)
+        return data.astype(final_type, copy=False)
 
     def __getitem__(self, sliceobj):
         """ Return slice `sliceobj` from ECAT data, optimizing if possible

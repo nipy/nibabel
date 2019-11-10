@@ -633,12 +633,6 @@ class PARRECArrayProxy(object):
     def is_proxy(self):
         return True
 
-    def get_unscaled(self):
-        with ImageOpener(self.file_like) as fileobj:
-            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
-                                  self._slice_indices, self._shape,
-                                  mmap=self._mmap)
-
     def _get_unscaled(self, slicer):
         indices = self._slice_indices
         if slicer == ():
@@ -674,6 +668,9 @@ class PARRECArrayProxy(object):
         # Slice scaling to give output shape
         return raw_data * slopes[slicer].astype(final_type) + inters[slicer].astype(final_type)
 
+
+    def get_unscaled(self):
+        return self._get_unscaled(slicer=())
 
     def get_scaled(self, dtype=None):
         return self._get_scaled(dtype=dtype, slicer=())

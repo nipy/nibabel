@@ -263,9 +263,10 @@ class MincImageArrayProxy(object):
 
     def _get_scaled(self, dtype, slicer):
         data = self.minc_file.get_scaled_data(slicer)
-        if dtype is not None and np.dtype(dtype) > data.dtype:
-            data = data.astype(dtype)
-        return data
+        if dtype is None:
+            return data
+        final_type = np.promote_types(data.dtype, dtype)
+        return data.astype(final_type, copy=False)
 
     def get_scaled(self, dtype=None):
         return self._get_scaled(dtype=dtype, slicer=())
