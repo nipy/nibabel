@@ -265,17 +265,21 @@ class AFNIArrayProxy(ArrayProxy):
     def _get_scaled(self, dtype, slicer):
         raw_data = self._get_unscaled(slicer=slicer)
         if self.scaling is None:
-            if dtype is None or raw_data.dtype >= np.dtype(dtype):
+            if dtype is None:
                 return raw_data
-            return np.asanyarray(raw_data, dtype=dtype)
+            final_type = np.promote_types(raw_data.dtype, dtype)
+            return raw_data.astype(final_type, copy=False)
 
-        if dtype is None:
-            dtype = self.scaling.dtype
-
+        # Broadcast scaling to shape of original data
         fake_data = strided_scalar(self._shape)
-        _, scaling = np.broadcast_arrays(fake_data, self.scaling.astype(dtype))
+        _, scaling = np.broadcast_arrays(fake_data, self.scaling)
 
-        return raw_data * scaling[slicer]
+        final_type = np.result_type(raw_data, scaling)
+        if dtype is not None:
+            final_type = np.promote_types(final_type, dtype)
+
+        # Slice scaling to give output shape
+        return raw_data * scaling[slicer].astype(final_type)
 
 
 class AFNIHeader(SpatialHeader):
