@@ -658,20 +658,29 @@ class PARRECArrayProxy(object):
     def _get_scaled(self, dtype, slicer):
         raw_data = self._get_unscaled(slicer)
         if self._slice_scaling is None:
-            if dtype is None or raw_data.dtype >= np.dtype(dtype):
+            if dtype is None:
                 return raw_data
-            return np.asanyarray(raw_data, dtype=dtype)
+            final_type = np.promote_types(raw_data.dtype, dtype)
+            return raw_data.astype(final_type, copy=False)
 
         # Broadcast scaling to shape of original data
         slopes, inters = self._slice_scaling
         fake_data = strided_scalar(self._shape)
         _, slopes, inters = np.broadcast_arrays(fake_data, slopes, inters)
 
-        if dtype is None:
-            dtype = max(slopes.dtype, inters.dtype)
+        final_type = np.result_type(raw_data, slopes, inters)
+        if dtype is not None:
+            final_type = np.promote_types(final_type, dtype)
+
+        slopes = slopes.astype(final_type)
+        inters = inters.astype(final_type)
+
+        if slicer is not None:
+            slopes = slopes[slicer]
+            inters = inters[slicer]
 
         # Slice scaling to give output shape
-        return raw_data * slopes.astype(dtype)[slicer] + inters.astype(dtype)[slicer]
+        return raw_data * slopes + inters
 
 
     def get_scaled(self, dtype=None):
