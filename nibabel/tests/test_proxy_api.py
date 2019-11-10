@@ -140,7 +140,7 @@ class _TestProxyAPI(ValidateAPI):
         # Shape matches expected shape
         assert_equal(out.shape, params['shape'])
 
-        for dtype in np.sctypes['float']:
+        for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
             out = prox.get_scaled(dtype=dtype)
             assert_almost_equal(out, params['arr_out'])
             assert_greater_equal(out.dtype, np.dtype(dtype))
