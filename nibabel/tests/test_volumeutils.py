@@ -792,7 +792,7 @@ def test_working_type():
     # need this because of the very confusing np.int32 != np.intp (on 32 bit).
     def wt(*args, **kwargs):
         return np.dtype(working_type(*args, **kwargs)).str
-    d1=np.atleast_1d
+    d1 = np.atleast_1d
     for in_type in NUMERIC_TYPES:
         in_ts = np.dtype(in_type).str
         assert wt(in_type) == in_ts
@@ -812,7 +812,7 @@ def test_working_type():
                 out_val = in_val - d1(i_val)
                 assert wt(in_type, 1, i_val) == out_val.dtype.str
                 # Combine scaling and intercept
-                out_val=(in_val - d1(i_val)) / d1(sl_val)
+                out_val = (in_val - d1(i_val)) / d1(sl_val)
                 assert wt(in_type, sl_val, i_val) == out_val.dtype.str
     # Confirm that type codes and dtypes work as well
     f32s = np.dtype(np.float32).str
@@ -849,7 +849,7 @@ def test_best_write_scale_ftype():
         assert best_write_scale_ftype(arr, np.float32(2), 0) == better_float_of(dtt, np.float32)
         assert best_write_scale_ftype(arr, 1, np.float32(1)) == better_float_of(dtt, np.float32)
     # Overflowing ints with scaling results in upcast
-    best_vals=((np.float32, np.float64),)
+    best_vals = ((np.float32, np.float64),)
     if np.longdouble in OK_FLOATS:
         best_vals += ((np.float64, np.longdouble),)
     for lower_t, higher_t in best_vals:
@@ -869,14 +869,14 @@ def test_best_write_scale_ftype():
         assert best_write_scale_ftype(arr, 1, -big_delta / 2.01) == lower_t
         assert best_write_scale_ftype(arr, 1, -big_delta / 2.0) == higher_t
         # With infs already in input, default type returns
-        arr[0]=np.inf
+        arr[0] = np.inf
         assert best_write_scale_ftype(arr, lower_t(0.5), 0) == lower_t
-        arr[0]=-np.inf
+        arr[0] = -np.inf
         assert best_write_scale_ftype(arr, lower_t(0.5), 0) == lower_t
 
 
 def test_can_cast():
-    tests=((np.float32, np.float32, True, True, True),
+    tests = ((np.float32, np.float32, True, True, True),
              (np.float64, np.float32, True, True, True),
              (np.complex128, np.float32, False, False, False),
              (np.float32, np.complex128, True, True, True),
@@ -1060,8 +1060,8 @@ def test_allopen_compresslevel():
     with open(__file__, 'rb') as fobj:
         my_self=fobj.read()
     # Prepare loop
-    fname='test.gz'
-    sizes={}
+    fname = 'test.gz'
+    sizes = {}
     # Stash module global
     from .. import volumeutils as vu
     original_compress_level = vu.default_compresslevel
@@ -1085,8 +1085,8 @@ def test_allopen_compresslevel():
 
 
 def test_shape_zoom_affine():
-    shape=(3, 5, 7)
-    zooms=(3, 2, 1)
+    shape = (3, 5, 7)
+    zooms = (3, 2, 1)
     res = shape_zoom_affine(shape, zooms)
     exp = np.array([[-3., 0., 0., 3.],
                     [0., 2., 0., -4.],
@@ -1121,7 +1121,7 @@ def test_dtypes():
     # In [10]: dtype('<f4') == dtype('<f4').newbyteorder('<')
     # Out[10]: True
     # where '<' is the native byte order
-    dt_defs=((16, 'float32', np.float32),)
+    dt_defs = ((16, 'float32', np.float32),)
     dtr = make_dt_codes(dt_defs)
     # check we have the fields we were expecting
     assert dtr.value_set() == set((16,))
@@ -1136,7 +1136,7 @@ def test_dtypes():
     # But this one used to fail
     assert dtr[np.dtype('f4').newbyteorder(native_code)] == 16
     # Check we can pass in niistring as well
-    dt_defs=((16, 'float32', np.float32, 'ASTRING'),)
+    dt_defs = ((16, 'float32', np.float32, 'ASTRING'),)
     dtr = make_dt_codes(dt_defs)
     assert dtr[np.dtype('f4').newbyteorder('S')] == 16
     assert dtr.value_set() == set((16,))
@@ -1144,15 +1144,15 @@ def test_dtypes():
                           'sw_dtype')
     assert dtr.niistring[16] == 'ASTRING'
     # And that unequal elements raises error
-    dt_defs=((16, 'float32', np.float32, 'ASTRING'),
+    dt_defs = ((16, 'float32', np.float32, 'ASTRING'),
                (16, 'float32', np.float32))
     with pytest.raises(ValueError):
         make_dt_codes(dt_defs)
     # And that 2 or 5 elements raises error
-    dt_defs=((16, 'float32'),)
+    dt_defs = ((16, 'float32'),)
     with pytest.raises(ValueError):
         make_dt_codes(dt_defs)
-    dt_defs=((16, 'float32', np.float32, 'ASTRING', 'ANOTHERSTRING'),)
+    dt_defs = ((16, 'float32', np.float32, 'ASTRING', 'ANOTHERSTRING'),)
     with pytest.raises(ValueError):
         make_dt_codes(dt_defs)
 
@@ -1185,7 +1185,7 @@ def test__write_data():
                          order=order)
         expected = to_write.copy()
         if have_nans and not nan_fill is None:
-            expected[nan_positions]=nan_fill * slope + inter
+            expected[nan_positions] = nan_fill * slope + inter
         assert_array_equal(arr * slope + inter, expected)
         assert_array_equal(to_write, backup)
 
@@ -1214,7 +1214,7 @@ def test__write_data():
                   nan_fill=nan_fill)
         # Check defense against in-place modification with nans present
         if not nan_fill is None:
-            data[1]=np.nan
+            data[1] = np.nan
             assert_rt(data, shape, np.int16,
                       in_cast=in_cast,
                       pre_clips=pre_clips,
@@ -1226,7 +1226,7 @@ def test__write_data():
 
 def test_array_from_file_overflow():
     # Test for int overflow in size calculation in array_from_file
-    shape=(1500,) * 6
+    shape = (1500,) * 6
 
     class NoStringIO:  # Null file-like for forcing error
 
@@ -1263,7 +1263,7 @@ def test__ftype4scaled_finite_warningfilters():
             with warnings.catch_warnings():
                 go.set()
                 while not stop.is_set():
-                    warnings.filters[:]=[]
+                    warnings.filters[:] = []
                     time.sleep(0)
 
     class CheckScaling(threading.Thread):
