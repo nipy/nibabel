@@ -9,8 +9,10 @@ from ..eulerangles import euler2mat
 from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
                        from_matvec, dot_reduce, voxel_sizes, obliquity)
 
+
 import pytest
-import numpy.testing as npt
+from numpy.testing import assert_array_equal, assert_almost_equal, \
+    assert_array_almost_equal
 
 
 def validated_apply_affine(T, xyz):
@@ -30,27 +32,28 @@ def test_apply_affine():
     rng = np.random.RandomState(20110903)
     aff = np.diag([2, 3, 4, 1])
     pts = rng.uniform(size=(4, 3))
-    npt.assert_equal(apply_affine(aff, pts), pts * [[2, 3, 4]])
+    assert_array_equal(apply_affine(aff, pts),
+                       pts * [[2, 3, 4]])
     aff[:3, 3] = [10, 11, 12]
-    npt.assert_equal(apply_affine(aff, pts),
-                            pts * [[2, 3, 4]] + [[10, 11, 12]])
+    assert_array_equal(apply_affine(aff, pts),
+                       pts * [[2, 3, 4]] + [[10, 11, 12]])
     aff[:3, :] = rng.normal(size=(3, 4))
     exp_res = np.concatenate((pts.T, np.ones((1, 4))), axis=0)
     exp_res = np.dot(aff, exp_res)[:3, :].T
-    npt.assert_equal(apply_affine(aff, pts), exp_res)
+    assert_array_equal(apply_affine(aff, pts), exp_res)
     # Check we get the same result as the previous implementation
-    npt.assert_almost_equal(validated_apply_affine(aff, pts), apply_affine(aff, pts))
+    assert_almost_equal(validated_apply_affine(aff, pts), apply_affine(aff, pts))
     # Check that lists work for inputs
-    npt.assert_equal(apply_affine(aff.tolist(), pts.tolist()), exp_res)
+    assert_array_equal(apply_affine(aff.tolist(), pts.tolist()), exp_res)
     # Check that it's the same as a banal implementation in the simple case
     aff = np.array([[0, 2, 0, 10], [3, 0, 0, 11], [0, 0, 4, 12], [0, 0, 0, 1]])
     pts = np.array([[1, 2, 3], [2, 3, 4], [4, 5, 6], [6, 7, 8]])
     exp_res = (np.dot(aff[:3, :3], pts.T) + aff[:3, 3:4]).T
-    npt.assert_equal(apply_affine(aff, pts), exp_res)
+    assert_array_equal(apply_affine(aff, pts), exp_res)
     # That points can be reshaped and you'll get the same shape output
     pts = pts.reshape((2, 2, 3))
     exp_res = exp_res.reshape((2, 2, 3))
-    npt.assert_equal(apply_affine(aff, pts), exp_res)
+    assert_array_equal(apply_affine(aff, pts), exp_res)
     # That ND also works
     for N in range(2, 6):
         aff = np.eye(N)
@@ -64,7 +67,7 @@ def test_apply_affine():
         exp_pts = np.dot(aff, new_pts)
         exp_pts = np.rollaxis(exp_pts[:-1, :], 0, 2)
         exp_res = exp_pts.reshape((2, 3, nd))
-        npt.assert_almost_equal(res, exp_res)
+        assert_array_almost_equal(res, exp_res)
 
 
 def test_matrix_vector():
@@ -75,39 +78,39 @@ def test_matrix_vector():
         newmat, newvec = to_matvec(xform)
         mat = xform[:-1, :-1]
         vec = xform[:-1, -1]
-        npt.assert_equal(newmat, mat)
-        npt.assert_equal(newvec, vec)
-        npt.assert_equal(newvec.shape, (M - 1,))
-        npt.assert_equal(from_matvec(mat, vec), xform)
+        assert_array_equal(newmat, mat)
+        assert_array_equal(newvec, vec)
+        assert newvec.shape == (M - 1,)
+        assert_array_equal(from_matvec(mat, vec), xform)
         # Check default translation works
         xform_not = xform[:]
         xform_not[:-1, :] = 0
-        npt.assert_equal(from_matvec(mat), xform)
-        npt.assert_equal(from_matvec(mat, None), xform)
+        assert_array_equal(from_matvec(mat), xform)
+        assert_array_equal(from_matvec(mat, None), xform)
     # Check array-like works
     newmat, newvec = to_matvec(xform.tolist())
-    npt.assert_equal(newmat, mat)
-    npt.assert_equal(newvec, vec)
-    npt.assert_equal(from_matvec(mat.tolist(), vec.tolist()), xform)
+    assert_array_equal(newmat, mat)
+    assert_array_equal(newvec, vec)
+    assert_array_equal(from_matvec(mat.tolist(), vec.tolist()), xform)
 
 
 def test_append_diag():
     # Routine for appending diagonal elements
-    npt.assert_equal(append_diag(np.diag([2, 3, 1]), [1]),
+    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]),
                        np.diag([2, 3, 1, 1]))
-    npt.assert_equal(append_diag(np.diag([2, 3, 1]), [1, 1]),
+    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1, 1]),
                        np.diag([2, 3, 1, 1, 1]))
     aff = np.array([[2, 0, 0],
                     [0, 3, 0],
                     [0, 0, 1],
                     [0, 0, 1]])
-    npt.assert_equal(append_diag(aff, [5], [9]),
+    assert_array_equal(append_diag(aff, [5], [9]),
                        [[2, 0, 0, 0],
                         [0, 3, 0, 0],
                         [0, 0, 0, 1],
                         [0, 0, 5, 9],
                         [0, 0, 0, 1]])
-    npt.assert_equal(append_diag(aff, [5, 6], [9, 10]),
+    assert_array_equal(append_diag(aff, [5, 6], [9, 10]),
                        [[2, 0, 0, 0, 0],
                         [0, 3, 0, 0, 0],
                         [0, 0, 0, 0, 1],
@@ -117,7 +120,7 @@ def test_append_diag():
     aff = np.array([[2, 0, 0, 0],
                     [0, 3, 0, 0],
                     [0, 0, 0, 1]])
-    npt.assert_equal(append_diag(aff, [5], [9]),
+    assert_array_equal(append_diag(aff, [5], [9]),
                        [[2, 0, 0, 0, 0],
                         [0, 3, 0, 0, 0],
                         [0, 0, 0, 5, 9],
@@ -133,24 +136,24 @@ def test_dot_reduce():
     with pytest.raises(TypeError):
         dot_reduce()
     # Anything at all on its own, passes through
-    npt.assert_equal(dot_reduce(1), 1)
-    npt.assert_equal(dot_reduce(None), None)
-    npt.assert_equal(dot_reduce([1, 2, 3]), [1, 2, 3])
+    assert dot_reduce(1) == 1
+    assert dot_reduce(None) is None
+    assert dot_reduce([1, 2, 3]) == [1, 2, 3]
     # Two or more -> dot product
     vec = [1, 2, 3]
     mat = np.arange(4, 13).reshape((3, 3))
-    npt.assert_equal(dot_reduce(vec, mat), np.dot(vec, mat))
-    npt.assert_equal(dot_reduce(mat, vec), np.dot(mat, vec))
+    assert_array_equal(dot_reduce(vec, mat), np.dot(vec, mat))
+    assert_array_equal(dot_reduce(mat, vec), np.dot(mat, vec))
     mat2 = np.arange(13, 22).reshape((3, 3))
-    npt.assert_equal(dot_reduce(mat2, vec, mat),
-                     np.dot(mat2, np.dot(vec, mat)))
-    npt.assert_equal(dot_reduce(mat, vec, mat2, ),
-                     np.dot(mat, np.dot(vec, mat2)))
+    assert_array_equal(dot_reduce(mat2, vec, mat),
+                       np.dot(mat2, np.dot(vec, mat)))
+    assert_array_equal(dot_reduce(mat, vec, mat2, ),
+                       np.dot(mat, np.dot(vec, mat2)))
 
 
 def test_voxel_sizes():
     affine = np.diag([2, 3, 4, 1])
-    npt.assert_almost_equal(voxel_sizes(affine), [2, 3, 4])
+    assert_almost_equal(voxel_sizes(affine), [2, 3, 4])
     # Some example rotations
     rotations = []
     for x_rot, y_rot, z_rot in product((0, 0.4), (0, 0.6), (0, 0.8)):
@@ -159,16 +162,16 @@ def test_voxel_sizes():
     for n in range(2, 10):
         vox_sizes = np.arange(n) + 4.1
         aff = np.diag(list(vox_sizes) + [1])
-        npt.assert_almost_equal(voxel_sizes(aff), vox_sizes)
+        assert_almost_equal(voxel_sizes(aff), vox_sizes)
         # Translations make no difference
         aff[:-1, -1] = np.arange(n) + 10
-        npt.assert_almost_equal(voxel_sizes(aff), vox_sizes)
+        assert_almost_equal(voxel_sizes(aff), vox_sizes)
         # Does not have to be square
         new_row = np.vstack((np.zeros(n + 1), aff))
-        npt.assert_almost_equal(voxel_sizes(new_row), vox_sizes)
+        assert_almost_equal(voxel_sizes(new_row), vox_sizes)
         new_col = np.c_[np.zeros(n + 1), aff]
-        npt.assert_almost_equal(voxel_sizes(new_col),
-                                [0] + list(vox_sizes))
+        assert_almost_equal(voxel_sizes(new_col),
+                            [0] + list(vox_sizes))
         if n < 3:
             continue
         # Rotations do not change the voxel size
@@ -176,7 +179,7 @@ def test_voxel_sizes():
             rot_affine = np.eye(n + 1)
             rot_affine[:3, :3] = rotation
             full_aff = rot_affine.dot(aff)
-            npt.assert_almost_equal(voxel_sizes(full_aff), vox_sizes)
+            assert_almost_equal(voxel_sizes(full_aff), vox_sizes)
 
 
 def test_obliquity():
@@ -186,6 +189,6 @@ def test_obliquity():
     aligned[:-1, -1] = [-10, -10, -7]
     R = from_matvec(euler2mat(x=0.09, y=0.001, z=0.001), [0.0, 0.0, 0.0])
     oblique = R.dot(aligned)
-    npt.assert_almost_equal(obliquity(aligned), [0.0, 0.0, 0.0])
-    npt.assert_almost_equal(obliquity(oblique) * 180 / pi,
-                            [0.0810285, 5.1569949, 5.1569376])
+    assert_almost_equal(obliquity(aligned), [0.0, 0.0, 0.0])
+    assert_almost_equal(obliquity(oblique) * 180 / pi,
+                        [0.0810285, 5.1569949, 5.1569376])
