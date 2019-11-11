@@ -130,7 +130,8 @@ script:
           cd for_testing
           cp ../.coveragerc .
           nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
-          pytest -v ../nibabel/tests/test_affines.py ../nibabel/tests/test_volumeutils.py
+          pytest -v ../nibabel/tests/test_a*.py
+          pytest -v ../nibabel/tests/test_w*.py
       else
           false
       fi

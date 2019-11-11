@@ -1,7 +1,6 @@
 """ Metaclass and class for validating instance APIs
 """
 
-from nose.tools import assert_equal
 
 
 class validator2test(type):
@@ -79,8 +78,8 @@ class TestValidateSomething(ValidateAPI):
         The metaclass sets up a ``test_something`` function that runs these
         checks on each (
         """
-        assert_equal(obj.var, params['var'])
-        assert_equal(obj.get_var(), params['var'])
+        assert obj.var == params['var']
+        assert obj.get_var() == params['var']
 
 
 class TestRunAllTests(ValidateAPI):
@@ -102,4 +101,4 @@ class TestRunAllTests(ValidateAPI):
 
 def teardown():
     # Check that both validate_xxx tests got run
-    assert_equal(TestRunAllTests.run_tests, ['first', 'second'])
+    assert TestRunAllTests.run_tests == ['first', 'second']

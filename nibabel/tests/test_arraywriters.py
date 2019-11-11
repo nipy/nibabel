@@ -16,10 +16,8 @@ from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
-from nose.tools import (assert_true, assert_false,
-                        assert_equal, assert_not_equal,
-                        assert_raises)
-from ..testing import (assert_allclose_safely, suppress_warnings,
+import pytest
+from ..testing_pytest import (assert_allclose_safely, suppress_warnings,
                        error_warnings)
 
 
@@ -56,8 +54,8 @@ def test_arraywriters():
         for type in test_types:
             arr = np.arange(10, dtype=type)
             aw = klass(arr)
-            assert_true(aw.array is arr)
-            assert_equal(aw.out_dtype, arr.dtype)
+            assert aw.array is arr
+            assert aw.out_dtype == arr.dtype
             assert_array_equal(arr, round_trip(aw))
             # Byteswapped should be OK
             bs_arr = arr.byteswap().newbyteorder('S')
@@ -80,7 +78,7 @@ def test_arraywriters():
             # C order works as well
             arr_back = round_trip(a2w, 'C')
             assert_array_equal(arr2, arr_back)
-            assert_true(arr_back.flags.c_contiguous)
+            assert arr_back.flags.c_contiguous
 
 
 def test_arraywriter_check_scaling():
@@ -89,14 +87,17 @@ def test_arraywriter_check_scaling():
     arr = np.array([0, 1, 128, 255], np.uint8)
     aw = ArrayWriter(arr)
     # Out of range, scaling needed, default is error
-    assert_raises(WriterError, ArrayWriter, arr, np.int8)
+    with pytest.raises(WriterError):
+        ArrayWriter(arr, np.int8)
     # Make default explicit
-    assert_raises(WriterError, ArrayWriter, arr, np.int8, check_scaling=True)
+    with pytest.raises(WriterError):
+        ArrayWriter(arr, np.int8, check_scaling=True)
     # Turn off scaling check
     aw = ArrayWriter(arr, np.int8, check_scaling=False)
     assert_array_equal(round_trip(aw), np.clip(arr, 0, 127))
     # Has to be keyword
-    assert_raises(TypeError, ArrayWriter, arr, np.int8, False)
+    with pytest.raises(TypeError):
+        ArrayWriter(arr, np.int8, False)
 
 
 def test_no_scaling():
@@ -154,39 +155,42 @@ def test_scaling_needed():
     dt_def = [('f', 'i4')]
     arr = np.ones(10, dt_def)
     for t in NUMERIC_TYPES:
-        assert_raises(WriterError, ArrayWriter, arr, t)
+        with pytest.raises(WriterError):
+            ArrayWriter(arr, t)
         narr = np.ones(10, t)
-        assert_raises(WriterError, ArrayWriter, narr, dt_def)
-    assert_false(ArrayWriter(arr).scaling_needed())
-    assert_false(ArrayWriter(arr, dt_def).scaling_needed())
+        with pytest.raises(WriterError):
+            ArrayWriter(narr, dt_def)
+    assert not ArrayWriter(arr).scaling_needed()
+    assert not ArrayWriter(arr, dt_def).scaling_needed()
     # Any numeric type that can cast, needs no scaling
     for in_t in NUMERIC_TYPES:
         for out_t in NUMERIC_TYPES:
             if np.can_cast(in_t, out_t):
                 aw = ArrayWriter(np.ones(10, in_t), out_t)
-                assert_false(aw.scaling_needed())
+                assert not aw.scaling_needed()
     for in_t in NUMERIC_TYPES:
         # Numeric types to complex never need scaling
         arr = np.ones(10, in_t)
         for out_t in COMPLEX_TYPES:
-            assert_false(ArrayWriter(arr, out_t).scaling_needed())
+            assert not ArrayWriter(arr, out_t).scaling_needed()
     # Attempts to scale from complex to anything else fails
     for in_t in COMPLEX_TYPES:
         for out_t in FLOAT_TYPES + IUINT_TYPES:
             arr = np.ones(10, in_t)
-            assert_raises(WriterError, ArrayWriter, arr, out_t)
+            with pytest.raises(WriterError):
+                ArrayWriter(arr, out_t)
     # Scaling from anything but complex to floats is OK
     for in_t in FLOAT_TYPES + IUINT_TYPES:
         arr = np.ones(10, in_t)
         for out_t in FLOAT_TYPES:
-            assert_false(ArrayWriter(arr, out_t).scaling_needed())
+            assert not ArrayWriter(arr, out_t).scaling_needed()
     # For any other output type, arrays with no data don't need scaling
     for in_t in FLOAT_TYPES + IUINT_TYPES:
         arr_0 = np.zeros(10, in_t)
         arr_e = []
         for out_t in IUINT_TYPES:
-            assert_false(ArrayWriter(arr_0, out_t).scaling_needed())
-            assert_false(ArrayWriter(arr_e, out_t).scaling_needed())
+            assert not ArrayWriter(arr_0, out_t).scaling_needed()
+            assert not ArrayWriter(arr_e, out_t).scaling_needed()
     # Going to (u)ints, non-finite arrays don't need scaling for writers that
     # can do scaling because these use finite_range to threshold the input data,
     # but ArrayWriter does not do this. so scaling_needed is True
@@ -197,17 +201,16 @@ def test_scaling_needed():
         arr_mix = np.array([np.nan, np.inf, -np.inf], dtype=in_t)
         for out_t in IUINT_TYPES:
             for arr in (arr_nan, arr_inf, arr_minf, arr_mix):
-                assert_true(
-                    ArrayWriter(arr, out_t, check_scaling=False).scaling_needed())
-                assert_false(SlopeArrayWriter(arr, out_t).scaling_needed())
-                assert_false(SlopeInterArrayWriter(arr, out_t).scaling_needed())
+                assert ArrayWriter(arr, out_t, check_scaling=False).scaling_needed()
+                assert not SlopeArrayWriter(arr, out_t).scaling_needed()
+                assert not SlopeInterArrayWriter(arr, out_t).scaling_needed()
     # Floats as input always need scaling
     for in_t in FLOAT_TYPES:
         arr = np.ones(10, in_t)
         for out_t in IUINT_TYPES:
             # We need an arraywriter that will tolerate construction when
             # scaling is needed
-            assert_true(SlopeArrayWriter(arr, out_t).scaling_needed())
+            assert SlopeArrayWriter(arr, out_t).scaling_needed()
     # in-range (u)ints don't need scaling
     for in_t in IUINT_TYPES:
         in_info = np.iinfo(in_t)
@@ -217,18 +220,18 @@ def test_scaling_needed():
             out_min, out_max = out_info.min, out_info.max
             if in_min >= out_min and in_max <= out_max:
                 arr = np.array([in_min, in_max], in_t)
-                assert_true(np.can_cast(arr.dtype, out_t))
+                assert np.can_cast(arr.dtype, out_t)
                 # We've already tested this with can_cast above, but...
-                assert_false(ArrayWriter(arr, out_t).scaling_needed())
+                assert not ArrayWriter(arr, out_t).scaling_needed()
                 continue
             # The output data type does not include the input data range
             max_min = max(in_min, out_min)  # 0 for input or output uint
             min_max = min(in_max, out_max)
             arr = np.array([max_min, min_max], in_t)
-            assert_false(ArrayWriter(arr, out_t).scaling_needed())
-            assert_true(SlopeInterArrayWriter(arr + 1, out_t).scaling_needed())
+            assert not ArrayWriter(arr, out_t).scaling_needed()
+            assert SlopeInterArrayWriter(arr + 1, out_t).scaling_needed()
             if in_t in INT_TYPES:
-                assert_true(SlopeInterArrayWriter(arr - 1, out_t).scaling_needed())
+                assert SlopeInterArrayWriter(arr - 1, out_t).scaling_needed()
 
 
 def test_special_rt():
@@ -239,14 +242,15 @@ def test_special_rt():
     for in_dtt in FLOAT_TYPES:
         for out_dtt in IUINT_TYPES:
             in_arr = arr.astype(in_dtt)
-            assert_raises(WriterError, ArrayWriter, in_arr, out_dtt)
+            with pytest.raises(WriterError):
+                ArrayWriter(in_arr, out_dtt)
             aw = ArrayWriter(in_arr, out_dtt, check_scaling=False)
             mn, mx = shared_range(float, out_dtt)
-            assert_true(np.allclose(round_trip(aw).astype(float),
-                                    [mx, 0, mn]))
+            assert np.allclose(round_trip(aw).astype(float),
+                                    [mx, 0, mn])
             for klass in (SlopeArrayWriter, SlopeInterArrayWriter):
                 aw = klass(in_arr, out_dtt)
-                assert_equal(get_slope_inter(aw), (1, 0))
+                assert get_slope_inter(aw) == (1, 0)
                 assert_array_equal(round_trip(aw), 0)
     for in_dtt, out_dtt, awt in itertools.product(
             FLOAT_TYPES,
@@ -254,7 +258,7 @@ def test_special_rt():
             (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
         arr = np.zeros((3,), dtype=in_dtt)
         aw = awt(arr, out_dtt)
-        assert_equal(get_slope_inter(aw), (1, 0))
+        assert get_slope_inter(aw) == (1, 0)
         assert_array_equal(round_trip(aw), 0)
 
 
@@ -265,7 +269,7 @@ def test_high_int2uint():
     arr = np.array([2**63], dtype=np.uint64)
     out_type = np.int64
     aw = SlopeInterArrayWriter(arr, out_type)
-    assert_equal(aw.inter, 2**63)
+    assert aw.inter == 2**63
 
 
 def test_slope_inter_castable():
@@ -282,7 +286,8 @@ def test_slope_inter_castable():
     for in_dtt in FLOAT_TYPES:
         for out_dtt in IUINT_TYPES:
             in_arr = arr.astype(in_dtt)
-            assert_raises(WriterError, ArrayWriter, in_arr, out_dtt)
+            with pytest.raises(WriterError):
+                ArrayWriter(in_arr, out_dtt)
             aw = SlopeArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
             aw = SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
     for in_dtt, out_dtt, arr, slope_only, slope_inter, neither in (
@@ -313,17 +318,20 @@ def test_slope_inter_castable():
         if slope_only:
             SlopeArrayWriter(data, out_dtt)
         else:
-            assert_raises(WriterError, SlopeArrayWriter, data, out_dtt)
+            with pytest.raises(WriterError):
+                SlopeArrayWriter(data, out_dtt)
         # With scaling and intercept
         if slope_inter:
             SlopeInterArrayWriter(data, out_dtt)
         else:
-            assert_raises(WriterError, SlopeInterArrayWriter, data, out_dtt)
+            with pytest.raises(WriterError):
+                SlopeInterArrayWriter(data, out_dtt)
         # With neither
         if neither:
             ArrayWriter(data, out_dtt)
         else:
-            assert_raises(WriterError, ArrayWriter, data, out_dtt)
+            with pytest.raises(WriterError):
+                ArrayWriter(data, out_dtt)
 
 
 def test_calculate_scale():
@@ -333,27 +341,28 @@ def test_calculate_scale():
     SAW = SlopeArrayWriter
     # Offset handles scaling when it can
     aw = SIAW(npa([-2, -1], dtype=np.int8), np.uint8)
-    assert_equal(get_slope_inter(aw), (1.0, -2.0))
+    assert get_slope_inter(aw) == (1.0, -2.0)
     # Sign flip handles these cases
     aw = SAW(npa([-2, -1], dtype=np.int8), np.uint8)
-    assert_equal(get_slope_inter(aw), (-1.0, 0.0))
+    assert get_slope_inter(aw) == (-1.0, 0.0)
     aw = SAW(npa([-2, 0], dtype=np.int8), np.uint8)
-    assert_equal(get_slope_inter(aw), (-1.0, 0.0))
+    assert get_slope_inter(aw) == (-1.0, 0.0)
     # But not when min magnitude is too large (scaling mechanism kicks in)
     aw = SAW(npa([-510, 0], dtype=np.int16), np.uint8)
-    assert_equal(get_slope_inter(aw), (-2.0, 0.0))
+    assert get_slope_inter(aw) == (-2.0, 0.0)
     # Or for floats (attempts to expand across range)
     aw = SAW(npa([-2, 0], dtype=np.float32), np.uint8)
-    assert_not_equal(get_slope_inter(aw), (-1.0, 0.0))
+    assert get_slope_inter(aw) != (-1.0, 0.0)
     # Case where offset handles scaling
     aw = SIAW(npa([-1, 1], dtype=np.int8), np.uint8)
-    assert_equal(get_slope_inter(aw), (1.0, -1.0))
+    assert get_slope_inter(aw) == (1.0, -1.0)
     # Can't work for no offset case
-    assert_raises(WriterError, SAW, npa([-1, 1], dtype=np.int8), np.uint8)
+    with pytest.raises(WriterError):
+        SAW(npa([-1, 1], dtype=np.int8), np.uint8)
     # Offset trick can't work when max is out of range
     aw = SIAW(npa([-1, 255], dtype=np.int16), np.uint8)
     slope_inter = get_slope_inter(aw)
-    assert_not_equal(slope_inter, (1.0, -1.0))
+    assert slope_inter != (1.0, -1.0)
 
 
 def test_resets():
@@ -391,11 +400,11 @@ def test_no_offset_scale():
                  (126, 127),
                  (-127, 127)):
         aw = SAW(np.array(data, dtype=np.float32), np.int8)
-        assert_equal(aw.slope, 1.0)
+        assert aw.slope == 1.0
     aw = SAW(np.array([-126, 127 * 2.0], dtype=np.float32), np.int8)
-    assert_equal(aw.slope, 2)
+    assert aw.slope == 2
     aw = SAW(np.array([-128 * 2.0, 127], dtype=np.float32), np.int8)
-    assert_equal(aw.slope, 2)
+    assert aw.slope == 2
     # Test that nasty abs behavior does not upset us
     n = -2**15
     aw = SAW(np.array([n, n], dtype=np.int16), np.uint8)
@@ -406,17 +415,17 @@ def test_with_offset_scale():
     # Tests of specific cases in slope, inter
     SIAW = SlopeInterArrayWriter
     aw = SIAW(np.array([0, 127], dtype=np.int8), np.uint8)
-    assert_equal((aw.slope, aw.inter), (1, 0))  # in range
+    assert (aw.slope, aw.inter) == (1, 0)  # in range
     aw = SIAW(np.array([-1, 126], dtype=np.int8), np.uint8)
-    assert_equal((aw.slope, aw.inter), (1, -1))  # offset only
+    assert (aw.slope, aw.inter) == (1, -1)  # offset only
     aw = SIAW(np.array([-1, 254], dtype=np.int16), np.uint8)
-    assert_equal((aw.slope, aw.inter), (1, -1))  # offset only
+    assert (aw.slope, aw.inter) == (1, -1)  # offset only
     aw = SIAW(np.array([-1, 255], dtype=np.int16), np.uint8)
-    assert_not_equal((aw.slope, aw.inter), (1, -1))  # Too big for offset only
+    assert (aw.slope, aw.inter) != (1, -1)  # Too big for offset only
     aw = SIAW(np.array([-256, -2], dtype=np.int16), np.uint8)
-    assert_equal((aw.slope, aw.inter), (1, -256))  # offset only
+    assert (aw.slope, aw.inter) == (1, -256)  # offset only
     aw = SIAW(np.array([-256, -2], dtype=np.int16), np.int8)
-    assert_equal((aw.slope, aw.inter), (1, -129))  # offset only
+    assert (aw.slope, aw.inter) == (1, -129)  # offset only
 
 
 def test_io_scaling():
@@ -450,10 +459,10 @@ def test_io_scaling():
             # Slope might be negative
             max_miss = np.abs(aw.slope) / 2.
             abs_err = np.abs(arr - arr3)
-            assert_true(np.all(abs_err <= max_miss))
+            assert np.all(abs_err <= max_miss)
             if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
                 # Check that error is minimized for 0 as min or max
-                assert_true(min(abs_err) == abs_err[arr == 0])
+                assert min(abs_err) == abs_err[arr == 0]
             bio.truncate(0)
             bio.seek(0)
 
@@ -476,10 +485,10 @@ def test_input_ranges():
         max_miss = np.abs(aw.slope) / working_type(2.) + work_eps * 10
         abs_err = np.abs(arr - arr3)
         max_err = np.abs(arr) * work_eps + max_miss
-        assert_true(np.all(abs_err <= max_err))
+        assert np.all(abs_err <= max_err)
         if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
             # Check that error is minimized for 0 as min or max
-            assert_true(min(abs_err) == abs_err[arr == 0])
+            assert min(abs_err) == abs_err[arr == 0]
         bio.truncate(0)
         bio.seek(0)
 
@@ -500,12 +509,13 @@ def test_nan2zero():
         assert_array_equal(np.isnan(data_back), [True, False])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
         with error_warnings():
-            assert_raises(DeprecationWarning,
-                          aw.to_fileobj, BytesIO(), 'F', True)
-            assert_raises(DeprecationWarning,
-                          aw.to_fileobj, BytesIO(), 'F', nan2zero=True)
+            with pytest.raises(DeprecationWarning):
+                aw.to_fileobj(BytesIO(), 'F', True)
+            with pytest.raises(DeprecationWarning):
+                aw.to_fileobj(BytesIO(), 'F', nan2zero=True)
         # Error if nan2zero is not the value set at initialization
-        assert_raises(WriterError, aw.to_fileobj, BytesIO(), 'F', False)
+        with pytest.raises(WriterError):
+            aw.to_fileobj(BytesIO(), 'F', False)
         # set explicitly
         aw = awt(arr, np.float32, nan2zero=True, **kwargs)
         data_back = round_trip(aw)
@@ -521,12 +531,13 @@ def test_nan2zero():
         assert_array_equal(data_back, [astype_res, 99])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
         with error_warnings():
-            assert_raises(DeprecationWarning,
-                          aw.to_fileobj, BytesIO(), 'F', False)
-            assert_raises(DeprecationWarning,
-                          aw.to_fileobj, BytesIO(), 'F', nan2zero=False)
+            with pytest.raises(DeprecationWarning):
+                          aw.to_fileobj(BytesIO(), 'F', False)
+            with pytest.raises(DeprecationWarning):
+                aw.to_fileobj(BytesIO(), 'F', nan2zero=False)
         # Error if nan2zero is not the value set at initialization
-        assert_raises(WriterError, aw.to_fileobj, BytesIO(), 'F', True)
+        with pytest.raises(WriterError):
+            aw.to_fileobj(BytesIO(), 'F', True)
 
 
 def test_byte_orders():
@@ -580,55 +591,62 @@ def test_to_float():
             for klass in (SlopeInterArrayWriter, SlopeArrayWriter,
                           ArrayWriter):
                 if in_type in COMPLEX_TYPES and out_type in FLOAT_TYPES:
-                    assert_raises(WriterError, klass, arr, out_type)
+                    with pytest.raises(WriterError):
+                        klass(arr, out_type)
                     continue
                 aw = klass(arr, out_type)
-                assert_true(aw.array is arr)
-                assert_equal(aw.out_dtype, out_type)
+                assert aw.array is arr
+                assert aw.out_dtype == out_type
                 arr_back = round_trip(aw)
                 assert_array_equal(arr.astype(out_type), arr_back)
                 # Check too-big values overflowed correctly
                 out_min, out_max = out_info['min'], out_info['max']
-                assert_true(np.all(arr_back[arr > out_max] == np.inf))
-                assert_true(np.all(arr_back[arr < out_min] == -np.inf))
+                assert np.all(arr_back[arr > out_max] == np.inf)
+                assert np.all(arr_back[arr < out_min] == -np.inf)
 
 
 def test_dumber_writers():
     arr = np.arange(10, dtype=np.float64)
     aw = SlopeArrayWriter(arr)
     aw.slope = 2.0
-    assert_equal(aw.slope, 2.0)
-    assert_raises(AttributeError, getattr, aw, 'inter')
+    assert aw.slope == 2.0
+    with pytest.raises(AttributeError):
+        getattr(aw, 'inter')
     aw = ArrayWriter(arr)
-    assert_raises(AttributeError, getattr, aw, 'slope')
-    assert_raises(AttributeError, getattr, aw, 'inter')
+    with pytest.raises(AttributeError):
+        getattr(aw, 'slope')
+    with pytest.raises(AttributeError):
+        getattr(aw, 'inter')
     # Attempt at scaling should raise error for dumb type
-    assert_raises(WriterError, ArrayWriter, arr, np.int16)
+    with pytest.raises(WriterError):
+        ArrayWriter(arr, np.int16)
 
 
 def test_writer_maker():
     arr = np.arange(10, dtype=np.float64)
     aw = make_array_writer(arr, np.float64)
-    assert_true(isinstance(aw, SlopeInterArrayWriter))
+    assert isinstance(aw, SlopeInterArrayWriter)
     aw = make_array_writer(arr, np.float64, True, True)
-    assert_true(isinstance(aw, SlopeInterArrayWriter))
+    assert isinstance(aw, SlopeInterArrayWriter)
     aw = make_array_writer(arr, np.float64, True, False)
-    assert_true(isinstance(aw, SlopeArrayWriter))
+    assert isinstance(aw, SlopeArrayWriter)
     aw = make_array_writer(arr, np.float64, False, False)
-    assert_true(isinstance(aw, ArrayWriter))
-    assert_raises(ValueError, make_array_writer, arr, np.float64, False)
-    assert_raises(ValueError, make_array_writer, arr, np.float64, False, True)
+    assert isinstance(aw, ArrayWriter)
+    with pytest.raises(ValueError):
+        make_array_writer(arr, np.float64, False)
+    with pytest.raises(ValueError):
+        make_array_writer(arr, np.float64, False, True)
     # Does calc_scale get run by default?
     aw = make_array_writer(arr, np.int16, calc_scale=False)
-    assert_equal((aw.slope, aw.inter), (1, 0))
+    assert (aw.slope, aw.inter) == (1, 0)
     aw.calc_scale()
     slope, inter = aw.slope, aw.inter
-    assert_false((slope, inter) == (1, 0))
+    assert not (slope, inter) == (1, 0)
     # Should run by default
     aw = make_array_writer(arr, np.int16)
-    assert_equal((aw.slope, aw.inter), (slope, inter))
+    assert (aw.slope, aw.inter) == (slope, inter)
     aw = make_array_writer(arr, np.int16, calc_scale=True)
-    assert_equal((aw.slope, aw.inter), (slope, inter))
+    assert (aw.slope, aw.inter) == (slope, inter)
 
 
 def test_float_int_min_max():
@@ -647,7 +665,7 @@ def test_float_int_min_max():
             except ScalingError:
                 continue
             arr_back_sc = round_trip(aw)
-            assert_true(np.allclose(arr, arr_back_sc))
+            assert np.allclose(arr, arr_back_sc)
 
 
 def test_int_int_min_max():
@@ -666,7 +684,7 @@ def test_int_int_min_max():
             # integer allclose
             adiff = int_abs(arr - arr_back_sc)
             rdiff = adiff / (arr + eps)
-            assert_true(np.all(rdiff < rtol))
+            assert np.all(rdiff < rtol)
 
 
 def test_int_int_slope():
@@ -687,12 +705,12 @@ def test_int_int_slope():
                     aw = SlopeArrayWriter(arr, out_dt)
                 except ScalingError:
                     continue
-                assert_false(aw.slope == 0)
+                assert not aw.slope == 0
                 arr_back_sc = round_trip(aw)
                 # integer allclose
                 adiff = int_abs(arr - arr_back_sc)
                 rdiff = adiff / (arr + eps)
-                assert_true(np.all(rdiff < rtol))
+                assert np.all(rdiff < rtol)
 
 
 def test_float_int_spread():
@@ -712,7 +730,7 @@ def test_float_int_spread():
             # Simulate allclose test with large atol
             diff = np.abs(arr_t - arr_back_sc)
             rdiff = diff / np.abs(arr_t)
-            assert_true(np.all((diff <= max_miss) | (rdiff <= 1e-5)))
+            assert np.all((diff <= max_miss) | (rdiff <= 1e-5))
 
 
 def rt_err_estimate(arr_t, out_dtype, slope, inter):
@@ -749,7 +767,7 @@ def test_rt_bias():
                                        aw.inter)
             # Hokey use of max_miss as a std estimate
             bias_thresh = np.max([max_miss / np.sqrt(count), eps])
-            assert_true(np.abs(bias) < bias_thresh)
+            assert np.abs(bias) < bias_thresh
 
 
 def test_nan2zero_scaling():
@@ -789,10 +807,10 @@ def test_nan2zero_scaling():
         back_nan_0 = round_trip(nan_0_aw) * float(sign)
         zero_aw = awt(zero_arr, out_dt, nan2zero=True)
         back_zero = round_trip(zero_aw) * float(sign)
-        assert_true(np.allclose(back_nan[1:], back_zero[1:]))
+        assert np.allclose(back_nan[1:], back_zero[1:])
         assert_array_equal(back_nan[1:], back_nan_0[2:])
-        assert_true(np.abs(back_nan[0] - back_zero[0]) < 1e-2)
-        assert_equal(*back_nan_0[:2])
+        assert np.abs(back_nan[0] - back_zero[0]) < 1e-2
+        assert back_nan_0[0] == back_nan_0[1]
 
 
 def test_finite_range_nan():
@@ -834,11 +852,11 @@ def test_finite_range_nan():
                     continue
                 # Should not matter about the order of finite range method call
                 # and has_nan property - test this is true
-                assert_equal(aw.has_nan, has_nan)
-                assert_equal(aw.finite_range(), res)
+                assert aw.has_nan == has_nan
+                assert aw.finite_range() == res
                 aw = awt(in_arr, out_type, **kwargs)
-                assert_equal(aw.finite_range(), res)
-                assert_equal(aw.has_nan, has_nan)
+                assert aw.finite_range() == res
+                assert aw.has_nan == has_nan
                 # Check float types work as complex
                 in_arr = np.array(in_arr)
                 if in_arr.dtype.kind == 'f':
@@ -848,10 +866,11 @@ def test_finite_range_nan():
                     except WriterError:
                         continue
                     aw = awt(c_arr, out_type, **kwargs)
-                    assert_equal(aw.has_nan, has_nan)
-                    assert_equal(aw.finite_range(), res)
+                    assert aw.has_nan == has_nan
+                    assert aw.finite_range() == res
             # Structured type cannot be nan and we can test this
             a = np.array([[1., 0, 1], [2, 3, 4]]).view([('f1', 'f')])
             aw = awt(a, a.dtype, **kwargs)
-            assert_raises(TypeError, aw.finite_range)
-            assert_false(aw.has_nan)
+            with pytest.raises(TypeError):
+                aw.finite_range()
+            assert not aw.has_nan

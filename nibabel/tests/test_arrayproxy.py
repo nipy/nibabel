@@ -26,9 +26,8 @@ from ..nifti1 import Nifti1Header
 import mock
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_not_equal, assert_raises)
-from nibabel.testing import memmap_after_ufunc
+import pytest
+from ..testing_pytest import memmap_after_ufunc
 
 from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip
@@ -70,15 +69,16 @@ def test_init():
     bio.write(arr.tostring(order='F'))
     hdr = FunkyHeader(shape)
     ap = ArrayProxy(bio, hdr)
-    assert_true(ap.file_like is bio)
-    assert_equal(ap.shape, shape)
+    assert ap.file_like is bio
+    assert ap.shape == shape
     # shape should be read only
-    assert_raises(AttributeError, setattr, ap, 'shape', shape)
+    with pytest.raises(AttributeError):
+        setattr(ap, 'shape', shape)
     # Get the data
     assert_array_equal(np.asarray(ap), arr)
     # Check we can modify the original header without changing the ap version
     hdr.shape[0] = 6
-    assert_not_equal(ap.shape, shape)
+    assert ap.shape != shape
     # Data stays the same, also
     assert_array_equal(np.asarray(ap), arr)
     # C order also possible
@@ -88,7 +88,8 @@ def test_init():
     ap = CArrayProxy(bio, FunkyHeader((2, 3, 4)))
     assert_array_equal(np.asarray(ap), arr)
     # Illegal init
-    assert_raises(TypeError, ArrayProxy, bio, object())
+    with pytest.raises(TypeError):
+        ArrayProxy(bio, object())
 
 
 def test_tuplespec():
@@ -106,7 +107,7 @@ def test_tuplespec():
     ap_tuple = ArrayProxy(bio, tuple_spec)
     # Header and tuple specs produce identical behavior
     for prop in ('shape', 'dtype', 'offset', 'slope', 'inter', 'is_proxy'):
-        assert_equal(getattr(ap_header, prop), getattr(ap_tuple, prop))
+        assert getattr(ap_header, prop) == getattr(ap_tuple, prop)
     for method, args in (('get_unscaled', ()), ('__array__', ()),
                          ('__getitem__', ((0, 2, 1), ))
                          ):
@@ -114,14 +115,17 @@ def test_tuplespec():
                            getattr(ap_tuple, method)(*args))
     # Tuple-defined ArrayProxies have no header to store
     with warnings.catch_warnings():
-        assert_true(ap_tuple.header is None)
+        assert ap_tuple.header is None
     # Partial tuples of length 2-4 are also valid
     for n in range(2, 5):
         ArrayProxy(bio, tuple_spec[:n])
     # Bad tuple lengths
-    assert_raises(TypeError, ArrayProxy, bio, ())
-    assert_raises(TypeError, ArrayProxy, bio, tuple_spec[:1])
-    assert_raises(TypeError, ArrayProxy, bio, tuple_spec + ('error',))
+    with pytest.raises(TypeError):
+        ArrayProxy(bio, ())
+    with pytest.raises(TypeError):
+        ArrayProxy(bio, tuple_spec[:1])
+    with pytest.raises(TypeError):
+        ArrayProxy(bio, tuple_spec + ('error',))
 
 
 def write_raw_data(arr, hdr, fileobj):
@@ -139,12 +143,12 @@ def test_nifti1_init():
     write_raw_data(arr, hdr, bio)
     hdr.set_slope_inter(2, 10)
     ap = ArrayProxy(bio, hdr)
-    assert_true(ap.file_like == bio)
-    assert_equal(ap.shape, shape)
+    assert ap.file_like == bio
+    assert ap.shape == shape
     # Check there has been a copy of the header
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        assert_false(ap.header is hdr)
+        assert not ap.header is hdr
     # Get the data
     assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
     with InTemporaryDirectory():
@@ -152,8 +156,8 @@ def test_nifti1_init():
         write_raw_data(arr, hdr, f)
         f.close()
         ap = ArrayProxy('test.nii', hdr)
-        assert_true(ap.file_like == 'test.nii')
-        assert_equal(ap.shape, shape)
+        assert ap.file_like == 'test.nii'
+        assert ap.shape == shape
         assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
 
 
@@ -189,14 +193,14 @@ def test_is_proxy():
     hdr = FunkyHeader((2, 3, 4))
     bio = BytesIO()
     prox = ArrayProxy(bio, hdr)
-    assert_true(is_proxy(prox))
-    assert_false(is_proxy(bio))
-    assert_false(is_proxy(hdr))
-    assert_false(is_proxy(np.zeros((2, 3, 4))))
+    assert is_proxy(prox)
+    assert not is_proxy(bio)
+    assert not is_proxy(hdr)
+    assert not is_proxy(np.zeros((2, 3, 4)))
 
     class NP(object):
         is_proxy = False
-    assert_false(is_proxy(NP()))
+    assert not is_proxy(NP())
 
 
 def test_reshape_dataobj():
@@ -210,11 +214,11 @@ def test_reshape_dataobj():
     assert_array_equal(prox, arr)
     assert_array_equal(reshape_dataobj(prox, (2, 3, 4)),
                        np.reshape(arr, (2, 3, 4)))
-    assert_equal(prox.shape, shape)
-    assert_equal(arr.shape, shape)
+    assert prox.shape == shape
+    assert arr.shape == shape
     assert_array_equal(reshape_dataobj(arr, (2, 3, 4)),
                        np.reshape(arr, (2, 3, 4)))
-    assert_equal(arr.shape, shape)
+    assert arr.shape == shape
 
     class ArrGiver(object):
 
@@ -223,7 +227,7 @@ def test_reshape_dataobj():
 
     assert_array_equal(reshape_dataobj(ArrGiver(), (2, 3, 4)),
                        np.reshape(arr, (2, 3, 4)))
-    assert_equal(arr.shape, shape)
+    assert arr.shape == shape
 
 
 def test_reshaped_is_proxy():
@@ -231,13 +235,16 @@ def test_reshaped_is_proxy():
     hdr = FunkyHeader(shape)
     bio = BytesIO()
     prox = ArrayProxy(bio, hdr)
-    assert_true(isinstance(prox.reshape((2, 3, 4)), ArrayProxy))
+    assert isinstance(prox.reshape((2, 3, 4)), ArrayProxy)
     minus1 = prox.reshape((2, -1, 4))
-    assert_true(isinstance(minus1, ArrayProxy))
-    assert_equal(minus1.shape, (2, 3, 4))
-    assert_raises(ValueError, prox.reshape, (-1, -1, 4))
-    assert_raises(ValueError, prox.reshape, (2, 3, 5))
-    assert_raises(ValueError, prox.reshape, (2, -1, 5))
+    assert isinstance(minus1, ArrayProxy)
+    assert minus1.shape == (2, 3, 4)
+    with pytest.raises(ValueError):
+        prox.reshape((-1, -1, 4))
+    with pytest.raises(ValueError):
+        prox.reshape((2, 3, 5))
+    with pytest.raises(ValueError):
+        prox.reshape((2, -1, 5))
 
 
 def test_get_unscaled():
@@ -320,21 +327,24 @@ def check_mmap(hdr, offset, proxy_class,
             unscaled_is_mmap = isinstance(unscaled, np.memmap)
             back_is_mmap =  isinstance(back_data, np.memmap)
             if expected_mode is None:
-                assert_false(unscaled_is_mmap)
-                assert_false(back_is_mmap)
+                assert not unscaled_is_mmap
+                assert not back_is_mmap
             else:
-                assert_equal(unscaled_is_mmap,
-                             viral_memmap or unscaled_really_mmap)
-                assert_equal(back_is_mmap,
-                             viral_memmap or scaled_really_mmap)
+                assert (unscaled_is_mmap ==
+                             (viral_memmap or unscaled_really_mmap))
+                assert (back_is_mmap ==
+                             (viral_memmap or scaled_really_mmap))
                 if scaled_really_mmap:
-                    assert_equal(back_data.mode, expected_mode)
+                    assert back_data.mode == expected_mode
             del prox, back_data
             # Check that mmap is keyword-only
-            assert_raises(TypeError, proxy_class, fname, hdr, True)
+            with pytest.raises(TypeError):
+                proxy_class(fname, hdr, True)
             # Check invalid values raise error
-            assert_raises(ValueError, proxy_class, fname, hdr, mmap='rw')
-            assert_raises(ValueError, proxy_class, fname, hdr, mmap='r+')
+            with pytest.raises(ValueError):
+                proxy_class(fname, hdr, mmap='rw')
+            with pytest.raises(ValueError):
+                proxy_class(fname, hdr, mmap='r+')
 
 
 # An image opener class which counts how many instances of itself have been
@@ -477,11 +487,11 @@ def test_keep_file_open_true_false_invalid():
         fname = 'testdata'
         with open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
-        with assert_raises(ValueError):
+        with pytest.raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=55)
-        with assert_raises(ValueError):
+        with pytest.raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='autob')
-        with assert_raises(ValueError):
+        with pytest.raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='cauto')
 
 
