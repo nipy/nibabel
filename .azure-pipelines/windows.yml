@@ -29,9 +29,11 @@ jobs:
       displayName: 'Update build tools'
     - script: |
         python -m pip install --find-links %EXTRA_WHEELS% %DEPENDS%
+        python -m pip install nose mock coverage codecov
+        python -m pip install pytest
       displayName: 'Install dependencies'
     - script: |
-        python -m pip install .[test]
+        python -m pip install .
         SET NIBABEL_DATA_DIR=%CD%\\nibabel-data
       displayName: 'Install nibabel'
     - script: |
