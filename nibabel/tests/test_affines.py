@@ -10,7 +10,7 @@ from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
                        from_matvec, dot_reduce, voxel_sizes, obliquity)
 
 
-from nose.tools import assert_equal, assert_raises
+import pytest
 from numpy.testing import assert_array_equal, assert_almost_equal, \
     assert_array_almost_equal
 
@@ -80,7 +80,7 @@ def test_matrix_vector():
         vec = xform[:-1, -1]
         assert_array_equal(newmat, mat)
         assert_array_equal(newvec, vec)
-        assert_equal(newvec.shape, (M - 1,))
+        assert newvec.shape == (M - 1,)
         assert_array_equal(from_matvec(mat, vec), xform)
         # Check default translation works
         xform_not = xform[:]
@@ -126,17 +126,19 @@ def test_append_diag():
                         [0, 0, 0, 5, 9],
                         [0, 0, 0, 0, 1]])
     # Length of starts has to match length of steps
-    assert_raises(AffineError, append_diag, aff, [5, 6], [9])
+    with pytest.raises(AffineError):
+        append_diag(aff, [5, 6], [9])
 
 
 def test_dot_reduce():
     # Chaining numpy dot
     # Error for no arguments
-    assert_raises(TypeError, dot_reduce)
+    with pytest.raises(TypeError):
+        dot_reduce()
     # Anything at all on its own, passes through
-    assert_equal(dot_reduce(1), 1)
-    assert_equal(dot_reduce(None), None)
-    assert_equal(dot_reduce([1, 2, 3]), [1, 2, 3])
+    assert dot_reduce(1) == 1
+    assert dot_reduce(None) is None
+    assert dot_reduce([1, 2, 3]) == [1, 2, 3]
     # Two or more -> dot product
     vec = [1, 2, 3]
     mat = np.arange(4, 13).reshape((3, 3))
