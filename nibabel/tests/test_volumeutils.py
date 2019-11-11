@@ -99,9 +99,7 @@ def test_fobj_string_assumptions():
     # Check whether file, gzip file, bz2 file reread memory from cache
     fname = "test.bin"
     with InTemporaryDirectory():
-        for n, opener in itertools.product(
-            (256, 1024, 2560, 25600), (open, gzip.open, BZ2File)
-        ):
+        for n, opener in itertools.product((256, 1024, 2560, 25600), (open, gzip.open, BZ2File)):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, "wb")
@@ -297,9 +295,7 @@ def test_array_to_file():
             ndt = dt.newbyteorder(code)
             for allow_intercept in (True, False):
                 with suppress_warnings():  # deprecated
-                    scale, intercept, mn, mx = calculate_scale(
-                        arr, ndt, allow_intercept
-                    )
+                    scale, intercept, mn, mx = calculate_scale(arr, ndt, allow_intercept)
                 data_back = write_return(arr, str_io, ndt, 0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
     # Test array-like
@@ -332,13 +328,7 @@ def test_a2f_upscale():
     str_io = BytesIO()
     # We need to provide mn, mx for function to be able to calculate upcasting
     array_to_file(
-        arr,
-        str_io,
-        np.uint8,
-        intercept=inter,
-        divslope=slope,
-        mn=info["min"],
-        mx=info["max"],
+        arr, str_io, np.uint8, intercept=inter, divslope=slope, mn=info["min"], mx=info["max"],
     )
     raw = array_from_file(arr.shape, np.uint8, str_io)
     back = apply_read_scaling(raw, slope, inter)
@@ -495,9 +485,7 @@ def test_a2f_big_scalers():
     # We need nan2zero=False because we can't represent 0 in the input, given
     # the scaling and the output range.
     with suppress_warnings():  # overflow
-        array_to_file(
-            arr, str_io, np.int8, intercept=np.float32(2 ** 120), nan2zero=False
-        )
+        array_to_file(arr, str_io, np.int8, intercept=np.float32(2 ** 120), nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, -128, 127])
     # Scales also if mx, mn specified? Same notes and complaints as for the test
@@ -522,9 +510,7 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, 0, 127])
     # with mn, mx specified?
     str_io.seek(0)
-    array_to_file(
-        arr, str_io, np.int8, mn=info["min"], mx=info["max"], divslope=np.float32(0.5)
-    )
+    array_to_file(arr, str_io, np.int8, mn=info["min"], mx=info["max"], divslope=np.float32(0.5))
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
 
@@ -562,11 +548,7 @@ def test_a2f_scaled_unscaled():
         if in_dtype in CFLOAT_TYPES and not mn_out <= nan_fill <= mx_out:
             with pytest.raises(ValueError):
                 array_to_file(
-                    arr,
-                    fobj,
-                    out_dtype=out_dtype,
-                    divslope=divslope,
-                    intercept=intercept,
+                    arr, fobj, out_dtype=out_dtype, divslope=divslope, intercept=intercept,
                 )
             continue
         with suppress_warnings():
@@ -614,9 +596,7 @@ def test_a2f_nanpos():
 
 def test_a2f_bad_scaling():
     # Test that pathological scalers raise an error
-    NUMERICAL_TYPES = sum(
-        [np.sctypes[key] for key in ["int", "uint", "float", "complex"]], []
-    )
+    NUMERICAL_TYPES = sum([np.sctypes[key] for key in ["int", "uint", "float", "complex"]], [])
     for in_type, out_type, slope, inter in itertools.product(
         NUMERICAL_TYPES,
         NUMERICAL_TYPES,
@@ -687,9 +667,7 @@ def test_a2f_nan2zero_range():
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2)
         # OK with nan2zero false
-        back_arr = write_return(
-            arr, fobj, np.int8, intercept=257.1, divslope=2, nan2zero=False
-        )
+        back_arr = write_return(arr, fobj, np.int8, intercept=257.1, divslope=2, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
 
 
@@ -763,12 +741,8 @@ def test_apply_scaling():
     assert apply_read_scaling(np.int8(0), f32(-1e38), f32(0.0)).dtype == np.float64
     # Non-zero intercept still generates floats
     assert_dt_equal(apply_read_scaling(i16_arr, 1.0, 1.0).dtype, float)
-    assert_dt_equal(
-        apply_read_scaling(np.zeros((1,), dtype=np.int32), 1.0, 1.0).dtype, float
-    )
-    assert_dt_equal(
-        apply_read_scaling(np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, float
-    )
+    assert_dt_equal(apply_read_scaling(np.zeros((1,), dtype=np.int32), 1.0, 1.0).dtype, float)
+    assert_dt_equal(apply_read_scaling(np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, float)
 
 
 def test_apply_read_scaling_ints():
@@ -856,15 +830,9 @@ def test_best_write_scale_ftype():
     for dtt in IUINT_TYPES + FLOAT_TYPES:
         arr = np.arange(10, dtype=dtt)
         assert best_write_scale_ftype(arr, 1, 0) == better_float_of(dtt, np.float32)
-        assert best_write_scale_ftype(arr, 1, 0, np.float64) == better_float_of(
-            dtt, np.float64
-        )
-        assert best_write_scale_ftype(arr, np.float32(2), 0) == better_float_of(
-            dtt, np.float32
-        )
-        assert best_write_scale_ftype(arr, 1, np.float32(1)) == better_float_of(
-            dtt, np.float32
-        )
+        assert best_write_scale_ftype(arr, 1, 0, np.float64) == better_float_of(dtt, np.float64)
+        assert best_write_scale_ftype(arr, np.float32(2), 0) == better_float_of(dtt, np.float32)
+        assert best_write_scale_ftype(arr, 1, np.float32(1)) == better_float_of(dtt, np.float32)
     # Overflowing ints with scaling results in upcast
     best_vals = ((np.float32, np.float64),)
     if np.longdouble in OK_FLOATS:
@@ -1248,12 +1216,7 @@ def test__write_data():
 
     # check defense against modifying data in-place
     for in_cast, pre_clips, inter, slope, post_clips, nan_fill in itp(
-        (None, np.float32),
-        (None, (-1, 25)),
-        (0.0, 1.0),
-        (1.0, 0.5),
-        (None, (-2, 49)),
-        (None, 1),
+        (None, np.float32), (None, (-1, 25)), (0.0, 1.0), (1.0, 0.5), (None, (-2, 49)), (None, 1),
     ):
         data = np.arange(24).astype(np.float32)
         assert_rt(
