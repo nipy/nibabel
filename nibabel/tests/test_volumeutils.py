@@ -1058,7 +1058,7 @@ def test_allopen_compresslevel():
     # We can set the default compression level with the module global
     # Get some data to compress
     with open(__file__, 'rb') as fobj:
-        my_self=fobj.read()
+        my_self = fobj.read()
     # Prepare loop
     fname = 'test.gz'
     sizes = {}
