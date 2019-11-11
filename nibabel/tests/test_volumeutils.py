@@ -1076,32 +1076,17 @@ def test_shape_zoom_affine():
     zooms = (3, 2, 1)
     res = shape_zoom_affine(shape, zooms)
     exp = np.array(
-        [
-            [-3.0, 0.0, 0.0, 3.0],
-            [0.0, 2.0, 0.0, -4.0],
-            [0.0, 0.0, 1.0, -3.0],
-            [0.0, 0.0, 0.0, 1.0],
-        ]
+        [[-3.0, 0.0, 0.0, 3.0], [0.0, 2.0, 0.0, -4.0], [0.0, 0.0, 1.0, -3.0], [0.0, 0.0, 0.0, 1.0],]
     )
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine((3, 5), (3, 2))
     exp = np.array(
-        [
-            [-3.0, 0.0, 0.0, 3.0],
-            [0.0, 2.0, 0.0, -4.0],
-            [0.0, 0.0, 1.0, -0.0],
-            [0.0, 0.0, 0.0, 1.0],
-        ]
+        [[-3.0, 0.0, 0.0, 3.0], [0.0, 2.0, 0.0, -4.0], [0.0, 0.0, 1.0, -0.0], [0.0, 0.0, 0.0, 1.0],]
     )
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine(shape, zooms, False)
     exp = np.array(
-        [
-            [3.0, 0.0, 0.0, -3.0],
-            [0.0, 2.0, 0.0, -4.0],
-            [0.0, 0.0, 1.0, -3.0],
-            [0.0, 0.0, 0.0, 1.0],
-        ]
+        [[3.0, 0.0, 0.0, -3.0], [0.0, 2.0, 0.0, -4.0], [0.0, 0.0, 1.0, -3.0], [0.0, 0.0, 0.0, 1.0],]
     )
     assert_array_almost_equal(res, exp)
 
@@ -1179,16 +1164,7 @@ def test__write_data():
         if have_nans and nan_fill is None and not out_dtype.type == "f":
             raise ValueError("Cannot handle this case")
         _write_data(
-            to_write,
-            sio,
-            out_dtype,
-            order,
-            in_cast,
-            pre_clips,
-            inter,
-            slope,
-            post_clips,
-            nan_fill,
+            to_write, sio, out_dtype, order, in_cast, pre_clips, inter, slope, post_clips, nan_fill,
         )
         arr = np.ndarray(shape, out_dtype, buffer=sio.getvalue(), order=order)
         expected = to_write.copy()
