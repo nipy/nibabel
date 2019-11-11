@@ -41,7 +41,7 @@ jobs:
         cd for_testing
         cp ../.coveragerc .
         nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
-        pytest -v %CD%\\nibabel\tests\test_affines.py
+        pytest -v nibabel\tests\test_affines.py
       displayName: 'Nose tests'
     - script: |
         cd for_testing
