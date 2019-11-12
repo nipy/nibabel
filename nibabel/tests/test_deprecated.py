@@ -7,7 +7,6 @@ from nibabel import pkg_info
 from nibabel.deprecated import (ModuleProxy, FutureWarningMixin,
                                 deprecate_with_version)
 
-from nose.tools import (assert_true, assert_equal)
 
 from nibabel.tests.test_deprecator import TestDeprecatorFunc as _TestDF
 
@@ -25,9 +24,9 @@ def teardown():
 def test_module_proxy():
     # Test proxy for module
     mp = ModuleProxy('nibabel.deprecated')
-    assert_true(hasattr(mp, 'ModuleProxy'))
-    assert_true(mp.ModuleProxy is ModuleProxy)
-    assert_equal(repr(mp), '<module proxy for nibabel.deprecated>')
+    assert hasattr(mp, 'ModuleProxy')
+    assert mp.ModuleProxy is ModuleProxy
+    assert repr(mp) == '<module proxy for nibabel.deprecated>'
 
 
 def test_futurewarning_mixin():
@@ -47,19 +46,19 @@ def test_futurewarning_mixin():
         warn_message = "Oh no, not this one"
     with warnings.catch_warnings(record=True) as warns:
         c = C(42)
-        assert_equal(c.meth(), 42)
-        assert_equal(warns, [])
+        assert c.meth() == 42
+        assert warns == []
         d = D(42)
-        assert_equal(d.meth(), 42)
+        assert d.meth() == 42
         warn = warns.pop(0)
-        assert_equal(warn.category, FutureWarning)
-        assert_equal(str(warn.message),
+        assert warn.category == FutureWarning
+        assert (str(warn.message) ==
                      'This class will be removed in future versions')
         e = E(42)
-        assert_equal(e.meth(), 42)
+        assert e.meth() == 42
         warn = warns.pop(0)
-        assert_equal(warn.category, FutureWarning)
-        assert_equal(str(warn.message), 'Oh no, not this one')
+        assert warn.category == FutureWarning
+        assert str(warn.message) == 'Oh no, not this one'
 
 
 class TestNibabelDeprecator(_TestDF):
@@ -78,6 +77,6 @@ def test_dev_version():
     try:
         pkg_info.cmp_pkg_version.__defaults__ = ('2.0dev',)
         # No error, even though version is dev version of current
-        assert_equal(func(), 99)
+        assert func() == 99
     finally:
         pkg_info.cmp_pkg_version.__defaults__ = ('2.0',)
