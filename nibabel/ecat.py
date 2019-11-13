@@ -705,6 +705,25 @@ class EcatImageArrayProxy(object):
         return data
 
     def get_scaled(self, dtype=None):
+        """ Read data from file and apply scaling
+
+        The dtype of the returned array is the narrowest dtype that can
+        represent the data without overflow, and is at least as wide as
+        the dtype parameter.
+
+        If dtype is unspecified, it is automatically determined.
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier
+            A numpy dtype specifier specifying the narrowest acceptable
+            dtype.
+
+        Returns
+        -------
+        array
+            Scaled of image data of data type `dtype`.
+        """
         data = self.__array__()
         if dtype is None:
             return data

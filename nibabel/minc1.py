@@ -269,6 +269,25 @@ class MincImageArrayProxy(object):
         return data.astype(final_type, copy=False)
 
     def get_scaled(self, dtype=None):
+        """ Read data from file and apply scaling
+
+        The dtype of the returned array is the narrowest dtype that can
+        represent the data without overflow, and is at least as wide as
+        the dtype parameter.
+
+        If dtype is unspecified, it is automatically determined.
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier
+            A numpy dtype specifier specifying the narrowest acceptable
+            dtype.
+
+        Returns
+        -------
+        array
+            Scaled of image data of data type `dtype`.
+        """
         return self._get_scaled(dtype=dtype, slicer=())
 
     def __array__(self):

@@ -314,6 +314,9 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # New data dtype, no caching, doesn't use or alter cache
         fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
         # We get back the original read, not the modified cache
+        # Allow for small rounding error when the data is scaled with 32-bit
+        # factors, rather than 64-bit factors and then cast to float-32
+        # Use rtol/atol from numpy.allclose
         assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         assert_equal(fdata_new_dt.dtype, np.float32)
         # The original cache stays in place, for default float64
