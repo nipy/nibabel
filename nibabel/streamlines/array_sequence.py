@@ -5,8 +5,7 @@ from functools import reduce
 
 import numpy as np
 
-from nibabel.deprecated import deprecate_with_version
-
+from ..deprecated import deprecate_with_version
 
 MEGABYTE = 1024 * 1024
 
