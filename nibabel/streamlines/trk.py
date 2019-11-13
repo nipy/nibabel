@@ -372,8 +372,23 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.from_data_func(_read)
 
         else:
+
+            # Speed up loading by guessing a suitable buffer size.
+            with Opener(fileobj) as f:
+                old_file_position = f.tell()
+                f.seek(0, os.SEEK_END)
+                size = f.tell()
+                f.seek(old_file_position, os.SEEK_SET)
+
+            # Buffer size is in mega bytes.
+            mbytes = size // (1024 * 1024)
+            sizes = [mbytes, 4, 4]
+            if hdr["nb_scalars_per_point"] > 0:
+                sizes = [mbytes // 2, mbytes // 2, 4]
+
             trk_reader = cls._read(fileobj, hdr)
-            arr_seqs = create_arraysequences_from_generator(trk_reader, n=3)
+            arr_seqs = create_arraysequences_from_generator(trk_reader, n=3,
+                                                            buffer_sizes=sizes)
             streamlines, scalars, properties = arr_seqs
             properties = np.asarray(properties)  # Actually a 2d array.
             tractogram = Tractogram(streamlines)
