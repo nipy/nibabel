@@ -362,11 +362,8 @@ class ArrayProxy(object):
         use_dtype = scl_slope.dtype if dtype is None else dtype
         slope = scl_slope.astype(use_dtype)
         inter = scl_inter.astype(use_dtype)
-        # Read array
-        raw_data = self._get_unscaled(slicer=slicer)
-        # Upcast as necessary for big slopes, intercepts
-        scaled = apply_read_scaling(raw_data, slope, inter)
-        del raw_data
+        # Read array and upcast as necessary for big slopes, intercepts
+        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), slope, inter)
         if dtype is not None:
             scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
         return scaled
