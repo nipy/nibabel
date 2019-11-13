@@ -547,7 +547,7 @@ class ArraySequence(object):
         return seq
 
 
-def create_arraysequences_from_generator(gen, n):
+def create_arraysequences_from_generator(gen, n, buffer_sizes=None):
     """ Creates :class:`ArraySequence` objects from a generator yielding tuples
 
     Parameters
@@ -557,8 +557,13 @@ def create_arraysequences_from_generator(gen, n):
         array sequences.
     n : int
         Number of :class:`ArraySequences` object to create.
+    buffer_sizes : list of float, optional
+        Sizes (in Mb) for each ArraySequence's buffer.
     """
-    seqs = [ArraySequence() for _ in range(n)]
+    if buffer_sizes is None:
+        buffer_sizes = [4] * n
+
+    seqs = [ArraySequence(buffer_size=size) for size in buffer_sizes]
     for data in gen:
         for i, seq in enumerate(seqs):
             if data[i].nbytes > 0:
