@@ -4,12 +4,9 @@ from io import BytesIO
 
 import numpy as np
 
-from ..openers import ImageOpener
-from ..tmpdirs import InTemporaryDirectory
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy.io')
 
-from nose.tools import assert_true
 from numpy.testing import assert_array_equal
 
 
@@ -51,6 +48,6 @@ def assert_data_similar(arr, params):
         return
     summary = params['data_summary']
     real_arr = np.asarray(arr)
-    assert_true(np.allclose(
+    assert np.allclose(
         (real_arr.min(), real_arr.max(), real_arr.mean()),
-        (summary['min'], summary['max'], summary['mean'])))
+        (summary['min'], summary['max'], summary['mean']))

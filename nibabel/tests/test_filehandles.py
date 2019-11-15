@@ -20,10 +20,6 @@ else:
 from ..loadsave import load, save
 from ..nifti1 import Nifti1Image
 
-from numpy.testing import (assert_array_almost_equal,
-                           assert_array_equal)
-
-
 
 def test_multiload():
     # Make a tiny image, save, load many times.  If we are leaking filehandles,
