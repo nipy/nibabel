@@ -96,9 +96,14 @@ contributed code and discussion (in rough order of appearance):
 * Samir Reddigari
 * Konstantinos Raktivan
 * Matt Cieslak
-* Egor Pafilov
+* Egor Panfilov
 * Jath Palasubramaniam
 * Henry Braun
+* Oscar Esteban
+* Cameron Riddell
+* Hao-Ting Wang
+* Dorota Jarecka
+* Chris Gorgolewski
 
 License reprise
 ===============
