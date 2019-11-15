@@ -29,8 +29,8 @@ from ..orientations import aff2axcodes
 
 from .test_arraywriters import rt_err_estimate, IUINT_TYPES
 from .test_orientations import ALL_ORNTS
-from .test_helpers import bytesio_filemap, bytesio_round_trip
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
+from ..testing_pytest import bytesio_filemap, bytesio_round_trip
 
 from numpy.testing import (assert_array_equal, assert_array_almost_equal,
                            assert_almost_equal)

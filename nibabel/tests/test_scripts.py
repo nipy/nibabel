@@ -31,7 +31,7 @@ from ..testing import assert_dt_equal, assert_re_in
 from .test_parrec import (DTI_PAR_BVECS, DTI_PAR_BVALS,
                           EXAMPLE_IMAGES as PARREC_EXAMPLES)
 from .test_parrec_data import BALLS, AFF_OFF
-from .test_helpers import assert_data_similar
+from ..testing_pytest import assert_data_similar
 
 
 def _proc_stdout(stdout):

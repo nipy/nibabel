@@ -24,9 +24,9 @@ from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_warns
 
-from .test_helpers import bytesio_round_trip
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
                        memmap_after_ufunc)
+from ..testing_pytest import bytesio_round_trip
 from ..tmpdirs import InTemporaryDirectory
 from .. import load as top_load
 

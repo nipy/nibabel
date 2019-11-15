@@ -29,9 +29,9 @@ from ..spatialimages import supported_np_types, HeaderDataError
 from nose.tools import assert_true, assert_false, assert_equal, assert_raises
 
 from ..testing import assert_allclose_safely, suppress_warnings
+from ..testing_pytest import bytesio_round_trip, bytesio_filemap
 
 from . import test_analyze
-from .test_helpers import bytesio_round_trip, bytesio_filemap
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']

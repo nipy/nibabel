@@ -26,10 +26,10 @@ from ..minc1 import Minc1File, Minc1Image, MincHeader
 from ..tmpdirs import InTemporaryDirectory
 from ..testing import (assert_true, assert_equal, assert_false, assert_raises, assert_warns,
                        assert_array_equal, data_path, clear_and_catch_warnings)
+from ..testing_pytest import assert_data_similar
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
-from .test_helpers import assert_data_similar
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
