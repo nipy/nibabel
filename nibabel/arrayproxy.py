@@ -33,7 +33,7 @@ import numpy as np
 
 from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
-from .fileslice import fileslice
+from .fileslice import fileslice, canonical_slicers
 from .keywordonly import kw_only_meth
 from . import openers
 
@@ -336,36 +336,77 @@ class ArrayProxy(object):
                     self.file_like, keep_open=False) as opener:
                 yield opener
 
-    def get_unscaled(self):
-        """ Read of data from file
-
-        This is an optional part of the proxy API
-        """
-        with self._get_fileobj() as fileobj, self._lock:
-            raw_data = array_from_file(self._shape,
+    def _get_unscaled(self, slicer):
+        if canonical_slicers(slicer, self._shape, False) == \
+                canonical_slicers((), self._shape, False):
+            with self._get_fileobj() as fileobj, self._lock:
+                return array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
                                        offset=self._offset,
                                        order=self.order,
                                        mmap=self._mmap)
-        return raw_data
+        with self._get_fileobj() as fileobj:
+            return fileslice(fileobj,
+                             slicer,
+                             self._shape,
+                             self._dtype,
+                             self._offset,
+                             order=self.order,
+                             lock=self._lock)
+
+    def _get_scaled(self, dtype, slicer):
+        # Ensure scale factors have dtypes
+        scl_slope = np.asanyarray(self._slope)
+        scl_inter = np.asanyarray(self._inter)
+        use_dtype = scl_slope.dtype if dtype is None else dtype
+        slope = scl_slope.astype(use_dtype)
+        inter = scl_inter.astype(use_dtype)
+        # Read array and upcast as necessary for big slopes, intercepts
+        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), slope, inter)
+        if dtype is not None:
+            scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
+        return scaled
+
+    def get_unscaled(self):
+        """ Read data from file
+
+        This is an optional part of the proxy API
+        """
+        return self._get_unscaled(slicer=())
+
+    def get_scaled(self, dtype=None):
+        """ Read data from file and apply scaling
+
+        The dtype of the returned array is the narrowest dtype that can
+        represent the data without overflow, and is at least as wide as
+        the dtype parameter.
+
+        If dtype is unspecified, it is the wider of the dtypes of the slope
+        or intercept. This will generally be determined by the parameter
+        size in the image header, and so should be consistent for a given
+        image format, but may vary across formats. Notably, these factors
+        are single-precision (32-bit) floats for NIfTI-1 and double-precision
+        (64-bit) floats for NIfTI-2.
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier
+            A numpy dtype specifier specifying the narrowest acceptable
+            dtype.
+
+        Returns
+        -------
+        array
+            Scaled of image data of data type `dtype`.
+        """
+        return self._get_scaled(dtype=dtype, slicer=())
 
     def __array__(self):
-        # Read array and scale
-        raw_data = self.get_unscaled()
-        return apply_read_scaling(raw_data, self._slope, self._inter)
+        return self._get_scaled(dtype=None, slicer=())
 
     def __getitem__(self, slicer):
-        with self._get_fileobj() as fileobj:
-            raw_data = fileslice(fileobj,
-                                 slicer,
-                                 self._shape,
-                                 self._dtype,
-                                 self._offset,
-                                 order=self.order,
-                                 lock=self._lock)
-        # Upcast as necessary for big slopes, intercepts
-        return apply_read_scaling(raw_data, self._slope, self._inter)
+        return self._get_scaled(dtype=None, slicer=slicer)
 
     def reshape(self, shape):
         """ Return an ArrayProxy with a new shape, without modifying data """

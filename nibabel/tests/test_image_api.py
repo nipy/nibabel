@@ -44,7 +44,7 @@ from .. import minc1, minc2, parrec, brikhead
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
 
-from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns
+from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
 from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
@@ -314,18 +314,21 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # New data dtype, no caching, doesn't use or alter cache
         fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
         # We get back the original read, not the modified cache
-        assert_array_equal(fdata_new_dt, proxy_data.astype('f4'))
+        # Allow for small rounding error when the data is scaled with 32-bit
+        # factors, rather than 64-bit factors and then cast to float-32
+        # Use rtol/atol from numpy.allclose
+        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         assert_equal(fdata_new_dt.dtype, np.float32)
         # The original cache stays in place, for default float64
         assert_array_equal(img.get_fdata(), 42)
         # And for not-default float32, because we haven't cached
         fdata_new_dt[:] = 43
         fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
-        assert_array_equal(fdata_new_dt, proxy_data.astype('f4'))
+        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         # Until we reset with caching='fill', at which point we
         # drop the original float64 cache, and have a float32 cache
         fdata_new_dt = img.get_fdata(caching='fill', dtype='f4')
-        assert_array_equal(fdata_new_dt, proxy_data.astype('f4'))
+        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         # We're using the cache, for dtype='f4' reads
         fdata_new_dt[:] = 43
         assert_array_equal(img.get_fdata(dtype='f4'), 43)

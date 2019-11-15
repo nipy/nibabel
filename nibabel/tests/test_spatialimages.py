@@ -195,8 +195,8 @@ class DataLike(object):
     # Minimal class implementing 'data' API
     shape = (3,)
 
-    def __array__(self):
-        return np.arange(3, dtype=np.int16)
+    def __array__(self, dtype='int16'):
+        return np.arange(3, dtype=dtype)
 
 
 class TestSpatialImage(TestCase):
