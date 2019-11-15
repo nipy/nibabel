@@ -13,7 +13,7 @@ relative imports.
 _version_major = 3
 _version_minor = 0
 _version_micro = 0
-_version_extra = 'dev'
+_version_extra = 'rc1'
 # _version_extra = ''
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
