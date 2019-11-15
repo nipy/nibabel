@@ -24,9 +24,9 @@ from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 
 from ..tmpdirs import InTemporaryDirectory
-from ..testing import (assert_true, assert_equal, assert_false, assert_raises, assert_warns,
-                       assert_array_equal, data_path, clear_and_catch_warnings)
-from ..testing_pytest import assert_data_similar
+from ..testing_pytest import assert_data_similar, data_path, clear_and_catch_warnings
+from numpy.testing import assert_array_equal
+import pytest
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
@@ -110,40 +110,40 @@ def test_old_namespace():
         # This import does not trigger an import of the minc.py module, because
         # it's the proxy object.
         from .. import minc
-        assert_equal(warns, [])
+        assert warns == []
         # If there was a previous import it will be module, otherwise it will be
         # a proxy
         previous_import = isinstance(minc, types.ModuleType)
         if not previous_import:
-            assert_true(isinstance(minc, ModuleProxy))
+            assert isinstance(minc, ModuleProxy)
         old_minc1image = minc.Minc1Image  # just to check it works
         # There may or may not be a warning raised on accessing the proxy,
         # depending on whether the minc.py module is already imported in this
         # test run.
         if not previous_import:
-            assert_equal(warns.pop(0).category, DeprecationWarning)
+            assert warns.pop(0).category == DeprecationWarning
 
     with clear_and_catch_warnings() as warns:
         from .. import Minc1Image, MincImage
-        assert_equal(warns, [])
+        assert warns == []
         # The import from old module is the same as that from new
-        assert_true(old_minc1image is Minc1Image)
+        assert old_minc1image is Minc1Image
         # But the old named import, imported from new, is not the same
-        assert_false(Minc1Image is MincImage)
-        assert_equal(warns, [])
+        assert not Minc1Image is MincImage
+        assert warns == []
         # Create object using old name
         mimg = MincImage(arr, aff)
         # Call to create object created warning
-        assert_equal(warns.pop(0).category, FutureWarning)
+        assert warns.pop(0).category == FutureWarning
         assert_array_equal(mimg.get_fdata(), arr)
         # Another old name
         from ..minc1 import MincFile, Minc1File
-        assert_false(MincFile is Minc1File)
-        assert_equal(warns, [])
+        assert not MincFile is Minc1File
+        assert warns == []
         mf = MincFile(netcdf_file(EG_FNAME))
         # Call to create object created warning
-        assert_equal(warns.pop(0).category, FutureWarning)
-        assert_equal(mf.get_data_shape(), (10, 20, 20))
+        assert warns.pop(0).category == FutureWarning
+        assert mf.get_data_shape() == (10, 20, 20)
 
 
 class _TestMincFile(object):
@@ -157,12 +157,12 @@ class _TestMincFile(object):
         for tp in self.test_files:
             mnc_obj = self.opener(tp['fname'], 'r')
             mnc = self.file_class(mnc_obj)
-            assert_equal(mnc.get_data_dtype().type, tp['dtype'])
-            assert_equal(mnc.get_data_shape(), tp['shape'])
-            assert_equal(mnc.get_zooms(), tp['zooms'])
+            assert mnc.get_data_dtype().type == tp['dtype']
+            assert mnc.get_data_shape() == tp['shape']
+            assert mnc.get_zooms() == tp['zooms']
             assert_array_equal(mnc.get_affine(), tp['affine'])
             data = mnc.get_scaled_data()
-            assert_equal(data.shape, tp['shape'])
+            assert data.shape == tp['shape']
 
     def test_mincfile_slicing(self):
         # Test slicing and scaling of mincfile data
@@ -186,7 +186,7 @@ class _TestMincFile(object):
         for tp in self.test_files:
             img = load(tp['fname'])
             data = img.get_fdata()
-            assert_equal(data.shape, tp['shape'])
+            assert data.shape == tp['shape']
             # min, max, mean values from read in SPM2 / minctools
             assert_data_similar(data, tp)
             # check if mnc can be converted to nifti
@@ -200,7 +200,7 @@ class _TestMincFile(object):
             img = load(tp['fname'])
             arr = img.get_fdata()
             prox = img.dataobj
-            assert_true(prox.is_proxy)
+            assert prox.is_proxy
             for sliceobj in slicer_samples(img.shape):
                 assert_array_equal(arr[sliceobj], prox[sliceobj])
 
@@ -230,8 +230,10 @@ def test_header_data_io():
     bio = BytesIO()
     hdr = MincHeader()
     arr = np.arange(24).reshape((2, 3, 4))
-    assert_raises(NotImplementedError, hdr.data_to_fileobj, arr, bio)
-    assert_raises(NotImplementedError, hdr.data_from_fileobj, bio)
+    with pytest.raises(NotImplementedError):
+        hdr.data_to_fileobj(arr, bio)
+    with pytest.raises(NotImplementedError):
+        hdr.data_from_fileobj(bio)
 
 
 class TestMinc1Image(tsi.TestSpatialImage):
@@ -245,7 +247,7 @@ class TestMinc1Image(tsi.TestSpatialImage):
             img = self.module.load(fpath)
             bio = BytesIO()
             arr = np.arange(24).reshape((2, 3, 4))
-            assert_raises(NotImplementedError,
-                          img.header.data_to_fileobj, arr, bio)
-            assert_raises(NotImplementedError,
-                          img.header.data_from_fileobj, bio)
+            with pytest.raises(NotImplementedError):
+                img.header.data_to_fileobj(arr, bio)
+            with pytest.raises(NotImplementedError):
+                img.header.data_from_fileobj(bio)

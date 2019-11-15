@@ -20,8 +20,7 @@ _, have_scipy, _ = optional_package('scipy')
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+import pytest
 
 data_path = pjoin(dirname(__file__), 'data')
 
@@ -48,7 +47,7 @@ def test_read_img_data():
         # These examples have null scaling - assert prefer=unscaled is the same
         dao = img.dataobj
         if hasattr(dao, 'slope') and hasattr(img.header, 'raw_data_from_fileobj'):
-            assert_equal((dao.slope, dao.inter), (1, 0))
+            assert (dao.slope, dao.inter) == (1, 0)
             assert_array_equal(read_img_data(img, prefer='unscaled'), data)
         # Assert all caps filename works as well
         with TemporaryDirectory() as tmpdir:
@@ -63,15 +62,16 @@ def test_read_img_data():
 
 
 def test_file_not_found():
-    assert_raises(FileNotFoundError, load, 'does_not_exist.nii.gz')
+    with pytest.raises(FileNotFoundError):
+        load('does_not_exist.nii.gz')
 
 
 def test_load_empty_image():
     with InTemporaryDirectory():
         open('empty.nii', 'w').close()
-        with assert_raises(ImageFileError) as err:
+        with pytest.raises(ImageFileError) as err:
             load('empty.nii')
-    assert_true(err.exception.args[0].startswith('Empty file: '))
+    assert str(err.value).startswith('Empty file: ')
 
 
 def test_read_img_data_nifti():
@@ -86,13 +86,15 @@ def test_read_img_data_nifti():
             img = img_class(data, np.eye(4))
             img.set_data_dtype(out_dtype)
             # No filemap => error
-            assert_raises(ImageFileError, read_img_data, img)
+            with pytest.raises(ImageFileError):
+                read_img_data(img)
             # Make a filemap
             froot = 'an_image_{0}'.format(i)
             img.file_map = img.filespec_to_file_map(froot)
             # Trying to read from this filemap will generate an error because
             # we are going to read from files that do not exist
-            assert_raises(IOError, read_img_data, img)
+            with pytest.raises(IOError):
+                read_img_data(img)
             img.to_file_map()
             # Load - now the scaling and offset correctly applied
             img_fname = img.file_map['image'].filename
@@ -127,8 +129,8 @@ def test_read_img_data_nifti():
             else:
                 new_inter = 0
             # scaled scaling comes from new parameters in header
-            assert_true(np.allclose(actual_unscaled * 2.1 + new_inter,
-                                    read_img_data(img_back)))
+            assert np.allclose(actual_unscaled * 2.1 + new_inter,
+                                    read_img_data(img_back))
             # Unscaled array didn't change
             assert_array_equal(actual_unscaled,
                                read_img_data(img_back, prefer='unscaled'))
