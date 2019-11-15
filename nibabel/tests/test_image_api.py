@@ -46,12 +46,12 @@ from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
 
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
 from ..testing import clear_and_catch_warnings
+from ..testing_pytest import (bytesio_round_trip, bytesio_filemap,
+                              assert_data_similar)
 from ..tmpdirs import InTemporaryDirectory
 from ..deprecator import ExpiredDeprecationError
 
 from .test_api_validators import ValidateAPI
-from .test_helpers import (bytesio_round_trip, bytesio_filemap,
-                           assert_data_similar)
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES

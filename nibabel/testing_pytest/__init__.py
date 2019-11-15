@@ -22,7 +22,8 @@ skipif = dec.skipif
 slow = dec.slow
 
 from ..deprecated import deprecate_with_version as _deprecate_with_version
-
+from .np_features import memmap_after_ufunc
+from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
 
 from itertools import zip_longest
 
@@ -44,8 +45,6 @@ def test_data(subdir=None, fname=None):
 # set path to example data
 data_path = test_data()
 
-
-from .np_features import memmap_after_ufunc
 
 def assert_dt_equal(a, b):
     """ Assert two numpy dtype specifiers are equal

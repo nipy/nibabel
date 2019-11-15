@@ -38,7 +38,7 @@ from ..testing_pytest import (data_path, suppress_warnings, assert_dt_equal)
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
-from .test_helpers import bytesio_filemap, bytesio_round_trip
+from ..testing_pytest import bytesio_filemap, bytesio_round_trip
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 
