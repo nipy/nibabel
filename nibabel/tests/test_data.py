@@ -19,21 +19,19 @@ from .. import data as nibd
 
 import pytest
 
-from .test_environment import (setup_environment,
-                               teardown_environment,
+from .test_environment import (with_environment,
                                DATA_KEY,
                                USER_KEY)
 
+
 @pytest.fixture()
-def with_environment(request):
-    setup_environment()
+def with_nimd_env(request, with_environment):
     DATA_FUNCS = {}
     DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
     DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
     DATA_FUNCS['path_func'] = nibd.get_data_path
 
     def teardown_data_env():
-        teardown_environment()
         nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
         nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
         nibd.get_data_path = DATA_FUNCS['path_func']
@@ -116,7 +114,7 @@ def test__cfg_value():
             pass
 
 
-def test_data_path(with_environment):
+def test_data_path(with_nimd_env):
     # wipe out any sources of data paths
     if DATA_KEY in env:
         del env[DATA_KEY]
@@ -189,7 +187,7 @@ def test_find_data_dir():
     assert dd == here
 
 
-def test_make_datasource(with_environment):
+def test_make_datasource(with_nimd_env):
     pkg_def = dict(
         relpath='pkg')
     with TemporaryDirectory() as tmpdir:
@@ -219,7 +217,7 @@ def test_bomber_inspect():
     assert not hasattr(b, 'any_attribute')
 
 
-def test_datasource_or_bomber(with_environment):
+def test_datasource_or_bomber(with_nimd_env):
     pkg_def = dict(
         relpath='pkg')
     with TemporaryDirectory() as tmpdir:
