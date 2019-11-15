@@ -17,7 +17,6 @@ import numpy as np
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from ..ecat import load
 
-from nose.tools import assert_equal
 from numpy.testing import (assert_array_equal, assert_almost_equal)
 
 ECAT_TEST_PATH = pjoin(get_nibabel_data(), 'nipy-ecattest')
@@ -40,11 +39,11 @@ class TestNegatives(object):
     def test_load(self):
         # Check highest level load of minc works
         img = self.opener(self.example_params['fname'])
-        assert_equal(img.shape, self.example_params['shape'])
-        assert_equal(img.get_data_dtype(0).type, self.example_params['type'])
+        assert img.shape == self.example_params['shape']
+        assert img.get_data_dtype(0).type == self.example_params['type']
         # Check correspondence of data and recorded shape
         data = img.get_fdata()
-        assert_equal(data.shape, self.example_params['shape'])
+        assert data.shape == self.example_params['shape']
         # min, max, mean values from given parameters
         assert_almost_equal(data.min(), self.example_params['min'], 4)
         assert_almost_equal(data.max(), self.example_params['max'], 4)

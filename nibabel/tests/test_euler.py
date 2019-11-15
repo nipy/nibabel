@@ -15,9 +15,7 @@ from numpy import pi
 from .. import eulerangles as nea
 from .. import quaternions as nq
 
-from nose.tools import assert_false
-from nose.tools import assert_true
-
+import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 FLOAT_EPS = np.finfo(np.float).eps
@@ -90,36 +88,38 @@ def test_basic_euler():
     M2 = nea.euler2mat(0, yr)
     M3 = nea.euler2mat(0, 0, xr)
     # which are all valid rotation matrices
-    yield assert_true, is_valid_rotation(M)
-    yield assert_true, is_valid_rotation(M1)
-    yield assert_true, is_valid_rotation(M2)
-    yield assert_true, is_valid_rotation(M3)
+    assert is_valid_rotation(M)
+    assert is_valid_rotation(M1)
+    assert is_valid_rotation(M2)
+    assert is_valid_rotation(M3)
     # Full matrix is composition of three individual matrices
-    yield assert_true, np.allclose(M, np.dot(M3, np.dot(M2, M1)))
+    assert np.allclose(M, np.dot(M3, np.dot(M2, M1)))
     # Rotations can be specified with named args, default 0
-    yield assert_true, np.all(nea.euler2mat(zr) == nea.euler2mat(z=zr))
-    yield assert_true, np.all(nea.euler2mat(0, yr) == nea.euler2mat(y=yr))
-    yield assert_true, np.all(nea.euler2mat(0, 0, xr) == nea.euler2mat(x=xr))
+    assert np.all(nea.euler2mat(zr) == nea.euler2mat(z=zr))
+    assert np.all(nea.euler2mat(0, yr) == nea.euler2mat(y=yr))
+    assert np.all(nea.euler2mat(0, 0, xr) == nea.euler2mat(x=xr))
     # Applying an opposite rotation same as inverse (the inverse is
     # the same as the transpose, but just for clarity)
-    yield assert_true, np.allclose(nea.euler2mat(x=-xr),
+    assert np.allclose(nea.euler2mat(x=-xr),
                                    np.linalg.inv(nea.euler2mat(x=xr)))
 
 
-def test_euler_mat():
+def test_euler_mat_1():
     M = nea.euler2mat()
-    yield assert_array_equal, M, np.eye(3)
-    for x, y, z in eg_rots:
-        M1 = nea.euler2mat(z, y, x)
-        M2 = sympy_euler(z, y, x)
-        yield assert_array_almost_equal, M1, M2
-        M3 = np.dot(x_only(x), np.dot(y_only(y), z_only(z)))
-        yield assert_array_almost_equal, M1, M3
-        zp, yp, xp = nea.mat2euler(M1)
-        # The parameters may not be the same as input, but they give the
-        # same rotation matrix
-        M4 = nea.euler2mat(zp, yp, xp)
-        yield assert_array_almost_equal, M1, M4
+    assert_array_equal(M, np.eye(3))
+
+@pytest.mark.parametrize("x, y, z", eg_rots)
+def test_euler_mat_2(x, y, z):
+    M1 = nea.euler2mat(z, y, x)
+    M2 = sympy_euler(z, y, x)
+    assert_array_almost_equal(M1, M2)
+    M3 = np.dot(x_only(x), np.dot(y_only(y), z_only(z)))
+    assert_array_almost_equal(M1, M3)
+    zp, yp, xp = nea.mat2euler(M1)
+    # The parameters may not be the same as input, but they give the
+    # same rotation matrix
+    M4 = nea.euler2mat(zp, yp, xp)
+    assert_array_almost_equal(M1, M4)
 
 
 def sympy_euler2quat(z=0, y=0, x=0):
@@ -148,27 +148,27 @@ def test_euler_instability():
     M = nea.euler2mat(*zyx)
     # Round trip
     M_back = nea.euler2mat(*nea.mat2euler(M))
-    yield assert_true, np.allclose(M, M_back)
+    assert np.allclose(M, M_back)
     # disturb matrix slightly
     M_e = M - FLOAT_EPS
     # round trip to test - OK
     M_e_back = nea.euler2mat(*nea.mat2euler(M_e))
-    yield assert_true, np.allclose(M_e, M_e_back)
+    assert np.allclose(M_e, M_e_back)
     # not so with crude routine
     M_e_back = nea.euler2mat(*crude_mat2euler(M_e))
-    yield assert_false, np.allclose(M_e, M_e_back)
+    assert not np.allclose(M_e, M_e_back)
 
 
-def test_quats():
-    for x, y, z in eg_rots:
-        M1 = nea.euler2mat(z, y, x)
-        quatM = nq.mat2quat(M1)
-        quat = nea.euler2quat(z, y, x)
-        yield nq.nearly_equivalent, quatM, quat
-        quatS = sympy_euler2quat(z, y, x)
-        yield nq.nearly_equivalent, quat, quatS
-        zp, yp, xp = nea.quat2euler(quat)
-        # The parameters may not be the same as input, but they give the
-        # same rotation matrix
-        M2 = nea.euler2mat(zp, yp, xp)
-        yield assert_array_almost_equal, M1, M2
+@pytest.mark.parametrize("x, y, z", eg_rots)
+def test_quats(x, y, z):
+    M1 = nea.euler2mat(z, y, x)
+    quatM = nq.mat2quat(M1)
+    quat = nea.euler2quat(z, y, x)
+    assert nq.nearly_equivalent(quatM, quat)
+    quatS = sympy_euler2quat(z, y, x)
+    assert nq.nearly_equivalent(quat, quatS)
+    zp, yp, xp = nea.quat2euler(quat)
+    # The parameters may not be the same as input, but they give the
+    # same rotation matrix
+    M2 = nea.euler2mat(zp, yp, xp)
+    assert_array_almost_equal(M1, M2)
