@@ -24,10 +24,10 @@ from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 
 from ..tmpdirs import InTemporaryDirectory
-from ..testing import (assert_true, assert_equal, assert_false, assert_raises, assert_warns,
-                       assert_array_equal, data_path, clear_and_catch_warnings)
 from ..deprecator import ExpiredDeprecationError
-from ..testing_pytest import assert_data_similar
+from ..testing_pytest import assert_data_similar, data_path, clear_and_catch_warnings
+from numpy.testing import assert_array_equal
+import pytest
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
@@ -107,14 +107,13 @@ def test_old_namespace():
     aff = np.diag([2, 3, 4, 1])
 
     from .. import Minc1Image, MincImage
-    assert_false(Minc1Image is MincImage)
-    with assert_raises(ExpiredDeprecationError):
+    assert Minc1Image is not MincImage
+    with pytest.raises(ExpiredDeprecationError):
         MincImage(arr, aff)
-        assert_equal(warns, [])
     # Another old name
     from ..minc1 import MincFile, Minc1File
     assert_false(MincFile is Minc1File)
-    with assert_raises(ExpiredDeprecationError):
+    with pytest.raises(ExpiredDeprecationError):
         mf = MincFile(netcdf_file(EG_FNAME))
 
 
@@ -129,12 +128,12 @@ class _TestMincFile(object):
         for tp in self.test_files:
             mnc_obj = self.opener(tp['fname'], 'r')
             mnc = self.file_class(mnc_obj)
-            assert_equal(mnc.get_data_dtype().type, tp['dtype'])
-            assert_equal(mnc.get_data_shape(), tp['shape'])
-            assert_equal(mnc.get_zooms(), tp['zooms'])
+            assert mnc.get_data_dtype().type == tp['dtype']
+            assert mnc.get_data_shape() == tp['shape']
+            assert mnc.get_zooms() == tp['zooms']
             assert_array_equal(mnc.get_affine(), tp['affine'])
             data = mnc.get_scaled_data()
-            assert_equal(data.shape, tp['shape'])
+            assert data.shape == tp['shape']
 
     def test_mincfile_slicing(self):
         # Test slicing and scaling of mincfile data
@@ -158,7 +157,7 @@ class _TestMincFile(object):
         for tp in self.test_files:
             img = load(tp['fname'])
             data = img.get_fdata()
-            assert_equal(data.shape, tp['shape'])
+            assert data.shape == tp['shape']
             # min, max, mean values from read in SPM2 / minctools
             assert_data_similar(data, tp)
             # check if mnc can be converted to nifti
@@ -172,7 +171,7 @@ class _TestMincFile(object):
             img = load(tp['fname'])
             arr = img.get_fdata()
             prox = img.dataobj
-            assert_true(prox.is_proxy)
+            assert prox.is_proxy
             for sliceobj in slicer_samples(img.shape):
                 assert_array_equal(arr[sliceobj], prox[sliceobj])
 
@@ -202,8 +201,10 @@ def test_header_data_io():
     bio = BytesIO()
     hdr = MincHeader()
     arr = np.arange(24).reshape((2, 3, 4))
-    assert_raises(NotImplementedError, hdr.data_to_fileobj, arr, bio)
-    assert_raises(NotImplementedError, hdr.data_from_fileobj, bio)
+    with pytest.raises(NotImplementedError):
+        hdr.data_to_fileobj(arr, bio)
+    with pytest.raises(NotImplementedError):
+        hdr.data_from_fileobj(bio)
 
 
 class TestMinc1Image(tsi.TestSpatialImage):
@@ -217,7 +218,7 @@ class TestMinc1Image(tsi.TestSpatialImage):
             img = self.module.load(fpath)
             bio = BytesIO()
             arr = np.arange(24).reshape((2, 3, 4))
-            assert_raises(NotImplementedError,
-                          img.header.data_to_fileobj, arr, bio)
-            assert_raises(NotImplementedError,
-                          img.header.data_from_fileobj, bio)
+            with pytest.raises(NotImplementedError):
+                img.header.data_to_fileobj(arr, bio)
+            with pytest.raises(NotImplementedError):
+                img.header.data_from_fileobj(bio)
