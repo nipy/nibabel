@@ -50,13 +50,10 @@ from .. import parrec
 
 from ..arrayproxy import ArrayProxy, is_proxy
 
-from nose import SkipTest
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal, assert_greater_equal)
-
+import pytest
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 
-from ..testing import data_path as DATA_PATH, assert_dt_equal
+from ..testing_pytest import data_path as DATA_PATH, assert_dt_equal
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -103,24 +100,26 @@ class _TestProxyAPI(ValidateAPI):
         prox, fio, hdr = pmaker()
         assert_array_equal(prox.shape, params['shape'])
         # Read only
-        assert_raises(AttributeError, setattr, prox, 'shape', params['shape'])
+        with pytest.raises(AttributeError):
+            setattr(prox, 'shape', params['shape'])
 
     def validate_ndim(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
-        assert_equal(prox.ndim, len(params['shape']))
+        assert prox.ndim == len(params['shape'])
         # Read only
-        assert_raises(AttributeError, setattr, prox,
-                      'ndim', len(params['shape']))
+        with pytest.raises(AttributeError):
+            setattr(prox, 'ndim', len(params['shape']))
 
     def validate_is_proxy(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
-        assert_true(prox.is_proxy)
-        assert_true(is_proxy(prox))
-        assert_false(is_proxy(np.arange(10)))
+        assert prox.is_proxy
+        assert is_proxy(prox)
+        assert not is_proxy(np.arange(10))
         # Read only
-        assert_raises(AttributeError, setattr, prox, 'is_proxy', False)
+        with pytest.raises(AttributeError):
+            setattr(prox, 'is_proxy', False)
 
     def validate_asarray(self, pmaker, params):
         # Check proxy returns expected array from asarray
@@ -129,7 +128,7 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(out, params['arr_out'])
         assert_dt_equal(out.dtype, params['dtype_out'])
         # Shape matches expected shape
-        assert_equal(out.shape, params['shape'])
+        assert out.shape == params['shape']
 
     def validate_get_scaled(self, pmaker, params):
         # Check proxy returns expected array from asarray
@@ -138,14 +137,14 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(out, params['arr_out'])
         assert_dt_equal(out.dtype, params['dtype_out'])
         # Shape matches expected shape
-        assert_equal(out.shape, params['shape'])
+        assert out.shape == params['shape']
 
         for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
             out = prox.get_scaled(dtype=dtype)
             assert_almost_equal(out, params['arr_out'])
-            assert_greater_equal(out.dtype, np.dtype(dtype))
+            assert out.dtype >= np.dtype(dtype)
             # Shape matches expected shape
-            assert_equal(out.shape, params['shape'])
+            assert out.shape == params['shape']
 
     def validate_header_isolated(self, pmaker, params):
         # Confirm altering input header has no effect
@@ -289,8 +288,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
         # Read-only dtype attribute
         prox, fio, hdr = pmaker()
         assert_dt_equal(prox.dtype, params['dtype'])
-        assert_raises(AttributeError,
-                      prox.__setattr__, 'dtype', np.dtype(prox.dtype))
+        with pytest.raises(AttributeError):
+            prox.__setattr__('dtype', np.dtype(prox.dtype))
 
     def validate_slope_inter_offset(self, pmaker, params):
         # Check slope, inter, offset
@@ -299,17 +298,17 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             expected = params[attr_name]
             assert_array_equal(getattr(prox, attr_name), expected)
             # Read only
-            assert_raises(AttributeError,
-                          setattr, prox, attr_name, expected)
+            with pytest.raises(AttributeError):
+                setattr(prox, attr_name, expected)
 
     def validate_deprecated_header(self, pmaker, params):
         prox, fio, hdr = pmaker()
         with warnings.catch_warnings(record=True) as warns:
             warnings.simplefilter("always")
             # Header is a copy of original
-            assert_false(prox.header is hdr)
-            assert_equal(prox.header, hdr)
-            assert_equal(warns.pop(0).category, DeprecationWarning)
+            assert not prox.header is hdr
+            assert prox.header == hdr
+            assert warns.pop(0).category == DeprecationWarning
 
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):
@@ -407,7 +406,7 @@ class TestEcatAPI(_TestProxyAPI):
                     arr_out=arr_out))
 
     def validate_header_isolated(self, pmaker, params):
-        raise SkipTest('ECAT header does not support dtype get')
+        raise pytest.skip('ECAT header does not support dtype get')
 
 
 class TestPARRECAPI(_TestProxyAPI):

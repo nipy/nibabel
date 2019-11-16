@@ -133,6 +133,7 @@ script:
           pytest -v ../nibabel/tests/test_a*.py ../nibabel/tests/test_b*.py ../nibabel/tests/test_c*.py ../nibabel/tests/test_d*.py
           pytest -v../nibabel/tests/test_e*.py ../nibabel/tests/test_f*.py ../nibabel/tests/test_h*.py
           pytest -v../nibabel/tests/test_i*.py ../nibabel/tests/test_k*.py ../nibabel/tests/test_l*.py ../nibabel/tests/test_m*.py
+          pytest -v../nibabel/tests/test_n*.py ../nibabel/tests/test_o*.py ../nibabel/tests/test_p*.py ../nibabel/tests/test_q*.py
           pytest -v ../nibabel/tests/test_w*.py
       else
           false
