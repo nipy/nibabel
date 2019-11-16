@@ -19,9 +19,8 @@ from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
 from unittest import mock
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_not_equal, assert_raises)
-from ..testing import error_warnings
+import pytest
+from ..testing_pytest import error_warnings
 
 
 class Lunk(object):
@@ -41,24 +40,24 @@ class Lunk(object):
 def test_Opener():
     # Test default mode is 'rb'
     fobj = Opener(__file__)
-    assert_equal(fobj.mode, 'rb')
+    assert fobj.mode == 'rb'
     fobj.close()
     # That it's a context manager
     with Opener(__file__) as fobj:
-        assert_equal(fobj.mode, 'rb')
+        assert fobj.mode == 'rb'
     # That we can set the mode
     with Opener(__file__, 'r') as fobj:
-        assert_equal(fobj.mode, 'r')
+        assert fobj.mode == 'r'
     # with keyword arguments
     with Opener(__file__, mode='r') as fobj:
-        assert_equal(fobj.mode, 'r')
+        assert fobj.mode == 'r'
     # fileobj returns fileobj passed through
     message = b"Wine?  Wouldn't you?"
     for obj in (BytesIO(message), Lunk(message)):
         with Opener(obj) as fobj:
-            assert_equal(fobj.read(), message)
+            assert fobj.read() == message
         # Which does not close the object
-        assert_false(obj.closed)
+        assert not obj.closed
         # mode is gently ignored
         fobj = Opener(obj, mode='r')
 
@@ -77,31 +76,34 @@ def test_Opener_various():
                       sobj):
             with Opener(input, 'wb') as fobj:
                 fobj.write(message)
-                assert_equal(fobj.tell(), len(message))
+                assert fobj.tell() == len(message)
             if input == sobj:
                 input.seek(0)
             with Opener(input, 'rb') as fobj:
                 message_back = fobj.read()
-                assert_equal(message, message_back)
+                assert message == message_back
                 if input == sobj:
                     # Fileno is unsupported for BytesIO
-                    assert_raises(UnsupportedOperation, fobj.fileno)
+                    with pytest.raises(UnsupportedOperation):
+                        fobj.fileno()
                 elif input.endswith('.bz2') and not bz2_fileno:
-                    assert_raises(AttributeError, fobj.fileno)
+                    with pytest.raises(AttributeError):
+                        fobj.fileno()
                 # indexed gzip is used by default, and drops file
                 # handles by default, so we don't have a fileno.
                 elif input.endswith('gz') and HAVE_INDEXED_GZIP and \
                      StrictVersion(igzip.__version__) >= StrictVersion('0.7.0'):
-                    assert_raises(igzip.NoHandleError, fobj.fileno)
+                    with pytest.raises(igzip.NoHandleError):
+                        fobj.fileno()
                 else:
                     # Just check there is a fileno
-                    assert_not_equal(fobj.fileno(), 0)
+                    assert fobj.fileno() != 0
 
 
 def test_BinOpener():
     with error_warnings():
-        assert_raises(DeprecationWarning,
-                      BinOpener, 'test.txt', 'r')
+        with pytest.raises(DeprecationWarning):
+            BinOpener('test.txt', 'r')
 
 
 class MockIndexedGzipFile(GzipFile):
@@ -158,22 +160,26 @@ def test_Opener_gzip_type():
             with patch_indexed_gzip(igzip_present):
                 assert isinstance(Opener(fname, **kwargs).fobj, expected)
 
+@pytest.fixture(scope="class")
+def image_opener_setup(request):
+    compress_ext_map = ImageOpener.compress_ext_map.copy()
+    request.cls.compress_ext_map = compress_ext_map
 
+    def teardown():
+        ImageOpener.compress_ext_map = request.cls.compress_ext_map
+    request.addfinalizer(teardown)
+
+
+@pytest.mark.usefixtures("image_opener_setup")
 class TestImageOpener:
-
-    def setUp(self):
-        self.compress_ext_map = ImageOpener.compress_ext_map.copy()
-
-    def teardown(self):
-        ImageOpener.compress_ext_map = self.compress_ext_map
 
     def test_vanilla(self):
         # Test that ImageOpener does add '.mgz' as gzipped file type
         with InTemporaryDirectory():
             with ImageOpener('test.gz', 'w') as fobj:
-                assert_true(hasattr(fobj.fobj, 'compress'))
+                assert hasattr(fobj.fobj, 'compress')
             with ImageOpener('test.mgz', 'w') as fobj:
-                assert_true(hasattr(fobj.fobj, 'compress'))
+                assert hasattr(fobj.fobj, 'compress')
 
     def test_new_association(self):
         def file_opener(fileish, mode):
@@ -182,16 +188,16 @@ class TestImageOpener:
         # Add the association
         n_associations = len(ImageOpener.compress_ext_map)
         ImageOpener.compress_ext_map['.foo'] = (file_opener, ('mode',))
-        assert_equal(n_associations + 1, len(ImageOpener.compress_ext_map))
-        assert_true('.foo' in ImageOpener.compress_ext_map)
+        assert n_associations + 1 == len(ImageOpener.compress_ext_map)
+        assert '.foo' in ImageOpener.compress_ext_map
 
         with InTemporaryDirectory():
             with ImageOpener('test.foo', 'w'):
                 pass
-            assert_true(os.path.exists('test.foo'))
+            assert os.path.exists('test.foo')
 
         # Check this doesn't add anything to parent
-        assert_false('.foo' in Opener.compress_ext_map)
+        assert not '.foo' in Opener.compress_ext_map
 
 
 def test_file_like_wrapper():
@@ -199,17 +205,17 @@ def test_file_like_wrapper():
     message = b"History of the nude in"
     sobj = BytesIO()
     fobj = Opener(sobj)
-    assert_equal(fobj.tell(), 0)
+    assert fobj.tell() == 0
     fobj.write(message)
-    assert_equal(fobj.tell(), len(message))
+    assert fobj.tell() == len(message)
     fobj.seek(0)
-    assert_equal(fobj.tell(), 0)
-    assert_equal(fobj.read(6), message[:6])
-    assert_false(fobj.closed)
+    assert fobj.tell() == 0
+    assert fobj.read(6) == message[:6]
+    assert not fobj.closed
     fobj.close()
-    assert_true(fobj.closed)
+    assert fobj.closed
     # Added the fileobj name
-    assert_equal(fobj.name, None)
+    assert fobj.name == None
 
 
 def test_compressionlevel():
@@ -236,8 +242,8 @@ def test_compressionlevel():
                     with open(fname, 'rb') as fobj:
                         my_selves_smaller = fobj.read()
                     sizes[compresslevel] = len(my_selves_smaller)
-                assert_equal(sizes['default'], sizes[default_val])
-                assert_true(sizes[1] > sizes[5])
+                assert sizes['default'] == sizes[default_val]
+                assert sizes[1] > sizes[5]
 
 
 def test_compressed_ext_case():
@@ -256,23 +262,23 @@ def test_compressed_ext_case():
             with Opener(fname, 'wb') as fobj:
                 fobj.write(contents)
             with Opener(fname, 'rb') as fobj:
-                assert_equal(fobj.read(), contents)
+                assert fobj.read() == contents
             os.unlink(fname)
             with StrictOpener(fname, 'wb') as fobj:
                 fobj.write(contents)
             with StrictOpener(fname, 'rb') as fobj:
-                assert_equal(fobj.read(), contents)
+                assert fobj.read() == contents
             lext = ext.lower()
             if lext != ext:  # extension should not be recognized -> file
-                assert_true(isinstance(fobj.fobj, file_class))
+                assert isinstance(fobj.fobj, file_class)
             elif lext == 'gz':
                 try:
                     from ..openers import IndexedGzipFile
                 except ImportError:
                     IndexedGzipFile = GzipFile
-                assert_true(isinstance(fobj.fobj, (GzipFile, IndexedGzipFile)))
+                assert isinstance(fobj.fobj, (GzipFile, IndexedGzipFile))
             else:
-                assert_true(isinstance(fobj.fobj, BZ2File))
+                assert isinstance(fobj.fobj, BZ2File)
 
 
 def test_name():
@@ -287,22 +293,22 @@ def test_name():
                       lunk):
             exp_name = input if type(input) == type('') else None
             with Opener(input, 'wb') as fobj:
-                assert_equal(fobj.name, exp_name)
+                assert fobj.name == exp_name
 
 
 def test_set_extensions():
     # Test that we can add extensions that are compressed
     with InTemporaryDirectory():
         with Opener('test.gz', 'w') as fobj:
-            assert_true(hasattr(fobj.fobj, 'compress'))
+            assert hasattr(fobj.fobj, 'compress')
         with Opener('test.glrph', 'w') as fobj:
-            assert_false(hasattr(fobj.fobj, 'compress'))
+            assert not hasattr(fobj.fobj, 'compress')
 
         class MyOpener(Opener):
             compress_ext_map = Opener.compress_ext_map.copy()
             compress_ext_map['.glrph'] = Opener.gz_def
         with MyOpener('test.glrph', 'w') as fobj:
-            assert_true(hasattr(fobj.fobj, 'compress'))
+            assert hasattr(fobj.fobj, 'compress')
 
 
 def test_close_if_mine():
@@ -319,11 +325,11 @@ def test_close_if_mine():
             # gzip objects have no 'closed' attribute
             has_closed = hasattr(fobj.fobj, 'closed')
             if has_closed:
-                assert_false(fobj.closed)
+                assert not fobj.closed
             fobj.close_if_mine()
             is_str = type(input) is type('')
             if has_closed:
-                assert_equal(fobj.closed, is_str)
+                assert fobj.closed == is_str
 
 
 def test_iter():
@@ -345,11 +351,12 @@ virginia
                     fobj.write(asbytes(line + os.linesep))
             with Opener(input, 'rb') as fobj:
                 for back_line, line in zip(fobj, lines):
-                    assert_equal(asstr(back_line).rstrip(), line)
+                    assert asstr(back_line).rstrip() == line
             if not does_t:
                 continue
             with Opener(input, 'rt') as fobj:
                 for back_line, line in zip(fobj, lines):
-                    assert_equal(back_line.rstrip(), line)
+                    assert back_line.rstrip() == line
         lobj = Opener(Lunk(''))
-        assert_raises(TypeError, list, lobj)
+        with pytest.raises(TypeError):
+            list(lobj)

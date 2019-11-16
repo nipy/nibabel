@@ -115,6 +115,7 @@ def optional_package(name, trip_msg=None, min_version=None):
                     % (name, name, exc))
     pkg = TripWire(trip_msg)
 
+    # TODO dj: no clue why is it needed...
     def setup_module():
         if have_nose:
             import nose
