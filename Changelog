@@ -25,6 +25,59 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
+3.0.0 (To Be Determined)
+========================
+
+New features
+------------
+* ArrayProxy method ``get_scaled()`` scales data with a dtype of a
+  specified precision, promoting as necessary to avoid overflow. This
+  is to used in ``img.get_fdata()`` to control memory usage. (pr/833)
+  (CM, reviewed by Ross Markello)
+* GiftiImage method ``agg_data()`` to return usable data arrays (pr/793)
+  (Hao-Ting Wang, reviewed by CM)
+* Accept ``os.PathLike`` objects in place of filenames (pr/610) (Cameron
+  Riddell, reviewed by MB, CM)
+* Function to calculate obliquity of affines (pr/815) (Oscar Esteban,
+  reviewed by MB)
+
+Enhancements
+------------
+* ``get_fdata(dtype=np.float32)`` will attempt to avoid casting data to
+  ``np.float64`` when scaling parameters would otherwise promote the data
+  type unnecessarily. (pr/833) (CM, reviewed by Ross Markello)
+* ``ArraySequence`` now supports a large set of Python operators to combine
+  or update in-place. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin,
+  CM, MB)
+* Warn, rather than fail, on DICOMs with unreadable Siemens CSA tags (pr/818)
+  (Henry Braun, reviewed by CM)
+* Improve clarity of coordinate system tutorial (pr/823) (Egor Panfilov,
+  reviewed by MB)
+
+Bug fixes
+---------
+* Sliced ``Tractogram``s no longer ``apply_affine`` to the original
+  ``Tractogram``'s streamlines. (pr/811) (MC, reviewed by Serge Koudoro,
+  Philippe Poulin, CM, MB)
+* Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+  (pr/821) (CM)
+
+Maintenance
+-----------
+* Support Python >=3.5.1, including Python 3.8.0 (pr/787) (CM)
+* Manage versioning with slightly customized Versioneer (pr/786) (CM)
+* Reference Nipy Community Code and Nibabel Developer Guidelines in
+  GitHub community documents (pr/778) (CM, reviewed by MB)
+
+API changes and deprecations
+----------------------------
+* Deprecate ``ArraySequence.data`` in favor of ``ArraySequence.get_data()``,
+  which will return a copy. ``ArraySequence.data`` now returns a read-only
+  view. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin, CM, MB)
+* Deprecate ``DataobjImage.get_data()`` API, to be removed in nibabel 5.0
+  (pr/794, pr/809) (CM, reviewed by MB)
+
+
 2.5.1 (Monday 23 September 2019)
 ================================
 

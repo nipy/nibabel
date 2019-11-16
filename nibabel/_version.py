@@ -208,6 +208,11 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         # sorting will prefer e.g. "2.0" over "2.0rc1"
         if ref.startswith(tag_prefix):
             r = ref[len(tag_prefix):]
+            # CJM: Nibabel fix to filter out refs that exactly match prefix
+            # or that don't start with a number once the prefix is stripped
+            # (Mostly a concern when prefix is '')
+            if not re.match(r'\d', r):
+                continue
             if verbose:
                 print("picking %s" % r)
             return {"version": r,
