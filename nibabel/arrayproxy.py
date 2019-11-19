@@ -405,8 +405,11 @@ class ArrayProxy(object):
         """
         return self._get_scaled(dtype=dtype, slicer=())
 
-    def __array__(self):
-        return self._get_scaled(dtype=None, slicer=())
+    def __array__(self, dtype=None):
+        arr = self._get_scaled(dtype=dtype, slicer=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
 
     def __getitem__(self, slicer):
         return self._get_scaled(dtype=None, slicer=slicer)

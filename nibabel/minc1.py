@@ -290,9 +290,12 @@ class MincImageArrayProxy(object):
         """
         return self._get_scaled(dtype=dtype, slicer=())
 
-    def __array__(self):
+    def __array__(self, dtype=None):
         ''' Read of data from file '''
-        return self._get_scaled(dtype=None, slicer=())
+        arr = self._get_scaled(dtype=dtype, slicer=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
 
     def __getitem__(self, sliceobj):
         """ Read slice `sliceobj` of data from file """

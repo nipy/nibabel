@@ -689,7 +689,7 @@ class EcatImageArrayProxy(object):
     def is_proxy(self):
         return True
 
-    def __array__(self):
+    def __array__(self, dtype=None):
         ''' Read of data from file
 
         This reads ALL FRAMES into one array, can be memory expensive.
@@ -697,7 +697,8 @@ class EcatImageArrayProxy(object):
         If you want to read only some slices, use the slicing syntax
         (``__getitem__``) below, or ``subheader.data_from_fileobj(frame)``
         '''
-        data = np.empty(self.shape)
+        # dtype=None is interpreted as float64
+        data = np.empty(self.shape, dtype=dtype)
         frame_mapping = get_frame_order(self._subheader._mlist)
         for i in sorted(frame_mapping):
             data[:, :, :, i] = self._subheader.data_from_fileobj(
