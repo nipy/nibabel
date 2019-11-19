@@ -132,6 +132,27 @@ class _TestProxyAPI(ValidateAPI):
         # Shape matches expected shape
         assert_equal(out.shape, params['shape'])
 
+    def validate_array_interface_with_dtype(self, pmaker, params):
+        # Check proxy returns expected array from asarray
+        prox, fio, hdr = pmaker()
+        orig = np.array(prox, dtype=None)
+        assert_array_equal(orig, params['arr_out'])
+        assert_dt_equal(orig.dtype, params['dtype_out'])
+
+        for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
+            # Directly coerce with a dtype
+            direct = dtype(prox)
+            assert_almost_equal(direct, orig.astype(dtype))
+            assert_dt_equal(direct.dtype, np.dtype(dtype))
+            assert_equal(direct.shape, params['shape'])
+            # All three methods should produce equivalent results
+            for arrmethod in (np.array, np.asarray, np.asanyarray):
+                out = arrmethod(prox, dtype=dtype)
+                assert_array_equal(out, direct)
+                assert_dt_equal(out.dtype, np.dtype(dtype))
+                # Shape matches expected shape
+                assert_equal(out.shape, params['shape'])
+
     def validate_get_scaled(self, pmaker, params):
         # Check proxy returns expected array from asarray
         prox, fio, hdr = pmaker()
