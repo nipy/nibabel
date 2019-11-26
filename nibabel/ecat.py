@@ -696,6 +696,16 @@ class EcatImageArrayProxy(object):
 
         If you want to read only some slices, use the slicing syntax
         (``__getitem__``) below, or ``subheader.data_from_fileobj(frame)``
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier, optional
+            A numpy dtype specifier specifying the type of the returned array.
+
+        Returns
+        -------
+        array
+            Scaled image data with type `dtype`.
         '''
         # dtype=None is interpreted as float64
         data = np.empty(self.shape, dtype=dtype)
@@ -704,32 +714,6 @@ class EcatImageArrayProxy(object):
             data[:, :, :, i] = self._subheader.data_from_fileobj(
                 frame_mapping[i][0])
         return data
-
-    def get_scaled(self, dtype=None):
-        """ Read data from file and apply scaling
-
-        The dtype of the returned array is the narrowest dtype that can
-        represent the data without overflow, and is at least as wide as
-        the dtype parameter.
-
-        If dtype is unspecified, it is automatically determined.
-
-        Parameters
-        ----------
-        dtype : numpy dtype specifier
-            A numpy dtype specifier specifying the narrowest acceptable
-            dtype.
-
-        Returns
-        -------
-        array
-            Scaled of image data of data type `dtype`.
-        """
-        data = self.__array__()
-        if dtype is None:
-            return data
-        final_type = np.promote_types(data.dtype, dtype)
-        return data.astype(final_type, copy=False)
 
     def __getitem__(self, sliceobj):
         """ Return slice `sliceobj` from ECAT data, optimizing if possible

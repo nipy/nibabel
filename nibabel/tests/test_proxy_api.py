@@ -142,7 +142,10 @@ class _TestProxyAPI(ValidateAPI):
         for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
             # Directly coerce with a dtype
             direct = dtype(prox)
-            assert_almost_equal(direct, orig.astype(dtype))
+            # Half-precision is imprecise. Obviously. It's a bad idea, but don't break
+            # the test over it.
+            rtol = 1e-03 if dtype == np.float16 else 1e-05
+            assert_allclose(direct, orig.astype(dtype), rtol=rtol, atol=1e-08)
             assert_dt_equal(direct.dtype, np.dtype(dtype))
             assert_equal(direct.shape, params['shape'])
             # All three methods should produce equivalent results
@@ -152,25 +155,6 @@ class _TestProxyAPI(ValidateAPI):
                 assert_dt_equal(out.dtype, np.dtype(dtype))
                 # Shape matches expected shape
                 assert_equal(out.shape, params['shape'])
-
-    def validate_get_scaled(self, pmaker, params):
-        # Check proxy returns expected array from asarray
-        prox, fio, hdr = pmaker()
-        out = prox.get_scaled()
-        assert_array_equal(out, params['arr_out'])
-        assert_dt_equal(out.dtype, params['dtype_out'])
-        # Shape matches expected shape
-        assert_equal(out.shape, params['shape'])
-
-        for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
-            out = prox.get_scaled(dtype=dtype)
-            # Half-precision is imprecise. Obviously. It's a bad idea, but don't break
-            # the test over it.
-            rtol = 1e-03 if dtype == np.float16 else 1e-05
-            assert_allclose(out, params['arr_out'].astype(out.dtype), rtol=rtol, atol=1e-08)
-            assert_greater_equal(out.dtype, np.dtype(dtype))
-            # Shape matches expected shape
-            assert_equal(out.shape, params['shape'])
 
     def validate_header_isolated(self, pmaker, params):
         # Confirm altering input header has no effect
