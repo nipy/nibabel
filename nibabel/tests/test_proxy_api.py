@@ -216,8 +216,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (self.header_class().get_data_offset(),)
         else:
             offsets = (0, 16)
-        slopes = (1., 2.) if self.has_slope else (1.,)
-        inters = (0., 10.) if self.has_inter else (0.,)
+        slopes = (1., 2., 3.1416) if self.has_slope else (1.,)
+        inters = (0., 10., 2.7183) if self.has_inter else (0.,)
         dtypes = (np.uint8, np.int16, np.float32)
         for shape, dtype, offset, slope, inter in product(self.shapes,
                                                           dtypes,
