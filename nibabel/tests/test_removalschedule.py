@@ -1,5 +1,5 @@
 from ..pkg_info import cmp_pkg_version
-from ..testing import assert_raises, assert_false
+import pytest
 
 MODULE_SCHEDULE = [
     ('5.0.0', ['nibabel.keywordonly']),
@@ -26,8 +26,9 @@ def test_module_removal():
     for version, to_remove in MODULE_SCHEDULE:
         if cmp_pkg_version(version) < 1:
             for module in to_remove:
-                with assert_raises(ImportError, msg="Time to remove " + module):
+                with pytest.raises(ImportError):
                     __import__(module)
+                    pytest.fail("Time to remove " + module)
 
 
 def test_object_removal():
@@ -38,7 +39,7 @@ def test_object_removal():
                     module = __import__(module_name)
                 except ImportError:
                     continue
-                assert_false(hasattr(module, obj), msg="Time to remove %s.%s" % (module_name, obj))
+                assert not hasattr(module, obj), "Time to remove %s.%s" % (module_name, obj)
 
 
 def test_attribute_removal():
@@ -53,5 +54,4 @@ def test_attribute_removal():
                     klass = getattr(module, cls)
                 except AttributeError:
                     continue
-                assert_false(hasattr(klass, attr),
-                             msg="Time to remove %s.%s.%s" % (module_name, cls, attr))
+                assert not hasattr(klass, attr), "Time to remove %s.%s.%s" % (module_name, cls, attr)

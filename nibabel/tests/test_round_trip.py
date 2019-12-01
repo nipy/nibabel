@@ -11,8 +11,6 @@ from ..spatialimages import HeaderDataError, supported_np_types
 from ..arraywriters import ScalingError
 from ..casting import best_float, ulp, type_info
 
-from nose.tools import assert_true
-
 from numpy.testing import assert_array_equal
 
 DEBUG = True
@@ -193,4 +191,4 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
                slope, inter)
         # To help debugging failures with --pdb-failure
         np.nonzero(all_fails)
-    assert_true(this_test)
+    assert this_test
