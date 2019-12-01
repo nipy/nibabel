@@ -118,13 +118,9 @@ class _TestWrapStructBase(TestCase):
         # means do not check
         return None
 
-    @classmethod
-    def setUpClass(cls):
-        if cls.header_class is None:
-            raise SkipTest("no testing methods from the abstract class")
-
-
     def test_general_init(self):
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         # binaryblock has length given by header data dtype
         binblock = hdr.binaryblock
@@ -144,6 +140,8 @@ class _TestWrapStructBase(TestCase):
 
     def test__eq__(self):
         # Test equal and not equal
+        if not self.header_class:
+            pytest.skip()
         hdr1 = self.header_class()
         hdr2 = self.header_class()
         assert hdr1 == hdr2
@@ -160,6 +158,8 @@ class _TestWrapStructBase(TestCase):
 
     def test_to_from_fileobj(self):
         # Successful write using write_to
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         str_io = BytesIO()
         hdr.write_to(str_io)
@@ -169,6 +169,8 @@ class _TestWrapStructBase(TestCase):
         assert hdr2.binaryblock == hdr.binaryblock
 
     def test_mappingness(self):
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         with pytest.raises(ValueError):
             hdr.__setitem__('nonexistent key', 0.1)
@@ -205,12 +207,16 @@ class _TestWrapStructBase(TestCase):
         endianness on initialization (or occasionally byteswapping the
         data) - but this is done via via the as_byteswapped method
         '''
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         with pytest.raises(AttributeError):
             hdr.__setattr__('endianness', '<')
 
     def test_endian_guess(self):
         # Check guesses of endian
+        if not self.header_class:
+            pytest.skip()
         eh = self.header_class()
         assert eh.endianness == native_code
         hdr_data = eh.structarr.copy()
@@ -225,6 +231,8 @@ class _TestWrapStructBase(TestCase):
         # strings following.  More generally, there may be other perhaps
         # optional data after the binary block, in which case you will need to
         # override this test
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         str_io = BytesIO()
         hdr.write_to(str_io)
@@ -232,6 +240,8 @@ class _TestWrapStructBase(TestCase):
 
     def test_structarr(self):
         # structarr attribute also read only
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         # Just check we can get structarr
         hdr.structarr
@@ -250,6 +260,8 @@ class _TestWrapStructBase(TestCase):
 
     def test_bytes(self):
         # Test get of bytes
+        if not self.header_class:
+            pytest.skip()
         hdr1 = self.header_class()
         bb = hdr1.binaryblock
         hdr2 = self.header_class(hdr1.binaryblock)
@@ -280,6 +292,8 @@ class _TestWrapStructBase(TestCase):
 
     def test_as_byteswapped(self):
         # Check byte swapping
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         assert hdr.endianness == native_code
         # same code just returns a copy
@@ -304,6 +318,8 @@ class _TestWrapStructBase(TestCase):
 
     def test_empty_check(self):
         # Empty header should be error free
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         hdr.check_fix(error_level=0)
 
@@ -313,6 +329,8 @@ class _TestWrapStructBase(TestCase):
         return self.header_class.diagnose_binaryblock(binblock)
 
     def test_str(self):
+        if not self.header_class:
+            pytest.skip()
         hdr = self.header_class()
         # Check something returns from str
         s1 = str(hdr)
@@ -326,6 +344,8 @@ class _TestLabeledWrapStruct(_TestWrapStructBase):
     def test_get_value_label(self):
         # Test get value label method
         # Make a new class to avoid overwriting recoders of original
+        if not self.header_class:
+            pytest.skip()
         class MyHdr(self.header_class):
             _field_recoders = {}
         hdr = MyHdr()
