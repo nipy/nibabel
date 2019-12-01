@@ -61,6 +61,7 @@ from nose.tools import assert_raises
 
 from ..testing_pytest import (assert_dt_equal, assert_allclose_safely,
                               suppress_warnings, clear_and_catch_warnings)
+import pytest; pytestmark = pytest.mark.skip()
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
