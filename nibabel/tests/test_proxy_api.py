@@ -57,7 +57,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
 
-from ..testing import data_path as DATA_PATH, assert_dt_equal
+from ..testing import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -139,6 +139,12 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(orig, params['arr_out'])
         assert_dt_equal(orig.dtype, params['dtype_out'])
 
+        context = None
+        if np.issubdtype(orig.dtype, np.complexfloating):
+            context = clear_and_catch_warnings()
+            context.__enter__()
+            warnings.simplefilter('ignore', np.ComplexWarning)
+
         for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
             # Directly coerce with a dtype
             direct = dtype(prox)
@@ -155,6 +161,9 @@ class _TestProxyAPI(ValidateAPI):
                 assert_dt_equal(out.dtype, np.dtype(dtype))
                 # Shape matches expected shape
                 assert_equal(out.shape, params['shape'])
+
+        if context is not None:
+            context.__exit__()
 
     def validate_header_isolated(self, pmaker, params):
         # Confirm altering input header has no effect
