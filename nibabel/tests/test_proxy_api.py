@@ -55,7 +55,7 @@ from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal, assert_greater_equal)
 
-from numpy.testing import (assert_almost_equal, assert_array_equal)
+from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
 
 from ..testing import data_path as DATA_PATH, assert_dt_equal
 
@@ -143,7 +143,10 @@ class _TestProxyAPI(ValidateAPI):
 
         for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
             out = prox.get_scaled(dtype=dtype)
-            assert_almost_equal(out, params['arr_out'])
+            # Half-precision is imprecise. Obviously. It's a bad idea, but don't break
+            # the test over it.
+            rtol = 1e-03 if dtype == np.float16 else 1e-05
+            assert_allclose(out, params['arr_out'].astype(out.dtype), rtol=rtol, atol=1e-08)
             assert_greater_equal(out.dtype, np.dtype(dtype))
             # Shape matches expected shape
             assert_equal(out.shape, params['shape'])
@@ -218,8 +221,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (self.header_class().get_data_offset(),)
         else:
             offsets = (0, 16)
-        slopes = (1., 2., 3.1416) if self.has_slope else (1.,)
-        inters = (0., 10., 2.7183) if self.has_inter else (0.,)
+        slopes = (1., 2., float(np.float32(3.1416))) if self.has_slope else (1.,)
+        inters = (0., 10., float(np.float32(2.7183))) if self.has_inter else (0.,)
         for shape, dtype, offset, slope, inter in product(self.shapes,
                                                           self.data_dtypes,
                                                           offsets,
@@ -263,7 +266,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 dtype=dtype,
                 dtype_out=dtype_out,
                 arr=arr.copy(),
-                arr_out=arr * slope + inter,
+                arr_out=arr.astype(dtype_out) * slope + inter,
                 shape=shape,
                 offset=offset,
                 slope=slope,
