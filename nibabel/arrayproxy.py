@@ -360,10 +360,13 @@ class ArrayProxy(object):
         scl_slope = np.asanyarray(self._slope)
         scl_inter = np.asanyarray(self._inter)
         use_dtype = scl_slope.dtype if dtype is None else dtype
-        slope = scl_slope.astype(use_dtype)
-        inter = scl_inter.astype(use_dtype)
+
+        if np.can_cast(scl_slope, use_dtype):
+            scl_slope = scl_slope.astype(use_dtype)
+        if np.can_cast(scl_inter, use_dtype):
+            scl_inter = scl_inter.astype(use_dtype)
         # Read array and upcast as necessary for big slopes, intercepts
-        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), slope, inter)
+        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), scl_slope, scl_inter)
         if dtype is not None:
             scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
         return scaled
