@@ -47,6 +47,7 @@ from .. import minc2
 from .._h5py_compat import h5py, have_h5py
 from .. import ecat
 from .. import parrec
+from ..casting import have_binary128
 
 from ..arrayproxy import ArrayProxy, is_proxy
 
@@ -192,6 +193,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
     shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
     has_slope = False
     has_inter = False
+    data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64)
     array_order = 'F'
     # Cannot set offset for Freesurfer
     settable_offset = True
@@ -218,9 +220,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (0, 16)
         slopes = (1., 2., 3.1416) if self.has_slope else (1.,)
         inters = (0., 10., 2.7183) if self.has_inter else (0.,)
-        dtypes = (np.uint8, np.int16, np.float32)
         for shape, dtype, offset, slope, inter in product(self.shapes,
-                                                          dtypes,
+                                                          self.data_dtypes,
                                                           offsets,
                                                           slopes,
                                                           inters):
@@ -325,6 +326,10 @@ class TestSpm2AnalyzeProxyAPI(TestSpm99AnalyzeProxyAPI):
 class TestNifti1ProxyAPI(TestSpm99AnalyzeProxyAPI):
     header_class = Nifti1Header
     has_inter = True
+    data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64,
+                   np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
+    if have_binary128():
+        data_dtypes.extend(np.float128, np.complex256)
 
 
 class TestMGHAPI(TestAnalyzeProxyAPI):
@@ -334,6 +339,7 @@ class TestMGHAPI(TestAnalyzeProxyAPI):
     has_inter = False
     settable_offset = False
     data_endian = '>'
+    data_dtypes = (np.uint8, np.int16, np.int32, np.float32)
 
 
 class TestMinc1API(_TestProxyAPI):
