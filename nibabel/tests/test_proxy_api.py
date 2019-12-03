@@ -221,6 +221,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (self.header_class().get_data_offset(),)
         else:
             offsets = (0, 16)
+        # For non-integral parameters, cast to float32 value can be losslessly cast
+        # later, enabling exact checks, then back to float for consistency
         slopes = (1., 2., float(np.float32(3.1416))) if self.has_slope else (1.,)
         inters = (0., 10., float(np.float32(2.7183))) if self.has_inter else (0.,)
         for shape, dtype, offset, slope, inter in product(self.shapes,
