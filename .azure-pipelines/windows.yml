@@ -29,8 +29,7 @@ jobs:
       displayName: 'Update build tools'
     - script: |
         python -m pip install --find-links %EXTRA_WHEELS% %DEPENDS%
-        python -m pip install nose mock coverage codecov
-        python -m pip install pytest
+        python -m pip install nose mock coverage codecov pytest
       displayName: 'Install dependencies'
     - script: |
         python -m pip install .
@@ -41,7 +40,6 @@ jobs:
         cd for_testing
         cp ../.coveragerc .
         nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
-        pytest -v ../nibabel/tests/test_affines.py ../nibabel/tests/test_volumeutils.py
       displayName: 'Nose tests'
     - script: |
         cd for_testing
