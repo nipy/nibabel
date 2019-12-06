@@ -95,7 +95,6 @@ from .spatialimages import (HeaderDataError, HeaderTypeError,
 from .fileholders import copy_file_map
 from .batteryrunners import Report
 from .arrayproxy import ArrayProxy
-from .keywordonly import kw_only_meth
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -933,8 +932,7 @@ class AnalyzeImage(SpatialImage):
         self._header.set_data_dtype(dtype)
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         ''' Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1

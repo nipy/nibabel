@@ -36,7 +36,6 @@ import numpy as np
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
-from .keywordonly import kw_only_meth
 from .spatialimages import (
     SpatialImage,
     SpatialHeader,
@@ -220,8 +219,7 @@ class AFNIArrayProxy(ArrayProxy):
         None
     """
 
-    @kw_only_meth(2)
-    def __init__(self, file_like, header, mmap=True, keep_file_open=None):
+    def __init__(self, file_like, header, *, mmap=True, keep_file_open=None):
         """
         Initialize AFNI array proxy
 
@@ -504,8 +502,7 @@ class AFNIImage(SpatialImage):
     ImageArrayProxy = AFNIArrayProxy
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """
         Creates an AFNIImage instance from `file_map`
 

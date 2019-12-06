@@ -34,7 +34,6 @@ import numpy as np
 from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice, canonical_slicers
-from .keywordonly import kw_only_meth
 from . import openers
 
 
@@ -96,8 +95,7 @@ class ArrayProxy(object):
     order = 'F'
     _header = None
 
-    @kw_only_meth(2)
-    def __init__(self, file_like, spec, mmap=True, keep_file_open=None):
+    def __init__(self, file_like, spec, *, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
 
         .. deprecated:: 2.4.1
