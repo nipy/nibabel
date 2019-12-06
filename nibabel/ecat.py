@@ -708,11 +708,13 @@ class EcatImageArrayProxy(object):
             Scaled image data with type `dtype`.
         '''
         # dtype=None is interpreted as float64
-        data = np.empty(self.shape, dtype=dtype)
+        data = np.empty(self.shape)
         frame_mapping = get_frame_order(self._subheader._mlist)
         for i in sorted(frame_mapping):
             data[:, :, :, i] = self._subheader.data_from_fileobj(
                 frame_mapping[i][0])
+        if dtype is not None:
+            data = data.astype(dtype, copy=False)
         return data
 
     def __getitem__(self, sliceobj):
