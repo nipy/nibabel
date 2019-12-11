@@ -36,7 +36,8 @@ New features
   output type. Scale factors (slope, intercept) are applied, but may be
   cast to narrower types, to control memory usage. This is now the basis
   of ``img.get_fdata()``, which will scale data in single precision if
-  the output type is ``float32``. (pr/844) (CM, reviewed by ...)
+  the output type is ``float32``. (pr/844) (CM, reviewed by Alejandro
+  de la Vega, Ross Markello)
 * GiftiImage method ``agg_data()`` to return usable data arrays (pr/793)
   (Hao-Ting Wang, reviewed by CM)
 * Accept ``os.PathLike`` objects in place of filenames (pr/610) (Cameron
