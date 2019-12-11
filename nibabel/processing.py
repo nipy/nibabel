@@ -23,8 +23,9 @@ from .optpkg import optional_package
 spnd, _, _ = optional_package('scipy.ndimage')
 
 from .affines import AffineError, to_matvec, from_matvec, append_diag
+from .funcs import as_closest_canonical
 from .spaces import vox2out_vox
-from .nifti1 import Nifti1Image
+from .nifti1 import Nifti1Header, Nifti1Image
 from .imageclasses import spatial_axes_first
 
 SIGMA2FWHM = np.sqrt(8 * np.log(2))
@@ -311,3 +312,31 @@ def smooth_image(img,
                                    mode=mode,
                                    cval=cval)
     return out_class(sm_data, img.affine, img.header)
+
+
+def _transform_range(x, new_min, new_max):
+    x = np.asarray(x)
+    x_min, x_max = x.min(), x.max()
+    return (((x - x_min) * (new_max - new_min)) / (x_max - x_min)) + new_min
+
+
+def conform(from_img, out_shape=(256, 256, 256),
+            voxel_size=(1.0, 1.0, 1.0), order=3, cval=0.0, out_class=Nifti1Image):
+    # Create fake image of the image we want to resample to.
+    hdr = Nifti1Header()
+    hdr.set_data_shape(out_shape)
+    hdr.set_zooms(voxel_size)
+    dst_aff = hdr.get_best_affine()
+    to_img = Nifti1Image(np.empty(out_shape), affine=dst_aff, header=hdr)
+    # Resample input image.
+    out_img = resample_from_to(
+        from_img=from_img, to_vox_map=to_img, order=order, mode="constant", cval=cval, out_class=out_class)
+    # Cast to uint8.
+    data = out_img.get_fdata()
+    data = _transform_range(data, new_min=0.0, new_max=255.0)
+    data = data.round(out=data).astype(np.uint8)
+    out_img._dataobj = data
+    out_img.set_data_dtype(data.dtype)
+    # Reorient to RAS.
+    out_img = as_closest_canonical(out_img)
+    return out_img
