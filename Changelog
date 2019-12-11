@@ -47,6 +47,9 @@ New features
 
 Enhancements
 ------------
+* Improve testing of data scaling in ArrayProxy API (pr/847) (CM, reviewed
+  by Alejandro de la Vega)
+* Document ``SpatialImage.slicer`` interface (pr/846) (CM)
 * ``get_fdata(dtype=np.float32)`` will attempt to avoid casting data to
   ``np.float64`` when scaling parameters would otherwise promote the data
   type unnecessarily. (pr/833) (CM, reviewed by Ross Markello)
@@ -68,6 +71,7 @@ Bug fixes
 
 Maintenance
 -----------
+* Remove replicated metadata for packaged data from MANIFEST.in (pr/845) (CM)
 * Support Python >=3.5.1, including Python 3.8.0 (pr/787) (CM)
 * Manage versioning with slightly customized Versioneer (pr/786) (CM)
 * Reference Nipy Community Code and Nibabel Developer Guidelines in
