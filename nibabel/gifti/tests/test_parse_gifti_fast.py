@@ -6,7 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin, dirname
 import sys
@@ -267,6 +266,13 @@ def test_readwritedata():
         assert_equal(img.numDA, img2.numDA)
         assert_array_almost_equal(img.darrays[0].data,
                                   img2.darrays[0].data)
+
+def test_modify_darray():
+    for fname in (DATA_FILE1, DATA_FILE2, DATA_FILE5):
+        img = load(fname)
+        darray = img.darrays[0]
+        darray.data[:] = 0
+        assert_true(np.array_equiv(darray.data, 0))
 
 
 def test_write_newmetadata():

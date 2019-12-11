@@ -11,23 +11,17 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
-
 import numpy as np
+import base64
 
 from .. import xmlutils as xml
-from ..filebasedimages import FileBasedImage
+from ..filebasedimages import SerializableImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
 from ..deprecated import deprecate_with_version
-
-# {en,de}codestring in deprecated in Python3, but
-# {en,de}codebytes not available in Python2.
-# Therefore set the proper functions depending on the Python version.
-import base64
 
 
 class GiftiMetaData(xml.XmlSerializable):
@@ -270,16 +264,21 @@ def data_tag(dataarray, encoding, datatype, ordering):
     return DataTag(dataarray, encoding, datatype, ordering).to_xml()
 
 
-def _data_tag_element(dataarray, encoding, datatype, ordering):
+def _data_tag_element(dataarray, encoding, dtype, ordering):
     """ Creates data tag with given `encoding`, returns as XML element
     """
     import zlib
-    ord = array_index_order_codes.npcode[ordering]
+    order = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
     if enclabel == 'ASCII':
-        da = _arr2txt(dataarray, datatype)
+        # XXX Accommodating data_tag API
+        # On removal (nibabel 4.0) drop str case
+        da = _arr2txt(dataarray, dtype if isinstance(dtype, str) else KIND2FMT[dtype.kind])
     elif enclabel in ('B64BIN', 'B64GZ'):
-        out = dataarray.tostring(ord)
+        # XXX Accommodating data_tag API - don't try to fix dtype
+        if isinstance(dtype, str):
+            dtype = dataarray.dtype
+        out = np.asanyarray(dataarray, dtype).tostring(order)
         if enclabel == 'B64GZ':
             out = zlib.compress(out)
         da = base64.b64encode(out).decode()
@@ -462,11 +461,10 @@ class GiftiDataArray(xml.XmlSerializable):
         if self.coordsys is not None:
             data_array.append(self.coordsys._to_xml_element())
         # write data array depending on the encoding
-        dt_kind = data_type_codes.dtype[self.datatype].kind
         data_array.append(
             _data_tag_element(self.data,
                               gifti_encoding_codes.specs[self.encoding],
-                              KIND2FMT[dt_kind],
+                              data_type_codes.dtype[self.datatype],
                               self.ind_ord))
 
         return data_array
@@ -534,7 +532,7 @@ class GiftiDataArray(xml.XmlSerializable):
         return self.meta.metadata
 
 
-class GiftiImage(xml.XmlSerializable, FileBasedImage):
+class GiftiImage(xml.XmlSerializable, SerializableImage):
     """ GIFTI image object
 
     The Gifti spec suggests using the following suffixes to your
@@ -680,6 +678,141 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         it = intent_codes.code[intent]
         return [x for x in self.darrays if x.intent == it]
 
+    def agg_data(self, intent_code=None):
+        """
+        Aggregate GIFTI data arrays into an ndarray or tuple of ndarray
+
+        In the general case, the numpy data array is extracted from each ``GiftiDataArray``
+        object and returned in a ``tuple``, in the order they are found in the GIFTI image.
+
+        If all ``GiftiDataArray`` s have ``intent`` of 2001 (``NIFTI_INTENT_TIME_SERIES``),
+        then the data arrays are concatenated as columns, producing a vertex-by-time array.
+        If an ``intent_code`` is passed, data arrays are filtered by the selected intents,
+        before being aggregated.
+        This may be useful for images containing several intents, or ensuring an expected
+        data type in an image of uncertain provenance.
+        If ``intent_code`` is a ``tuple``, then a ``tuple`` will be returned with the result of
+        ``agg_data`` for each element, in order.
+        This may be useful for ensuring that expected data arrives in a consistent order.
+
+        Parameters
+        ----------
+        intent_code : None, string, integer or tuple of strings or integers, optional
+            code(s) specifying nifti intent
+
+        Returns
+        -------
+        tuple of ndarrays or ndarray
+            If the input is a tuple, the returned tuple will match the order.
+
+        Examples
+        --------
+
+        Consider a surface GIFTI file:
+
+        >>> import nibabel as nib
+        >>> from nibabel.testing import test_data
+        >>> surf_img = nib.load(test_data('gifti', 'ascii.gii'))
+
+        The coordinate data, which is indicated by the ``NIFTI_INTENT_POINTSET``
+        intent code, may be retrieved using any of the following equivalent
+        calls:
+
+        >>> coords = surf_img.agg_data('NIFTI_INTENT_POINTSET')
+        >>> coords_2 = surf_img.agg_data('pointset')
+        >>> coords_3 = surf_img.agg_data(1008)  # Numeric code for pointset
+        >>> print(np.array2string(coords, precision=3))
+        [[-16.072 -66.188  21.267]
+         [-16.706 -66.054  21.233]
+         [-17.614 -65.402  21.071]]
+        >>> np.array_equal(coords, coords_2)
+        True
+        >>> np.array_equal(coords, coords_3)
+        True
+
+        Similarly, the triangle mesh can be retrieved using various intent
+        specifiers:
+
+        >>> triangles = surf_img.agg_data('NIFTI_INTENT_TRIANGLE')
+        >>> triangles_2 = surf_img.agg_data('triangle')
+        >>> triangles_3 = surf_img.agg_data(1009)  # Numeric code for pointset
+        >>> print(np.array2string(triangles))
+        [0 1 2]
+        >>> np.array_equal(triangles, triangles_2)
+        True
+        >>> np.array_equal(triangles, triangles_3)
+        True
+
+        All arrays can be retrieved as a ``tuple`` by omitting the intent
+        code:
+
+        >>> coords_4, triangles_4 = surf_img.agg_data()
+        >>> np.array_equal(coords, coords_4)
+        True
+        >>> np.array_equal(triangles, triangles_4)
+        True
+
+        Finally, a tuple of intent codes may be passed in order to select
+        the arrays in a specific order:
+
+        >>> triangles_5, coords_5 = surf_img.agg_data(('triangle', 'pointset'))
+        >>> np.array_equal(triangles, triangles_5)
+        True
+        >>> np.array_equal(coords, coords_5)
+        True
+
+        The following image is a GIFTI file with ten (10) data arrays of the same
+        size, and with intent code 2001 (``NIFTI_INTENT_TIME_SERIES``):
+
+        >>> func_img = nib.load(test_data('gifti', 'task.func.gii'))
+
+        When aggregating time series data, these arrays are concatenated into
+        a single, vertex-by-timestep array:
+
+        >>> series = func_img.agg_data()
+        >>> series.shape
+        (642, 10)
+
+        In the case of a GIFTI file with unknown data arrays, it may be preferable
+        to specify the intent code, so that a time series array is always returned:
+
+        >>> series_2 = func_img.agg_data('NIFTI_INTENT_TIME_SERIES')
+        >>> series_3 = func_img.agg_data('time series')
+        >>> series_4 = func_img.agg_data(2001)
+        >>> np.array_equal(series, series_2)
+        True
+        >>> np.array_equal(series, series_3)
+        True
+        >>> np.array_equal(series, series_4)
+        True
+
+        Requesting a data array from a GIFTI file with no matching intent codes
+        will result in an empty tuple:
+
+        >>> surf_img.agg_data('time series')
+        ()
+        >>> func_img.agg_data('triangle')
+        ()
+        """
+
+        # Allow multiple intents to specify the order
+        # e.g., agg_data(('pointset', 'triangle')) ensures consistent order
+
+        if isinstance(intent_code, tuple):
+            return tuple(self.agg_data(intent_code=code) for code in intent_code)
+
+        darrays = self.darrays if intent_code is None else self.get_arrays_from_intent(intent_code)
+        all_data = tuple(da.data for da in darrays)
+        all_intent = {intent_codes.niistring[da.intent] for da in darrays}
+
+        if all_intent == {'NIFTI_INTENT_TIME_SERIES'}:  # stack when the gifti is a timeseries
+            return np.column_stack(all_data)
+
+        if len(all_data) == 1:
+            all_data = all_data[0]
+
+        return all_data
+
     @deprecate_with_version(
         'getArraysFromIntent method deprecated. '
         "Use get_arrays_from_intent instead.",
@@ -723,6 +856,9 @@ class GiftiImage(xml.XmlSerializable, FileBasedImage):
         return b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """ + xml.XmlSerializable.to_xml(self, enc)
+
+    # Avoid the indirection of going through to_file_map
+    to_bytes = to_xml
 
     def to_file_map(self, file_map=None):
         """ Save the current image to the specified file_map

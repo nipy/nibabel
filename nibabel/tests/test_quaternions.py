@@ -11,14 +11,7 @@
 import numpy as np
 from numpy import pi
 
-# Recent (1.2) versions of numpy have this decorator
-try:
-    from numpy.testing.decorators import slow
-except ImportError:
-    def slow(t):
-        t.slow = True
-        return t
-
+from ..testing import slow
 from nose.tools import assert_raises, assert_true, assert_false, \
     assert_equal
 
@@ -185,3 +178,6 @@ def test_angle_axis():
         yield nq.nearly_equivalent, q, q2
         aa_mat = nq.angle_axis2mat(theta, vec)
         yield assert_array_almost_equal, aa_mat, M
+        unit_vec = vec / np.sqrt(vec.dot(vec))
+        aa_mat2 = nq.angle_axis2mat(theta, unit_vec, is_normalized=True)
+        yield assert_array_almost_equal, aa_mat2, M

@@ -1,8 +1,8 @@
 import copy
 import numbers
 import numpy as np
-import collections
 from warnings import warn
+from collections.abc import MutableMapping
 
 from nibabel.affines import apply_affine
 
@@ -19,8 +19,8 @@ def is_lazy_dict(obj):
     return is_data_dict(obj) and callable(list(obj.store.values())[0])
 
 
-class SliceableDataDict(collections.MutableMapping):
-    """ Dictionary for which key access can do slicing on the values.
+class SliceableDataDict(MutableMapping):
+    r""" Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
@@ -73,7 +73,7 @@ class SliceableDataDict(collections.MutableMapping):
 
 
 class PerArrayDict(SliceableDataDict):
-    """ Dictionary for which key access can do slicing on the values.
+    r""" Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
@@ -181,7 +181,7 @@ class PerArraySequenceDict(PerArrayDict):
         self[key].extend(value)
 
 
-class LazyDict(collections.MutableMapping):
+class LazyDict(MutableMapping):
     """ Dictionary of generator functions.
 
     This container behaves like a dictionary but it makes sure its elements are
@@ -432,11 +432,8 @@ class Tractogram(object):
         if np.all(affine == np.eye(4)):
             return self  # No transformation.
 
-        BUFFER_SIZE = 10000000  # About 128 Mb since pts shape is 3.
-        for start in range(0, len(self.streamlines.data), BUFFER_SIZE):
-            end = start + BUFFER_SIZE
-            pts = self.streamlines._data[start:end]
-            self.streamlines.data[start:end] = apply_affine(affine, pts)
+        for i in range(len(self.streamlines)):
+            self.streamlines[i] = apply_affine(affine, self.streamlines[i])
 
         if self.affine_to_rasmm is not None:
             # Update the affine that brings back the streamlines to RASmm.

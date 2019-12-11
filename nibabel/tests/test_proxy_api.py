@@ -27,7 +27,6 @@ And:
 
 These last are to allow the proxy to be re-used with different images.
 """
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 import warnings
@@ -36,7 +35,6 @@ from io import BytesIO
 
 import numpy as np
 
-from six import string_types
 from ..volumeutils import apply_read_scaling
 from ..analyze import AnalyzeHeader
 from ..spm99analyze import Spm99AnalyzeHeader
@@ -46,20 +44,20 @@ from ..freesurfer.mghformat import MGHHeader
 from .. import minc1
 from ..externals.netcdf import netcdf_file
 from .. import minc2
-from ..optpkg import optional_package
-h5py, have_h5py, _ = optional_package('h5py')
+from .._h5py_compat import h5py, have_h5py
 from .. import ecat
 from .. import parrec
+from ..casting import have_binary128
 
 from ..arrayproxy import ArrayProxy, is_proxy
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+                        assert_equal, assert_not_equal, assert_greater_equal)
 
-from numpy.testing import (assert_almost_equal, assert_array_equal)
+from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
 
-from ..testing import data_path as DATA_PATH, assert_dt_equal
+from ..testing import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -108,6 +106,14 @@ class _TestProxyAPI(ValidateAPI):
         # Read only
         assert_raises(AttributeError, setattr, prox, 'shape', params['shape'])
 
+    def validate_ndim(self, pmaker, params):
+        # Check shape
+        prox, fio, hdr = pmaker()
+        assert_equal(prox.ndim, len(params['shape']))
+        # Read only
+        assert_raises(AttributeError, setattr, prox,
+                      'ndim', len(params['shape']))
+
     def validate_is_proxy(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
@@ -125,6 +131,39 @@ class _TestProxyAPI(ValidateAPI):
         assert_dt_equal(out.dtype, params['dtype_out'])
         # Shape matches expected shape
         assert_equal(out.shape, params['shape'])
+
+    def validate_array_interface_with_dtype(self, pmaker, params):
+        # Check proxy returns expected array from asarray
+        prox, fio, hdr = pmaker()
+        orig = np.array(prox, dtype=None)
+        assert_array_equal(orig, params['arr_out'])
+        assert_dt_equal(orig.dtype, params['dtype_out'])
+
+        context = None
+        if np.issubdtype(orig.dtype, np.complexfloating):
+            context = clear_and_catch_warnings()
+            context.__enter__()
+            warnings.simplefilter('ignore', np.ComplexWarning)
+
+        for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
+            # Directly coerce with a dtype
+            direct = dtype(prox)
+            # Half-precision is imprecise. Obviously. It's a bad idea, but don't break
+            # the test over it.
+            rtol = 1e-03 if dtype == np.float16 else 1e-05
+            assert_allclose(direct, orig.astype(dtype), rtol=rtol, atol=1e-08)
+            assert_dt_equal(direct.dtype, np.dtype(dtype))
+            assert_equal(direct.shape, params['shape'])
+            # All three methods should produce equivalent results
+            for arrmethod in (np.array, np.asarray, np.asanyarray):
+                out = arrmethod(prox, dtype=dtype)
+                assert_array_equal(out, direct)
+                assert_dt_equal(out.dtype, np.dtype(dtype))
+                # Shape matches expected shape
+                assert_equal(out.shape, params['shape'])
+
+        if context is not None:
+            context.__exit__()
 
     def validate_header_isolated(self, pmaker, params):
         # Confirm altering input header has no effect
@@ -145,7 +184,7 @@ class _TestProxyAPI(ValidateAPI):
     def validate_fileobj_isolated(self, pmaker, params):
         # Check file position of read independent of file-like object
         prox, fio, hdr = pmaker()
-        if isinstance(fio, string_types):
+        if isinstance(fio, str):
             return
         assert_array_equal(prox, params['arr_out'])
         fio.read()  # move to end of file
@@ -171,6 +210,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
     shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
     has_slope = False
     has_inter = False
+    data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64)
     array_order = 'F'
     # Cannot set offset for Freesurfer
     settable_offset = True
@@ -195,11 +235,12 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (self.header_class().get_data_offset(),)
         else:
             offsets = (0, 16)
-        slopes = (1., 2.) if self.has_slope else (1.,)
-        inters = (0., 10.) if self.has_inter else (0.,)
-        dtypes = (np.uint8, np.int16, np.float32)
+        # For non-integral parameters, cast to float32 value can be losslessly cast
+        # later, enabling exact checks, then back to float for consistency
+        slopes = (1., 2., float(np.float32(3.1416))) if self.has_slope else (1.,)
+        inters = (0., 10., float(np.float32(2.7183))) if self.has_inter else (0.,)
         for shape, dtype, offset, slope, inter in product(self.shapes,
-                                                          dtypes,
+                                                          self.data_dtypes,
                                                           offsets,
                                                           slopes,
                                                           inters):
@@ -241,7 +282,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 dtype=dtype,
                 dtype_out=dtype_out,
                 arr=arr.copy(),
-                arr_out=arr * slope + inter,
+                arr_out=arr.astype(dtype_out) * slope + inter,
                 shape=shape,
                 offset=offset,
                 slope=slope,
@@ -304,6 +345,10 @@ class TestSpm2AnalyzeProxyAPI(TestSpm99AnalyzeProxyAPI):
 class TestNifti1ProxyAPI(TestSpm99AnalyzeProxyAPI):
     header_class = Nifti1Header
     has_inter = True
+    data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64,
+                   np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
+    if have_binary128():
+        data_dtypes.extend(np.float128, np.complex256)
 
 
 class TestMGHAPI(TestAnalyzeProxyAPI):
@@ -313,6 +358,7 @@ class TestMGHAPI(TestAnalyzeProxyAPI):
     has_inter = False
     settable_offset = False
     data_endian = '>'
+    data_dtypes = (np.uint8, np.int16, np.int32, np.float32)
 
 
 class TestMinc1API(_TestProxyAPI):
@@ -372,7 +418,7 @@ class TestEcatAPI(_TestProxyAPI):
     def obj_params(self):
         eg_path = pjoin(DATA_PATH, self.eg_fname)
         img = ecat.load(eg_path)
-        arr_out = img.get_data()
+        arr_out = img.get_fdata()
 
         def eg_func():
             img = ecat.load(eg_path)
@@ -393,7 +439,7 @@ class TestPARRECAPI(_TestProxyAPI):
 
     def _func_dict(self, rec_name):
         img = parrec.load(rec_name)
-        arr_out = img.get_data()
+        arr_out = img.get_fdata()
 
         def eg_func():
             img = parrec.load(rec_name)

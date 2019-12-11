@@ -121,7 +121,6 @@ The volume sorting described above can be enabled in the parrec2nii command
 utility via the option "--strict-sort".  The dimension info can be exported
 to a CSV file by adding the option "--volume-info".
 """
-from __future__ import print_function, division
 
 import warnings
 import numpy as np
@@ -623,6 +622,10 @@ class PARRECArrayProxy(object):
         return self._shape
 
     @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
     def dtype(self):
         return self._dtype
 
@@ -630,38 +633,73 @@ class PARRECArrayProxy(object):
     def is_proxy(self):
         return True
 
-    def get_unscaled(self):
-        with ImageOpener(self.file_like) as fileobj:
-            return _data_from_rec(fileobj, self._rec_shape, self._dtype,
-                                  self._slice_indices, self._shape,
-                                  mmap=self._mmap)
-
-    def __array__(self):
-        with ImageOpener(self.file_like) as fileobj:
-            return _data_from_rec(fileobj,
-                                  self._rec_shape,
-                                  self._dtype,
-                                  self._slice_indices,
-                                  self._shape,
-                                  scalings=self._slice_scaling,
-                                  mmap=self._mmap)
-
-    def __getitem__(self, slicer):
+    def _get_unscaled(self, slicer):
         indices = self._slice_indices
-        if indices[0] != 0 or np.any(np.diff(indices) != 1):
+        if slicer == ():
+            with ImageOpener(self.file_like) as fileobj:
+                rec_data = array_from_file(self._rec_shape, self._dtype, fileobj, mmap=self._mmap)
+                rec_data = rec_data[..., indices]
+                return rec_data.reshape(self._shape, order='F')
+        elif indices[0] != 0 or np.any(np.diff(indices) != 1):
             # We can't load direct from REC file, use inefficient slicing
-            return np.asanyarray(self)[slicer]
+            return self._get_unscaled(())[slicer]
+
         # Slices all sequential from zero, can use fileslice
         # This gives more efficient volume by volume loading, for example
         with ImageOpener(self.file_like) as fileobj:
-            raw_data = fileslice(fileobj, slicer, self._shape, self._dtype, 0,
-                                 'F')
+            return fileslice(fileobj, slicer, self._shape, self._dtype, 0, 'F')
+
+    def _get_scaled(self, dtype, slicer):
+        raw_data = self._get_unscaled(slicer)
+        if self._slice_scaling is None:
+            if dtype is None:
+                return raw_data
+            final_type = np.promote_types(raw_data.dtype, dtype)
+            return raw_data.astype(final_type, copy=False)
+
         # Broadcast scaling to shape of original data
-        slopes, inters = self._slice_scaling
         fake_data = strided_scalar(self._shape)
-        _, slopes, inters = np.broadcast_arrays(fake_data, slopes, inters)
+        _, slopes, inters = np.broadcast_arrays(fake_data, *self._slice_scaling)
+
+        final_type = np.result_type(raw_data, slopes, inters)
+        if dtype is not None:
+            final_type = np.promote_types(final_type, dtype)
+
         # Slice scaling to give output shape
-        return raw_data * slopes[slicer] + inters[slicer]
+        return raw_data * slopes[slicer].astype(final_type) + inters[slicer].astype(final_type)
+
+
+    def get_unscaled(self):
+        """ Read data from file
+
+        This is an optional part of the proxy API
+        """
+        return self._get_unscaled(slicer=())
+
+    def __array__(self, dtype=None):
+        """ Read data from file and apply scaling, casting to ``dtype``
+
+        If ``dtype`` is unspecified, the dtype of the returned array is the
+        narrowest dtype that can represent the data without overflow.
+        Generally, it is the wider of the dtypes of the slopes or intercepts.
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier, optional
+            A numpy dtype specifier specifying the type of the returned array.
+
+        Returns
+        -------
+        array
+            Scaled image data with type `dtype`.
+        """
+        arr = self._get_scaled(dtype=dtype, slicer=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
+
+    def __getitem__(self, slicer):
+        return self._get_scaled(dtype=None, slicer=slicer)
 
 
 class PARRECHeader(SpatialHeader):
@@ -780,7 +818,13 @@ class PARRECHeader(SpatialHeader):
         if self.general_info['diffusion'] == 0:
             return None, None
         reorder = self.get_sorted_slice_indices()
-        n_slices, n_vols = self.get_data_shape()[-2:]
+        if len(self.get_data_shape()) == 3:
+            # Any original diffusion scans will have >=2 volumes. However, a
+            # single dynamic is possible for a post-processed diffusion volume
+            # such as an ADC map. The b-values are unavailable in this case.
+            return None, None
+        else:
+            n_slices, n_vols = self.get_data_shape()[-2:]
         bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
             (n_slices, n_vols), order='F')
         # All bvals within volume should be the same

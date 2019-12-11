@@ -220,21 +220,39 @@ False
 Getting the image data the easy way
 ===================================
 
-For either type of image (array or proxy) you can always get the data with
-the :meth:`get_data() <nibabel.spatialimages.SpatialImage.get_data>` method.
+For either type of image (array or proxy) you can always get the data with the
+:meth:`get_fdata() <nibabel.spatialimages.SpatialImage.get_fdata>` method.
 
-For the array image, ``get_data()`` just returns the data array:
+For the array image, ``get_fdata()`` just returns the data array, if it's already the required floating point type (default 64-bit float).  If it isn't that type, ``get_fdata()`` casts it to one:
 
->>> image_data = array_img.get_data()
+>>> image_data = array_img.get_fdata()
 >>> image_data.shape
 (2, 3, 4)
->>> image_data is array_data
+>>> image_data.dtype == np.dtype(np.float64)
 True
 
-For the proxy image, the ``get_data()`` method fetches the array data from
+The cast to floating point means the array is not the one attached to the image:
+
+>>> image_data is array_img.dataobj
+False
+
+Here's an image backed by a floating point array:
+
+>>> farray_img = nib.Nifti1Image(image_data.astype(np.float64), affine)
+>>> farray_data = farray_img.get_fdata()
+>>> farray_data.dtype == np.dtype(np.float64)
+True
+
+There was no cast, so the array returned is exactly the array attached to the
+image:
+
+>>> farray_data is farray_img.dataobj
+True
+
+For the proxy image, the ``get_fdata()`` method fetches the array data from
 disk using the proxy, and returns the array.
 
->>> image_data = img.get_data()
+>>> image_data = img.get_fdata()
 >>> image_data.shape
 (128, 96, 24, 2)
 
@@ -249,12 +267,12 @@ Proxies and caching
 ===================
 
 You may not want to keep loading the image data off disk every time
-you call ``get_data()`` on a proxy image. By default, when you call
-``get_data()`` the first time on a proxy image, the image object keeps a
-cached copy of the loaded array.  The next time you call ``img.get_data()``,
+you call ``get_fdata()`` on a proxy image. By default, when you call
+``get_fdata()`` the first time on a proxy image, the image object keeps a
+cached copy of the loaded array.  The next time you call ``img.get_fdata()``,
 the image returns the array from cache rather than loading it from disk again.
 
->>> data_again = img.get_data()
+>>> data_again = img.get_fdata()
 
 The returned data is the same (cached) copy we returned before:
 
@@ -263,6 +281,80 @@ True
 
 See :doc:`images_and_memory` for more details on managing image memory and
 controlling the image cache.
+
+.. _image-slicing:
+
+Image slicing
+=============
+
+At times it is useful to manipulate an image's shape while keeping it in the
+same coordinate system.
+The ``slicer`` attribute provides an array-slicing interface to produce new
+images with an appropriately adjusted header, such that the data at a given
+RAS+ location is unchanged.
+
+>>> cropped_img = img.slicer[32:-32, ...]
+>>> cropped_img.shape
+(64, 96, 24, 2)
+
+The data is identical to cropping the data block directly:
+
+>>> np.array_equal(cropped_img.get_fdata(), img.get_fdata()[32:-32, ...])
+True
+
+However, unused data did not need to be loaded into memory or scaled.
+Additionally, the image affine was adjusted so that the X-translation is
+32 voxels (64mm) less:
+
+>>> cropped_img.affine
+array([[ -2.  ,   0.  ,   0.  ,  53.86],
+       [ -0.  ,   1.97,  -0.36, -35.72],
+       [  0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
+
+>>> img.affine - cropped_img.affine
+array([[ 0.,  0.,  0., 64.],
+       [ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.]])
+
+Another use for the slicer object is to choose specific volumes from a
+time series:
+
+>>> vol0 = img.slicer[..., 0]
+>>> vol0.shape
+(128, 96, 24)
+
+Or a selection of volumes:
+
+>>> img.slicer[..., :1].shape
+(128, 96, 24, 1)
+>>> img.slicer[..., :2].shape
+(128, 96, 24, 2)
+
+It is also possible to use an integer step when slicing, downsampling
+the image without filtering.
+Note that this *will induce artifacts* in the frequency spectrum
+(`aliasing <wikipedia aliasing>`_) along any axis that is down-sampled.
+
+>>> downsampled = vol0.slicer[::2, ::2, ::2]
+>>> downsampled.header.get_zooms()
+(4.0, 4.0, 4.399998)
+
+Finally, an image can be flipped along an axis, maintaining an appropriate
+affine matrix:
+
+>>> nib.orientations.aff2axcodes(img.affine)
+('L', 'A', 'S')
+>>> ras = img.slicer[::-1]
+>>> nib.orientations.aff2axcodes(ras.affine)
+('R', 'A', 'S')
+>>> ras.affine
+array([[  2.  ,   0.  ,   0.  , 117.86],
+       [  0.  ,   1.97,  -0.36, -35.72],
+       [ -0.  ,   0.32,   2.17,  -7.25],
+       [  0.  ,   0.  ,   0.  ,   1.  ]])
+
 
 ******************
 Loading and saving

@@ -8,7 +8,7 @@ from os.path import join as pjoin
 import nibabel as nib
 from io import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
-from nibabel.py3k import asbytes
+from numpy.compat.py3k import asbytes
 
 from nibabel.testing import data_path
 from nibabel.testing import clear_and_catch_warnings
@@ -266,6 +266,19 @@ class TestLoadSave(unittest.TestCase):
 
                     tfile = nib.streamlines.load(filename, lazy_load=False)
                     assert_tractogram_equal(tfile.tractogram, tractogram)
+
+    def test_save_sliced_tractogram(self):
+        tractogram = Tractogram(DATA['streamlines'],
+                                affine_to_rasmm=np.eye(4))
+        original_tractogram = tractogram.copy()
+        for ext, cls in FORMATS.items():
+            with InTemporaryDirectory():
+                filename = 'streamlines' + ext
+                nib.streamlines.save(tractogram[::2], filename)
+                tfile = nib.streamlines.load(filename, lazy_load=False)
+                assert_tractogram_equal(tfile.tractogram, tractogram[::2])
+                # Make sure original tractogram hasn't changed.
+                assert_tractogram_equal(tractogram, original_tractogram)
 
     def test_load_unknown_format(self):
         assert_raises(ValueError, nib.streamlines.load, "")

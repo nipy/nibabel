@@ -27,30 +27,37 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
 from threading import RLock
+import warnings
 
 import numpy as np
 
 from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
-from .fileslice import fileslice
+from .fileslice import fileslice, canonical_slicers
 from .keywordonly import kw_only_meth
-from .openers import ImageOpener, HAVE_INDEXED_GZIP
+from . import openers
 
 
 """This flag controls whether a new file handle is created every time an image
 is accessed through an ``ArrayProxy``, or a single file handle is created and
 used for the lifetime of the ``ArrayProxy``. It should be set to one of
-``True``, ``False``, or ``'auto'``.
+``True`` or ``False``.
 
-If ``True``, a single file handle is created and used. If ``False``, a new
-file handle is created every time the image is accessed. If ``'auto'``, and
-the optional ``indexed_gzip`` dependency is present, a single file handle is
-created and persisted. If ``indexed_gzip`` is not available, behaviour is the
-same as if ``keep_file_open is False``.
+Management of file handles will be performed either by ``ArrayProxy`` objects,
+or by the ``indexed_gzip`` package if it is used.
+
+If this flag is set to ``True``, a single file handle is created and used. If
+``False``, a new file handle is created every time the image is accessed.
+If this flag is set to ``'auto'``, a ``DeprecationWarning`` will be raised, which
+will become a ``ValueError`` in nibabel 3.0.0.
 
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
+
+.. warning:: Setting this flag to a value of ``'auto'`` became deprecated
+             behaviour in version 2.4.1. Support for ``'auto'`` will be removed
+             in version 3.0.0.
 """
 KEEP_FILE_OPEN_DEFAULT = False
 
@@ -93,6 +100,10 @@ class ArrayProxy(object):
     def __init__(self, file_like, spec, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
 
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
+
         Parameters
         ----------
         file_like : object
@@ -120,18 +131,15 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. If ``file_like`` is an open file
-            handle, this setting has no effect. The default value (``None``)
-            will result in the value of ``KEEP_FILE_OPEN_DEFAULT`` being used.
+            a new file handle is created every time the image is accessed.
+            If ``file_like`` is an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
+            ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -156,8 +164,10 @@ class ArrayProxy(object):
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
-        self._keep_file_open = self._should_keep_file_open(file_like,
-                                                           keep_file_open)
+        # Flags to keep track of whether a single ImageOpener is created, and
+        # whether a single underlying file handle is created.
+        self._keep_file_open, self._persist_opener = \
+            self._should_keep_file_open(file_like, keep_file_open)
         self._lock = RLock()
 
     def __del__(self):
@@ -180,16 +190,56 @@ class ArrayProxy(object):
         self._lock = RLock()
 
     def _should_keep_file_open(self, file_like, keep_file_open):
-        """Called by ``__init__``, and used to determine the final value of
-        ``keep_file_open``.
+        """Called by ``__init__``.
 
-        The return value is derived from these rules:
+        This method determines how to manage ``ImageOpener`` instances,
+        and the underlying file handles - the behaviour depends on:
 
-          - If ``file_like`` is a file(-like) object, ``False`` is returned.
-            Otherwise, ``file_like`` is assumed to be a file name.
-          - if ``file_like`` ends with ``'gz'``, and the ``indexed_gzip``
-            library is available, ``True`` is returned.
-          - Otherwise, ``False`` is returned.
+         - whether ``file_like`` is an an open file handle, or a path to a
+           ``'.gz'`` file, or a path to a non-gzip file.
+         - whether ``indexed_gzip`` is present (see
+           :attr:`.openers.HAVE_INDEXED_GZIP`).
+
+        An ``ArrayProxy`` object uses two internal flags to manage
+        ``ImageOpener`` instances and underlying file handles.
+
+          - The ``_persist_opener`` flag controls whether a single
+            ``ImageOpener`` should be created and used for the lifetime of
+            this ``ArrayProxy``, or whether separate ``ImageOpener`` instances
+            should be created on each file access.
+
+          - The ``_keep_file_open`` flag controls qwhether the underlying file
+            handle should be kept open for the lifetime of this
+            ``ArrayProxy``, or whether the file handle should be (re-)opened
+            and closed on each file access.
+
+        The internal ``_keep_file_open`` flag is only relevant if
+        ``file_like`` is a ``'.gz'`` file, and the ``indexed_gzip`` library is
+        present.
+
+        This method returns the values to be used for the internal
+        ``_persist_opener`` and ``_keep_file_open`` flags; these values are
+        derived according to the following rules:
+
+        1. If ``file_like`` is a file(-like) object, both flags are set to
+        ``False``.
+
+        2. If ``keep_file_open`` (as passed to :meth:``__init__``) is
+           ``True``, both internal flags are set to ``True``.
+
+        3. If ``keep_file_open`` is ``False``, but ``file_like`` is not a path
+           to a ``.gz`` file or ``indexed_gzip`` is not present, both flags
+           are set to ``False``.
+
+        4. If ``keep_file_open`` is ``False``, ``file_like`` is a path to a
+           ``.gz`` file, and ``indexed_gzip`` is present, ``_persist_opener``
+           is set to ``True``, and ``_keep_file_open`` is set to ``False``.
+           In this case, file handle management is delegated to the
+           ``indexed_gzip`` library.
+
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will be removed in nibabel 3.0.
 
         Parameters
         ----------
@@ -202,24 +252,33 @@ class ArrayProxy(object):
         Returns
         -------
 
-        The value of ``keep_file_open`` that will be used by this
-        ``ArrayProxy``.
+        A tuple containing:
+          - ``keep_file_open`` flag to control persistence of file handles
+          - ``persist_opener`` flag to control persistence of ``ImageOpener``
+            objects.
         """
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
-        # if keep_file_open is True/False, we do what the user wants us to do
-        if isinstance(keep_file_open, bool):
-            return keep_file_open
-        if keep_file_open != 'auto':
-            raise ValueError('keep_file_open should be one of {None, '
-                             '\'auto\', True, False}')
+            if keep_file_open == 'auto':
+                warnings.warn("Setting nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT to 'auto' is "
+                              "deprecated and will become an error in v3.0.", DeprecationWarning)
+        if keep_file_open == 'auto':
+            warnings.warn("A value of 'auto' for keep_file_open is deprecated and will become an "
+                          "error in v3.0. You probably want False.", DeprecationWarning)
+        elif keep_file_open not in (True, False):
+            raise ValueError('keep_file_open should be one of {None, True, False}')
 
         # file_like is a handle - keep_file_open is irrelevant
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
-            return False
-        # Otherwise, if file_like is gzipped, and we have_indexed_gzip, we set
-        # keep_file_open to True, else we set it to False
-        return HAVE_INDEXED_GZIP and file_like.endswith('gz')
+            return False, False
+        # if the file is a gzip file, and we have_indexed_gzip,
+        have_igzip = openers.HAVE_INDEXED_GZIP and file_like.endswith('.gz')
+        # XXX Remove in v3.0
+        if keep_file_open == 'auto':
+            return have_igzip, have_igzip
+
+        persist_opener = keep_file_open or have_igzip
+        return keep_file_open, persist_opener
 
     @property
     @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
@@ -229,6 +288,10 @@ class ArrayProxy(object):
     @property
     def shape(self):
         return self._shape
+
+    @property
+    def ndim(self):
+        return len(self.shape)
 
     @property
     def dtype(self):
@@ -263,44 +326,86 @@ class ArrayProxy(object):
             A newly created ``ImageOpener`` instance, or an existing one,
             which provides access to the file.
         """
-        if self._keep_file_open:
+        if self._persist_opener:
             if not hasattr(self, '_opener'):
-                self._opener = ImageOpener(self.file_like, keep_open=True)
+                self._opener = openers.ImageOpener(
+                    self.file_like, keep_open=self._keep_file_open)
             yield self._opener
         else:
-            with ImageOpener(self.file_like, keep_open=False) as opener:
+            with openers.ImageOpener(
+                    self.file_like, keep_open=False) as opener:
                 yield opener
 
-    def get_unscaled(self):
-        """ Read of data from file
-
-        This is an optional part of the proxy API
-        """
-        with self._get_fileobj() as fileobj, self._lock:
-            raw_data = array_from_file(self._shape,
+    def _get_unscaled(self, slicer):
+        if canonical_slicers(slicer, self._shape, False) == \
+                canonical_slicers((), self._shape, False):
+            with self._get_fileobj() as fileobj, self._lock:
+                return array_from_file(self._shape,
                                        self._dtype,
                                        fileobj,
                                        offset=self._offset,
                                        order=self.order,
                                        mmap=self._mmap)
-        return raw_data
+        with self._get_fileobj() as fileobj:
+            return fileslice(fileobj,
+                             slicer,
+                             self._shape,
+                             self._dtype,
+                             self._offset,
+                             order=self.order,
+                             lock=self._lock)
 
-    def __array__(self):
-        # Read array and scale
-        raw_data = self.get_unscaled()
-        return apply_read_scaling(raw_data, self._slope, self._inter)
+    def _get_scaled(self, dtype, slicer):
+        # Ensure scale factors have dtypes
+        scl_slope = np.asanyarray(self._slope)
+        scl_inter = np.asanyarray(self._inter)
+        use_dtype = scl_slope.dtype if dtype is None else dtype
+
+        if np.can_cast(scl_slope, use_dtype):
+            scl_slope = scl_slope.astype(use_dtype)
+        if np.can_cast(scl_inter, use_dtype):
+            scl_inter = scl_inter.astype(use_dtype)
+        # Read array and upcast as necessary for big slopes, intercepts
+        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), scl_slope, scl_inter)
+        if dtype is not None:
+            scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
+        return scaled
+
+    def get_unscaled(self):
+        """ Read data from file
+
+        This is an optional part of the proxy API
+        """
+        return self._get_unscaled(slicer=())
+
+    def __array__(self, dtype=None):
+        """ Read data from file and apply scaling, casting to ``dtype``
+
+        If ``dtype`` is unspecified, the dtype of the returned array is the
+        narrowest dtype that can represent the data without overflow.
+        Generally, it is the wider of the dtypes of the slopes or intercepts.
+
+        The types of the scale factors will generally be determined by the
+        parameter size in the image header, and so should be consistent for a
+        given image format, but may vary across formats.
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier, optional
+            A numpy dtype specifier specifying the type of the returned array.
+
+        Returns
+        -------
+        array
+            Scaled image data with type `dtype`.
+        """
+        arr = self._get_scaled(dtype=dtype, slicer=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
 
     def __getitem__(self, slicer):
-        with self._get_fileobj() as fileobj:
-            raw_data = fileslice(fileobj,
-                                 slicer,
-                                 self._shape,
-                                 self._dtype,
-                                 self._offset,
-                                 order=self.order,
-                                 lock=self._lock)
-        # Upcast as necessary for big slopes, intercepts
-        return apply_read_scaling(raw_data, self._slope, self._inter)
+        return self._get_scaled(dtype=None, slicer=slicer)
 
     def reshape(self, shape):
         """ Return an ArrayProxy with a new shape, without modifying data """

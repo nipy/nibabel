@@ -13,11 +13,9 @@ Run this benchmark with:
 
     nosetests -s --match '(?:^|[\\b_\\.//-])[Bb]ench' /path/to/bench_streamlines.py
 """
-from __future__ import division, print_function
 
 import numpy as np
 
-from six.moves import zip
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_equal

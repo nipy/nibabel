@@ -108,7 +108,7 @@ previously created in a separate file. First, we open the file:
 Now we select the first ten volumes and store them to another file, while
 preserving as much header information as possible
 
-  >>> nim2 = nib.Nifti1Image(nim.get_data()[..., :10],
+  >>> nim2 = nib.Nifti1Image(nim.get_fdata()[..., :10],
   ...                       nim.get_affine(),
   ...                       nim.header)
   >>> print nim2.header['dim']
@@ -127,7 +127,7 @@ Linear detrending of timeseries (SciPy module is required for this example)
 ===========================================================================
 
 Let's load another 4d NIfTI file and perform a linear detrending, by fitting
-a straight line to the timeseries of each voxel and substract that fit from
+a straight line to the timeseries of each voxel and subtract that fit from
 the data. Although this might sound complicated at first, thanks to the
 excellent SciPy module it is just a few lines of code. For this example we
 will first create a NIfTI image with just a single voxel and 50 timepoints
@@ -139,15 +139,11 @@ will first create a NIfTI image with just a single voxel and 50 timepoints
   >>> print nim.header['dim']
   [ 4  1  1  1 50  1  1  1]
 
-Depending on the datatype of the input image the detrending process might
-change the datatype from integer to float. As operations that change the
-(binary) size of the NIfTI image are not supported, we need to make a copy
-of the data and later create a new NIfTI image. Remember that the array has the
-time axis as its first dimension (in contrast to the NIfTI file where it is
-the 4th).
+Remember that the array has the time axis as its first dimension (in contrast
+to the NIfTI file where it is the 4th).
 
   >>> from scipy import signal
-  >>> data_detrended = signal.detrend(nim.get_data(), axis=0)
+  >>> data_detrended = signal.detrend(nim.get_fdata(), axis=0)
 
 Finally, create a new NIfTI image using header information from the original
 source image.

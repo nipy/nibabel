@@ -103,7 +103,7 @@ class TestTRK(unittest.TestCase):
     def trk_with_bytes(self, trk_key='simple_trk_fname', endian='<'):
         """ Return example trk file bytes and struct view onto bytes """
         with open(DATA[trk_key], 'rb') as fobj:
-            trk_bytes = fobj.read()
+            trk_bytes = bytearray(fobj.read())
         dt = trk_module.header_2_dtype.newbyteorder(endian)
         trk_struct = np.ndarray((1,), dt, buffer=trk_bytes)
         trk_struct.flags.writeable = True

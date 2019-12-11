@@ -1,11 +1,7 @@
-include AUTHOR COPYING Makefile* MANIFEST.in setup* README.*
+include AUTHOR COPYING Makefile* MANIFEST.in setup* README.* pyproject.toml
 include Changelog TODO requirements.txt
 recursive-include doc *
 recursive-include bin *
 recursive-include tools *
-# put this stuff back into setup.py (package_data) once I'm enlightened
-# enough to accomplish this herculean task
-recursive-include nibabel/tests/data *
-recursive-include nibabel/nicom/tests/data *
-recursive-include nibabel/gifti/tests/data *
-include nibabel/COMMIT_INFO.txt
+include versioneer.py
+include nibabel/_version.py

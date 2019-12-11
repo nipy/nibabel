@@ -11,7 +11,7 @@ Thin layer around xml.etree.ElementTree, to abstract nibabel xml support.
 """
 
 from io import BytesIO
-from xml.etree.ElementTree import Element, SubElement, tostring  # flake8: noqa aliasing
+from xml.etree.ElementTree import Element, SubElement, tostring  # noqa
 from xml.parsers.expat import ParserCreate
 
 from .filebasedimages import FileBasedHeader

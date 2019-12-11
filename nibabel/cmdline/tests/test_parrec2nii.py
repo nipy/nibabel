@@ -6,7 +6,7 @@ import numpy
 from numpy import array as npa
 
 import nibabel
-from nibabel import parrec2nii_cmd as parrec2nii
+from nibabel.cmdline import parrec2nii
 
 from mock import Mock, MagicMock, patch
 from nose.tools import assert_true
@@ -29,10 +29,10 @@ PAR_AFFINE = numpy.array(
  [   0.        ,    0.  ,          0.        ,    1.        ]])
 
 
-@patch('nibabel.parrec2nii_cmd.verbose')
-@patch('nibabel.parrec2nii_cmd.io_orientation')
-@patch('nibabel.parrec2nii_cmd.nifti1')
-@patch('nibabel.parrec2nii_cmd.pr')
+@patch('nibabel.cmdline.parrec2nii.verbose')
+@patch('nibabel.cmdline.parrec2nii.io_orientation')
+@patch('nibabel.cmdline.parrec2nii.nifti1')
+@patch('nibabel.cmdline.parrec2nii.pr')
 def test_parrec2nii_sets_qform_sform_code1(*args):
     # Check that set_sform(), set_qform() are called on the new header.
     parrec2nii.verbose.switch = False
@@ -67,7 +67,7 @@ def test_parrec2nii_sets_qform_sform_code1(*args):
     nhdr.set_sform.assert_called_with(AN_OLD_AFFINE, code=1)
 
 
-@patch('nibabel.parrec2nii_cmd.verbose')
+@patch('nibabel.cmdline.parrec2nii.verbose')
 def test_parrec2nii_save_load_qform_code(*args):
     # Tests that after parrec2nii saves file, it has the sform and qform 'code'
     # set to '1', which means 'scanner', so that other software, e.g. FSL picks

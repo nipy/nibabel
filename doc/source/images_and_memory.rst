@@ -19,17 +19,17 @@ disk.
 
 Nibabel does not load the image array from the proxy when you ``load`` the
 image.  It waits until you ask for the array data.  The standard way to ask
-for the array data is to call the ``get_data()`` method:
+for the array data is to call the ``get_fdata()`` method:
 
->>> data = img.get_data()
+>>> data = img.get_fdata()
 >>> data.shape
 (128, 96, 24, 2)
 
-We also saw in :ref:`proxies-caching` that this call to ``get_data()`` will
+We also saw in :ref:`proxies-caching` that this call to ``get_fdata()`` will
 (by default) load the array data into an internal image cache.  The image
-returns the cached copy on the next call to ``get_data()``:
+returns the cached copy on the next call to ``get_fdata()``:
 
->>> data_again = img.get_data()
+>>> data_again = img.get_fdata()
 >>> data is data_again
 True
 
@@ -64,7 +64,7 @@ in cache, and True when it is in cache:
 >>> img = nib.load(example_file)
 >>> img.in_memory
 False
->>> data = img.get_data()
+>>> data = img.get_fdata()
 >>> img.in_memory
 True
 
@@ -73,10 +73,10 @@ True
 Using ``uncache``
 *****************
 
-As y'all know, the proxy image has the array in cache, ``get_data()`` returns
+As y'all know, the proxy image has the array in cache, ``get_fdata()`` returns
 the cached array:
 
->>> data_again = img.get_data()
+>>> data_again = img.get_fdata()
 >>> data_again is data  # same array returned from cache
 True
 
@@ -85,34 +85,34 @@ You can uncache a proxy image with the ``uncache()`` method:
 >>> img.uncache()
 >>> img.in_memory
 False
->>> data_once_more = img.get_data()
+>>> data_once_more = img.get_fdata()
 >>> data_once_more is data  # a new copy read from disk
 False
 
 ``uncache()`` has no effect if the image is an array image, or if the cache is
 already empty.
 
-You need to be careful when you modify arrays returned by ``get_data()`` on
+You need to be careful when you modify arrays returned by ``get_fdata()`` on
 proxy images, because ``uncache`` will then change the result you get back
-from ``get_data()``:
+from ``get_fdata()``:
 
 >>> proxy_img = nib.load(example_file)
->>> data = proxy_img.get_data()  # array cached and returned
+>>> data = proxy_img.get_fdata()  # array cached and returned
 >>> data[0, 0, 0, 0]
-0
+0.0
 >>> data[0, 0, 0, 0] = 99  # modify returned array
->>> data_again = proxy_img.get_data()  # return cached array
+>>> data_again = proxy_img.get_fdata()  # return cached array
 >>> data_again[0, 0, 0, 0]  # cached array modified
-99
+99.0
 
 So far the proxy image behaves the same as an array image.  ``uncache()`` has
 no effect on an array image, but it does have an effect on the returned array
 of a proxy image:
 
 >>> proxy_img.uncache()  # cached array discarded from proxy image
->>> data_once_more = proxy_img.get_data()  # new copy of array loaded
+>>> data_once_more = proxy_img.get_fdata()  # new copy of array loaded
 >>> data_once_more[0, 0, 0, 0]  # array modifications discarded
-0
+0.0
 
 *************
 Saving memory
@@ -126,8 +126,8 @@ use the ``uncache()`` method:
 
 >>> img.uncache()
 
-Use the array proxy instead of ``get_data()``
-=============================================
+Use the array proxy instead of ``get_fdata()``
+==============================================
 
 The ``dataobj`` property of a proxy image is an array proxy.  We can ask the
 proxy to return the array directly by passing ``dataobj`` to the numpy
@@ -145,25 +145,25 @@ This also works for array images, because ``np.asarray`` returns the array:
 >>> type(data_array)
 <... 'numpy.ndarray'>
 
-If you want to avoid caching you can avoid ``get_data()`` and always use
+If you want to avoid caching you can avoid ``get_fdata()`` and always use
 ``np.asarray(img.dataobj)``.
 
-Use the ``caching`` keyword to ``get_data()``
-=============================================
+Use the ``caching`` keyword to ``get_fdata()``
+==============================================
 
-The default behavior of the ``get_data()`` function is to always fill the
+The default behavior of the ``get_fdata()`` function is to always fill the
 cache, if it is empty.  This corresponds to the default ``'fill'`` value
 to the ``caching`` keyword.  So, this:
 
 >>> proxy_img = nib.load(example_file)
->>> data = proxy_img.get_data()  # default caching='fill'
+>>> data = proxy_img.get_fdata()  # default caching='fill'
 >>> proxy_img.in_memory
 True
 
 is the same as this:
 
 >>> proxy_img = nib.load(example_file)
->>> data = proxy_img.get_data(caching='fill')
+>>> data = proxy_img.get_fdata(caching='fill')
 >>> proxy_img.in_memory
 True
 
@@ -171,21 +171,21 @@ Sometimes you may want to avoid filling the cache, if it is empty. In this
 case, you can use ``caching='unchanged'``:
 
 >>> proxy_img = nib.load(example_file)
->>> data = proxy_img.get_data(caching='unchanged')
+>>> data = proxy_img.get_fdata(caching='unchanged')
 >>> proxy_img.in_memory
 False
 
 ``caching='unchanged'`` will leave the cache full if it is already full.
 
->>> data = proxy_img.get_data(caching='fill')
+>>> data = proxy_img.get_fdata(caching='fill')
 >>> proxy_img.in_memory
 True
->>> data = proxy_img.get_data(caching='unchanged')
+>>> data = proxy_img.get_fdata(caching='unchanged')
 >>> proxy_img.in_memory
 True
 
-See the :meth:`get_data() docstring
-<nibabel.spatialimages.SpatialImage.get_data>` for more detail.
+See the :meth:`get_fdata() docstring
+<nibabel.spatialimages.SpatialImage.get_fdata>` for more detail.
 
 **********************
 Saving time and memory
@@ -202,7 +202,7 @@ For example, let us say you only wanted the second volume from the example
 dataset.  You could do this:
 
 >>> proxy_img = nib.load(example_file)
->>> data = proxy_img.get_data()
+>>> data = proxy_img.get_fdata()
 >>> data.shape
 (128, 96, 24, 2)
 >>> vol1 = data[..., 1]

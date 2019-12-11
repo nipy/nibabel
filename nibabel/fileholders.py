@@ -99,7 +99,7 @@ class FileHolder(object):
 
 
 def copy_file_map(file_map):
-    ''' Copy mapping of fileholders given by `file_map`
+    r''' Copy mapping of fileholders given by `file_map`
 
     Parameters
     ----------

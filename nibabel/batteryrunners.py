@@ -141,7 +141,7 @@ class BatteryRunner(object):
         -------
         reports : sequence
            sequence of report objects reporting on result of running
-           checks (withou fixes) on `obj`
+           checks (without fixes) on `obj`
         '''
         reports = []
         for check in self._checks:

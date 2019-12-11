@@ -223,6 +223,7 @@
 .. _`wikipedia shear matrix`: https://en.wikipedia.org/wiki/Shear_matrix
 .. _`wikipedia reflection`: https://en.wikipedia.org/wiki/Reflection_(mathematics)
 .. _`wikipedia direction cosine`: https://en.wikipedia.org/wiki/Direction_cosine
+.. _`wikipedia aliasing`: https://en.wikipedia.org/wiki/Aliasing
 
 .. Programming ideas
 .. _proxy: https://en.wikipedia.org/wiki/Proxy_pattern

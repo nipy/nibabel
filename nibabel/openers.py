@@ -9,97 +9,52 @@
 """ Context manager openers for various fileobject types
 """
 
-import bz2
+from bz2 import BZ2File
 import gzip
-import sys
 import warnings
 from os.path import splitext
 from distutils.version import StrictVersion
 
 # is indexed_gzip present and modern?
 try:
-    from indexed_gzip import SafeIndexedGzipFile, __version__ as version
+    import indexed_gzip as igzip
+    version = igzip.__version__
 
     HAVE_INDEXED_GZIP = True
 
-    if StrictVersion(version) < StrictVersion('0.6.0'):
+    # < 0.7 - no good
+    if StrictVersion(version) < StrictVersion('0.7.0'):
         warnings.warn('indexed_gzip is present, but too old '
-                      '(>= 0.6.0 required): {})'.format(version))
+                      '(>= 0.7.0 required): {})'.format(version))
         HAVE_INDEXED_GZIP = False
-
-    del version
+    # >= 0.8 SafeIndexedGzipFile renamed to IndexedGzipFile
+    elif StrictVersion(version) < StrictVersion('0.8.0'):
+        IndexedGzipFile = igzip.SafeIndexedGzipFile
+    else:
+        IndexedGzipFile = igzip.IndexedGzipFile
+    del igzip, version
 
 except ImportError:
     HAVE_INDEXED_GZIP = False
 
 
-# The largest memory chunk that gzip can use for reads
-GZIP_MAX_READ_CHUNK = 100 * 1024 * 1024  # 100Mb
-
-
-class BufferedGzipFile(gzip.GzipFile):
-    """GzipFile able to readinto buffer >= 2**32 bytes.
-
-    This class only differs from gzip.GzipFile
-    in Python 3.5.0.
-
-    This works around a known issue in Python 3.5.
-    See https://bugs.python.org/issue25626
-    """
-
-    # This helps avoid defining readinto in Python 2.6,
-    #   where it is undefined on gzip.GzipFile.
-    # It also helps limit the exposure to this code.
-    if sys.version_info[:3] == (3, 5, 0):
-        def __init__(self, fileish, mode='rb', compresslevel=9,
-                     buffer_size=2**32 - 1):
-            super(BufferedGzipFile, self).__init__(fileish, mode=mode,
-                                                   compresslevel=compresslevel)
-            self.buffer_size = buffer_size
-
-        def readinto(self, buf):
-            """Uses self.buffer_size to do a buffered read."""
-            n_bytes = len(buf)
-            if n_bytes < 2 ** 32:
-                return super(BufferedGzipFile, self).readinto(buf)
-
-            # This works around a known issue in Python 3.5.
-            # See https://bugs.python.org/issue25626
-            mv = memoryview(buf)
-            n_read = 0
-            max_read = 2 ** 32 - 1  # Max for unsigned 32-bit integer
-            while (n_read < n_bytes):
-                n_wanted = min(n_bytes - n_read, max_read)
-                n_got = super(BufferedGzipFile, self).readinto(
-                    mv[n_read:n_read + n_wanted])
-                n_read += n_got
-                if n_got != n_wanted:
-                    break
-            return n_read
-
-
 def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
-    # use indexed_gzip if possible for faster read access
-    if keep_open and mode == 'rb' and HAVE_INDEXED_GZIP:
-        gzip_file = SafeIndexedGzipFile(filename)
+    # use indexed_gzip if possible for faster read access.  If keep_open ==
+    # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
+    # the IndexedGzipFile will close/open the file on each read.
+    if HAVE_INDEXED_GZIP and mode == 'rb':
+        gzip_file = IndexedGzipFile(filename, drop_handles=not keep_open)
 
-    # Fall-back to built-in GzipFile (wrapped with the BufferedGzipFile class
-    # defined above)
+    # Fall-back to built-in GzipFile
     else:
-        gzip_file = BufferedGzipFile(filename, mode, compresslevel)
-
-    # Speedup for #209, for versions of python < 3.5. Open gzip files with
-    # faster reads on large files using a larger read buffer. See
-    # https://github.com/nipy/nibabel/pull/210 for discussion
-    if hasattr(gzip_file, 'max_read_chunk'):
-        gzip_file.max_read_chunk = GZIP_MAX_READ_CHUNK
+        gzip_file = gzip.GzipFile(filename, mode, compresslevel)
 
     return gzip_file
 
 
 class Opener(object):
-    """ Class to accept, maybe open, and context-manage file-likes / filenames
+    r""" Class to accept, maybe open, and context-manage file-likes / filenames
 
     Provides context manager to close files that the constructor opened for
     you.
@@ -119,7 +74,7 @@ class Opener(object):
         for \*args
     """
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
-    bz2_def = (bz2.BZ2File, ('mode', 'buffering', 'compresslevel'))
+    bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
@@ -200,6 +155,9 @@ class Opener(object):
 
     def read(self, *args, **kwargs):
         return self.fobj.read(*args, **kwargs)
+
+    def readinto(self, *args, **kwargs):
+        return self.fobj.readinto(*args, **kwargs)
 
     def write(self, *args, **kwargs):
         return self.fobj.write(*args, **kwargs)

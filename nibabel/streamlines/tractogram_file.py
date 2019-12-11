@@ -1,7 +1,6 @@
 """  Define abstract interface for Tractogram file classes
 """
-from abc import ABCMeta, abstractmethod
-from six import with_metaclass
+from abc import ABC, abstractmethod
 
 from .header import Field
 
@@ -34,7 +33,7 @@ class abstractclassmethod(classmethod):
         super(abstractclassmethod, self).__init__(callable)
 
 
-class TractogramFile(with_metaclass(ABCMeta)):
+class TractogramFile(ABC):
     """ Convenience class to encapsulate tractogram file format. """
 
     def __init__(self, tractogram, header=None):

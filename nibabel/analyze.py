@@ -935,7 +935,11 @@ class AnalyzeImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
-        '''class method to create image from mapping in `file_map ``
+        ''' Class method to create image from mapping in ``file_map``
+
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
 
         Parameters
         ----------
@@ -950,18 +954,14 @@ class AnalyzeImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. If ``file_map`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            If ``file_map`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
 
         Returns
@@ -988,47 +988,6 @@ class AnalyzeImage(SpatialImage):
                            'file_map': copy_file_map(file_map)}
         return img
 
-    @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open=None):
-        '''class method to create image from filename `filename`
-
-        Parameters
-        ----------
-        filename : str
-            Filename of image to load
-        mmap : {True, False, 'c', 'r'}, optional, keyword only
-            `mmap` controls the use of numpy memory mapping for reading image
-            array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
-            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
-            image data file cannot be memory-mapped, ignore `mmap` value and
-            read array from file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
-            `keep_file_open` controls whether a new file handle is created
-            every time the image is accessed, or a single file handle is
-            created and used for the lifetime of this ``ArrayProxy``. If
-            ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. The default value (``None``) will
-            result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
-
-        Returns
-        -------
-        img : Analyze Image instance
-        '''
-        if mmap not in (True, False, 'c', 'r'):
-            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap,
-                                   keep_file_open=keep_file_open)
-
-    load = from_filename
-
     @staticmethod
     def _get_fileholders(file_map):
         """ Return fileholder for header and image
@@ -1050,17 +1009,15 @@ class AnalyzeImage(SpatialImage):
         '''
         if file_map is None:
             file_map = self.file_map
-        data = self.get_data()
+        data = np.asanyarray(self.dataobj)
         self.update_header()
         hdr = self._header
         out_dtype = self.get_data_dtype()
         # Store consumable values for later restore
         offset = hdr.get_data_offset()
         # Scalars of slope, offset to get immutable values
-        slope = (np.asscalar(hdr['scl_slope']) if hdr.has_data_slope
-                 else np.nan)
-        inter = (np.asscalar(hdr['scl_inter']) if hdr.has_data_intercept
-                 else np.nan)
+        slope = hdr['scl_slope'].item() if hdr.has_data_slope else np.nan
+        inter = hdr['scl_inter'].item() if hdr.has_data_intercept else np.nan
         # Check whether to calculate slope / inter
         scale_me = np.all(np.isnan((slope, inter)))
         if scale_me:
@@ -1086,10 +1043,6 @@ class AnalyzeImage(SpatialImage):
         # Write header
         hdr.write_to(hdrf)
         # Write image
-        shape = hdr.get_data_shape()
-        if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' %
-                                  ', '.join(str(s) for s in shape))
         # Seek to writing position, get there by writing zeros if seek fails
         seek_tell(imgf, hdr.get_data_offset(), write0=True)
         # Write array data

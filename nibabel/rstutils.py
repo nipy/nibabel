@@ -2,7 +2,6 @@
 
 * Make ReST table given array of values
 """
-from __future__ import division
 
 import numpy as np
 

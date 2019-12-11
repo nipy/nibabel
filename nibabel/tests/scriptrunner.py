@@ -18,22 +18,8 @@ from os.path import (dirname, join as pjoin, isfile, isdir, realpath, pathsep)
 
 from subprocess import Popen, PIPE
 
-try:  # Python 2
-    string_types = basestring,
-except NameError:  # Python 3
-    string_types = str,
 
-
-def _get_package():
-    """ Workaround for missing ``__package__`` in Python 3.2
-    """
-    if '__package__' in globals() and not __package__ is None:
-        return __package__
-    return __name__.split('.', 1)[0]
-
-
-# Same as __package__ for Python 2.6, 2.7 and >= 3.3
-MY_PACKAGE = _get_package()
+MY_PACKAGE = __package__
 
 
 def local_script_dir(script_sdir):
@@ -112,12 +98,12 @@ class ScriptRunner(object):
         -------
         returncode : int
             return code from execution of `cmd`
-        stdout : bytes (python 3) or str (python 2)
+        stdout : bytes
             stdout from `cmd`
-        stderr : bytes (python 3) or str (python 2)
+        stderr : bytes
             stderr from `cmd`
         """
-        if isinstance(cmd, string_types):
+        if isinstance(cmd, str):
             cmd = [cmd]
         else:
             cmd = list(cmd)
@@ -129,9 +115,6 @@ class ScriptRunner(object):
             # the script through the Python interpreter
             cmd = [sys.executable,
                    pjoin(self.local_script_dir, cmd[0])] + cmd[1:]
-        elif os.name == 'nt':
-            # Need .bat file extension for windows
-            cmd[0] += '.bat'
         if os.name == 'nt':
             # Quote any arguments with spaces. The quotes delimit the arguments
             # on Windows, and the arguments might be file paths with spaces.

@@ -4,7 +4,7 @@
 from os import environ, listdir
 from os.path import dirname, realpath, join as pjoin, isdir, exists
 
-from numpy.testing.decorators import skipif
+from ..testing import skipif
 
 
 def get_nibabel_data():

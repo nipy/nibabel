@@ -1,4 +1,3 @@
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 import glob
@@ -146,7 +145,7 @@ def slices_to_series(wrappers):
     out_vol_lists = []
     for vol_list in volume_lists:
         if len(vol_list) > 1:
-            vol_list.sort(_slice_sorter)
+            vol_list.sort(key=_slice_sorter)
             zs = [s.slice_indicator for s in vol_list]
             if len(set(zs)) < len(zs):  # not unique zs
                 # third pass
@@ -163,12 +162,12 @@ def slices_to_series(wrappers):
     return out_vol_lists
 
 
-def _slice_sorter(s1, s2):
-    return cmp(s1.slice_indicator, s2.slice_indicator)
+def _slice_sorter(s):
+    return s.slice_indicator
 
 
-def _instance_sorter(s1, s2):
-    return cmp(s1.instance_number, s2.instance_number)
+def _instance_sorter(s):
+    return s.instance_number
 
 
 def _third_pass(wrappers):
@@ -182,9 +181,9 @@ def _third_pass(wrappers):
                              'missing InstanceNumber')
     if len(set(inos)) < len(inos):
         raise DicomReadError(msg_fmt % 'some or all slices with '
-                             'the sane InstanceNumber')
+                             'the same InstanceNumber')
     # sort by instance number
-    wrappers.sort(_instance_sorter)
+    wrappers.sort(key=_instance_sorter)
     # start loop, in which we start a new volume, each time we see a z
     # we've seen already in the current volume
     dw = wrappers[0]

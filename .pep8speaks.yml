@@ -1,0 +1,12 @@
+scanner:
+    diff_only: True  # Only show errors caused by the patch
+    linter: flake8
+
+message:  # Customize the comment made by the bot
+    opened:  # Messages when a new PR is submitted
+        header: "Hello @{name}, thank you for submitting the Pull Request!"
+        footer: "To test for issues locally, `pip install flake8` and then run `flake8 nibabel`."
+    updated:  # Messages when new commits are added to the PR
+        header: "Hello @{name}, Thank you for updating!"
+        footer: "To test for issues locally, `pip install flake8` and then run `flake8 nibabel`."
+    no_errors: "Cheers! There are no style issues detected in this Pull Request. :beers: "

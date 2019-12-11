@@ -20,7 +20,8 @@ It has attributes:
 
 methods:
 
-   * .get_data()
+   * .get_fdata()
+   * .get_data() (deprecated, use get_fdata() instead)
    * .get_affine() (deprecated, use affine property instead)
    * .get_header() (deprecated, use header property instead)
    * .to_filename(fname) - writes data to filename(s) derived from
@@ -69,7 +70,7 @@ other storage, you can do::
 
 You can get the data out again with::
 
-    img.get_data()
+    img.get_fdata()
 
 Less commonly, for some image types that support it, you might want to
 fetch out the unscaled array via the object containing the data::
@@ -123,12 +124,12 @@ work:
     >>> img.to_file_map()
     >>> # read it back again from the written files
     >>> img2 = nib.AnalyzeImage.from_file_map(file_map)
-    >>> np.all(img2.get_data() == data)
+    >>> np.all(img2.get_fdata(dtype=np.float32) == data)
     True
     >>> # write, read it again
     >>> img2.to_file_map()
     >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
-    >>> np.all(img3.get_data() == data)
+    >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 
 '''
@@ -137,9 +138,10 @@ import numpy as np
 
 from .filebasedimages import FileBasedHeader
 from .dataobj_images import DataobjImage
-from .filebasedimages import ImageFileError  # flake8: noqa; for back-compat
+from .filebasedimages import ImageFileError  # noqa
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
+from .fileslice import canonical_slicers
 from .deprecated import deprecate_with_version
 from .orientations import apply_orientation, inv_ornt_aff
 
@@ -164,7 +166,7 @@ class SpatialHeader(FileBasedHeader):
         self.set_data_dtype(data_dtype)
         self._zooms = ()
         self.set_data_shape(shape)
-        if not zooms is None:
+        if zooms is not None:
             self.set_zooms(zooms)
 
     @classmethod
@@ -321,9 +323,103 @@ class ImageDataError(Exception):
     pass
 
 
+class SpatialFirstSlicer(object):
+    ''' Slicing interface that returns a new image with an updated affine
+
+    Checks that an image's first three axes are spatial
+    '''
+    def __init__(self, img):
+        # Local import to avoid circular import on module load
+        from .imageclasses import spatial_axes_first
+        if not spatial_axes_first(img):
+            raise ValueError("Cannot predict position of spatial axes for "
+                             "Image type " + img.__class__.__name__)
+        self.img = img
+
+    def __getitem__(self, slicer):
+        try:
+            slicer = self.check_slicing(slicer)
+        except ValueError as err:
+            raise IndexError(*err.args)
+
+        dataobj = self.img.dataobj[slicer]
+        if any(dim == 0 for dim in dataobj.shape):
+            raise IndexError("Empty slice requested")
+
+        affine = self.slice_affine(slicer)
+        return self.img.__class__(dataobj.copy(), affine, self.img.header)
+
+    def check_slicing(self, slicer, return_spatial=False):
+        ''' Canonicalize slicers and check for scalar indices in spatial dims
+
+        Parameters
+        ----------
+        slicer : object
+            something that can be used to slice an array as in
+            ``arr[sliceobj]``
+        return_spatial : bool
+            return only slices along spatial dimensions (x, y, z)
+
+        Returns
+        -------
+        slicer : object
+            Validated slicer object that will slice image's `dataobj`
+            without collapsing spatial dimensions
+        '''
+        slicer = canonical_slicers(slicer, self.img.shape)
+        # We can get away with this because we've checked the image's
+        # first three axes are spatial.
+        # More general slicers will need to be smarter, here.
+        spatial_slices = slicer[:3]
+        for subslicer in spatial_slices:
+            if subslicer is None:
+                raise IndexError("New axis not permitted in spatial dimensions")
+            elif isinstance(subslicer, int):
+                raise IndexError("Scalar indices disallowed in spatial dimensions; "
+                                 "Use `[x]` or `x:x+1`.")
+        return spatial_slices if return_spatial else slicer
+
+    def slice_affine(self, slicer):
+        """ Retrieve affine for current image, if sliced by a given index
+
+        Applies scaling if down-sampling is applied, and adjusts the intercept
+        to account for any cropping.
+
+        Parameters
+        ----------
+        slicer : object
+            something that can be used to slice an array as in
+            ``arr[sliceobj]``
+
+        Returns
+        -------
+        affine : (4,4) ndarray
+            Affine with updated scale and intercept
+        """
+        slicer = self.check_slicing(slicer, return_spatial=True)
+
+        # Transform:
+        # sx  0  0 tx
+        #  0 sy  0 ty
+        #  0  0 sz tz
+        #  0  0  0  1
+        transform = np.eye(4, dtype=int)
+
+        for i, subslicer in enumerate(slicer):
+            if isinstance(subslicer, slice):
+                if subslicer.step == 0:
+                    raise ValueError("slice step cannot be 0")
+                transform[i, i] = subslicer.step if subslicer.step is not None else 1
+                transform[i, 3] = subslicer.start or 0
+            # If slicer is None, nothing to do
+
+        return self.img.affine.dot(transform)
+
+
 class SpatialImage(DataobjImage):
     ''' Template class for volumetric (3D/4D) images '''
     header_class = SpatialHeader
+    ImageSlicer = SpatialFirstSlicer
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
@@ -461,12 +557,37 @@ class SpatialImage(DataobjImage):
                      klass.header_class.from_header(img.header),
                      extra=img.extra.copy())
 
+    @property
+    def slicer(self):
+        """ Slicer object that returns cropped and subsampled images
+
+        The image is resliced in the current orientation; no rotation or
+        resampling is performed, and no attempt is made to filter the image
+        to avoid `aliasing`_.
+
+        The affine matrix is updated with the new intercept (and scales, if
+        down-sampling is used), so that all values are found at the same RAS
+        locations.
+
+        Slicing may include non-spatial dimensions.
+        However, this method does not currently adjust the repetition time in
+        the image header.
+
+        .. _aliasing: https://en.wikipedia.org/wiki/Aliasing
+        """
+        return self.ImageSlicer(self)
+
     def __getitem__(self, idx):
         ''' No slicing or dictionary interface for images
+
+        Use the slicer attribute to perform cropping and subsampling at your
+        own risk.
         '''
-        raise TypeError("Cannot slice image objects; consider slicing image "
-                        "array data with `img.dataobj[slice]` or "
-                        "`img.get_data()[slice]`")
+        raise TypeError(
+            "Cannot slice image objects; consider using `img.slicer[slice]` "
+            "to generate a sliced image (see documentation for caveats) or "
+            "slicing image array data with `img.dataobj[slice]` or "
+            "`img.get_fdata()[slice]`")
 
     def orthoview(self):
         """Plot the image using OrthoSlicer3D
@@ -484,7 +605,6 @@ class SpatialImage(DataobjImage):
         """
         return OrthoSlicer3D(self.dataobj, self.affine,
                              title=self.get_filename())
-
 
     def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image
@@ -511,7 +631,7 @@ class SpatialImage(DataobjImage):
         if np.array_equal(ornt, [[0, 1], [1, 1], [2, 1]]):
             return self
 
-        t_arr = apply_orientation(self.get_data(), ornt)
+        t_arr = apply_orientation(np.asanyarray(self.dataobj), ornt)
         new_aff = self.affine.dot(inv_ornt_aff(ornt, self.shape))
 
         return self.__class__(t_arr, new_aff, self.header)

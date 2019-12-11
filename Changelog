@@ -18,11 +18,356 @@ The full VCS changelog is available here:
 Nibabel releases
 ****************
 
-Most work on NiBabel so far has been by Matthew Brett (MB), Michael Hanke (MH)
-Ben Cipollini (BC), Marc-Alexandre Côté (MC), Chris Markiewicz (CM), Stephan
-Gerhard (SG) and Eric Larson (EL).
+Most work on NiBabel so far has been by Matthew Brett (MB), Chris Markiewicz
+(CM), Michael Hanke (MH), Marc-Alexandre Côté (MC), Ben Cipollini (BC), Paul
+McCarthy (PM), Chris Cheng (CC), Yaroslav Halchenko (YOH), Satra Ghosh (SG),
+Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
+
+3.0.0 (To Be Determined)
+========================
+
+New features
+------------
+* ArrayProxy ``__array__()`` now accepts a ``dtype`` parameter, allowing
+  ``numpy.array(dataobj, dtype=...)`` calls, as well as casting directly
+  with a dtype (for example, ``numpy.float32(dataobj)``) to control the
+  output type. Scale factors (slope, intercept) are applied, but may be
+  cast to narrower types, to control memory usage. This is now the basis
+  of ``img.get_fdata()``, which will scale data in single precision if
+  the output type is ``float32``. (pr/844) (CM, reviewed by Alejandro
+  de la Vega, Ross Markello)
+* GiftiImage method ``agg_data()`` to return usable data arrays (pr/793)
+  (Hao-Ting Wang, reviewed by CM)
+* Accept ``os.PathLike`` objects in place of filenames (pr/610) (Cameron
+  Riddell, reviewed by MB, CM)
+* Function to calculate obliquity of affines (pr/815) (Oscar Esteban,
+  reviewed by MB)
+
+Enhancements
+------------
+* Improve testing of data scaling in ArrayProxy API (pr/847) (CM, reviewed
+  by Alejandro de la Vega)
+* Document ``SpatialImage.slicer`` interface (pr/846) (CM)
+* ``get_fdata(dtype=np.float32)`` will attempt to avoid casting data to
+  ``np.float64`` when scaling parameters would otherwise promote the data
+  type unnecessarily. (pr/833) (CM, reviewed by Ross Markello)
+* ``ArraySequence`` now supports a large set of Python operators to combine
+  or update in-place. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin,
+  CM, MB)
+* Warn, rather than fail, on DICOMs with unreadable Siemens CSA tags (pr/818)
+  (Henry Braun, reviewed by CM)
+* Improve clarity of coordinate system tutorial (pr/823) (Egor Panfilov,
+  reviewed by MB)
+
+Bug fixes
+---------
+* Sliced ``Tractogram``s no longer ``apply_affine`` to the original
+  ``Tractogram``'s streamlines. (pr/811) (MC, reviewed by Serge Koudoro,
+  Philippe Poulin, CM, MB)
+* Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+  (pr/821) (CM)
+
+Maintenance
+-----------
+* Remove replicated metadata for packaged data from MANIFEST.in (pr/845) (CM)
+* Support Python >=3.5.1, including Python 3.8.0 (pr/787) (CM)
+* Manage versioning with slightly customized Versioneer (pr/786) (CM)
+* Reference Nipy Community Code and Nibabel Developer Guidelines in
+  GitHub community documents (pr/778) (CM, reviewed by MB)
+
+API changes and deprecations
+----------------------------
+* Deprecate ``ArraySequence.data`` in favor of ``ArraySequence.get_data()``,
+  which will return a copy. ``ArraySequence.data`` now returns a read-only
+  view. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin, CM, MB)
+* Deprecate ``DataobjImage.get_data()`` API, to be removed in nibabel 5.0
+  (pr/794, pr/809) (CM, reviewed by MB)
+
+
+2.5.1 (Monday 23 September 2019)
+================================
+
+Enhancements
+------------
+* Ignore endianness in ``nib-diff`` if values match (pr/799) (YOH, reviewed
+  by CM)
+
+Bug fixes
+---------
+* Correctly handle Philips DICOMs w/ derived volume (pr/795) (Mathias
+  Goncalves, reviewed by CM)
+* Raise CSA tag limit to 1000, parametrize for future relaxing (pr/798,
+  backported to 2.5.x in pr/800) (Henry Braun, reviewed by CM, MB)
+* Coerce data types to match NIfTI intent codes when writing GIFTI data
+  arrays (pr/806) (CM, reported by Tom Holroyd)
+
+Maintenance
+-----------
+* Require h5py 2.10 for Windows + Python < 3.6 to resolve unexpected dtypes
+  in Minc2 data (pr/804) (CM, reviewed by YOH)
+
+API changes and deprecations
+----------------------------
+* Deprecate ``nicom.dicomwrappers.Wrapper.get_affine()`` in favor of ``affine``
+  property; final removal in nibabel 4.0 (pr/796) (YOH, reviewed by CM)
+
+2.5.0 (Sunday 4 August 2019)
+============================
+
+The 2.5.x series is the last with support for either Python 2 or Python 3.4.
+Extended support for this series 2.5 will last through December 2020.
+
+Thanks for the test ECAT file and fix provided by Andrew Crabb.
+
+Enhancements
+------------
+* Add SerializableImage class with to/from_bytes methods (pr/644) (CM,
+  reviewed by MB)
+* Check CIFTI-2 data shape matches shape described by header (pr/774)
+  (Michiel Cottaar, reviewed by CM)
+
+Bug fixes
+---------
+* Handle stricter numpy casting rules in tests (pr/768) (CM)
+  reviewed by PM)
+* TRK header fields flipped in files written on big-endian systems
+  (pr/782) (CM, reviewed by YOH, MB)
+* Load multiframe ECAT images with Python 3 (CM and Andrew Crabb)
+
+Maintenance
+-----------
+* Fix CodeCov paths on Appveyor for more accurate coverage (pr/769) (CM)
+* Move to setuptools and reduce use ``nisext`` functions (pr/764) (CM,
+  reviewed by YOH)
+* Better handle test setup/teardown (pr/785) (CM, reviewed by YOH)
+
+API changes and deprecations
+----------------------------
+* Effect threatened warnings and set some deprecation timelines (pr/755) (CM)
+  * Trackvis methods now default to v2 formats
+  * ``nibabel.trackvis`` scheduled for removal in nibabel 4.0
+  * ``nibabel.minc`` and ``nibabel.MincImage`` will be removed in nibabel 3.0
+
+2.4.1 (Monday 27 May 2019)
+==========================
+
+Contributions from Egor Pafilov, Jath Palasubramaniam, Richard Nemec, and
+Dave Allured.
+
+Enhancements
+------------
+* Enable ``mmap``, ``keep_file_open`` options when loading any
+  ``DataobjImage`` (pr/759) (CM, reviewed by PM)
+
+Bug fixes
+---------
+* Ensure loaded GIFTI files expose writable data arrays (pr/750) (CM,
+  reviewed by PM)
+* Safer warning registry manipulation when checking for overflows (pr/753)
+  (CM, reviewed by MB)
+* Correctly write .annot files with duplicate lables (pr/763) (Richard Nemec
+  with CM)
+
+Maintenance
+-----------
+* Fix typo in coordinate systems doc (pr/751) (Egor Panfilov, reviewed by
+  CM)
+* Replace invalid MINC1 test file with fixed file (pr/754) (Dave Allured
+  with CM)
+* Update Sphinx config to support recent Sphinx/numpydoc (pr/749) (CM,
+  reviewed by PM)
+* Pacify ``FutureWarning`` and ``DeprecationWarning`` from h5py, numpy
+  (pr/760) (CM)
+* Accommodate Python 3.8 deprecation of collections.MutableMapping
+  (pr/762) (Jath Palasubramaniam, reviewed by CM)
+
+API changes and deprecations
+----------------------------
+* Deprecate ``keep_file_open == 'auto'`` (pr/761) (CM, reviewed by PM)
+
+2.4.0 (Monday 1 April 2019)
+============================
+
+New features
+------------
+* Alternative ``Axis``-based interface for manipulating CIFTI-2 headers
+  (pr/641) (Michiel Cottaar, reviewed by Demian Wassermann, CM, SG)
+
+Enhancements
+------------
+* Accept TCK files produced by tools with other delimiter/EOF defaults
+  (pr/720) (Soichi Hayashi, reviewed by CM, MB, MC)
+* Allow BrainModels or Parcels to contain a single vertex in CIFTI
+  (pr/739) (Michiel Cottaar, reviewed by CM)
+* Support for ``NIFTI_XFORM_TEMPLATE_OTHER`` xform code (pr/743) (CM)
+
+Bug fixes
+---------
+* Skip refcheck in ArraySequence construction/extension (pr/719) (Ariel
+  Rokem, reviewed by CM, MC)
+* Use safe resizing for ArraySequence extension (pr/724) (CM, reviewed
+  by MC)
+* Fix typo in error message (pr/726) (Jon Haitz Legarreta Gorroño,
+  reviewed by CM)
+* Support DICOM slice sorting in Python 3 (pr/728) (Samir Reddigari,
+  reviewed by CM)
+* Correctly reorient dim_info when reorienting NIfTI images
+  (Konstantinos Raktivan, CM, reviewed by CM)
+
+Maintenance
+-----------
+* Import updates to reduce upstream deprecation warnings (pr/711,
+  pr/705, pr/738) (EL, YOH, reviewed by CM)
+* Delay import of ``nibabel.testing``, ``nose`` and ``mock`` to speed up
+  import (pr/699) (CM)
+* Increase coverage testing, drop coveralls (pr/722, pr/732) (CM)
+* Add Zenodo metadata, sorted by commits (pr/732) (CM + others)
+* Update author listing and copyrights (pr/742) (MB, reviewed by CM)
+
+2.3.3 (Wednesday 16 January 2019)
+=================================
+
+Maintenance
+-----------
+* Restore ``six`` dependency (pr/714) (CM, reviewed by Gael Varoquaux, MB)
+
+2.3.2 (Wednesday 2 January 2019)
+================================
+
+Enhancements
+------------
+* Enable toggling crosshair with ``Ctrl-x`` in ``OrthoSlicer3D`` viewer (pr/701)
+  (Miguel Estevan Moreno, reviewed by CM)
+
+Bug fixes
+---------
+* Read .PAR files corresponding to ADC maps (pr/685) (Gregory R. Lee, reviewed
+  by CM)
+* Increase maximum number of items read from Siemens CSA format (Igor Solovey,
+  reviewed by CM, MB)
+* Check boolean dtypes with ``numpy.issubdtype(..., np.bool_)`` (pr/707)
+  (Jon Haitz Legarreta Gorroño, reviewed by CM)
+
+Maintenance
+-----------
+* Fix small typos in parrec2nii help text (pr/682) (Thomas Roos, reviewed by
+  MB)
+* Remove deprecated calls to ``numpy.asscalar`` (pr/686) (CM, reviewed by
+  Gregory R. Lee)
+* Update QA directives to accommodate Flake8 3.6 (pr/695) (CM)
+* Update DOI links to use ``https://doi.org`` (pr/703) (Katrin Leinweber,
+  reviewed by CM)
+* Remove deprecated calls to ``numpy.fromstring`` (pr/700) (Ariel Rokem,
+  reviewed by CM, MB)
+* Drop ``distutils`` support, require ``bz2file`` for Python 2.7 (pr/700)
+  (CM, reviewed by MB)
+* Replace mutable ``bytes`` hack, disabled in numpy pre-release, with
+  ``bytearray``/``readinto`` strategy (pr/700) (Ariel Rokem, CM, reviewed by
+  CM, MB)
+
+API changes and deprecations
+----------------------------
+* Add ``Opener.readinto`` method to read file contents into pre-allocated buffers
+  (pr/700) (Ariel Rokem, reviewed by CM, MB)
+
+2.3.1 (Tuesday 16 October 2018)
+===============================
+
+New features
+------------
+* ``nib-diff`` command line tool for comparing image files (pr/617, pr/672,
+  pr/678) (CC, reviewed by YOH, Pradeep Raamana and CM)
+
+Enhancements
+------------
+* Speed up reading of numeric arrays in CIFTI2 (pr/655) (Michiel Cottaar,
+  reviewed by CM)
+* Add ``ndim`` property to ``ArrayProxy`` and ``DataobjImage`` (pr/674) (CM,
+  reviewed by MB)
+
+Bug fixes
+---------
+* Deterministic deduction of slice ordering in degenerate cases (pr/647)
+  (YOH, reviewed by CM)
+* Allow 0ms TR in MGH files (pr/653) (EL, reviewed by CM)
+* Allow for PPC64 little-endian long doubles (pr/658) (MB, reviewed by CM)
+* Correct construction of FreeSurfer annotation labels (pr/666) (CM, reviewed
+  by EL, Paul D. McCarthy)
+* Fix logic for persisting filehandles with indexed-gzip (pr/679) (Paul D.
+  McCarthy, reviewed by CM)
+
+Maintenance
+-----------
+* Fix semantic error in coordinate systems documentation (pr/646) (Ariel
+  Rokem, reviewed by CM, MB)
+* Test on Python 3.7, minor associated fixes (pr/651) (CM, reviewed by Gregory
+  R. Lee, MB)
+
+2.3 (Tuesday 12 June 2018)
+==========================
+
+New features
+------------
+* TRK <=> TCK streamlines conversion CLI tools (pr/606) (MC, reviewed by CM)
+* Image slicing for SpatialImages (pr/550) (CM)
+
+Enhancements
+------------
+* Simplfiy MGHImage and add footer fields (pr/569) (CM, reviewed by MB)
+* Force sform/qform codes to be ints, rather than numpy types (pr/575) (Paul
+  McCarthy, reviewed by MB, CM)
+* Auto-fill color table in FreeSurfer annotation file (pr/592) (PM,
+  reviewed by CM, MB)
+* Set default intent code for CIFTI2 images (pr/604) (Mathias Goncalves,
+  reviewed by CM, SG, MB, Tim Coalson)
+* Raise informative error on empty files (pr/611) (Pradeep Raamana, reviewed
+  by CM, MB)
+* Accept degenerate filenames such as ``.nii`` (pr/621) (Dimitri
+  Papadopoulos-Orfanos, reviewed by Yaroslav Halchenko)
+* Take advantage of ``IndexedGzipFile`` ``drop_handles`` flag to release
+  filehandles by default (pr/614) (PM, reviewed by CM, MB)
+
+Bug fixes
+---------
+* Preserve first point of `LazyTractogram` (pr/588) (MC, reviewed by Nil
+  Goyette, CM, MB)
+* Stop adding extraneous metadata padding (pr/593) (Jon Stutters, reviewed by
+  CM, MB)
+* Accept lower-case orientation codes in TRK files (pr/600) (Kesshi Jordan,
+  MB, reviewed by MB, MC, CM)
+* Annotation file reading (pr/592) (PM, reviewed by CM, MB)
+* Fix buffer size calculation in ArraySequence (pr/597) (Serge Koudoro,
+  reviewed by MC, MB, Eleftherios Garyfallidis, CM)
+* Resolve ``UnboundLocalError`` in Python 3 (pr/607) (Jakub Kaczmarzyk,
+  reviewed by MB, CM)
+* Do not crash on non-``ImportError`` failures in optional imports (pr/618)
+  (Yaroslav Halchenko, reviewed by CM)
+* Return original array from ``get_fdata`` for array image, if no cast
+  required (pr/638, MB, reviewed by CM)
+
+Maintenance
+-----------
+* Use SSH address to use key-based auth (pr/587) (CM, reviewed by MB)
+* Fix doctests for numpy 1.14 array printing (pr/591) (MB, reviewed by CM)
+* Refactor for pydicom 1.0 API changes (pr/599) (MB, reviewed by CM)
+* Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by 
+  Yaroslav Halchenko, MB)
+* Move ``nib-ls`` and other programs to a new cmdline module (pr/601, pr/615)
+  (Chris Cheng, reviewed by MB, Yaroslav Halchenko)
+* Remove deprecated numpy indexing (EL, reviewed by CM)
+* Update documentation to encourage ``get_fdata`` over ``get_data`` (pr/637,
+  MB, reviewed by CM)
+
+API changes and deprecations
+----------------------------
+* Support for ``keep_file_open = 'auto'`` as a parameter to ``Opener()`` will
+  be deprecated in 2.4, for removal in 3.0. Accordingly, support for
+  ``openers.KEEP_FILE_OPEN_DEFAULT = 'auto'`` will be dropped on the same
+  schedule.
+* Drop-in support for ``indexed_gzip < 0.7`` has been removed.
+
 
 2.2.1 (Wednesday 22 November 2017)
 ==================================
@@ -32,14 +377,14 @@ Bug fixes
 
 * Set L/R labels in orthoview correctly (pr/564) (CM)
 * Defer use of ufunc / memmap test - allows "freezing" (pr/572) (MB, reviewed
-  by Satra Ghosh)
+  by SG)
 * Fix doctest failures with pre-release numpy (pr/582) (MB, reviewed by CM)
 
 Maintenance
 -----------
 
-* Update documentation around NIfTI qform/sform codes (pr/576) (Paul McCarthy,
-  reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by Paul McCarthy)
+* Update documentation around NIfTI qform/sform codes (pr/576) (PM,
+  reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by PM)
 * Skip precision test on macOS, newer numpy (pr/583) (MB, reviewed by CM)
 * Simplify AppVeyor script, removing conda (pr/584) (MB, reviewed by CM)
 
@@ -49,12 +394,11 @@ Maintenance
 New features
 ------------
 
-* CIFTI support (pr/249) (Satra Ghosh, Michiel Cottaar, BC, CM, Demian
-  Wassermann, MB)
+* CIFTI support (pr/249) (SG, Michiel Cottaar, BC, CM, Demian Wassermann, MB)
 * Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
   MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
 * Added ``get_fdata()`` as default method to retrieve scaled floating point
-  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, Satra Ghosh)
+  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, SG)
 
 Enhancements
 ------------
@@ -68,19 +412,19 @@ Enhancements
 * Allow dtype specifiers as fileslice input (pr/485) (MB)
 * Support "headerless" ArrayProxy specification, enabling memory-efficient
   ArrayProxy reshaping (pr/521) (CM)
-* Allow unknown NIfTI intent codes, add FSL codes (pr/528) (Paul McCarthy)
+* Allow unknown NIfTI intent codes, add FSL codes (pr/528) (PM)
 * Improve error handling for ``img.__getitem__`` (pr/533) (Ariel Rokem)
 * Delegate reorientation to SpatialImage classes (pr/544) (Mark Hymers, CM,
   reviewed by MB)
 * Enable using ``indexed_gzip`` to reduce memory usage when reading from
-  gzipped NIfTI and MGH files (pr/552) (Paul McCarthy, reviewed by MB, CM)
+  gzipped NIfTI and MGH files (pr/552) (PM, reviewed by MB, CM)
 
 Bug fixes
 ---------
 
 * Miscellaneous MINC reader fixes (pr/493) (Robert D. Vincent, reviewed by CM,
   MB)
-* Fix corner case in ``wrapstruct.get`` (pr/516) (Paul McCarthy, reviewed by
+* Fix corner case in ``wrapstruct.get`` (pr/516) (PM, reviewed by
   CM, MB)
 
 Maintenance
@@ -381,7 +725,7 @@ Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 
 * New feature release
 * Python 3.2 support
-* Substantially enhanced gifti reading support (SG)
+* Substantially enhanced gifti reading support (Stephan Gerhard)
 * Refactoring of trackvis read / write to allow reading and writing of voxel
   points and mm points in tracks.  Deprecate use of negative voxel sizes;
   set voxel_order field in trackvis header.  Thanks to Chris Filo

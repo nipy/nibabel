@@ -8,30 +8,24 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Contexts for *with* statement allowing checks for warnings
 '''
-from __future__ import division, print_function
 
 import warnings
 
 from .testing import (error_warnings, suppress_warnings)
+from .deprecated import deprecate_with_version
 
 
 warnings.warn('The checkwarns module is deprecated and will be removed '
-              'in nibabel v3.0', FutureWarning)
+              'in nibabel v3.0', DeprecationWarning)
 
 
+@deprecate_with_version('ErrorWarnings is deprecated; use nibabel.testing.error_warnings.',
+                        since='2.1.0', until='3.0.0')
 class ErrorWarnings(error_warnings):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn('ErrorWarnings is deprecated and will be removed in '
-                      'nibabel v3.0; use nibabel.testing.error_warnings.',
-                      FutureWarning)
-        super(ErrorWarnings, self).__init__(*args, **kwargs)
+    pass
 
 
+@deprecate_with_version('IgnoreWarnings is deprecated; use nibabel.testing.suppress_warnings.',
+                        since='2.1.0', until='3.0.0')
 class IgnoreWarnings(suppress_warnings):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn('IgnoreWarnings is deprecated and will be removed in '
-                      'nibabel v3.0; use nibabel.testing.suppress_warnings.',
-                      FutureWarning)
-        super(IgnoreWarnings, self).__init__(*args, **kwargs)
+    pass

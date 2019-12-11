@@ -6,7 +6,7 @@
 	url = git://github.com/matthew-brett/nitest-minc2.git
 [submodule "nipy-ecattest"]
 	path = nibabel-data/nipy-ecattest
-	url = https://github.com/freec84/nipy-ecattest
+	url = https://github.com/effigies/nipy-ecattest
 [submodule "nibabel-data/nitest-freesurfer"]
 	path = nibabel-data/nitest-freesurfer
 	url = https://bitbucket.org/nipy/nitest-freesurfer.git
@@ -16,3 +16,6 @@
 [submodule "nibabel-data/nitest-cifti2"]
 	path = nibabel-data/nitest-cifti2
 	url = https://github.com/demianw/nibabel-nitest-cifti2.git
+[submodule "nibabel-data/nitest-dicom"]
+	path = nibabel-data/nitest-dicom
+	url = https://github.com/effigies/nitest-dicom

@@ -9,7 +9,7 @@
 ''' Tests for BatteryRunner and Report objects
 '''
 
-from six import StringIO
+from io import StringIO
 
 import logging
 

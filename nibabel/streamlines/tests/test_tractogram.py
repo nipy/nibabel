@@ -10,7 +10,6 @@ from nibabel.testing import assert_arrays_equal
 from nibabel.testing import clear_and_catch_warnings
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from six.moves import zip
 
 from .. import tractogram as module_tractogram
 from ..tractogram import is_data_dict, is_lazy_dict
@@ -540,9 +539,6 @@ class TestTractogram(unittest.TestCase):
         for i, t in enumerate(DATA['tractogram']):
             assert_tractogram_item_equal(DATA['tractogram'][i], t)
 
-            if sys.version_info < (3,):
-                assert_tractogram_item_equal(DATA['tractogram'][long(i)], t)
-
         # Get one TractogramItem out of two.
         tractogram_view = DATA['simple_tractogram'][::2]
         check_tractogram(tractogram_view, DATA['streamlines'][::2])
@@ -688,6 +684,22 @@ class TestTractogram(unittest.TestCase):
         assert_array_equal(transformed_tractogram.affine_to_rasmm,
                            np.dot(np.eye(4), np.dot(np.linalg.inv(affine),
                                                     np.linalg.inv(affine))))
+
+        # Applying the affine to a tractogram that has been indexed or sliced
+        # shouldn't affect the remaining streamlines.
+        tractogram = DATA['tractogram'].copy()
+        transformed_tractogram = tractogram[::2].apply_affine(affine)
+        assert_true(transformed_tractogram is not tractogram)
+        check_tractogram(tractogram[::2],
+                         streamlines=[s*scaling for s in DATA['streamlines'][::2]],
+                         data_per_streamline=DATA['tractogram'].data_per_streamline[::2],
+                         data_per_point=DATA['tractogram'].data_per_point[::2])
+
+        # Remaining streamlines should match the original ones.
+        check_tractogram(tractogram[1::2],
+                         streamlines=DATA['streamlines'][1::2],
+                         data_per_streamline=DATA['tractogram'].data_per_streamline[1::2],
+                         data_per_point=DATA['tractogram'].data_per_point[1::2])
 
         # Check that applying an affine and its inverse give us back the
         # original streamlines.

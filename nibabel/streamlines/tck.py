@@ -3,15 +3,14 @@
 TCK format is defined at
 http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight=format#tracks-file-format-tck
 """
-from __future__ import division
 
 import os
 import warnings
 
 import numpy as np
+from numpy.compat.py3k import asbytes, asstr
 
 from nibabel.openers import Opener
-from nibabel.py3k import asbytes, asstr
 
 from .array_sequence import ArraySequence
 from .tractogram_file import TractogramFile
@@ -390,10 +389,6 @@ class TckFile(TractogramFile):
         buffer_size = int(buffer_size * MEGABYTE)
         buffer_size += coordinate_size - (buffer_size % coordinate_size)
 
-        # Markers for streamline end and file end
-        fiber_marker = cls.FIBER_DELIMITER.astype(dtype).tostring()
-        eof_marker = cls.EOF_DELIMITER.astype(dtype).tostring()
-
         with Opener(fileobj) as f:
             start_position = f.tell()
 
@@ -401,46 +396,46 @@ class TckFile(TractogramFile):
             f.seek(header["_offset_data"], os.SEEK_SET)
 
             eof = False
-            buffs = []
+            leftover = np.empty((0, 3), dtype='<f4')
             n_streams = 0
 
             while not eof:
+                buff = bytearray(buffer_size)
+                n_read = f.readinto(buff)
+                eof = n_read != buffer_size
+                if eof:
+                    buff = buff[:n_read]
 
-                bytes_read = f.read(buffer_size)
-                buffs.append(bytes_read)
-                eof = len(bytes_read) != buffer_size
+                raw_values = np.frombuffer(buff, dtype=dtype)
 
-                # Make sure we've read enough to find a streamline delimiter.
-                if fiber_marker not in bytes_read:
-                    # If we've read the whole file, then fail.
-                    if eof:
-                        # Could have minimal buffering, and have read only the
-                        # EOF delimiter
-                        buffs = [b''.join(buffs)]
-                        if not buffs[0] == eof_marker:
-                            raise DataError(
-                                "Cannot find a streamline delimiter. This file"
-                                " might be corrupted.")
-                    else:
-                        # Otherwise read a bit more.
-                        continue
+                # Convert raw_values into a list of little-endian triples (for x,y,z coord)
+                coords = raw_values.astype('<f4', copy=False).reshape((-1, 3))
 
-                all_parts = b''.join(buffs).split(fiber_marker)
-                point_parts, buffs = all_parts[:-1], all_parts[-1:]
-                point_parts = [p for p in point_parts if p != b'']
+                # Find stream delimiter locations (all NaNs)
+                delims = np.where(np.isnan(coords).all(axis=1))[0]
 
-                for point_part in point_parts:
-                    # Read floats.
-                    pts = np.frombuffer(point_part, dtype=dtype)
-                    # Enforce ability to write to underlying bytes object
-                    pts.flags.writeable = True
-                    # Convert data to little-endian if needed.
-                    yield pts.astype('<f4', copy=False).reshape([-1, 3])
+                # Recover leftovers, which can't have delimiters in them
+                if leftover.size:
+                    delims += leftover.shape[0]
+                    coords = np.vstack((leftover, coords))
 
-                n_streams += len(point_parts)
+                begin = 0
+                for delim in delims:
+                    pts = coords[begin:delim]
+                    if pts.size:
+                        yield pts
+                        n_streams += 1
+                    begin = delim + 1
 
-            if not buffs[-1] == eof_marker:
-                raise DataError("Expecting end-of-file marker 'inf inf inf'")
+                # The rest becomes the new leftover.
+                leftover = coords[begin:]
+
+            if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
+                if n_streams == 0:
+                    msg = "Cannot find a streamline delimiter. This file might be corrupted."
+                else:
+                    msg = "Expecting end-of-file marker 'inf inf inf'"
+                raise DataError(msg)
 
             # In case the 'count' field was not provided.
             header[Field.NB_STREAMLINES] = n_streams

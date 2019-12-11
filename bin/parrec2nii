@@ -2,7 +2,7 @@
 """PAR/REC to NIfTI converter
 """
 
-from nibabel.parrec2nii_cmd import main
+from nibabel.cmdline.parrec2nii import main
 
 
 if __name__ == '__main__':

@@ -1,4 +1,3 @@
-from __future__ import division
 
 # Definition of trackvis header structure:
 # http://www.trackvis.org/docs/?subsect=fileformat
@@ -9,11 +8,12 @@ import string
 import warnings
 
 import numpy as np
+from numpy.compat.py3k import asstr
+
 import nibabel as nib
 
 from nibabel.openers import Opener
-from nibabel.py3k import asstr
-from nibabel.volumeutils import (native_code, swapped_code)
+from nibabel.volumeutils import (native_code, swapped_code, endian_codes)
 from nibabel.orientations import (aff2axcodes, axcodes2ornt)
 
 from .array_sequence import create_arraysequences_from_generator
@@ -266,10 +266,14 @@ class TrkFile(TractogramFile):
             return magic_number == cls.MAGIC_NUMBER
 
     @classmethod
-    def _default_structarr(cls):
+    def _default_structarr(cls, endianness=None):
         """ Return an empty compliant TRK header as numpy structured array
         """
-        st_arr = np.zeros((), dtype=header_2_dtype)
+        dt = header_2_dtype
+        if endianness is not None:
+            endianness = endian_codes[endianness]
+            dt = dt.newbyteorder(endianness)
+        st_arr = np.zeros((), dtype=dt)
 
         # Default values
         st_arr[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
@@ -283,10 +287,10 @@ class TrkFile(TractogramFile):
         return st_arr
 
     @classmethod
-    def create_empty_header(cls):
+    def create_empty_header(cls, endianness=None):
         """ Return an empty compliant TRK header as dict
         """
-        st_arr = cls._default_structarr()
+        st_arr = cls._default_structarr(endianness)
         return dict(zip(st_arr.dtype.names, st_arr.tolist()))
 
     @classmethod
@@ -368,8 +372,23 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.from_data_func(_read)
 
         else:
+
+            # Speed up loading by guessing a suitable buffer size.
+            with Opener(fileobj) as f:
+                old_file_position = f.tell()
+                f.seek(0, os.SEEK_END)
+                size = f.tell()
+                f.seek(old_file_position, os.SEEK_SET)
+
+            # Buffer size is in mega bytes.
+            mbytes = size // (1024 * 1024)
+            sizes = [mbytes, 4, 4]
+            if hdr["nb_scalars_per_point"] > 0:
+                sizes = [mbytes // 2, mbytes // 2, 4]
+
             trk_reader = cls._read(fileobj, hdr)
-            arr_seqs = create_arraysequences_from_generator(trk_reader, n=3)
+            arr_seqs = create_arraysequences_from_generator(trk_reader, n=3,
+                                                            buffer_sizes=sizes)
             streamlines, scalars, properties = arr_seqs
             properties = np.asarray(properties)  # Actually a 2d array.
             tractogram = Tractogram(streamlines)
@@ -396,7 +415,7 @@ class TrkFile(TractogramFile):
             of the TRK header data).
         """
         # Enforce little-endian byte order for header
-        header = self._default_structarr().newbyteorder('<')
+        header = self._default_structarr(endianness='little')
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
@@ -556,11 +575,11 @@ class TrkFile(TractogramFile):
         start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
 
         with Opener(fileobj) as f:
-
-            # Read the header in one block.
-            header_str = f.read(header_2_dtype.itemsize)
-            header_rec = np.fromstring(string=header_str, dtype=header_2_dtype)
-
+            # Reading directly from a file into a (mutable) bytearray enables a zero-copy
+            # cast to a mutable numpy object with frombuffer
+            header_buf = bytearray(header_2_dtype.itemsize)
+            f.readinto(header_buf)
+            header_rec = np.frombuffer(buffer=header_buf, dtype=header_2_dtype)
             # Check endianness
             endianness = native_code
             if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
@@ -606,7 +625,7 @@ class TrkFile(TractogramFile):
             # http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates
             if header[Field.VOXEL_ORDER] == b"":
                 msg = ("Voxel order is not specified, will assume 'LPS' since"
-                       "it is Trackvis software's default.")
+                       " it is Trackvis software's default.")
                 warnings.warn(msg, HeaderWarning)
                 header[Field.VOXEL_ORDER] = b"LPS"
 

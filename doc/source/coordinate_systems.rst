@@ -23,8 +23,8 @@ their brain, a single EPI volume, and a structural scan.  In general we never
 use the person's name in the image filenames, but we make an
 exception in this case:
 
-* :download:`somones_epi.nii.gz </downloads/someones_epi.nii.gz>`.
-* :download:`somones_anatomy.nii.gz </downloads/someones_anatomy.nii.gz>`.
+* :download:`someones_epi.nii.gz </downloads/someones_epi.nii.gz>`.
+* :download:`someones_anatomy.nii.gz </downloads/someones_anatomy.nii.gz>`.
 
 We can load up the EPI image to get the image data array:
 
@@ -34,7 +34,7 @@ We can load up the EPI image to get the image data array:
 
     >>> import nibabel as nib
     >>> epi_img = nib.load('downloads/someones_epi.nii.gz')
-    >>> epi_img_data = epi_img.get_data()
+    >>> epi_img_data = epi_img.get_fdata()
     >>> epi_img_data.shape
     (53, 61, 33)
 
@@ -64,7 +64,7 @@ and look at slices in the three axes:
     :context:
 
     >>> anat_img = nib.load('downloads/someones_anatomy.nii.gz')
-    >>> anat_img_data = anat_img.get_data()
+    >>> anat_img_data = anat_img.get_fdata()
     >>> anat_img_data.shape
     (57, 67, 56)
     >>> show_slices([anat_img_data[28, :, :],
@@ -215,7 +215,7 @@ From scanner to subject
 
 If the subject is lying in the usual position for a brain scan, face up
 and head first in the scanner, then scanner-left/right is also the left-right
-axis of the subject's head, scanner-floor/ceiling is the anterior-posterior
+axis of the subject's head, scanner-floor/ceiling is the posterior-anterior
 axis of the head and scanner-bore is the inferior-superior axis of the head.
 
 Sometimes the subject is not lying in the standard position.  For example, the
@@ -231,14 +231,14 @@ position of the subject.  The most common subject-centered scanner coordinate
 system in neuroimaging is called "scanner RAS" (right, anterior, superior).
 Here the scanner axes are reordered and flipped so that the first axis is the
 scanner axis that is closest to the left to right axis of the subject, the
-second is the closest scanner axis to the anterior-posterior axis of the
+second is the closest scanner axis to the posterior-anterior axis of the
 subject, and the third is the closest scanner axis to the inferior-superior
 axis of the subject.  For example, if the subject was lying face to the right
 in the scanner, then the first (X) axis of the reference system would be
 scanner-floor/ceiling, but reversed so that positive values are towards the
 floor.  This axis goes from left to right in the subject, with positive values
 to the right.  The second (Y) axis would be scanner-left/right
-(anterior-posterior in the subject), and the Z axis would be scanner-bore
+(posterior-anterior in the subject), and the Z axis would be scanner-bore
 (inferior-superior).
 
 Naming reference spaces
@@ -255,7 +255,7 @@ axes *starts* on the right, anterior, superior of the subject, rather than
 *ending* on the right, anterior, superior.  In other words, they would use
 "RAS" to refer to a coordinate system we would call "LPI".  To be safe, we'll
 call our interpretation of the RAS convention "RAS+", meaning that Right,
-Anterior, Posterior are all positive values on these axes.
+Anterior, Superior are all positive values on these axes.
 
 Some people also use "right" to mean the right hand side when an observer
 looks at the front of the scanner, from the foot the scanner bed.

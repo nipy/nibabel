@@ -14,37 +14,37 @@ What is the image API?
 * ``img.shape`` (shape of data as read with ``np.array(img.dataobj)``
 * ``img.get_fdata()`` (returns floating point data as read with
   ``np.array(img.dataobj)`` and the cast to float);
-* ``img.get_data()`` (returns data as read with ``np.array(img.dataobj)``);
-* ``img.uncache()`` (``img.get_data()`` and ``img.get_data`` are allowed to
-  cache the result of the array creation.  If they do, this call empties that
-  cache.  Implement this as a no-op if ``get_fdata()``, ``get_data`` do not
-  cache.
+* ``img.uncache()`` (``img.get_fdata()`` (recommended) and ``img.get_data()``
+  (deprecated) are allowed to cache the result of the array creation.  If they
+  do, this call empties that cache.  Implement this as a no-op if
+  ``get_fdata()``, ``get_data()`` do not cache.)
 * ``img[something]`` generates an informative TypeError
 * ``img.in_memory`` is True for an array image, and for a proxy image that is
   cached, but False otherwise.
 """
-from __future__ import division, print_function, absolute_import
 
 import warnings
 from functools import partial
-from six import string_types
+from itertools import product
+import pathlib
 
 import numpy as np
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
-_, have_h5py, _ = optional_package('h5py')
+from .._h5py_compat import have_h5py
 
 from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
+                GiftiImage,
                 MGHImage, Minc1Image, Minc2Image, is_proxy)
 from ..spatialimages import SpatialImage
-from .. import minc1, minc2, parrec
+from .. import minc1, minc2, parrec, brikhead
 
 from nose import SkipTest
 from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
 
-from numpy.testing import (assert_almost_equal, assert_array_equal)
+from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
 from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
 
@@ -54,7 +54,7 @@ from .test_helpers import (bytesio_round_trip, bytesio_filemap,
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
-
+from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 
 class GenericImageAPI(ValidateAPI):
     """ General image validation API """
@@ -92,7 +92,7 @@ class GenericImageAPI(ValidateAPI):
                 ``data_summary`` : dict with data ``min``, ``max``, ``mean``;
               * ``shape`` : shape of image;
               * ``affine`` : shape (4, 4) affine array for image;
-              * ``dtype`` : dtype of data returned from ``get_data()``;
+              * ``dtype`` : dtype of data returned from ``np.asarray(dataobj)``;
               * ``is_proxy`` : bool, True if image data is proxied;
 
         Notes
@@ -131,8 +131,7 @@ class GenericImageAPI(ValidateAPI):
         rt_img = bytesio_round_trip(img)
         assert_array_equal(img.shape, rt_img.shape)
         assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-        # get_data will be deprecated
-        assert_almost_equal(img.get_data(), rt_img.get_data())
+        assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
         # Give the image a file map
         klass = type(img)
         rt_img.file_map = bytesio_filemap(klass)
@@ -140,28 +139,38 @@ class GenericImageAPI(ValidateAPI):
         rt_img.to_file_map()
         rt_rt_img = klass.from_file_map(rt_img.file_map)
         assert_almost_equal(img.get_fdata(), rt_rt_img.get_fdata())
-        # get_data will be deprecated
-        assert_almost_equal(img.get_data(), rt_rt_img.get_data())
+        assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
         # get_ / set_ filename
         fname = 'an_image' + self.standard_extension
-        img.set_filename(fname)
-        assert_equal(img.get_filename(), fname)
-        assert_equal(img.file_map['image'].filename, fname)
+        for path in (fname, pathlib.Path(fname)):
+            img.set_filename(path)
+            assert_equal(img.get_filename(), str(path))
+            assert_equal(img.file_map['image'].filename, str(path))
         # to_ / from_ filename
         fname = 'another_image' + self.standard_extension
-        with InTemporaryDirectory():
-            img.to_filename(fname)
-            rt_img = img.__class__.from_filename(fname)
-            assert_array_equal(img.shape, rt_img.shape)
-            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-            # get_data will be deprecated
-            assert_almost_equal(img.get_data(), rt_img.get_data())
-            del rt_img  # to allow windows to delete the directory
+        for path in (fname, pathlib.Path(fname)):
+          with InTemporaryDirectory():
+              # Validate that saving or loading a file doesn't use deprecated methods internally
+              with clear_and_catch_warnings() as w:
+                  warnings.simplefilter('error', DeprecationWarning)
+                  img.to_filename(path)
+                  rt_img = img.__class__.from_filename(path)
+              assert_array_equal(img.shape, rt_img.shape)
+              assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+              assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
+              del rt_img  # to allow windows to delete the directory
 
     def validate_no_slicing(self, imaker, params):
         img = imaker()
         assert_raises(TypeError, img.__getitem__, 'string')
         assert_raises(TypeError, img.__getitem__, slice(None))
+
+    def validate_get_data_deprecated(self, imaker, params):
+        # Check deprecated header API
+        img = imaker()
+        with assert_warns(DeprecationWarning):
+            data = img.get_data()
+        assert_array_equal(np.asanyarray(img.dataobj), data)
 
 
 class GetSetDtypeMixin(object):
@@ -195,155 +204,23 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     Use this mixin if your image has a ``dataobj`` property that contains an
     array or an array-like thing.
     """
+    meth_names = ('get_fdata', 'get_data')
+
     def validate_data_interface(self, imaker, params):
         # Check get data returns array, and caches
         img = imaker()
         assert_equal(img.shape, img.dataobj.shape)
+        assert_equal(img.ndim, len(img.shape))
         assert_data_similar(img.dataobj, params)
-        meth_names = ('get_fdata', 'get_data')
-        for meth_name in meth_names:
+        for meth_name in self.meth_names:
             if params['is_proxy']:
-                # Parameters assert this is an array proxy
-                img = imaker()
-                # Does is_proxy agree?
-                assert_true(is_proxy(img.dataobj))
-                # Confirm it is not a numpy array
-                assert_false(isinstance(img.dataobj, np.ndarray))
-                # Confirm it can be converted to a numpy array with asarray
-                proxy_data = np.asarray(img.dataobj)
-                proxy_copy = proxy_data.copy()
-                # Not yet cached, proxy image: in_memory is False
-                assert_false(img.in_memory)
-                # Load with caching='unchanged'
-                method = getattr(img, meth_name)
-                data = method(caching='unchanged')
-                # Still not cached
-                assert_false(img.in_memory)
-                # Default load, does caching
-                data = method()
-                # Data now cached. in_memory is True if either of the get_data
-                # or get_fdata caches are not-None
-                assert_true(img.in_memory)
-                # We previously got proxy_data from disk, but data, which we
-                # have just fetched, is a fresh copy.
-                assert_false(proxy_data is data)
-                # asarray on dataobj, applied above, returns same numerical
-                # values.  This might not be true get_fdata operating on huge
-                # integers, but lets assume that's not true here.
-                assert_array_equal(proxy_data, data)
-                # Now caching='unchanged' does nothing, returns cached version
-                data_again = method(caching='unchanged')
-                assert_true(data is data_again)
-                # caching='fill' does nothing because the cache is already full
-                data_yet_again = method(caching='fill')
-                assert_true(data is data_yet_again)
-                # changing array data does not change proxy data, or reloaded
-                # data
-                data[:] = 42
-                assert_array_equal(proxy_data, proxy_copy)
-                assert_array_equal(np.asarray(img.dataobj), proxy_copy)
-                # It does change the result of get_data
-                assert_array_equal(method(), 42)
-                # until we uncache
-                img.uncache()
-                # Which unsets in_memory
-                assert_false(img.in_memory)
-                assert_array_equal(method(), proxy_copy)
-                # Check caching='fill' does cache data
-                img = imaker()
-                method = getattr(img, meth_name)
-                assert_false(img.in_memory)
-                data = method(caching='fill')
-                assert_true(img.in_memory)
-                data_again = method()
-                assert_true(data is data_again)
-                # Check the interaction of caching with get_data, get_fdata.
-                # Caching for `get_data` should have no effect on caching for
-                # get_fdata, and vice versa.
-                # Modify the cached data
-                data[:] = 43
-                # Load using the other data fetch method
-                other_name = set(meth_names).difference({meth_name}).pop()
-                other_method = getattr(img, other_name)
-                other_data = other_method()
-                # We get the original data, not the modified cache
-                assert_array_equal(proxy_data, other_data)
-                assert_false(np.all(data == other_data))
-                # We can modify the other cache, without affecting the first
-                other_data[:] = 44
-                assert_array_equal(other_method(), 44)
-                assert_false(np.all(method() == other_method()))
-                # Check that caching refreshes for new floating point type.
-                if meth_name == 'get_fdata':
-                    img.uncache()
-                    fdata = img.get_fdata()
-                    assert_equal(fdata.dtype, np.float64)
-                    fdata[:] = 42
-                    fdata_back = img.get_fdata()
-                    assert_array_equal(fdata_back, 42)
-                    assert_equal(fdata_back.dtype, np.float64)
-                    # New data dtype, no caching, doesn't use or alter cache
-                    fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
-                    # We get back the original read, not the modified cache
-                    assert_array_equal(fdata_new_dt, proxy_data.astype('f4'))
-                    assert_equal(fdata_new_dt.dtype, np.float32)
-                    # The original cache stays in place, for default float64
-                    assert_array_equal(img.get_fdata(), 42)
-                    # And for not-default float32, because we haven't cached
-                    fdata_new_dt[:] = 43
-                    fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
-                    assert_array_equal(fdata_new_dt, proxy_data.astype('f4'))
-                    # Until we reset with caching='fill', at which point we
-                    # drop the original float64 cache, and have a float32 cache
-                    fdata_new_dt = img.get_fdata(caching='fill', dtype='f4')
-                    assert_array_equal(fdata_new_dt, proxy_data.astype('f4'))
-                    # We're using the cache, for dtype='f4' reads
-                    fdata_new_dt[:] = 43
-                    assert_array_equal(img.get_fdata(dtype='f4'), 43)
-                    # We've lost the cache for float64 reads (no longer 42)
-                    assert_array_equal(img.get_fdata(), proxy_data)
-            else:  # not proxy
-                for caching in (None, 'fill', 'unchanged'):
-                    img = imaker()
-                    method = getattr(img, meth_name)
-                    get_data_func = (method if caching is None else
-                                     partial(method, caching=caching))
-                    assert_true(isinstance(img.dataobj, np.ndarray))
-                    assert_true(img.in_memory)
-                    data = get_data_func()
-                    # Returned data same object as underlying dataobj if using
-                    # old ``get_data`` method, or using newer ``get_fdata``
-                    # method, where original array was float64.
-                    dataobj_is_data = (img.dataobj.dtype == np.float64
-                                       or method == img.get_data)
-                    # Set something to the output array.
-                    data[:] = 42
-                    get_result_changed = np.all(get_data_func() == 42)
-                    assert_equal(get_result_changed,
-                                 dataobj_is_data or caching != 'unchanged')
-                    if dataobj_is_data:
-                        assert_true(data is img.dataobj)
-                        # Changing array data changes
-                        # data
-                        assert_array_equal(np.asarray(img.dataobj), 42)
-                        # Uncache has no effect
-                        img.uncache()
-                        assert_array_equal(get_data_func(), 42)
-                    else:
-                        assert_false(data is img.dataobj)
-                        assert_false(np.all(np.asarray(img.dataobj) == 42))
-                        # Uncache does have an effect
-                        img.uncache()
-                        assert_false(np.all(get_data_func() == 42))
-                    # in_memory is always true for array images, regardless of
-                    # cache state.
-                    img.uncache()
-                    assert_true(img.in_memory)
-                # Values to get_data caching parameter must be 'fill' or
-                # 'unchanged'
-                assert_raises(ValueError, img.get_data, caching='something')
+                self._check_proxy_interface(imaker, meth_name)
+            else:  # Array image
+                self._check_array_interface(imaker, meth_name)
             # Data shape is same as image shape
-            assert_equal(img.shape, method().shape)
+            assert_equal(img.shape, getattr(img, meth_name)().shape)
+            # Data ndim is same as image ndim
+            assert_equal(img.ndim, getattr(img, meth_name)().ndim)
             # Values to get_data caching parameter must be 'fill' or
             # 'unchanged'
             assert_raises(ValueError, img.get_data, caching='something')
@@ -352,6 +229,162 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert_raises(AttributeError, setattr, img, 'dataobj', fake_data)
         # So is in_memory
         assert_raises(AttributeError, setattr, img, 'in_memory', False)
+
+    def _check_proxy_interface(self, imaker, meth_name):
+        # Parameters assert this is an array proxy
+        img = imaker()
+        # Does is_proxy agree?
+        assert_true(is_proxy(img.dataobj))
+        # Confirm it is not a numpy array
+        assert_false(isinstance(img.dataobj, np.ndarray))
+        # Confirm it can be converted to a numpy array with asarray
+        proxy_data = np.asarray(img.dataobj)
+        proxy_copy = proxy_data.copy()
+        # Not yet cached, proxy image: in_memory is False
+        assert_false(img.in_memory)
+        # Load with caching='unchanged'
+        method = getattr(img, meth_name)
+        data = method(caching='unchanged')
+        # Still not cached
+        assert_false(img.in_memory)
+        # Default load, does caching
+        data = method()
+        # Data now cached. in_memory is True if either of the get_data
+        # or get_fdata caches are not-None
+        assert_true(img.in_memory)
+        # We previously got proxy_data from disk, but data, which we
+        # have just fetched, is a fresh copy.
+        assert_false(proxy_data is data)
+        # asarray on dataobj, applied above, returns same numerical
+        # values.  This might not be true get_fdata operating on huge
+        # integers, but lets assume that's not true here.
+        assert_array_equal(proxy_data, data)
+        # Now caching='unchanged' does nothing, returns cached version
+        data_again = method(caching='unchanged')
+        assert_true(data is data_again)
+        # caching='fill' does nothing because the cache is already full
+        data_yet_again = method(caching='fill')
+        assert_true(data is data_yet_again)
+        # changing array data does not change proxy data, or reloaded
+        # data
+        data[:] = 42
+        assert_array_equal(proxy_data, proxy_copy)
+        assert_array_equal(np.asarray(img.dataobj), proxy_copy)
+        # It does change the result of get_data
+        assert_array_equal(method(), 42)
+        # until we uncache
+        img.uncache()
+        # Which unsets in_memory
+        assert_false(img.in_memory)
+        assert_array_equal(method(), proxy_copy)
+        # Check caching='fill' does cache data
+        img = imaker()
+        method = getattr(img, meth_name)
+        assert_false(img.in_memory)
+        data = method(caching='fill')
+        assert_true(img.in_memory)
+        data_again = method()
+        assert_true(data is data_again)
+        # Check the interaction of caching with get_data, get_fdata.
+        # Caching for `get_data` should have no effect on caching for
+        # get_fdata, and vice versa.
+        # Modify the cached data
+        data[:] = 43
+        # Load using the other data fetch method
+        other_name = set(self.meth_names).difference({meth_name}).pop()
+        other_method = getattr(img, other_name)
+        other_data = other_method()
+        # We get the original data, not the modified cache
+        assert_array_equal(proxy_data, other_data)
+        assert_false(np.all(data == other_data))
+        # We can modify the other cache, without affecting the first
+        other_data[:] = 44
+        assert_array_equal(other_method(), 44)
+        assert_false(np.all(method() == other_method()))
+        if meth_name != 'get_fdata':
+            return
+        # Check that caching refreshes for new floating point type.
+        img.uncache()
+        fdata = img.get_fdata()
+        assert_equal(fdata.dtype, np.float64)
+        fdata[:] = 42
+        fdata_back = img.get_fdata()
+        assert_array_equal(fdata_back, 42)
+        assert_equal(fdata_back.dtype, np.float64)
+        # New data dtype, no caching, doesn't use or alter cache
+        fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
+        # We get back the original read, not the modified cache
+        # Allow for small rounding error when the data is scaled with 32-bit
+        # factors, rather than 64-bit factors and then cast to float-32
+        # Use rtol/atol from numpy.allclose
+        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        assert_equal(fdata_new_dt.dtype, np.float32)
+        # The original cache stays in place, for default float64
+        assert_array_equal(img.get_fdata(), 42)
+        # And for not-default float32, because we haven't cached
+        fdata_new_dt[:] = 43
+        fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
+        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        # Until we reset with caching='fill', at which point we
+        # drop the original float64 cache, and have a float32 cache
+        fdata_new_dt = img.get_fdata(caching='fill', dtype='f4')
+        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        # We're using the cache, for dtype='f4' reads
+        fdata_new_dt[:] = 43
+        assert_array_equal(img.get_fdata(dtype='f4'), 43)
+        # We've lost the cache for float64 reads (no longer 42)
+        assert_array_equal(img.get_fdata(), proxy_data)
+
+    def _check_array_interface(self, imaker, meth_name):
+        for caching in (None, 'fill', 'unchanged'):
+            self._check_array_caching(imaker, meth_name, caching)
+
+    def _check_array_caching(self, imaker, meth_name, caching):
+        img = imaker()
+        method = getattr(img, meth_name)
+        get_data_func = (method if caching is None else
+                         partial(method, caching=caching))
+        assert_true(isinstance(img.dataobj, np.ndarray))
+        assert_true(img.in_memory)
+        data = get_data_func()
+        # Returned data same object as underlying dataobj if using
+        # old ``get_data`` method, or using newer ``get_fdata``
+        # method, where original array was float64.
+        arr_dtype = img.dataobj.dtype
+        dataobj_is_data = arr_dtype == np.float64 or method == img.get_data
+        # Set something to the output array.
+        data[:] = 42
+        get_result_changed = np.all(get_data_func() == 42)
+        assert_equal(get_result_changed,
+                     dataobj_is_data or caching != 'unchanged')
+        if dataobj_is_data:
+            assert_true(data is img.dataobj)
+            # Changing array data changes
+            # data
+            assert_array_equal(np.asarray(img.dataobj), 42)
+            # Uncache has no effect
+            img.uncache()
+            assert_array_equal(get_data_func(), 42)
+        else:
+            assert_false(data is img.dataobj)
+            assert_false(np.all(np.asarray(img.dataobj) == 42))
+            # Uncache does have an effect
+            img.uncache()
+            assert_false(np.all(get_data_func() == 42))
+        # in_memory is always true for array images, regardless of
+        # cache state.
+        img.uncache()
+        assert_true(img.in_memory)
+        if meth_name != 'get_fdata':
+            return
+        # Return original array from get_fdata only if the input array is the
+        # requested dtype.
+        float_types = np.sctypes['float']
+        if arr_dtype not in float_types:
+            return
+        for float_type in float_types:
+            data = get_data_func(dtype=float_type)
+            assert_equal(data is img.dataobj, arr_dtype == float_type)
 
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning
@@ -375,6 +408,17 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Read only
         assert_raises(AttributeError, setattr, img, 'shape', np.eye(4))
 
+    def validate_ndim(self, imaker, params):
+        # Validate shape
+        img = imaker()
+        # Same as expected ndim
+        assert_equal(img.ndim, len(params['shape']))
+        # Same as array ndim if passed
+        if 'data' in params:
+            assert_equal(img.ndim, params['data'].ndim)
+        # Read only
+        assert_raises(AttributeError, setattr, img, 'ndim', 5)
+
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
         img = imaker()
@@ -383,6 +427,33 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert_equal(img.get_shape(), params['shape'])
             assert_equal(len(w), 1)
 
+    def validate_mmap_parameter(self, imaker, params):
+        img = imaker()
+        fname = img.get_filename()
+        with InTemporaryDirectory():
+            # Load test files with mmap parameters
+            # or
+            # Save a generated file so we can test it
+            if fname is None:
+                # Skip only formats we can't write
+                if not img.rw or not img.valid_exts:
+                    return
+                fname = 'image' + img.valid_exts[0]
+                img.to_filename(fname)
+            rt_img = img.__class__.from_filename(fname, mmap=True)
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap=False)
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap='c')
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            rt_img = img.__class__.from_filename(fname, mmap='r')
+            assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+            # r+ is specifically not valid for images
+            assert_raises(ValueError,
+                          img.__class__.from_filename, fname, mmap='r+')
+            assert_raises(ValueError,
+                          img.__class__.from_filename, fname, mmap='invalid')
+            del rt_img  # to allow windows to delete the directory
 
 
 class HeaderShapeMixin(object):
@@ -433,6 +504,67 @@ class AffineMixin(object):
             assert_true(aff is img.get_affine())
 
 
+class SerializeMixin(object):
+    def validate_to_bytes(self, imaker, params):
+        img = imaker()
+        serialized = img.to_bytes()
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+            with open(fname, 'rb') as fobj:
+                file_contents = fobj.read()
+        assert serialized == file_contents
+
+    def validate_from_bytes(self, imaker, params):
+        img = imaker()
+        klass = getattr(self, 'klass', img.__class__)
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+
+            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            for img_params in all_images:
+                img_a = klass.from_filename(img_params['fname'])
+                with open(img_params['fname'], 'rb') as fobj:
+                    img_b = klass.from_bytes(fobj.read())
+
+                assert self._header_eq(img_a.header, img_b.header)
+                assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
+                del img_a
+                del img_b
+
+    def validate_to_from_bytes(self, imaker, params):
+        img = imaker()
+        klass = getattr(self, 'klass', img.__class__)
+        with InTemporaryDirectory():
+            fname = 'img' + self.standard_extension
+            img.to_filename(fname)
+
+            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            for img_params in all_images:
+                img_a = klass.from_filename(img_params['fname'])
+                bytes_a = img_a.to_bytes()
+
+                img_b = klass.from_bytes(bytes_a)
+
+                assert img_b.to_bytes() == bytes_a
+                assert self._header_eq(img_a.header, img_b.header)
+                assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
+                del img_a
+                del img_b
+
+    @staticmethod
+    def _header_eq(header_a, header_b):
+        """ Header equality check that can be overridden by a subclass of this test
+
+        This allows us to retain the same tests above when testing an image that uses an
+        abstract class as a header, namely when testing the FileBasedImage API, which
+        raises a NotImplementedError for __eq__
+        """
+        return header_a == header_b
+
+
+
 class LoadImageAPI(GenericImageAPI,
                    DataInterfaceMixin,
                    AffineMixin,
@@ -456,7 +588,7 @@ class LoadImageAPI(GenericImageAPI,
             assert_true(isinstance(test, bool))
             if sniff is not None:
                 assert isinstance(sniff[0], bytes)
-                assert isinstance(sniff[1], string_types)
+                assert isinstance(sniff[1], str)
 
 
 class MakeImageAPI(LoadImageAPI):
@@ -468,40 +600,49 @@ class MakeImageAPI(LoadImageAPI):
     header_maker = None
     # Example shapes for created images
     example_shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
+    # Supported dtypes for storing to disk
+    storable_dtypes = (np.uint8, np.int16, np.float32)
 
     def obj_params(self):
         # Return any obj_params from superclass
         for func, params in super(MakeImageAPI, self).obj_params():
             yield func, params
-        # Create a new images
+        # Create new images
         aff = np.diag([1, 2, 3, 1])
 
         def make_imaker(arr, aff, header=None):
             return lambda: self.image_maker(arr, aff, header)
-        for shape in self.example_shapes:
-            for dtype in (np.uint8, np.int16, np.float32):
-                arr = np.arange(np.prod(shape), dtype=np.float32).reshape(shape)
-                hdr = self.header_maker()
-                hdr.set_data_dtype(dtype)
-                func = make_imaker(arr.copy(), aff, hdr)
-                params = dict(
-                    dtype=dtype,
-                    affine=aff,
-                    data=arr,
-                    shape=shape,
-                    is_proxy=False)
-                yield func, params
-        if not self.can_save:
-            return
-        # Add a proxy image
-        # We assume that loading from a fileobj creates a proxy image
-        params['is_proxy'] = True
 
-        def prox_imaker():
-            img = self.image_maker(arr, aff, hdr)
-            rt_img = bytesio_round_trip(img)
-            return self.image_maker(rt_img.dataobj, aff, rt_img.header)
-        yield prox_imaker, params
+        def make_prox_imaker(arr, aff, hdr):
+
+            def prox_imaker():
+                img = self.image_maker(arr, aff, hdr)
+                rt_img = bytesio_round_trip(img)
+                return self.image_maker(rt_img.dataobj, aff, rt_img.header)
+
+            return prox_imaker
+
+        for shape, stored_dtype in product(self.example_shapes,
+                                           self.storable_dtypes):
+            # To make sure we do not trigger scaling, always use the
+            # stored_dtype for the input array.
+            arr = np.arange(np.prod(shape), dtype=stored_dtype).reshape(shape)
+            hdr = self.header_maker()
+            hdr.set_data_dtype(stored_dtype)
+            func = make_imaker(arr.copy(), aff, hdr)
+            params = dict(
+                dtype=stored_dtype,
+                affine=aff,
+                data=arr,
+                shape=shape,
+                is_proxy=False)
+            yield make_imaker(arr.copy(), aff, hdr), params
+            if not self.can_save:
+                continue
+            # Create proxy images from these array images, by storing via BytesIO.
+            # We assume that loading from a fileobj creates a proxy image.
+            params['is_proxy'] = True
+            yield make_prox_imaker(arr.copy(), aff, hdr), params
 
 
 class ImageHeaderAPI(MakeImageAPI):
@@ -519,6 +660,8 @@ class TestAnalyzeAPI(ImageHeaderAPI):
     has_scaling = False
     can_save = True
     standard_extension = '.img'
+    # Supported dtypes for storing to disk
+    storable_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.float64)
 
 
 class TestSpatialImageAPI(TestAnalyzeAPI):
@@ -542,7 +685,7 @@ class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
     can_save = True
 
 
-class TestNifti1API(TestNifti1PairAPI):
+class TestNifti1API(TestNifti1PairAPI, SerializeMixin):
     klass = image_maker = Nifti1Image
     standard_extension = '.nii'
 
@@ -589,9 +732,21 @@ class TestPARRECAPI(LoadImageAPI):
 #    standard_extension = '.v'
 
 
-class TestMGHAPI(ImageHeaderAPI):
+class TestMGHAPI(ImageHeaderAPI, SerializeMixin):
     klass = image_maker = MGHImage
     example_shapes = ((2, 3, 4), (2, 3, 4, 5))  # MGH can only do >= 3D
     has_scaling = True
     can_save = True
     standard_extension = '.mgh'
+
+
+class TestGiftiAPI(LoadImageAPI, SerializeMixin):
+    klass = image_maker = GiftiImage
+    can_save = True
+    standard_extension = '.gii'
+
+
+class TestAFNIAPI(LoadImageAPI):
+    loader = brikhead.load
+    klass = image_maker = brikhead.AFNIImage
+    example_images = AFNI_EXAMPLE_IMAGES

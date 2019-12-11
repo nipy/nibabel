@@ -81,7 +81,7 @@ def test_read_mgh():
     assert_array_almost_equal(h.get_vox2ras_tkr(), v2rtkr)
 
     # data. will be different for your own mri_volsynth invocation
-    v = mgz.get_data()
+    v = mgz.get_fdata()
     assert_almost_equal(v[1, 2, 3, 0], -0.3047, 4)
     assert_almost_equal(v[1, 2, 3, 1], 0.0018, 4)
 
@@ -97,7 +97,7 @@ def test_write_mgh():
         # read from the tmp file and see if it checks out
         mgz = load('tmpsave.mgz')
         h = mgz.header
-        dat = mgz.get_data()
+        dat = mgz.get_fdata()
         # Delete loaded image to allow file deletion by windows
         del mgz
     # header
@@ -159,6 +159,8 @@ def test_set_zooms():
                   (1, 1, 1, 1, 5)):
         with assert_raises(HeaderDataError):
             h.set_zooms(zooms)
+    # smoke test for tr=0
+    h.set_zooms((1, 1, 1, 0))
 
 
 def bad_dtype_mgh():
@@ -191,7 +193,7 @@ def test_filename_exts():
             save(img, fname)
             # read from the tmp file and see if it checks out
             img_back = load(fname)
-            assert_array_equal(img_back.get_data(), v)
+            assert_array_equal(img_back.get_fdata(), v)
             del img_back
 
 
@@ -286,7 +288,7 @@ def test_mgh_load_fileobj():
     fm = MGHImage.make_file_map(mapping=dict(image=bio))
     img2 = MGHImage.from_file_map(fm)
     assert_true(img2.dataobj.file_like is bio)
-    assert_array_equal(img.get_data(), img2.get_data())
+    assert_array_equal(img.get_fdata(), img2.get_fdata())
 
 
 def test_mgh_affine_default():

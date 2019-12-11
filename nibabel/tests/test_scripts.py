@@ -4,10 +4,10 @@
 
 Test running scripts
 """
-from __future__ import division, print_function, absolute_import
 
 import sys
 import os
+import shutil
 from os.path import (dirname, join as pjoin, abspath, splitext, basename,
                      exists)
 import csv
@@ -15,6 +15,7 @@ from glob import glob
 
 import numpy as np
 
+import nibabel as nib
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
@@ -22,7 +23,7 @@ from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 from nose.tools import assert_true, assert_false, assert_equal
 from nose import SkipTest
 
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 from .scriptrunner import ScriptRunner
 from .nibabel_data import needs_nibabel_data
@@ -64,6 +65,40 @@ def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
     code, stdout, stderr = run_command(cmd)
     assert_equal(fname, stdout[:len(fname)])
     assert_re_in(expected_re, stdout[len(fname):])
+
+
+def check_nib_diff_examples():
+    fnames = [pjoin(DATA_PATH, f)
+               for f in ('standard.nii.gz', 'example4d.nii.gz')]
+    code, stdout, stderr = run_command(['nib-diff'] + fnames, check_code=False)
+    checked_fields = ["Field/File", "regular", "dim_info", "dim", "datatype", "bitpix", "pixdim", "slice_end",
+                      "xyzt_units", "cal_max", "descrip", "qform_code", "sform_code", "quatern_b",
+                      "quatern_c", "quatern_d", "qoffset_x", "qoffset_y", "qoffset_z", "srow_x",
+                      "srow_y", "srow_z", "DATA(md5)", "DATA(diff 1:)"]
+    for item in checked_fields:
+        assert_true(item in stdout)
+
+    fnames2 = [pjoin(DATA_PATH, f)
+              for f in ('example4d.nii.gz', 'example4d.nii.gz')]
+    code, stdout, stderr = run_command(['nib-diff'] + fnames2, check_code=False)
+    assert_equal(stdout, "These files are identical.")
+
+    fnames3 = [pjoin(DATA_PATH, f)
+               for f in ('standard.nii.gz', 'example4d.nii.gz', 'example_nifti2.nii.gz')]
+    code, stdout, stderr = run_command(['nib-diff'] + fnames3, check_code=False)
+    for item in checked_fields:
+        assert_true(item in stdout)
+
+    fnames4 = [pjoin(DATA_PATH, f)
+               for f in ('standard.nii.gz', 'standard.nii.gz', 'standard.nii.gz')]
+    code, stdout, stderr = run_command(['nib-diff'] + fnames4, check_code=False)
+    assert_equal(stdout, "These files are identical.")
+
+    code, stdout, stderr = run_command(['nib-diff', '--dt', 'float64'] + fnames, check_code=False)
+    for item in checked_fields:
+        assert_true(item in stdout)
+
+
 
 @script_test
 def test_nib_ls():
@@ -128,6 +163,30 @@ def test_nib_ls_multiple():
     )
 
 
+@script_test
+def test_help():
+    for cmd in ['parrec2nii', 'nib-dicomfs', 'nib-ls', 'nib-nifti-dx']:
+        if cmd == 'nib-dicomfs':
+            # needs special treatment since depends on fuse module which
+            # might not be available.
+            try:
+                import fuse
+            except Exception:
+                continue  # do not test this one
+        code, stdout, stderr = run_command([cmd, '--help'])
+        assert_equal(code, 0)
+        assert_re_in(".*%s" % cmd, stdout)
+        assert_re_in(".*Usage", stdout)
+        # Some third party modules might like to announce some Deprecation
+        # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
+        if 'warning' not in stderr.lower():
+            assert_equal(stderr, '')
+
+
+@script_test
+def test_nib_diff():
+    yield check_nib_diff_examples
+
 
 @script_test
 def test_nib_nifti_dx():
@@ -157,7 +216,7 @@ def check_conversion(cmd, pr_data, out_fname):
     img = load(out_fname)
     # Check orientations always LAS
     assert_equal(aff2axcodes(img.affine), tuple('LAS'))
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
     assert_true(np.allclose(img.header['cal_max'], data.max()))
@@ -165,21 +224,21 @@ def check_conversion(cmd, pr_data, out_fname):
     # Check minmax options
     run_command(cmd + ['--minmax', '1', '2'])
     img = load(out_fname)
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], 1))
     assert_true(np.allclose(img.header['cal_max'], 2))
     del img, data  # for windows
     run_command(cmd + ['--minmax', 'parse', '2'])
     img = load(out_fname)
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], data.min()))
     assert_true(np.allclose(img.header['cal_max'], 2))
     del img, data  # for windows
     run_command(cmd + ['--minmax', '1', 'parse'])
     img = load(out_fname)
-    data = img.get_data()
+    data = img.get_fdata()
     assert_true(np.allclose(data, pr_data))
     assert_true(np.allclose(img.header['cal_min'], 1))
     assert_true(np.allclose(img.header['cal_max'], data.max()))
@@ -201,7 +260,7 @@ def test_parrec2nii():
             assert_equal(img.shape, eg_dict['shape'])
             assert_dt_equal(img.get_data_dtype(), eg_dict['dtype'])
             # Check against values from Philips converted nifti image
-            data = img.get_data()
+            data = img.get_fdata()
             assert_data_similar(data, eg_dict)
             assert_almost_equal(img.header.get_zooms(), eg_dict['zooms'])
             # Standard save does not save extensions
@@ -214,7 +273,7 @@ def test_parrec2nii():
             assert_equal(code, 1)
             # Default scaling is dv
             pr_img = load(fname)
-            flipped_data = flip_axis(pr_img.get_data(), 1)
+            flipped_data = flip_axis(pr_img.get_fdata(), 1)
             base_cmd = ['parrec2nii', '--overwrite', fname]
             check_conversion(base_cmd, flipped_data, out_froot)
             check_conversion(base_cmd + ['--scaling=dv'],
@@ -222,7 +281,7 @@ def test_parrec2nii():
                              out_froot)
             # fp
             pr_img = load(fname, scaling='fp')
-            flipped_data = flip_axis(pr_img.get_data(), 1)
+            flipped_data = flip_axis(pr_img.get_fdata(), 1)
             check_conversion(base_cmd + ['--scaling=fp'],
                              flipped_data,
                              out_froot)
@@ -297,7 +356,7 @@ def test_parrec2nii_with_data():
         bvals_trace = np.loadtxt('DTI.bvals')
         assert_almost_equal(bvals_trace, DTI_PAR_BVALS)
         img = load('DTI.nii')
-        data = img.get_data().copy()
+        data = img.get_fdata()
         del img
         # Bvecs in header, transposed from PSL to LPS
         bvecs_LPS = DTI_PAR_BVECS[:, [2, 0, 1]]
@@ -325,7 +384,7 @@ def test_parrec2nii_with_data():
         img = load('DTI.nii')
         bvecs_notrace = np.loadtxt('DTI.bvecs').T
         bvals_notrace = np.loadtxt('DTI.bvals')
-        data_notrace = img.get_data().copy()
+        data_notrace = img.get_fdata()
         assert_equal(data_notrace.shape[-1], len(bvecs_notrace))
         del img
         # ensure correct volume was removed
@@ -340,7 +399,7 @@ def test_parrec2nii_with_data():
         # strict-sort: bvals should be in ascending order
         assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
         img = load('DTI.nii')
-        data_sorted = img.get_data().copy()
+        data_sorted = img.get_fdata()
         assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
         del img
 
@@ -357,3 +416,92 @@ def test_parrec2nii_with_data():
         assert_equal(sorted(csv_keys), ['diffusion b value number',
                                         'gradient orientation number'])
         assert_equal(nlines, 8)  # 8 volumes present in DTI.PAR
+
+
+@script_test
+def test_nib_trk2tck():
+    simple_trk = pjoin(DATA_PATH, "simple.trk")
+    standard_trk = pjoin(DATA_PATH, "standard.trk")
+
+    with InTemporaryDirectory() as tmpdir:
+        # Copy input files to convert.
+        shutil.copy(simple_trk, tmpdir)
+        shutil.copy(standard_trk, tmpdir)
+        simple_trk = pjoin(tmpdir, "simple.trk")
+        standard_trk = pjoin(tmpdir, "standard.trk")
+        simple_tck = pjoin(tmpdir, "simple.tck")
+        standard_tck = pjoin(tmpdir, "standard.tck")
+
+        # Convert one file.
+        cmd = ["nib-trk2tck", simple_trk]
+        code, stdout, stderr = run_command(cmd)
+        assert_equal(len(stdout), 0)
+        assert_true(os.path.isfile(simple_tck))
+        trk = nib.streamlines.load(simple_trk)
+        tck = nib.streamlines.load(simple_tck)
+        assert_array_equal(tck.streamlines.data, trk.streamlines.data)
+        assert_true(isinstance(tck, nib.streamlines.TckFile))
+
+        # Skip non TRK files.
+        cmd = ["nib-trk2tck", simple_tck]
+        code, stdout, stderr = run_command(cmd)
+        assert_true("Skipping non TRK file" in stdout)
+
+        # By default, refuse to overwrite existing output files.
+        cmd = ["nib-trk2tck", simple_trk]
+        code, stdout, stderr = run_command(cmd)
+        assert_true("Skipping existing file" in stdout)
+
+        # Convert multiple files and with --force.
+        cmd = ["nib-trk2tck", "--force", simple_trk, standard_trk]
+        code, stdout, stderr = run_command(cmd)
+        assert_equal(len(stdout), 0)
+        trk = nib.streamlines.load(standard_trk)
+        tck = nib.streamlines.load(standard_tck)
+        assert_array_equal(tck.streamlines.data, trk.streamlines.data)
+
+
+@script_test
+def test_nib_tck2trk():
+    anat = pjoin(DATA_PATH, "standard.nii.gz")
+    standard_tck = pjoin(DATA_PATH, "standard.tck")
+
+    with InTemporaryDirectory() as tmpdir:
+        # Copy input file to convert.
+        shutil.copy(standard_tck, tmpdir)
+        standard_trk = pjoin(tmpdir, "standard.trk")
+        standard_tck = pjoin(tmpdir, "standard.tck")
+
+        # Anatomical image not found as first argument.
+        cmd = ["nib-tck2trk", standard_tck, anat]
+        code, stdout, stderr = run_command(cmd, check_code=False)
+        assert_equal(code, 2)  # Parser error.
+        assert_true("Expecting anatomical image as first agument" in stderr)
+
+        # Convert one file.
+        cmd = ["nib-tck2trk", anat, standard_tck]
+        code, stdout, stderr = run_command(cmd)
+        assert_equal(len(stdout), 0)
+        assert_true(os.path.isfile(standard_trk))
+        tck = nib.streamlines.load(standard_tck)
+        trk = nib.streamlines.load(standard_trk)
+        assert_array_equal(trk.streamlines.data, tck.streamlines.data)
+        assert_true(isinstance(trk, nib.streamlines.TrkFile))
+
+        # Skip non TCK files.
+        cmd = ["nib-tck2trk", anat, standard_trk]
+        code, stdout, stderr = run_command(cmd)
+        assert_true("Skipping non TCK file" in stdout)
+
+        # By default, refuse to overwrite existing output files.
+        cmd = ["nib-tck2trk", anat, standard_tck]
+        code, stdout, stderr = run_command(cmd)
+        assert_true("Skipping existing file" in stdout)
+
+        # Convert multiple files and with --force.
+        cmd = ["nib-tck2trk", "--force", anat, standard_tck, standard_tck]
+        code, stdout, stderr = run_command(cmd)
+        assert_equal(len(stdout), 0)
+        tck = nib.streamlines.load(standard_tck)
+        trk = nib.streamlines.load(standard_trk)
+        assert_array_equal(tck.streamlines.data, trk.streamlines.data)

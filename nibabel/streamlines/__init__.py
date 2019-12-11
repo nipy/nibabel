@@ -2,7 +2,6 @@
 """
 import os
 import warnings
-from six import string_types
 
 from .header import Field
 from .array_sequence import ArraySequence
@@ -57,7 +56,7 @@ def detect_format(fileobj):
         except IOError:
             pass
 
-    if isinstance(fileobj, string_types):
+    if isinstance(fileobj, str):
         _, ext = os.path.splitext(fileobj)
         return FORMATS.get(ext.lower())
 
@@ -97,7 +96,7 @@ def load(fileobj, lazy_load=False):
 
 
 def save(tractogram, filename, **kwargs):
-    """ Saves a tractogram to a file.
+    r""" Saves a tractogram to a file.
 
     Parameters
     ----------

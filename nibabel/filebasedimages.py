@@ -8,8 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Common interface for any image format--volume or surface, binary or xml.'''
 
+import io
 from copy import deepcopy
-from six import string_types
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
@@ -78,8 +78,8 @@ class FileBasedImage(object):
 
     methods:
 
-       * .get_header() (deprecated, use header property instead)
-       * .to_filename(fname) - writes data to filename(s) derived from
+       * get_header() (deprecated, use header property instead)
+       * to_filename(fname) - writes data to filename(s) derived from
          ``fname``, where the derivation may differ between formats.
        * to_file_map() - save image to files with which the image is already
          associated.
@@ -120,7 +120,7 @@ class FileBasedImage(object):
 
     You can get the data out again with::
 
-        img.get_data()
+        img.get_fdata()
 
     Less commonly, for some image types that support it, you might want to
     fetch out the unscaled array via the object containing the data::
@@ -246,7 +246,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
            If the image format only has one file associated with it,
            this will be the only filename set into the image
            ``.file_map`` attribute. Otherwise, the image instance will
@@ -279,7 +279,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filespec : str
+        filespec : str or os.PathLike
             Filename that might be for this image file type.
 
         Returns
@@ -321,7 +321,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
            filename to which to save image.  We will parse `filename`
            with ``filespec_to_file_map`` to work out names for image,
            header etc.
@@ -373,7 +373,7 @@ class FileBasedImage(object):
         for key, ext in klass.files_types:
             file_map[key] = FileHolder()
             mapval = mapping.get(key, None)
-            if isinstance(mapval, string_types):
+            if isinstance(mapval, str):
                 file_map[key].filename = mapval
             elif hasattr(mapval, 'tell'):
                 file_map[key].fileobj = mapval
@@ -419,7 +419,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
             Filename for an image, or an image header (metadata) file.
             If `filename` points to an image data file, and the image type has
             a separate "header" file, we work out the name of the header file,
@@ -466,7 +466,7 @@ class FileBasedImage(object):
 
         Parameters
         ----------
-        filename : str
+        filename : str or os.PathLike
             Filename for an image, or an image header (metadata) file.
             If `filename` points to an image data file, and the image type has
             a separate "header" file, we work out the name of the header file,
@@ -511,3 +511,92 @@ class FileBasedImage(object):
         if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
             return False, sniff
         return klass.header_class.may_contain_header(sniff[0]), sniff
+
+
+class SerializableImage(FileBasedImage):
+    '''
+    Abstract image class for (de)serializing images to/from byte strings.
+
+    The class doesn't define any image properties.
+
+    It has:
+
+    methods:
+
+       * to_bytes() - serialize image to byte string
+
+    classmethods:
+
+       * from_bytes(bytestring) - make instance by deserializing a byte string
+
+    Loading from byte strings should provide round-trip equivalence:
+
+    .. code:: python
+
+        img_a = klass.from_bytes(bstr)
+        img_b = klass.from_bytes(img_a.to_bytes())
+
+        np.allclose(img_a.get_fdata(), img_b.get_fdata())
+        np.allclose(img_a.affine, img_b.affine)
+
+    Further, for images that are single files on disk, the following methods of loading
+    the image must be equivalent:
+
+    .. code:: python
+
+        img = klass.from_filename(fname)
+
+        with open(fname, 'rb') as fobj:
+            img = klass.from_bytes(fobj.read())
+
+    And the following methods of saving a file must be equivalent:
+
+    .. code:: python
+
+        img.to_filename(fname)
+
+        with open(fname, 'wb') as fobj:
+            fobj.write(img.to_bytes())
+
+    Images that consist of separate header and data files (e.g., Analyze
+    images) currently do not support this interface.
+    For multi-file images, ``to_bytes()`` and ``from_bytes()`` must be
+    overridden, and any encoding details should be documented.
+    '''
+
+    @classmethod
+    def from_bytes(klass, bytestring):
+        """ Construct image from a byte string
+
+        Class method
+
+        Parameters
+        ----------
+        bstring : bytes
+            Byte string containing the on-disk representation of an image
+        """
+        if len(klass.files_types) > 1:
+            raise NotImplementedError("from_bytes is undefined for multi-file images")
+        bio = io.BytesIO(bytestring)
+        file_map = klass.make_file_map({'image': bio, 'header': bio})
+        return klass.from_file_map(file_map)
+
+    def to_bytes(self):
+        """ Return a ``bytes`` object with the contents of the file that would
+        be written if the image were saved.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        bytes
+            Serialized image
+        """
+        if len(self.__class__.files_types) > 1:
+            raise NotImplementedError("to_bytes() is undefined for multi-file images")
+        bio = io.BytesIO()
+        file_map = self.make_file_map({'image': bio, 'header': bio})
+        self.to_file_map(file_map)
+        return bio.getvalue()

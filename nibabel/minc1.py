@@ -17,7 +17,8 @@ from .externals.netcdf import netcdf_file
 from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
 
-from .deprecated import FutureWarningMixin
+from .keywordonly import kw_only_meth
+from .deprecated import deprecate_with_version
 
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
@@ -172,7 +173,7 @@ class Minc1File(object):
             applied to `data`
         """
         ddt = self.get_data_dtype()
-        if ddt.type in np.sctypes['float']:
+        if np.issubdtype(ddt.type, np.floating):
             return data
         image_max = self._image_max
         image_min = self._image_min
@@ -253,12 +254,32 @@ class MincImageArrayProxy(object):
         return self._shape
 
     @property
+    def ndim(self):
+        return len(self.shape)
+
+    @property
     def is_proxy(self):
         return True
 
-    def __array__(self):
-        ''' Read of data from file '''
-        return self.minc_file.get_scaled_data()
+    def __array__(self, dtype=None):
+        """ Read data from file and apply scaling, casting to ``dtype``
+
+        If ``dtype`` is unspecified, the dtype is automatically determined.
+
+        Parameters
+        ----------
+        dtype : numpy dtype specifier, optional
+            A numpy dtype specifier specifying the type of the returned array.
+
+        Returns
+        -------
+        array
+            Scaled image data with type `dtype`.
+        """
+        arr = self.minc_file.get_scaled_data(sliceobj=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
 
     def __getitem__(self, sliceobj):
         """ Read slice `sliceobj` of data from file """
@@ -306,7 +327,9 @@ class Minc1Image(SpatialImage):
     ImageArrayProxy = MincImageArrayProxy
 
     @classmethod
-    def from_file_map(klass, file_map):
+    @kw_only_meth(1)
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+        # Note that mmap and keep_file_open are included for proper
         with file_map['image'].get_prepare_fileobj() as fobj:
             minc_file = Minc1File(netcdf_file(fobj))
             affine = minc_file.get_affine()
@@ -324,13 +347,13 @@ load = Minc1Image.load
 
 
 # Backwards compatibility
-class MincFile(FutureWarningMixin, Minc1File):
-    """ Deprecated alternative name for Minc1File
-    """
-    warn_message = 'MincFile is deprecated; please use Minc1File instead'
+@deprecate_with_version('MincFile is deprecated; please use Minc1File instead',
+                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
+class MincFile(Minc1File):
+    pass
 
 
-class MincImage(FutureWarningMixin, Minc1Image):
-    """ Deprecated alternative name for Minc1Image
-    """
-    warn_message = 'MincImage is deprecated; please use Minc1Image instead'
+@deprecate_with_version('MincImage is deprecated; please use Minc1Image instead',
+                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
+class MincImage(Minc1Image):
+    pass

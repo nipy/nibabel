@@ -14,7 +14,7 @@ import numpy as np
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
 
-from numpy.testing.decorators import skipif
+from ..testing import skipif
 from numpy.testing import assert_array_equal, assert_equal
 
 from nose.tools import assert_raises, assert_true

@@ -7,10 +7,10 @@ import numpy as np
 
 from ..eulerangles import euler2mat
 from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
-                       from_matvec, dot_reduce, voxel_sizes)
+                       from_matvec, dot_reduce, voxel_sizes, obliquity)
 
 
-from nose.tools import assert_equal, assert_raises
+import pytest
 from numpy.testing import assert_array_equal, assert_almost_equal, \
     assert_array_almost_equal
 
@@ -80,7 +80,7 @@ def test_matrix_vector():
         vec = xform[:-1, -1]
         assert_array_equal(newmat, mat)
         assert_array_equal(newvec, vec)
-        assert_equal(newvec.shape, (M - 1,))
+        assert newvec.shape == (M - 1,)
         assert_array_equal(from_matvec(mat, vec), xform)
         # Check default translation works
         xform_not = xform[:]
@@ -126,17 +126,19 @@ def test_append_diag():
                         [0, 0, 0, 5, 9],
                         [0, 0, 0, 0, 1]])
     # Length of starts has to match length of steps
-    assert_raises(AffineError, append_diag, aff, [5, 6], [9])
+    with pytest.raises(AffineError):
+        append_diag(aff, [5, 6], [9])
 
 
 def test_dot_reduce():
     # Chaining numpy dot
     # Error for no arguments
-    assert_raises(TypeError, dot_reduce)
+    with pytest.raises(TypeError):
+        dot_reduce()
     # Anything at all on its own, passes through
-    assert_equal(dot_reduce(1), 1)
-    assert_equal(dot_reduce(None), None)
-    assert_equal(dot_reduce([1, 2, 3]), [1, 2, 3])
+    assert dot_reduce(1) == 1
+    assert dot_reduce(None) is None
+    assert dot_reduce([1, 2, 3]) == [1, 2, 3]
     # Two or more -> dot product
     vec = [1, 2, 3]
     mat = np.arange(4, 13).reshape((3, 3))
@@ -178,3 +180,15 @@ def test_voxel_sizes():
             rot_affine[:3, :3] = rotation
             full_aff = rot_affine.dot(aff)
             assert_almost_equal(voxel_sizes(full_aff), vox_sizes)
+
+
+def test_obliquity():
+    """Check the calculation of inclination of an affine axes."""
+    from math import pi
+    aligned = np.diag([2.0, 2.0, 2.3, 1.0])
+    aligned[:-1, -1] = [-10, -10, -7]
+    R = from_matvec(euler2mat(x=0.09, y=0.001, z=0.001), [0.0, 0.0, 0.0])
+    oblique = R.dot(aligned)
+    assert_almost_equal(obliquity(aligned), [0.0, 0.0, 0.0])
+    assert_almost_equal(obliquity(oblique) * 180 / pi,
+                        [0.0810285, 5.1569949, 5.1569376])

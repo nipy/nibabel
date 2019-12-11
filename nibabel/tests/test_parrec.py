@@ -38,6 +38,8 @@ with ImageOpener(EG_PAR, 'rt') as _fobj:
 # Fake truncated
 TRUNC_PAR = pjoin(DATA_PATH, 'phantom_truncated.PAR')
 TRUNC_REC = pjoin(DATA_PATH, 'phantom_truncated.REC')
+# Post-processed diffusion: ADC Map
+ADC_PAR = pjoin(DATA_PATH, 'ADC_Map.PAR')
 # Fake V4
 V4_PAR = pjoin(DATA_PATH, 'phantom_fake_v4.PAR')
 # Fake V4.1
@@ -530,7 +532,7 @@ def test_diffusion_parameters_v4():
 def test_null_diffusion_params():
     # Test non-diffusion PARs return None for diffusion params
     for par, fobj in gen_par_fobj():
-        if basename(par) in ('DTI.PAR', 'DTIv40.PAR', 'NA.PAR'):
+        if basename(par) in ('DTI.PAR', 'DTIv40.PAR', 'NA.PAR', 'ADC_Map.PAR'):
             continue
         gen_info, slice_info = parse_PAR_header(fobj)
         with suppress_warnings():
@@ -762,13 +764,13 @@ def test_varying_scaling():
         scaled_arr[:, :, i] *= slopes[i]
         scaled_arr[:, :, i] += inters[i]
     assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
-                        img.get_data(), 9)
+                        img.get_fdata(), 9)
     # Check fp scaling
     for i in range(arr.shape[2]):
         scaled_arr[:, :, i] /= (slopes[i] * sc_slopes[i])
     dv_img = PARRECImage.load(VARY_REC, scaling='fp')
     assert_almost_equal(np.reshape(scaled_arr, img.shape, order='F'),
-                        dv_img.get_data(), 9)
+                        dv_img.get_fdata(), 9)
 
 
 def test_anonymized():
@@ -831,6 +833,25 @@ def test_dualTR():
                            expected_TRs)
         # zoom on 4th dimensions is the first TR (in seconds)
         assert_equal(dualTR_hdr.get_zooms()[3], expected_TRs[0]/1000)
+
+
+def test_ADC_map():
+    # test reading an apparent diffusion coefficient map
+    with open(ADC_PAR, 'rt') as fobj:
+
+        # two truncation warnings expected because general_info indicates:
+        # 1.) multiple directions
+        # 2.) multiple b-values
+        # but neither of these exist in the post-processed ADC volume.
+        with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
+            adc_hdr = PARRECHeader.from_fileobj(fobj, permit_truncated=True)
+            assert_equal(len(wlist), 2)
+
+        # general_info indicates it is a diffusion scan, but because it is
+        # a post-processed image, the bvals and bvecs aren't available
+        bvals, bvecs = adc_hdr.get_bvals_bvecs()
+        assert_equal(bvals, None)
+        assert_equal(bvecs, None)
 
 
 def test_alternative_header_field_names():

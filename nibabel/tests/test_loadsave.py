@@ -1,9 +1,9 @@
 """ Testing loadsave module
 """
-from __future__ import print_function
 
 from os.path import dirname, join as pjoin
 import shutil
+import pathlib
 
 import numpy as np
 
@@ -22,22 +22,27 @@ from numpy.testing import (assert_almost_equal,
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
-from ..py3k import FileNotFoundError
 
 data_path = pjoin(dirname(__file__), 'data')
 
 
 def test_read_img_data():
-    for fname in ('example4d.nii.gz',
-                  'example_nifti2.nii.gz',
-                  'minc1_1_scale.mnc',
-                  'minc1_4d.mnc',
-                  'test.mgz',
-                  'tiny.mnc'
-                  ):
-        fpath = pjoin(data_path, fname)
+    fnames_test = [
+        'example4d.nii.gz',
+        'example_nifti2.nii.gz',
+        'minc1_1_scale.mnc',
+        'minc1_4d.mnc',
+        'test.mgz',
+        'tiny.mnc'
+    ]
+    fnames_test += [pathlib.Path(p) for p in fnames_test]
+    for fname in fnames_test:
+        # os.path.join doesnt work between str / os.PathLike in py3.5
+        fpath = pjoin(data_path, str(fname))
+        if isinstance(fname, pathlib.Path):
+            fpath = pathlib.Path(fpath)
         img = load(fpath)
-        data = img.get_data()
+        data = img.get_fdata()
         data2 = read_img_data(img)
         assert_array_equal(data, data2)
         # These examples have null scaling - assert prefer=unscaled is the same
@@ -47,8 +52,11 @@ def test_read_img_data():
             assert_array_equal(read_img_data(img, prefer='unscaled'), data)
         # Assert all caps filename works as well
         with TemporaryDirectory() as tmpdir:
-            up_fpath = pjoin(tmpdir, fname.upper())
-            shutil.copyfile(fpath, up_fpath)
+            up_fpath = pjoin(tmpdir, str(fname).upper())
+            if isinstance(fname, pathlib.Path):
+                up_fpath = pathlib.Path(up_fpath)
+            # shutil doesnt work with os.PathLike in py3.5
+            shutil.copyfile(str(fpath), str(up_fpath))
             img = load(up_fpath)
             assert_array_equal(img.dataobj, data)
             del img
@@ -56,6 +64,14 @@ def test_read_img_data():
 
 def test_file_not_found():
     assert_raises(FileNotFoundError, load, 'does_not_exist.nii.gz')
+
+
+def test_load_empty_image():
+    with InTemporaryDirectory():
+        open('empty.nii', 'w').close()
+        with assert_raises(ImageFileError) as err:
+            load('empty.nii')
+    assert_true(err.exception.args[0].startswith('Empty file: '))
 
 
 def test_read_img_data_nifti():
@@ -81,7 +97,7 @@ def test_read_img_data_nifti():
             # Load - now the scaling and offset correctly applied
             img_fname = img.file_map['image'].filename
             img_back = load(img_fname)
-            data_back = img_back.get_data()
+            data_back = img_back.get_fdata()
             assert_array_equal(data_back, read_img_data(img_back))
             # This is the same as if we loaded the image and header separately
             hdr_fname = (img.file_map['header'].filename
@@ -125,7 +141,7 @@ def test_read_img_data_nifti():
             with open(img_fname, 'ab') as fobj:
                 fobj.write(b'\x00\x00')
             img_back = load(img_fname)
-            data_back = img_back.get_data()
+            data_back = img_back.get_fdata()
             assert_array_equal(data_back, read_img_data(img_back))
             img_back.header.set_data_offset(1026)
             # Check we pick up new offset

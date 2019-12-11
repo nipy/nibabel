@@ -7,18 +7,22 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 ''' Utilities for testing '''
-from __future__ import division, print_function
 
 import re
 import os
 import sys
 import warnings
+from pkg_resources import resource_filename
 from os.path import dirname, abspath, join as pjoin
 
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_warns
+from numpy.testing import dec
+skipif = dec.skipif
+slow = dec.slow
 
-from numpy.testing.decorators import skipif
+from ..deprecated import deprecate_with_version as _deprecate_with_version
+
 # Allow failed import of nose if not now running tests
 try:
     from nose.tools import (assert_equal, assert_not_equal,
@@ -26,10 +30,25 @@ try:
 except ImportError:
     pass
 
-from six.moves import zip_longest
+from itertools import zip_longest
+
+
+def test_data(subdir=None, fname=None):
+    if subdir is None:
+        resource = os.path.join('tests', 'data')
+    elif subdir in ('gifti', 'nicom', 'externals'):
+        resource = os.path.join(subdir, 'tests', 'data')
+    else:
+        raise ValueError("Unknown test data directory: %s" % subdir)
+
+    if fname is not None:
+        resource = os.path.join(resource, fname)
+
+    return resource_filename('nibabel', resource)
+
 
 # set path to example data
-data_path = abspath(pjoin(dirname(__file__), '..', 'tests', 'data'))
+data_path = test_data()
 
 
 from .np_features import memmap_after_ufunc
@@ -185,12 +204,11 @@ class suppress_warnings(error_warnings):
     filter = 'ignore'
 
 
+@_deprecate_with_version('catch_warn_reset is deprecated; use '
+                         'nibabel.testing.clear_and_catch_warnings.',
+                         since='2.1.0', until='3.0.0')
 class catch_warn_reset(clear_and_catch_warnings):
-
-    def __init__(self, *args, **kwargs):
-        warnings.warn('catch_warn_reset is deprecated and will be removed in '
-                      'nibabel v3.0; use nibabel.testing.clear_and_catch_warnings.',
-                      FutureWarning)
+    pass
 
 
 EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
@@ -209,13 +227,3 @@ def assert_arr_dict_equal(dict1, dict2):
     for key, value1 in dict1.items():
         value2 = dict2[key]
         assert_array_equal(value1, value2)
-
-
-def setup_test():
-    """ Set numpy print options to "legacy" for new versions of numpy
-
-    If imported into a file, nosetest will run this before any doctests.
-    """
-    from distutils.version import LooseVersion
-    if LooseVersion(np.__version__) >= LooseVersion('1.14'):
-        np.set_printoptions(legacy="1.13")

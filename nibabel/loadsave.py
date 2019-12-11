@@ -9,24 +9,23 @@
 # module imports
 """ Utilities to load and save image objects """
 
-import os.path as op
+import os
 import numpy as np
 
-from .filename_parser import splitext_addext
+from .filename_parser import splitext_addext, _stringify_path
 from .openers import ImageOpener
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
-from .py3k import FileNotFoundError
 from .deprecated import deprecate_with_version
 
 
 def load(filename, **kwargs):
-    ''' Load file given filename, guessing at file type
+    r''' Load file given filename, guessing at file type
 
     Parameters
     ----------
-    filename : string
+    filename : str or os.PathLike
        specification of file to load
     \*\*kwargs : keyword arguments
         Keyword arguments to format-specific load
@@ -36,8 +35,16 @@ def load(filename, **kwargs):
     img : ``SpatialImage``
        Image of guessed type
     '''
-    if not op.exists(filename):
-        raise FileNotFoundError("No such file: '%s'" % filename)
+    filename = _stringify_path(filename)
+
+    # Check file exists and is not empty
+    try:
+        stat_result = os.stat(filename)
+    except OSError:
+        raise FileNotFoundError("No such file or no access: '%s'" % filename)
+    if stat_result.st_size <= 0:
+        raise ImageFileError("Empty file: '%s'" % filename)
+
     sniff = None
     for image_klass in all_image_classes:
         is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
@@ -82,13 +89,14 @@ def save(img, filename):
     ----------
     img : ``SpatialImage``
        image to save
-    filename : str
+    filename : str or os.PathLike
        filename (often implying filenames) to which to save `img`.
 
     Returns
     -------
     None
     '''
+    filename = _stringify_path(filename)
 
     # Save the type as expected
     try:
@@ -133,10 +141,10 @@ def save(img, filename):
                 converted = klass.from_image(img)
                 break
             except Exception as e:
-                continue
+                err = e
         # ... and if none of them work, raise an error.
         if converted is None:
-            raise e
+            raise err
 
     # Here, we either have a klass or a converted image.
     if converted is None:
@@ -152,7 +160,7 @@ def read_img_data(img, prefer='scaled'):
     """ Read data from image associated with files
 
     If you want unscaled data, please use ``img.dataobj.get_unscaled()``
-    instead.  If you want scaled data, use ``img.get_data()`` (which will cache
+    instead.  If you want scaled data, use ``img.get_fdata()`` (which will cache
     the loaded array) or ``np.array(img.dataobj)`` (which won't cache the
     array). If you want to load the data as for a modified header, save the
     image with the modified header, and reload.
@@ -161,7 +169,7 @@ def read_img_data(img, prefer='scaled'):
     ----------
     img : ``SpatialImage``
        Image with valid image file in ``img.file_map``.  Unlike the
-       ``img.get_data()`` method, this function returns the data read
+       ``img.get_fdata()`` method, this function returns the data read
        from the image file, as specified by the *current* image header
        and *current* image files.
     prefer : str, optional

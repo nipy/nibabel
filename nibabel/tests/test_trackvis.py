@@ -1,5 +1,4 @@
 ''' Testing trackvis module '''
-from __future__ import division, print_function, absolute_import
 
 from functools import partial
 
@@ -10,9 +9,9 @@ from .. import trackvis as tv
 from ..orientations import aff2axcodes
 from ..volumeutils import native_code, swapped_code
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from ..testing import error_warnings, suppress_warnings
+from numpy.testing import assert_array_almost_equal
+from ..testing import (assert_true, assert_false, assert_equal, assert_raises, assert_warns,
+                       assert_array_equal, suppress_warnings)
 
 
 def test_write():
@@ -217,8 +216,7 @@ def test_points_processing():
             assert_raises(tv.HeaderError, tv.read, out_f, False, 'voxel')
         # There's a warning for any voxel sizes == 0
         hdr = {'voxel_size': [2, 3, 0]}
-        with error_warnings():
-            assert_raises(UserWarning, _rt, vx_streams, hdr, 'voxel')
+        assert_warns(UserWarning, _rt, vx_streams, hdr, 'voxel')
         # This should be OK
         hdr = {'voxel_size': [2, 3, 4]}
         (raw_streams, hdr), (proc_streams, _) = _rt(vx_streams, hdr, 'voxel')
@@ -305,9 +303,8 @@ def test__check_hdr_points_space():
                   tv._check_hdr_points_space, hdr, 'voxel')
     # Warning here only
     hdr['voxel_size'] = [2, 3, 0]
-    with error_warnings():
-        assert_raises(UserWarning,
-                      tv._check_hdr_points_space, hdr, 'voxel')
+    assert_warns(UserWarning,
+                 tv._check_hdr_points_space, hdr, 'voxel')
     # This is OK
     hdr['voxel_size'] = [2, 3, 4]
     assert_equal(tv._check_hdr_points_space(hdr, 'voxel'), None)
@@ -370,10 +367,6 @@ def test_empty_header():
 def test_get_affine():
     # Test get affine behavior, including pending deprecation
     hdr = tv.empty_header()
-    # Using version 1 affine is not a good idea because is fragile and not
-    # very useful. The default atleast_v2=None mode raises a FutureWarning
-    with error_warnings():
-        assert_raises(FutureWarning, tv.aff_from_hdr, hdr)
     # testing the old behavior
     old_afh = partial(tv.aff_from_hdr, atleast_v2=False)
     # default header gives useless affine
@@ -421,9 +414,8 @@ def test_get_affine():
         assert_equal(hdr['voxel_order'], o_codes)
         # Check it came back the way we wanted
         assert_array_equal(old_afh(hdr), in_aff)
-    # Check that the default case matches atleast_v2=False case
-    with suppress_warnings():
-        assert_array_equal(tv.aff_from_hdr(hdr), flipped_aff)
+    # Check that v1 header raises error
+    assert_raises(tv.HeaderError, tv.aff_from_hdr, hdr)
     # now use the easier vox_to_ras field
     hdr = tv.empty_header()
     aff = np.eye(4)
@@ -455,15 +447,7 @@ def test_aff_to_hdr():
     # Historically we flip the first axis if there is a negative determinant
     assert_array_almost_equal(hdr['voxel_size'], [-1, 2, 3])
     assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), aff2)
-    # Test that default mode raises DeprecationWarning
-    with error_warnings():
-        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr)
-        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, None, None)
-        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, False, None)
-        assert_raises(FutureWarning, tv.aff_to_hdr, affine, hdr, None, False)
-    # And has same effect as above
-    with suppress_warnings():
-        tv.aff_to_hdr(affine, hdr)
+    tv.aff_to_hdr(affine, hdr, pos_vox=False, set_order=False)
     assert_array_almost_equal(tv.aff_from_hdr(hdr, atleast_v2=False), affine)
     # Check pos_vox and order flags
     for hdr in ({}, {'version': 2}, {'version': 1}):
@@ -515,13 +499,6 @@ def test_tv_class():
     affine = np.diag([1, 2, 3, 1])
     affine[:3, 3] = [10, 11, 12]
     # affine methods will raise same warnings and errors as function
-    with error_warnings():
-        assert_raises(FutureWarning, tvf.set_affine, affine)
-        assert_raises(FutureWarning, tvf.set_affine, affine, None, None)
-        assert_raises(FutureWarning, tvf.set_affine, affine, False, None)
-        assert_raises(FutureWarning, tvf.set_affine, affine, None, False)
-        assert_raises(FutureWarning, tvf.get_affine)
-        assert_raises(FutureWarning, tvf.get_affine, None)
     tvf.set_affine(affine, pos_vox=True, set_order=True)
     aff = tvf.get_affine(atleast_v2=True)
     assert_array_almost_equal(aff, affine)

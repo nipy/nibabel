@@ -20,7 +20,8 @@ from unittest import TestCase
 from nose.tools import (assert_true, assert_false, assert_equal,
                         assert_not_equal, assert_raises)
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_warns
+from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
@@ -35,6 +36,11 @@ DATA_FILE_B0 = pjoin(IO_DATA_PATH, 'siemens_dwi_0.dcm.gz')
 DATA_FILE_SLC_NORM = pjoin(IO_DATA_PATH, 'csa_slice_norm.dcm')
 DATA_FILE_DEC_RSCL = pjoin(IO_DATA_PATH, 'decimal_rescale.dcm')
 DATA_FILE_4D = pjoin(IO_DATA_PATH, '4d_multiframe_test.dcm')
+DATA_FILE_EMPTY_ST = pjoin(IO_DATA_PATH, 'slicethickness_empty_string.dcm')
+DATA_FILE_4D_DERIVED = pjoin(get_nibabel_data(), 'nitest-dicom',
+                             '4d_multiframe_with_derived.dcm')
+DATA_FILE_CT = pjoin(get_nibabel_data(), 'nitest-dicom',
+                     'siemens_ct_header_csa.dcm')
 
 # This affine from our converted image was shown to match our image spatially
 # with an image from SPM DICOM conversion. We checked the matching with SPM
@@ -615,6 +621,26 @@ class TestMultiFrameWrapper(TestCase):
         dat_str = data.tostring()
         assert_equal(sha1(dat_str).hexdigest(),
                      '149323269b0af92baa7508e19ca315240f77fa8c')
+
+    @dicom_test
+    def test_slicethickness_fallback(self):
+        dw = didw.wrapper_from_file(DATA_FILE_EMPTY_ST)
+        assert_equal(dw.voxel_sizes[2], 1.0)
+
+    @dicom_test
+    @needs_nibabel_data('nitest-dicom')
+    def test_data_derived_shape(self):
+        # Test 4D diffusion data with an additional trace volume included
+        # Excludes the trace volume and generates the correct shape
+        dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
+        assert_equal(dw.image_shape, (96, 96, 60, 33))
+
+    @dicom_test
+    @needs_nibabel_data('nitest-dicom')
+    def test_data_unreadable_private_headers(self):
+        # Test CT image with unreadable CSA tags
+        dw = assert_warns(UserWarning, didw.wrapper_from_file, DATA_FILE_CT)
+        assert_equal(dw.image_shape, (512, 571))
 
     @dicom_test
     def test_data_fake(self):

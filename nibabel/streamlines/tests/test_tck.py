@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from os.path import join as pjoin
 
-from six import BytesIO
+from io import BytesIO
 from nibabel.py3k import asbytes
 
 from ..array_sequence import ArraySequence
@@ -32,6 +32,7 @@ def setup():
                                                 "simple_big_endian.tck")
     # standard.tck contains only streamlines
     DATA['standard_tck_fname'] = pjoin(data_path, "standard.tck")
+    DATA['matlab_nan_tck_fname'] = pjoin(data_path, "matlab_nan.tck")
 
     DATA['streamlines'] = [np.arange(1 * 3, dtype="f4").reshape((1, 3)),
                            np.arange(2 * 3, dtype="f4").reshape((2, 3)),
@@ -63,6 +64,13 @@ class TestTCK(unittest.TestCase):
         tractogram.affine_to_rasmm = np.eye(4)
         tck = TckFile(tractogram, header=hdr)
         assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
+
+    def test_load_matlab_nan_file(self):
+        for lazy_load in [False, True]:
+            tck = TckFile.load(DATA['matlab_nan_tck_fname'], lazy_load=lazy_load)
+            streamlines = list(tck.tractogram.streamlines)
+            assert_equal(len(streamlines), 1)
+            assert_equal(streamlines[0].shape, (108, 3))
 
     def test_writeable_data(self):
         data = DATA['simple_tractogram']

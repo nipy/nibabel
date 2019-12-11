@@ -10,7 +10,6 @@
 """ DICOM filesystem tools
 """
 
-from __future__ import division, print_function, absolute_import
 
 import os
 from os.path import join as pjoin
@@ -278,9 +277,7 @@ class _db_change:
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
-    # followlinks keyword not available for python 2.5.
-    kwargs = {} if not followlinks else {'followlinks': True}
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, **kwargs):
+    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=followlinks):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError('link cycle detected under %s' % base_dir)

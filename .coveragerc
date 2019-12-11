@@ -5,5 +5,5 @@ include = */nibabel/*, */nisext/*
 omit =
     */externals/*
     */benchmarks/*
-    */ast.py
-    */codegen.py
+    */tests/*
+    nibabel/_version.py

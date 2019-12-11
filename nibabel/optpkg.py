@@ -1,21 +1,17 @@
 """ Routines to support optional packages """
+import pkgutil
 from distutils.version import LooseVersion
-
-from six import string_types
-
-try:
-    import nose
-except ImportError:
-    have_nose = False
-else:
-    have_nose = True
-
 from .tripwire import TripWire
+
+if pkgutil.find_loader('nose'):
+    have_nose = True
+else:
+    have_nose = False
 
 
 def _check_pkg_version(pkg, min_version):
     # Default version checking function
-    if isinstance(min_version, string_types):
+    if isinstance(min_version, str):
         min_version = LooseVersion(min_version)
     try:
         return min_version <= pkg.__version__
@@ -94,10 +90,14 @@ def optional_package(name, trip_msg=None, min_version=None):
     # fromlist=[''] results in submodule being returned, rather than the top
     # level module.  See help(__import__)
     fromlist = [''] if '.' in name else []
+    exc = None
     try:
         pkg = __import__(name, fromlist=fromlist)
-    except ImportError:
-        pass
+    except Exception as exc_:
+        # Could fail due to some ImportError or for some other reason
+        # e.g. h5py might have been checking file system to support UTF-8
+        # etc.  We should not blow if they blow
+        exc = exc_  # So it is accessible outside of the code block
     else:  # import worked
         # top level module
         if check_version(pkg):
@@ -111,12 +111,13 @@ def optional_package(name, trip_msg=None, min_version=None):
                             (name, min_version))
     if trip_msg is None:
         trip_msg = ('We need package %s for these functions, but '
-                    '``import %s`` raised an ImportError'
-                    % (name, name))
+                    '``import %s`` raised %s'
+                    % (name, name, exc))
     pkg = TripWire(trip_msg)
 
     def setup_module():
         if have_nose:
+            import nose
             raise nose.plugins.skip.SkipTest('No %s for these tests'
                                              % name)
     return pkg, False, setup_module

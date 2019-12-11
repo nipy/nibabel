@@ -15,7 +15,6 @@ Executing this script generates the following files in the current directory:
 * someones_epi.nii.gz (pretend single EPI volume)
 * someones_anatomy.nii.gz (pretend single subject structural)
 """
-from __future__ import division, print_function
 
 import math
 
@@ -50,7 +49,7 @@ for img_fname in (T1_IMG, T2_IMG):
 t1_img, t2_img = imgs
 
 # Make fake localizer
-data = t1_img.get_data()
+data = t1_img.get_fdata()
 n_x, n_y, n_z = img.shape
 mid_x = round(n_x / 2)
 
@@ -171,7 +170,7 @@ epi_vox_shape = [np.floor(d) if np.floor(d) % 2 else np.ceil(d)
 # resample, preserving affine
 epi_cmap = nca.vox2mni(epi_vox2mm)
 epi = rsm.resample(t2_img, epi_cmap, np.eye(4), epi_vox_shape)
-epi_data = epi.get_data()
+epi_data = epi.get_fdata()
 # Do the same kind of thing for the anatomical scan
 anat_vox_sizes = [2.75, 2.75, 2.75]
 anat_scale = npl.inv(np.diag(anat_vox_sizes + [1]))
@@ -183,7 +182,7 @@ anat_vox_shape = np.round(np.divide(
         [data.shape[0], anat_x_len, anat_y_len], anat_vox_sizes))
 anat_cmap = nca.vox2mni(anat_vox2mm)
 anat = rsm.resample(t1_img, anat_cmap, np.eye(4), anat_vox_shape)
-anat_data = anat.get_data()
+anat_data = anat.get_fdata()
 
 save_plot()
 nipy.save_image(epi, 'someones_epi.nii.gz', dtype_from='uint8')

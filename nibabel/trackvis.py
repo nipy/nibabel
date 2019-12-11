@@ -4,24 +4,24 @@ See :mod:`nibabel.streamlines` for the new interface.
 
 We will deprecate this, the old interface, in some future release.
 """
-from __future__ import division, print_function
 import warnings
 import struct
 import itertools
 
 import numpy as np
 import numpy.linalg as npl
+from numpy.compat.py3k import asstr
 
-from .py3k import asstr
 from .volumeutils import (native_code, swapped_code, endian_codes, rec2dict)
 from .openers import ImageOpener
 from .orientations import aff2axcodes
 from .affines import apply_affine
+from .deprecated import deprecate_with_version
 
-try:
-    basestring
-except NameError:  # python 3
-    basestring = str
+warnings.warn("The trackvis interface has been deprecated and will be removed "
+              "in v4.0; please use the 'nibabel.streamlines' interface.",
+              DeprecationWarning,
+              stacklevel=2)
 
 # Definition of trackvis header structure.
 # See http://www.trackvis.org/docs/?subsect=fileformat
@@ -99,6 +99,9 @@ class DataError(Exception):
     """
 
 
+@deprecate_with_version('trackvis.read is deprecated; please use '
+                        'nibabel.streamlines.load, instead.',
+                        since='2.5.0', until='4.0.0')
 def read(fileobj, as_generator=False, points_space=None, strict=True):
     ''' Read trackvis file from `fileobj`, return `streamlines`, `header`
 
@@ -156,7 +159,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     hdr = np.ndarray(shape=(),
                      dtype=header_2_dtype,
                      buffer=hdr_str)
-    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
+    if hdr['id_string'].item()[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characters of id_string')
     if hdr['hdr_size'] == 1000:
@@ -254,6 +257,9 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     return streamlines, hdr
 
 
+@deprecate_with_version('trackvis.write is deprecated; please use '
+                        'nibabel.streamlines.save, instead.',
+                        since='2.5.0', until='4.0.0')
 def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
           points_space=None):
     ''' Write header and `streamlines` to trackvis file `fileobj`
@@ -314,7 +320,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
     >>> pts1 = np.random.uniform(size=(10,3))
     >>> streamlines = ([(pts0, None, None), (pts1, None, None)])
     >>> write(file_obj, streamlines)
-    >>> _ = file_obj.seek(0) # returns 0 in python 3
+    >>> _ = file_obj.seek(0)  # returns 0
     >>> streams, hdr = read(file_obj)
     >>> len(streams)
     2
@@ -492,7 +498,7 @@ def _check_hdr_points_space(hdr, points_space):
             raise HeaderError('Affine zooms %s differ from voxel_size '
                               'field value %s' % (aff_zooms, zooms))
         aff_order = ''.join(aff2axcodes(affine))
-        voxel_order = asstr(np.asscalar(hdr['voxel_order']))
+        voxel_order = asstr(hdr['voxel_order'].item())
         if voxel_order == '':
             voxel_order = 'LPS'  # trackvis default
         if not voxel_order == aff_order:
@@ -526,7 +532,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
     for key, value in mapping.items():
         hdr[key] = value
     # check header values
-    if np.asscalar(hdr['id_string'])[:5] != b'TRACK':
+    if hdr['id_string'].item()[:5] != b'TRACK':
         raise HeaderError('Expecting TRACK as first '
                           '5 characaters of id_string')
     if hdr['version'] not in (1, 2):
@@ -536,6 +542,9 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
     return hdr
 
 
+@deprecate_with_version('empty_header is deprecated; please use '
+                        'nibabel.streamlines.TrkFile.create_empty_header, instead.',
+                        since='2.5.0', until='4.0.0')
 def empty_header(endianness=None, version=2):
     ''' Empty trackvis header
 
@@ -556,7 +565,7 @@ def empty_header(endianness=None, version=2):
     >>> hdr = empty_header()
     >>> print(hdr['version'])
     2
-    >>> np.asscalar(hdr['id_string']) == b'TRACK'
+    >>> hdr['id_string'].item() == b'TRACK'
     True
     >>> endian_codes[hdr['version'].dtype.byteorder] == native_code
     True
@@ -590,7 +599,10 @@ def empty_header(endianness=None, version=2):
     return hdr
 
 
-def aff_from_hdr(trk_hdr, atleast_v2=None):
+@deprecate_with_version('aff_from_hdr is deprecated; please use '
+                        'nibabel.streamlines.trk.get_affine_trackvis_to_rasmm, instead.',
+                        since='2.5.0', until='4.0.0')
+def aff_from_hdr(trk_hdr, atleast_v2=True):
     ''' Return voxel to mm affine from trackvis header
 
     Affine is mapping from voxel space to Nifti (RAS) output coordinate
@@ -625,12 +637,6 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     origin field to 0. In future, we'll raise an error rather than try and
     estimate the affine from version 1 fields
     '''
-    if atleast_v2 is None:
-        warnings.warn('Defaulting to `atleast_v2` of False.  Future versions '
-                      'will default to True',
-                      FutureWarning,
-                      stacklevel=2)
-        atleast_v2 = False
     if trk_hdr['version'] == 2:
         aff = trk_hdr['vox_to_ras']
         if aff[3, 3] != 0:
@@ -654,7 +660,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     aff = np.dot(DPCS_TO_TAL, aff)
     # Next we check against the 'voxel_order' field if present and not empty.
     try:
-        voxel_order = asstr(np.asscalar(trk_hdr['voxel_order']))
+        voxel_order = asstr(trk_hdr['voxel_order'].item())
     except (KeyError, ValueError):
         voxel_order = ''
     if voxel_order == '':
@@ -673,7 +679,10 @@ def aff_from_hdr(trk_hdr, atleast_v2=None):
     return aff
 
 
-def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
+@deprecate_with_version('aff_to_hdr is deprecated; please use the '
+                        'nibabel.streamlines.TrkFile.affine_to_rasmm property, instead.',
+                        since='2.5.0', until='4.0.0')
+def aff_to_hdr(affine, trk_hdr, pos_vox=True, set_order=True):
     ''' Set affine `affine` into trackvis header `trk_hdr`
 
     Affine is mapping from voxel space to Nifti RAS) output coordinate
@@ -715,18 +724,6 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=None, set_order=None):
     application).  The application also ignores the origin field, and may not
     use the 'image_orientation_patient' field.
     '''
-    if pos_vox is None:
-        warnings.warn('Default for ``pos_vox`` will change to True in '
-                      'future versions of nibabel',
-                      FutureWarning,
-                      stacklevel=2)
-        pos_vox = False
-    if set_order is None:
-        warnings.warn('Default for ``set_order`` will change to True in '
-                      'future versions of nibabel',
-                      FutureWarning,
-                      stacklevel=2)
-        set_order = False
     try:
         version = trk_hdr['version']
     except (KeyError, ValueError):  # dict or structured array
@@ -797,6 +794,9 @@ class TrackvisFile(object):
         relationship between voxels, rasmm and voxmm space (above).
     '''
 
+    @deprecate_with_version('TrackvisFile is deprecated; please use '
+                            'nibabel.streamlines.TrkFile, instead.',
+                            since='2.5.0', until='4.0.0')
     def __init__(self,
                  streamlines,
                  mapping=None,
@@ -826,17 +826,15 @@ class TrackvisFile(object):
     @classmethod
     def from_file(klass, file_like, points_space=None):
         streamlines, header = read(file_like, points_space=points_space)
-        filename = (file_like if isinstance(file_like, basestring)
-                    else None)
+        filename = file_like if isinstance(file_like, str) else None
         return klass(streamlines, header, None, filename, points_space)
 
     def to_file(self, file_like):
         write(file_like, self.streamlines, self.header, self.endianness,
               points_space=self.points_space)
-        self.filename = (file_like if isinstance(file_like, basestring)
-                         else None)
+        self.filename = file_like if isinstance(file_like, str) else None
 
-    def get_affine(self, atleast_v2=None):
+    def get_affine(self, atleast_v2=True):
         """ Get affine from header in object
 
         Returns
@@ -853,15 +851,9 @@ class TrackvisFile(object):
         consider it unsafe for version 1 headers, and in future versions of
         nibabel we will raise an error for trackvis headers < version 2.
         """
-        if atleast_v2 is None:
-            warnings.warn('Defaulting to `atleast_v2` of False.  Future '
-                          'versions will default to True',
-                          FutureWarning,
-                          stacklevel=2)
-            atleast_v2 = False
         return aff_from_hdr(self.header, atleast_v2)
 
-    def set_affine(self, affine, pos_vox=None, set_order=None):
+    def set_affine(self, affine, pos_vox=True, set_order=True):
         """ Set affine `affine` into trackvis header
 
         Affine is mapping from voxel space to Nifti RAS) output coordinate
@@ -888,16 +880,4 @@ class TrackvisFile(object):
         -------
         None
         """
-        if pos_vox is None:
-            warnings.warn('Default for ``pos_vox`` will change to True in '
-                          'future versions of nibabel',
-                          FutureWarning,
-                          stacklevel=2)
-            pos_vox = False
-        if set_order is None:
-            warnings.warn('Default for ``set_order`` will change to True in '
-                          'future versions of nibabel',
-                          FutureWarning,
-                          stacklevel=2)
-            set_order = False
         return aff_to_hdr(affine, self.header, pos_vox, set_order)

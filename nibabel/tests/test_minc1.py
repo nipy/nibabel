@@ -6,7 +6,6 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-from __future__ import division, print_function, absolute_import
 
 from os.path import join as pjoin
 
@@ -24,10 +23,9 @@ from ..deprecated import ModuleProxy
 from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 
-from nose.tools import (assert_true, assert_equal, assert_false, assert_raises)
-from numpy.testing import assert_array_equal
 from ..tmpdirs import InTemporaryDirectory
-from ..testing import data_path
+from ..testing import (assert_true, assert_equal, assert_false, assert_raises, assert_warns,
+                       assert_array_equal, data_path, clear_and_catch_warnings)
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
@@ -106,7 +104,8 @@ def test_old_namespace():
     # Check warnings raised
     arr = np.arange(24).reshape((2, 3, 4))
     aff = np.diag([2, 3, 4, 1])
-    with warnings.catch_warnings(record=True) as warns:
+    with clear_and_catch_warnings() as warns:
+        warnings.simplefilter('always', DeprecationWarning)
         # Top level import.
         # This import does not trigger an import of the minc.py module, because
         # it's the proxy object.
@@ -122,7 +121,9 @@ def test_old_namespace():
         # depending on whether the minc.py module is already imported in this
         # test run.
         if not previous_import:
-            assert_equal(warns.pop(0).category, FutureWarning)
+            assert_equal(warns.pop(0).category, DeprecationWarning)
+
+    with clear_and_catch_warnings() as warns:
         from .. import Minc1Image, MincImage
         assert_equal(warns, [])
         # The import from old module is the same as that from new
@@ -132,17 +133,17 @@ def test_old_namespace():
         assert_equal(warns, [])
         # Create object using old name
         mimg = MincImage(arr, aff)
-        assert_array_equal(mimg.get_data(), arr)
         # Call to create object created warning
         assert_equal(warns.pop(0).category, FutureWarning)
+        assert_array_equal(mimg.get_fdata(), arr)
         # Another old name
         from ..minc1 import MincFile, Minc1File
         assert_false(MincFile is Minc1File)
         assert_equal(warns, [])
         mf = MincFile(netcdf_file(EG_FNAME))
-        assert_equal(mf.get_data_shape(), (10, 20, 20))
         # Call to create object created warning
         assert_equal(warns.pop(0).category, FutureWarning)
+        assert_equal(mf.get_data_shape(), (10, 20, 20))
 
 
 class _TestMincFile(object):
@@ -184,20 +185,20 @@ class _TestMincFile(object):
         # Check highest level load of minc works
         for tp in self.test_files:
             img = load(tp['fname'])
-            data = img.get_data()
+            data = img.get_fdata()
             assert_equal(data.shape, tp['shape'])
             # min, max, mean values from read in SPM2 / minctools
             assert_data_similar(data, tp)
             # check if mnc can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
             assert_array_equal(ni_img.affine, tp['affine'])
-            assert_array_equal(ni_img.get_data(), data)
+            assert_array_equal(ni_img.get_fdata(), data)
 
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
             img = load(tp['fname'])
-            arr = img.get_data()
+            arr = img.get_fdata()
             prox = img.dataobj
             assert_true(prox.is_proxy)
             for sliceobj in slicer_samples(img.shape):
@@ -219,7 +220,7 @@ class TestMinc1File(_TestMincFile):
                     fobj.write(content)
                     fobj.close()
                     img = self.module.load(fname)
-                    data = img.get_data()
+                    data = img.get_fdata()
                     assert_data_similar(data, tp)
                     del img
 

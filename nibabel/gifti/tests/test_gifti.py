@@ -7,7 +7,6 @@ from io import BytesIO
 import numpy as np
 
 import nibabel as nib
-from six import string_types
 from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
                            GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
                            GiftiCoordSystem)
@@ -18,10 +17,39 @@ from nibabel.fileholders import FileHolder
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
-from nibabel.testing import clear_and_catch_warnings
+from nibabel.testing import clear_and_catch_warnings, test_data
 from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
                                     DATA_FILE4, DATA_FILE5, DATA_FILE6)
+import itertools
 
+
+def test_agg_data():
+    surf_gii_img = nib.load(test_data('gifti', 'ascii.gii'))
+    func_gii_img = nib.load(test_data('gifti', 'task.func.gii'))
+    shape_gii_img = nib.load(test_data('gifti', 'rh.shape.curv.gii'))
+    # add timeseries data with intent code ``none``
+
+    point_data = surf_gii_img.get_arrays_from_intent('pointset')[0].data
+    triangle_data = surf_gii_img.get_arrays_from_intent('triangle')[0].data
+    func_da = func_gii_img.get_arrays_from_intent('time series')
+    func_data = np.column_stack(tuple(da.data for da in func_da))
+    shape_data = shape_gii_img.get_arrays_from_intent('shape')[0].data
+
+    assert_equal(surf_gii_img.agg_data(), (point_data, triangle_data))
+    assert_array_equal(func_gii_img.agg_data(), func_data)
+    assert_array_equal(shape_gii_img.agg_data(), shape_data)
+
+    assert_array_equal(surf_gii_img.agg_data('pointset'), point_data)
+    assert_array_equal(surf_gii_img.agg_data('triangle'), triangle_data)
+    assert_array_equal(func_gii_img.agg_data('time series'), func_data) 
+    assert_array_equal(shape_gii_img.agg_data('shape'), shape_data)
+
+    assert_equal(surf_gii_img.agg_data('time series'), ())
+    assert_equal(func_gii_img.agg_data('triangle'), ())
+    assert_equal(shape_gii_img.agg_data('pointset'), ())
+
+    assert_equal(surf_gii_img.agg_data(('pointset', 'triangle')), (point_data, triangle_data))
+    assert_equal(surf_gii_img.agg_data(('triangle', 'pointset')), (triangle_data, point_data))
 
 def test_gifti_image():
     # Check that we're not modifying the default empty list in the default
@@ -176,11 +204,11 @@ def test_to_xml_open_close_deprecations():
     da = GiftiDataArray(np.ones((1,)), 'triangle')
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
-        assert_true(isinstance(da.to_xml_open(), string_types))
+        assert_true(isinstance(da.to_xml_open(), str))
         assert_equal(len(w), 1)
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
-        assert_true(isinstance(da.to_xml_close(), string_types))
+        assert_true(isinstance(da.to_xml_close(), str))
         assert_equal(len(w), 1)
 
 
@@ -400,3 +428,20 @@ def test_data_array_round_trip():
     gio = GiftiImage.from_file_map(fmap)
     vertices = gio.darrays[0].data
     assert_array_equal(vertices, verts)
+
+
+def test_darray_dtype_coercion_failures():
+    dtypes = (np.uint8, np.int32, np.int64, np.float32, np.float64)
+    encodings = ('ASCII', 'B64BIN', 'B64GZ')
+    for data_dtype, darray_dtype, encoding in itertools.product(dtypes,
+                                                                dtypes,
+                                                                encodings):
+        da = GiftiDataArray(np.arange(10).astype(data_dtype),
+                            encoding=encoding,
+                            intent='NIFTI_INTENT_NODE_INDEX',
+                            datatype=darray_dtype)
+        gii = GiftiImage(darrays=[da])
+        gii_copy = GiftiImage.from_bytes(gii.to_bytes())
+        da_copy = gii_copy.darrays[0]
+        assert_equal(np.dtype(da_copy.data.dtype), np.dtype(darray_dtype))
+        assert_array_equal(da_copy.data, da.data)

@@ -1,8 +1,11 @@
 .. -*- rest -*-
 .. vim:syntax=rst
 
-.. image:: https://coveralls.io/repos/nipy/nibabel/badge.png?branch=master
-    :target: https://coveralls.io/r/nipy/nibabel?branch=master
+.. image:: https://codecov.io/gh/nipy/nibabel/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/nipy/nibabel
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
+   :target: https://doi.org/10.5281/zenodo.591597
 
 .. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
@@ -15,14 +18,16 @@ Read / write access to some common neuroimaging file formats
 
 This package provides read +/- write access to some common medical and
 neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
-GIFTI_, NIfTI1_, NIfTI2_, MINC1_, MINC2_, MGH_ and ECAT_ as well as Philips
-PAR/REC.  We can read and write FreeSurfer_ geometry, annotation and
-morphometry files.  There is some very limited support for DICOM_.  NiBabel is
-the successor of PyNIfTI_.
+GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, MGH_ and
+ECAT_ as well as Philips PAR/REC.  We can read and write FreeSurfer_ geometry,
+annotation and morphometry files.  There is some very limited support for
+DICOM_.  NiBabel is the successor of PyNIfTI_.
 
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
+.. _AFNI BRIK/HEAD: https://afni.nimh.nih.gov/pub/dist/src/README.attributes
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
+.. _CIFTI-2: https://www.nitrc.org/projects/cifti/
 .. _MINC1:
     https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
 .. _MINC2:

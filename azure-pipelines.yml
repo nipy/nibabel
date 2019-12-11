@@ -1,0 +1,36 @@
+# Adapted from https://github.com/pandas-dev/pandas/blob/master/azure-pipelines.yml
+jobs:
+- template: .azure-pipelines/windows.yml
+  parameters:
+    name: Windows
+    vmImage: windows-2019
+    matrix:
+      py35-x86:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x86'
+      py35-x64:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
+      py35-h5py-check:
+        PYTHON_VERSION: '3.5'
+        PYTHON_ARCH: 'x64'
+        PYTHONHASHSEED: 283137131
+        DEPENDS: "h5py==2.9.0"
+      py36-x86:
+        PYTHON_VERSION: '3.6'
+        PYTHON_ARCH: 'x86'
+      py36-x64:
+        PYTHON_VERSION: '3.6'
+        PYTHON_ARCH: 'x64'
+      py37-x86:
+        PYTHON_VERSION: '3.7'
+        PYTHON_ARCH: 'x86'
+      py37-x64:
+        PYTHON_VERSION: '3.7'
+        PYTHON_ARCH: 'x64'
+      py38-x86:
+        PYTHON_VERSION: '3.8'
+        PYTHON_ARCH: 'x86'
+      py38-x64:
+        PYTHON_VERSION: '3.8'
+        PYTHON_ARCH: 'x64'

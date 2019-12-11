@@ -16,6 +16,8 @@ import numpy as np
 from ..affines import voxel_sizes, from_matvec
 from ..volumeutils import (array_to_file, array_from_file, endian_codes,
                            Recoder)
+from ..filebasedimages import SerializableImage
+from ..filename_parser import _stringify_path
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
@@ -255,7 +257,7 @@ class MGHHeader(LabeledWrapStruct):
         .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         '''
         # Do not return time zoom (TR) if 3D image
-        tzoom = (self['tr'],)[:self._ndims() > 3]
+        tzoom = (self['tr'],) if self._ndims() > 3 else ()
         return tuple(self._structarr['delta']) + tzoom
 
     def set_zooms(self, zooms):
@@ -276,10 +278,15 @@ class MGHHeader(LabeledWrapStruct):
         ndims = self._ndims()
         if len(zooms) > ndims:
             raise HeaderDataError('Expecting %d zoom values' % ndims)
-        if np.any(zooms <= 0):
-            raise HeaderDataError('zooms must be positive')
+        if np.any(zooms[:3] <= 0):
+            raise HeaderDataError('Spatial (first three) zooms must be '
+                                  'positive; got {!r}'
+                                  ''.format(tuple(zooms[:3])))
         hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
+            if zooms[3] < 0:
+                raise HeaderDataError('TR must be non-negative; got {!r}'
+                                      ''.format(zooms[3]))
             hdr['tr'] = zooms[3]
 
     def get_data_shape(self):
@@ -498,7 +505,7 @@ class MGHHeader(LabeledWrapStruct):
             super(MGHHeader, self).__setitem__(item, value)
 
 
-class MGHImage(SpatialImage):
+class MGHImage(SpatialImage, SerializableImage):
     """ Class for MGH format image
     """
     header_class = MGHHeader
@@ -523,6 +530,7 @@ class MGHImage(SpatialImage):
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
+        filespec = _stringify_path(filespec)
         """ Check for compressed .mgz format, then .mgh format """
         if splitext(filespec)[1].lower() == '.mgz':
             return dict(image=FileHolder(filename=filespec))
@@ -531,13 +539,18 @@ class MGHImage(SpatialImage):
     @classmethod
     @kw_only_meth(1)
     def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
-        '''Load image from `file_map`
+        ''' Class method to create image from mapping in ``file_map``
+
+        .. deprecated:: 2.4.1
+            ``keep_file_open='auto'`` is redundant with `False` and has
+            been deprecated. It will raise an error in nibabel 3.0.
 
         Parameters
         ----------
-        file_map : None or mapping, optional
-           files mapping.  If None (default) use object's ``file_map``
-           attribute instead
+        file_map : dict
+            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            instance giving file-likes for each file needed for this image
+            type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only
             `mmap` controls the use of numpy memory mapping for reading image
             array data.  If False, do not try numpy ``memmap`` for data array.
@@ -545,19 +558,19 @@ class MGHImage(SpatialImage):
             `mmap` value of True gives the same behavior as ``mmap='c'``.  If
             image data file cannot be memory-mapped, ignore `mmap` value and
             read array from file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
+        keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
             created and used for the lifetime of this ``ArrayProxy``. If
             ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. If ``file_map`` refers to an open
-            file handle, this setting has no effect. The default value
-            (``None``) will result in the value of
+            a new file handle is created every time the image is accessed.
+            If ``file_map`` refers to an open file handle, this setting has no
+            effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
+
+        Returns
+        -------
+        img : MGHImage instance
         '''
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -572,47 +585,6 @@ class MGHImage(SpatialImage):
         img = klass(data, affine, header, file_map=file_map)
         return img
 
-    @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open=None):
-        '''class method to create image from filename `filename`
-
-        Parameters
-        ----------
-        filename : str
-            Filename of image to load
-        mmap : {True, False, 'c', 'r'}, optional, keyword only
-            `mmap` controls the use of numpy memory mapping for reading image
-            array data.  If False, do not try numpy ``memmap`` for data array.
-            If one of {'c', 'r'}, try numpy memmap with ``mode=mmap``.  A
-            `mmap` value of True gives the same behavior as ``mmap='c'``.  If
-            image data file cannot be memory-mapped, ignore `mmap` value and
-            read array from file.
-        keep_file_open : { None, 'auto', True, False }, optional, keyword only
-            `keep_file_open` controls whether a new file handle is created
-            every time the image is accessed, or a single file handle is
-            created and used for the lifetime of this ``ArrayProxy``. If
-            ``True``, a single file handle is created and used. If ``False``,
-            a new file handle is created every time the image is accessed. If
-            ``'auto'``, and the optional ``indexed_gzip`` dependency is
-            present, a single file handle is created and persisted. If
-            ``indexed_gzip`` is not available, behaviour is the same as if
-            ``keep_file_open is False``. The default value (``None``) will
-            result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
-
-        Returns
-        -------
-        img : MGHImage instance
-        '''
-        if mmap not in (True, False, 'c', 'r'):
-            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
-        file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap,
-                                   keep_file_open=keep_file_open)
-
-    load = from_filename
-
     def to_file_map(self, file_map=None):
         ''' Write image to `file_map` or contained ``self.file_map``
 
@@ -624,7 +596,7 @@ class MGHImage(SpatialImage):
         '''
         if file_map is None:
             file_map = self.file_map
-        data = self.get_data()
+        data = np.asanyarray(self.dataobj)
         self.update_header()
         hdr = self.header
         with file_map['image'].get_prepare_fileobj('wb') as mghf:

@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """ Testing processing module
 """
-from __future__ import division, print_function
 
 from os.path import dirname, join as pjoin
 
@@ -30,7 +29,7 @@ from nibabel.eulerangles import euler2mat
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
-from numpy.testing.decorators import skipif
+from ..testing import skipif
 
 from nose.tools import (assert_true, assert_false, assert_raises,
                         assert_equal, assert_not_equal)
@@ -214,10 +213,11 @@ def test_resample_to_output():
     img2 = resample_to_output(img, vox_sizes)
     # Check 2D works
     img_2d = Nifti1Image(data[0], np.eye(4))
-    img3 = resample_to_output(img_2d)
-    assert_array_equal(img3.shape, (3, 4, 1))
-    assert_array_equal(img3.affine, np.eye(4))
-    assert_array_equal(img3.dataobj, data[0][..., None])
+    for vox_sizes in (None, 1, (1, 1), (1, 1, 1)):
+        img3 = resample_to_output(img_2d, vox_sizes)
+        assert_array_equal(img3.shape, (3, 4, 1))
+        assert_array_equal(img3.affine, np.eye(4))
+        assert_array_equal(img3.dataobj, data[0][..., None])
     # Even 1D
     img_1d = Nifti1Image(data[0, 0], np.eye(4))
     img3 = resample_to_output(img_1d)
@@ -411,7 +411,7 @@ def test_against_spm_resample():
     func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
     some_rotations = euler2mat(0.1, 0.2, 0.3)
     extra_affine = from_matvec(some_rotations, [3, 4, 5])
-    moved_anat = nib.Nifti1Image(anat.get_data().astype(float),
+    moved_anat = nib.Nifti1Image(anat.get_fdata(),
                                  extra_affine.dot(anat.affine),
                                  anat.header)
     one_func = nib.Nifti1Image(func.dataobj[..., 0],

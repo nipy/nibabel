@@ -9,7 +9,8 @@
 
 import os
 
-from .info import __version__, long_description as __doc__
+from .pkg_info import __version__
+from .info import long_description as __doc__
 __doc__ += """
 Quickstart
 ==========
@@ -22,7 +23,7 @@ Quickstart
    img2 = nib.load('other_file.nii.gz')
    img3 = nib.load('spm_file.img')
 
-   data = img1.get_data()
+   data = img1.get_fdata()
    affine = img1.affine
 
    print(img1)
@@ -34,6 +35,30 @@ Quickstart
 
 For more detailed information see the :ref:`manual`.
 """
+
+# Package-wide test setup and teardown
+_test_states = {
+    # Numpy changed print options in 1.14; we can update docstrings and remove
+    # these when our minimum for building docs exceeds that
+    'legacy_printopt': None,
+    }
+
+def setup_package():
+    """ Set numpy print style to legacy="1.13" for newer versions of numpy """
+    import numpy as np
+    from distutils.version import LooseVersion
+    if LooseVersion(np.__version__) >= LooseVersion('1.14'):
+        if _test_states.get('legacy_printopt') is None:
+            _test_states['legacy_printopt'] = np.get_printoptions().get('legacy')
+        np.set_printoptions(legacy="1.13")
+
+def teardown_package():
+    """ Reset print options when tests finish """
+    import numpy as np
+    if _test_states.get('legacy_printopt') is not None:
+        np.set_printoptions(legacy=_test_states.pop('legacy_printopt'))
+
+
 # module imports
 from . import analyze as ana
 from . import spm99analyze as spm99
@@ -52,6 +77,7 @@ from .nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .cifti2 import Cifti2Header, Cifti2Image
+from .gifti import GiftiImage
 # Deprecated backwards compatiblity for MINC1
 from .deprecated import ModuleProxy as _ModuleProxy
 minc = _ModuleProxy('nibabel.minc')
@@ -63,23 +89,23 @@ from .orientations import (io_orientation, orientation_affine,
                            flip_axis, OrientationError,
                            apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map, all_image_classes
-from . import trackvis
+trackvis = _ModuleProxy('nibabel.trackvis')
 from . import mriutils
 from . import streamlines
 from . import viewers
-from .testing import setup_test
 
-# Note test requirement for "mock".  Requirement for "nose" tested by numpy.
-try:
-    import mock
-except ImportError:
+import pkgutil
+
+if not pkgutil.find_loader('mock'):
     def test(*args, **kwargs):
         raise RuntimeError('Need "mock" package for tests')
 else:
     from numpy.testing import Tester
     test = Tester().test
     bench = Tester().bench
-    del mock, Tester
+    del Tester
+
+del pkgutil
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 

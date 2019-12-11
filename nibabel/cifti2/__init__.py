@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""CIfTI format IO
+"""CIFTI-2 format IO
 
 .. currentmodule:: nibabel.cifti2
 
@@ -14,6 +14,7 @@
    :toctree: ../generated
 
    cifti2
+   cifti2_axes
 """
 
 from .parse_cifti2 import Cifti2Extension
@@ -25,3 +26,4 @@ from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Image, Cifti2Label,
                      Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
                      Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
                      Cifti2HeaderError, CIFTI_MODEL_TYPES, load, save)
+from .cifti2_axes import (Axis, BrainModelAxis, ParcelsAxis, SeriesAxis, LabelAxis, ScalarAxis)

@@ -16,9 +16,18 @@ class DoNumpyImage(DataobjImage):
     files_types = (('image', '.npy'),)
 
     @classmethod
-    def from_file_map(klass, file_map):
+    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+        if mmap not in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        if mmap is True:
+            mmap = 'c'
+        elif mmap is False:
+            mmap = None
         with file_map['image'].get_prepare_fileobj('rb') as fobj:
-            arr = np.load(fobj)
+            try:
+                arr = np.load(fobj, mmap=mmap)
+            except:
+                arr = np.load(fobj)
         return klass(arr)
 
     def to_file_map(self, file_map=None):
