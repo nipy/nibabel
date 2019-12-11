@@ -261,42 +261,29 @@ class MincImageArrayProxy(object):
     def is_proxy(self):
         return True
 
-    def _get_scaled(self, dtype, slicer):
-        data = self.minc_file.get_scaled_data(slicer)
-        if dtype is None:
-            return data
-        final_type = np.promote_types(data.dtype, dtype)
-        return data.astype(final_type, copy=False)
+    def __array__(self, dtype=None):
+        """ Read data from file and apply scaling, casting to ``dtype``
 
-    def get_scaled(self, dtype=None):
-        """ Read data from file and apply scaling
-
-        The dtype of the returned array is the narrowest dtype that can
-        represent the data without overflow, and is at least as wide as
-        the dtype parameter.
-
-        If dtype is unspecified, it is automatically determined.
+        If ``dtype`` is unspecified, the dtype is automatically determined.
 
         Parameters
         ----------
-        dtype : numpy dtype specifier
-            A numpy dtype specifier specifying the narrowest acceptable
-            dtype.
+        dtype : numpy dtype specifier, optional
+            A numpy dtype specifier specifying the type of the returned array.
 
         Returns
         -------
         array
-            Scaled of image data of data type `dtype`.
+            Scaled image data with type `dtype`.
         """
-        return self._get_scaled(dtype=dtype, slicer=())
-
-    def __array__(self):
-        ''' Read of data from file '''
-        return self._get_scaled(dtype=None, slicer=())
+        arr = self.minc_file.get_scaled_data(sliceobj=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
 
     def __getitem__(self, sliceobj):
         """ Read slice `sliceobj` of data from file """
-        return self._get_scaled(dtype=None, slicer=sliceobj)
+        return self.minc_file.get_scaled_data(sliceobj)
 
 
 class MincHeader(SpatialHeader):

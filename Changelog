@@ -30,10 +30,13 @@ References like "pr/298" refer to github pull request numbers.
 
 New features
 ------------
-* ArrayProxy method ``get_scaled()`` scales data with a dtype of a
-  specified precision, promoting as necessary to avoid overflow. This
-  is to used in ``img.get_fdata()`` to control memory usage. (pr/833)
-  (CM, reviewed by Ross Markello)
+* ArrayProxy ``__array__()`` now accepts a ``dtype`` parameter, allowing
+  ``numpy.array(dataobj, dtype=...)`` calls, as well as casting directly
+  with a dtype (for example, ``numpy.float32(dataobj)``) to control the
+  output type. Scale factors (slope, intercept) are applied, but may be
+  cast to narrower types, to control memory usage. This is now the basis
+  of ``img.get_fdata()``, which will scale data in single precision if
+  the output type is ``float32``. (pr/844) (CM, reviewed by ...)
 * GiftiImage method ``agg_data()`` to return usable data arrays (pr/793)
   (Hao-Ting Wang, reviewed by CM)
 * Accept ``os.PathLike`` objects in place of filenames (pr/610) (Cameron

@@ -676,31 +676,27 @@ class PARRECArrayProxy(object):
         """
         return self._get_unscaled(slicer=())
 
-    def get_scaled(self, dtype=None):
-        """ Read data from file and apply scaling
+    def __array__(self, dtype=None):
+        """ Read data from file and apply scaling, casting to ``dtype``
 
-        The dtype of the returned array is the narrowest dtype that can
-        represent the data without overflow, and is at least as wide as
-        the dtype parameter.
-
-        If dtype is unspecified, it is the wider of the dtypes of the slopes
-        or intercepts
+        If ``dtype`` is unspecified, the dtype of the returned array is the
+        narrowest dtype that can represent the data without overflow.
+        Generally, it is the wider of the dtypes of the slopes or intercepts.
 
         Parameters
         ----------
-        dtype : numpy dtype specifier
-            A numpy dtype specifier specifying the narrowest acceptable
-            dtype.
+        dtype : numpy dtype specifier, optional
+            A numpy dtype specifier specifying the type of the returned array.
 
         Returns
         -------
         array
-            Scaled of image data of data type `dtype`.
+            Scaled image data with type `dtype`.
         """
-        return self._get_scaled(dtype=dtype, slicer=())
-
-    def __array__(self):
-        return self._get_scaled(dtype=None, slicer=())
+        arr = self._get_scaled(dtype=dtype, slicer=())
+        if dtype is not None:
+            arr = arr.astype(dtype, copy=False)
+        return arr
 
     def __getitem__(self, slicer):
         return self._get_scaled(dtype=None, slicer=slicer)
