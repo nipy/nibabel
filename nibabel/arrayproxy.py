@@ -27,7 +27,6 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
 from threading import RLock
-import warnings
 
 import numpy as np
 
