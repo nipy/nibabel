@@ -8,7 +8,7 @@ from numpy import array as npa
 import nibabel
 from nibabel.cmdline import parrec2nii
 
-from mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
 from nose.tools import assert_true
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 

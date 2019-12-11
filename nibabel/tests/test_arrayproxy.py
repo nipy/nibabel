@@ -23,7 +23,7 @@ from ..arrayproxy import (ArrayProxy, is_proxy, reshape_dataobj)
 from ..openers import ImageOpener
 from ..nifti1 import Nifti1Header
 
-import mock
+from unittest import mock
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import (assert_true, assert_false, assert_equal,

@@ -1,7 +1,7 @@
 """ Testing optpkg module
 """
 
-import mock
+from unittest import mock
 import types
 import sys
 import builtins

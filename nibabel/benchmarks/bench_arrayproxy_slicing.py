@@ -18,7 +18,7 @@ from timeit import timeit
 import gc
 import itertools as it
 import numpy as np
-import mock
+from unittest import mock
 
 import nibabel as nib
 from nibabel.tmpdirs import InTemporaryDirectory
