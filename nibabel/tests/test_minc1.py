@@ -104,30 +104,10 @@ def test_old_namespace():
     # Check warnings raised
     arr = np.arange(24).reshape((2, 3, 4))
     aff = np.diag([2, 3, 4, 1])
-    with clear_and_catch_warnings() as warns:
-        warnings.simplefilter('always', DeprecationWarning)
-        # Top level import.
-        # This import does not trigger an import of the minc.py module, because
-        # it's the proxy object.
-        from .. import minc
-        assert_equal(warns, [])
-        # If there was a previous import it will be module, otherwise it will be
-        # a proxy
-        previous_import = isinstance(minc, types.ModuleType)
-        if not previous_import:
-            assert_true(isinstance(minc, ModuleProxy))
-        old_minc1image = minc.Minc1Image  # just to check it works
-        # There may or may not be a warning raised on accessing the proxy,
-        # depending on whether the minc.py module is already imported in this
-        # test run.
-        if not previous_import:
-            assert_equal(warns.pop(0).category, DeprecationWarning)
 
     with clear_and_catch_warnings() as warns:
         from .. import Minc1Image, MincImage
         assert_equal(warns, [])
-        # The import from old module is the same as that from new
-        assert_true(old_minc1image is Minc1Image)
         # But the old named import, imported from new, is not the same
         assert_false(Minc1Image is MincImage)
         assert_equal(warns, [])
