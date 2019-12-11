@@ -467,12 +467,14 @@ def test_keep_file_open_true_false_invalid():
         fname = 'testdata'
         with open(fname, 'wb') as fobj:
             fobj.write(data.tostring(order='F'))
-        with assert_raises(ValueError):
-            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=55)
-        with assert_raises(ValueError):
-            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='auto')
-        with assert_raises(ValueError):
-            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='cauto')
+
+        for invalid_kfo in (55, 'auto', 'cauto'):
+            with assert_raises(ValueError):
+                ArrayProxy(fname, ((10, 10, 10), dtype),
+                           keep_file_open=invalid_kfo)
+            with patch_keep_file_open_default(invalid_kfo):
+                with assert_raises(ValueError):
+                    ArrayProxy(fname, ((10, 10, 10), dtype))
 
 
 def test_pickle_lock():
