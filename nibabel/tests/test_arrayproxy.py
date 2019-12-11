@@ -372,8 +372,6 @@ def test_keep_file_open_true_false_invalid():
     # False     | True             | True                | True
     # True      | False            | True                | n/a
     # True      | True             | True                | False
-    # 'auto'    | False            | False               | n/a
-    # 'auto'    | True             | True                | False
     #
     # Each test tuple contains:
     #  - file type - gzipped ('gz') or not ('bin'), or an open file handle
@@ -388,26 +386,18 @@ def test_keep_file_open_true_false_invalid():
         ('open', False,  True,  False, False),
         ('open', True,   False, False, False),
         ('open', True,   True,  False, False),
-        ('open', 'auto', False, False, False),
-        ('open', 'auto', True,  False, False),
         # non-gzip file - have_igzip is irrelevant, decision should be made
         # solely from kfo flag
         ('bin', False,  False, False, False),
         ('bin', False,  True,  False, False),
         ('bin', True,   False, True,  True),
         ('bin', True,   True,  True,  True),
-        ('bin', 'auto', False, False, False),
-        ('bin', 'auto', True,  False, False),
-        # gzip file. If igzip is present, we persist the ImageOpener. If kfo
-        # is 'auto':
-        #  - if igzip is present, kfo -> True
-        #  - otherwise, kfo -> False
+        # gzip file. If igzip is present, we persist the ImageOpener.
         ('gz', False,  False, False, False),
         ('gz', False,  True,  True,  False),
         ('gz', True,   False, True,  True),
         ('gz', True,   True,  True,  True),
-        ('gz', 'auto', False, False, False),
-        ('gz', 'auto', True,  True,  True)]
+        ]
 
     dtype = np.float32
     data  = np.arange(1000, dtype=dtype).reshape((10, 10, 10))
@@ -480,7 +470,7 @@ def test_keep_file_open_true_false_invalid():
         with assert_raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open=55)
         with assert_raises(ValueError):
-            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='autob')
+            ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='auto')
         with assert_raises(ValueError):
             ArrayProxy(fname, ((10, 10, 10), dtype), keep_file_open='cauto')
 
