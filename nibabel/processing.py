@@ -314,13 +314,74 @@ def smooth_image(img,
 
 
 def _transform_range(x, new_min, new_max):
+    """Transform data to a new range, while maintaining ratios.
+
+    Parameters
+    ----------
+    x : array-like
+        The data to transform.
+    new_min, new_max : scalar
+        The minimum and maximum of the output array.
+
+    Returns
+    -------
+    transformed : array-like
+        A copy of the transformed data.
+
+    Examples
+    --------
+    >>> _transform_range([2, 4, 6], -1, 1)
+    array([-1.,  0.,  1.])
+    """
     x = np.asarray(x)
     x_min, x_max = x.min(), x.max()
     return (((x - x_min) * (new_max - new_min)) / (x_max - x_min)) + new_min
 
 
-def conform(from_img, out_shape=(256, 256, 256),
-            voxel_size=(1.0, 1.0, 1.0), order=3, cval=0.0, out_class=Nifti1Image):
+def conform(from_img,
+            out_shape=(256, 256, 256),
+            voxel_size=(1.0, 1.0, 1.0),
+            order=3,
+            cval=0.0,
+            out_class=Nifti1Image):
+    """ Resample image to ``out_shape`` with voxels of size ``voxel_size``.
+
+    Using the default arguments, this function is meant to replicate most parts
+    of FreeSurfer's ``mri_convert --conform`` command. The output image is also
+    reoriented to RAS.
+
+    Parameters
+    ----------
+    from_img : object
+        Object having attributes ``dataobj``, ``affine``, ``header`` and
+        ``shape``. If `out_class` is not None, ``img.__class__`` should be able
+        to construct an image from data, affine and header.
+    out_shape : sequence, optional
+        The shape of the output volume. Default is (256, 256, 256).
+    voxel_size : sequence, optional
+        The size in millimeters of the voxels in the resampled output. Default
+        is 1mm isotropic.
+    order : int, optional
+        The order of the spline interpolation, default is 3.  The order has to
+        be in the range 0-5 (see ``scipy.ndimage.affine_transform``)
+    mode : str, optional
+        Points outside the boundaries of the input are filled according
+        to the given mode ('constant', 'nearest', 'reflect' or 'wrap').
+        Default is 'constant' (see ``scipy.ndimage.affine_transform``)
+    cval : scalar, optional
+        Value used for points outside the boundaries of the input if
+        ``mode='constant'``. Default is 0.0 (see
+        ``scipy.ndimage.affine_transform``)
+    out_class : None or SpatialImage class, optional
+        Class of output image.  If None, use ``from_img.__class__``.
+
+    Returns
+    -------
+    out_img : object
+        Image of instance specified by `out_class`, containing data output from
+        resampling `from_img` into axes aligned to the output space of
+        ``from_img.affine``
+    """
     # Create fake image of the image we want to resample to.
     hdr = Nifti1Header()
     hdr.set_data_shape(out_shape)
@@ -329,7 +390,8 @@ def conform(from_img, out_shape=(256, 256, 256),
     to_img = Nifti1Image(np.empty(out_shape), affine=dst_aff, header=hdr)
     # Resample input image.
     out_img = resample_from_to(
-        from_img=from_img, to_vox_map=to_img, order=order, mode="constant", cval=cval, out_class=out_class)
+        from_img=from_img, to_vox_map=to_img, order=order, mode="constant",
+        cval=cval, out_class=out_class)
     # Cast to uint8.
     data = out_img.get_fdata()
     data = _transform_range(data, new_min=0.0, new_max=255.0)
