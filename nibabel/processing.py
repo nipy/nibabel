@@ -314,7 +314,7 @@ def smooth_image(img,
 
 
 def _transform_range(x, new_min, new_max):
-    """Transform data to a new range, while maintaining ratios.
+    """ Transform data to a new range, while maintaining ratios.
 
     Parameters
     ----------
@@ -335,7 +335,7 @@ def _transform_range(x, new_min, new_max):
     """
     x = np.asarray(x)
     x_min, x_max = x.min(), x.max()
-    return (((x - x_min) * (new_max - new_min)) / (x_max - x_min)) + new_min
+    return (x - x_min) * (new_max - new_min) / (x_max - x_min) + new_min
 
 
 def conform(from_img,
@@ -347,8 +347,13 @@ def conform(from_img,
     """ Resample image to ``out_shape`` with voxels of size ``voxel_size``.
 
     Using the default arguments, this function is meant to replicate most parts
-    of FreeSurfer's ``mri_convert --conform`` command. The output image is also
-    reoriented to RAS.
+    of FreeSurfer's ``mri_convert --conform`` command. Specifically, this
+    function:
+        - Resamples data to ``output_shape``
+        - Resamples voxel sizes to ``voxel_size``
+        - Transforms data to range [0, 255] (while maintaining ratios)
+        - Casts to unsigned eight-bit integer
+        - Reorients to RAS (``mri_convert --conform`` reorients to LIA)
 
     Parameters
     ----------
@@ -364,10 +369,6 @@ def conform(from_img,
     order : int, optional
         The order of the spline interpolation, default is 3.  The order has to
         be in the range 0-5 (see ``scipy.ndimage.affine_transform``)
-    mode : str, optional
-        Points outside the boundaries of the input are filled according
-        to the given mode ('constant', 'nearest', 'reflect' or 'wrap').
-        Default is 'constant' (see ``scipy.ndimage.affine_transform``)
     cval : scalar, optional
         Value used for points outside the boundaries of the input if
         ``mode='constant'``. Default is 0.0 (see
@@ -382,6 +383,8 @@ def conform(from_img,
         resampling `from_img` into axes aligned to the output space of
         ``from_img.affine``
     """
+    if from_img.ndim != 3:
+        raise ValueError("Only 3D images are supported.")
     # Create fake image of the image we want to resample to.
     hdr = Nifti1Header()
     hdr.set_data_shape(out_shape)
