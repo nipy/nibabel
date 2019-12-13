@@ -438,6 +438,7 @@ def test__transform_range():
                        np.arange(201))
 
 
+@needs_scipy
 def test_conform():
     anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
 
