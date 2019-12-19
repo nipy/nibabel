@@ -24,7 +24,6 @@ from ..filebasedimages import FileBasedHeader
 from ..dataobj_images import DataobjImage
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
-from ..keywordonly import kw_only_meth
 from warnings import warn
 
 
@@ -1389,8 +1388,7 @@ class Cifti2Image(DataobjImage):
         return self._nifti_header
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """ Load a CIFTI-2 image from a file_map
 
         Parameters

@@ -17,7 +17,6 @@ from .externals.netcdf import netcdf_file
 from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
 
-from .keywordonly import kw_only_meth
 from .deprecated import deprecate_with_version
 
 _dt_dict = {
@@ -327,8 +326,7 @@ class Minc1Image(SpatialImage):
     ImageArrayProxy = MincImageArrayProxy
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         # Note that mmap and keep_file_open are included for proper
         with file_map['image'].get_prepare_fileobj() as fobj:
             minc_file = Minc1File(netcdf_file(fobj))

@@ -2,6 +2,7 @@ from ..pkg_info import cmp_pkg_version
 from ..testing import assert_raises, assert_false
 
 MODULE_SCHEDULE = [
+    ('5.0.0', ['nibabel.keywordonly']),
     ('4.0.0', ['nibabel.trackvis']),
     ('3.0.0', ['nibabel.minc', 'nibabel.checkwarns']),
     # Verify that the test will be quiet if the schedule outlives the modules

@@ -21,7 +21,6 @@ from ..filename_parser import _stringify_path
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
-from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
 from ..batteryrunners import BatteryRunner, Report
 from ..wrapstruct import LabeledWrapStruct
@@ -537,8 +536,7 @@ class MGHImage(SpatialImage, SerializableImage):
         return super(MGHImage, klass).filespec_to_file_map(filespec)
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         ''' Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1
