@@ -47,6 +47,7 @@ from nose.tools import (assert_true, assert_false, assert_raises, assert_equal)
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
 from ..testing import clear_and_catch_warnings
 from ..tmpdirs import InTemporaryDirectory
+from ..deprecator import ExpiredDeprecationError
 
 from .test_api_validators import ValidateAPI
 from .test_helpers import (bytesio_round_trip, bytesio_filemap,
@@ -422,10 +423,8 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
         img = imaker()
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
-            assert_equal(img.get_shape(), params['shape'])
-            assert_equal(len(w), 1)
+        with assert_raises(ExpiredDeprecationError):
+            img.get_shape()
 
     def validate_mmap_parameter(self, imaker, params):
         img = imaker()

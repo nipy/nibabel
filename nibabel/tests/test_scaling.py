@@ -11,10 +11,11 @@
 import numpy as np
 
 from io import BytesIO
-from ..volumeutils import (calculate_scale, scale_min_max, finite_range,
-                           apply_read_scaling, array_to_file, array_from_file)
+from ..volumeutils import finite_range, apply_read_scaling, array_to_file, array_from_file
 from ..casting import type_info
 from ..testing import suppress_warnings
+
+from .test_volumeutils import _calculate_scale
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 
@@ -24,56 +25,6 @@ from nose.tools import (assert_true, assert_equal, assert_raises,
 
 # Debug print statements
 DEBUG = True
-
-
-def test_scale_min_max():
-    mx_dt = np.maximum_sctype(np.float)
-    for tp in np.sctypes['uint'] + np.sctypes['int']:
-        info = np.iinfo(tp)
-        # Need to pump up to max fp type to contain python longs
-        imin = np.array(info.min, dtype=mx_dt)
-        imax = np.array(info.max, dtype=mx_dt)
-        value_pairs = (
-            (0, imax),
-            (imin, 0),
-            (imin, imax),
-            (1, 10),
-            (-1, -1),
-            (1, 1),
-            (-10, -1),
-            (-100, 10))
-        for mn, mx in value_pairs:
-            # with intercept
-            scale, inter = scale_min_max(mn, mx, tp, True)
-            if mx - mn:
-                assert_array_almost_equal, (mx - inter) / scale, imax
-                assert_array_almost_equal, (mn - inter) / scale, imin
-            else:
-                assert_equal, (scale, inter), (1.0, mn)
-            # without intercept
-            if imin == 0 and mn < 0 and mx > 0:
-                (assert_raises, ValueError,
-                 scale_min_max, mn, mx, tp, False)
-                continue
-            scale, inter = scale_min_max(mn, mx, tp, False)
-            assert_equal, inter, 0.0
-            if mn == 0 and mx == 0:
-                assert_equal, scale, 1.0
-                continue
-            sc_mn = mn / scale
-            sc_mx = mx / scale
-            assert_true, sc_mn >= imin
-            assert_true, sc_mx <= imax
-            if imin == 0:
-                if mx > 0:  # numbers all +ve
-                    assert_array_almost_equal, mx / scale, imax
-                else:  # numbers all -ve
-                    assert_array_almost_equal, mn / scale, imax
-                continue
-            if abs(mx) >= abs(mn):
-                assert_array_almost_equal, mx / scale, imax
-            else:
-                assert_array_almost_equal, mn / scale, imin
 
 
 def test_finite_range():
@@ -120,26 +71,6 @@ def test_finite_range():
     # Test error cases
     a = np.array([[1., 0, 1], [2, 3, 4]]).view([('f1', 'f')])
     assert_raises(TypeError, finite_range, a)
-
-
-def test_calculate_scale():
-    # Test for special cases in scale calculation
-    npa = np.array
-    # Here the offset handles it
-    res = calculate_scale(npa([-2, -1], dtype=np.int8), np.uint8, True)
-    assert_equal(res, (1.0, -2.0, None, None))
-    # Not having offset not a problem obviously
-    res = calculate_scale(npa([-2, -1], dtype=np.int8), np.uint8, 0)
-    assert_equal(res, (-1.0, 0.0, None, None))
-    # Case where offset handles scaling
-    res = calculate_scale(npa([-1, 1], dtype=np.int8), np.uint8, 1)
-    assert_equal(res, (1.0, -1.0, None, None))
-    # Can't work for no offset case
-    assert_raises(ValueError,
-                  calculate_scale, npa([-1, 1], dtype=np.int8), np.uint8, 0)
-    # Offset trick can't work when max is out of range
-    res = calculate_scale(npa([-1, 255], dtype=np.int16), np.uint8, 1)
-    assert_not_equal(res, (1.0, -1.0, None, None))
 
 
 def test_a2f_mn_mx():
@@ -213,9 +144,9 @@ def test_array_file_scales():
         info = type_info(in_type)
         arr[0], arr[1] = info['min'], info['max']
         if not err is None:
-            assert_raises(err, calculate_scale, arr, out_dtype, True)
+            assert_raises(err, _calculate_scale, arr, out_dtype, True)
             continue
-        slope, inter, mn, mx = calculate_scale(arr, out_dtype, True)
+        slope, inter, mn, mx = _calculate_scale(arr, out_dtype, True)
         array_to_file(arr, bio, out_type, 0, inter, slope, mn, mx)
         bio.seek(0)
         arr2 = array_from_file(arr.shape, out_dtype, bio)
@@ -266,7 +197,7 @@ def check_int_a2f(in_type, out_type):
         data[1] = this_max + 0j
     str_io = BytesIO()
     try:
-        scale, inter, mn, mx = calculate_scale(data, out_type, True)
+        scale, inter, mn, mx = _calculate_scale(data, out_type, True)
     except ValueError as e:
         if DEBUG:
             print(in_type, out_type, e)

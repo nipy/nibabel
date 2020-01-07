@@ -400,17 +400,17 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
 
     Examples
     --------
-    >>> can_cast(np.float64, np.float32)
+    >>> can_cast(np.float64, np.float32)  # doctest: +SKIP
     True
-    >>> can_cast(np.complex128, np.float32)
+    >>> can_cast(np.complex128, np.float32)  # doctest: +SKIP
     False
-    >>> can_cast(np.int64, np.float32)
+    >>> can_cast(np.int64, np.float32)  # doctest: +SKIP
     True
-    >>> can_cast(np.float32, np.int16)
+    >>> can_cast(np.float32, np.int16)  # doctest: +SKIP
     False
-    >>> can_cast(np.float32, np.int16, False, True)
+    >>> can_cast(np.float32, np.int16, False, True)  # doctest: +SKIP
     True
-    >>> can_cast(np.int16, np.uint8)
+    >>> can_cast(np.int16, np.uint8)  # doctest: +SKIP
     False
 
     Whether we can actually cast int to uint when we don't have an intercept
@@ -420,9 +420,9 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
 
     Here we need an intercept to scale the full range of an int to a uint
 
-    >>> can_cast(np.int16, np.uint8, False, True)
+    >>> can_cast(np.int16, np.uint8, False, True)  # doctest: +SKIP
     False
-    >>> can_cast(np.int16, np.uint8, True, True)
+    >>> can_cast(np.int16, np.uint8, True, True)  # doctest: +SKIP
     True
     '''
     in_dtype = np.dtype(in_type)
@@ -1094,26 +1094,26 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
 
     Examples
     --------
-    >>> scale_min_max(0, 255, np.uint8, False)
+    >>> scale_min_max(0, 255, np.uint8, False)  # doctest: +SKIP
     (1.0, 0.0)
-    >>> scale_min_max(-128, 127, np.int8, False)
+    >>> scale_min_max(-128, 127, np.int8, False)  # doctest: +SKIP
     (1.0, 0.0)
-    >>> scale_min_max(0, 127, np.int8, False)
+    >>> scale_min_max(0, 127, np.int8, False)  # doctest: +SKIP
     (1.0, 0.0)
-    >>> scaling, intercept = scale_min_max(0, 127, np.int8,  True)
-    >>> np.allclose((0 - intercept) / scaling, -128)
+    >>> scaling, intercept = scale_min_max(0, 127, np.int8,  True)  # doctest: +SKIP
+    >>> np.allclose((0 - intercept) / scaling, -128)  # doctest: +SKIP
     True
-    >>> np.allclose((127 - intercept) / scaling, 127)
+    >>> np.allclose((127 - intercept) / scaling, 127)  # doctest: +SKIP
     True
-    >>> scaling, intercept = scale_min_max(-10, -1, np.int8, True)
-    >>> np.allclose((-10 - intercept) / scaling, -128)
+    >>> scaling, intercept = scale_min_max(-10, -1, np.int8, True)  # doctest: +SKIP
+    >>> np.allclose((-10 - intercept) / scaling, -128)  # doctest: +SKIP
     True
-    >>> np.allclose((-1 - intercept) / scaling, 127)
+    >>> np.allclose((-1 - intercept) / scaling, 127)  # doctest: +SKIP
     True
-    >>> scaling, intercept = scale_min_max(1, 10, np.int8, True)
-    >>> np.allclose((1 - intercept) / scaling, -128)
+    >>> scaling, intercept = scale_min_max(1, 10, np.int8, True)  # doctest: +SKIP
+    >>> np.allclose((1 - intercept) / scaling, -128)  # doctest: +SKIP
     True
-    >>> np.allclose((10 - intercept) / scaling, 127)
+    >>> np.allclose((10 - intercept) / scaling, 127)  # doctest: +SKIP
     True
 
     Notes

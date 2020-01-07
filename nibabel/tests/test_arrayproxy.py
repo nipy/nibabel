@@ -112,9 +112,6 @@ def test_tuplespec():
                          ):
         assert_array_equal(getattr(ap_header, method)(*args),
                            getattr(ap_tuple, method)(*args))
-    # Tuple-defined ArrayProxies have no header to store
-    with warnings.catch_warnings():
-        assert_true(ap_tuple.header is None)
     # Partial tuples of length 2-4 are also valid
     for n in range(2, 5):
         ArrayProxy(bio, tuple_spec[:n])
@@ -141,10 +138,6 @@ def test_nifti1_init():
     ap = ArrayProxy(bio, hdr)
     assert_true(ap.file_like == bio)
     assert_equal(ap.shape, shape)
-    # Check there has been a copy of the header
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        assert_false(ap.header is hdr)
     # Get the data
     assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
     with InTemporaryDirectory():
