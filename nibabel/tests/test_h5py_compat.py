@@ -40,5 +40,8 @@ def test_disabled_h5py_cases():
         # Verify that the root cause is present
         # If any tests fail, they will likely be these, so they may be
         # ill-advised...
-        assert_equal(str(np.longdouble), str(np.float64))
+        if LooseVersion(np.__version__) < '1.18':
+            assert_equal(str(np.longdouble), str(np.float64))
+        else:
+            assert_not_equal(str(np.longdouble), str(np.float64))
         assert_not_equal(np.longdouble, np.float64)
