@@ -1,18 +1,8 @@
 import sys
-import re
-from distutils.version import StrictVersion
+from packaging.version import Version
 from . import _version
 
 __version__ = _version.get_versions()['version']
-
-
-def _parse_version(version_str):
-    """ Parse version string `version_str` in our format
-    """
-    match = re.match(r'([0-9.]*\d)(.*)', version_str)
-    if match is None:
-        raise ValueError('Invalid version ' + version_str)
-    return match.groups()
 
 
 def _cmp(a, b):
@@ -24,17 +14,18 @@ def _cmp(a, b):
 def cmp_pkg_version(version_str, pkg_version_str=__version__):
     """ Compare ``version_str`` to current package version
 
-    To be valid, a version must have a numerical major version followed by a
-    dot, followed by a numerical minor version.  It may optionally be followed
-    by a dot and a numerical micro version, and / or by an "extra" string.
+    This comparator follows `PEP-440`_ conventions for determining version
+    ordering.
+
+    To be valid, a version must have a numerical major version. It may be
+    optionally followed by a dot and a numerical minor version, which may,
+    in turn, optionally be followed by a dot and a numerical micro version,
+    and / or by an "extra" string.
     The extra string may further contain a "+". Any value to the left of a "+"
     labels the version as pre-release, while values to the right indicate a
     post-release relative to the values to the left. That is,
     ``1.2.0+1`` is post-release for ``1.2.0``, while ``1.2.0rc1+1`` is
     post-release for ``1.2.0rc1`` and pre-release for ``1.2.0``.
-
-    This is an approximation of `PEP-440`_, and future versions will fully
-    implement PEP-440.
 
     Parameters
     ----------
@@ -63,30 +54,12 @@ def cmp_pkg_version(version_str, pkg_version_str=__version__):
     1
     >>> cmp_pkg_version('1.2.0rc1+1', '1.2.0')
     -1
+    >>> cmp_pkg_version('1.2.0.post1', '1.2.0')
+    1
 
     .. _`PEP-440`: https://www.python.org/dev/peps/pep-0440/
     """
-    version, extra = _parse_version(version_str)
-    pkg_version, pkg_extra = _parse_version(pkg_version_str)
-
-    # Normalize versions
-    quick_check = _cmp(StrictVersion(version), StrictVersion(pkg_version))
-    # Nothing further to check
-    if quick_check != 0 or extra == pkg_extra == '':
-        return quick_check
-
-    # Before + is pre-release, after + is additional increment
-    pre, _, post = extra.partition('+')
-    pkg_pre, _, pkg_post = pkg_extra.partition('+')
-    quick_check = _cmp(pre, pkg_pre)
-    if quick_check != 0:  # Excludes case where pre and pkg_pre == ''
-        # Pre-releases are ordered but strictly less than non-pre
-        return (1 if pre == ''
-                else -1 if pkg_pre == ''
-                else quick_check)
-
-    # All else being equal, compare additional information lexically
-    return _cmp(post, pkg_post)
+    return _cmp(Version(version_str), Version(pkg_version_str))
 
 
 def pkg_commit_hash(pkg_path=None):
