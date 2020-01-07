@@ -55,6 +55,10 @@ def cmp_pkg_version(version_str, pkg_version_str=__version__):
     pkg_version, pkg_extra = _parse_version(pkg_version_str)
     if version != pkg_version:
         return _cmp(StrictVersion(version), StrictVersion(pkg_version))
+    if extra.startswith('+') or pkg_extra.startswith('+'):
+        return (1 if pkg_extra == ''
+                else -1 if extra == ''
+                else _cmp(extra, pkg_extra))
     return (0 if extra == pkg_extra
             else 1 if extra == ''
             else -1 if pkg_extra == ''
