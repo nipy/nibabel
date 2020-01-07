@@ -58,6 +58,7 @@ from nose.tools import (assert_true, assert_false, assert_raises,
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
 
 from ..testing import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
+from ..deprecator import ExpiredDeprecationError
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -324,12 +325,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
 
     def validate_deprecated_header(self, pmaker, params):
         prox, fio, hdr = pmaker()
-        with warnings.catch_warnings(record=True) as warns:
-            warnings.simplefilter("always")
-            # Header is a copy of original
-            assert_false(prox.header is hdr)
-            assert_equal(prox.header, hdr)
-            assert_equal(warns.pop(0).category, DeprecationWarning)
+        with assert_raises(ExpiredDeprecationError):
+            prox.header
 
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):
