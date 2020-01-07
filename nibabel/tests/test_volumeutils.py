@@ -32,8 +32,9 @@ from ..volumeutils import (array_from_file,
                            array_to_file,
                            allopen,  # for backwards compatibility
                            fname_ext_ul_case,
-                           calculate_scale,
-                           can_cast,
+                           calculate_scale,  # Deprecated
+                           can_cast,  # Deprecated
+                           scale_min_max,  # Deprecated
                            write_zeros,
                            seek_tell,
                            apply_read_scaling,
@@ -52,8 +53,11 @@ from ..volumeutils import (array_from_file,
 from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
+from ..deprecator import ExpiredDeprecationError
+
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
+from nose.tools import assert_raises
 
 from ..testing_pytest import (assert_dt_equal, assert_allclose_safely,
                               suppress_warnings, clear_and_catch_warnings)
@@ -65,6 +69,15 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 INT_TYPES = np.sctypes['int']
 IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
+
+
+def test_deprecated_functions():
+    with assert_raises(ExpiredDeprecationError):
+        scale_min_max(0, 1, np.uint8, True)
+    with assert_raises(ExpiredDeprecationError):
+        calculate_scale(np.array([-2, -1], dtype=np.int8), np.uint8, True)
+    with assert_raises(ExpiredDeprecationError):
+        can_cast(np.float32, np.float32)
 
 
 def test__is_compressed_fobj():
@@ -294,9 +307,7 @@ def test_array_to_file():
         for code in '<>':
             ndt = dt.newbyteorder(code)
             for allow_intercept in (True, False):
-                with suppress_warnings():  # deprecated
-                    scale, intercept, mn, mx = \
-                        calculate_scale(arr, ndt, allow_intercept)
+                scale, intercept, mn, mx = _calculate_scale(arr, ndt, allow_intercept)
                 data_back = write_return(arr, str_io, ndt,
                                          0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
@@ -875,28 +886,6 @@ def test_best_write_scale_ftype():
         assert best_write_scale_ftype(arr, lower_t(0.5), 0) == lower_t
 
 
-def test_can_cast():
-    tests = ((np.float32, np.float32, True, True, True),
-             (np.float64, np.float32, True, True, True),
-             (np.complex128, np.float32, False, False, False),
-             (np.float32, np.complex128, True, True, True),
-             (np.float32, np.uint8, False, True, True),
-             (np.uint32, np.complex128, True, True, True),
-             (np.int64, np.float32, True, True, True),
-             (np.complex128, np.int16, False, False, False),
-             (np.float32, np.int16, False, True, True),
-             (np.uint8, np.int16, True, True, True),
-             (np.uint16, np.int16, False, True, True),
-             (np.int16, np.uint16, False, False, True),
-             (np.int8, np.uint16, False, False, True),
-             (np.uint16, np.uint8, False, True, True),
-             )
-    for intype, outtype, def_res, scale_res, all_res in tests:
-        assert def_res == can_cast(intype, outtype)
-        assert scale_res == can_cast(intype, outtype, False, True)
-        assert all_res == can_cast(intype, outtype, True, True)
-
-
 def test_write_zeros():
     bio = BytesIO()
     write_zeros(bio, 10000)
@@ -1291,3 +1280,49 @@ def test__ftype4scaled_finite_warningfilters():
 
     if err:
         raise err[0]
+
+
+def _calculate_scale(data, out_dtype, allow_intercept):
+    ''' Calculate scaling and optional intercept for data
+
+    Copy of the deprecated volumeutils.calculate_scale, to preserve tests
+
+    Parameters
+    ----------
+    data : array
+    out_dtype : dtype
+       output data type in some form understood by ``np.dtype``
+    allow_intercept : bool
+       If True allow non-zero intercept
+
+    Returns
+    -------
+    scaling : None or float
+       scalefactor to divide into data.  None if no valid data
+    intercept : None or float
+       intercept to subtract from data.  None if no valid data
+    mn : None or float
+       minimum of finite value in data or None if this will not
+       be used to threshold data
+    mx : None or float
+       minimum of finite value in data, or None if this will not
+       be used to threshold data
+    '''
+    # Code here is a compatibility shell around arraywriters refactor
+    in_dtype = data.dtype
+    out_dtype = np.dtype(out_dtype)
+    if np.can_cast(in_dtype, out_dtype):
+        return 1.0, 0.0, None, None
+    from ..arraywriters import make_array_writer, WriterError, get_slope_inter
+    try:
+        writer = make_array_writer(data, out_dtype, True, allow_intercept)
+    except WriterError as e:
+        raise ValueError(str(e))
+    if out_dtype.kind in 'fc':
+        return (1.0, 0.0, None, None)
+    mn, mx = writer.finite_range()
+    if (mn, mx) == (np.inf, -np.inf):  # No valid data
+        return (None, None, None, None)
+    if in_dtype.kind not in 'fc':
+        mn, mx = (None, None)
+    return get_slope_inter(writer) + (mn, mx)

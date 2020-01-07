@@ -28,6 +28,7 @@ from .test_helpers import bytesio_round_trip
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
                        memmap_after_ufunc)
 from ..tmpdirs import InTemporaryDirectory
+from ..deprecator import ExpiredDeprecationError
 from .. import load as top_load
 
 
@@ -284,8 +285,8 @@ class TestSpatialImage(TestCase):
         img = img_klass(arr, np.eye(4))
         # Shape may be promoted to higher dimension, but may not reorder or
         # change size
-        assert_equal(img.get_shape()[:1], (4,))
-        assert_equal(np.prod(img.get_shape()), 4)
+        assert_equal(img.shape[:1], (4,))
+        assert_equal(np.prod(img.shape), 4)
         img = img_klass(np.zeros((2, 3, 4), dtype=np.float32), np.eye(4))
         assert_equal(img.shape, (2, 3, 4))
 
@@ -305,19 +306,13 @@ class TestSpatialImage(TestCase):
         assert_true(len(str(img)) > 0)
 
     def test_get_shape(self):
-        # Check there is a get_shape method
-        # (it is deprecated)
+        # Check that get_shape raises an ExpiredDeprecationError
         img_klass = self.image_class
         # Assumes all possible images support int16
         # See https://github.com/nipy/nibabel/issues/58
         img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        with suppress_warnings():
-            # Shape may be promoted to higher dimension, but may not reorder or
-            # change size
-            assert_equal(img.get_shape()[:1], (1,))
-            assert_equal(np.prod(img.get_shape()), 1)
-            img = img_klass(np.zeros((2, 3, 4), np.int16), np.eye(4))
-            assert_equal(img.get_shape(), (2, 3, 4))
+        with assert_raises(ExpiredDeprecationError):
+            img.get_shape()
 
     def test_get_fdata(self):
         # Test array image and proxy image interface for floating point data
@@ -568,18 +563,14 @@ class TestSpatialImage(TestCase):
         bio = BytesIO()
         file_map = FakeImage.make_file_map({'image': bio})
 
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
+        with assert_raises(ExpiredDeprecationError):
             img.to_files(file_map)
-            assert_equal(len(w), 1)
+        with assert_raises(ExpiredDeprecationError):
             img.to_filespec('an_image')
-            assert_equal(len(w), 2)
-            img = FakeImage.from_files(file_map)
-            assert_equal(len(w), 3)
-            file_map = FakeImage.filespec_to_files('an_image')
-            assert_equal(list(file_map), ['image'])
-            assert_equal(file_map['image'].filename, 'an_image.foo')
-            assert_equal(len(w), 4)
+        with assert_raises(ExpiredDeprecationError):
+            FakeImage.from_files(file_map)
+        with assert_raises(ExpiredDeprecationError):
+            FakeImage.filespec_to_files('an_image')
 
 
 class MmapImageMixin(object):

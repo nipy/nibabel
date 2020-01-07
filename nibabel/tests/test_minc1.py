@@ -26,6 +26,7 @@ from ..minc1 import Minc1File, Minc1Image, MincHeader
 from ..tmpdirs import InTemporaryDirectory
 from ..testing import (assert_true, assert_equal, assert_false, assert_raises, assert_warns,
                        assert_array_equal, data_path, clear_and_catch_warnings)
+from ..deprecator import ExpiredDeprecationError
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
@@ -105,25 +106,16 @@ def test_old_namespace():
     arr = np.arange(24).reshape((2, 3, 4))
     aff = np.diag([2, 3, 4, 1])
 
-    with clear_and_catch_warnings() as warns:
-        from .. import Minc1Image, MincImage
+    from .. import Minc1Image, MincImage
+    assert_false(Minc1Image is MincImage)
+    with assert_raises(ExpiredDeprecationError):
+        MincImage(arr, aff)
         assert_equal(warns, [])
-        # But the old named import, imported from new, is not the same
-        assert_false(Minc1Image is MincImage)
-        assert_equal(warns, [])
-        # Create object using old name
-        mimg = MincImage(arr, aff)
-        # Call to create object created warning
-        assert_equal(warns.pop(0).category, FutureWarning)
-        assert_array_equal(mimg.get_fdata(), arr)
-        # Another old name
-        from ..minc1 import MincFile, Minc1File
-        assert_false(MincFile is Minc1File)
-        assert_equal(warns, [])
+    # Another old name
+    from ..minc1 import MincFile, Minc1File
+    assert_false(MincFile is Minc1File)
+    with assert_raises(ExpiredDeprecationError):
         mf = MincFile(netcdf_file(EG_FNAME))
-        # Call to create object created warning
-        assert_equal(warns.pop(0).category, FutureWarning)
-        assert_equal(mf.get_data_shape(), (10, 20, 20))
 
 
 class _TestMincFile(object):
