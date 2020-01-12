@@ -5,6 +5,7 @@
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 
 os: linux
+arch: amd64
 dist: xenial
 language: python
 cache: pip
@@ -26,6 +27,8 @@ python:
 
 jobs:
   include:
+    - arch: arm64
+      python: 3.6
     # Basic dependencies only
     - python: 3.6
       env:
