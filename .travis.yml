@@ -29,6 +29,8 @@ jobs:
   include:
     - arch: arm64
       python: 3.6
+      env:
+        - DEPENDS="numpy"
     # Basic dependencies only
     - python: 3.6
       env:
