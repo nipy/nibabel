@@ -1,6 +1,8 @@
 """ Testing package info
 """
 
+from packaging.version import Version
+
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
 from ..info import VERSION
@@ -30,12 +32,14 @@ def test_fallback_version():
     This should only fail if we fail to bump nibabel.info.VERSION immediately
     after release
     """
+    ver = Version(nib.__version__)
+    fallback = Version(VERSION)
     assert (
+        # Releases have no local information, archive matches versioneer
+        ver.local is None or
         # dev version should be larger than tag+commit-githash
-        cmp_pkg_version(VERSION) >= 0 or
-        # Allow VERSION bump to lag releases by one commit
-        VERSION == nib.__version__ + 'dev'), \
-        "nibabel.info.VERSION does not match current tag information"
+        fallback >= ver), \
+        "nibabel.info.VERSION does not match latest tag information"
 
 
 def test_cmp_pkg_version():
@@ -76,6 +80,10 @@ def test_cmp_pkg_version():
     assert_raises(ValueError, cmp_pkg_version, 'foo.2')
     assert_raises(ValueError, cmp_pkg_version, 'foo.2', '1.0')
     assert_raises(ValueError, cmp_pkg_version, '1.0', 'foo.2')
-    assert_raises(ValueError, cmp_pkg_version, '1')
     assert_raises(ValueError, cmp_pkg_version, 'foo')
 
+    # Check dev/RC sequence
+    seq = ('3.0.0dev', '3.0.0rc1', '3.0.0rc1.post.dev', '3.0.0rc2', '3.0.0rc2.post.dev', '3.0.0')
+    for stage1, stage2 in zip(seq[:-1], seq[1:]):
+        assert_equal(cmp_pkg_version(stage1, stage2), -1)
+        assert_equal(cmp_pkg_version(stage2, stage1), 1)
