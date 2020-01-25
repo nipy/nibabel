@@ -28,6 +28,10 @@ python:
 
 matrix:
   include:
+    # Old nosetests - Remove soon
+    - python: 3.7
+      env:
+        - CHECK_TYPE="nosetests"
     # Basic dependencies only
     - python: 3.5
       env:
@@ -124,13 +128,18 @@ script:
           cd doc
           make html;
           make doctest;
-      elif [ "${CHECK_TYPE}" == "test" ]; then
+      elif [ "${CHECK_TYPE}" == "nosetests" ]; then
           # Change into an innocuous directory and find tests from installation
           mkdir for_testing
           cd for_testing
           cp ../.coveragerc .
           nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
-          pytest -v ../nibabel/tests
+      elif [ "${CHECK_TYPE}" == "test" ]; then
+          # Change into an innocuous directory and find tests from installation
+          mkdir for_testing
+          cd for_testing
+          cp ../.coveragerc .
+          pytest --doctest-modules --cov nibabel -v --pyargs nibabel --deselect streamlines
       else
           false
       fi
