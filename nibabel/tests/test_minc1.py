@@ -112,7 +112,7 @@ def test_old_namespace():
         MincImage(arr, aff)
     # Another old name
     from ..minc1 import MincFile, Minc1File
-    assert_false(MincFile is Minc1File)
+    assert MincFile is not Minc1File
     with pytest.raises(ExpiredDeprecationError):
         mf = MincFile(netcdf_file(EG_FNAME))
 

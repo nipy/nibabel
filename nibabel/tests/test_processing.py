@@ -172,7 +172,8 @@ def test_resample_from_to():
     assert out.__class__ == Nifti1Image
     # From 2D to 3D, error, the fixed affine is not invertible
     img_2d = Nifti1Image(data[:, :, 0], affine)
-    assert_raises(AffineError, resample_from_to, img_2d, img)
+    with pytest.raises(AffineError):
+        resample_from_to(img_2d, img)
     # 3D to 2D, we don't need to invert the fixed matrix
     out = resample_from_to(img, img_2d)
     assert_array_equal(out.dataobj, data[:, :, 0])
@@ -186,7 +187,7 @@ def test_resample_from_to():
     assert_almost_equal(data_4d, out.dataobj)
     assert_array_equal(img_4d.affine, out.affine)
     # Errors trying to match 3D to 4D
-    with pytest.rises(ValueError):
+    with pytest.raises(ValueError):
         resample_from_to(img_4d, img)
     with pytest.raises(ValueError):
         resample_from_to(img, img_4d)

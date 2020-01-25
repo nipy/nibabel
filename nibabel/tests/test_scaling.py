@@ -149,7 +149,7 @@ def test_array_file_scales(in_type, out_type, err):
     arr[0], arr[1] = info['min'], info['max']
     if not err is None:
         with pytest.raises(err):
-            _calculate_scale, arr, out_dtype, True)
+            _calculate_scale(arr, out_dtype, True)
         return
     slope, inter, mn, mx = _calculate_scale(arr, out_dtype, True)
     array_to_file(arr, bio, out_type, 0, inter, slope, mn, mx)
