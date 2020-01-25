@@ -52,35 +52,36 @@ def mark_the_spot(mask):
     return streamlines
 
 
-rng = np.random.RandomState(42)
+if __name__ == '__main__':
+    rng = np.random.RandomState(42)
 
-width = 4  # Coronal
-height = 5  # Sagittal
-depth = 7  # Axial
+    width = 4  # Coronal
+    height = 5  # Sagittal
+    depth = 7  # Axial
 
-voxel_size = np.array((1., 3., 2.))
+    voxel_size = np.array((1., 3., 2.))
 
-# Generate a random mask with voxel order RAS+.
-mask = rng.rand(width, height, depth) > 0.8
-mask = (255*mask).astype(np.uint8)
+    # Generate a random mask with voxel order RAS+.
+    mask = rng.rand(width, height, depth) > 0.8
+    mask = (255*mask).astype(np.uint8)
 
-# Build tractogram
-streamlines = mark_the_spot(mask)
-tractogram = nib.streamlines.Tractogram(streamlines)
+    # Build tractogram
+    streamlines = mark_the_spot(mask)
+    tractogram = nib.streamlines.Tractogram(streamlines)
 
-# Build header
-affine = np.eye(4)
-affine[range(3), range(3)] = voxel_size
-header = {Field.DIMENSIONS: (width, height, depth),
-          Field.VOXEL_SIZES: voxel_size,
-          Field.VOXEL_TO_RASMM: affine,
-          Field.VOXEL_ORDER: 'RAS'}
+    # Build header
+    affine = np.eye(4)
+    affine[range(3), range(3)] = voxel_size
+    header = {Field.DIMENSIONS: (width, height, depth),
+              Field.VOXEL_SIZES: voxel_size,
+              Field.VOXEL_TO_RASMM: affine,
+              Field.VOXEL_ORDER: 'RAS'}
 
-# Save the standard mask.
-nii = nib.Nifti1Image(mask, affine=affine)
-nib.save(nii, "standard.nii.gz")
+    # Save the standard mask.
+    nii = nib.Nifti1Image(mask, affine=affine)
+    nib.save(nii, "standard.nii.gz")
 
-# Save the standard tractogram in every available file format.
-for ext, cls in FORMATS.items():
-    tfile = cls(tractogram, header)
-    nib.streamlines.save(tfile, "standard" + ext)
+    # Save the standard tractogram in every available file format.
+    for ext, cls in FORMATS.items():
+        tfile = cls(tractogram, header)
+        nib.streamlines.save(tfile, "standard" + ext)
