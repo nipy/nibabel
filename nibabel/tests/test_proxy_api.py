@@ -345,7 +345,7 @@ class TestNifti1ProxyAPI(TestSpm99AnalyzeProxyAPI):
     data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64,
                    np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
     if have_binary128():
-        data_dtypes.extend(np.float128, np.complex256)
+        data_dtypes += (np.float128, np.complex256)
 
 
 class TestMGHAPI(TestAnalyzeProxyAPI):
