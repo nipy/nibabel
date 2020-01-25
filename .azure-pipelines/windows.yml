@@ -43,7 +43,7 @@ jobs:
         if %CHECK_TYPE%=="nosetests" (
             nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
         ) else (
-            pytest --doctest-modules --cov nibabel -v --pyargs nibabel --deselect streamlines
+            pytest --cov nibabel -v --pyargs nibabel --deselect streamlines
         )
       displayName: 'Nose tests'
     - script: |
