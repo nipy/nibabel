@@ -40,7 +40,7 @@ jobs:
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
-        if %CHECK_TYPE%=="nosetests" (
+        if $(CHECK_TYPE)=="nosetests" (
             nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
         ) else (
             pytest --cov nibabel -v --pyargs nibabel --deselect streamlines
