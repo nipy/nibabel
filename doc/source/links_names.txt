@@ -83,6 +83,7 @@
 .. _emacs_python_mode: http://www.emacswiki.org/cgi-bin/wiki/PythonMode
 .. _doctest-mode: http://ed.loper.org/projects/doctestmode/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
+.. _pytest: https://docs.pytest.org/
 .. _`python coverage tester`: http://nedbatchelder.com/code/coverage/
 .. _bitbucket: https://bitbucket.org
 .. _six: http://pythonhosted.org/six
