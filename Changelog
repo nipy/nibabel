@@ -82,6 +82,8 @@ Bug fixes
 * Sliced ``Tractogram``s no longer ``apply_affine`` to the original
   ``Tractogram``'s streamlines. (pr/811) (MC, reviewed by Serge Koudoro,
   Philippe Poulin, CM, MB)
+* Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+  by CM)
 * Re-import externals/netcdf.py from scipy to resolve numpy deprecation
   (pr/821) (CM)
 
