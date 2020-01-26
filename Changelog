@@ -25,6 +25,22 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
+3.0.1 (Monday 27 January 2020)
+==============================
+
+Bug fixes
+---------
+* Test failed by using array method on tuple. (pr/860) (Ben Darwin, reviewed by
+  CM)
+* Validate ``ExpiredDeprecationError``\s, promoted by 3.0 release from
+  ``DeprecationWarning``\s. (pr/857) (CM)
+
+Maintenance
+-----------
+* Remove logic accommodating numpy without float16 types. (pr/866) (CM)
+* Accommodate new numpy dtype strings. (pr/858) (CM)
+
+
 3.0.0 (Wednesday 18 December 2019)
 ==================================
 
