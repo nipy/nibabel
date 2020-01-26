@@ -25,6 +25,16 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
+2.5.2 (To Be Determined)
+========================
+
+Bug fixes
+---------
+* Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+  by CM)
+* Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+  (pr/821) (CM)
+
 2.5.1 (Monday 23 September 2019)
 ================================
 
