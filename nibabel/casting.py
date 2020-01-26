@@ -171,12 +171,6 @@ def shared_range(flt_type, int_type):
 # types.
 # ----------------------------------------------------------------------------
 
-try:
-    _float16 = np.float16
-except AttributeError:  # float16 not present in np < 1.6
-    _float16 = None
-
-
 class FloatingError(Exception):
     pass
 
@@ -242,7 +236,7 @@ def type_info(np_type):
                minexp=info.minexp,
                maxexp=info.maxexp,
                width=width)
-    if np_type in (_float16, np.float32, np.float64,
+    if np_type in (np.float16, np.float32, np.float64,
                    np.complex64, np.complex128):
         return ret
     info_64 = np.finfo(np.float64)
