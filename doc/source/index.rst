@@ -104,7 +104,7 @@ contributed code and discussion (in rough order of appearance):
 * Hao-Ting Wang
 * Dorota Jarecka
 * Chris Gorgolewski
-* Ben Darwin
+* Benjamin C Darwin
 
 License reprise
 ===============
