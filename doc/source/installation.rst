@@ -84,7 +84,7 @@ Requirements
 .. check these against setup.cfg
 
 *  Python_ 3.5.1 or greater
-*  NumPy_ 1.12 or greater
+*  NumPy_ 1.13 or greater
 *  SciPy_ (optional, for full SPM-ANALYZE support)
 *  h5py_ (optional, for MINC2 support)
 *  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
