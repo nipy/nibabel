@@ -99,7 +99,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = u'2006-2019, %(maintainer)s <%(author_email)s>' % metadata
+copyright = u'2006-2020, %(maintainer)s <%(author_email)s>' % metadata
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

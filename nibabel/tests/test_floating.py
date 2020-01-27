@@ -15,15 +15,7 @@ from ..testing import suppress_warnings
 from nose import SkipTest
 from nose.tools import assert_equal, assert_raises, assert_true, assert_false
 
-IEEE_floats = [np.float32, np.float64]
-try:
-    np.float16
-except AttributeError:  # float16 not present in np < 1.6
-    have_float16 = False
-else:
-    have_float16 = True
-if have_float16:
-    IEEE_floats.append(np.float16)
+IEEE_floats = [np.float16, np.float32, np.float64]
 
 LD_INFO = type_info(np.longdouble)
 
@@ -201,8 +193,6 @@ def test_as_int_np_fix():
 
 def test_floor_exact_16():
     # A normal integer can generate an inf in float16
-    if not have_float16:
-        raise SkipTest('No float16')
     assert_equal(floor_exact(2**31, np.float16), np.inf)
     assert_equal(floor_exact(-2**31, np.float16), -np.inf)
 
