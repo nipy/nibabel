@@ -113,6 +113,7 @@
 .. _datapkg: https://pythonhosted.org/datapkg/
 .. _python imaging library: https://pypi.python.org/pypi/Pillow
 .. _h5py: https://www.h5py.org/
+.. _packaging: https://packaging.pypa.io
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
