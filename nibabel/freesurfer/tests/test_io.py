@@ -9,7 +9,8 @@ import warnings
 
 from ...tmpdirs import InTemporaryDirectory
 
-from nose.tools import assert_true
+
+import pytest
 import numpy as np
 from numpy.testing import assert_equal, assert_raises, dec, assert_allclose, assert_array_equal
 
@@ -92,13 +93,13 @@ def test_geometry():
         with clear_and_catch_warnings() as w:
             warnings.filterwarnings('always', category=DeprecationWarning)
             read_geometry(surf_path, read_metadata=True)
-        assert_true(any('volume information contained' in str(ww.message)
+        assert(any('volume information contained' in str(ww.message)
                         for ww in w))
-        assert_true(any('extension code' in str(ww.message) for ww in w))
+        assert(any('extension code' in str(ww.message) for ww in w))
         volume_info['head'] = [1, 2]
         with clear_and_catch_warnings() as w:
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
-        assert_true(any('Unknown extension' in str(ww.message) for ww in w))
+        assert(any('Unknown extension' in str(ww.message) for ww in w))
         volume_info['a'] = 0
         assert_raises(ValueError, write_geometry, surf_path, coords,
                       faces, create_stamp, volume_info)
@@ -137,8 +138,8 @@ def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
     curv_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "curv"))
     curv = read_morph_data(curv_path)
-    assert_true(-1.0 < curv.min() < 0)
-    assert_true(0 < curv.max() < 1.0)
+    assert(-1.0 < curv.min() < 0)
+    assert(0 < curv.max() < 1.0)
     with InTemporaryDirectory():
         new_path = 'test'
         write_morph_data(new_path, curv)
@@ -177,8 +178,8 @@ def test_annot():
         hash_ = _hash_file_content(annot_path)
 
         labels, ctab, names = read_annot(annot_path)
-        assert_true(labels.shape == (163842, ))
-        assert_true(ctab.shape == (len(names), 5))
+        assert(labels.shape == (163842, ))
+        assert(ctab.shape == (len(names), 5))
 
         labels_orig = None
         if a == 'aparc':
@@ -186,9 +187,9 @@ def test_annot():
             np.testing.assert_array_equal(labels == -1, labels_orig == 0)
             # Handle different version of fsaverage
             if hash_ == 'bf0b488994657435cdddac5f107d21e8':
-                assert_true(np.sum(labels_orig == 0) == 13887)
+                assert(np.sum(labels_orig == 0) == 13887)
             elif hash_ == 'd4f5b7cbc2ed363ac6fcf89e19353504':
-                assert_true(np.sum(labels_orig == 1639705) == 13327)
+                assert(np.sum(labels_orig == 1639705) == 13327)
             else:
                 raise RuntimeError("Unknown freesurfer file. Please report "
                                    "the problem to the maintainer of nibabel.")
@@ -272,7 +273,7 @@ def test_write_annot_fill_ctab():
         print(labels)
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert_true(
+        assert(
             any('Annotation values in {} will be incorrect'.format(
                 annot_path) == str(ww.message) for ww in w))
         labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
@@ -288,7 +289,7 @@ def test_write_annot_fill_ctab():
                        rgbal[:, 2] * (2 ** 16))
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert_true(
+        assert(
             not any('Annotation values in {} will be incorrect'.format(
                 annot_path) == str(ww.message) for ww in w))
         labels2, rgbal2, names2 = read_annot(annot_path)
@@ -348,13 +349,13 @@ def test_label():
     label_path = pjoin(data_path, "label", "lh.cortex.label")
     label = read_label(label_path)
     # XXX : test more
-    assert_true(label.min() >= 0)
-    assert_true(label.max() <= 163841)
-    assert_true(label.shape[0] <= 163842)
+    assert(label.min() >= 0)
+    assert(label.max() <= 163841)
+    assert(label.shape[0] <= 163842)
 
     labels, scalars = read_label(label_path, True)
-    assert_true(np.all(labels == label))
-    assert_true(len(labels) == len(scalars))
+    assert(np.all(labels == label))
+    assert(len(labels) == len(scalars))
 
 
 def test_write_annot_maxstruct():
