@@ -420,7 +420,7 @@ class TestLazyDict(unittest.TestCase):
 
         expected_keys = DATA['data_per_streamline_func'].keys()
         for data_dict in lazy_dicts:
-            assert is_lazy_dict(data_dict) is True
+            assert is_lazy_dict(data_dict)
             assert data_dict.keys() == expected_keys
             for k in data_dict.keys():
                 assert_array_equal(list(data_dict[k]),
