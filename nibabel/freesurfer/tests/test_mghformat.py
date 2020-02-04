@@ -26,8 +26,7 @@ from ... import imageglobals
 
 import pytest
 
-from numpy.testing import (assert_array_equal,
-                           assert_array_almost_equal, assert_almost_equal)
+from numpy.testing import (assert_array_equal, assert_array_almost_equal, assert_almost_equal)
 
 
 from ...testing_pytest import data_path
