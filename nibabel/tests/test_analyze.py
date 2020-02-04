@@ -67,8 +67,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
 
     def test_supported_types(self):
         hdr = self.header_class()
-        assert (self.supported_np_types ==
-                     supported_np_types(hdr))
+        assert self.supported_np_types == supported_np_types(hdr)
 
     def get_bad_bb(self):
         # A value for the binary block that should raise an error
@@ -117,12 +116,10 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr = hdr_t.copy()
         hdr['sizeof_hdr'] = 1
         with suppress_warnings():
-            assert (self._dxer(hdr) == 'sizeof_hdr should be ' +
-                         str(self.sizeof_hdr))
+            assert self._dxer(hdr) == 'sizeof_hdr should be ' + str(self.sizeof_hdr)
         hdr = hdr_t.copy()
         hdr['datatype'] = 0
-        assert (self._dxer(hdr) == 'data code 0 not supported\n'
-                     'bitpix does not match datatype')
+        assert self._dxer(hdr) == 'data code 0 not supported\nbitpix does not match datatype'
         hdr = hdr_t.copy()
         hdr['bitpix'] = 0
         assert self._dxer(hdr) == 'bitpix does not match datatype'
@@ -144,11 +141,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             fhdr, message, raiser = self.log_chk(hdr, 30)
 
         assert fhdr['sizeof_hdr'] == self.sizeof_hdr
-        assert (message ==
-                     'sizeof_hdr should be {0}; set sizeof_hdr to {0}'.format(
-                         self.sizeof_hdr))
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        assert message == 'sizeof_hdr should be {0}; set sizeof_hdr to {0}'.format(self.sizeof_hdr)
+        pytest.raises(*raiser)
         # RGB datatype does not raise error
         hdr = HC()
         hdr.set_data_dtype('RGB')
@@ -158,28 +152,22 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr['datatype'] = -1  # severity 40
         with suppress_warnings():
             fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert (message == 'data code -1 not recognized; '
-                     'not attempting fix')
+        assert message == 'data code -1 not recognized; not attempting fix'
 
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        pytest.raises(*raiser)
         # datatype not supported
         hdr['datatype'] = 255  # severity 40
         fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert (message == 'data code 255 not supported; '
-                     'not attempting fix')
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        assert message == 'data code 255 not supported; not attempting fix'
+        pytest.raises(*raiser)
         # bitpix
         hdr = HC()
         hdr['datatype'] = 16  # float32
         hdr['bitpix'] = 16  # severity 10
         fhdr, message, raiser = self.log_chk(hdr, 10)
         assert fhdr['bitpix'] == 32
-        assert (message == 'bitpix does not match datatype; '
-                     'setting bitpix to match datatype')
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        assert message == 'bitpix does not match datatype; setting bitpix to match datatype'
+        pytest.raises(*raiser)
 
     def test_pixdim_log_checks(self):
         # pixdim positive
@@ -188,17 +176,14 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr['pixdim'][1] = -2  # severity 35
         fhdr, message, raiser = self.log_chk(hdr, 35)
         assert fhdr['pixdim'][1] == 2
-        assert (message == 'pixdim[1,2,3] should be positive; '
-                     'setting to abs of pixdim values')
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        assert message == 'pixdim[1,2,3] should be positive; setting to abs of pixdim values'
+        pytest.raises(*raiser)
         hdr = HC()
         hdr['pixdim'][1] = 0  # severity 30
         fhdr, message, raiser = self.log_chk(hdr, 30)
         assert fhdr['pixdim'][1] == 1
         assert message == PIXDIM0_MSG
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        pytest.raises(*raiser)
         # both
         hdr = HC()
         hdr['pixdim'][1] = 0  # severity 30
@@ -206,12 +191,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         fhdr, message, raiser = self.log_chk(hdr, 35)
         assert fhdr['pixdim'][1] == 1
         assert fhdr['pixdim'][2] == 2
-        assert (message == 'pixdim[1,2,3] should be '
-                     'non-zero and pixdim[1,2,3] should '
-                     'be positive; setting 0 dims to 1 '
-                     'and setting to abs of pixdim values')
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        assert message == ('pixdim[1,2,3] should be non-zero and pixdim[1,2,3] should be '
+                           'positive; setting 0 dims to 1 and setting to abs of pixdim values')
+        pytest.raises(*raiser)
 
     def test_no_scaling_fixes(self):
         # Check we do not fix slope or intercept
@@ -252,9 +234,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             # Check log message appears in new logger
             imageglobals.logger = logger
             hdr.copy().check_fix()
-            assert (str_io.getvalue() ==
-                         'bitpix does not match datatype; '
-                         'setting bitpix to match datatype\n')
+            assert str_io.getvalue() == ('bitpix does not match datatype; '
+                                         'setting bitpix to match datatype\n')
             # Check that error_level in fact causes error to be raised
             imageglobals.error_level = 10
             with pytest.raises(HeaderDataError):
@@ -711,8 +692,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
 
     def test_supported_types(self):
         img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
-        assert (self.supported_np_types ==
-                     supported_np_types(img))
+        assert self.supported_np_types == supported_np_types(img)
 
     def test_default_header(self):
         # Check default header is as expected
