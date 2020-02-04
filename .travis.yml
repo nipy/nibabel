@@ -134,12 +134,15 @@ script:
           cd for_testing
           cp ../.coveragerc .
           nosetests --with-doctest --with-coverage --cover-package nibabel nibabel \
+                -I test_array_sequence \
+                -I test_tractogram \
                 -I test_api_validators \
                 -I test_arrayproxy \
-                -I test_arrayriters \
+                -I test_arraywriters \
                 -I test_batteryrunners \
                 -I test_brikhead \
                 -I test_casting \
+                -I test_cifti2io_header \
                 -I test_data \
                 -I test_deprecated \
                 -I test_deprecator \

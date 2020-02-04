@@ -41,10 +41,10 @@ def test_basic():
     # We never have package _not_a_package
     assert_bad('_not_a_package')
 
-    # setup_module imports nose, so make sure we don't disrupt that
+    # setup_module imports unittest, so make sure we don't disrupt that
     orig_import = builtins.__import__
     def raise_Exception(*args, **kwargs):
-        if args[0] == 'nose':
+        if args[0] == 'unittest':
             return orig_import(*args, **kwargs)
         raise Exception(
             "non ImportError could be thrown by some malfunctioning module "
