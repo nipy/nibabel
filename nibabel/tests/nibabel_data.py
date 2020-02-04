@@ -22,7 +22,7 @@ def get_nibabel_data():
         nibabel_data = pjoin(containing_path, 'nibabel-data')
     return nibabel_data if isdir(nibabel_data) else ''
 
-# dj-TODO
+
 def needs_nibabel_data(subdir=None):
     """ Decorator for tests needing nibabel-data
 
