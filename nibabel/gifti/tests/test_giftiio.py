@@ -9,8 +9,6 @@
 
 import warnings
 
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_raises)
 from nibabel.testing import clear_and_catch_warnings
 from nibabel.tmpdirs import InTemporaryDirectory
 
@@ -24,7 +22,7 @@ class TestGiftiIO(object):
     def setUp(self):
         with clear_and_catch_warnings() as w:
             warnings.simplefilter('always', DeprecationWarning)
-            assert_equal(len(w), 1)
+            assert len(w) == 1
 
 
 def test_read_deprecated():
@@ -33,7 +31,7 @@ def test_read_deprecated():
         from nibabel.gifti.giftiio import read, write
 
         img = read(DATA_FILE1)
-        assert_equal(len(w), 1)
+        assert len(w) == 1
         with InTemporaryDirectory():
             write(img, 'test.gii')
-        assert_equal(len(w), 2)
+        assert len(w) == 2
