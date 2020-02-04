@@ -40,7 +40,7 @@ jobs:
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
-        pytest --cov nibabel -v --pyargs nibabel --deselect streamlines
+        pytest --cov nibabel -v --pyargs nibabel
       displayName: 'Run tests'
     - script: |
         cd for_testing
