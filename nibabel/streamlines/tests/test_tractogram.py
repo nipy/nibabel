@@ -320,7 +320,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
             assert_arrays_equal(data_dict[k], data_per_point[k])
 
         del data_dict['fa']
-        assert len(data_dict) == len(data_per_point)-1
+        assert len(data_dict) == len(data_per_point) - 1
 
         # Create a PerArraySequenceDict object using keyword arguments.
         data_per_point = DATA['data_per_point']
