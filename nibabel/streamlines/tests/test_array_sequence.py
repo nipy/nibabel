@@ -6,7 +6,7 @@ import itertools
 import numpy as np
 
 import pytest
-from nibabel.testing_pytest import assert_arrays_equal
+from ...testing_pytest import assert_arrays_equal
 from numpy.testing import assert_array_equal
 
 import pytest; pytestmark = pytest.mark.skip()
