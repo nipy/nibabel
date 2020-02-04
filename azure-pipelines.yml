@@ -38,3 +38,7 @@ jobs:
         PYTHON_VERSION: '3.6'
         PYTHON_ARCH: 'x64'
         CHECK_TYPE: 'test'
+      nosetests:
+        PYTHON_VERSION: '3.6'
+        PYTHON_ARCH: 'x64'
+        CHECK_TYPE: 'nosetests'
