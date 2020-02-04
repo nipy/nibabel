@@ -73,7 +73,7 @@ def test_init():
     assert ap.shape == shape
     # shape should be read only
     with pytest.raises(AttributeError):
-        setattr(ap, 'shape', shape)
+        ap.shape = shape
     # Get the data
     assert_array_equal(np.asarray(ap), arr)
     # Check we can modify the original header without changing the ap version
@@ -323,10 +323,8 @@ def check_mmap(hdr, offset, proxy_class,
                 assert not unscaled_is_mmap
                 assert not back_is_mmap
             else:
-                assert (unscaled_is_mmap ==
-                             (viral_memmap or unscaled_really_mmap))
-                assert (back_is_mmap ==
-                             (viral_memmap or scaled_really_mmap))
+                assert unscaled_is_mmap == (viral_memmap or unscaled_really_mmap)
+                assert back_is_mmap == (viral_memmap or scaled_really_mmap)
                 if scaled_really_mmap:
                     assert back_data.mode == expected_mode
             del prox, back_data
