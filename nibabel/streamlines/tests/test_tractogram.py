@@ -7,7 +7,7 @@ import operator
 from collections import defaultdict
 
 import pytest
-from nibabel.testing_pytest import assert_arrays_equal
+from ....testing_pytest import assert_arrays_equal, clear_and_catch_warnings
 from nibabel.testing_pytest import clear_and_catch_warnings
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest; pytestmark = pytest.mark.skip()
