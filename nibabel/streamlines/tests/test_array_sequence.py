@@ -42,7 +42,7 @@ def check_empty_arr_seq(seq):
 
 def check_arr_seq(seq, arrays):
     lengths = list(map(len, arrays))
-    assert is_array_sequence(seq) == True
+    assert is_array_sequence(seq)
     assert len(seq) == len(arrays)
     assert len(seq._offsets) == len(arrays)
     assert len(seq._lengths) == len(arrays)
