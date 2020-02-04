@@ -335,7 +335,7 @@ class TestArraySequence(unittest.TestCase):
         seq2 = ArraySequence(np.arange(8).reshape(2, 2, 2))
 
         with pytest.raises(ValueError):
-            seq1.__setitem__(slice(0, 2), seq2)
+            seq1[0:2] = seq2
 
         # Invalid index.
         with pytest.raises(TypeError):
