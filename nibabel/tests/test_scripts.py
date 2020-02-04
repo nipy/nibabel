@@ -297,7 +297,7 @@ def test_parrec2nii():
 
 
 @script_test
-@needs_nibabel_data('nitest-balls1') #dj-TODO: together eith nibabel_data
+@needs_nibabel_data('nitest-balls1')
 def test_parrec2nii_with_data():
     # Use nibabel-data to test conversion
     # Premultiplier to relate our affines to Philips conversion
