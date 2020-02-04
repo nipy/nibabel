@@ -9,7 +9,6 @@ from collections import defaultdict
 import pytest
 from ...testing_pytest import assert_arrays_equal, clear_and_catch_warnings
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-import pytest; pytestmark = pytest.mark.skip()
 
 from .. import tractogram as module_tractogram
 from ..tractogram import is_data_dict, is_lazy_dict
@@ -236,7 +235,6 @@ class TestPerArrayDict(unittest.TestCase):
 
         with pytest.raises(KeyError):
             sdict['invalid']
-        #assert_raises(KeyError, sdict.__getitem__, 'invalid')
 
         # Test slicing and advanced indexing.
         for k, v in DATA['tractogram'].data_per_streamline.items():
@@ -339,7 +337,6 @@ class TestPerArraySequenceDict(unittest.TestCase):
 
         with pytest.raises(KeyError):
             sdict['invalid']
-        #assert_raises(KeyError, sdict.__getitem__, 'invalid')
 
         # Test slicing and advanced indexing.
         for k, v in DATA['tractogram'].data_per_point.items():
@@ -509,8 +506,7 @@ class TestTractogram(unittest.TestCase):
 
         data_per_point = {'wrong_data': wrong_data}
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_point=data_per_point)
+            Tractogram(streamlines=DATA['streamlines'], data_per_point=data_per_point)
 
         # Inconsistent number of scalars between streamlines
         wrong_data = [[(1, 0, 0)]*1,
@@ -519,8 +515,7 @@ class TestTractogram(unittest.TestCase):
 
         data_per_point = {'wrong_data': wrong_data}
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_point=data_per_point)
+            Tractogram(streamlines=DATA['streamlines'], data_per_point=data_per_point)
 
     def test_setting_affine_to_rasmm(self):
         tractogram = DATA['tractogram'].copy()
@@ -541,7 +536,6 @@ class TestTractogram(unittest.TestCase):
         # Test assigning a ndarray with wrong shape.
         with pytest.raises(ValueError):
             tractogram.affine_to_rasmm = affine[::2]
-
 
     def test_tractogram_getitem(self):
         # Retrieve TractogramItem by their index.
@@ -623,25 +617,22 @@ class TestTractogram(unittest.TestCase):
                    [(0, 0, 1)]*3]  # Last streamlines has 5 points.
 
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_point={'scalars':scalars})
+            Tractogram(streamlines=DATA['streamlines'], data_per_point={'scalars': scalars})
 
         # Not enough data_per_streamline for all streamlines.
         properties = [np.array([1.11, 1.22], dtype="f4"),
                       np.array([3.11, 3.22], dtype="f4")]
 
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_streamline={'properties': properties})
+            Tractogram(streamlines=DATA['streamlines'], data_per_streamline={'properties': properties})
 
         # Inconsistent dimension for a data_per_point.
-        scalars = [[(1, 0, 0)]*1,
-                   [(0, 1)]*2,
-                   [(0, 0, 1)]*5]
+        scalars = [[(1, 0, 0)] * 1,
+                   [(0, 1)] * 2,
+                   [(0, 0, 1)] * 5]
 
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_point={'scalars':scalars})
+            Tractogram(streamlines=DATA['streamlines'], data_per_point={'scalars':scalars})
 
         # Inconsistent dimension for a data_per_streamline.
         properties = [[1.11, 1.22],
@@ -649,8 +640,7 @@ class TestTractogram(unittest.TestCase):
                       [3.11, 3.22]]
 
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_streamline={'properties': properties})
+            Tractogram(streamlines=DATA['streamlines'], data_per_streamline={'properties': properties})
 
         # Too many dimension for a data_per_streamline.
         properties = [np.array([[1.11], [1.22]], dtype="f4"),
@@ -658,8 +648,7 @@ class TestTractogram(unittest.TestCase):
                       np.array([[3.11], [3.22]], dtype="f4")]
 
         with pytest.raises(ValueError):
-            Tractogram(streamlines=DATA['streamlines'],
-                       data_per_streamline={'properties': properties})
+            Tractogram(streamlines=DATA['streamlines'], data_per_streamline={'properties': properties})
 
     def test_tractogram_apply_affine(self):
         tractogram = DATA['tractogram'].copy()
