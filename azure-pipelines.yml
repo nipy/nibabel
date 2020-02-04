@@ -34,10 +34,6 @@ jobs:
       py38-x64:
         PYTHON_VERSION: '3.8'
         PYTHON_ARCH: 'x64'
-      pytest:
-        PYTHON_VERSION: '3.6'
-        PYTHON_ARCH: 'x64'
-        CHECK_TYPE: 'test'
       nosetests:
         PYTHON_VERSION: '3.6'
         PYTHON_ARCH: 'x64'
