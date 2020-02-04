@@ -602,20 +602,15 @@ class TestTractogram(unittest.TestCase):
 
         # Check we copied the data and not simply created new references.
         assert tractogram is not DATA['tractogram']
-        assert tractogram.streamlines is \
-                not DATA['tractogram'].streamlines
-        assert tractogram.data_per_streamline is \
-                not DATA['tractogram'].data_per_streamline
-        assert tractogram.data_per_point is \
-                not DATA['tractogram'].data_per_point
+        assert tractogram.streamlines is not DATA['tractogram'].streamlines
+        assert tractogram.data_per_streamline is not DATA['tractogram'].data_per_streamline
+        assert tractogram.data_per_point is not DATA['tractogram'].data_per_point
 
         for key in tractogram.data_per_streamline:
-            assert tractogram.data_per_streamline[key] is \
-                not DATA['tractogram'].data_per_streamline[key]
+            assert tractogram.data_per_streamline[key] is not DATA['tractogram'].data_per_streamline[key]
 
         for key in tractogram.data_per_point:
-            assert tractogram.data_per_point[key] is \
-                not DATA['tractogram'].data_per_point[key]
+            assert tractogram.data_per_point[key] is not DATA['tractogram'].data_per_point[key]
 
         # Check the values of the data are the same.
         assert_tractogram_equal(tractogram, DATA['tractogram'])
@@ -817,8 +812,14 @@ class TestLazyTractogram(unittest.TestCase):
         # function.
         with pytest.raises(TypeError):
             LazyTractogram(streamlines=streamlines)
+            
+        with pytest.raises(TypeError):
             LazyTractogram(data_per_point={"none": None})
+            
+        with pytest.raises(TypeError):    
             LazyTractogram(data_per_streamline=data_per_streamline)
+            
+         with pytest.raises(TypeError):   
             LazyTractogram(streamlines=DATA['streamlines'],
                            data_per_point=data_per_point)
 
@@ -832,8 +833,8 @@ class TestLazyTractogram(unittest.TestCase):
                                     DATA['data_per_streamline_func'],
                                     DATA['data_per_point_func'])
 
-        assert is_lazy_dict(tractogram.data_per_streamline) is True
-        assert is_lazy_dict(tractogram.data_per_point) is True
+        assert is_lazy_dict(tractogram.data_per_streamline)
+        assert is_lazy_dict(tractogram.data_per_point)
 
         [t for t in tractogram]  # Force iteration through tractogram.
         assert len(tractogram) == len(DATA['streamlines'])
@@ -1009,15 +1010,12 @@ class TestLazyTractogram(unittest.TestCase):
 
         # When copying LazyTractogram, the generator function yielding
         # streamlines should stay the same.
-        assert tractogram._streamlines \
-                    is DATA['lazy_tractogram']._streamlines
+        assert tractogram._streamlines is DATA['lazy_tractogram']._streamlines
 
         # Copying LazyTractogram, creates new internal LazyDict objects,
         # but generator functions contained in it should stay the same.
-        assert tractogram._data_per_streamline \
-                    is not DATA['lazy_tractogram']._data_per_streamline
-        assert tractogram._data_per_point \
-                    is not DATA['lazy_tractogram']._data_per_point
+        assert tractogram._data_per_streamline is not DATA['lazy_tractogram']._data_per_streamline
+        assert tractogram._data_per_point is not DATA['lazy_tractogram']._data_per_point
 
         for key in tractogram.data_per_streamline:
             data = tractogram.data_per_streamline.store[key]
@@ -1030,8 +1028,7 @@ class TestLazyTractogram(unittest.TestCase):
             assert data is expected
 
         # The affine should be a copy.
-        assert tractogram._affine_to_apply \
-                    is not DATA['lazy_tractogram']._affine_to_apply
+        assert tractogram._affine_to_apply is not DATA['lazy_tractogram']._affine_to_apply
         assert_array_equal(tractogram._affine_to_apply,
                            DATA['lazy_tractogram']._affine_to_apply)
 
