@@ -328,7 +328,7 @@ class TestArraySequence(unittest.TestCase):
         seq1 = ArraySequence(np.arange(10).reshape(5, 2))
         seq2 = ArraySequence(np.arange(15).reshape(5, 3))
         with pytest.raises(ValueError):
-            seq1.__setitem__(slice(0, 5), seq2)
+            seq1[0:5] = seq2
 
         # Setitem between array sequences with different common shape.
         seq1 = ArraySequence(np.arange(12).reshape(2, 2, 3))
