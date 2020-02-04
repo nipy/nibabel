@@ -1,5 +1,4 @@
 """ Routines to support optional packages """
-import pkgutil
 from distutils.version import LooseVersion
 from .tripwire import TripWire
 
