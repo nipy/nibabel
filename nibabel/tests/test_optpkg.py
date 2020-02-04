@@ -7,8 +7,7 @@ import sys
 import builtins
 from distutils.version import LooseVersion
 
-# TODO: remove (have to be coordinated with optpkg)
-from nose import SkipTest
+from unittest import SkipTest
 import pytest
 
 from nibabel.optpkg import optional_package
@@ -28,7 +27,6 @@ def assert_bad(pkg_name, min_version=None):
     assert isinstance(pkg, TripWire)
     with pytest.raises(TripWireError):
         getattr(pkg, 'a_method')
-    # TODO: remove
     with pytest.raises(SkipTest):
         setup()
 
