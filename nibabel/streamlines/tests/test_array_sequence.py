@@ -420,7 +420,7 @@ class TestArraySequence(unittest.TestCase):
             
             with pytest.raises(TypeError):
                 _test_binary(op, seq_int, [0.5], [], inplace=True) # int <-- float
-           with pytest.raises(TypeError):
+            with pytest.raises(TypeError):
                 _test_binary(op, seq_int, [], [seq], inplace=True) # int <-- float
             
 

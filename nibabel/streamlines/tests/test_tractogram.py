@@ -7,7 +7,7 @@ import operator
 from collections import defaultdict
 
 import pytest
-from ....testing_pytest import assert_arrays_equal, clear_and_catch_warnings
+from ...testing_pytest import assert_arrays_equal, clear_and_catch_warnings
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest; pytestmark = pytest.mark.skip()
 
@@ -632,7 +632,7 @@ class TestTractogram(unittest.TestCase):
 
         with pytest.raises(ValueError):
             Tractogram(streamlines=DATA['streamlines'],
-                       data_per_streamline={'properties': properties})            
+                       data_per_streamline={'properties': properties})
 
         # Inconsistent dimension for a data_per_point.
         scalars = [[(1, 0, 0)]*1,
@@ -650,7 +650,7 @@ class TestTractogram(unittest.TestCase):
 
         with pytest.raises(ValueError):
             Tractogram(streamlines=DATA['streamlines'],
-                       data_per_streamline={'properties': properties}) 
+                       data_per_streamline={'properties': properties})
 
         # Too many dimension for a data_per_streamline.
         properties = [np.array([[1.11], [1.22]], dtype="f4"),
@@ -659,7 +659,7 @@ class TestTractogram(unittest.TestCase):
 
         with pytest.raises(ValueError):
             Tractogram(streamlines=DATA['streamlines'],
-                       data_per_streamline={'properties': properties}) 
+                       data_per_streamline={'properties': properties})
 
     def test_tractogram_apply_affine(self):
         tractogram = DATA['tractogram'].copy()
@@ -813,16 +813,12 @@ class TestLazyTractogram(unittest.TestCase):
         # function.
         with pytest.raises(TypeError):
             LazyTractogram(streamlines=streamlines)
-            
         with pytest.raises(TypeError):
             LazyTractogram(data_per_point={"none": None})
-            
-        with pytest.raises(TypeError):    
+        with pytest.raises(TypeError):
             LazyTractogram(data_per_streamline=data_per_streamline)
-            
-         with pytest.raises(TypeError):   
-            LazyTractogram(streamlines=DATA['streamlines'],
-                           data_per_point=data_per_point)
+        with pytest.raises(TypeError):
+            LazyTractogram(streamlines=DATA['streamlines'], data_per_point=data_per_point)
 
         # Empty `LazyTractogram`
         tractogram = LazyTractogram()
