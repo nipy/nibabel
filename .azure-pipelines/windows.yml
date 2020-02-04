@@ -40,7 +40,64 @@ jobs:
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
-        nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
+        nosetests --with-doctest --with-coverage --cover-package nibabel nibabel \
+            -I test_array_sequence \
+            -I test_tractogram \
+            -I test_api_validators \
+            -I test_arrayproxy \
+            -I test_arraywriters \
+            -I test_batteryrunners \
+            -I test_brikhead \
+            -I test_casting \
+            -I test_cifti2io_header \
+            -I test_data \
+            -I test_deprecated \
+            -I test_deprecator \
+            -I test_dft \
+            -I test_ecat \
+            -I test_ecat_data \
+            -I test_endiancodes \
+            -I test_environment \
+            -I test_euler \
+            -I test_filebasedimages \
+            -I test_filehandles \
+            -I test_fileholders \
+            -I test_filename_parser \
+            -I test_files_interface \
+            -I test_fileslice \
+            -I test_fileutils \
+            -I test_floating \
+            -I test_funcs \
+            -I test_h5py_compat \
+            -I test_image_api \
+            -I test_image_load_save \
+            -I test_image_types \
+            -I test_imageclasses \
+            -I test_imageglobals \
+            -I test_keywordonly \
+            -I test_loadsave \
+            -I test_minc1 \
+            -I test_minc2 \
+            -I test_minc2_data \
+            -I test_mriutils \
+            -I test_nibabel_data \
+            -I test_nifti1 \
+            -I test_nifti2 \
+            -I test_openers \
+            -I test_optpkg \
+            -I test_orientations \
+            -I test_parrec \
+            -I test_parrec_data \
+            -I test_pkg_info \
+            -I test_processing \
+            -I test_proxy_api \
+            -I test_quaternions \
+            -I test_recoder \
+            -I test_remmovalschedule \
+            -I test_round_trip \
+            -I test_rstutils \
+            -I test_scaling \
+            -I test_wrapstruct
       displayName: 'Nose tests'
       condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'nosetests'))
     - script: |
