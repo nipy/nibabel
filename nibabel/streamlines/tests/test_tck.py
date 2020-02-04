@@ -14,6 +14,8 @@ from ..tractogram_file import DataError
 from .. import tck as tck_module
 from ..tck import TckFile
 
+import pytest; pytestmark = pytest.mark.skip()
+
 from nose.tools import assert_equal, assert_raises, assert_true
 from numpy.testing import assert_array_equal
 from nibabel.testing import data_path, clear_and_catch_warnings
