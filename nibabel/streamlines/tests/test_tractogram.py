@@ -785,7 +785,7 @@ class TestTractogram(unittest.TestCase):
                              (extender, True)):
             first_arg = t.copy()
             new_t = op(first_arg, t)
-            assert (new_t is first_arg) is in_place
+            assert (new_t is first_arg) == in_place
             assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
             assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
 
