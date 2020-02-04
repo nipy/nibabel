@@ -23,7 +23,8 @@ from ...volumeutils import sys_is_le
 from ...wrapstruct import WrapStructError
 from ... import imageglobals
 
-from nose.tools import assert_true, assert_false
+
+import pytest
 
 from numpy.testing import (assert_equal, assert_array_equal,
                            assert_array_almost_equal, assert_almost_equal,
@@ -260,7 +261,7 @@ def test_eq():
     hdr2 = MGHHeader()
     assert_equal(hdr, hdr2)
     hdr.set_data_shape((2, 3, 4))
-    assert_false(hdr == hdr2)
+    assert(hdr != hdr2)
     hdr2.set_data_shape((2, 3, 4))
     assert_equal(hdr, hdr2)
 
@@ -287,7 +288,7 @@ def test_mgh_load_fileobj():
     bio = io.BytesIO(contents)
     fm = MGHImage.make_file_map(mapping=dict(image=bio))
     img2 = MGHImage.from_file_map(fm)
-    assert_true(img2.dataobj.file_like is bio)
+    assert(img2.dataobj.file_like is bio)
     assert_array_equal(img.get_fdata(), img2.get_fdata())
 
 
@@ -477,7 +478,7 @@ class TestMGHHeader(_TestLabeledWrapStruct):
         # same code just returns a copy
         for endianness in BIG_CODES:
             hdr2 = hdr.as_byteswapped(endianness)
-            assert_false(hdr2 is hdr)
+            assert(hdr2 is not hdr)
             assert_equal(hdr2, hdr)
 
         # Different code raises error
