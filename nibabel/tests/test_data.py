@@ -19,24 +19,19 @@ from .. import data as nibd
 
 import pytest
 
-from .test_environment import (with_environment,
-                               DATA_KEY,
-                               USER_KEY)
+from .test_environment import with_environment, DATA_KEY, USER_KEY
 
 
-@pytest.fixture()
+@pytest.fixture
 def with_nimd_env(request, with_environment):
     DATA_FUNCS = {}
     DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
     DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
     DATA_FUNCS['path_func'] = nibd.get_data_path
-
-    def teardown_data_env():
-        nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
-        nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
-        nibd.get_data_path = DATA_FUNCS['path_func']
-
-    request.addfinalizer(teardown_data_env)
+    yield
+    nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
+    nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
+    nibd.get_data_path = DATA_FUNCS['path_func']
 
 
 def test_datasource():
