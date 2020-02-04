@@ -330,7 +330,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
             assert_arrays_equal(data_dict[k], data_per_point[k])
 
         del data_dict['fa']
-        assert len(data_dict) == len(data_per_point)-1
+        assert len(data_dict) == len(data_per_point) - 1
 
     def test_getitem(self):
         total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
