@@ -30,7 +30,7 @@ jobs:
       displayName: 'Update build tools'
     - script: |
         python -m pip install --find-links %EXTRA_WHEELS% %DEPENDS%
-        python -m pip install nose coverage codecov pytest
+        python -m pip install nose coverage codecov pytest pytest-cov
       displayName: 'Install dependencies'
     - script: |
         python -m pip install .[$(CHECK_TYPE)]
