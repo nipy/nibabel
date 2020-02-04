@@ -431,6 +431,7 @@ class TestArraySequence(unittest.TestCase):
         
         with pytest.raises(ValueError):
             _test_binary("__pow__", seq_int, [-3], [])
+        with pytest.raises(ValueError):
             _test_binary("__ipow__", seq_int, [-3], [], inplace=True)
         
         # __itruediv__ is only valid with float arrseq.
