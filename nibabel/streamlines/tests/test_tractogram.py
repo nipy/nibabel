@@ -6,9 +6,9 @@ import warnings
 import operator
 from collections import defaultdict
 
-from nibabel.testing import assert_arrays_equal
-from nibabel.testing import clear_and_catch_warnings
-from nose.tools import assert_equal, assert_raises, assert_true
+import pytest
+from nibabel.testing_pytest import assert_arrays_equal
+from nibabel.testing_pytest import clear_and_catch_warnings
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .. import tractogram as module_tractogram
@@ -93,7 +93,7 @@ def make_dummy_streamline(nb_points):
     return streamline, data_per_point, data_for_streamline
 
 
-def setup():
+def setup_module():
     global DATA
     DATA['rng'] = np.random.RandomState(1234)
 
@@ -149,13 +149,12 @@ def check_tractogram_item(tractogram_item,
 
     assert_array_equal(tractogram_item.streamline, streamline)
 
-    assert_equal(len(tractogram_item.data_for_streamline),
-                 len(data_for_streamline))
+    assert len(tractogram_item.data_for_streamline) == len(data_for_streamline)
     for key in data_for_streamline.keys():
         assert_array_equal(tractogram_item.data_for_streamline[key],
                            data_for_streamline[key])
 
-    assert_equal(len(tractogram_item.data_for_points), len(data_for_points))
+    assert len(tractogram_item.data_for_points) == len(data_for_points)
     for key in data_for_points.keys():
         assert_arrays_equal(tractogram_item.data_for_points[key],
                             data_for_points[key])
@@ -171,16 +170,16 @@ def check_tractogram(tractogram,
                      data_per_streamline={},
                      data_per_point={}):
     streamlines = list(streamlines)
-    assert_equal(len(tractogram), len(streamlines))
+    assert len(tractogram) == len(streamlines)
     assert_arrays_equal(tractogram.streamlines, streamlines)
     [t for t in tractogram]  # Force iteration through tractogram.
 
-    assert_equal(len(tractogram.data_per_streamline), len(data_per_streamline))
+    assert len(tractogram.data_per_streamline) == len(data_per_streamline)
     for key in data_per_streamline.keys():
         assert_arrays_equal(tractogram.data_per_streamline[key],
                             data_per_streamline[key])
 
-    assert_equal(len(tractogram.data_per_point), len(data_per_point))
+    assert len(tractogram.data_per_point) == len(data_per_point)
     for key in data_per_point.keys():
         assert_arrays_equal(tractogram.data_per_point[key],
                             data_per_point[key])
@@ -204,43 +203,44 @@ class TestPerArrayDict(unittest.TestCase):
         nb_streamlines = len(DATA['tractogram'])
         data_per_streamline = DATA['tractogram'].data_per_streamline
         data_dict = PerArrayDict(nb_streamlines, data_per_streamline)
-        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        assert data_dict.keys() == data_per_streamline.keys()
         for k in data_dict.keys():
             assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
-        assert_equal(len(data_dict),
-                     len(data_per_streamline)-1)
+        assert len(data_dict) == len(data_per_streamline)-1
 
         # Create a PerArrayDict object using an existing dict object.
         data_per_streamline = DATA['data_per_streamline']
         data_dict = PerArrayDict(nb_streamlines, data_per_streamline)
-        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        assert data_dict.keys() == data_per_streamline.keys()
         for k in data_dict.keys():
             assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
-        assert_equal(len(data_dict), len(data_per_streamline)-1)
+        assert len(data_dict) == len(data_per_streamline)-1
 
         # Create a PerArrayDict object using keyword arguments.
         data_per_streamline = DATA['data_per_streamline']
         data_dict = PerArrayDict(nb_streamlines, **data_per_streamline)
-        assert_equal(data_dict.keys(), data_per_streamline.keys())
+        assert data_dict.keys() == data_per_streamline.keys()
         for k in data_dict.keys():
             assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
-        assert_equal(len(data_dict), len(data_per_streamline)-1)
+        assert len(data_dict) == len(data_per_streamline)-1
 
     def test_getitem(self):
         sdict = PerArrayDict(len(DATA['tractogram']),
                              DATA['data_per_streamline'])
 
-        assert_raises(KeyError, sdict.__getitem__, 'invalid')
+        with pytest.raises(KeyError):
+            sdict['invalid']
+        #assert_raises(KeyError, sdict.__getitem__, 'invalid')
 
         # Test slicing and advanced indexing.
         for k, v in DATA['tractogram'].data_per_streamline.items():
-            assert_true(k in sdict)
+            assert k in sdict
             assert_arrays_equal(sdict[k], v)
             assert_arrays_equal(sdict[::2][k], v[::2])
             assert_arrays_equal(sdict[::-1][k], v[::-1])
@@ -258,7 +258,7 @@ class TestPerArrayDict(unittest.TestCase):
                               new_data)
 
         sdict.extend(sdict2)
-        assert_equal(len(sdict), len(sdict2))
+        assert len(sdict) == len(sdict2)
         for k in DATA['tractogram'].data_per_streamline:
             assert_arrays_equal(sdict[k][:len(DATA['tractogram'])],
                                 DATA['tractogram'].data_per_streamline[k])
@@ -278,21 +278,24 @@ class TestPerArrayDict(unittest.TestCase):
                     'mean_colors': 4 * np.array(DATA['mean_colors']),
                     'other': 5 * np.array(DATA['mean_colors'])}
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
-        assert_raises(ValueError, sdict.extend, sdict2)
 
+        with pytest.raises(ValueError):
+            sdict.extend(sdict2)
         # Other dict has not the same entries (key mistmached).
         new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
                     'mean_torsion': 3 * np.array(DATA['mean_torsion']),
                     'other': 4 * np.array(DATA['mean_colors'])}
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
-        assert_raises(ValueError, sdict.extend, sdict2)
+        with pytest.raises(ValueError):
+            sdict.extend(sdict2)
 
         # Other dict has the right number of entries but wrong shape.
         new_data = {'mean_curvature': 2 * np.array(DATA['mean_curvature']),
                     'mean_torsion': 3 * np.array(DATA['mean_torsion']),
                     'mean_colors': 4 * np.array(DATA['mean_torsion'])}
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
-        assert_raises(ValueError, sdict.extend, sdict2)
+        with pytest.raises(ValueError):
+            sdict.extend(sdict2)
 
 
 class TestPerArraySequenceDict(unittest.TestCase):
@@ -303,43 +306,44 @@ class TestPerArraySequenceDict(unittest.TestCase):
         total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
         data_per_point = DATA['tractogram'].data_per_point
         data_dict = PerArraySequenceDict(total_nb_rows, data_per_point)
-        assert_equal(data_dict.keys(), data_per_point.keys())
+        assert data_dict.keys() == data_per_point.keys()
         for k in data_dict.keys():
             assert_arrays_equal(data_dict[k], data_per_point[k])
 
         del data_dict['fa']
-        assert_equal(len(data_dict),
-                     len(data_per_point)-1)
+        assert len(data_dict) == len(data_per_point)-1
 
         # Create a PerArraySequenceDict object using an existing dict object.
         data_per_point = DATA['data_per_point']
         data_dict = PerArraySequenceDict(total_nb_rows, data_per_point)
-        assert_equal(data_dict.keys(), data_per_point.keys())
+        assert data_dict.keys() == data_per_point.keys()
         for k in data_dict.keys():
             assert_arrays_equal(data_dict[k], data_per_point[k])
 
         del data_dict['fa']
-        assert_equal(len(data_dict), len(data_per_point)-1)
+        assert len(data_dict) == len(data_per_point)-1
 
         # Create a PerArraySequenceDict object using keyword arguments.
         data_per_point = DATA['data_per_point']
         data_dict = PerArraySequenceDict(total_nb_rows, **data_per_point)
-        assert_equal(data_dict.keys(), data_per_point.keys())
+        assert data_dict.keys() == data_per_point.keys()
         for k in data_dict.keys():
             assert_arrays_equal(data_dict[k], data_per_point[k])
 
         del data_dict['fa']
-        assert_equal(len(data_dict), len(data_per_point)-1)
+        assert len(data_dict) == len(data_per_point)-1
 
     def test_getitem(self):
         total_nb_rows = DATA['tractogram'].streamlines.total_nb_rows
         sdict = PerArraySequenceDict(total_nb_rows, DATA['data_per_point'])
 
-        assert_raises(KeyError, sdict.__getitem__, 'invalid')
+        with pytest.raises(KeyError):
+            sdict['invalid']
+        #assert_raises(KeyError, sdict.__getitem__, 'invalid')
 
         # Test slicing and advanced indexing.
         for k, v in DATA['tractogram'].data_per_point.items():
-            assert_true(k in sdict)
+            assert k in sdict
             assert_arrays_equal(sdict[k], v)
             assert_arrays_equal(sdict[::2][k], v[::2])
             assert_arrays_equal(sdict[::-1][k], v[::-1])
@@ -360,7 +364,7 @@ class TestPerArraySequenceDict(unittest.TestCase):
         sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
 
         sdict.extend(sdict2)
-        assert_equal(len(sdict), len(sdict2))
+        assert len(sdict) == len(sdict2)
         for k in DATA['tractogram'].data_per_point:
             assert_arrays_equal(sdict[k][:len(DATA['tractogram'])],
                                 DATA['tractogram'].data_per_point[k])
@@ -382,7 +386,8 @@ class TestPerArraySequenceDict(unittest.TestCase):
                                               data_per_point_shapes,
                                               rng=DATA['rng'])
         sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
-        assert_raises(ValueError, sdict.extend, sdict2)
+        with pytest.raises(ValueError):
+            sdict.extend(sdict2)
 
         # Other dict has not the same entries (key mistmached).
         data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
@@ -391,7 +396,8 @@ class TestPerArraySequenceDict(unittest.TestCase):
                                               data_per_point_shapes,
                                               rng=DATA['rng'])
         sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
-        assert_raises(ValueError, sdict.extend, sdict2)
+        with pytest.raises(ValueError):
+            sdict.extend(sdict2)
 
         # Other dict has the right number of entries but wrong shape.
         data_per_point_shapes = {"colors": DATA['colors'][0].shape[1:],
@@ -400,7 +406,8 @@ class TestPerArraySequenceDict(unittest.TestCase):
                                               data_per_point_shapes,
                                               rng=DATA['rng'])
         sdict2 = PerArraySequenceDict(np.sum(list_nb_points), new_data)
-        assert_raises(ValueError, sdict.extend, sdict2)
+        with pytest.raises(ValueError):
+            sdict.extend(sdict2)
 
 
 class TestLazyDict(unittest.TestCase):
@@ -413,14 +420,13 @@ class TestLazyDict(unittest.TestCase):
 
         expected_keys = DATA['data_per_streamline_func'].keys()
         for data_dict in lazy_dicts:
-            assert_true(is_lazy_dict(data_dict))
-            assert_equal(data_dict.keys(), expected_keys)
+            assert is_lazy_dict(data_dict) is True
+            assert data_dict.keys() == expected_keys
             for k in data_dict.keys():
                 assert_array_equal(list(data_dict[k]),
                                    list(DATA['data_per_streamline'][k]))
 
-            assert_equal(len(data_dict),
-                         len(DATA['data_per_streamline_func']))
+            assert len(data_dict) == len(DATA['data_per_streamline_func'])
 
 
 class TestTractogramItem(unittest.TestCase):
@@ -439,7 +445,7 @@ class TestTractogramItem(unittest.TestCase):
 
         # Create a tractogram item with a streamline, data.
         t = TractogramItem(streamline, data_for_streamline, data_for_points)
-        assert_equal(len(t), len(streamline))
+        assert len(t) == len(streamline)
         assert_array_equal(t.streamline, streamline)
         assert_array_equal(list(t), streamline)
         assert_array_equal(t.data_for_streamline['mean_curvature'],
@@ -456,7 +462,7 @@ class TestTractogram(unittest.TestCase):
         # Create an empty tractogram.
         tractogram = Tractogram()
         check_tractogram(tractogram)
-        assert_true(tractogram.affine_to_rasmm is None)
+        assert tractogram.affine_to_rasmm is None
 
         # Create a tractogram with only streamlines
         tractogram = Tractogram(streamlines=DATA['streamlines'])
@@ -477,8 +483,8 @@ class TestTractogram(unittest.TestCase):
                          DATA['data_per_streamline'],
                          DATA['data_per_point'])
 
-        assert_true(is_data_dict(tractogram.data_per_streamline))
-        assert_true(is_data_dict(tractogram.data_per_point))
+        assert is_data_dict(tractogram.data_per_streamline) is True
+        assert is_data_dict(tractogram.data_per_point) is True 
 
         # Create a tractogram from another tractogram attributes.
         tractogram2 = Tractogram(tractogram.streamlines,
@@ -502,8 +508,9 @@ class TestTractogram(unittest.TestCase):
                       [(0, 0, 1)]*5]
 
         data_per_point = {'wrong_data': wrong_data}
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_point=data_per_point)
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_point=data_per_point)
 
         # Inconsistent number of scalars between streamlines
         wrong_data = [[(1, 0, 0)]*1,
@@ -511,8 +518,9 @@ class TestTractogram(unittest.TestCase):
                       [(0, 0, 1)]*5]
 
         data_per_point = {'wrong_data': wrong_data}
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_point=data_per_point)
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_point=data_per_point)
 
     def test_setting_affine_to_rasmm(self):
         tractogram = DATA['tractogram'].copy()
@@ -520,19 +528,20 @@ class TestTractogram(unittest.TestCase):
 
         # Test assigning None.
         tractogram.affine_to_rasmm = None
-        assert_true(tractogram.affine_to_rasmm is None)
+        assert tractogram.affine_to_rasmm is None
 
         # Test assigning a valid ndarray (should make a copy).
         tractogram.affine_to_rasmm = affine
-        assert_true(tractogram.affine_to_rasmm is not affine)
+        assert tractogram.affine_to_rasmm is not affine
 
         # Test assigning a list of lists.
         tractogram.affine_to_rasmm = affine.tolist()
         assert_array_equal(tractogram.affine_to_rasmm, affine)
 
         # Test assigning a ndarray with wrong shape.
-        assert_raises(ValueError, setattr, tractogram,
-                      "affine_to_rasmm", affine[::2])
+        with pytest.raises(ValueError):
+            tractogram.affine_to_rasmm = affine[::2]
+
 
     def test_tractogram_getitem(self):
         # Retrieve TractogramItem by their index.
@@ -593,21 +602,21 @@ class TestTractogram(unittest.TestCase):
         tractogram = DATA['tractogram'].copy()
 
         # Check we copied the data and not simply created new references.
-        assert_true(tractogram is not DATA['tractogram'])
-        assert_true(tractogram.streamlines
-                    is not DATA['tractogram'].streamlines)
-        assert_true(tractogram.data_per_streamline
-                    is not DATA['tractogram'].data_per_streamline)
-        assert_true(tractogram.data_per_point
-                    is not DATA['tractogram'].data_per_point)
+        assert tractogram is not DATA['tractogram']
+        assert tractogram.streamlines is \
+                not DATA['tractogram'].streamlines
+        assert tractogram.data_per_streamline is \
+                not DATA['tractogram'].data_per_streamline
+        assert tractogram.data_per_point is \
+                not DATA['tractogram'].data_per_point
 
         for key in tractogram.data_per_streamline:
-            assert_true(tractogram.data_per_streamline[key]
-                        is not DATA['tractogram'].data_per_streamline[key])
+            assert tractogram.data_per_streamline[key] is \
+                not DATA['tractogram'].data_per_streamline[key]
 
         for key in tractogram.data_per_point:
-            assert_true(tractogram.data_per_point[key]
-                        is not DATA['tractogram'].data_per_point[key])
+            assert tractogram.data_per_point[key] is \
+                not DATA['tractogram'].data_per_point[key]
 
         # Check the values of the data are the same.
         assert_tractogram_equal(tractogram, DATA['tractogram'])
@@ -618,39 +627,44 @@ class TestTractogram(unittest.TestCase):
                    [(0, 1, 0)]*2,
                    [(0, 0, 1)]*3]  # Last streamlines has 5 points.
 
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_point={'scalars': scalars})
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_point={'scalars':scalars})
 
         # Not enough data_per_streamline for all streamlines.
         properties = [np.array([1.11, 1.22], dtype="f4"),
                       np.array([3.11, 3.22], dtype="f4")]
 
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_streamline={'properties': properties})
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_streamline={'properties': properties})            
 
         # Inconsistent dimension for a data_per_point.
         scalars = [[(1, 0, 0)]*1,
                    [(0, 1)]*2,
                    [(0, 0, 1)]*5]
 
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_point={'scalars': scalars})
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_point={'scalars':scalars})
 
         # Inconsistent dimension for a data_per_streamline.
         properties = [[1.11, 1.22],
                       [2.11],
                       [3.11, 3.22]]
 
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_streamline={'properties': properties})
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_streamline={'properties': properties}) 
 
         # Too many dimension for a data_per_streamline.
         properties = [np.array([[1.11], [1.22]], dtype="f4"),
                       np.array([[2.11], [2.22]], dtype="f4"),
                       np.array([[3.11], [3.22]], dtype="f4")]
 
-        assert_raises(ValueError, Tractogram, DATA['streamlines'],
-                      data_per_streamline={'properties': properties})
+        with pytest.raises(ValueError):
+            Tractogram(streamlines=DATA['streamlines'],
+                       data_per_streamline={'properties': properties}) 
 
     def test_tractogram_apply_affine(self):
         tractogram = DATA['tractogram'].copy()
@@ -660,7 +674,7 @@ class TestTractogram(unittest.TestCase):
 
         # Apply the affine to the streamline in a lazy manner.
         transformed_tractogram = tractogram.apply_affine(affine, lazy=True)
-        assert_true(type(transformed_tractogram) is LazyTractogram)
+        assert type(transformed_tractogram) is LazyTractogram
         check_tractogram(transformed_tractogram,
                          streamlines=[s*scaling for s in DATA['streamlines']],
                          data_per_streamline=DATA['data_per_streamline'],
@@ -673,7 +687,7 @@ class TestTractogram(unittest.TestCase):
 
         # Apply the affine to the streamlines in-place.
         transformed_tractogram = tractogram.apply_affine(affine)
-        assert_true(transformed_tractogram is tractogram)
+        assert transformed_tractogram is tractogram
         check_tractogram(tractogram,
                          streamlines=[s*scaling for s in DATA['streamlines']],
                          data_per_streamline=DATA['data_per_streamline'],
@@ -689,7 +703,7 @@ class TestTractogram(unittest.TestCase):
         # shouldn't affect the remaining streamlines.
         tractogram = DATA['tractogram'].copy()
         transformed_tractogram = tractogram[::2].apply_affine(affine)
-        assert_true(transformed_tractogram is not tractogram)
+        assert transformed_tractogram is not tractogram
         check_tractogram(tractogram[::2],
                          streamlines=[s*scaling for s in DATA['streamlines'][::2]],
                          data_per_streamline=DATA['tractogram'].data_per_streamline[::2],
@@ -723,7 +737,7 @@ class TestTractogram(unittest.TestCase):
         tractogram = DATA['tractogram'].copy()
         tractogram.affine_to_rasmm = None
         tractogram.apply_affine(affine)
-        assert_true(tractogram.affine_to_rasmm is None)
+        assert tractogram.affine_to_rasmm is None
 
     def test_tractogram_to_world(self):
         tractogram = DATA['tractogram'].copy()
@@ -737,7 +751,7 @@ class TestTractogram(unittest.TestCase):
                            np.linalg.inv(affine))
 
         tractogram_world = transformed_tractogram.to_world(lazy=True)
-        assert_true(type(tractogram_world) is LazyTractogram)
+        assert type(tractogram_world) is LazyTractogram
         assert_array_almost_equal(tractogram_world.affine_to_rasmm,
                                   np.eye(4))
         for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines']):
@@ -745,14 +759,14 @@ class TestTractogram(unittest.TestCase):
 
         # Bring them back streamlines to world space in a in-place manner.
         tractogram_world = transformed_tractogram.to_world()
-        assert_true(tractogram_world is tractogram)
+        assert tractogram_world is tractogram
         assert_array_almost_equal(tractogram.affine_to_rasmm, np.eye(4))
         for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Calling to_world twice should do nothing.
         tractogram_world2 = transformed_tractogram.to_world()
-        assert_true(tractogram_world2 is tractogram)
+        assert tractogram_world2 is tractogram
         assert_array_almost_equal(tractogram.affine_to_rasmm, np.eye(4))
         for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
@@ -760,7 +774,8 @@ class TestTractogram(unittest.TestCase):
         # Calling to_world when affine_to_rasmm is None should fail.
         tractogram = DATA['tractogram'].copy()
         tractogram.affine_to_rasmm = None
-        assert_raises(ValueError, tractogram.to_world)
+        with pytest.raises(ValueError):
+            tractogram.to_world()
 
     def test_tractogram_extend(self):
         # Load tractogram that contains some metadata.
@@ -770,7 +785,7 @@ class TestTractogram(unittest.TestCase):
                              (extender, True)):
             first_arg = t.copy()
             new_t = op(first_arg, t)
-            assert_equal(new_t is first_arg, in_place)
+            assert (new_t is first_arg) is in_place
             assert_tractogram_equal(new_t[:len(t)], DATA['tractogram'])
             assert_tractogram_equal(new_t[len(t):], DATA['tractogram'])
 
@@ -789,7 +804,8 @@ class TestLazyTractogram(unittest.TestCase):
 
     def test_lazy_tractogram_creation(self):
         # To create tractogram from arrays use `Tractogram`.
-        assert_raises(TypeError, LazyTractogram, DATA['streamlines'])
+        with pytest.raises(TypeError):
+            LazyTractogram(streamlines=DATA['streamlines'])
 
         # Streamlines and other data as generators
         streamlines = (x for x in DATA['streamlines'])
@@ -800,29 +816,28 @@ class TestLazyTractogram(unittest.TestCase):
         # Creating LazyTractogram with generators is not allowed as
         # generators get exhausted and are not reusable unlike generator
         # function.
-        assert_raises(TypeError, LazyTractogram, streamlines)
-        assert_raises(TypeError, LazyTractogram,
-                      data_per_point={"none": None})
-        assert_raises(TypeError, LazyTractogram,
-                      data_per_streamline=data_per_streamline)
-        assert_raises(TypeError, LazyTractogram, DATA['streamlines'],
-                      data_per_point=data_per_point)
+        with pytest.raises(TypeError):
+            LazyTractogram(streamlines=streamlines)
+            LazyTractogram(data_per_point={"none": None})
+            LazyTractogram(data_per_streamline=data_per_streamline)
+            LazyTractogram(streamlines=DATA['streamlines'],
+                           data_per_point=data_per_point)
 
         # Empty `LazyTractogram`
         tractogram = LazyTractogram()
         check_tractogram(tractogram)
-        assert_true(tractogram.affine_to_rasmm is None)
+        assert tractogram.affine_to_rasmm is None
 
         # Create tractogram with streamlines and other data
         tractogram = LazyTractogram(DATA['streamlines_func'],
                                     DATA['data_per_streamline_func'],
                                     DATA['data_per_point_func'])
 
-        assert_true(is_lazy_dict(tractogram.data_per_streamline))
-        assert_true(is_lazy_dict(tractogram.data_per_point))
+        assert is_lazy_dict(tractogram.data_per_streamline) is True
+        assert is_lazy_dict(tractogram.data_per_point) is True
 
         [t for t in tractogram]  # Force iteration through tractogram.
-        assert_equal(len(tractogram), len(DATA['streamlines']))
+        assert len(tractogram) == len(DATA['streamlines'])
 
         # Generator functions get re-called and creates new iterators.
         for i in range(2):
@@ -854,18 +869,20 @@ class TestLazyTractogram(unittest.TestCase):
         assert_tractogram_equal(tractogram, DATA['tractogram'])
 
         # Creating a LazyTractogram from not a corouting should raise an error.
-        assert_raises(TypeError, LazyTractogram.from_data_func, _data_gen())
+        with pytest.raises(TypeError):
+            LazyTractogram.from_data_func(_data_gen())
 
     def test_lazy_tractogram_getitem(self):
-        assert_raises(NotImplementedError,
-                      DATA['lazy_tractogram'].__getitem__, 0)
+        with pytest.raises(NotImplementedError):
+            DATA['lazy_tractogram'][0]
 
     def test_lazy_tractogram_extend(self):
         t = DATA['lazy_tractogram'].copy()
         new_t = DATA['lazy_tractogram'].copy()
 
         for op in (operator.add, operator.iadd, extender):
-            assert_raises(NotImplementedError, op, new_t, t)
+            with pytest.raises(NotImplementedError):
+                op(new_t, t)
 
     def test_lazy_tractogram_len(self):
         modules = [module_tractogram]  # Modules for which to catch warnings.
@@ -874,35 +891,35 @@ class TestLazyTractogram(unittest.TestCase):
 
             # Calling `len` will create new generators each time.
             tractogram = LazyTractogram(DATA['streamlines_func'])
-            assert_true(tractogram._nb_streamlines is None)
+            assert tractogram._nb_streamlines is None
 
             # This should produce a warning message.
-            assert_equal(len(tractogram), len(DATA['streamlines']))
-            assert_equal(tractogram._nb_streamlines, len(DATA['streamlines']))
-            assert_equal(len(w), 1)
+            assert len(tractogram) == len(DATA['streamlines'])
+            assert tractogram._nb_streamlines == len(DATA['streamlines'])
+            assert len(w) == 1
 
             tractogram = LazyTractogram(DATA['streamlines_func'])
 
             # New instances should still produce a warning message.
-            assert_equal(len(tractogram), len(DATA['streamlines']))
-            assert_equal(len(w), 2)
-            assert_true(issubclass(w[-1].category, Warning))
+            assert len(tractogram) == len(DATA['streamlines'])
+            assert len(w) == 2
+            assert issubclass(w[-1].category, Warning) is True
 
             # Calling again 'len' again should *not* produce a warning.
-            assert_equal(len(tractogram), len(DATA['streamlines']))
-            assert_equal(len(w), 2)
+            assert len(tractogram) == len(DATA['streamlines'])
+            assert len(w) == 2
 
         with clear_and_catch_warnings(record=True, modules=modules) as w:
             # Once we iterated through the tractogram, we know the length.
 
             tractogram = LazyTractogram(DATA['streamlines_func'])
 
-            assert_true(tractogram._nb_streamlines is None)
+            assert tractogram._nb_streamlines is None
             [t for t in tractogram]  # Force iteration through tractogram.
-            assert_equal(tractogram._nb_streamlines, len(DATA['streamlines']))
+            assert tractogram._nb_streamlines == len(DATA['streamlines'])
             # This should *not* produce a warning.
-            assert_equal(len(tractogram), len(DATA['streamlines']))
-            assert_equal(len(w), 0)
+            assert len(tractogram) == len(DATA['streamlines'])
+            assert len(w) == 0
 
     def test_lazy_tractogram_apply_affine(self):
         affine = np.eye(4)
@@ -912,7 +929,7 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram = DATA['lazy_tractogram'].copy()
 
         transformed_tractogram = tractogram.apply_affine(affine)
-        assert_true(transformed_tractogram is not tractogram)
+        assert transformed_tractogram is not tractogram
         assert_array_equal(tractogram._affine_to_apply, np.eye(4))
         assert_array_equal(tractogram.affine_to_rasmm, np.eye(4))
         assert_array_equal(transformed_tractogram._affine_to_apply, affine)
@@ -934,14 +951,15 @@ class TestLazyTractogram(unittest.TestCase):
         # Calling to_world when affine_to_rasmm is None should fail.
         tractogram = DATA['lazy_tractogram'].copy()
         tractogram.affine_to_rasmm = None
-        assert_raises(ValueError, tractogram.to_world)
+        with pytest.raises(ValueError):
+            tractogram.to_world()
 
         # But calling apply_affine when affine_to_rasmm is None should work.
         tractogram = DATA['lazy_tractogram'].copy()
         tractogram.affine_to_rasmm = None
         transformed_tractogram = tractogram.apply_affine(affine)
         assert_array_equal(transformed_tractogram._affine_to_apply, affine)
-        assert_true(transformed_tractogram.affine_to_rasmm is None)
+        assert transformed_tractogram.affine_to_rasmm is None
         check_tractogram(transformed_tractogram,
                          streamlines=[s*scaling for s in DATA['streamlines']],
                          data_per_streamline=DATA['data_per_streamline'],
@@ -949,8 +967,9 @@ class TestLazyTractogram(unittest.TestCase):
 
         # Calling apply_affine with lazy=False should fail for LazyTractogram.
         tractogram = DATA['lazy_tractogram'].copy()
-        assert_raises(ValueError, tractogram.apply_affine,
-                      affine=np.eye(4), lazy=False)
+        with pytest.raises(ValueError):
+            tractogram.apply_affine(affine=np.eye(4), lazy=False)
+
 
     def test_tractogram_to_world(self):
         tractogram = DATA['lazy_tractogram'].copy()
@@ -964,7 +983,7 @@ class TestLazyTractogram(unittest.TestCase):
                            np.linalg.inv(affine))
 
         tractogram_world = transformed_tractogram.to_world()
-        assert_true(tractogram_world is not transformed_tractogram)
+        assert tractogram_world is not transformed_tractogram
         assert_array_almost_equal(tractogram_world.affine_to_rasmm,
                                   np.eye(4))
         for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines']):
@@ -979,40 +998,41 @@ class TestLazyTractogram(unittest.TestCase):
         # Calling to_world when affine_to_rasmm is None should fail.
         tractogram = DATA['lazy_tractogram'].copy()
         tractogram.affine_to_rasmm = None
-        assert_raises(ValueError, tractogram.to_world)
+        with pytest.raises(ValueError):
+            tractogram.to_world()
 
     def test_lazy_tractogram_copy(self):
         # Create a copy of the lazy tractogram.
         tractogram = DATA['lazy_tractogram'].copy()
 
         # Check we copied the data and not simply created new references.
-        assert_true(tractogram is not DATA['lazy_tractogram'])
+        assert tractogram is not DATA['lazy_tractogram']
 
         # When copying LazyTractogram, the generator function yielding
         # streamlines should stay the same.
-        assert_true(tractogram._streamlines
-                    is DATA['lazy_tractogram']._streamlines)
+        assert tractogram._streamlines \
+                    is DATA['lazy_tractogram']._streamlines
 
         # Copying LazyTractogram, creates new internal LazyDict objects,
         # but generator functions contained in it should stay the same.
-        assert_true(tractogram._data_per_streamline
-                    is not DATA['lazy_tractogram']._data_per_streamline)
-        assert_true(tractogram._data_per_point
-                    is not DATA['lazy_tractogram']._data_per_point)
+        assert tractogram._data_per_streamline \
+                    is not DATA['lazy_tractogram']._data_per_streamline
+        assert tractogram._data_per_point \
+                    is not DATA['lazy_tractogram']._data_per_point
 
         for key in tractogram.data_per_streamline:
             data = tractogram.data_per_streamline.store[key]
             expected = DATA['lazy_tractogram'].data_per_streamline.store[key]
-            assert_true(data is expected)
+            assert data is expected
 
         for key in tractogram.data_per_point:
             data = tractogram.data_per_point.store[key]
             expected = DATA['lazy_tractogram'].data_per_point.store[key]
-            assert_true(data is expected)
+            assert data is expected
 
         # The affine should be a copy.
-        assert_true(tractogram._affine_to_apply
-                    is not DATA['lazy_tractogram']._affine_to_apply)
+        assert tractogram._affine_to_apply \
+                    is not DATA['lazy_tractogram']._affine_to_apply
         assert_array_equal(tractogram._affine_to_apply,
                            DATA['lazy_tractogram']._affine_to_apply)
 
