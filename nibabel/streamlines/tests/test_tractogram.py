@@ -228,7 +228,7 @@ class TestPerArrayDict(unittest.TestCase):
             assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
-        assert len(data_dict) == len(data_per_streamline)-1
+        assert len(data_dict) == len(data_per_streamline) - 1
 
     def test_getitem(self):
         sdict = PerArrayDict(len(DATA['tractogram']),
