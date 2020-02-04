@@ -11,7 +11,7 @@ jobs:
   variables:
     EXTRA_WHEELS: "https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
     DEPENDS: numpy scipy matplotlib h5py pydicom
-    CHECK_TYPE: nosetests
+    CHECK_TYPE: test
   strategy:
     matrix:
       ${{ insert }}: ${{ parameters.matrix }}
@@ -47,7 +47,7 @@ jobs:
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
-        pytest --cov nibabel -v --pyargs nibabel --deselect streamlines
+        pytest --cov nibabel -v --pyargs nibabel
       displayName: 'Pytest tests'
       condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'test'))
     - script: |
