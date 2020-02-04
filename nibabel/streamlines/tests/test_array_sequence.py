@@ -367,11 +367,8 @@ class TestArraySequence(unittest.TestCase):
             for scalar in scalars:
                 orig = arrseq.copy()
                 seq = getattr(orig, op)(scalar)
-
-                if inplace:
-                    assert seq is orig
-                else:
-                    assert seq is not orig
+                
+                assert (seq is orig) == inplace
 
                 check_arr_seq(seq, [getattr(e, op)(scalar) for e in arrseq])
 
@@ -438,9 +435,9 @@ class TestArraySequence(unittest.TestCase):
         
         # __itruediv__ is only valid with float arrseq.
         for scalar in SCALARS + ARRSEQS:
+            seq_int_cp = seq_int.copy()
             with pytest.raises(TypeError):
-                seq_int_cp = seq_int.copy()
-                seq_int_cp.__itruediv__(scalar)
+                seq_int_cp /= scalar
 
         # Bitwise operators
         for op in ("__lshift__", "__rshift__", "__or__", "__and__", "__xor__"):
