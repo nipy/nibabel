@@ -448,6 +448,7 @@ class TestArraySequence(unittest.TestCase):
             
             with pytest.raises(TypeError):
                 _test_binary(op, seq_bool, [0.5], [])
+            with pytest.raises(TypeError):
                 _test_binary(op, seq, [], [seq])
 
         # Unary operators
