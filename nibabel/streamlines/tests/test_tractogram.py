@@ -483,7 +483,7 @@ class TestTractogram(unittest.TestCase):
                          DATA['data_per_point'])
 
         assert is_data_dict(tractogram.data_per_streamline) is True
-        assert is_data_dict(tractogram.data_per_point) is True 
+        assert is_data_dict(tractogram.data_per_point)
 
         # Create a tractogram from another tractogram attributes.
         tractogram2 = Tractogram(tractogram.streamlines,
