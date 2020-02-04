@@ -274,7 +274,7 @@ class TestArraySequence(unittest.TestCase):
 
         # Test invalid indexing
         with pytest.raises(TypeError):
-            SEQ_DATA['seq'].__getitem__('abc')
+            SEQ_DATA['seq']['abc']
             #SEQ_DATA['seq'].abc
 
         # Get specific columns.
