@@ -28,7 +28,6 @@ import pytest
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_almost_equal
 
-
 from ...testing_pytest import data_path
 
 from ...tests import test_spatialimages as tsi
@@ -324,7 +323,7 @@ def test_mghheader_default_structarr():
     assert_array_equal(hdr['delta'], 1)
     assert_array_equal(hdr['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
     assert_array_equal(hdr['Pxyz_c'], 0)
-    assert hdr['tr'] ==0
+    assert hdr['tr'] == 0
     assert hdr['flip_angle'] == 0
     assert hdr['te'] == 0
     assert hdr['ti'] == 0
