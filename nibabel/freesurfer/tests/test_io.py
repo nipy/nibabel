@@ -62,7 +62,7 @@ def test_geometry():
     assert 0 == faces.min()
     assert coords.shape[0] == faces.max() + 1
     assert 9 == len(volume_info)
-   # assert np.array_equal([2, 0, 20],volume_info['head'])
+    assert np.array_equal([2, 0, 20], volume_info['head'])
     np.testing.assert_array_equal([2, 0, 20],volume_info['head'])
     assert create_stamp == ['created by greve on Thu Jun  8 19:17:51 2006'] # this creates assertion error - should we just remove it?
 
