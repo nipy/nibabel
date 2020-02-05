@@ -4,11 +4,11 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 
+os: linux
 dist: xenial
-sudo: true
 language: python
-
 cache: pip
+
 env:
     global:
         - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
@@ -26,7 +26,7 @@ python:
     - 3.7
     - 3.8
 
-matrix:
+jobs:
   include:
     # Old nosetests - Remove soon
     - python: 3.7
@@ -36,11 +36,6 @@ matrix:
     - python: 3.5
       env:
         - DEPENDS="-r requirements.txt"
-    # Clean install
-    - python: 3.5
-      env:
-        - DEPENDS=""
-        - CHECK_TYPE=skiptests
     # Absolute minimum dependencies
     - python: 3.5
       env:
@@ -110,7 +105,6 @@ install:
       fi
     # Basic import check
     - python -c 'import nibabel; print(nibabel.__version__)'
-    - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
 
 before_script:
     # Point to nibabel data directory
