@@ -36,7 +36,8 @@ else:
         data_path = pjoin(nib_data, 'nitest-freesurfer', DATA_SDIR)
         have_freesurfer = isdir(data_path)
 
-freesurfer_test = pytest.mark.skipif(not have_freesurfer, reason='cannot find freesurfer {0} directory'.format(DATA_SDIR))
+freesurfer_test = pytest.mark.skipif(not have_freesurfer,
+                                     reason='cannot find freesurfer {0} directory'.format(DATA_SDIR))
 
 def _hash_file_content(fname):
     hasher = hashlib.md5()
