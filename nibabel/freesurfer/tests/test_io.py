@@ -81,7 +81,6 @@ def test_geometry():
             assert_allclose(volume_info2[key], volume_info[key],
                             rtol=1e-7, atol=1e-30)
         assert np.array_equal(volume_info2['cras'], volume_info['cras'])
-        np.testing.assert_array_equal(volume_info2['cras'], volume_info['cras'])
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
