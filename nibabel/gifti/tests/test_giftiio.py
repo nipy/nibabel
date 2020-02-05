@@ -7,31 +7,16 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import warnings
+from ..giftiio import read, write
+from .test_parse_gifti_fast import DATA_FILE1
 
-from nibabel.testing import clear_and_catch_warnings
-from nibabel.tmpdirs import InTemporaryDirectory
-
-
-from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
-                                    DATA_FILE4, DATA_FILE5, DATA_FILE6)
+import pytest
 
 
-class TestGiftiIO(object):
-
-    def setUp(self):
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
-            assert len(w) == 1
-
-
-def test_read_deprecated():
-    with clear_and_catch_warnings() as w:
-        warnings.simplefilter('always', DeprecationWarning)
-        from nibabel.gifti.giftiio import read, write
-
+def test_read_deprecated(tmp_path):
+    with pytest.deprecated_call():
         img = read(DATA_FILE1)
-        assert len(w) == 1
-        with InTemporaryDirectory():
-            write(img, 'test.gii')
-        assert len(w) == 2
+
+    fname = tmp_path / 'test.gii'
+    with pytest.deprecated_call():
+        write(img, fname)
