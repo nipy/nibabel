@@ -156,7 +156,7 @@ def test_write_morph_data():
         for shape in okay_shapes:
             write_morph_data('test.curv', values.reshape(shape))
             # Check ordering is preserved, regardless of shape
-            assert np.array_equal(read_morph_data('test.curv') ,values)
+            assert np.array_equal(read_morph_data('test.curv'), values)
         with pytest.raises(ValueError):
             write_morph_data('test.curv', np.zeros(shape), big_num)
                 # Windows 32-bit overflows Python int
