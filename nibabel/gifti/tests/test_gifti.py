@@ -6,27 +6,26 @@ from io import BytesIO
 
 import numpy as np
 
-import nibabel as nib
-from nibabel.gifti import (GiftiImage, GiftiDataArray, GiftiLabel,
-                           GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
-                           GiftiCoordSystem)
-from nibabel.gifti.gifti import data_tag
-from nibabel.nifti1 import data_type_codes
-from nibabel.fileholders import FileHolder
+from ... import load
+from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
+                GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
+                GiftiCoordSystem)
+from ..gifti import data_tag
+from ...nifti1 import data_type_codes
+from ...fileholders import FileHolder
 
-from numpy.testing import (assert_array_almost_equal,
-                           assert_array_equal)
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
-from nibabel.testing import clear_and_catch_warnings, test_data
+from ...testing_pytest import clear_and_catch_warnings, test_data
 from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
                                     DATA_FILE4, DATA_FILE5, DATA_FILE6)
 import itertools
 
 
 def test_agg_data():
-    surf_gii_img = nib.load(test_data('gifti', 'ascii.gii'))
-    func_gii_img = nib.load(test_data('gifti', 'task.func.gii'))
-    shape_gii_img = nib.load(test_data('gifti', 'rh.shape.curv.gii'))
+    surf_gii_img = load(test_data('gifti', 'ascii.gii'))
+    func_gii_img = load(test_data('gifti', 'task.func.gii'))
+    shape_gii_img = load(test_data('gifti', 'rh.shape.curv.gii'))
     # add timeseries data with intent code ``none``
 
     point_data = surf_gii_img.get_arrays_from_intent('pointset')[0].data
@@ -296,7 +295,7 @@ def test_gifti_label_rgba():
 def test_print_summary():
     for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
                 DATA_FILE5, DATA_FILE6]:
-        gimg = nib.load(fil)
+        gimg = load(fil)
         gimg.print_summary()
 
 

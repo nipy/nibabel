@@ -13,17 +13,17 @@ import warnings
 
 import numpy as np
 
-import nibabel.gifti as gi
-from nibabel.gifti.util import gifti_endian_codes
-from nibabel.gifti.parse_gifti_fast import Outputter, parse_gifti_file
-from nibabel.loadsave import load, save
-from nibabel.nifti1 import xform_codes
-from nibabel.tmpdirs import InTemporaryDirectory
+from .. import gifti as gi
+from ..util import gifti_endian_codes
+from ..parse_gifti_fast import Outputter, parse_gifti_file
+from ...loadsave import load, save
+from ...nifti1 import xform_codes
+from ...tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_almost_equal
 
 import pytest
-from ...testing import clear_and_catch_warnings
+from ...testing_pytest import clear_and_catch_warnings
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
