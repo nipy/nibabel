@@ -60,7 +60,7 @@ def test_geometry():
         surf_path, read_metadata=True, read_stamp=True)
 
     assert 0 == faces.min()
-    assert coords.shape[0] == (faces.max() + 1)
+    assert coords.shape[0] == faces.max() + 1
     assert 9 == len(volume_info)
    # assert np.array_equal([2, 0, 20],volume_info['head'])
     np.testing.assert_array_equal([2, 0, 20],volume_info['head'])
