@@ -103,7 +103,7 @@ def test_write_mgh():
     assert h['type'] == 3
     assert h['dof'] == 0
     assert h['goodRASFlag'] == 1
-    assert_array_equal(h['dims'], [5, 4, 3, 2])
+    assert np.array_equal(h['dims'], [5, 4, 3, 2])
     assert_almost_equal(h['tr'], 0.0)
     assert_almost_equal(h['flip_angle'], 0.0)
     assert_almost_equal(h['te'], 0.0)
@@ -133,7 +133,7 @@ def test_write_noaffine_mgh():
     assert h['type'] == 0  # uint8 for mgh
     assert h['dof'] == 0
     assert h['goodRASFlag'] == 1
-    assert_array_equal(h['dims'], [7, 13, 3, 22])
+    assert np.array_equal(h['dims'], [7, 13, 3, 22])
     assert_almost_equal(h['tr'], 0.0)
     assert_almost_equal(h['flip_angle'], 0.0)
     assert_almost_equal(h['te'], 0.0)
@@ -217,7 +217,7 @@ def test_header_updating():
     assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
-    assert_array_equal(hdr['delta'],  1)
+    assert np.array_equal(hdr['delta'],  1)
     assert_almost_equal(hdr['Mdc'].T, exp_aff[:3, :3])
     # Save, reload, same thing
     img_fobj = io.BytesIO()
@@ -458,7 +458,7 @@ class TestMGHHeader(_TestLabeledWrapStruct):
         # Long binaryblocks are truncated
         with pytest.raises(WrapStructError):
             self.header_class(bb[:self.header_class._hdrdtype.itemsize - 1])
-        
+
         # Checking set to true by default, and prevents nonsense being
         # set into the header.
         bb_bad = self.get_bad_bb()
@@ -467,7 +467,7 @@ class TestMGHHeader(_TestLabeledWrapStruct):
         with imageglobals.LoggingOutputSuppressor():
             with pytest.raises(HeaderDataError):
                 self.header_class(bb_bad)
-            
+
         # now slips past without check
         _ = self.header_class(bb_bad, check=False)
 
@@ -493,7 +493,7 @@ class TestMGHHeader(_TestLabeledWrapStruct):
         # Assumes check=True default
         with pytest.raises(Exception):
             DC(hdr.binaryblock)
-        
+
         hdr = DC(hdr.binaryblock, check=False)
         hdr2 = hdr.as_byteswapped('>')
 
