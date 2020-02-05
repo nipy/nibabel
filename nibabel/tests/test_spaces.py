@@ -76,15 +76,7 @@ def get_outspace_params():
     )
 
 
-@pytest.mark.parametrize("arg_tuple", [
-    # Enforce number of axes
-    ((2, 3, 4, 5), np.eye(4)),
-    ((2, 3, 4, 5, 6), np.eye(4)),
-    # Voxel sizes must be positive
-    ((2, 3, 4), np.eye(4), [-1, 1, 1]),
-    ((2, 3, 4), np.eye(4), [1, 0, 1])
-])
-def test_vox2out_vox(arg_tuple):
+def test_vox2out_vox():
     # Test world space bounding box
     # Test basic case, identity, no voxel sizes passed
     shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
@@ -101,7 +93,14 @@ def test_vox2out_vox(arg_tuple):
             assert isinstance(shape[0], int)
     # Enforce number of axes
     with pytest.raises(ValueError):
-        vox2out_vox(arg_tuple)
+        vox2out_vox(((2, 3, 4, 5), np.eye(4)))
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4, 5, 6), np.eye(4)))
+    # Voxel sizes must be positive
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4), np.eye(4), [-1, 1, 1]))
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4), np.eye(4), [1, 0, 1]))
 
 
 def test_slice2volume():
@@ -121,6 +120,6 @@ def test_slice2volume():
     [0, -1],
     [0, 3]
 ])
-def test_slice2volume_exception(args):
+def test_slice2volume_exception(index, axis):
     with pytest.raises(ValueError):
-        slice2volume(*args)
+        slice2volume(index, axis)

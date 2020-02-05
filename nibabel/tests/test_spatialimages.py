@@ -173,18 +173,15 @@ def test_read_data():
         fobj = BytesIO()
         data = np.arange(6).reshape((1, 2, 3))
         hdr.data_to_fileobj(data, fobj)
-        assert (fobj.getvalue() ==
-                     data.astype(np.int32).tostring(order=order))
+        assert fobj.getvalue() == data.astype(np.int32).tostring(order=order)
         # data_to_fileobj accepts kwarg 'rescale', but no effect in this case
         fobj.seek(0)
         hdr.data_to_fileobj(data, fobj, rescale=True)
-        assert (fobj.getvalue() ==
-                     data.astype(np.int32).tostring(order=order))
+        assert fobj.getvalue() == data.astype(np.int32).tostring(order=order)
         # data_to_fileobj can be a list
         fobj.seek(0)
         hdr.data_to_fileobj(data.tolist(), fobj, rescale=True)
-        assert (fobj.getvalue() ==
-                     data.astype(np.int32).tostring(order=order))
+        assert fobj.getvalue() == data.astype(np.int32).tostring(order=order)
         # Read data back again
         fobj.seek(0)
         data2 = hdr.data_from_fileobj(fobj)
@@ -464,8 +461,8 @@ class TestSpatialImage(TestCase):
                         img.slicer[:, :, :, None]
                 else:
                     # Reorder non-spatial axes
-                    assert (img.slicer[:, :, :, None].shape ==
-                                 img.shape[:3] + (1,) + img.shape[3:])
+                    assert (img.slicer[:, :, :, None].shape
+                            == img.shape[:3] + (1,) + img.shape[3:])
                 # 4D to 3D using ellipsis or slices
                 assert img.slicer[..., 0].shape == img.shape[:-1]
                 assert img.slicer[:, :, :, 0].shape == img.shape[:-1]
@@ -480,8 +477,7 @@ class TestSpatialImage(TestCase):
                 with pytest.raises(ValueError):
                     img.slicer[:, :, :, :, None]
             else:
-                assert (img.slicer[:, :, :, :, None].shape ==
-                             img.shape + (1,))
+                assert img.slicer[:, :, :, :, None].shape == img.shape + (1,)
 
             # Crop by one voxel in each dimension
             sliced_i = img.slicer[1:]
