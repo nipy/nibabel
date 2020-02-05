@@ -68,6 +68,7 @@ jobs:
           -I test_fileutils ^
           -I test_floating ^
           -I test_funcs ^
+          -I test_giftiio ^
           -I test_h5py_compat ^
           -I test_image_api ^
           -I test_image_load_save ^
