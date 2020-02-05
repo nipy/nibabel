@@ -323,7 +323,7 @@ def test_mghheader_default_structarr():
     assert_array_equal(hdr['delta'], 1)
     assert_array_equal(hdr['Mdc'], [[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
     assert_array_equal(hdr['Pxyz_c'], 0)
-    assert hdr['tr'] ==0
+    assert hdr['tr'] == 0
     assert hdr['flip_angle'] == 0
     assert hdr['te'] == 0
     assert hdr['ti'] == 0
