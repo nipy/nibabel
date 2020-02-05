@@ -61,8 +61,9 @@ def test_geometry():
     assert 0 == faces.min()
     assert coords.shape[0] == (faces.max() + 1)
     assert 9 == len(volume_info)
-    assert [2, 0, 20] == volume_info['head']
-    assert ['created by greve on Thu Jun  8 19:17:51 2006'] == create_stamp
+   # assert np.array_equal([2, 0, 20],volume_info['head'])
+    np.testing.assert_array_equal([2, 0, 20],volume_info['head'])
+    assert create_stamp == ['created by greve on Thu Jun  8 19:17:51 2006'] # this creates assertion error - should we just remove it?
 
     # Test equivalence of freesurfer- and nibabel-generated triangular files
     # with respect to read_geometry()
@@ -79,7 +80,8 @@ def test_geometry():
         for key in ('xras', 'yras', 'zras', 'cras'):
             assert_allclose(volume_info2[key], volume_info[key],
                             rtol=1e-7, atol=1e-30)
-        assert volume_info2['cras'] == volume_info['cras']
+        #assert.array_equal(volume_info2['cras'], volume_info['cras'])
+        np.testing.assert_array_equal(volume_info2['cras'], volume_info['cras'])
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
@@ -126,8 +128,8 @@ def test_quad_geometry():
         new_path = 'test'
         write_geometry(new_path, coords, faces)
         coords2, faces2 = read_geometry(new_path)
-        assert coords == coords2
-        assert faces == faces2
+        assert np.array_equal(coords,coords2)
+        assert np.array_equal(faces, faces2)
 
 
 @freesurfer_test
@@ -141,7 +143,7 @@ def test_morph_data():
         new_path = 'test'
         write_morph_data(new_path, curv)
         curv2 = read_morph_data(new_path)
-        assert curv2 == curv
+        assert np.array_equal (curv2, curv)
 
 
 def test_write_morph_data():
@@ -154,7 +156,7 @@ def test_write_morph_data():
         for shape in okay_shapes:
             write_morph_data('test.curv', values.reshape(shape))
             # Check ordering is preserved, regardless of shape
-            assert values == read_morph_data('test.curv')
+            assert np.array_equal(read_morph_data('test.curv') ,values)
         with pytest.raises(ValueError):
             write_morph_data('test.curv', np.zeros(shape), big_num)
                 # Windows 32-bit overflows Python int
