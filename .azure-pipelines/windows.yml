@@ -80,6 +80,7 @@ jobs:
           -I test_minc2 ^
           -I test_minc2_data ^
           -I test_mriutils ^
+          -I test_netcdf ^
           -I test_nibabel_data ^
           -I test_nifti1 ^
           -I test_nifti2 ^
