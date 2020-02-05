@@ -165,7 +165,6 @@ def test_write_morph_data():
         for shape in bad_shapes:
             with pytest.raises(ValueError):
                 write_morph_data('test.curv', values.reshape(shape))
-            
 
 @freesurfer_test
 def test_annot():
