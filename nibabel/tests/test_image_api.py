@@ -108,7 +108,7 @@ class GenericImageAPI(ValidateAPI):
         hdr = img.header  # we can fetch it
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'header', hdr)
+            img.header = hdr
 
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
@@ -164,9 +164,9 @@ class GenericImageAPI(ValidateAPI):
     def validate_no_slicing(self, imaker, params):
         img = imaker()
         with pytest.raises(TypeError):
-            img.__getitem__('string')
+            img['string']
         with pytest.raises(TypeError):
-            img.__getitem__(slice(None))
+            img[:]
 
     def validate_get_data_deprecated(self, imaker, params):
         # Check deprecated header API
@@ -231,10 +231,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # dataobj is read only
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         with pytest.raises(AttributeError):
-            setattr(img, 'dataobj', fake_data)
+            img.dataobj = fake_data
         # So is in_memory
         with pytest.raises(AttributeError):
-            setattr(img, 'in_memory', False)
+            img.in_memory = False
 
     def _check_proxy_interface(self, imaker, meth_name):
         # Parameters assert this is an array proxy
@@ -402,7 +402,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         with pytest.raises(AttributeError):
-            setattr(img, '_data', fake_data)
+            img._data = fake_data
 
     def validate_shape(self, imaker, params):
         # Validate shape
@@ -414,7 +414,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert img.shape == params['data'].shape
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'shape', np.eye(4))
+            img.shape = np.eye(4)
 
     def validate_ndim(self, imaker, params):
         # Validate shape
@@ -426,7 +426,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert img.ndim == params['data'].ndim
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'ndim', 5)
+            img.ndim = 5
 
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
@@ -497,7 +497,7 @@ class AffineMixin(object):
         assert img.affine[0, 0] == 1.5
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'affine', np.eye(4))
+            img.affine = np.eye(4)
 
     def validate_affine_deprecated(self, imaker, params):
         # Check deprecated affine API
