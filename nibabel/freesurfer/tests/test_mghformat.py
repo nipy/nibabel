@@ -28,7 +28,6 @@ import pytest
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_almost_equal
 
-
 from ...testing_pytest import data_path
 
 from ...tests import test_spatialimages as tsi
