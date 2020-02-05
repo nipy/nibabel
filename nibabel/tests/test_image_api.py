@@ -712,12 +712,8 @@ class TestMinc1API(ImageHeaderAPI):
     example_images = MINC1_EXAMPLE_IMAGES
 
 
+@pytest.mark.skipif(not have_h5py, reason="Need h5py for Minc2 tests")
 class TestMinc2API(TestMinc1API):
-
-    def __init__(self):
-        if not have_h5py:
-            pytest.skip('Need h5py for these tests')
-
     klass = image_maker = Minc2Image
     loader = minc2.load
     example_images = MINC2_EXAMPLE_IMAGES
