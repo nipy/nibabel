@@ -423,7 +423,7 @@ class TestMGHHeader(_TestLabeledWrapStruct):
         assert hdr1 == hdr2
         # REMOVED as_byteswapped() test
         # Check comparing to funny thing says no
-        assert hdr1 != None
+        assert hdr1 is not None
         assert hdr1 != 1
 
     def test_to_from_fileobj(self):
