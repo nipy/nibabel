@@ -113,10 +113,8 @@ class GenericImageAPI(ValidateAPI):
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
         img = imaker()
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
+        with pytest.deprecated_call():
             hdr = img.get_header()
-            assert len(w) == 1
             assert hdr is img.header
 
     def validate_filenames(self, imaker, params):
@@ -171,7 +169,7 @@ class GenericImageAPI(ValidateAPI):
     def validate_get_data_deprecated(self, imaker, params):
         # Check deprecated header API
         img = imaker()
-        with assert_warns(DeprecationWarning):
+        with pytest.deprecated_call():
             data = img.get_data()
         assert_array_equal(np.asanyarray(img.dataobj), data)
 
@@ -395,10 +393,8 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning
         img = imaker()
-        with warnings.catch_warnings(record=True) as warns:
-            warnings.simplefilter("always")
+        with pytest.deprecated_call():
             assert_data_similar(img._data, params)
-            assert warns.pop(0).category == DeprecationWarning
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         with pytest.raises(AttributeError):
@@ -502,10 +498,8 @@ class AffineMixin(object):
     def validate_affine_deprecated(self, imaker, params):
         # Check deprecated affine API
         img = imaker()
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
+        with pytest.deprecated_call():
             assert_almost_equal(img.get_affine(), params['affine'], 6)
-            assert len(w) == 1
             assert img.get_affine().dtype == np.float64
             aff = img.get_affine()
             aff[0, 0] = 1.5

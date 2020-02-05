@@ -148,8 +148,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         assert (message == 'very large origin values '
                      'relative to dims; leaving as set, '
                      'ignoring for affine')
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
+        pytest.raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock
         assert (dxer(hdr.binaryblock) ==

@@ -263,10 +263,8 @@ def test_affine_regression():
 
 def test_get_voxel_size_deprecated():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
-        simplefilter('always')
+    with pytest.deprecated_call():
         hdr.get_voxel_size()
-    assert wlist[0].category == DeprecationWarning
 
 
 def test_get_sorted_slice_indices():
@@ -304,9 +302,9 @@ def test_sorting_dual_echo_T1():
     sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
     n_half = len(t1_hdr.image_defs) // 2
     # first half (volume 1) should all correspond to echo 1
-    assert np.all(sorted_echos[:n_half] == 1) == True
+    assert np.all(sorted_echos[:n_half] == 1)
     # second half (volume 2) should all correspond to echo 2
-    assert np.all(sorted_echos[n_half:] == 2) == True
+    assert np.all(sorted_echos[n_half:] == 2)
 
     # check volume labels
     vol_labels = t1_hdr.get_volume_labels()
@@ -350,10 +348,10 @@ def test_sorting_multiple_echos_and_contrasts():
         assert (np.all(sorted_echos[istart:iend] == current_echo) ==
                      True)
     # outermost sort index is image_type_mr
-    assert np.all(sorted_types[:ntotal//4] == 0) == True
-    assert np.all(sorted_types[ntotal//4:ntotal//2] == 1) == True
-    assert np.all(sorted_types[ntotal//2:3*ntotal//4] == 2) == True
-    assert np.all(sorted_types[3*ntotal//4:ntotal] == 3) == True
+    assert np.all(sorted_types[:ntotal//4] == 0)
+    assert np.all(sorted_types[ntotal//4:ntotal//2] == 1)
+    assert np.all(sorted_types[ntotal//2:3*ntotal//4] == 2)
+    assert np.all(sorted_types[3*ntotal//4:ntotal] == 3)
 
     # check volume labels
     vol_labels = t1_hdr.get_volume_labels()

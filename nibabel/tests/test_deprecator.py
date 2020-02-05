@@ -69,11 +69,8 @@ class TestDeprecatorFunc(object):
         # Test function deprecation
         dec = self.dep_func
         func = dec('foo')(func_no_doc)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call():
             assert func() == None
-            assert len(w) == 1
-            assert w[0].category is DeprecationWarning
         assert func.__doc__ == 'foo\n'
         func = dec('foo')(func_doc)
         with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
@@ -135,11 +132,8 @@ class TestDeprecatorFunc(object):
             assert w[0].category is UserWarning
 
         func = dec('foo', error_class=CustomError)(func_no_doc)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call():
             assert func() == None
-            assert len(w) == 1
-            assert w[0].category is DeprecationWarning
 
         func = dec('foo', until='1.8', error_class=CustomError)(func_no_doc)
         with pytest.raises(CustomError):
@@ -162,11 +156,8 @@ class TestDeprecatorMaker(object):
 
         dec = self.dep_maker(error_class=CustomError)
         func = dec('foo')(func_no_doc)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call():
             assert func() == None
-            assert len(w) == 1
-            assert w[0].category is DeprecationWarning
 
         func = dec('foo', until='1.8')(func_no_doc)
         with pytest.raises(CustomError):

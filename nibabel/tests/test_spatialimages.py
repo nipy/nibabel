@@ -384,7 +384,7 @@ class TestSpatialImage(TestCase):
                      "documentation for caveats) or slicing image array data "
                      "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
         assert in_data is img.dataobj
-        with pytest.warns(DeprecationWarning):
+        with pytest.deprecated_call():
             out_data = img.get_data()
         assert in_data is out_data
         # and that uncache has no effect
@@ -397,18 +397,18 @@ class TestSpatialImage(TestCase):
         rt_img = bytesio_round_trip(img)
         assert not in_data is rt_img.dataobj
         assert (rt_img.dataobj == in_data).all()
-        with pytest.warns(DeprecationWarning):
+        with pytest.deprecated_call():
             out_data = rt_img.get_data()
         assert (out_data == in_data).all()
         assert not rt_img.dataobj is out_data
         # cache
-        with pytest.warns(DeprecationWarning):
+        with pytest.deprecated_call():
             assert rt_img.get_data() is out_data
         out_data[:] = 42
         rt_img.uncache()
-        with pytest.warns(DeprecationWarning):
+        with pytest.deprecated_call():
             assert not rt_img.get_data() is out_data
-        with pytest.warns(DeprecationWarning):
+        with pytest.deprecated_call():
             assert (rt_img.get_data() == in_data).all()
 
     def test_slicer(self):
@@ -531,12 +531,12 @@ class TestSpatialImage(TestCase):
                         pass
                     else:
                         sliced_data = in_data[sliceobj]
-                        with pytest.warns(DeprecationWarning):
+                        with pytest.deprecated_call():
                             assert (sliced_data == sliced_img.get_data()).all()
                         assert (sliced_data == sliced_img.get_fdata()).all()
                         assert (sliced_data == sliced_img.dataobj).all()
                         assert (sliced_data == img.dataobj[sliceobj]).all()
-                        with pytest.warns(DeprecationWarning):
+                        with pytest.deprecated_call():
                             assert (sliced_data == img.get_data()[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
 
@@ -648,12 +648,7 @@ class MmapImageMixin(object):
 
 
 def test_header_deprecated():
-    with clear_and_catch_warnings() as w:
-        warnings.simplefilter('always', DeprecationWarning)
-
+    with pytest.deprecated_call():
         class MyHeader(Header):
             pass
-        assert len(w) == 0
-
         MyHeader()
-        assert len(w) == 1

@@ -47,7 +47,7 @@ def test_is_fancy():
     assert not is_fancy((None, 1))
     assert not is_fancy((1, None))
     # Chack that actual False returned (rather than falsey)
-    assert is_fancy(1) == False
+    assert is_fancy(1) is False
 
 
 def test_canonical_slicers():
