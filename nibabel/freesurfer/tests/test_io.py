@@ -267,7 +267,6 @@ def test_write_annot_fill_ctab():
         # values back.
         badannot = (10 * np.arange(nlabels, dtype=np.int32)).reshape(-1, 1)
         rgbal = np.hstack((rgba, badannot))
-        print(labels)
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         assert (
