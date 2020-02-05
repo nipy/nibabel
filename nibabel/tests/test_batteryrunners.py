@@ -159,43 +159,19 @@ def test_logging():
 def test_checks():
     battrun = BatteryRunner((chk1,))
     reports = battrun.check_only({})
-    assert (reports[0] ==
-                 Report(KeyError,
-                        20,
-                        'no "testkey"',
-                        ''))
+    assert reports[0] == Report(KeyError, 20, 'no "testkey"', '')
     obj, reports = battrun.check_fix({})
-    assert (reports[0] ==
-                 Report(KeyError,
-                        20,
-                        'no "testkey"',
-                        'added "testkey"'))
+    assert reports[0] == Report(KeyError, 20, 'no "testkey"', 'added "testkey"')
     assert obj == {'testkey': 1}
     battrun = BatteryRunner((chk1, chk2))
     reports = battrun.check_only({})
-    assert (reports[0] ==
-                 Report(KeyError,
-                        20,
-                        'no "testkey"',
-                        ''))
-    assert (reports[1] ==
-                 Report(KeyError,
-                        20,
-                        'no "testkey"',
-                        ''))
+    assert reports[0] == Report(KeyError, 20, 'no "testkey"', '')
+    assert reports[1] == Report(KeyError, 20, 'no "testkey"', '')
     obj, reports = battrun.check_fix({})
     # In the case of fix, the previous fix exposes a different error
     # Note, because obj is mutable, first and second point to modified
     # (and final) dictionary
     output_obj = {'testkey': 0}
-    assert (reports[0] ==
-                 Report(KeyError,
-                        20,
-                        'no "testkey"',
-                        'added "testkey"'))
-    assert (reports[1] ==
-                 Report(ValueError,
-                        10,
-                        '"testkey" != 0',
-                        'set "testkey" to 0'))
+    assert reports[0] == Report(KeyError, 20, 'no "testkey"', 'added "testkey"')
+    assert reports[1] == Report(ValueError, 10, '"testkey" != 0', 'set "testkey" to 0')
     assert obj == output_obj

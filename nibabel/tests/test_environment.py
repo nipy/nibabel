@@ -14,7 +14,7 @@ DATA_KEY = 'NIPY_DATA_PATH'
 USER_KEY = 'NIPY_USER_DIR'
 
 
-@pytest.fixture()
+@pytest.fixture
 def with_environment(request):
     """Setup test environment for some functions that are tested
     in this module. In particular this functions stores attributes
@@ -24,20 +24,15 @@ def with_environment(request):
     """
     GIVEN_ENV = {}
     GIVEN_ENV['env'] = env.copy()
-
-
-    def teardown_environment():
-        """Restore things that were remembered by the setup_environment function
-        """
-        orig_env = GIVEN_ENV['env']
-        # Pull keys out into list to avoid altering dictionary during iteration,
-        # causing python 3 error
-        for key in list(env.keys()):
-            if key not in orig_env:
-                del env[key]
-        env.update(orig_env)
-
-    request.addfinalizer(teardown_environment)
+    yield
+    """Restore things that were remembered by the setup_environment function """
+    orig_env = GIVEN_ENV['env']
+    # Pull keys out into list to avoid altering dictionary during iteration,
+    # causing python 3 error
+    for key in list(env.keys()):
+        if key not in orig_env:
+            del env[key]
+    env.update(orig_env)
 
 
 def test_nipy_home():

@@ -19,24 +19,19 @@ from .. import data as nibd
 
 import pytest
 
-from .test_environment import (with_environment,
-                               DATA_KEY,
-                               USER_KEY)
+from .test_environment import with_environment, DATA_KEY, USER_KEY
 
 
-@pytest.fixture()
+@pytest.fixture
 def with_nimd_env(request, with_environment):
     DATA_FUNCS = {}
     DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
     DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
     DATA_FUNCS['path_func'] = nibd.get_data_path
-
-    def teardown_data_env():
-        nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
-        nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
-        nibd.get_data_path = DATA_FUNCS['path_func']
-
-    request.addfinalizer(teardown_data_env)
+    yield
+    nibd.get_nipy_user_dir = DATA_FUNCS['home_dir_func']
+    nibd.get_nipy_system_dir = DATA_FUNCS['sys_dir_func']
+    nibd.get_data_path = DATA_FUNCS['path_func']
 
 
 def test_datasource():
@@ -162,8 +157,7 @@ def test_data_path(with_nimd_env):
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
             fobj.write('path = %s\n' % '/path/two')
-        assert (get_data_path() ==
-                     tst_list + ['/path/two'] + old_pth)
+        assert get_data_path() == tst_list + ['/path/two'] + old_pth
 
 
 def test_find_data_dir():
@@ -206,10 +200,10 @@ def test_make_datasource(with_nimd_env):
         assert ds.version == '0.1'
 
 
+@pytest.mark.xfail(raises=DataError)
 def test_bomber():
-    with pytest.raises(DataError):
-        b = Bomber('bomber example', 'a message')
-        b.any_attribute  # no error
+    b = Bomber('bomber example', 'a message')
+    b.any_attribute  # no error
 
 
 def test_bomber_inspect():
@@ -218,13 +212,12 @@ def test_bomber_inspect():
 
 
 def test_datasource_or_bomber(with_nimd_env):
-    pkg_def = dict(
-        relpath='pkg')
+    pkg_def = dict(relpath='pkg')
     with TemporaryDirectory() as tmpdir:
         nibd.get_data_path = lambda: [tmpdir]
         ds = datasource_or_bomber(pkg_def)
         with pytest.raises(DataError):
-            getattr(ds, 'get_filename')
+            ds.get_filename('some_file.txt')
         pkg_dir = pjoin(tmpdir, 'pkg')
         os.mkdir(pkg_dir)
         tmpfile = pjoin(pkg_dir, 'config.ini')
@@ -240,4 +233,4 @@ def test_datasource_or_bomber(with_nimd_env):
         pkg_def['min version'] = '0.3'
         ds = datasource_or_bomber(pkg_def)  # not OK
         with pytest.raises(DataError):
-            getattr(ds, 'get_filename')
+            ds.get_filename('some_file.txt')
