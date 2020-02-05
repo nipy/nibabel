@@ -116,7 +116,7 @@ def test_slice2volume():
             assert (slice2volume(val, axis) == exp_aff).all()
 
 
-@pytest.mark.parametrize("args", [
+@pytest.mark.parametrize("index, axis", [
     [-1, 0],
     [0, -1],
     [0, 3]
