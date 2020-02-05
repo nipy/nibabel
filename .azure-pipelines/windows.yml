@@ -99,6 +99,9 @@ jobs:
           -I test_round_trip ^
           -I test_rstutils ^
           -I test_scaling ^
+          -I test_scripts ^
+          -I test_spaces ^
+          -I test_testing ^
           -I test_wrapstruct
       displayName: 'Nose tests'
       condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'nosetests'))
