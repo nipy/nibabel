@@ -525,9 +525,9 @@ def test_tvfile_io():
     tvf.to_file(out_f)
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f)
-    assert tvf2.filename == None
+    assert tvf2.filename is None
     assert streamlist_equal(vxmm_streams, tvf2.streamlines)
-    assert tvf2.points_space == None
+    assert tvf2.points_space is None
     # Voxel points_space
     tvf = tv.TrackvisFile(vx_streams, points_space='voxel')
     out_f.seek(0)

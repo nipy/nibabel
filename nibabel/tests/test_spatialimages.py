@@ -162,7 +162,7 @@ def test_affine():
                                [0, 2, 0, -1],
                                [0, 0, 1, -1],
                                [0, 0, 0, 1]])
-    assert (hdr.get_base_affine() == hdr.get_best_affine()).all()
+    assert np.array_equal(hdr.get_base_affine(), hdr.get_best_affine())
 
 
 def test_read_data():
