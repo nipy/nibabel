@@ -26,7 +26,7 @@ from ... import imageglobals
 
 import pytest
 
-from numpy.testing import (assert_array_equal, assert_array_almost_equal, assert_almost_equal)
+from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_almost_equal
 
 
 from ...testing_pytest import data_path
@@ -218,14 +218,14 @@ def test_header_updating():
     assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
-    assert hdr['delta'] == 1
+    assert_array_equal(hdr['delta'],  1)
     assert_almost_equal(hdr['Mdc'].T, exp_aff[:3, :3])
     # Save, reload, same thing
     img_fobj = io.BytesIO()
     mgz2 = _mgh_rt(mgz, img_fobj)
     hdr2 = mgz2.header
     assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
-    assert hdr2['delta'] == 1
+    assert_array_equal(hdr2['delta'],1)
     # Change affine, change underlying header info
     exp_aff_d = exp_aff.copy()
     exp_aff_d[0, -1] = -14
