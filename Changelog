@@ -28,6 +28,9 @@ References like "pr/298" refer to github pull request numbers.
 2.5.2 (To Be Determined)
 ========================
 
+This and all future releases in 2.5.x series will be incompatible with Python
+3.9.
+
 Bug fixes
 ---------
 * Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
