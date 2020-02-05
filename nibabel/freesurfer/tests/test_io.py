@@ -36,7 +36,12 @@ else:
         data_path = pjoin(nib_data, 'nitest-freesurfer', DATA_SDIR)
         have_freesurfer = isdir(data_path)
 
+<<<<<<< HEAD
 freesurfer_test = pytest.mark.skipif(not have_freesurfer, reason='cannot find freesurfer {0} directory'.format(DATA_SDIR))
+=======
+freesurfer_test = pytest.mark.skipif(not have_freesurfer,
+                                     reason='cannot find freesurfer {0} directory'.format(DATA_SDIR))
+>>>>>>> 2fb977b1605f5a4c4394f3b1b694e0a5e8f66de5
 
 def _hash_file_content(fname):
     hasher = hashlib.md5()
@@ -59,10 +64,16 @@ def test_geometry():
         surf_path, read_metadata=True, read_stamp=True)
 
     assert 0 == faces.min()
+<<<<<<< HEAD
     assert coords.shape[0] == (faces.max() + 1)
     assert 9 == len(volume_info)
    # assert np.array_equal([2, 0, 20],volume_info['head'])
     np.testing.assert_array_equal([2, 0, 20],volume_info['head'])
+=======
+    assert coords.shape[0] == faces.max() + 1
+    assert 9 == len(volume_info)
+    assert np.array_equal([2, 0, 20], volume_info['head'])
+>>>>>>> 2fb977b1605f5a4c4394f3b1b694e0a5e8f66de5
     assert create_stamp == ['created by greve on Thu Jun  8 19:17:51 2006'] # this creates assertion error - should we just remove it?
 
     # Test equivalence of freesurfer- and nibabel-generated triangular files
@@ -80,8 +91,12 @@ def test_geometry():
         for key in ('xras', 'yras', 'zras', 'cras'):
             assert_allclose(volume_info2[key], volume_info[key],
                             rtol=1e-7, atol=1e-30)
+<<<<<<< HEAD
         #assert.array_equal(volume_info2['cras'], volume_info['cras'])
         np.testing.assert_array_equal(volume_info2['cras'], volume_info['cras'])
+=======
+        assert np.array_equal(volume_info2['cras'], volume_info['cras'])
+>>>>>>> 2fb977b1605f5a4c4394f3b1b694e0a5e8f66de5
         with open(surf_path, 'rb') as fobj:
             np.fromfile(fobj, ">u1", 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
@@ -156,7 +171,11 @@ def test_write_morph_data():
         for shape in okay_shapes:
             write_morph_data('test.curv', values.reshape(shape))
             # Check ordering is preserved, regardless of shape
+<<<<<<< HEAD
             assert np.array_equal(read_morph_data('test.curv') ,values)
+=======
+            assert np.array_equal(read_morph_data('test.curv'), values)
+>>>>>>> 2fb977b1605f5a4c4394f3b1b694e0a5e8f66de5
         with pytest.raises(ValueError):
             write_morph_data('test.curv', np.zeros(shape), big_num)
                 # Windows 32-bit overflows Python int
@@ -166,7 +185,10 @@ def test_write_morph_data():
         for shape in bad_shapes:
             with pytest.raises(ValueError):
                 write_morph_data('test.curv', values.reshape(shape))
+<<<<<<< HEAD
             
+=======
+>>>>>>> 2fb977b1605f5a4c4394f3b1b694e0a5e8f66de5
 
 @freesurfer_test
 def test_annot():
