@@ -144,11 +144,10 @@ class TestDeprecatorMaker(object):
     def test_deprecator_maker(self):
         dec = self.dep_maker(warn_class=UserWarning)
         func = dec('foo')(func_no_doc)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.warns(UserWarning) as w:
+            # warnings.simplefilter('always')
             assert func() is None
             assert len(w) == 1
-            assert w[0].category is UserWarning
 
         dec = self.dep_maker(error_class=CustomError)
         func = dec('foo')(func_no_doc)
