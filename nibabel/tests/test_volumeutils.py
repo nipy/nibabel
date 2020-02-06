@@ -57,8 +57,7 @@ from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 import pytest
 
-from ..testing_pytest import (assert_dt_equal, assert_allclose_safely,
-                              suppress_warnings, clear_and_catch_warnings)
+from ..testing_pytest import assert_dt_equal, assert_allclose_safely, suppress_warnings
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -1019,8 +1018,7 @@ def test_fname_ext_ul_case():
 def test_allopen():
     # This import into volumeutils is for compatibility.  The code is the
     # ``openers`` module.
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+    with pytest.deprecated_call() as w:
         # Test default mode is 'rb'
         fobj = allopen(__file__)
         # Check we got the deprecation warning

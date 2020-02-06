@@ -379,10 +379,10 @@ class TestSpatialImage(TestCase):
             img[0, 0, 0]
         # Make sure the right message gets raised:
         assert (str(exception_manager.value) ==
-                     "Cannot slice image objects; consider using "
-                     "`img.slicer[slice]` to generate a sliced image (see "
-                     "documentation for caveats) or slicing image array data "
-                     "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
+                "Cannot slice image objects; consider using "
+                "`img.slicer[slice]` to generate a sliced image (see "
+                "documentation for caveats) or slicing image array data "
+                "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
         assert in_data is img.dataobj
         with pytest.deprecated_call():
             out_data = img.get_data()
@@ -648,7 +648,10 @@ class MmapImageMixin(object):
 
 
 def test_header_deprecated():
-    with pytest.deprecated_call():
+    with pytest.deprecated_call() as w:
         class MyHeader(Header):
             pass
+
+        assert len(w) == 0
         MyHeader()
+        assert len(w) == 1

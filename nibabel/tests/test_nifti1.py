@@ -1131,10 +1131,10 @@ def test_extension_basics():
 def test_ext_eq():
     ext = Nifti1Extension('comment', '123')
     assert ext == ext
-    assert ext == ext
+    assert not ext != ext
     ext2 = Nifti1Extension('comment', '124')
     assert ext != ext2
-    assert ext != ext2
+    assert not ext == ext2
 
 
 def test_extension_codes():
@@ -1148,7 +1148,7 @@ def test_extension_list():
     assert ext_c0 == ext_c1
     ext = Nifti1Extension('comment', '123')
     ext_c1.append(ext)
-    assert ext_c0 != ext_c1
+    assert not ext_c0 == ext_c1
     ext_c0.append(ext)
     assert ext_c0 == ext_c1
 

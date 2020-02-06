@@ -146,8 +146,8 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert fhdr == hdr
         assert (message == 'very large origin values '
-                     'relative to dims; leaving as set, '
-                     'ignoring for affine')
+                           'relative to dims; leaving as set, '
+                           'ignoring for affine')
         pytest.raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock

@@ -21,7 +21,7 @@ import pytest
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..testing_pytest import data_path, suppress_warnings, clear_and_catch_warnings
+from ..testing_pytest import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_wrapstruct import _TestWrapStructBase
@@ -271,8 +271,7 @@ class TestEcatImage(TestCase):
 
 def test_from_filespec_deprecation():
     # Check from_filespec raises Deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.simplefilter('always', DeprecationWarning)
+    with pytest.deprecated_call() as w:
         # No warning for standard load
         img_loaded = EcatImage.load(ecat_file)
         assert len(w) == 0

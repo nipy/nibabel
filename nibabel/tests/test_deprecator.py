@@ -34,9 +34,9 @@ def test__add_dep_doc():
     assert _add_dep_doc('bar\n\n', 'foo') == 'bar\n\nfoo\n'
     assert _add_dep_doc('bar\n    \n', 'foo') == 'bar\n\nfoo\n'
     assert (_add_dep_doc(' bar\n\nSome explanation', 'foo\nbaz') ==
-                 ' bar\n\nfoo\nbaz\n\nSome explanation\n')
+            ' bar\n\nfoo\nbaz\n\nSome explanation\n')
     assert (_add_dep_doc(' bar\n\n  Some explanation', 'foo\nbaz') ==
-                 ' bar\n  \n  foo\n  baz\n  \n  Some explanation\n')
+            ' bar\n  \n  foo\n  baz\n  \n  Some explanation\n')
 
 
 class CustomError(Exception):
@@ -73,14 +73,12 @@ class TestDeprecatorFunc(object):
             assert func() is None
         assert func.__doc__ == 'foo\n'
         func = dec('foo')(func_doc)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call() as w:
             assert func(1) is None
             assert len(w) == 1
         assert func.__doc__ == 'A docstring\n\nfoo\n'
         func = dec('foo')(func_doc_long)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call() as w:
             assert func(1, 2) is None
             assert len(w) == 1
         assert func.__doc__ == 'A docstring\n   \n   foo\n   \n   Some text\n'
@@ -88,13 +86,11 @@ class TestDeprecatorFunc(object):
         # Try some since and until versions
         func = dec('foo', '1.1')(func_no_doc)
         assert func.__doc__ == 'foo\n\n* deprecated from version: 1.1\n'
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call() as w:
             assert func() is None
             assert len(w) == 1
         func = dec('foo', until='99.4')(func_no_doc)
-        with clear_and_catch_warnings(modules=[_OWN_MODULE]) as w:
-            warnings.simplefilter('always')
+        with pytest.deprecated_call() as w:
             assert func() is None
             assert len(w) == 1
         assert (func.__doc__ ==
@@ -104,22 +100,22 @@ class TestDeprecatorFunc(object):
         with pytest.raises(ExpiredDeprecationError):
             func()
         assert (func.__doc__ ==
-                    'foo\n\n* Raises {} as of version: 1.8\n'
-                    .format(ExpiredDeprecationError))
+                'foo\n\n* Raises {} as of version: 1.8\n'
+                .format(ExpiredDeprecationError))
         func = dec('foo', '1.2', '1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()
         assert (func.__doc__ ==
-                    'foo\n\n* deprecated from version: 1.2\n'
-                    '* Raises {} as of version: 1.8\n'
-                    .format(ExpiredDeprecationError))
+                'foo\n\n* deprecated from version: 1.2\n'
+                '* Raises {} as of version: 1.8\n'
+                .format(ExpiredDeprecationError))
         func = dec('foo', '1.2', '1.8')(func_doc_long)
         assert (func.__doc__ ==
-                    'A docstring\n   \n   foo\n   \n'
-                    '   * deprecated from version: 1.2\n'
-                    '   * Raises {} as of version: 1.8\n   \n'
-                    '   Some text\n'
-                    .format(ExpiredDeprecationError))
+                'A docstring\n   \n   foo\n   \n'
+                '   * deprecated from version: 1.2\n'
+                '   * Raises {} as of version: 1.8\n   \n'
+                '   Some text\n'
+                .format(ExpiredDeprecationError))
         with pytest.raises(ExpiredDeprecationError):
             func()
 
