@@ -85,3 +85,4 @@ doc/source/reference
 venv/
 .buildbot.patch
 .vscode
+for_testing/
