@@ -159,35 +159,33 @@ def test_array_file_scales(in_type, out_type, err):
     # Max rounding error for integer type
     max_miss = slope / 2.
     assert np.all(np.abs(arr - arr3) <= max_miss)
-    bio.truncate(0)
-    bio.seek(0)
 
 
-@pytest.mark.parametrize("category0, category1",[
+@pytest.mark.parametrize("in_type, out_type",[
     ('int', 'int'),
     ('uint', 'int'),
 ])
-def test_scaling_in_abstract(category0, category1):
+def test_scaling_in_abstract(in_type, out_type):
     # Confirm that, for all ints and uints as input, and all possible outputs,
     # for any simple way of doing the calculation, the result is near enough
-    for in_type in np.sctypes[category0]:
-        for out_type in np.sctypes[category1]:
-            check_int_a2f(in_type, out_type)
+    for in_tp in np.sctypes[in_type]:
+        for out_tp in np.sctypes[out_type]:
+            check_int_a2f(in_tp, out_tp)
 
 
-@pytest.mark.parametrize("category0, category1", [
+@pytest.mark.parametrize("in_type, out_type", [
     ('float', 'int'),
     ('float', 'uint'),
     ('complex', 'int'),
     ('complex', 'uint'),
 ])
-def test_scaling_in_abstract_warn(category0, category1):
+def test_scaling_in_abstract_warn(in_type, out_type):
 
     # Converting floats to integer
-    for in_type in np.sctypes[category0]:
-        for out_type in np.sctypes[category1]:
+    for in_tp in np.sctypes[in_type]:
+        for out_tp in np.sctypes[out_type]:
             with suppress_warnings():  # overflow
-                check_int_a2f(in_type, out_type)
+                check_int_a2f(in_tp, out_tp)
 
 
 def check_int_a2f(in_type, out_type):

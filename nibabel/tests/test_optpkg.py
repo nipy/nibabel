@@ -7,8 +7,7 @@ import sys
 import builtins
 from distutils.version import LooseVersion
 
-# TODO: remove (have to be coordinated with optpkg)
-from nose import SkipTest
+from unittest import SkipTest
 import pytest
 
 from nibabel.optpkg import optional_package
@@ -19,7 +18,7 @@ def assert_good(pkg_name, min_version=None):
     pkg, have_pkg, setup = optional_package(pkg_name, min_version=min_version)
     assert have_pkg
     assert sys.modules[pkg_name] == pkg
-    assert setup() == None
+    assert setup() is None
 
 
 def assert_bad(pkg_name, min_version=None):
@@ -28,7 +27,6 @@ def assert_bad(pkg_name, min_version=None):
     assert isinstance(pkg, TripWire)
     with pytest.raises(TripWireError):
         getattr(pkg, 'a_method')
-    # TODO: remove
     with pytest.raises(SkipTest):
         setup()
 
@@ -56,7 +54,7 @@ def test_basic():
 def test_versions():
     fake_name = '_a_fake_package'
     fake_pkg = types.ModuleType(fake_name)
-    assert not 'fake_pkg' in sys.modules
+    assert 'fake_pkg' not in sys.modules
     # Not inserted yet
     assert_bad(fake_name)
     try:

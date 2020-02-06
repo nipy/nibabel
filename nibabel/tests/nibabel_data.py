@@ -4,7 +4,7 @@
 from os import environ, listdir
 from os.path import dirname, realpath, join as pjoin, isdir, exists
 
-from ..testing import skipif
+import pytest
 
 
 def get_nibabel_data():
@@ -39,11 +39,11 @@ def needs_nibabel_data(subdir=None):
     """
     nibabel_data = get_nibabel_data()
     if nibabel_data == '':
-        return skipif(True, "Need nibabel-data directory for this test")
+        return pytest.mark.skipif(True, reason="Need nibabel-data directory for this test")
     if subdir is None:
-        return skipif(False)
+        return pytest.mark.skipif(False, reason="Don't skip")
     required_path = pjoin(nibabel_data, subdir)
     # Path should not be empty (as is the case for not-updated submodules)
     have_files = exists(required_path) and len(listdir(required_path)) > 0
-    return skipif(not have_files,
-                  "Need files in {0} for these tests".format(required_path))
+    return pytest.mark.skipif(not have_files,
+                              reason="Need files in {0} for these tests".format(required_path))

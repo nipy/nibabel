@@ -47,7 +47,7 @@ def test_is_fancy():
     assert not is_fancy((None, 1))
     assert not is_fancy((1, None))
     # Chack that actual False returned (rather than falsey)
-    assert is_fancy(1) == False
+    assert is_fancy(1) is False
 
 
 def test_canonical_slicers():
@@ -243,9 +243,9 @@ def test_threshold_heuristic():
     # Test for default skip / read heuristic
     # int
     assert threshold_heuristic(1, 9, 1, skip_thresh=8) == 'full'
-    assert threshold_heuristic(1, 9, 1, skip_thresh=7) == None
+    assert threshold_heuristic(1, 9, 1, skip_thresh=7) is None
     assert threshold_heuristic(1, 9, 2, skip_thresh=16) == 'full'
-    assert threshold_heuristic(1, 9, 2, skip_thresh=15) == None
+    assert threshold_heuristic(1, 9, 2, skip_thresh=15) is None
     # full slice, smallest step size
     assert (threshold_heuristic(
         slice(0, 9, 1), 9, 2, skip_thresh=2) ==

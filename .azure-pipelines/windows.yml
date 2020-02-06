@@ -49,10 +49,12 @@ jobs:
           -I test_batteryrunners ^
           -I test_brikhead ^
           -I test_casting ^
+          -I test_cifti2io_axes ^
           -I test_cifti2io_header ^
           -I test_data ^
           -I test_deprecated ^
           -I test_deprecator ^
+          -I test_dicomwrappers ^
           -I test_dft ^
           -I test_ecat ^
           -I test_ecat_data ^
@@ -75,6 +77,7 @@ jobs:
           -I test_image_types ^
           -I test_imageclasses ^
           -I test_imageglobals ^
+          -I test_io ^
           -I test_keywordonly ^
           -I test_loadsave ^
           -I test_minc1 ^
@@ -99,6 +102,9 @@ jobs:
           -I test_round_trip ^
           -I test_rstutils ^
           -I test_scaling ^
+          -I test_scripts ^
+          -I test_spaces ^
+          -I test_testing ^
           -I test_wrapstruct
       displayName: 'Nose tests'
       condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'nosetests'))

@@ -60,8 +60,7 @@ def test_fieldmap():
     fieldmap_nii = pjoin(BALLS, 'NIFTI', 'fieldmap.nii.gz')
     load(fieldmap_par)
     top_load(fieldmap_nii)
-    # TODO dj: i believe this shouldn't be here
-    #raise pytest.skip('Fieldmap remains puzzling')
+    raise pytest.skip('Fieldmap remains puzzling')
 
 
 @needs_nibabel_data('parrec_oblique')

@@ -274,7 +274,7 @@ def test_analyze_detection():
     def wat(hdr):
         return nils.which_analyze_type(hdr.binaryblock)
     n1_hdr = Nifti1Header(b'\0' * 348, check=False)
-    assert wat(n1_hdr) == None
+    assert wat(n1_hdr) is None
     n1_hdr['sizeof_hdr'] = 540
     assert wat(n1_hdr) == 'nifti2'
     assert wat(n1_hdr.as_byteswapped()) == 'nifti2'
@@ -292,7 +292,7 @@ def test_analyze_detection():
     assert wat(n1_hdr) == 'analyze'
     n1_hdr['sizeof_hdr'] = 0
     n1_hdr['magic'] = b''
-    assert wat(n1_hdr) == None
+    assert wat(n1_hdr) is None
     n1_hdr['magic'] = 'n+1'
     assert wat(n1_hdr) == 'nifti1'
     n1_hdr['magic'] = 'ni1'

@@ -20,13 +20,11 @@ import gzip
 import bz2
 import threading
 import time
-import pytest
 
 import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
 from ..openers import ImageOpener
-from .. import volumeutils
 from ..volumeutils import (array_from_file,
                            _is_compressed_fobj,
                            array_to_file,
@@ -57,11 +55,9 @@ from ..deprecator import ExpiredDeprecationError
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
-from nose.tools import assert_raises
+import pytest
 
-from ..testing_pytest import (assert_dt_equal, assert_allclose_safely,
-                              suppress_warnings, clear_and_catch_warnings)
-import pytest; pytestmark = pytest.mark.skip()
+from ..testing_pytest import assert_dt_equal, assert_allclose_safely, suppress_warnings
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -73,11 +69,11 @@ NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
 def test_deprecated_functions():
-    with assert_raises(ExpiredDeprecationError):
+    with pytest.raises(ExpiredDeprecationError):
         scale_min_max(0, 1, np.uint8, True)
-    with assert_raises(ExpiredDeprecationError):
+    with pytest.raises(ExpiredDeprecationError):
         calculate_scale(np.array([-2, -1], dtype=np.int8), np.uint8, True)
-    with assert_raises(ExpiredDeprecationError):
+    with pytest.raises(ExpiredDeprecationError):
         can_cast(np.float32, np.float32)
 
 
@@ -1022,8 +1018,7 @@ def test_fname_ext_ul_case():
 def test_allopen():
     # This import into volumeutils is for compatibility.  The code is the
     # ``openers`` module.
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+    with pytest.deprecated_call() as w:
         # Test default mode is 'rb'
         fobj = allopen(__file__)
         # Check we got the deprecation warning

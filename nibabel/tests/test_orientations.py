@@ -380,9 +380,6 @@ def test_inv_ornt_aff():
 
 def test_orientation_affine_deprecation():
     aff1 = inv_ornt_aff([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-    with warnings.catch_warnings(record=True) as warns:
-        warnings.simplefilter('always')
+    with pytest.deprecated_call():
         aff2 = orientation_affine([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-        assert len(warns) == 1
-        assert warns[0].category == DeprecationWarning
     assert_array_equal(aff1, aff2)

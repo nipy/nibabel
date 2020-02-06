@@ -60,4 +60,4 @@ def test_sys_dir():
     elif os.name == 'posix':
         assert sys_dir == r'/etc/nipy'
     else:
-        assert sys_dir == None
+        assert sys_dir is None

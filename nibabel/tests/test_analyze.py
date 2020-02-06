@@ -512,7 +512,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         for check in (True, False):
             copy = klass.from_header(hdr, check=check)
             assert hdr == copy
-            assert not hdr is copy
+            assert hdr is not copy
 
         class C(object):
 
