@@ -217,7 +217,7 @@ def test_header_updating():
     assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
-    assert np.array_equal(hdr['delta'],  1)
+    assert np.all(hdr['delta'] == 1)
     assert_almost_equal(hdr['Mdc'].T, exp_aff[:3, :3])
     # Save, reload, same thing
     img_fobj = io.BytesIO()
