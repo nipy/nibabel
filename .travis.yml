@@ -187,7 +187,7 @@ script:
                 -I test_rstutils \
                 -I test_scaling \
                 -I test_wrapstruct \
-		-I test_io
+                -I test_io
       elif [ "${CHECK_TYPE}" == "test" ]; then
           # Change into an innocuous directory and find tests from installation
           mkdir for_testing

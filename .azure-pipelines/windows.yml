@@ -100,7 +100,7 @@ jobs:
           -I test_rstutils ^
           -I test_scaling ^
           -I test_wrapstruct ^
-	  -I test_io
+          -I test_io
       displayName: 'Nose tests'
       condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'nosetests'))
     - script: |

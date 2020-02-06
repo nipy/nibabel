@@ -92,16 +92,12 @@ def test_geometry():
             warnings.filterwarnings('always', category=DeprecationWarning)
             read_geometry(surf_path, read_metadata=True)
 
-        assert(
-            any('volume information contained' in str(ww.message)
-                        for ww in w))
-        assert(
-            any('extension code' in str(ww.message) for ww in w))
+        assert any('volume information contained' in str(ww.message) for ww in w)
+        assert any('extension code' in str(ww.message) for ww in w)
         volume_info['head'] = [1, 2]
         with clear_and_catch_warnings() as w:
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
-        assert(
-            any('Unknown extension' in str(ww.message) for ww in w))
+        assert any('Unknown extension' in str(ww.message) for ww in w)
         volume_info['a'] = 0
         with pytest.raises(ValueError):
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
@@ -146,7 +142,7 @@ def test_morph_data():
         new_path = 'test'
         write_morph_data(new_path, curv)
         curv2 = read_morph_data(new_path)
-        assert np.array_equal (curv2, curv)
+        assert np.array_equal(curv2, curv)
 
 
 def test_write_morph_data():
@@ -163,7 +159,7 @@ def test_write_morph_data():
 
         with pytest.raises(ValueError):
             write_morph_data('test.curv', np.zeros(shape), big_num)
-                # Windows 32-bit overflows Python int
+        # Windows 32-bit overflows Python int
         if np.dtype(np.int) != np.dtype(np.int32):
             with pytest.raises(ValueError):
                 write_morph_data('test.curv',  strided_scalar((big_num,)))
@@ -272,12 +268,10 @@ def test_write_annot_fill_ctab():
         # values back.
         badannot = (10 * np.arange(nlabels, dtype=np.int32)).reshape(-1, 1)
         rgbal = np.hstack((rgba, badannot))
-        print(labels)
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert (
-            any('Annotation values in {} will be incorrect'.format(
-                annot_path) == str(ww.message) for ww in w))
+        assert any('Annotation values in {} will be incorrect'.format(annot_path) == str(ww.message)
+                   for ww in w)
         labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
         names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
@@ -291,9 +285,8 @@ def test_write_annot_fill_ctab():
                        rgbal[:, 2] * (2 ** 16))
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert(
-            not any('Annotation values in {} will be incorrect'.format(
-                annot_path) == str(ww.message) for ww in w))
+        assert all('Annotation values in {} will be incorrect'.format(annot_path) != str(ww.message)
+                   for ww in w)
         labels2, rgbal2, names2 = read_annot(annot_path)
         names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
@@ -356,7 +349,7 @@ def test_label():
     assert label.shape[0] <= 163842
 
     labels, scalars = read_label(label_path, True)
-    assert (np.all(labels == label))
+    assert np.all(labels == label)
     assert len(labels) == len(scalars)
 
 
