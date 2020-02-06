@@ -136,10 +136,12 @@ script:
                 -I test_batteryrunners \
                 -I test_brikhead \
                 -I test_casting \
+                -I test_cifti2io_axes \
                 -I test_cifti2io_header \
                 -I test_data \
                 -I test_deprecated \
                 -I test_deprecator \
+                -I test_dicomwrappers \
                 -I test_dft \
                 -I test_ecat \
                 -I test_ecat_data \
@@ -162,6 +164,7 @@ script:
                 -I test_image_types \
                 -I test_imageclasses \
                 -I test_imageglobals \
+                -I test_io \
                 -I test_keywordonly \
                 -I test_loadsave \
                 -I test_minc1 \
