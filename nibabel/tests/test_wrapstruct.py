@@ -175,7 +175,7 @@ class _TestWrapStructBase(BaseTestCase):
         for key, val in hdr.items():
             assert_array_equal(hdr[key], val)
         # verify that .get operates as destined
-        assert hdr.get('nonexistent key') == None
+        assert hdr.get('nonexistent key') is None
         assert hdr.get('nonexistent key', 'default') == 'default'
         assert hdr.get(keys[0]) == vals[0]
         assert hdr.get(keys[0], 'default') == vals[0]

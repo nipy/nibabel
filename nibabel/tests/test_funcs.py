@@ -138,7 +138,7 @@ def test_closest_canonical():
     # And a case where the Analyze image has to be flipped
     img = AnalyzeImage(arr, np.diag([-1, 1, 1, 1]))
     xyz_img = as_closest_canonical(img)
-    assert not img is xyz_img
+    assert img is not xyz_img
     out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.flipud(arr))
 
@@ -156,7 +156,7 @@ def test_closest_canonical():
     img = Nifti1Image(arr, np.diag([-1, 1, 1, 1]))
     img.header.set_dim_info(0, 1, 2)
     xyz_img = as_closest_canonical(img)
-    assert not img is xyz_img
+    assert img is not xyz_img
     assert img.header.get_dim_info() == xyz_img.header.get_dim_info()
     out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.flipud(arr))
@@ -181,7 +181,7 @@ def test_closest_canonical():
     img.header.set_dim_info(0, 1, 2)
 
     xyz_img = as_closest_canonical(img)
-    assert not img is xyz_img
+    assert img is not xyz_img
     # Check both the original and new objects
     assert img.header.get_dim_info() == (0, 1, 2)
     assert xyz_img.header.get_dim_info() == (0, 2, 1)

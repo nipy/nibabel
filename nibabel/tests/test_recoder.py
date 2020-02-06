@@ -22,14 +22,14 @@ def test_recoder_1():
     assert rc.code[1] == 1
     assert rc.code[2] == 2
     with pytest.raises(KeyError):
-        rc.code.__getitem__(3)
+        rc.code[3]
 
 def test_recoder_2():
     # with explicit name for code
     codes = ((1,), (2,))
     rc = Recoder(codes, ['code1'])
     with pytest.raises(AttributeError):
-        rc.__getattribute__('code')
+        rc.code
     assert rc.code1[1] == 1
     assert rc.code1[2] == 2
 
@@ -41,20 +41,20 @@ def test_recoder_3():
     assert rc.code[1] == 1
     assert rc.code[2] == 2
     with pytest.raises(KeyError):
-        rc.code.__getitem__(3)
+        rc.code[3]
     assert rc.code['one'] == 1
     assert rc.code['two'] == 2
     with pytest.raises(KeyError):
-        rc.code.__getitem__('three')
+        rc.code['three']
     with pytest.raises(AttributeError):
-        rc.__getattribute__('label')
+        rc.label
 
 def test_recoder_3():
     # with explicit column names
     codes = ((1, 'one'), (2, 'two'))
     rc = Recoder(codes, ['code1', 'label'])
     with pytest.raises(AttributeError):
-        rc.__getattribute__('code')
+        rc.code
     assert rc.code1[1] == 1
     assert rc.code1['one'] == 1
     assert rc.label[1] == 'one'
@@ -119,7 +119,7 @@ def test_add_codes():
     rc = Recoder(codes)
     assert rc.code['two'] == 2
     with pytest.raises(KeyError):
-        rc.code.__getitem__('three')
+        rc.code['three']
     rc.add_codes(((3, 'three'), (1, 'number 1')))
     assert rc.code['three'] == 3
     assert rc.code['number 1'] == 1
@@ -151,7 +151,7 @@ def test_dtmapper():
     # dict-like that will lookup on dtypes, even if they don't hash properly
     d = DtypeMapper()
     with pytest.raises(KeyError):
-        d.__getitem__(1)
+        d[1]
     d[1] = 'something'
     assert d[1] == 'something'
     assert list(d.keys()) == [1]
@@ -182,7 +182,7 @@ def test_dtmapper():
     sw_dt = canonical_dt.newbyteorder(swapped_code)
     d[sw_dt] = 'spam'
     with pytest.raises(KeyError):
-        d.__getitem__(canonical_dt)
+        d[canonical_dt]
     assert d[sw_dt] == 'spam'
     sw_intp_dt = intp_dt.newbyteorder(swapped_code)
     assert d[sw_intp_dt] == 'spam'

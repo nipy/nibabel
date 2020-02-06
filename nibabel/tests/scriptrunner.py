@@ -135,7 +135,7 @@ class ScriptRunner(object):
                 env['PYTHONPATH'] = self.local_module_dir + pathsep + pypath
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE, env=env)
         stdout, stderr = proc.communicate()
-        if proc.poll() == None:
+        if proc.poll() is None:
             proc.terminate()
         if check_code and proc.returncode != 0:
             raise RuntimeError(

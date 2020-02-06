@@ -14,16 +14,13 @@ import numpy as np
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
 
-from ..testing import skipif
 from numpy.testing import assert_array_equal, assert_equal
 
-from nose.tools import assert_raises, assert_true
-import pytest; pytestmark = pytest.mark.skip()
+import pytest
 
 # Need at least MPL 1.3 for viewer tests.
 matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.3')
-
-needs_mpl = skipif(not has_mpl, 'These tests need matplotlib')
+needs_mpl = pytest.mark.skipif(not has_mpl, reason='These tests need matplotlib')
 if has_mpl:
     matplotlib.use('Agg')
 
@@ -38,7 +35,7 @@ def test_viewer():
     data = data * np.array([1., 2.])  # give it a # of volumes > 1
     v = OrthoSlicer3D(data)
     assert_array_equal(v.position, (0, 0, 0))
-    assert_true('OrthoSlicer3D' in repr(v))
+    assert 'OrthoSlicer3D' in repr(v)
 
     # fake some events, inside and outside axes
     v._on_scroll(nt('event', 'button inaxes key')('up', None, None))
@@ -53,8 +50,10 @@ def test_viewer():
     v.set_volume_idx(1)
     v.cmap = 'hot'
     v.clim = (0, 3)
-    assert_raises(ValueError, OrthoSlicer3D.clim.fset, v, (0.,))  # bad limits
-    assert_raises(ValueError, OrthoSlicer3D.cmap.fset, v, 'foo')  # wrong cmap
+    with pytest.raises(ValueError):
+        OrthoSlicer3D.clim.fset(v, (0.,))  # bad limits
+    with pytest.raises(ValueError):
+        OrthoSlicer3D.cmap.fset(v, 'foo')  # wrong cmap
 
     # decrement/increment volume numbers via keypress
     v.set_volume_idx(1)  # should just pass
@@ -76,8 +75,8 @@ def test_viewer():
     v.close()
 
     # complex input should raise a TypeError prior to figure creation
-    assert_raises(TypeError, OrthoSlicer3D,
-                  data[:, :, :, 0].astype(np.complex64))
+    with pytest.raises(TypeError):
+        OrthoSlicer3D(data[:, :, :, 0].astype(np.complex64))
 
     # other cases
     fig, axes = plt.subplots(1, 4)
@@ -87,10 +86,13 @@ def test_viewer():
                    float)
     v2 = OrthoSlicer3D(data, affine=aff, axes=axes[:3])
     # bad data (not 3+ dim)
-    assert_raises(ValueError, OrthoSlicer3D, data[:, :, 0, 0])
+    with pytest.raises(ValueError):
+        OrthoSlicer3D(data[:, :, 0, 0])
     # bad affine (not 4x4)
-    assert_raises(ValueError, OrthoSlicer3D, data, affine=np.eye(3))
-    assert_raises(TypeError, v2.link_to, 1)
+    with pytest.raises(ValueError):
+        OrthoSlicer3D(data, affine=np.eye(3))
+    with pytest.raises(TypeError):
+        v2.link_to(1)
     v2.link_to(v1)
     v2.link_to(v1)  # shouldn't do anything
     v1.close()

@@ -155,7 +155,7 @@ def test_floor_log2():
     assert floor_log2(0.75) == -1
     assert floor_log2(0.25) == -2
     assert floor_log2(0.24) == -3
-    assert floor_log2(0) == None
+    assert floor_log2(0) is None
 
 
 def test_able_int_type():

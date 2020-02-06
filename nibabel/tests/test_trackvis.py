@@ -9,16 +9,14 @@ from .. import trackvis as tv
 from ..orientations import aff2axcodes
 from ..volumeutils import native_code, swapped_code
 
-from numpy.testing import assert_array_almost_equal
-from ..testing import (assert_true, assert_false, assert_equal, assert_raises, assert_warns,
-                       assert_array_equal, suppress_warnings)
-import pytest; pytestmark = pytest.mark.skip()
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+import pytest
 
 def test_write():
     streams = []
     out_f = BytesIO()
     tv.write(out_f, [], {})
-    assert_equal(out_f.getvalue(), tv.empty_header().tostring())
+    assert out_f.getvalue() == tv.empty_header().tostring()
     out_f.truncate(0)
     out_f.seek(0)
     # Write something not-default
@@ -26,7 +24,7 @@ def test_write():
     # read it back
     out_f.seek(0)
     streams, hdr = tv.read(out_f)
-    assert_equal(hdr['id_string'], b'TRACKb')
+    assert hdr['id_string'] == b'TRACKb'
     # check that we can pass none for the header
     out_f.truncate(0)
     out_f.seek(0)
@@ -37,12 +35,12 @@ def test_write():
     # check that we check input values
     out_f.truncate(0)
     out_f.seek(0)
-    assert_raises(tv.HeaderError,
-                  tv.write, out_f, [], {'id_string': 'not OK'})
-    assert_raises(tv.HeaderError,
-                  tv.write, out_f, [], {'version': 3})
-    assert_raises(tv.HeaderError,
-                  tv.write, out_f, [], {'hdr_size': 0})
+    with pytest.raises(tv.HeaderError):
+        tv.write(out_f, [], {'id_string': 'not OK'})
+    with pytest.raises(tv.HeaderError):
+        tv.write(out_f, [], {'version': 3})
+    with pytest.raises(tv.HeaderError):
+        tv.write(out_f, [], {'hdr_size': 0})
 
 
 def test_write_scalars_props():
@@ -57,26 +55,31 @@ def test_write_scalars_props():
     out_f = BytesIO()
     streams = [(points, None, None),
                (points, scalars, None)]
-    assert_raises(tv.DataError, tv.write, out_f, streams)
+    with pytest.raises(tv.DataError):
+        tv.write(out_f, streams)
     out_f.seek(0)
     streams = [(points, np.zeros((N, M + 1)), None),
                (points, scalars, None)]
-    assert_raises(tv.DataError, tv.write, out_f, streams)
+    with pytest.raises(tv.DataError):
+        tv.write(out_f, streams)
     # Or if scalars different N compared to points
     bad_scalars = np.zeros((N + 1, M))
     out_f.seek(0)
     streams = [(points, bad_scalars, None),
                (points, bad_scalars, None)]
-    assert_raises(tv.DataError, tv.write, out_f, streams)
+    with pytest.raises(tv.DataError):
+        tv.write(out_f, streams)
     # Similarly properties must have the same length for each streamline
     out_f.seek(0)
     streams = [(points, scalars, None),
                (points, scalars, props)]
-    assert_raises(tv.DataError, tv.write, out_f, streams)
+    with pytest.raises(tv.DataError):
+        tv.write(out_f, streams)
     out_f.seek(0)
     streams = [(points, scalars, np.zeros((P + 1,))),
                (points, scalars, props)]
-    assert_raises(tv.DataError, tv.write, out_f, streams)
+    with pytest.raises(tv.DataError):
+        tv.write(out_f, streams)
     # If all is OK, then we get back what we put in
     out_f.seek(0)
     streams = [(points, scalars, props),
@@ -134,7 +137,7 @@ def test_round_trip():
     tv.write(out_f, streams, {})
     out_f.seek(0)
     streams2, hdr = tv.read(out_f)
-    assert_true(streamlist_equal(streams, streams2))
+    assert streamlist_equal(streams, streams2)
     # test that we can write in different endianness and get back same result,
     # for versions 1, 2 and not-specified
     for in_dict, back_version in (({}, 2),
@@ -145,15 +148,15 @@ def test_round_trip():
             tv.write(out_f, streams, in_dict, endian_code)
             out_f.seek(0)
             streams2, hdr = tv.read(out_f)
-            assert_true(streamlist_equal(streams, streams2))
-            assert_equal(hdr['version'], back_version)
+            assert streamlist_equal(streams, streams2)
+            assert hdr['version'] == back_version
     # test that we can get out and pass in generators
     out_f.seek(0)
     streams3, hdr = tv.read(out_f, as_generator=True)
     # check this is a generator rather than a list
-    assert_true(hasattr(streams3, 'send'))
+    assert hasattr(streams3, 'send')
     # but that it results in the same output
-    assert_true(streamlist_equal(streams, list(streams3)))
+    assert streamlist_equal(streams, list(streams3))
     # write back in
     out_f.seek(0)
     streams3, hdr = tv.read(out_f, as_generator=True)
@@ -164,7 +167,7 @@ def test_round_trip():
     # and re-read just to check
     out_f_write.seek(0)
     streams2, hdr = tv.read(out_f_write)
-    assert_true(streamlist_equal(streams, streams2))
+    assert streamlist_equal(streams, streams2)
 
 
 def test_points_processing():
@@ -192,11 +195,11 @@ def test_points_processing():
         # voxmm is the default.  In this case we don't do anything to the
         # points, and we let the header pass through without further checks
         (raw_streams, hdr), (proc_streams, _) = _rt(vxmm_streams, {}, None)
-        assert_true(streamlist_equal(raw_streams, proc_streams))
-        assert_true(streamlist_equal(vxmm_streams, proc_streams))
+        assert streamlist_equal(raw_streams, proc_streams)
+        assert streamlist_equal(vxmm_streams, proc_streams)
         (raw_streams, hdr), (proc_streams, _) = _rt(vxmm_streams, {}, 'voxmm')
-        assert_true(streamlist_equal(raw_streams, proc_streams))
-        assert_true(streamlist_equal(vxmm_streams, proc_streams))
+        assert streamlist_equal(raw_streams, proc_streams)
+        assert streamlist_equal(vxmm_streams, proc_streams)
         # with 'voxels' as input, check for not all voxel_size == 0, warn if any
         # voxel_size == 0
         for hdr in (  # these cause read / write errors
@@ -207,21 +210,23 @@ def test_points_processing():
         ):
             # Check error on write
             out_f.seek(0)
-            assert_raises(tv.HeaderError,
-                          tv.write, out_f, vx_streams, hdr, None, 'voxel')
+            with pytest.raises(tv.HeaderError):
+                tv.write(out_f, vx_streams, hdr, None, 'voxel')
             out_f.seek(0)
             # bypass write error and check read
             tv.write(out_f, vxmm_streams, hdr, None, points_space=None)
             out_f.seek(0)
-            assert_raises(tv.HeaderError, tv.read, out_f, False, 'voxel')
+            with pytest.raises(tv.HeaderError):
+                tv.read(out_f, False, 'voxel')
         # There's a warning for any voxel sizes == 0
         hdr = {'voxel_size': [2, 3, 0]}
-        assert_warns(UserWarning, _rt, vx_streams, hdr, 'voxel')
+        with pytest.warns(UserWarning):
+            _rt(vx_streams, hdr, 'voxel')
         # This should be OK
         hdr = {'voxel_size': [2, 3, 4]}
         (raw_streams, hdr), (proc_streams, _) = _rt(vx_streams, hdr, 'voxel')
-        assert_true(streamlist_equal(vxmm_streams, raw_streams))
-        assert_true(streamlist_equal(vx_streams, proc_streams))
+        assert streamlist_equal(vxmm_streams, raw_streams)
+        assert streamlist_equal(vx_streams, proc_streams)
         # Now we try with rasmm points.  In this case we need valid voxel_size,
         # and voxel_order, and vox_to_ras.  The voxel_order has to match the
         # vox_to_ras, and so do the voxel sizes
@@ -247,19 +252,20 @@ def test_points_processing():
         ):
             # Check error on write
             out_f.seek(0)
-            assert_raises(tv.HeaderError,
-                          tv.write, out_f, rasmm_streams, hdr, None, 'rasmm')
+            with pytest.raises(tv.HeaderError):
+                tv.write(out_f, rasmm_streams, hdr, None, 'rasmm')
             out_f.seek(0)
             # bypass write error and check read
             tv.write(out_f, vxmm_streams, hdr, None, points_space=None)
             out_f.seek(0)
-            assert_raises(tv.HeaderError, tv.read, out_f, False, 'rasmm')
+            with pytest.raises(tv.HeaderError):
+                tv.read(out_f, False, 'rasmm')
         # This should be OK
         hdr = {'voxel_size': [2, 3, 4], 'voxel_order': 'RAS',
                'vox_to_ras': aff}
         (raw_streams, hdr), (proc_streams, _) = _rt(rasmm_streams, hdr, 'rasmm')
-        assert_true(streamlist_equal(vxmm_streams, raw_streams))
-        assert_true(streamlist_equal(rasmm_streams, proc_streams))
+        assert streamlist_equal(vxmm_streams, raw_streams)
+        assert streamlist_equal(rasmm_streams, proc_streams)
         # More complex test to check matrix orientation
         fancy_affine = np.array([[0., -2, 0, 10],
                                  [3, 0, 0, 20],
@@ -278,90 +284,88 @@ def test_points_processing():
                               (ijk1 * [[3, 2, 4]], scalars[1], None)]
         (raw_streams, hdr), (proc_streams, _) = _rt(
             fancy_rasmm_streams, hdr, 'rasmm')
-        assert_true(streamlist_equal(fancy_vxmm_streams, raw_streams))
-        assert_true(streamlist_equal(fancy_rasmm_streams, proc_streams))
+        assert streamlist_equal(fancy_vxmm_streams, raw_streams)
+        assert streamlist_equal(fancy_rasmm_streams, proc_streams)
 
 
 def test__check_hdr_points_space():
     # Test checking routine for points_space input given header
     # None or voxmm -> no checks, pass through
-    assert_equal(tv._check_hdr_points_space({}, None), None)
-    assert_equal(tv._check_hdr_points_space({}, 'voxmm'), None)
+    assert tv._check_hdr_points_space({}, None) is None
+    assert tv._check_hdr_points_space({}, 'voxmm') is None
     # strange value for points_space -> ValueError
-    assert_raises(ValueError,
-                  tv._check_hdr_points_space, {}, 'crazy')
+    with pytest.raises(ValueError):
+        tv._check_hdr_points_space({}, 'crazy')
     # Input not in (None, 'voxmm', 'voxels', 'rasmm') - error
     # voxels means check voxel sizes present and not all 0.
     hdr = tv.empty_header()
     assert_array_equal(hdr['voxel_size'], [0, 0, 0])
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'voxel')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'voxel')
     # Negative voxel size gives error - because it is not what trackvis does,
     # and this not what we mean by 'voxmm'
     hdr['voxel_size'] = [-2, 3, 4]
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'voxel')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'voxel')
     # Warning here only
     hdr['voxel_size'] = [2, 3, 0]
-    assert_warns(UserWarning,
-                 tv._check_hdr_points_space, hdr, 'voxel')
+    with pytest.warns(UserWarning):
+        tv._check_hdr_points_space(hdr, 'voxel')
     # This is OK
     hdr['voxel_size'] = [2, 3, 4]
-    assert_equal(tv._check_hdr_points_space(hdr, 'voxel'), None)
+    assert tv._check_hdr_points_space(hdr, 'voxel') is None
     # rasmm - check there is an affine, that it matches voxel_size and
     # voxel_order
     # no affine
     hdr['voxel_size'] = [2, 3, 4]
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'rasmm')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'rasmm')
     # still no affine
     hdr['voxel_order'] = 'RAS'
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'rasmm')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'rasmm')
     # nearly an affine, but 0 at position 3,3 - means not recorded in trackvis
     # standard
     hdr['vox_to_ras'] = np.diag([2, 3, 4, 0])
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'rasmm')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'rasmm')
     # This affine doesn't match RAS voxel order
     hdr['vox_to_ras'] = np.diag([-2, 3, 4, 1])
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'rasmm')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'rasmm')
     # This affine doesn't match the voxel size
     hdr['vox_to_ras'] = np.diag([3, 3, 4, 1])
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'rasmm')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'rasmm')
     # This should be OK
     good_aff = np.diag([2, 3, 4, 1])
     hdr['vox_to_ras'] = good_aff
-    assert_equal(tv._check_hdr_points_space(hdr, 'rasmm'),
-                 None)
+    assert tv._check_hdr_points_space(hdr, 'rasmm') is None
     # Default voxel order of LPS assumed
     hdr['voxel_order'] = ''
     # now the RAS affine raises an error
-    assert_raises(tv.HeaderError,
-                  tv._check_hdr_points_space, hdr, 'rasmm')
+    with pytest.raises(tv.HeaderError):
+        tv._check_hdr_points_space(hdr, 'rasmm')
     # this affine does have LPS voxel order
     good_lps = np.dot(np.diag([-1, -1, 1, 1]), good_aff)
     hdr['vox_to_ras'] = good_lps
-    assert_equal(tv._check_hdr_points_space(hdr, 'rasmm'),
-                 None)
+    assert tv._check_hdr_points_space(hdr, 'rasmm') is None
 
 
 def test_empty_header():
     for endian in '<>':
         for version in (1, 2):
             hdr = tv.empty_header(endian, version)
-            assert_equal(hdr['id_string'], b'TRACK')
-            assert_equal(hdr['version'], version)
-            assert_equal(hdr['hdr_size'], 1000)
+            assert hdr['id_string'] == b'TRACK'
+            assert hdr['version'] == version
+            assert hdr['hdr_size'] == 1000
             assert_array_equal(
                 hdr['image_orientation_patient'],
                 [0, 0, 0, 0, 0, 0])
     hdr = tv.empty_header(version=2)
     assert_array_equal(hdr['vox_to_ras'], np.zeros((4, 4)))
     hdr_endian = tv.endian_codes[tv.empty_header().dtype.byteorder]
-    assert_equal(hdr_endian, tv.native_code)
+    assert hdr_endian == tv.native_code
 
 
 def test_get_affine():
@@ -391,11 +395,12 @@ def test_get_affine():
                        exp_aff)
     # check against voxel order.  This one works
     hdr['voxel_order'] = ''.join(aff2axcodes(exp_aff))
-    assert_equal(hdr['voxel_order'], b'RAS')
+    assert hdr['voxel_order'] == b'RAS'
     assert_array_equal(old_afh(hdr), exp_aff)
     # This one doesn't
     hdr['voxel_order'] = 'LAS'
-    assert_raises(tv.HeaderError, old_afh, hdr)
+    with pytest.raises(tv.HeaderError):
+        old_afh(hdr)
     # This one does work because the routine allows the final dimension to
     # be flipped to try and match the voxel order
     hdr['voxel_order'] = 'RAI'
@@ -411,11 +416,12 @@ def test_get_affine():
         tv.aff_to_hdr(in_aff, hdr, pos_vox=True, set_order=True)
         # Unset easier option
         hdr['vox_to_ras'] = 0
-        assert_equal(hdr['voxel_order'], o_codes)
+        assert hdr['voxel_order'] == o_codes
         # Check it came back the way we wanted
         assert_array_equal(old_afh(hdr), in_aff)
     # Check that v1 header raises error
-    assert_raises(tv.HeaderError, tv.aff_from_hdr, hdr)
+    with pytest.raises(tv.HeaderError):
+        tv.aff_from_hdr(hdr)
     # now use the easier vox_to_ras field
     hdr = tv.empty_header()
     aff = np.eye(4)
@@ -453,28 +459,28 @@ def test_aff_to_hdr():
     for hdr in ({}, {'version': 2}, {'version': 1}):
         tv.aff_to_hdr(aff2, hdr, pos_vox=True, set_order=False)
         assert_array_equal(hdr['voxel_size'], [1, 2, 3])
-        assert_false('voxel_order' in hdr)
+        assert 'voxel_order' not in hdr
         tv.aff_to_hdr(aff2, hdr, pos_vox=False, set_order=True)
         assert_array_equal(hdr['voxel_size'], [-1, 2, 3])
-        assert_equal(hdr['voxel_order'], 'RAI')
+        assert hdr['voxel_order'] == 'RAI'
         tv.aff_to_hdr(aff2, hdr, pos_vox=True, set_order=True)
         assert_array_equal(hdr['voxel_size'], [1, 2, 3])
-        assert_equal(hdr['voxel_order'], 'RAI')
+        assert hdr['voxel_order'] == 'RAI'
         if 'version' in hdr and hdr['version'] == 1:
-            assert_false('vox_to_ras' in hdr)
+            assert 'vox_to_ras' not in hdr
         else:
             assert_array_equal(hdr['vox_to_ras'], aff2)
 
 
 def test_tv_class():
     tvf = tv.TrackvisFile([])
-    assert_equal(tvf.streamlines, [])
-    assert_true(isinstance(tvf.header, np.ndarray))
-    assert_equal(tvf.endianness, tv.native_code)
-    assert_equal(tvf.filename, None)
+    assert tvf.streamlines == []
+    assert isinstance(tvf.header, np.ndarray)
+    assert tvf.endianness == tv.native_code
+    assert tvf.filename is None
     out_f = BytesIO()
     tvf.to_file(out_f)
-    assert_equal(out_f.getvalue(), tv.empty_header().tostring())
+    assert out_f.getvalue() == tv.empty_header().tostring()
     out_f.truncate(0)
     out_f.seek(0)
     # Write something not-default
@@ -483,19 +489,16 @@ def test_tv_class():
     # read it back
     out_f.seek(0)
     tvf_back = tv.TrackvisFile.from_file(out_f)
-    assert_equal(tvf_back.header['id_string'], b'TRACKb')
+    assert tvf_back.header['id_string'] == b'TRACKb'
     # check that we check input values
     out_f.truncate(0)
     out_f.seek(0)
-    assert_raises(tv.HeaderError,
-                  tv.TrackvisFile,
-                  [], {'id_string': 'not OK'})
-    assert_raises(tv.HeaderError,
-                  tv.TrackvisFile,
-                  [], {'version': 3})
-    assert_raises(tv.HeaderError,
-                  tv.TrackvisFile,
-                  [], {'hdr_size': 0})
+    with pytest.raises(tv.HeaderError):
+        tv.TrackvisFile([], {'id_string': 'not OK'})
+    with pytest.raises(tv.HeaderError):
+        tv.TrackvisFile([], {'version': 3})
+    with pytest.raises(tv.HeaderError):
+        tv.TrackvisFile([], {'hdr_size': 0})
     affine = np.diag([1, 2, 3, 1])
     affine[:3, 3] = [10, 11, 12]
     # affine methods will raise same warnings and errors as function
@@ -503,9 +506,8 @@ def test_tv_class():
     aff = tvf.get_affine(atleast_v2=True)
     assert_array_almost_equal(aff, affine)
     # Test that we raise an error with an iterator
-    assert_raises(tv.TrackvisFileError,
-                  tv.TrackvisFile,
-                  iter([]))
+    with pytest.raises(tv.TrackvisFileError):
+        tv.TrackvisFile(iter([]))
 
 
 def test_tvfile_io():
@@ -521,22 +523,23 @@ def test_tvfile_io():
     tvf.to_file(out_f)
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f)
-    assert_equal(tvf2.filename, None)
-    assert_true(streamlist_equal(vxmm_streams, tvf2.streamlines))
-    assert_equal(tvf2.points_space, None)
+    assert tvf2.filename is None
+    assert streamlist_equal(vxmm_streams, tvf2.streamlines)
+    assert tvf2.points_space is None
     # Voxel points_space
     tvf = tv.TrackvisFile(vx_streams, points_space='voxel')
     out_f.seek(0)
     # No voxel size - error
-    assert_raises(tv.HeaderError, tvf.to_file, out_f)
+    with pytest.raises(tv.HeaderError):
+        tvf.to_file(out_f)
     out_f.seek(0)
     # With voxel size, no error, roundtrip works
     tvf.header['voxel_size'] = [2, 3, 4]
     tvf.to_file(out_f)
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f, points_space='voxel')
-    assert_true(streamlist_equal(vx_streams, tvf2.streamlines))
-    assert_equal(tvf2.points_space, 'voxel')
+    assert streamlist_equal(vx_streams, tvf2.streamlines)
+    assert tvf2.points_space == 'voxel'
     out_f.seek(0)
     # Also with affine specified
     tvf = tv.TrackvisFile(vx_streams, points_space='voxel',
@@ -544,7 +547,7 @@ def test_tvfile_io():
     tvf.to_file(out_f)
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f, points_space='voxel')
-    assert_true(streamlist_equal(vx_streams, tvf2.streamlines))
+    assert streamlist_equal(vx_streams, tvf2.streamlines)
     # Fancy affine test
     fancy_affine = np.array([[0., -2, 0, 10],
                              [3, 0, 0, 20],
@@ -560,15 +563,16 @@ def test_tvfile_io():
     tvf = tv.TrackvisFile(fancy_rasmm_streams, points_space='rasmm')
     out_f.seek(0)
     # No affine
-    assert_raises(tv.HeaderError, tvf.to_file, out_f)
+    with pytest.raises(tv.HeaderError):
+        tvf.to_file(out_f)
     out_f.seek(0)
     # With affine set, no error, roundtrip works
     tvf.set_affine(fancy_affine, pos_vox=True, set_order=True)
     tvf.to_file(out_f)
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f, points_space='rasmm')
-    assert_true(streamlist_equal(fancy_rasmm_streams, tvf2.streamlines))
-    assert_equal(tvf2.points_space, 'rasmm')
+    assert streamlist_equal(fancy_rasmm_streams, tvf2.streamlines)
+    assert tvf2.points_space == 'rasmm'
     out_f.seek(0)
     # Also when affine given in init
     tvf = tv.TrackvisFile(fancy_rasmm_streams, points_space='rasmm',
@@ -576,7 +580,7 @@ def test_tvfile_io():
     tvf.to_file(out_f)
     out_f.seek(0)
     tvf2 = tv.TrackvisFile.from_file(out_f, points_space='rasmm')
-    assert_true(streamlist_equal(fancy_rasmm_streams, tvf2.streamlines))
+    assert streamlist_equal(fancy_rasmm_streams, tvf2.streamlines)
 
 
 def test_read_truncated():
@@ -590,26 +594,29 @@ def test_read_truncated():
     value = out_f.getvalue()[:-(3 * 4)]
     new_f = BytesIO(value)
     # By default, raises a DataError
-    assert_raises(tv.DataError, tv.read, new_f)
+    with pytest.raises(tv.DataError):
+        tv.read(new_f)
     # This corresponds to strict mode
     new_f.seek(0)
-    assert_raises(tv.DataError, tv.read, new_f, strict=True)
+    with pytest.raises(tv.DataError):
+        tv.read(new_f, strict=True)
     # lenient error mode lets this error pass, with truncated track
     short_streams = [(xyz0, None, None), (xyz1[:-1], None, None)]
     new_f.seek(0)
     streams2, hdr = tv.read(new_f, strict=False)
-    assert_true(streamlist_equal(streams2, short_streams))
+    assert streamlist_equal(streams2, short_streams)
     # Check that lenient works when number of tracks is 0, where 0 signals to
     # the reader to read until the end of the file.
     again_hdr = hdr.copy()
-    assert_equal(again_hdr['n_count'], 2)
+    assert again_hdr['n_count'] == 2
     again_hdr['n_count'] = 0
     again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
     again_f = BytesIO(again_bytes)
     streams2, _ = tv.read(again_f, strict=False)
-    assert_true(streamlist_equal(streams2, short_streams))
+    assert streamlist_equal(streams2, short_streams)
     # Set count to one above actual number of tracks, always raise error
     again_hdr['n_count'] = 3
     again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
     again_f = BytesIO(again_bytes)
-    assert_raises(tv.DataError, tv.read, again_f, strict=False)
+    with pytest.raises(tv.DataError):
+        tv.read(again_f, strict=False)

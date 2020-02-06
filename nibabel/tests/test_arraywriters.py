@@ -508,9 +508,9 @@ def test_nan2zero():
         assert_array_equal(np.isnan(data_back), [True, False])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
         with error_warnings():
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', True)
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', nan2zero=True)
         # Error if nan2zero is not the value set at initialization
         with pytest.raises(WriterError):
@@ -530,9 +530,9 @@ def test_nan2zero():
         assert_array_equal(data_back, [astype_res, 99])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
         with error_warnings():
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', False)
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', nan2zero=False)
         # Error if nan2zero is not the value set at initialization
         with pytest.raises(WriterError):
