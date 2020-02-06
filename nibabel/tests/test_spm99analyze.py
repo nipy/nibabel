@@ -151,9 +151,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         pytest.raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock
-        assert (dxer(hdr.binaryblock) ==
-                     'very large origin values '
-                     'relative to dims')
+        assert dxer(hdr.binaryblock) == 'very large origin values relative to dims'
 
 
 class ImageScalingMixin(object):

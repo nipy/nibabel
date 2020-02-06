@@ -291,8 +291,8 @@ def test_points_processing():
 def test__check_hdr_points_space():
     # Test checking routine for points_space input given header
     # None or voxmm -> no checks, pass through
-    assert tv._check_hdr_points_space({}, None) == None
-    assert tv._check_hdr_points_space({}, 'voxmm') == None
+    assert tv._check_hdr_points_space({}, None) is None
+    assert tv._check_hdr_points_space({}, 'voxmm') is None
     # strange value for points_space -> ValueError
     with pytest.raises(ValueError):
         tv._check_hdr_points_space({}, 'crazy')
@@ -313,7 +313,7 @@ def test__check_hdr_points_space():
         tv._check_hdr_points_space(hdr, 'voxel')
     # This is OK
     hdr['voxel_size'] = [2, 3, 4]
-    assert tv._check_hdr_points_space(hdr, 'voxel') == None
+    assert tv._check_hdr_points_space(hdr, 'voxel') is None
     # rasmm - check there is an affine, that it matches voxel_size and
     # voxel_order
     # no affine
@@ -340,8 +340,7 @@ def test__check_hdr_points_space():
     # This should be OK
     good_aff = np.diag([2, 3, 4, 1])
     hdr['vox_to_ras'] = good_aff
-    assert (tv._check_hdr_points_space(hdr, 'rasmm') ==
-                 None)
+    assert tv._check_hdr_points_space(hdr, 'rasmm') is None
     # Default voxel order of LPS assumed
     hdr['voxel_order'] = ''
     # now the RAS affine raises an error
@@ -350,8 +349,7 @@ def test__check_hdr_points_space():
     # this affine does have LPS voxel order
     good_lps = np.dot(np.diag([-1, -1, 1, 1]), good_aff)
     hdr['vox_to_ras'] = good_lps
-    assert (tv._check_hdr_points_space(hdr, 'rasmm') ==
-                 None)
+    assert tv._check_hdr_points_space(hdr, 'rasmm') is None
 
 
 def test_empty_header():
@@ -461,7 +459,7 @@ def test_aff_to_hdr():
     for hdr in ({}, {'version': 2}, {'version': 1}):
         tv.aff_to_hdr(aff2, hdr, pos_vox=True, set_order=False)
         assert_array_equal(hdr['voxel_size'], [1, 2, 3])
-        assert not 'voxel_order' in hdr
+        assert 'voxel_order' not in hdr
         tv.aff_to_hdr(aff2, hdr, pos_vox=False, set_order=True)
         assert_array_equal(hdr['voxel_size'], [-1, 2, 3])
         assert hdr['voxel_order'] == 'RAI'
@@ -469,7 +467,7 @@ def test_aff_to_hdr():
         assert_array_equal(hdr['voxel_size'], [1, 2, 3])
         assert hdr['voxel_order'] == 'RAI'
         if 'version' in hdr and hdr['version'] == 1:
-            assert not 'vox_to_ras' in hdr
+            assert 'vox_to_ras' not in hdr
         else:
             assert_array_equal(hdr['vox_to_ras'], aff2)
 
@@ -479,7 +477,7 @@ def test_tv_class():
     assert tvf.streamlines == []
     assert isinstance(tvf.header, np.ndarray)
     assert tvf.endianness == tv.native_code
-    assert tvf.filename == None
+    assert tvf.filename is None
     out_f = BytesIO()
     tvf.to_file(out_f)
     assert out_f.getvalue() == tv.empty_header().tostring()

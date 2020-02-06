@@ -640,7 +640,7 @@ def test_writer_maker():
     assert (aw.slope, aw.inter) == (1, 0)
     aw.calc_scale()
     slope, inter = aw.slope, aw.inter
-    assert not (slope, inter) == (1, 0)
+    assert (slope, inter) != (1, 0)
     # Should run by default
     aw = make_array_writer(arr, np.int16)
     assert (aw.slope, aw.inter) == (slope, inter)
@@ -704,7 +704,7 @@ def test_int_int_slope():
                     aw = SlopeArrayWriter(arr, out_dt)
                 except ScalingError:
                     continue
-                assert not aw.slope == 0
+                assert aw.slope != 0
                 arr_back_sc = round_trip(aw)
                 # integer allclose
                 adiff = int_abs(arr - arr_back_sc)

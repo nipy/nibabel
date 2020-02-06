@@ -67,7 +67,7 @@ def test_from_header():
     hdr = Header(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
     copy = Header.from_header(hdr)
     assert hdr == copy
-    assert not hdr is copy
+    assert hdr is not copy
 
     class C(object):
 
@@ -233,7 +233,7 @@ class TestSpatialImage(TestCase):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         img = self.image_class(arr, None)
         assert (img.get_fdata() == arr).all()
-        assert img.affine == None
+        assert img.affine is None
 
     def test_default_header(self):
         # Check default header is as expected
@@ -348,24 +348,24 @@ class TestSpatialImage(TestCase):
         out_data[:] = 42
         assert img.get_fdata() is out_data
         img.uncache()
-        assert not img.get_fdata() is out_data
+        assert img.get_fdata() is not out_data
         # The 42 has gone now.
         assert (img.get_fdata() == in_data_template).all()
         # If we can save, we can create a proxy image
         if not self.can_save:
             return
         rt_img = bytesio_round_trip(img)
-        assert not in_data is rt_img.dataobj
+        assert in_data is not rt_img.dataobj
         assert (rt_img.dataobj == in_data).all()
         out_data = rt_img.get_fdata()
         assert (out_data == in_data).all()
-        assert not rt_img.dataobj is out_data
+        assert rt_img.dataobj is not out_data
         assert out_data.dtype == np.dtype(np.float64)
         # cache
         assert rt_img.get_fdata() is out_data
         out_data[:] = 42
         rt_img.uncache()
-        assert not rt_img.get_fdata() is out_data
+        assert rt_img.get_fdata() is not out_data
         assert (rt_img.get_fdata() == in_data).all()
 
     def test_get_data(self):
@@ -395,19 +395,19 @@ class TestSpatialImage(TestCase):
         if not self.can_save:
             return
         rt_img = bytesio_round_trip(img)
-        assert not in_data is rt_img.dataobj
+        assert in_data is not rt_img.dataobj
         assert (rt_img.dataobj == in_data).all()
         with pytest.deprecated_call():
             out_data = rt_img.get_data()
         assert (out_data == in_data).all()
-        assert not rt_img.dataobj is out_data
+        assert rt_img.dataobj is not out_data
         # cache
         with pytest.deprecated_call():
             assert rt_img.get_data() is out_data
         out_data[:] = 42
         rt_img.uncache()
         with pytest.deprecated_call():
-            assert not rt_img.get_data() is out_data
+            assert rt_img.get_data() is not out_data
         with pytest.deprecated_call():
             assert (rt_img.get_data() == in_data).all()
 

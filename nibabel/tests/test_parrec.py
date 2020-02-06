@@ -182,7 +182,7 @@ def test_header():
             si = np.array(
                 [np.unique(x) for x in hdr.get_data_scaling()]).ravel()
             assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
-            assert hdr.get_q_vectors() == None
+            assert hdr.get_q_vectors() is None
             assert hdr.get_bvals_bvecs() == (None, None)
 
 
@@ -525,8 +525,8 @@ def test_diffusion_parameters_v4():
     bvals, bvecs = dti_v4_hdr.get_bvals_bvecs()
     assert_almost_equal(bvals, DTI_PAR_BVALS)
     # no b-vector info in V4 .PAR files
-    assert bvecs == None
-    assert dti_v4_hdr.get_q_vectors() == None
+    assert bvecs is None
+    assert dti_v4_hdr.get_q_vectors() is None
 
 
 def test_null_diffusion_params():
@@ -538,7 +538,7 @@ def test_null_diffusion_params():
         with suppress_warnings():
             hdr = PARRECHeader(gen_info, slice_info, True)
         assert hdr.get_bvals_bvecs() == (None, None)
-        assert hdr.get_q_vectors() == None
+        assert hdr.get_q_vectors() is None
 
 
 def test_epi_params():
@@ -623,11 +623,11 @@ def test__get_uniqe_image_defs():
 def test_copy_on_init():
     # Test that input dict / array gets copied when making header
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    assert not hdr.general_info is HDR_INFO
+    assert hdr.general_info is not HDR_INFO
     hdr.general_info['max_slices'] = 10
     assert hdr.general_info['max_slices'] == 10
     assert HDR_INFO['max_slices'] == 9
-    assert not hdr.image_defs is HDR_DEFS
+    assert hdr.image_defs is not HDR_DEFS
     hdr.image_defs['image pixel size'] = 8
     assert_array_equal(hdr.image_defs['image pixel size'], 8)
     assert_array_equal(HDR_DEFS['image pixel size'], 16)
@@ -646,11 +646,11 @@ def test_header_copy():
     hdr2 = hdr.copy()
 
     def assert_copy_ok(hdr1, hdr2):
-        assert not hdr1 is hdr2
+        assert hdr1 is not hdr2
         assert hdr1.permit_truncated == hdr2.permit_truncated
-        assert not hdr1.general_info is hdr2.general_info
+        assert hdr1.general_info is not hdr2.general_info
         assert_arr_dict_equal(hdr1.general_info, hdr2.general_info)
-        assert not hdr1.image_defs is hdr2.image_defs
+        assert hdr1.image_defs is not hdr2.image_defs
         assert_structarr_equal(hdr1.image_defs, hdr2.image_defs)
 
     assert_copy_ok(hdr, hdr2)
@@ -866,8 +866,8 @@ def test_ADC_map():
         # general_info indicates it is a diffusion scan, but because it is
         # a post-processed image, the bvals and bvecs aren't available
         bvals, bvecs = adc_hdr.get_bvals_bvecs()
-        assert bvals == None
-        assert bvecs == None
+        assert bvals is None
+        assert bvecs is None
 
 
 def test_alternative_header_field_names():

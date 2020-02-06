@@ -335,8 +335,7 @@ def test_parrec2nii_with_data():
                 # The data is very close, unless it's the fieldmap
                 if par_root != 'fieldmap':
                     conved_data_lps = flip_axis(conved_img.dataobj, 1)
-                    assert np.allclose(conved_data_lps,
-                                            philips_img.dataobj)
+                    assert np.allclose(conved_data_lps, philips_img.dataobj)
     with InTemporaryDirectory():
         # Test some options
         dti_par = pjoin(BALLS, 'PARREC', 'DTI.PAR')

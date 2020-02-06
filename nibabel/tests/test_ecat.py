@@ -164,7 +164,7 @@ class TestEcatSubHeader(TestCase):
         assert self.subhdr.get_nframes() == 1
         assert (self.subhdr.get_nframes() ==
                      len(self.subhdr.subheaders))
-        assert self.subhdr._check_affines() == True
+        assert self.subhdr._check_affines() is True
         assert_array_almost_equal(np.diag(self.subhdr.get_frame_affine()),
                                   np.array([2.20241979, 2.20241979, 3.125, 1.]))
         assert self.subhdr.get_zooms()[0] == 2.20241978764534
