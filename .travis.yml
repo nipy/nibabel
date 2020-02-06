@@ -36,6 +36,11 @@ jobs:
     - python: 3.5
       env:
         - DEPENDS="-r requirements.txt"
+    # Clean install
+    - python: 3.5
+      env:
+        - DEPENDS=""
+        - CHECK_TYPE=skiptests
     # Absolute minimum dependencies
     - python: 3.5
       env:
@@ -105,6 +110,7 @@ install:
       fi
     # Basic import check
     - python -c 'import nibabel; print(nibabel.__version__)'
+    - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
 
 before_script:
     # Point to nibabel data directory
