@@ -206,7 +206,7 @@ script:
           mkdir for_testing
           cd for_testing
           cp ../.coveragerc .
-          pytest --cov nibabel -v --pyargs nibabel
+          pytest --doctest-modules --cov nibabel -v --pyargs nibabel
       else
           false
       fi
