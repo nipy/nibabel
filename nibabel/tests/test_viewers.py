@@ -16,11 +16,12 @@ from ..viewers import OrthoSlicer3D
 
 from numpy.testing import assert_array_equal, assert_equal
 
+import unittest
 import pytest
 
 # Need at least MPL 1.3 for viewer tests.
 matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.3')
-needs_mpl = pytest.mark.skipif(not has_mpl, reason='These tests need matplotlib')
+needs_mpl = unittest.skipUnless(has_mpl, 'These tests need matplotlib')
 if has_mpl:
     matplotlib.use('Agg')
 

@@ -13,14 +13,15 @@ import itertools
 from io import BytesIO
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+import unittest
 import pytest
 
-# Decorator to skip tests requiring save / load if scipy not available for mat
-# files
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
 
-scipy_skip = pytest.mark.skipif(not have_scipy, reason='scipy not available')
+# Decorator to skip tests requiring save / load if scipy not available for mat
+# files
+needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
@@ -409,38 +410,17 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     image_class = Spm99AnalyzeImage
 
     # Decorating the old way, before the team invented @
-    test_data_hdr_cache = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_data_hdr_cache
-    ))
+    test_data_hdr_cache = needs_scipy(test_analyze.TestAnalyzeImage.test_data_hdr_cache)
+    test_header_updating = needs_scipy(test_analyze.TestAnalyzeImage.test_header_updating)
+    test_offset_to_zero = needs_scipy(test_analyze.TestAnalyzeImage.test_offset_to_zero)
+    test_big_offset_exts = needs_scipy(test_analyze.TestAnalyzeImage.test_big_offset_exts)
+    test_header_scaling = needs_scipy(ImageScalingMixin.test_header_scaling)
+    test_int_int_scaling = needs_scipy(ImageScalingMixin.test_int_int_scaling)
+    test_write_scaling = needs_scipy(ImageScalingMixin.test_write_scaling)
+    test_no_scaling = needs_scipy(ImageScalingMixin.test_no_scaling)
+    test_nan2zero_range_ok = needs_scipy(ImageScalingMixin.test_nan2zero_range_ok)
 
-    test_header_updating = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_header_updating
-    ))
-
-    test_offset_to_zero = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_offset_to_zero
-    ))
-
-    test_big_offset_exts = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_big_offset_exts
-    ))
-
-    test_header_scaling = scipy_skip(
-        ImageScalingMixin.test_header_scaling)
-
-    test_int_int_scaling = scipy_skip(
-        ImageScalingMixin.test_int_int_scaling)
-
-    test_write_scaling = scipy_skip(
-        ImageScalingMixin.test_write_scaling)
-
-    test_no_scaling = scipy_skip(
-        ImageScalingMixin.test_no_scaling)
-
-    test_nan2zero_range_ok = scipy_skip(
-        ImageScalingMixin.test_nan2zero_range_ok)
-
-    @scipy_skip
+    @needs_scipy
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types
         img_klass = self.image_class

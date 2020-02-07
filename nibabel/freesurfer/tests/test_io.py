@@ -6,10 +6,9 @@ import struct
 import hashlib
 import warnings
 
-
 from ...tmpdirs import InTemporaryDirectory
 
-
+import unittest
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
@@ -36,8 +35,8 @@ else:
         data_path = pjoin(nib_data, 'nitest-freesurfer', DATA_SDIR)
         have_freesurfer = isdir(data_path)
 
-freesurfer_test = pytest.mark.skipif(not have_freesurfer,
-                                     reason='cannot find freesurfer {0} directory'.format(DATA_SDIR))
+freesurfer_test = unittest.skipUnless(have_freesurfer,
+                                      'cannot find freesurfer {0} directory'.format(DATA_SDIR))
 
 def _hash_file_content(fname):
     hasher = hashlib.md5()

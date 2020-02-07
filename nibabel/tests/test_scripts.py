@@ -20,6 +20,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
 from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
 
+import unittest
 import pytest
 from numpy.testing import assert_almost_equal
 
@@ -120,7 +121,7 @@ def test_nib_ls(args):
     check_nib_ls_example4d(*args)
 
 
-@pytest.mark.skipif(not load_small_file(), reason="can't load the small.mnc file")
+@unittest.skipUnless(load_small_file(), "Can't load the small.mnc file")
 @script_test
 def test_nib_ls_multiple():
     # verify that correctly lists/formats for multiple files
