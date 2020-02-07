@@ -49,7 +49,8 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-from nibabel.pydicom_compat import pydicom, dicom_test
+from ..pydicom_compat import pydicom
+from ..nicom.tests import dicom_test
 
 
 # Example transformation matrix
