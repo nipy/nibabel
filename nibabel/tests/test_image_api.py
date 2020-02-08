@@ -41,6 +41,7 @@ from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
 from ..spatialimages import SpatialImage
 from .. import minc1, minc2, parrec, brikhead
 
+import unittest
 import pytest
 
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
@@ -121,7 +122,7 @@ class GenericImageAPI(ValidateAPI):
         # Validate the filename, file_map interface
 
         if not self.can_save:
-            pytest.skip()
+            raise unittest.SkipTest
         img = imaker()
         img.set_data_dtype(np.float32)  # to avoid rounding in load / save
         # Make sure the object does not have a file_map
@@ -706,8 +707,12 @@ class TestMinc1API(ImageHeaderAPI):
     example_images = MINC1_EXAMPLE_IMAGES
 
 
-@pytest.mark.skipif(not have_h5py, reason="Need h5py for Minc2 tests")
 class TestMinc2API(TestMinc1API):
+
+    def __init__(self):
+        if not have_h5py:
+            raise unittest.SkipTest('Need h5py for these tests')
+
     klass = image_maker = Minc2Image
     loader = minc2.load
     example_images = MINC2_EXAMPLE_IMAGES

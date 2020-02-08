@@ -12,6 +12,7 @@ from ..affines import voxel_sizes
 
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
+import unittest
 import pytest
 from numpy.testing import assert_almost_equal
 
@@ -60,7 +61,7 @@ def test_fieldmap():
     fieldmap_nii = pjoin(BALLS, 'NIFTI', 'fieldmap.nii.gz')
     load(fieldmap_par)
     top_load(fieldmap_nii)
-    raise pytest.skip('Fieldmap remains puzzling')
+    raise unittest.SkipTest('Fieldmap remains puzzling')
 
 
 @needs_nibabel_data('parrec_oblique')

@@ -27,14 +27,14 @@ from nibabel.affines import (AffineError, from_matvec, to_matvec, apply_affine,
                              voxel_sizes)
 from nibabel.eulerangles import euler2mat
 
-from numpy.testing import (assert_almost_equal,
-                           assert_array_equal)
+from numpy.testing import assert_almost_equal, assert_array_equal
+import unittest
 import pytest
 
 from nibabel.tests.test_spaces import assert_all_in, get_outspace_params
 from nibabel.testing import assert_allclose_safely
 
-needs_scipy = pytest.mark.skipif(not have_scipy, reason='These tests need scipy')
+needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
 
 DATA_DIR = pjoin(dirname(__file__), 'data')
 

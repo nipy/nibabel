@@ -10,6 +10,7 @@ with suppress_warnings():
     from .. import dft
 from .. import nifti1
 
+import unittest
 import pytest
 
 # Shield optional package imports
@@ -22,10 +23,12 @@ PImage, have_pil, _ = optional_package('PIL.Image')
 data_dir = pjoin(dirname(__file__), 'data')
 
 
-pytestmark = [
-    pytest.mark.skipif(os.name == 'nt', reason='FUSE not available for windows, skipping dft tests'),
-    pytest.mark.skipif(not have_dicom, reason='Need pydicom for dft tests, skipping')
-]
+def setUpModule():
+    if os.name == 'nt':
+        raise unittest.SkipTest('FUSE not available for windows, skipping dft tests')
+    if not have_dicom:
+        raise unittest.SkipTest('Need pydicom for dft tests, skipping')
+
 
 def test_init():
     dft.clear_cache()
@@ -76,7 +79,7 @@ def test_storage_instance():
     pass
 
 
-@pytest.mark.skipif(not have_pil, reason='could not import PIL.Image')
+@unittest.skipUnless(have_pil, 'could not import PIL.Image')
 def test_png():
     studies = dft.get_studies(data_dir)
     data = studies[0].series[0].as_png()

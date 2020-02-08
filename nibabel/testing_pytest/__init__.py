@@ -13,17 +13,12 @@ import os
 import sys
 import warnings
 from pkg_resources import resource_filename
-from os.path import dirname, abspath, join as pjoin
 
 import unittest
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_warns
-from numpy.testing import dec
-skipif = dec.skipif
-slow = dec.slow
+from numpy.testing import assert_array_equal
 
-from ..deprecated import deprecate_with_version as _deprecate_with_version
 from .np_features import memmap_after_ufunc
 from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
 
@@ -63,7 +58,7 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     a, b = np.broadcast_arrays(a, b)
     if match_nans:
         nans = np.isnan(a)
-        np.testing.assert_array_equal(nans, np.isnan(b))
+        assert_array_equal(nans, np.isnan(b))
         to_test = ~nans
     else:
         to_test = np.ones(a.shape, dtype=bool)
@@ -199,20 +194,12 @@ class suppress_warnings(error_warnings):
     filter = 'ignore'
 
 
-@_deprecate_with_version('catch_warn_reset is deprecated; use '
-                         'nibabel.testing.clear_and_catch_warnings.',
-                         since='2.1.0', until='3.0.0')
-class catch_warn_reset(clear_and_catch_warnings):
-    pass
-
-
 EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
 
 
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return skipif(test_str not in EXTRA_SET,
-                  "Skip {0} tests.".format(test_str))
+    return unittest.skipUnless(test_str in EXTRA_SET, "Skip {0} tests.".format(test_str))
 
 
 def assert_arr_dict_equal(dict1, dict2):
