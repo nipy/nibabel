@@ -34,9 +34,9 @@ def test_type_info():
         info = np.iinfo(dtt)
         infod = type_info(dtt)
         assert dict(min=info.min, max=info.max,
-                          nexp=None, nmant=None,
-                          minexp=None, maxexp=None,
-                          width=np.dtype(dtt).itemsize) == infod
+                    nexp=None, nmant=None,
+                    minexp=None, maxexp=None,
+                    width=np.dtype(dtt).itemsize) == infod
         assert infod['min'].dtype.type == dtt
         assert infod['max'].dtype.type == dtt
     for dtt in IEEE_floats + [np.complex64, np.complex64]:
@@ -286,7 +286,6 @@ def test_usable_binary128():
     yes = have_binary128()
     with np.errstate(over='ignore'):
         exp_test = np.longdouble(2) ** 16383
-    assert (yes ==
-                 (exp_test.dtype.itemsize == 16 and
-                 np.isfinite(exp_test) and
-                 _check_nmant(np.longdouble, 112)))
+    assert yes == (exp_test.dtype.itemsize == 16 and
+                   np.isfinite(exp_test) and
+                   _check_nmant(np.longdouble, 112))

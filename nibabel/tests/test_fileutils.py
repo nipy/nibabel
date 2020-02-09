@@ -36,8 +36,7 @@ def test_read_zt_byte_strings():
         # manually rewind
         fread.seek(0)
         # test readout of two strings
-        assert (read_zt_byte_strings(fread, 2) ==
-                     [b'test.fmr', b'test.prt'])
+        assert read_zt_byte_strings(fread, 2) == [b'test.fmr', b'test.prt']
         assert fread.tell() == 18
         # test readout of more strings than present
         fread.seek(0)
@@ -48,6 +47,5 @@ def test_read_zt_byte_strings():
             read_zt_byte_strings(fread, 2)
         # Try with a small bufsize
         fread.seek(0)
-        assert (read_zt_byte_strings(fread, 2, 4) ==
-                     [b'test.fmr', b'test.prt'])
+        assert read_zt_byte_strings(fread, 2, 4) == [b'test.fmr', b'test.prt']
         fread.close()
