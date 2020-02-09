@@ -64,46 +64,33 @@ def test_canonical_slicers():
         for slice1 in slicers:
             sliceobj = (slice0, slice1)
             assert canonical_slicers(sliceobj, shape) == sliceobj
-            assert (canonical_slicers(sliceobj, shape + (2, 3, 4)) ==
-                         sliceobj + (slice(None),) * 3)
-            assert (canonical_slicers(sliceobj * 3, shape * 3) ==
-                         sliceobj * 3)
+            assert canonical_slicers(sliceobj, shape + (2, 3, 4)) == sliceobj + (slice(None),) * 3
+            assert canonical_slicers(sliceobj * 3, shape * 3) == sliceobj * 3
             # Check None passes through
-            assert (canonical_slicers(sliceobj + (None,), shape) ==
-                         sliceobj + (None,))
-            assert (canonical_slicers((None,) + sliceobj, shape) ==
-                         (None,) + sliceobj)
+            assert canonical_slicers(sliceobj + (None,), shape) == sliceobj + (None,)
+            assert canonical_slicers((None,) + sliceobj, shape) == (None,) + sliceobj
             assert (canonical_slicers((None,) + sliceobj + (None,), shape) ==
-                         (None,) + sliceobj + (None,))
+                    (None,) + sliceobj + (None,))
     # Check Ellipsis
-    assert (canonical_slicers((Ellipsis,), shape) ==
-                 (slice(None), slice(None)))
-    assert (canonical_slicers((Ellipsis, None), shape) ==
-                 (slice(None), slice(None), None))
-    assert (canonical_slicers((Ellipsis, 1), shape) ==
-                 (slice(None), 1))
-    assert (canonical_slicers((1, Ellipsis), shape) ==
-                 (1, slice(None)))
+    assert canonical_slicers((Ellipsis,), shape) == (slice(None), slice(None))
+    assert canonical_slicers((Ellipsis, None), shape) == (slice(None), slice(None), None)
+    assert canonical_slicers((Ellipsis, 1), shape) == (slice(None), 1)
+    assert canonical_slicers((1, Ellipsis), shape) == (1, slice(None))
     # Ellipsis at end does nothing
-    assert (canonical_slicers((1, 1, Ellipsis), shape) ==
-                 (1, 1))
+    assert canonical_slicers((1, 1, Ellipsis), shape) == (1, 1)
     assert (canonical_slicers((1, Ellipsis, 2), (10, 1, 2, 3, 11)) ==
-                 (1, slice(None), slice(None), slice(None), 2))
+            (1, slice(None), slice(None), slice(None), 2))
     with pytest.raises(ValueError):
         canonical_slicers((Ellipsis, 1, Ellipsis), (2, 3, 4, 5))
     # Check full slices get expanded
     for slice0 in (slice(10), slice(0, 10), slice(0, 10, 1)):
-        assert (canonical_slicers((slice0, 1), shape) ==
-                     (slice(None), 1))
+        assert canonical_slicers((slice0, 1), shape) == (slice(None), 1)
     for slice0 in (slice(10), slice(0, 10), slice(0, 10, 1)):
-        assert (canonical_slicers((slice0, 1), shape) ==
-                     (slice(None), 1))
-        assert (canonical_slicers((1, slice0), shape) ==
-                     (1, slice(None)))
+        assert canonical_slicers((slice0, 1), shape) == (slice(None), 1)
+        assert canonical_slicers((1, slice0), shape) == (1, slice(None))
     # Check ints etc get parsed through to tuples
     assert canonical_slicers(1, shape) == (1, slice(None))
-    assert (canonical_slicers(slice(None), shape) ==
-                 (slice(None), slice(None)))
+    assert canonical_slicers(slice(None), shape) == (slice(None), slice(None))
     # Check fancy indexing raises error
     with pytest.raises(ValueError):
         canonical_slicers((np.array(1), 1), shape)
@@ -205,28 +192,18 @@ def test_fill_slicer():
     assert fill_slicer(slice(1, 11, 2), 10) == slice(1, 10, 2)
     assert fill_slicer(slice(0, 11, 3), 10) == slice(0, 10, 3)
     assert fill_slicer(slice(1, 11, 3), 10) == slice(1, 10, 3)
-    assert (fill_slicer(slice(None, None, -1), 10) ==
-                 slice(9, None, -1))
-    assert (fill_slicer(slice(11, None, -1), 10) ==
-                 slice(9, None, -1))
-    assert (fill_slicer(slice(None, 1, -1), 10) ==
-                 slice(9, 1, -1))
-    assert (fill_slicer(slice(None, None, -2), 10) ==
-                 slice(9, None, -2))
-    assert (fill_slicer(slice(None, None, -3), 10) ==
-                 slice(9, None, -3))
-    assert (fill_slicer(slice(None, 0, -3), 10) ==
-                 slice(9, 0, -3))
+    assert fill_slicer(slice(None, None, -1), 10) == slice(9, None, -1)
+    assert fill_slicer(slice(11, None, -1), 10) == slice(9, None, -1)
+    assert fill_slicer(slice(None, 1, -1), 10) == slice(9, 1, -1)
+    assert fill_slicer(slice(None, None, -2), 10) == slice(9, None, -2)
+    assert fill_slicer(slice(None, None, -3), 10) == slice(9, None, -3)
+    assert fill_slicer(slice(None, 0, -3), 10) == slice(9, 0, -3)
     # Start, end are always taken to be relative if negative
-    assert (fill_slicer(slice(None, -4, -1), 10) ==
-                 slice(9, 6, -1))
-    assert (fill_slicer(slice(-4, -2, 1), 10) ==
-                 slice(6, 8, 1))
+    assert fill_slicer(slice(None, -4, -1), 10) == slice(9, 6, -1)
+    assert fill_slicer(slice(-4, -2, 1), 10) == slice(6, 8, 1)
     # start after stop
-    assert (fill_slicer(slice(3, 2, 1), 10) ==
-                 slice(3, 2, 1))
-    assert (fill_slicer(slice(2, 3, -1), 10) ==
-                 slice(2, 3, -1))
+    assert fill_slicer(slice(3, 2, 1), 10) == slice(3, 2, 1)
+    assert fill_slicer(slice(2, 3, -1), 10) == slice(2, 3, -1)
 
 
 def test__positive_slice():
@@ -247,37 +224,21 @@ def test_threshold_heuristic():
     assert threshold_heuristic(1, 9, 2, skip_thresh=16) == 'full'
     assert threshold_heuristic(1, 9, 2, skip_thresh=15) is None
     # full slice, smallest step size
-    assert (threshold_heuristic(
-        slice(0, 9, 1), 9, 2, skip_thresh=2) ==
-        'full')
+    assert threshold_heuristic(slice(0, 9, 1), 9, 2, skip_thresh=2) == 'full'
     # Dropping skip thresh below step size gives None
-    assert (threshold_heuristic(
-        slice(0, 9, 1), 9, 2, skip_thresh=1) ==
-        None)
+    assert threshold_heuristic(slice(0, 9, 1), 9, 2, skip_thresh=1) == None
     # As does increasing step size
-    assert (threshold_heuristic(
-        slice(0, 9, 2), 9, 2, skip_thresh=3) ==
-        None)
+    assert threshold_heuristic(slice(0, 9, 2), 9, 2, skip_thresh=3) == None
     # Negative step size same as positive
-    assert (threshold_heuristic(
-        slice(9, None, -1), 9, 2, skip_thresh=2) ==
-        'full')
+    assert threshold_heuristic(slice(9, None, -1), 9, 2, skip_thresh=2) == 'full'
     # Add a gap between start and end. Now contiguous because of step size
-    assert (threshold_heuristic(
-        slice(2, 9, 1), 9, 2, skip_thresh=2) ==
-        'contiguous')
+    assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=2) == 'contiguous'
     # To not-contiguous, even with step size 1
-    assert (threshold_heuristic(
-        slice(2, 9, 1), 9, 2, skip_thresh=1) ==
-        None)
+    assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=1) == None
     # Back to full when skip covers gap
-    assert (threshold_heuristic(
-        slice(2, 9, 1), 9, 2, skip_thresh=4) ==
-        'full')
+    assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=4) == 'full'
     # Until it doesn't cover the gap
-    assert (threshold_heuristic(
-        slice(2, 9, 1), 9, 2, skip_thresh=3) ==
-        'contiguous')
+    assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=3) == 'contiguous'
 
 
 # Some dummy heuristics for optimize_slicer
@@ -309,233 +270,175 @@ def test_optimize_slicer():
                 # following tests not affected by all_full or optimization
                 # full - always passes through
                 assert (
-                    optimize_slicer(slice(None), 10, all_full, 4, heuristic) ==
+                    optimize_slicer(slice(None), 10, all_full, is_slowest, 4, heuristic) ==
                     (slice(None), slice(None)))
                 # Even if full specified with explicit values
                 assert (
-                    optimize_slicer(slice(10), 10, all_full, 4, heuristic) ==
+                    optimize_slicer(slice(10), 10, all_full, is_slowest, 4, heuristic) ==
                     (slice(None), slice(None)))
                 assert (
-                    optimize_slicer(slice(0, 10), 10, all_full, 4, heuristic) ==
+                    optimize_slicer(slice(0, 10), 10, all_full, is_slowest, 4, heuristic) ==
                     (slice(None), slice(None)))
                 assert (
-                    optimize_slicer(slice(0, 10, 1), 10, all_full, 4, heuristic) ==
+                    optimize_slicer(slice(0, 10, 1), 10, all_full, is_slowest, 4, heuristic) ==
                     (slice(None), slice(None)))
                 # Reversed full is still full, but with reversed post_slice
                 assert (
                     optimize_slicer(
-                        slice(None, None, -1), 10, all_full, 4, heuristic) ==
+                        slice(None, None, -1), 10, all_full, is_slowest, 4, heuristic) ==
                     (slice(None), slice(None, None, -1)))
     # Contiguous is contiguous unless heuristic kicks in, in which case it may
     # be 'full'
-    assert (
-        optimize_slicer(slice(9), 10, False, False, 4, _always) ==
-        (slice(0, 9, 1), slice(None)))
-    assert (
-        optimize_slicer(slice(9), 10, True, False, 4, _always) ==
-        (slice(None), slice(0, 9, 1)))
+    assert optimize_slicer(slice(9), 10, False, False, 4, _always) == (slice(0, 9, 1), slice(None))
+    assert optimize_slicer(slice(9), 10, True, False, 4, _always) == (slice(None), slice(0, 9, 1))
     # Unless this is the slowest dimenion, and all_true is True, in which case
     # we don't update to full
-    assert (
-        optimize_slicer(slice(9), 10, True, True, 4, _always) ==
-        (slice(0, 9, 1), slice(None)))
+    assert optimize_slicer(slice(9), 10, True, True, 4, _always) == (slice(0, 9, 1), slice(None))
     # Nor if the heuristic won't update
-    assert (
-        optimize_slicer(slice(9), 10, True, False, 4, _never) ==
-        (slice(0, 9, 1), slice(None)))
-    assert (
-        optimize_slicer(slice(1, 10), 10, True, False, 4, _never) ==
-        (slice(1, 10, 1), slice(None)))
+    assert optimize_slicer(slice(9), 10, True, False, 4, _never) == (slice(0, 9, 1), slice(None))
+    assert (optimize_slicer(slice(1, 10), 10, True, False, 4, _never) ==
+            (slice(1, 10, 1), slice(None)))
     # Reversed contiguous still contiguous
-    assert (
-        optimize_slicer(slice(8, None, -1), 10, False, False, 4, _never) ==
-        (slice(0, 9, 1), slice(None, None, -1)))
-    assert (
-        optimize_slicer(slice(8, None, -1), 10, True, False, 4, _always) ==
-        (slice(None), slice(8, None, -1)))
-    assert (
-        optimize_slicer(slice(8, None, -1), 10, False, False, 4, _never) ==
-        (slice(0, 9, 1), slice(None, None, -1)))
-    assert (
-        optimize_slicer(slice(9, 0, -1), 10, False, False, 4, _never) ==
-        (slice(1, 10, 1), slice(None, None, -1)))
+    assert (optimize_slicer(slice(8, None, -1), 10, False, False, 4, _never) ==
+            (slice(0, 9, 1), slice(None, None, -1)))
+    assert (optimize_slicer(slice(8, None, -1), 10, True, False, 4, _always) ==
+            (slice(None), slice(8, None, -1)))
+    assert (optimize_slicer(slice(8, None, -1), 10, False, False, 4, _never) ==
+            (slice(0, 9, 1), slice(None, None, -1)))
+    assert (optimize_slicer(slice(9, 0, -1), 10, False, False, 4, _never) ==
+            (slice(1, 10, 1), slice(None, None, -1)))
     # Non-contiguous
-    assert (
-        optimize_slicer(slice(0, 10, 2), 10, False, False, 4, _never) ==
-        (slice(0, 10, 2), slice(None)))
+    assert (optimize_slicer(slice(0, 10, 2), 10, False, False, 4, _never) ==
+            (slice(0, 10, 2), slice(None)))
     # all_full triggers optimization, but optimization does nothing
-    assert (
-        optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _never) ==
-        (slice(0, 10, 2), slice(None)))
+    assert (optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _never) ==
+            (slice(0, 10, 2), slice(None)))
     # all_full triggers optimization, optimization does something
-    assert (
-        optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _always) ==
-        (slice(None), slice(0, 10, 2)))
+    assert (optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _always) ==
+            (slice(None), slice(0, 10, 2)))
     # all_full disables optimization, optimization does something
-    assert (
-        optimize_slicer(slice(0, 10, 2), 10, False, False, 4, _always) ==
-        (slice(0, 10, 2), slice(None)))
+    assert (optimize_slicer(slice(0, 10, 2), 10, False, False, 4, _always) ==
+            (slice(0, 10, 2), slice(None)))
     # Non contiguous, reversed
-    assert (
-        optimize_slicer(slice(10, None, -2), 10, False, False, 4, _never) ==
-        (slice(1, 10, 2), slice(None, None, -1)))
-    assert (
-        optimize_slicer(slice(10, None, -2), 10, True, False, 4, _always) ==
-        (slice(None), slice(9, None, -2)))
+    assert (optimize_slicer(slice(10, None, -2), 10, False, False, 4, _never) ==
+            (slice(1, 10, 2), slice(None, None, -1)))
+    assert (optimize_slicer(slice(10, None, -2), 10, True, False, 4, _always) ==
+            (slice(None), slice(9, None, -2)))
     # Short non-contiguous
-    assert (
-        optimize_slicer(slice(2, 8, 2), 10, False, False, 4, _never) ==
-        (slice(2, 8, 2), slice(None)))
+    assert (optimize_slicer(slice(2, 8, 2), 10, False, False, 4, _never) ==
+            (slice(2, 8, 2), slice(None)))
     # with partial read
-    assert (
-        optimize_slicer(slice(2, 8, 2), 10, True, False, 4, _partial) ==
-        (slice(2, 8, 1), slice(None, None, 2)))
+    assert (optimize_slicer(slice(2, 8, 2), 10, True, False, 4, _partial) ==
+            (slice(2, 8, 1), slice(None, None, 2)))
     # If this is the slowest changing dimension, heuristic can upgrade None to
     # contiguous, but not (None, contiguous) to full
     # we've done this one already
-    assert optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _always) \
-           == (slice(None), slice(0, 10, 2))
+    assert (optimize_slicer(slice(0, 10, 2), 10, True, False, 4, _always) ==
+            (slice(None), slice(0, 10, 2)))
     # if slowest, just upgrade to contiguous
-    assert (
-        optimize_slicer(slice(0, 10, 2), 10, True, True, 4, _always) ==
-        (slice(0, 10, 1), slice(None, None, 2)))
+    assert (optimize_slicer(slice(0, 10, 2), 10, True, True, 4, _always) ==
+            (slice(0, 10, 1), slice(None, None, 2)))
     # contiguous does not upgrade to full
-    assert (
-        optimize_slicer(slice(9), 10, True, True, 4, _always) ==
-        (slice(0, 9, 1), slice(None)))
+    assert optimize_slicer(slice(9), 10, True, True, 4, _always) == (slice(0, 9, 1), slice(None))
     # integer
-    assert (
-        optimize_slicer(0, 10, True, False, 4, _never) ==
-        (0, 'dropped'))
+    assert optimize_slicer(0, 10, True, False, 4, _never) == (0, 'dropped')
     # can be negative
-    assert (
-        optimize_slicer(-1, 10, True, False, 4, _never) ==
-        (9, 'dropped'))
+    assert optimize_slicer(-1, 10, True, False, 4, _never) == (9, 'dropped')
     # or float
-    assert (
-        optimize_slicer(0.9, 10, True, False, 4, _never) ==
-        (0, 'dropped'))
+    assert optimize_slicer(0.9, 10, True, False, 4, _never) == (0, 'dropped')
     # should never get 'contiguous'
     with pytest.raises(ValueError):
         optimize_slicer(0, 10, True, False, 4, _partial)
     # full can be forced with heuristic
-    assert (
-        optimize_slicer(0, 10, True, False, 4, _always) ==
-        (slice(None), 0))
+    assert optimize_slicer(0, 10, True, False, 4, _always) == (slice(None), 0)
     # but disabled for slowest changing dimension
-    assert (
-        optimize_slicer(0, 10, True, True, 4, _always) ==
-        (0, 'dropped'))
+    assert optimize_slicer(0, 10, True, True, 4, _always) == (0, 'dropped')
 
 
 def test_optimize_read_slicers():
     # Test function to optimize read slicers
-    assert (optimize_read_slicers((1,), (10,), 4, _never) ==
-                 ((1,), ()))
+    assert optimize_read_slicers((1,), (10,), 4, _never) == ((1,), ())
     assert (optimize_read_slicers((slice(None),), (10,), 4, _never) ==
-                 ((slice(None),), (slice(None),)))
+            ((slice(None),), (slice(None),)))
     assert (optimize_read_slicers((slice(9),), (10,), 4, _never) ==
-                 ((slice(0, 9, 1),), (slice(None),)))
+            ((slice(0, 9, 1),), (slice(None),)))
     # optimize cannot update a continuous to a full if last
     assert (optimize_read_slicers((slice(9),), (10,), 4, _always) ==
-                 ((slice(0, 9, 1),), (slice(None),)))
+            ((slice(0, 9, 1),), (slice(None),)))
     # optimize can update non-contiguous to continuous even if last
     # not optimizing
     assert (optimize_read_slicers((slice(0, 9, 2),), (10,), 4, _never) ==
-                 ((slice(0, 9, 2),), (slice(None),)))
+            ((slice(0, 9, 2),), (slice(None),)))
     # optimizing
     assert (optimize_read_slicers((slice(0, 9, 2),), (10,), 4, _always) ==
-                 ((slice(0, 9, 1),), (slice(None, None, 2),)))
+            ((slice(0, 9, 1),), (slice(None, None, 2),)))
     # Optimize does nothing for integer when last
-    assert (optimize_read_slicers((1,), (10,), 4, _always) ==
-                 ((1,), ()))
+    assert optimize_read_slicers((1,), (10,), 4, _always) == ((1,), ())
     # 2D
-    assert (optimize_read_slicers(
-        (slice(None), slice(None)), (10, 6), 4, _never) ==
-        ((slice(None), slice(None)), (slice(None), slice(None))))
+    assert (optimize_read_slicers((slice(None), slice(None)), (10, 6), 4, _never) ==
+            ((slice(None), slice(None)), (slice(None), slice(None))))
     assert (optimize_read_slicers((slice(None), 1), (10, 6), 4, _never) ==
-                 ((slice(None), 1), (slice(None),)))
+            ((slice(None), 1), (slice(None),)))
     assert (optimize_read_slicers((1, slice(None)), (10, 6), 4, _never) ==
-                 ((1, slice(None)), (slice(None),)))
+            ((1, slice(None)), (slice(None),)))
     # Not optimizing a partial slice
-    assert (optimize_read_slicers(
-        (slice(9), slice(None)), (10, 6), 4, _never) ==
-        ((slice(0, 9, 1), slice(None)), (slice(None), slice(None))))
+    assert (optimize_read_slicers((slice(9), slice(None)), (10, 6), 4, _never) ==
+            ((slice(0, 9, 1), slice(None)), (slice(None), slice(None))))
     # Optimizing a partial slice
-    assert (optimize_read_slicers(
-        (slice(9), slice(None)), (10, 6), 4, _always) ==
-        ((slice(None), slice(None)), (slice(0, 9, 1), slice(None))))
+    assert (optimize_read_slicers((slice(9), slice(None)), (10, 6), 4, _always) ==
+            ((slice(None), slice(None)), (slice(0, 9, 1), slice(None))))
     # Optimize cannot update a continuous to a full if last
-    assert (optimize_read_slicers(
-        (slice(None), slice(5)), (10, 6), 4, _always) ==
-        ((slice(None), slice(0, 5, 1)), (slice(None), slice(None))))
+    assert (optimize_read_slicers((slice(None), slice(5)), (10, 6), 4, _always) ==
+            ((slice(None), slice(0, 5, 1)), (slice(None), slice(None))))
     # optimize can update non-contiguous to full if not last
     # not optimizing
-    assert (optimize_read_slicers(
-        (slice(0, 9, 3), slice(None)), (10, 6), 4, _never) ==
-        ((slice(0, 9, 3), slice(None)), (slice(None), slice(None))))
+    assert (optimize_read_slicers((slice(0, 9, 3), slice(None)), (10, 6), 4, _never) ==
+            ((slice(0, 9, 3), slice(None)), (slice(None), slice(None))))
     # optimizing full
-    assert (optimize_read_slicers(
-        (slice(0, 9, 3), slice(None)), (10, 6), 4, _always) ==
-        ((slice(None), slice(None)), (slice(0, 9, 3), slice(None))))
+    assert (optimize_read_slicers((slice(0, 9, 3), slice(None)), (10, 6), 4, _always) ==
+            ((slice(None), slice(None)), (slice(0, 9, 3), slice(None))))
     # optimizing partial
-    assert (optimize_read_slicers(
-        (slice(0, 9, 3), slice(None)), (10, 6), 4, _partial) ==
-        ((slice(0, 9, 1), slice(None)), (slice(None, None, 3), slice(None))))
+    assert (optimize_read_slicers((slice(0, 9, 3), slice(None)), (10, 6), 4, _partial) ==
+            ((slice(0, 9, 1), slice(None)), (slice(None, None, 3), slice(None))))
     # optimize can update non-contiguous to continuous even if last
     # not optimizing
-    assert (optimize_read_slicers(
-        (slice(None), slice(0, 5, 2)), (10, 6), 4, _never) ==
-        ((slice(None), slice(0, 5, 2)), (slice(None), slice(None))))
+    assert (optimize_read_slicers((slice(None), slice(0, 5, 2)), (10, 6), 4, _never) ==
+            ((slice(None), slice(0, 5, 2)), (slice(None), slice(None))))
     # optimizing
-    assert (optimize_read_slicers(
-        (slice(None), slice(0, 5, 2),), (10, 6), 4, _always) ==
-        ((slice(None), slice(0, 5, 1)), (slice(None), slice(None, None, 2))))
+    assert (optimize_read_slicers((slice(None), slice(0, 5, 2),), (10, 6), 4, _always) ==
+            ((slice(None), slice(0, 5, 1)), (slice(None), slice(None, None, 2))))
     # Optimize does nothing for integer when last
-    assert (optimize_read_slicers(
-        (slice(None), 1), (10, 6), 4, _always) ==
-        ((slice(None), 1), (slice(None),)))
+    assert (optimize_read_slicers((slice(None), 1), (10, 6), 4, _always) ==
+            ((slice(None), 1), (slice(None),)))
     # Check gap threshold with 3D
     _depends0 = partial(threshold_heuristic, skip_thresh=10 * 4 - 1)
     _depends1 = partial(threshold_heuristic, skip_thresh=10 * 4)
     assert (optimize_read_slicers(
         (slice(9), slice(None), slice(None)), (10, 6, 2), 4, _depends0) ==
-        ((slice(None), slice(None), slice(None)),
-         (slice(0, 9, 1), slice(None), slice(None))))
+        ((slice(None), slice(None), slice(None)), (slice(0, 9, 1), slice(None), slice(None))))
     assert (optimize_read_slicers(
         (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends0) ==
-        ((slice(None), slice(0, 5, 1), slice(None)),
-         (slice(None), slice(None), slice(None))))
+        ((slice(None), slice(0, 5, 1), slice(None)), (slice(None), slice(None), slice(None))))
     assert (optimize_read_slicers(
         (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends1) ==
-        ((slice(None), slice(None), slice(None)),
-         (slice(None), slice(0, 5, 1), slice(None))))
+        ((slice(None), slice(None), slice(None)), (slice(None), slice(0, 5, 1), slice(None))))
     # Check longs as integer slices
     sn = slice(None)
-    assert (optimize_read_slicers(
-        (1, 2, 3), (2, 3, 4), 4, _always) ==
-        ((sn, sn, 3), (1, 2)))
+    assert optimize_read_slicers((1, 2, 3), (2, 3, 4), 4, _always) == ((sn, sn, 3), (1, 2))
 
 
 def test_slicers2segments():
     # Test function to construct segments from slice objects
-    assert (slicers2segments((0,), (10,), 7, 4) ==
-                 [[7, 4]])
-    assert (slicers2segments((0, 1), (10, 6), 7, 4) ==
-                 [[7 + 10 * 4, 4]])
-    assert (slicers2segments((0, 1, 2), (10, 6, 4), 7, 4) ==
-                 [[7 + 10 * 4 + 10 * 6 * 2 * 4, 4]])
-    assert (slicers2segments((slice(None),), (10,), 7, 4) ==
-                 [[7, 10 * 4]])
+    assert slicers2segments((0,), (10,), 7, 4) == [[7, 4]]
+    assert slicers2segments((0, 1), (10, 6), 7, 4) == [[7 + 10 * 4, 4]]
+    assert slicers2segments((0, 1, 2), (10, 6, 4), 7, 4) == [[7 + 10 * 4 + 10 * 6 * 2 * 4, 4]]
+    assert slicers2segments((slice(None),), (10,), 7, 4) == [[7, 10 * 4]]
     assert (slicers2segments((0, slice(None)), (10, 6), 7, 4) ==
-                 [[7 + 10 * 4 * i, 4] for i in range(6)])
-    assert (slicers2segments((slice(None), 0), (10, 6), 7, 4) ==
-                 [[7, 10 * 4]])
-    assert (slicers2segments((slice(None), slice(None)), (10, 6), 7, 4) ==
-                 [[7, 10 * 6 * 4]])
-    assert (slicers2segments(
-        (slice(None), slice(None), 2), (10, 6, 4), 7, 4) ==
-        [[7 + 10 * 6 * 2 * 4, 10 * 6 * 4]])
+            [[7 + 10 * 4 * i, 4] for i in range(6)])
+    assert slicers2segments((slice(None), 0), (10, 6), 7, 4) == [[7, 10 * 4]]
+    assert slicers2segments((slice(None), slice(None)), (10, 6), 7, 4) == [[7, 10 * 6 * 4]]
+    assert (slicers2segments((slice(None), slice(None), 2), (10, 6, 4), 7, 4) ==
+            [[7 + 10 * 6 * 2 * 4, 10 * 6 * 4]])
 
 
 def test_calc_slicedefs():
@@ -623,8 +526,7 @@ def test_predict_shape():
         for i in range(n_dim):
             slicers_list.append(_slices_for_len(shape[i]))
             for sliceobj in product(*slicers_list):
-                assert (predict_shape(sliceobj, shape) ==
-                             arr[sliceobj].shape)
+                assert predict_shape(sliceobj, shape) == arr[sliceobj].shape
     # Try some Nones and ellipses
     assert predict_shape((Ellipsis,), (2, 3)) == (2, 3)
     assert predict_shape((Ellipsis, 1), (2, 3)) == (2,)
@@ -743,10 +645,8 @@ def test_read_segments_lock():
     assert numpassed[0] == len(threads)
 
 
-def _check_slicer(sliceobj, arr, fobj, offset, order,
-                  heuristic=threshold_heuristic):
-    new_slice = fileslice(fobj, sliceobj, arr.shape, arr.dtype, offset, order,
-                          heuristic)
+def _check_slicer(sliceobj, arr, fobj, offset, order, heuristic=threshold_heuristic):
+    new_slice = fileslice(fobj, sliceobj, arr.shape, arr.dtype, offset, order, heuristic)
     assert_array_equal(arr[sliceobj], new_slice)
 
 
