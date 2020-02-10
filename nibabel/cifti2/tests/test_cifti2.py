@@ -140,7 +140,8 @@ def test_cifti2_label():
     lb.label = 'Test'
     lb.key = 0
     assert lb.rgba == (0, 0, 0, 0)
-    assert compare_xml_leaf(lb.to_xml().decode('utf-8'), "<Label Key='0' Red='0' Green='0' Blue='0' Alpha='0'>Test</Label>")
+    assert compare_xml_leaf(lb.to_xml().decode('utf-8'), 
+                            "<Label Key='0' Red='0' Green='0' Blue='0' Alpha='0'>Test</Label>")
 
     lb.red = 0
     lb.green = 0.1
@@ -148,9 +149,8 @@ def test_cifti2_label():
     lb.alpha = 0.3
     assert lb.rgba == (0, 0.1, 0.2, 0.3)
 
-    assert compare_xml_leaf(
-                lb.to_xml().decode('utf-8'),
-                "<Label Key='0' Red='0' Green='0.1' Blue='0.2' Alpha='0.3'>Test</Label>")
+    assert compare_xml_leaf(lb.to_xml().decode('utf-8'),
+                            "<Label Key='0' Red='0' Green='0.1' Blue='0.2' Alpha='0.3'>Test</Label>")
 
     lb.red = 10
     with pytest.raises(ci.Cifti2HeaderError):
@@ -172,7 +172,7 @@ def test_cifti2_parcel():
         pl.append_cifti_vertices(None)
     
     with pytest.raises(ValueError):
-        ci.Cifti2Parcel(**{'vertices': [1, 2, 3]})
+        ci.Cifti2Parcel(vertices=[1, 2, 3])
 
     pl = ci.Cifti2Parcel(name='region',
                          voxel_indices_ijk=ci.Cifti2VoxelIndicesIJK([[1, 2, 3]]),
@@ -296,10 +296,10 @@ def test_cifti2_voxelindicesijk():
         # Don't know how to use remove with slice
         del vi[:, 0] 
     with pytest.raises(ValueError):
-        vi[(0, 0, 0)]
+        vi[0, 0, 0]
     
     with pytest.raises(ValueError):
-        vi[(0, 0, 0)] = 0
+        vi[0, 0, 0] = 0
 
     assert vi.to_xml().decode('utf-8') == '<VoxelIndicesIJK>0 1 2\n3 4 6</VoxelIndicesIJK>'
 
@@ -334,7 +334,7 @@ def test_matrixindicesmap():
     del mim.volume
     assert mim.volume is None
     with pytest.raises(ValueError):
-        delattr(mim, 'volume')
+        del mim.volume
 
     mim.volume = volume
     assert mim.volume == volume
@@ -342,14 +342,14 @@ def test_matrixindicesmap():
     assert mim.volume == volume2
 
     with pytest.raises(ValueError):
-        setattr(mim, 'volume', parcel)
+        mim.volume = parcel
 
 
 def test_matrix():
     m = ci.Cifti2Matrix()
 
-    with pytest.raises(TypeError):
-        m(setattr, 'metadata', ci.Cifti2Parcel())
+    with pytest.raises(ValueError):
+        m.metadata = ci.Cifti2Parcel()
 
     with pytest.raises(TypeError):
         m[0] = ci.Cifti2Parcel()
