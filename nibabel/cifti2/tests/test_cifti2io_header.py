@@ -75,7 +75,7 @@ def test_read_and_proxies():
 def test_version():
     for i, dat in enumerate(datafiles):
         img = nib.load(dat)
-        assert LooseVersion(img.header.version), LooseVersion('2')
+        assert LooseVersion(img.header.version) == LooseVersion('2')
 
 
 @needs_nibabel_data('nitest-cifti2')
@@ -193,10 +193,10 @@ def test_cifti2types():
             assert list(mim.surfaces) == [m_ for m_ in mim if isinstance(m_, ci.Cifti2Surface)]
             assert list(mim.parcels) == [m_ for m_ in mim if isinstance(m_, ci.Cifti2Parcel)]
             assert list(mim.brain_models) == [m_ for m_ in mim if isinstance(m_, ci.Cifti2BrainModel)]
-            assert [mim.volume] == [m_ for m_ in mim if isinstance(m_, ci.Cifti2Volume)] if mim.volume else [] 
+            assert ([mim.volume]  if mim.volume else []) == [m_ for m_ in mim if isinstance(m_, ci.Cifti2Volume)]
 
     for klass, count in counter.items():
-        assert count > 0 # "No exercise of " + klass.__name__
+        assert count > 0, "No exercise of " + klass.__name__
 
 
 @needs_nibabel_data('nitest-cifti2')
@@ -246,7 +246,7 @@ def test_read_geometry():
             assert from_file.surface_number_of_vertices is None
             assert len(from_file.voxel_indices_ijk) == expected[1]
             assert from_file.voxel_indices_ijk[0] == expected[2]
-            assert from_file.voxel_indices_ijk[-1], expected[3]
+            assert from_file.voxel_indices_ijk[-1] == expected[3]
     assert current_index == img.shape[1]
 
     expected_affine = [[-2, 0, 0,   90],
@@ -352,7 +352,7 @@ def test_read_scalar():
             assert key in scalar.metadata.data.keys()
             assert scalar.metadata[key][:len(value)] == value
 
-        assert scalar.label_table is None #".dscalar file should not define a label table"
+        assert scalar.label_table is None, ".dscalar file should not define a label table"
 
 
 @needs_nibabel_data('nitest-cifti2')
@@ -433,7 +433,7 @@ class TestCifti2SingleHeader(TestNifti2SingleHeader):
         hdr = HC()
         hdr['pixdim'][1] = -2  # severity 35
         fhdr, message, raiser = self.log_chk(hdr, 35)
-        assert fhdr['pixdim'][1]== 2
+        assert fhdr['pixdim'][1] == 2
         assert message == self._pixdim_message + '; setting to abs of pixdim values'
         
         pytest.raises(*raiser)
