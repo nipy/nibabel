@@ -436,10 +436,8 @@ class TestCifti2SingleHeader(TestNifti2SingleHeader):
         assert fhdr['pixdim'][1]== 2
         assert message == self._pixdim_message + '; setting to abs of pixdim values'
         
-        
-        with pytest.raises(raiser[0]):
-            raiser[1](*raiser[2:])
-        
+        pytest.raises(*raiser)
+                
         hdr = HC()
         hdr['pixdim'][1:4] = 0  # No error or warning
         fhdr, message, raiser = self.log_chk(hdr, 0)

@@ -289,12 +289,12 @@ def test_cifti2_voxelindicesijk():
 
     #test for vi[:, 0] and other slices
     with pytest.raises(NotImplementedError):
-        vi[(slice(None), 0)]
+        vi[:, 0]
     with pytest.raises(NotImplementedError):
-        vi[(slice(None), 0)] = 0
+        vi[:, 0] = 0
     with pytest.raises(NotImplementedError):
         # Don't know how to use remove with slice
-        vi.__delitem__((slice(None), 0)) 
+        del vi[:, 0] 
     with pytest.raises(ValueError):
         vi[(0, 0, 0)]
     
