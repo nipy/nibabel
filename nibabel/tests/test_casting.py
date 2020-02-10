@@ -43,9 +43,7 @@ def test_shared_range():
                 if imax_roundtrip == imax:
                     thresh_overflow = True
             if thresh_overflow:
-                assert np.all(
-                    (bit_bigger == casted_mx) |
-                    (bit_bigger == imax))
+                assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
                 assert np.all((bit_bigger <= casted_mx))
             if it in np.sctypes['uint']:
@@ -71,9 +69,7 @@ def test_shared_range():
                 if imin_roundtrip == imin:
                     thresh_overflow = True
             if thresh_overflow:
-                assert np.all(
-                    (bit_smaller == casted_mn) |
-                    (bit_smaller == imin))
+                assert np.all((bit_smaller == casted_mn) | (bit_smaller == imin))
             else:
                 assert np.all((bit_smaller >= casted_mn))
 
@@ -159,7 +155,7 @@ def test_floor_log2():
     assert floor_log2(0.75) == -1
     assert floor_log2(0.25) == -2
     assert floor_log2(0.24) == -3
-    assert floor_log2(0) == None
+    assert floor_log2(0) is None
 
 
 def test_able_int_type():

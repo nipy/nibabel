@@ -29,8 +29,8 @@ def test_files_spatialimages():
     for klass in klasses:
         file_map = klass.make_file_map()
         for key, value in file_map.items():
-            assert value.filename == None
-            assert value.fileobj == None
+            assert value.filename is None
+            assert value.fileobj is None
             assert value.pos == 0
         # If we can't create new images in memory without loading, bail here
         if not klass.makeable:
@@ -42,8 +42,8 @@ def test_files_spatialimages():
         else:
             img = klass(arr, aff)
         for key, value in img.file_map.items():
-            assert value.filename == None
-            assert value.fileobj == None
+            assert value.filename is None
+            assert value.fileobj is None
             assert value.pos == 0
 
 

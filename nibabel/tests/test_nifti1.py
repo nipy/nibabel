@@ -49,7 +49,8 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-from nibabel.pydicom_compat import pydicom, dicom_test
+from ..pydicom_compat import pydicom
+from ..nicom.tests import dicom_test
 
 
 # Example transformation matrix
@@ -1133,8 +1134,8 @@ def test_ext_eq():
     assert ext == ext
     assert not ext != ext
     ext2 = Nifti1Extension('comment', '124')
-    assert not ext == ext2
     assert ext != ext2
+    assert not ext == ext2
 
 
 def test_extension_codes():
@@ -1255,8 +1256,8 @@ def test_nifti_dicom_extension():
                                     'NiPy'.encode('utf-8'))
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() == False
-    assert dcmext._is_little_endian == True
+    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_little_endian is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert len(dcmext.get_content().values()) == 1
@@ -1267,7 +1268,7 @@ def test_nifti_dicom_extension():
     dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4,
                                     'NiPy'.encode('utf-8'))
     dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
-    assert dcmext._guess_implicit_VR() == True
+    assert dcmext._guess_implicit_VR() is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert len(dcmext.get_content().values()) == 1
@@ -1281,7 +1282,7 @@ def test_nifti_dicom_extension():
     hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() == False
+    assert dcmext._guess_implicit_VR() is False
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert dcmext.get_content()[0x10, 0x20].value == 'NiPy'

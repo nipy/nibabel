@@ -41,6 +41,7 @@ from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
 from ..spatialimages import SpatialImage
 from .. import minc1, minc2, parrec, brikhead
 
+import unittest
 import pytest
 
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
@@ -108,22 +109,20 @@ class GenericImageAPI(ValidateAPI):
         hdr = img.header  # we can fetch it
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'header', hdr)
+            img.header = hdr
 
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
         img = imaker()
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
+        with pytest.deprecated_call():
             hdr = img.get_header()
-            assert len(w) == 1
-            assert hdr is img.header
+        assert hdr is img.header
 
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface
 
         if not self.can_save:
-            pytest.skip()
+            raise unittest.SkipTest
         img = imaker()
         img.set_data_dtype(np.float32)  # to avoid rounding in load / save
         # Make sure the object does not have a file_map
@@ -164,14 +163,14 @@ class GenericImageAPI(ValidateAPI):
     def validate_no_slicing(self, imaker, params):
         img = imaker()
         with pytest.raises(TypeError):
-            img.__getitem__('string')
+            img['string']
         with pytest.raises(TypeError):
-            img.__getitem__(slice(None))
+            img[:]
 
     def validate_get_data_deprecated(self, imaker, params):
         # Check deprecated header API
         img = imaker()
-        with assert_warns(DeprecationWarning):
+        with pytest.deprecated_call():
             data = img.get_data()
         assert_array_equal(np.asanyarray(img.dataobj), data)
 
@@ -231,10 +230,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # dataobj is read only
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         with pytest.raises(AttributeError):
-            setattr(img, 'dataobj', fake_data)
+            img.dataobj = fake_data
         # So is in_memory
         with pytest.raises(AttributeError):
-            setattr(img, 'in_memory', False)
+            img.in_memory = False
 
     def _check_proxy_interface(self, imaker, meth_name):
         # Parameters assert this is an array proxy
@@ -395,14 +394,12 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning
         img = imaker()
-        with warnings.catch_warnings(record=True) as warns:
-            warnings.simplefilter("always")
+        with pytest.deprecated_call():
             assert_data_similar(img._data, params)
-            assert warns.pop(0).category == DeprecationWarning
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
         with pytest.raises(AttributeError):
-            setattr(img, '_data', fake_data)
+            img._data = fake_data
 
     def validate_shape(self, imaker, params):
         # Validate shape
@@ -414,7 +411,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert img.shape == params['data'].shape
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'shape', np.eye(4))
+            img.shape = np.eye(4)
 
     def validate_ndim(self, imaker, params):
         # Validate shape
@@ -426,7 +423,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert img.ndim == params['data'].ndim
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'ndim', 5)
+            img.ndim = 5
 
     def validate_shape_deprecated(self, imaker, params):
         # Check deprecated get_shape API
@@ -497,15 +494,13 @@ class AffineMixin(object):
         assert img.affine[0, 0] == 1.5
         # Read only
         with pytest.raises(AttributeError):
-            setattr(img, 'affine', np.eye(4))
+            img.affine = np.eye(4)
 
     def validate_affine_deprecated(self, imaker, params):
         # Check deprecated affine API
         img = imaker()
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter('always', DeprecationWarning)
+        with pytest.deprecated_call():
             assert_almost_equal(img.get_affine(), params['affine'], 6)
-            assert len(w) == 1
             assert img.get_affine().dtype == np.float64
             aff = img.get_affine()
             aff[0, 0] = 1.5
@@ -716,7 +711,7 @@ class TestMinc2API(TestMinc1API):
 
     def __init__(self):
         if not have_h5py:
-            pytest.skip('Need h5py for these tests')
+            raise unittest.SkipTest('Need h5py for these tests')
 
     klass = image_maker = Minc2Image
     loader = minc2.load

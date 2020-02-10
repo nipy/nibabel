@@ -197,7 +197,7 @@ class TestImageOpener:
             assert os.path.exists('test.foo')
 
         # Check this doesn't add anything to parent
-        assert not '.foo' in Opener.compress_ext_map
+        assert '.foo' not in Opener.compress_ext_map
 
 
 def test_file_like_wrapper():
@@ -215,7 +215,7 @@ def test_file_like_wrapper():
     fobj.close()
     assert fobj.closed
     # Added the fileobj name
-    assert fobj.name == None
+    assert fobj.name is None
 
 
 def test_compressionlevel():

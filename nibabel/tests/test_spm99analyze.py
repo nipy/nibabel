@@ -12,13 +12,16 @@ import itertools
 
 from io import BytesIO
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal, dec
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+import unittest
+import pytest
+
+from ..optpkg import optional_package
+_, have_scipy, _ = optional_package('scipy')
 
 # Decorator to skip tests requiring save / load if scipy not available for mat
 # files
-from ..optpkg import optional_package
-_, have_scipy, _ = optional_package('scipy')
-scipy_skip = dec.skipif(not have_scipy, 'scipy not available')
+needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
 from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
                             HeaderTypeError)
@@ -26,13 +29,14 @@ from ..casting import type_info, shared_range
 from ..volumeutils import apply_read_scaling, _dt_min_max
 from ..spatialimages import supported_np_types, HeaderDataError
 
-from nose.tools import assert_true, assert_false, assert_equal, assert_raises
-
-from ..testing import assert_allclose_safely, suppress_warnings
-from ..testing_pytest import bytesio_round_trip, bytesio_filemap
+from ..testing_pytest import (
+    bytesio_round_trip,
+    bytesio_filemap,
+    assert_allclose_safely,
+    suppress_warnings
+)
 
 from . import test_analyze
-import pytest; pytestmark = pytest.mark.skip()
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
@@ -62,7 +66,7 @@ class HeaderScalingMixin(object):
         # almost equal
         assert_array_almost_equal(data, data_back, 4)
         # But not quite
-        assert_false(np.all(data == data_back))
+        assert not np.all(data == data_back)
         # This is exactly the same call, just testing it works twice
         data_back2 = hdr.data_from_fileobj(S3)
         assert_array_equal(data_back, data_back2, 4)
@@ -70,12 +74,12 @@ class HeaderScalingMixin(object):
         hdr.data_to_fileobj(data, S3, rescale=True)
         data_back = hdr.data_from_fileobj(S3)
         assert_array_almost_equal(data, data_back, 4)
-        assert_false(np.all(data == data_back))
+        assert not np.all(data == data_back)
         # This doesn't use scaling, and so gets perfect precision
         with np.errstate(invalid='ignore'):
             hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
-        assert_true(np.all(data == data_back))
+        assert np.all(data == data_back)
 
 
 class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
@@ -85,7 +89,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
     def test_empty(self):
         super(TestSpm99AnalyzeHeader, self).test_empty()
         hdr = self.header_class()
-        assert_equal(hdr['scl_slope'], 1)
+        assert hdr['scl_slope'] == 1
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
@@ -99,11 +103,11 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         data = np.array([type_info(dtt)['max']], dtype=dtt)[:, None, None]
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
-        assert_true(np.allclose(data, data_back))
+        assert np.allclose(data, data_back)
 
     def test_slope_inter(self):
         hdr = self.header_class()
-        assert_equal(hdr.get_slope_inter(), (1.0, None))
+        assert hdr.get_slope_inter() == (1.0, None)
         for in_tup, exp_err, out_tup, raw_slope in (
                 ((2.0,), None, (2.0, None), 2.),
                 ((None,), None, (None, None), np.nan),
@@ -121,16 +125,17 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
                 ((None, 0.0), None, (None, None), np.nan)):
             hdr = self.header_class()
             if not exp_err is None:
-                assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
+                with pytest.raises(exp_err):
+                    hdr.set_slope_inter(*in_tup)
                 # raw set
                 if not in_tup[0] is None:
                     hdr['scl_slope'] = in_tup[0]
             else:
                 hdr.set_slope_inter(*in_tup)
-                assert_equal(hdr.get_slope_inter(), out_tup)
+                assert hdr.get_slope_inter() == out_tup
                 # Check set survives through checking
                 hdr = Spm99AnalyzeHeader.from_header(hdr, check=True)
-                assert_equal(hdr.get_slope_inter(), out_tup)
+                assert hdr.get_slope_inter() == out_tup
             assert_array_equal(hdr['scl_slope'], raw_slope)
 
     def test_origin_checks(self):
@@ -140,16 +145,14 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         hdr.data_shape = [1, 1, 1]
         hdr['origin'][0] = 101  # severity 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert_equal(fhdr, hdr)
-        assert_equal(message, 'very large origin values '
-                     'relative to dims; leaving as set, '
-                     'ignoring for affine')
-        assert_raises(*raiser)
+        assert fhdr == hdr
+        assert (message == 'very large origin values '
+                           'relative to dims; leaving as set, '
+                           'ignoring for affine')
+        pytest.raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock
-        assert_equal(dxer(hdr.binaryblock),
-                     'very large origin values '
-                     'relative to dims')
+        assert dxer(hdr.binaryblock) == 'very large origin values relative to dims'
 
 
 class ImageScalingMixin(object):
@@ -166,9 +169,9 @@ class ImageScalingMixin(object):
         # Assert that header `hdr` has "scale-me" scaling
         slope, inter = self._get_raw_scaling(hdr)
         if not slope is None:
-            assert_true(np.isnan(slope))
+            assert np.isnan(slope)
         if not inter is None:
-            assert_true(np.isnan(inter))
+            assert np.isnan(inter)
 
     def _get_raw_scaling(self, hdr):
         return hdr['scl_slope'], None
@@ -399,7 +402,7 @@ class ImageScalingMixin(object):
         img.set_data_dtype(np.uint8)
         with np.errstate(invalid='ignore'):
             rt_img = bytesio_round_trip(img)
-        assert_equal(rt_img.get_fdata()[0, 0, 0], 0)
+        assert rt_img.get_fdata()[0, 0, 0] == 0
 
 
 class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
@@ -407,38 +410,17 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     image_class = Spm99AnalyzeImage
 
     # Decorating the old way, before the team invented @
-    test_data_hdr_cache = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_data_hdr_cache
-    ))
+    test_data_hdr_cache = needs_scipy(test_analyze.TestAnalyzeImage.test_data_hdr_cache)
+    test_header_updating = needs_scipy(test_analyze.TestAnalyzeImage.test_header_updating)
+    test_offset_to_zero = needs_scipy(test_analyze.TestAnalyzeImage.test_offset_to_zero)
+    test_big_offset_exts = needs_scipy(test_analyze.TestAnalyzeImage.test_big_offset_exts)
+    test_header_scaling = needs_scipy(ImageScalingMixin.test_header_scaling)
+    test_int_int_scaling = needs_scipy(ImageScalingMixin.test_int_int_scaling)
+    test_write_scaling = needs_scipy(ImageScalingMixin.test_write_scaling)
+    test_no_scaling = needs_scipy(ImageScalingMixin.test_no_scaling)
+    test_nan2zero_range_ok = needs_scipy(ImageScalingMixin.test_nan2zero_range_ok)
 
-    test_header_updating = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_header_updating
-    ))
-
-    test_offset_to_zero = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_offset_to_zero
-    ))
-
-    test_big_offset_exts = (scipy_skip(
-        test_analyze.TestAnalyzeImage.test_big_offset_exts
-    ))
-
-    test_header_scaling = scipy_skip(
-        ImageScalingMixin.test_header_scaling)
-
-    test_int_int_scaling = scipy_skip(
-        ImageScalingMixin.test_int_int_scaling)
-
-    test_write_scaling = scipy_skip(
-        ImageScalingMixin.test_write_scaling)
-
-    test_no_scaling = scipy_skip(
-        ImageScalingMixin.test_no_scaling)
-
-    test_nan2zero_range_ok = scipy_skip(
-        ImageScalingMixin.test_nan2zero_range_ok)
-
-    @scipy_skip
+    @needs_scipy
     def test_mat_read(self):
         # Test mat file reading and writing for the SPM analyze types
         img_klass = self.image_class
@@ -460,7 +442,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         from scipy.io import loadmat, savemat
         mat_fileobj.seek(0)
         mats = loadmat(mat_fileobj)
-        assert_true('M' in mats and 'mat' in mats)
+        assert 'M' in mats and 'mat' in mats
         from_111 = np.eye(4)
         from_111[:3, 3] = -1
         to_111 = np.eye(4)
@@ -471,7 +453,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         # should have a flip.  The 'mat' matrix does include flips and so
         # should be unaffected by the flipping.  If both are present we prefer
         # the the 'mat' matrix.
-        assert_true(img.header.default_x_flip)  # check the default
+        assert img.header.default_x_flip  # check the default
         flipper = np.diag([-1, 1, 1, 1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
@@ -513,7 +495,7 @@ def test_origin_affine():
     assert_array_equal(aff, hdr.get_base_affine())
     hdr.set_data_shape((3, 5, 7))
     hdr.set_zooms((3, 2, 1))
-    assert_true(hdr.default_x_flip)
+    assert hdr.default_x_flip
     assert_array_almost_equal(
         hdr.get_origin_affine(),  # from center of image
         [[-3., 0., 0., 3.],

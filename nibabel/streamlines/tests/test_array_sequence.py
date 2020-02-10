@@ -9,8 +9,6 @@ import pytest
 from ...testing_pytest import assert_arrays_equal
 from numpy.testing import assert_array_equal
 
-import pytest; pytestmark = pytest.mark.skip()
-
 from ..array_sequence import ArraySequence, is_array_sequence, concatenate
 
 
@@ -37,9 +35,7 @@ def check_empty_arr_seq(seq):
     assert len(seq._lengths) == 0
     # assert_equal(seq._data.ndim, 0)
     assert seq._data.ndim == 1
-    
-    # TODO: Check assert_true
-    # assert_true(seq.common_shape == ())
+    assert seq.common_shape == ()
 
 
 def check_arr_seq(seq, arrays):
@@ -68,9 +64,9 @@ def check_arr_seq(seq, arrays):
 
 
 def check_arr_seq_view(seq_view, seq):
-    assert seq_view._is_view is True
+    assert seq_view._is_view
     assert seq_view is not seq
-    assert (np.may_share_memory(seq_view._data, seq._data)) is True
+    assert np.may_share_memory(seq_view._data, seq._data)
     assert seq_view._offsets is not seq._offsets
     assert seq_view._lengths is not seq._lengths
 
@@ -179,7 +175,6 @@ class TestArraySequence(unittest.TestCase):
         element = generate_data(nb_arrays=1,
                                 common_shape=SEQ_DATA['seq'].common_shape*2,
                                 rng=SEQ_DATA['rng'])[0]
-
         with pytest.raises(ValueError):
             seq.append(element)
 
@@ -275,7 +270,6 @@ class TestArraySequence(unittest.TestCase):
         # Test invalid indexing
         with pytest.raises(TypeError):
             SEQ_DATA['seq']['abc']
-            #SEQ_DATA['seq'].abc
 
         # Get specific columns.
         seq_view = SEQ_DATA['seq'][:, 2]
@@ -323,8 +317,7 @@ class TestArraySequence(unittest.TestCase):
         # Setitem between array sequences with different number of sequences.
         seq = ArraySequence(np.arange(900).reshape((50,6,3)))
         with pytest.raises(ValueError):
-            seq.__setitem__(slice(0, 4), seq[5:10])
-
+            seq[0:4] = seq[5:10]
 
         # Setitem between array sequences with different amount of points.
         seq1 = ArraySequence(np.arange(10).reshape(5, 2))
@@ -341,7 +334,7 @@ class TestArraySequence(unittest.TestCase):
 
         # Invalid index.
         with pytest.raises(TypeError):
-            seq.__setitem__(object(), None)
+            seq[object()] = None
 
     def test_arraysequence_operators(self):
         # Disable division per zero warnings.
@@ -367,7 +360,6 @@ class TestArraySequence(unittest.TestCase):
             for scalar in scalars:
                 orig = arrseq.copy()
                 seq = getattr(orig, op)(scalar)
-                
                 assert (seq is orig) == inplace
 
                 check_arr_seq(seq, [getattr(e, op)(scalar) for e in arrseq])

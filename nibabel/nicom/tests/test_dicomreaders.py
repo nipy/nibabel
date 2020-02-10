@@ -2,20 +2,17 @@
 
 """
 
-from os.path import join as pjoin, abspath
+from os.path import join as pjoin
 
 import numpy as np
 
 from .. import dicomreaders as didr
+from ...pydicom_compat import pydicom
 
-from nibabel.pydicom_compat import dicom_test, pydicom
+import pytest
+from . import dicom_test
 
-from .test_dicomwrappers import (EXPECTED_AFFINE,
-                                 EXPECTED_PARAMS,
-                                 IO_DATA_PATH,
-                                 DATA)
-
-from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
+from .test_dicomwrappers import EXPECTED_AFFINE, EXPECTED_PARAMS, IO_DATA_PATH, DATA
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
@@ -24,7 +21,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 def test_read_dwi():
     img = didr.mosaic_to_nii(DATA)
     arr = img.get_data()
-    assert_equal(arr.shape, (128, 128, 48))
+    assert arr.shape == (128, 128, 48)
     assert_array_almost_equal(img.affine, EXPECTED_AFFINE)
 
 
@@ -32,11 +29,12 @@ def test_read_dwi():
 def test_read_dwis():
     data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH,
                                                  'siemens_dwi_*.dcm.gz')
-    assert_equal(data.ndim, 4)
+    assert data.ndim == 4
     assert_array_almost_equal(aff, EXPECTED_AFFINE)
     assert_array_almost_equal(bs, (0, EXPECTED_PARAMS[0]))
     assert_array_almost_equal(gs, (np.zeros((3,)), EXPECTED_PARAMS[1]))
-    assert_raises(IOError, didr.read_mosaic_dwi_dir, 'improbable')
+    with pytest.raises(IOError):
+        didr.read_mosaic_dwi_dir('improbable')
 
 
 @dicom_test
@@ -53,29 +51,21 @@ def test_passing_kwds():
             dicom_kwargs=dict(force=True))
         assert_array_equal(data, data2)
         # This should raise an error in pydicom.dicomio.read_file
-        assert_raises(TypeError,
-                      func,
-                      IO_DATA_PATH,
-                      dwi_glob,
-                      dicom_kwargs=dict(not_a_parameter=True))
+        with pytest.raises(TypeError):
+            func(IO_DATA_PATH, dwi_glob, dicom_kwargs=dict(not_a_parameter=True))
         # These are invalid dicoms, so will raise an error unless force=True
-        assert_raises(pydicom.filereader.InvalidDicomError,
-                      func,
-                      IO_DATA_PATH,
-                      csa_glob)
+        with pytest.raises(pydicom.filereader.InvalidDicomError):
+            func(IO_DATA_PATH, csa_glob)
         # But here, we catch the error because the dicoms are in the wrong
         # format
-        assert_raises(didr.DicomReadError,
-                      func,
-                      IO_DATA_PATH,
-                      csa_glob,
-                      dicom_kwargs=dict(force=True))
+        with pytest.raises(didr.DicomReadError):
+            func(IO_DATA_PATH, csa_glob, dicom_kwargs=dict(force=True))
 
 @dicom_test
 def test_slices_to_series():
     dicom_files = (pjoin(IO_DATA_PATH, "%d.dcm" % i) for i in range(2))
     wrappers = [didr.wrapper_from_file(f) for f in dicom_files]
     series = didr.slices_to_series(wrappers)
-    assert_equal(len(series), 1)
-    assert_equal(len(series[0]), 2)
+    assert len(series) == 1
+    assert len(series[0]) == 2
 

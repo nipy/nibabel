@@ -9,13 +9,9 @@ from ..affines import apply_affine, from_matvec
 from ..nifti1 import Nifti1Image
 from ..eulerangles import euler2mat
 
+import pytest
+from numpy.testing import assert_almost_equal
 
-from numpy.testing import (assert_almost_equal,
-                           assert_array_equal)
-
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
-import pytest; pytestmark = pytest.mark.skip()
 
 def assert_all_in(in_shape, in_affine, out_shape, out_affine):
     slices = tuple(slice(N) for N in in_shape)
@@ -30,8 +26,8 @@ def assert_all_in(in_shape, in_affine, out_shape, out_affine):
         v2v = new_v2v
     out_grid = apply_affine(v2v, in_grid)
     TINY = 1e-12
-    assert_true(np.all(out_grid > -TINY))
-    assert_true(np.all(out_grid < np.array(out_shape) + TINY))
+    assert np.all(out_grid > -TINY)
+    assert np.all(out_grid < np.array(out_shape) + TINY)
 
 
 def get_outspace_params():
@@ -84,23 +80,27 @@ def test_vox2out_vox():
     # Test world space bounding box
     # Test basic case, identity, no voxel sizes passed
     shape, aff = vox2out_vox(((2, 3, 4), np.eye(4)))
-    assert_array_equal(shape, (2, 3, 4))
-    assert_array_equal(aff, np.eye(4))
+    assert shape == (2, 3, 4)
+    assert (aff == np.eye(4)).all()
     for in_shape, in_aff, vox, out_shape, out_aff in get_outspace_params():
         img = Nifti1Image(np.ones(in_shape), in_aff)
         for input in ((in_shape, in_aff), img):
             shape, aff = vox2out_vox(input, vox)
             assert_all_in(in_shape, in_aff, shape, aff)
-            assert_equal(shape, out_shape)
+            assert shape == out_shape
             assert_almost_equal(aff, out_aff)
-            assert_true(isinstance(shape, tuple))
-            assert_true(isinstance(shape[0], int))
+            assert isinstance(shape, tuple)
+            assert isinstance(shape[0], int)
     # Enforce number of axes
-    assert_raises(ValueError, vox2out_vox, ((2, 3, 4, 5), np.eye(4)))
-    assert_raises(ValueError, vox2out_vox, ((2, 3, 4, 5, 6), np.eye(4)))
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4, 5), np.eye(4)))
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4, 5, 6), np.eye(4)))
     # Voxel sizes must be positive
-    assert_raises(ValueError, vox2out_vox, ((2, 3, 4), np.eye(4), [-1, 1, 1]))
-    assert_raises(ValueError, vox2out_vox, ((2, 3, 4), np.eye(4), [1, 0, 1]))
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4), np.eye(4), [-1, 1, 1]))
+    with pytest.raises(ValueError):
+        vox2out_vox(((2, 3, 4), np.eye(4), [1, 0, 1]))
 
 
 def test_slice2volume():
@@ -112,7 +112,14 @@ def test_slice2volume():
         for val in (0, 5, 10):
             exp_aff = np.array(def_aff)
             exp_aff[axis, -1] = val
-            assert_array_equal(slice2volume(val, axis), exp_aff)
-    assert_raises(ValueError, slice2volume, -1, 0)
-    assert_raises(ValueError, slice2volume, 0, -1)
-    assert_raises(ValueError, slice2volume, 0, 3)
+            assert (slice2volume(val, axis) == exp_aff).all()
+
+
+@pytest.mark.parametrize("index, axis", [
+    [-1, 0],
+    [0, -1],
+    [0, 3]
+])
+def test_slice2volume_exception(index, axis):
+    with pytest.raises(ValueError):
+        slice2volume(index, axis)

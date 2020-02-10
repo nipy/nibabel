@@ -12,13 +12,19 @@ without error, and always defines:
   else None;
 * tag_for_keyword : ``tag_for_keyword`` function if pydicom or dicom module
   is importable else None;
+
+A test decorator is available in nibabel.nicom.tests:
+
 * dicom_test : test decorator that skips test if dicom not available.
+
+A deprecated copy is available here for backward compatibility.
 """
 
 # Module has (apparently) unused imports; stop flake8 complaining
 # flake8: noqa
 
 import numpy as np
+from .deprecated import deprecate_with_version
 
 have_dicom = True
 pydicom = read_file = tag_for_keyword = Sequence = None
@@ -50,6 +56,9 @@ if have_dicom:
         tag_for_keyword = pydicom.datadict.tag_for_name
 
 
-# test decorator that skips test if dicom not available.
-dicom_test = np.testing.dec.skipif(not have_dicom,
-                                   'could not import dicom or pydicom')
+@deprecate_with_version("dicom_test has been moved to nibabel.nicom.tests",
+                        since="3.1", until="5.0")
+def dicom_test(func):
+    # Import locally to avoid circular dependency
+    from .nicom.tests import dicom_test
+    return dicom_test(func)

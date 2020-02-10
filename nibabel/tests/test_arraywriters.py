@@ -14,11 +14,10 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
 from ..casting import int_abs, type_info, shared_range, on_powerpc
 from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
-from numpy.testing import (assert_array_almost_equal,
-                           assert_array_equal)
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
 from ..testing_pytest import (assert_allclose_safely, suppress_warnings,
-                       error_warnings)
+                              error_warnings)
 
 
 FLOAT_TYPES = np.sctypes['float']
@@ -509,9 +508,9 @@ def test_nan2zero():
         assert_array_equal(np.isnan(data_back), [True, False])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
         with error_warnings():
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', True)
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', nan2zero=True)
         # Error if nan2zero is not the value set at initialization
         with pytest.raises(WriterError):
@@ -531,9 +530,9 @@ def test_nan2zero():
         assert_array_equal(data_back, [astype_res, 99])
         # Deprecation warning for nan2zero as argument to `to_fileobj`
         with error_warnings():
-            with pytest.raises(DeprecationWarning):
-                          aw.to_fileobj(BytesIO(), 'F', False)
-            with pytest.raises(DeprecationWarning):
+            with pytest.deprecated_call():
+                aw.to_fileobj(BytesIO(), 'F', False)
+            with pytest.deprecated_call():
                 aw.to_fileobj(BytesIO(), 'F', nan2zero=False)
         # Error if nan2zero is not the value set at initialization
         with pytest.raises(WriterError):

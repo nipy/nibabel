@@ -13,18 +13,17 @@ import warnings
 
 import numpy as np
 
-import nibabel.gifti as gi
-from nibabel.gifti.util import gifti_endian_codes
-from nibabel.gifti.parse_gifti_fast import Outputter, parse_gifti_file
-from nibabel.loadsave import load, save
-from nibabel.nifti1 import xform_codes
-from nibabel.tmpdirs import InTemporaryDirectory
+from .. import gifti as gi
+from ..util import gifti_endian_codes
+from ..parse_gifti_fast import Outputter, parse_gifti_file
+from ...loadsave import load, save
+from ...nifti1 import xform_codes
+from ...tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_almost_equal
 
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_raises)
-from ...testing import clear_and_catch_warnings
+import pytest
+from ...testing_pytest import clear_and_catch_warnings
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -106,9 +105,9 @@ def assert_default_types(loaded):
         if defaulttype is type(None):
             continue
         loadedtype = type(getattr(loaded, attr))
-        assert_equal(loadedtype, defaulttype,
-                     "Type mismatch for attribute: {} ({!s} != {!s})".format(
-                         attr, loadedtype, defaulttype))
+        assert loadedtype == defaulttype, (
+            "Type mismatch for attribute: {} ({!s} != {!s})".format(
+                attr, loadedtype, defaulttype))
 
 
 def test_default_types():
@@ -142,18 +141,18 @@ def test_read_ordering():
     # read another image first (DATA_FILE2) then the shape is wrong
     # Read an image
     img2 = load(DATA_FILE2)
-    assert_equal(img2.darrays[0].data.shape, (143479, 1))
+    assert img2.darrays[0].data.shape == (143479, 1)
     # Read image for which we know output shape
     img = load(DATA_FILE1)
-    assert_equal(img.darrays[0].data.shape, (3, 3))
+    assert img.darrays[0].data.shape == (3, 3)
 
 
 def test_load_metadata():
     for i, dat in enumerate(datafiles):
         img = load(dat)
         img.meta
-        assert_equal(numDA[i], img.numDA)
-        assert_equal(img.version, '1.0')
+        assert numDA[i] == img.numDA
+        assert img.version == '1.0'
 
 
 def test_metadata_deprecations():
@@ -163,12 +162,12 @@ def test_metadata_deprecations():
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
-        assert_equal(me, img.get_meta())
+        assert me == img.get_meta()
 
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         img.set_metadata(me)
-    assert_equal(me, img.meta)
+    assert me == img.meta
 
 
 def test_load_dataarray1():
@@ -181,14 +180,14 @@ def test_load_dataarray1():
         assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
         assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
         me = img.darrays[0].meta.metadata
-        assert_true('AnatomicalStructurePrimary' in me)
-        assert_true('AnatomicalStructureSecondary' in me)
-        assert_equal(me['AnatomicalStructurePrimary'], 'CortexLeft')
+        assert 'AnatomicalStructurePrimary' in me
+        assert 'AnatomicalStructureSecondary' in me
+        me['AnatomicalStructurePrimary'] == 'CortexLeft'
         assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4, 4))
-        assert_equal(xform_codes.niistring[img.darrays[
-                     0].coordsys.dataspace], 'NIFTI_XFORM_TALAIRACH')
-        assert_equal(xform_codes.niistring[img.darrays[
-                     0].coordsys.xformspace], 'NIFTI_XFORM_TALAIRACH')
+        assert xform_codes.niistring[
+            img.darrays[0].coordsys.dataspace] == 'NIFTI_XFORM_TALAIRACH'
+        assert xform_codes.niistring[img.darrays[
+                     0].coordsys.xformspace] == 'NIFTI_XFORM_TALAIRACH'
 
 
 def test_load_dataarray2():
@@ -223,7 +222,7 @@ def test_load_dataarray4():
 def test_dataarray5():
     img5 = load(DATA_FILE5)
     for da in img5.darrays:
-        assert_equal(gifti_endian_codes.byteorder[da.endian], 'little')
+        gifti_endian_codes.byteorder[da.endian] == 'little'
     assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
     assert_array_almost_equal(img5.darrays[1].data, DATA_FILE5_darr2)
     # Round trip tested below
@@ -234,24 +233,24 @@ def test_base64_written():
         with open(DATA_FILE5, 'rb') as fobj:
             contents = fobj.read()
         # Confirm the bad tags are still in the file
-        assert_true(b'GIFTI_ENCODING_B64BIN' in contents)
-        assert_true(b'GIFTI_ENDIAN_LITTLE' in contents)
+        assert b'GIFTI_ENCODING_B64BIN' in contents
+        assert b'GIFTI_ENDIAN_LITTLE' in contents
         # The good ones are missing
-        assert_false(b'Base64Binary' in contents)
-        assert_false(b'LittleEndian' in contents)
+        assert b'Base64Binary' not in contents
+        assert b'LittleEndian' not in contents
         # Round trip
         img5 = load(DATA_FILE5)
         save(img5, 'fixed.gii')
         with open('fixed.gii', 'rb') as fobj:
             contents = fobj.read()
         # The bad codes have gone, replaced by the good ones
-        assert_false(b'GIFTI_ENCODING_B64BIN' in contents)
-        assert_false(b'GIFTI_ENDIAN_LITTLE' in contents)
-        assert_true(b'Base64Binary' in contents)
+        assert b'GIFTI_ENCODING_B64BIN' not in contents
+        assert b'GIFTI_ENDIAN_LITTLE' not in contents
+        assert b'Base64Binary' in contents
         if sys.byteorder == 'little':
-            assert_true(b'LittleEndian' in contents)
+            assert b'LittleEndian' in contents
         else:
-            assert_true(b'BigEndian' in contents)
+            assert b'BigEndian' in contents
         img5_fixed = load('fixed.gii')
         darrays = img5_fixed.darrays
         assert_array_almost_equal(darrays[0].data, DATA_FILE5_darr1)
@@ -263,7 +262,7 @@ def test_readwritedata():
     with InTemporaryDirectory():
         save(img, 'test.gii')
         img2 = load('test.gii')
-        assert_equal(img.numDA, img2.numDA)
+        assert img.numDA == img2.numDA
         assert_array_almost_equal(img.darrays[0].data,
                                   img2.darrays[0].data)
 
@@ -272,7 +271,7 @@ def test_modify_darray():
         img = load(fname)
         darray = img.darrays[0]
         darray.data[:] = 0
-        assert_true(np.array_equiv(darray.data, 0))
+        assert np.array_equiv(darray.data, 0)
 
 
 def test_write_newmetadata():
@@ -281,32 +280,32 @@ def test_write_newmetadata():
     newmeta = gi.GiftiMetaData(attr)
     img.meta = newmeta
     myme = img.meta.metadata
-    assert_true('mykey' in myme)
+    assert 'mykey' in myme
     newmeta = gi.GiftiMetaData.from_dict({'mykey1': 'val2'})
     img.meta = newmeta
     myme = img.meta.metadata
-    assert_true('mykey1' in myme)
-    assert_false('mykey' in myme)
+    assert 'mykey1' in myme
+    assert 'mykey' not in myme
 
 
 def test_load_getbyintent():
     img = load(DATA_FILE1)
     da = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")
-    assert_equal(len(da), 1)
+    assert len(da) == 1
 
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('once', category=DeprecationWarning)
         da = img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
-        assert_equal(len(da), 1)
-        assert_equal(len(w), 1)
-        assert_equal(w[0].category, DeprecationWarning)
+        assert len(da) == 1
+        assert len(w) == 1
+        w[0].category == DeprecationWarning
 
     da = img.get_arrays_from_intent("NIFTI_INTENT_TRIANGLE")
-    assert_equal(len(da), 1)
+    assert len(da) == 1
 
     da = img.get_arrays_from_intent("NIFTI_INTENT_CORREL")
-    assert_equal(len(da), 0)
-    assert_equal(da, [])
+    assert len(da) == 0
+    assert da == []
 
 
 def test_load_labeltable():
@@ -317,15 +316,15 @@ def test_load_labeltable():
         bimg = load('test.gii')
     for img in (img6, bimg):
         assert_array_almost_equal(img.darrays[0].data[:3], DATA_FILE6_darr1)
-        assert_equal(len(img.labeltable.labels), 36)
+        assert len(img.labeltable.labels) == 36
         labeldict = img.labeltable.get_labels_as_dict()
-        assert_true(660700 in labeldict)
-        assert_equal(labeldict[660700], 'entorhinal')
-        assert_equal(img.labeltable.labels[1].key, 2647065)
-        assert_equal(img.labeltable.labels[1].red, 0.0980392)
-        assert_equal(img.labeltable.labels[1].green, 0.392157)
-        assert_equal(img.labeltable.labels[1].blue, 0.156863)
-        assert_equal(img.labeltable.labels[1].alpha, 1)
+        assert 660700 in labeldict
+        assert labeldict[660700] == 'entorhinal'
+        assert img.labeltable.labels[1].key == 2647065
+        assert img.labeltable.labels[1].red == 0.0980392
+        assert img.labeltable.labels[1].green == 0.392157
+        assert img.labeltable.labels[1].blue == 0.156863
+        assert img.labeltable.labels[1].alpha == 1
 
 
 def test_labeltable_deprecations():
@@ -335,14 +334,14 @@ def test_labeltable_deprecations():
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
-        assert_equal(lt, img.get_labeltable())
-        assert_equal(len(w), 1)
+        assert lt == img.get_labeltable()
+        assert len(w) == 1
 
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
         img.set_labeltable(lt)
-        assert_equal(len(w), 1)
-    assert_equal(lt, img.labeltable)
+        assert len(w) == 1
+    assert lt == img.labeltable
 
 
 def test_parse_dataarrays():
@@ -361,8 +360,8 @@ def test_parse_dataarrays():
         with clear_and_catch_warnings() as w:
             warnings.filterwarnings('once', category=UserWarning)
             load(fn)
-            assert_equal(len(w), 1)
-            assert_equal(img.numDA, 0)
+            assert len(w) == 1
+            assert img.numDA == 0
 
 
 def test_parse_deprecated():
@@ -371,16 +370,16 @@ def test_parse_deprecated():
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
         op = Outputter()
-        assert_equal(len(w), 1)
+        assert len(w) == 1
         op.initialize()  # smoke test--no error.
 
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
-        assert_raises(ValueError, parse_gifti_file)
-        assert_equal(len(w), 1)
+        pytest.raises(ValueError, parse_gifti_file)
+        assert len(w) == 1
 
 
 def test_parse_with_buffersize():
     for buff_sz in [None, 1, 2**12]:
         img2 = load(DATA_FILE2, buffer_size=buff_sz)
-        assert_equal(img2.darrays[0].data.shape, (143479, 1))
+        assert img2.darrays[0].data.shape == (143479, 1)

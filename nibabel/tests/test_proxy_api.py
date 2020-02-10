@@ -51,6 +51,7 @@ from ..casting import have_binary128
 
 from ..arrayproxy import ArrayProxy, is_proxy
 
+import unittest
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
 
@@ -428,7 +429,7 @@ class TestEcatAPI(_TestProxyAPI):
                     arr_out=arr_out))
 
     def validate_header_isolated(self, pmaker, params):
-        raise pytest.skip('ECAT header does not support dtype get')
+        raise unittest.SkipTest('ECAT header does not support dtype get')
 
 
 class TestPARRECAPI(_TestProxyAPI):
