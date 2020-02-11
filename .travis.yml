@@ -44,7 +44,7 @@ matrix:
     # Absolute minimum dependencies plus oldest MPL
     - python: 3.5
       env:
-        - DEPENDS="-r min-requirements.txt matplotlib==1.5.2"
+        - DEPENDS="-r min-requirements.txt matplotlib==1.5.3"
     # Minimum pydicom dependency
     - python: 3.5
       env:
