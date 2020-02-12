@@ -20,7 +20,8 @@ from numpy.testing import assert_array_equal, assert_equal
 from nose.tools import assert_raises, assert_true
 
 # Need at least MPL 1.3 for viewer tests.
-matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.3')
+# 2020.02.11 - 1.3 wheels are no longer distributed, so the minimum we test with is 1.5
+matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.5')
 
 needs_mpl = skipif(not has_mpl, 'These tests need matplotlib')
 if has_mpl:
