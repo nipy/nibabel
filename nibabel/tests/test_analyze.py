@@ -34,11 +34,11 @@ from ..arraywriters import WriterError
 import pytest
 from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 
-from ..testing_pytest import (data_path, suppress_warnings, assert_dt_equal)
+from ..testing import (data_path, suppress_warnings, assert_dt_equal,
+                       bytesio_filemap, bytesio_round_trip)
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
-from ..testing_pytest import bytesio_filemap, bytesio_round_trip
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 

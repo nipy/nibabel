@@ -16,7 +16,7 @@ from ...fileholders import FileHolder
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
-from ...testing_pytest import clear_and_catch_warnings, test_data
+from ...testing import clear_and_catch_warnings, test_data
 from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
                                     DATA_FILE4, DATA_FILE5, DATA_FILE6)
 import itertools

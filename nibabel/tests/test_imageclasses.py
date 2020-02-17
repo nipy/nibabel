@@ -16,7 +16,7 @@ from nibabel import imageclasses
 from nibabel.imageclasses import spatial_axes_first, class_map, ext_map
 
 
-from nibabel.testing_pytest import clear_and_catch_warnings
+from nibabel.testing import clear_and_catch_warnings
 
 
 DATA_DIR = pjoin(dirname(__file__), 'data')

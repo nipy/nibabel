@@ -7,7 +7,7 @@ import warnings
 
 import numpy as np
 
-from ..testing_pytest import (error_warnings, suppress_warnings,
+from ..testing import (error_warnings, suppress_warnings,
                        clear_and_catch_warnings, assert_allclose_safely,
                        get_fresh_mod, assert_re_in, test_data, data_path)
 import pytest

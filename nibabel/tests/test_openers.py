@@ -20,7 +20,7 @@ from ..volumeutils import BinOpener
 
 from unittest import mock
 import pytest
-from ..testing_pytest import error_warnings
+from ..testing import error_warnings
 
 
 class Lunk(object):

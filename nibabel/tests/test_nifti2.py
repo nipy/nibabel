@@ -21,7 +21,7 @@ from .test_nifti1 import (TestNifti1PairHeader, TestNifti1SingleHeader,
 
 from numpy.testing import assert_array_equal
 
-from ..testing_pytest import data_path
+from ..testing import data_path
 
 header_file = os.path.join(data_path, 'nifti2.hdr')
 image_file = os.path.join(data_path, 'example_nifti2.nii.gz')

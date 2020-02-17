@@ -8,7 +8,7 @@ import numpy as np
 from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
                        as_int, int_abs, floor_log2, able_int_type, best_float,
                        ulp, longdouble_precision_improved)
-from ..testing_pytest import suppress_warnings
+from ..testing import suppress_warnings
 
 from numpy.testing import (assert_array_almost_equal, assert_array_equal)
 

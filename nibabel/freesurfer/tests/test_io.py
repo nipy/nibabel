@@ -19,7 +19,7 @@ from ..io import _pack_rgb
 
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
-from ...testing_pytest import clear_and_catch_warnings
+from ...testing import clear_and_catch_warnings
 
 DATA_SDIR = 'fsaverage'
 

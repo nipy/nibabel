@@ -10,7 +10,7 @@ import pytest
 from nibabel.deprecator import (_ensure_cr, _add_dep_doc,
                                 ExpiredDeprecationError, Deprecator)
 
-from ..testing_pytest import clear_and_catch_warnings
+from ..testing import clear_and_catch_warnings
 
 _OWN_MODULE = sys.modules[__name__]
 

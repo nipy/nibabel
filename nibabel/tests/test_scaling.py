@@ -13,7 +13,7 @@ import numpy as np
 from io import BytesIO
 from ..volumeutils import finite_range, apply_read_scaling, array_to_file, array_from_file
 from ..casting import type_info
-from ..testing_pytest import suppress_warnings
+from ..testing import suppress_warnings
 
 from .test_volumeutils import _calculate_scale
 

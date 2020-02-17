@@ -29,7 +29,7 @@ from ..casting import type_info, shared_range
 from ..volumeutils import apply_read_scaling, _dt_min_max
 from ..spatialimages import supported_np_types, HeaderDataError
 
-from ..testing_pytest import (
+from ..testing import (
     bytesio_round_trip,
     bytesio_filemap,
     assert_allclose_safely,

@@ -15,7 +15,7 @@ from .. import minc2
 from ..minc2 import Minc2File, Minc2Image
 from .._h5py_compat import h5py, have_h5py, setup_module
 
-from ..testing_pytest import data_path
+from ..testing import data_path
 
 from . import test_minc1 as tm2
 

@@ -9,7 +9,7 @@ from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        int_to_float, floor_log2, type_info, _check_nmant,
                        _check_maxexp, ok_floats, on_powerpc, have_binary128,
                        longdouble_precision_improved)
-from ..testing_pytest import suppress_warnings
+from ..testing import suppress_warnings
 
 import pytest
 

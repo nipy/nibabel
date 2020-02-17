@@ -8,7 +8,7 @@ from os.path import join as pjoin
 from io import BytesIO
 
 import pytest
-from ...testing_pytest import data_path, clear_and_catch_warnings, assert_arr_dict_equal
+from ...testing import data_path, clear_and_catch_warnings, assert_arr_dict_equal
 from numpy.testing import assert_array_equal
 
 from .test_tractogram import assert_tractogram_equal

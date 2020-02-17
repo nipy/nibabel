@@ -34,7 +34,7 @@ from ..volumeutils import swapped_code, native_code, Recoder
 from ..spatialimages import HeaderDataError
 from .. import imageglobals
 
-from ..testing_pytest import BaseTestCase
+from ..testing import BaseTestCase
 
 from numpy.testing import assert_array_equal
 import pytest

@@ -13,7 +13,7 @@ from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
 import pytest
-from ...testing_pytest import (
+from ...testing import (
     clear_and_catch_warnings, error_warnings, suppress_warnings, assert_array_equal)
 
 affine = [[-1.5, 0, 0, 90],

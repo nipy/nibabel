@@ -21,7 +21,7 @@ from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 
 import pytest
-from ..testing_pytest import (clear_and_catch_warnings, suppress_warnings,
+from ..testing import (clear_and_catch_warnings, suppress_warnings,
                        assert_arr_dict_equal)
 
 from .test_arrayproxy import check_mmap

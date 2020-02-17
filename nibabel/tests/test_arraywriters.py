@@ -16,8 +16,8 @@ from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
-from ..testing_pytest import (assert_allclose_safely, suppress_warnings,
-                              error_warnings)
+from ..testing import (assert_allclose_safely, suppress_warnings,
+                       error_warnings)
 
 
 FLOAT_TYPES = np.sctypes['float']

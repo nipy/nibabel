@@ -55,7 +55,7 @@ import unittest
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
 
-from ..testing_pytest import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
+from ..testing import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
 from ..deprecator import ExpiredDeprecationError
 
 from ..tmpdirs import InTemporaryDirectory

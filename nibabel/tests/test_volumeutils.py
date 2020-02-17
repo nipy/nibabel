@@ -57,7 +57,7 @@ from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 import pytest
 
-from ..testing_pytest import assert_dt_equal, assert_allclose_safely, suppress_warnings
+from ..testing import assert_dt_equal, assert_allclose_safely, suppress_warnings
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']

@@ -21,7 +21,7 @@ import pytest
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from ..testing_pytest import data_path, suppress_warnings
+from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_wrapstruct import _TestWrapStructBase

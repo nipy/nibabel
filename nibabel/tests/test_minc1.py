@@ -25,7 +25,7 @@ from ..minc1 import Minc1File, Minc1Image, MincHeader
 
 from ..tmpdirs import InTemporaryDirectory
 from ..deprecator import ExpiredDeprecationError
-from ..testing_pytest import assert_data_similar, data_path, clear_and_catch_warnings
+from ..testing import assert_data_similar, data_path, clear_and_catch_warnings
 from numpy.testing import assert_array_equal
 import pytest
 

@@ -22,7 +22,7 @@ import pytest
 from unittest import TestCase
 from numpy.testing import assert_array_almost_equal
 
-from ..testing_pytest import (
+from ..testing import (
     bytesio_round_trip,
     clear_and_catch_warnings,
     suppress_warnings,

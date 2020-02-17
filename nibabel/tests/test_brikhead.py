@@ -16,7 +16,7 @@ from .. import brikhead
 
 import pytest
 from numpy.testing import assert_array_equal
-from ..testing_pytest import data_path, assert_data_similar
+from ..testing import data_path, assert_data_similar
 
 from .test_fileslice import slicer_samples
 

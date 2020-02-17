@@ -4,7 +4,7 @@
 import os
 from os.path import join as pjoin, dirname
 from io import BytesIO
-from ..testing_pytest import suppress_warnings
+from ..testing import suppress_warnings
 
 with suppress_warnings():
     from .. import dft

@@ -7,7 +7,7 @@ import operator
 from collections import defaultdict
 
 import pytest
-from ...testing_pytest import assert_arrays_equal, clear_and_catch_warnings
+from ...testing import assert_arrays_equal, clear_and_catch_warnings
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from .. import tractogram as module_tractogram

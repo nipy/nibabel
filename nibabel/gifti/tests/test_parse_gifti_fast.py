@@ -23,7 +23,7 @@ from ...tmpdirs import InTemporaryDirectory
 from numpy.testing import assert_array_almost_equal
 
 import pytest
-from ...testing_pytest import clear_and_catch_warnings
+from ...testing import clear_and_catch_warnings
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')

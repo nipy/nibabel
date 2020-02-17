@@ -27,7 +27,7 @@ from unittest import mock
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
-from ..testing_pytest import memmap_after_ufunc
+from ..testing import memmap_after_ufunc
 
 from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip

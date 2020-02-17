@@ -16,7 +16,7 @@ from ..tck import TckFile
 
 import pytest
 from numpy.testing import assert_array_equal
-from ...testing_pytest import data_path, clear_and_catch_warnings
+from ...testing import data_path, clear_and_catch_warnings
 from .test_tractogram import assert_tractogram_equal
 
 DATA = {}

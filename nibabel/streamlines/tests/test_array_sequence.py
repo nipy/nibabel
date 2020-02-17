@@ -6,7 +6,7 @@ import itertools
 import numpy as np
 
 import pytest
-from ...testing_pytest import assert_arrays_equal
+from ...testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
 
 from ..array_sequence import ArraySequence, is_array_sequence, concatenate
