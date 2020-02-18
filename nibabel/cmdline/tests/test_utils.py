@@ -5,8 +5,6 @@
 Test running scripts
 """
 
-from numpy.testing import assert_raises
-
 import pytest
 
 import nibabel as nib
@@ -196,10 +194,10 @@ def test_main():
                               -7.24879837e+00]).astype(dtype="float32")]),
         ('DATA(md5)', ['0a2576dd6badbb25bfb3b12076df986b', 'b0abbc492b4fd533b2c80d82570062cf'])])
 
-    with assert_raises(SystemExit):
+    with pytest.raises(SystemExit):
         np.testing.assert_equal(main(test_names, StringIO()), expected_difference)
 
     test_names_2 = [pjoin(data_path, f) for f in ('standard.nii.gz', 'standard.nii.gz')]
 
-    with assert_raises(SystemExit):
+    with pytest.raises(SystemExit):
         assert main(test_names_2, StringIO()) == "These files are identical."
