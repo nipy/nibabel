@@ -36,29 +36,6 @@ Quickstart
 For more detailed information see the :ref:`manual`.
 """
 
-# Package-wide test setup and teardown
-_test_states = {
-    # Numpy changed print options in 1.14; we can update docstrings and remove
-    # these when our minimum for building docs exceeds that
-    'legacy_printopt': None,
-    }
-
-def setup_package():
-    """ Set numpy print style to legacy="1.13" for newer versions of numpy """
-    import numpy as np
-    from distutils.version import LooseVersion
-    if LooseVersion(np.__version__) >= LooseVersion('1.14'):
-        if _test_states.get('legacy_printopt') is None:
-            _test_states['legacy_printopt'] = np.get_printoptions().get('legacy')
-        np.set_printoptions(legacy="1.13")
-
-def teardown_package():
-    """ Reset print options when tests finish """
-    import numpy as np
-    if _test_states.get('legacy_printopt') is not None:
-        np.set_printoptions(legacy=_test_states.pop('legacy_printopt'))
-
-
 # module imports
 from . import analyze as ana
 from . import spm99analyze as spm99
