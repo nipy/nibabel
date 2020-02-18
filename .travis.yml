@@ -57,15 +57,28 @@ matrix:
     - python: 3.7
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
+    # OSX Python support is basically accidental. Take whatever version we can
+    # get and test with full dependencies...
+    - os: osx
+      language: minimal
+    # and pre-releases. No min-requirements.txt because we can't assume a wheel that old.
+    - os: osx
+      language: minimal
+      env:
+        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
+    # Test that PyPI installs from source pass
     - python: 3.5
       env:
         - INSTALL_TYPE=sdist
+    # Wheels (binary distributions)
     - python: 3.5
       env:
         - INSTALL_TYPE=wheel
+    # Install from git archive (e.g., https://github.com/nipy/nibabel/archive/master.zip)
     - python: 3.5
       env:
         - INSTALL_TYPE=archive
+    # Run flake8... Might not be needed now we have pep8speaks
     - python: 3.5
       env:
         - CHECK_TYPE="style"
@@ -76,42 +89,42 @@ matrix:
 
 # Set up virtual environment, build package, build from depends
 before_install:
-    - travis_retry python -m pip install --upgrade pip virtualenv
-    - virtualenv --python=python venv
+    - travis_retry python3 -m pip install --upgrade pip virtualenv
+    - virtualenv --python=python3 venv
     - source venv/bin/activate
-    - python --version # just to check
-    - travis_retry pip install -U $SETUP_REQUIRES
+    - python3 --version # just to check
+    - travis_retry python3 -m pip install -U $SETUP_REQUIRES
     - |
       if [ "$INSTALL_TYPE" == "sdist" ]; then
-        python setup.py egg_info  # check egg_info while we're here
-        python setup.py sdist
+        python3 setup.py egg_info  # check egg_info while we're here
+        python3 setup.py sdist
         export ARCHIVE=$( ls dist/*.tar.gz )
       elif [ "$INSTALL_TYPE" == "wheel" ]; then
-        python setup.py bdist_wheel
+        python3 setup.py bdist_wheel
         export ARCHIVE=$( ls dist/*.whl )
       elif [ "$INSTALL_TYPE" == "archive" ]; then
         export ARCHIVE="package.tar.gz"
         git archive -o $ARCHIVE HEAD
       fi
-    - if [ -n "$DEPENDS" ]; then pip install $EXTRA_PIP_FLAGS $DEPENDS; fi
+    - if [ -n "$DEPENDS" ]; then python3 -m pip install $EXTRA_PIP_FLAGS $DEPENDS; fi
 
 # command to install dependencies
 install:
     - |
       if [ "$INSTALL_TYPE" == "setup" ]; then
-          python setup.py install
+          python3 setup.py install
       else
-          pip install $EXTRA_PIP_FLAGS $ARCHIVE
+          python3 -m pip install $EXTRA_PIP_FLAGS $ARCHIVE
       fi
     # Basic import check
-    - python -c 'import nibabel; print(nibabel.__version__)'
+    - python3 -c 'import nibabel; print(nibabel.__version__)'
     - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
 
 before_script:
     # Point to nibabel data directory
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
     # Because nibabel is already installed, will just look up the extra
-    - pip install $EXTRA_PIP_FLAGS "nibabel[$CHECK_TYPE]"
+    - python3 -m pip install $EXTRA_PIP_FLAGS "nibabel[$CHECK_TYPE]"
 
 # command to run tests, e.g. python setup.py test
 script:
@@ -134,7 +147,7 @@ script:
       fi
 
 after_script:
-    - travis_retry pip install codecov
+    - travis_retry python3 -m pip install codecov
     - codecov
 
 notifications:
