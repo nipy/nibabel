@@ -69,13 +69,105 @@ from . import mriutils
 from . import streamlines
 from . import viewers
 
-from numpy.testing import Tester
-test = Tester().test
-bench = Tester().bench
-del Tester
-
 from .pkg_info import get_pkg_info as _get_pkg_info
 
 
 def get_info():
     return _get_pkg_info(os.path.dirname(__file__))
+
+
+def test(label=None, verbose=1, extra_argv=None,
+         doctests=False, coverage=False, raise_warnings=None,
+         timer=False):
+    """
+    Run tests for nibabel using pytest
+
+    The protocol mimics the ``numpy.testing.NoseTester.test()``.
+    Not all features are currently implemented.
+
+    Parameters
+    ----------
+    label : None
+        Unused.
+    verbose: int, optional
+        Verbosity value for test outputs. Positive values increase verbosity, and
+        negative values decrease it. Default is 1.
+    extra_argv : list, optional
+        List with any extra arguments to pass to pytest.
+    doctests: bool, optional
+        If True, run doctests in module. Default is False.
+    coverage: bool, optional
+        If True, report coverage of NumPy code. Default is False.
+        (This requires the
+        `coverage module <https://nedbatchelder.com/code/modules/coveragehtml>`_).
+    raise_warnings : None
+        Unused.
+    timer : False
+        Unused.
+
+    Returns
+    -------
+    code : ExitCode
+        Returns the result of running the tests as a ``pytest.ExitCode`` enum
+    """
+    import pytest
+    args = []
+
+    if label is not None:
+        raise NotImplementedError("Labels cannot be set at present")
+
+    try:
+        verbose = int(verbose)
+    except ValueError:
+        pass
+    else:
+        if verbose > 0:
+            args.append("-" + "v" * verbose)
+        elif verbose < 0:
+            args.append("-" + "q" * -verbose)
+
+    if extra_argv:
+        args.extend(extra_argv)
+    if doctests:
+        args.append("--doctest-modules")
+    if coverage:
+        args.extend(["--cov", "nibabel"])
+    if raise_warnings:
+        raise NotImplementedError("Warning filters are not implemented")
+    if timer:
+        raise NotImplementedError("Timing is not implemented")
+
+    args.extend(["--pyargs", "nibabel"])
+
+    pytest.main(args=args)
+
+
+def bench(label=None, verbose=1, extra_argv=None):
+    """
+    Run benchmarks for nibabel using pytest
+
+    The protocol mimics the ``numpy.testing.NoseTester.bench()``.
+    Not all features are currently implemented.
+
+    Parameters
+    ----------
+    label : None
+        Unused.
+    verbose: int, optional
+        Verbosity value for test outputs. Positive values increase verbosity, and
+        negative values decrease it. Default is 1.
+    extra_argv : list, optional
+        List with any extra arguments to pass to pytest.
+
+    Returns
+    -------
+    code : ExitCode
+        Returns the result of running the tests as a ``pytest.ExitCode`` enum
+    """
+    from pkg_resources import resource_filename
+    config = resource_filename("nibabel", "benchmarks/pytest.benchmark.ini")
+    args = []
+    if extra_argv is not None:
+        args.extend(extra_argv)
+    args.extend(["-c", config])
+    test(label, verbose, extra_argv=args)
