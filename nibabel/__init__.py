@@ -139,7 +139,7 @@ def test(label=None, verbose=1, extra_argv=None,
 
     args.extend(["--pyargs", "nibabel"])
 
-    pytest.main(args=args)
+    return pytest.main(args=args)
 
 
 def bench(label=None, verbose=1, extra_argv=None):
@@ -170,4 +170,4 @@ def bench(label=None, verbose=1, extra_argv=None):
     if extra_argv is not None:
         args.extend(extra_argv)
     args.extend(["-c", config])
-    test(label, verbose, extra_argv=args)
+    return test(label, verbose, extra_argv=args)
