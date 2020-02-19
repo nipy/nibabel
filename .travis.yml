@@ -94,6 +94,8 @@ before_install:
     - source venv/bin/activate
     - python3 --version # just to check
     - travis_retry python3 -m pip install -U $SETUP_REQUIRES
+    - which python3
+    - which pip
     - |
       if [ "$INSTALL_TYPE" == "sdist" ]; then
         python3 setup.py egg_info  # check egg_info while we're here
@@ -106,7 +108,7 @@ before_install:
         export ARCHIVE="package.tar.gz"
         git archive -o $ARCHIVE HEAD
       fi
-    - if [ -n "$DEPENDS" ]; then python3 -m pip install $EXTRA_PIP_FLAGS $DEPENDS; fi
+    - if [ -n "$DEPENDS" ]; then pip install $EXTRA_PIP_FLAGS $DEPENDS; fi
 
 # command to install dependencies
 install:
@@ -114,7 +116,7 @@ install:
       if [ "$INSTALL_TYPE" == "setup" ]; then
           python3 setup.py install
       else
-          python3 -m pip install $EXTRA_PIP_FLAGS $ARCHIVE
+          pip install $EXTRA_PIP_FLAGS $ARCHIVE
       fi
     # Basic import check
     - python3 -c 'import nibabel; print(nibabel.__version__)'
