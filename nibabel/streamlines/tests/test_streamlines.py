@@ -10,9 +10,7 @@ from io import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
 from numpy.compat.py3k import asbytes
 
-from nibabel.testing import data_path
-from nibabel.testing import clear_and_catch_warnings
-from nose.tools import assert_equal, assert_raises, assert_true, assert_false
+from nibabel.testing import data_path, clear_and_catch_warnings
 
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
@@ -82,50 +80,50 @@ def test_is_supported_detect_format():
     # Test is_supported and detect_format functions
     # Empty file/string
     f = BytesIO()
-    assert_false(nib.streamlines.is_supported(f))
-    assert_false(nib.streamlines.is_supported(""))
-    assert_true(nib.streamlines.detect_format(f) is None)
-    assert_true(nib.streamlines.detect_format("") is None)
+    assert not nib.streamlines.is_supported(f)
+    assert not nib.streamlines.is_supported("")
+    assert nib.streamlines.detect_format(f) is None
+    assert nib.streamlines.detect_format("") is None
 
     # Valid file without extension
     for tfile_cls in FORMATS.values():
         f = BytesIO()
         f.write(asbytes(tfile_cls.MAGIC_NUMBER))
         f.seek(0, os.SEEK_SET)
-        assert_true(nib.streamlines.is_supported(f))
-        assert_true(nib.streamlines.detect_format(f) is tfile_cls)
+        assert nib.streamlines.is_supported(f)
+        assert nib.streamlines.detect_format(f) is tfile_cls
 
     # Wrong extension but right magic number
     for tfile_cls in FORMATS.values():
         with tempfile.TemporaryFile(mode="w+b", suffix=".txt") as f:
             f.write(asbytes(tfile_cls.MAGIC_NUMBER))
             f.seek(0, os.SEEK_SET)
-            assert_true(nib.streamlines.is_supported(f))
-            assert_true(nib.streamlines.detect_format(f) is tfile_cls)
+            assert nib.streamlines.is_supported(f)
+            assert nib.streamlines.detect_format(f) is tfile_cls
 
     # Good extension but wrong magic number
     for ext, tfile_cls in FORMATS.items():
         with tempfile.TemporaryFile(mode="w+b", suffix=ext) as f:
             f.write(b"pass")
             f.seek(0, os.SEEK_SET)
-            assert_false(nib.streamlines.is_supported(f))
-            assert_true(nib.streamlines.detect_format(f) is None)
+            assert not nib.streamlines.is_supported(f)
+            assert nib.streamlines.detect_format(f) is None
 
     # Wrong extension, string only
     f = "my_tractogram.asd"
-    assert_false(nib.streamlines.is_supported(f))
-    assert_true(nib.streamlines.detect_format(f) is None)
+    assert not nib.streamlines.is_supported(f)
+    assert nib.streamlines.detect_format(f) is None
 
     # Good extension, string only
     for ext, tfile_cls in FORMATS.items():
         f = "my_tractogram" + ext
-        assert_true(nib.streamlines.is_supported(f))
-        assert_equal(nib.streamlines.detect_format(f), tfile_cls)
+        assert nib.streamlines.is_supported(f)
+        assert nib.streamlines.detect_format(f) == tfile_cls
 
     # Extension should not be case-sensitive.
     for ext, tfile_cls in FORMATS.items():
         f = "my_tractogram" + ext.upper()
-        assert_true(nib.streamlines.detect_format(f) is tfile_cls)
+        assert nib.streamlines.detect_format(f) is tfile_cls
 
 
 class TestLoadSave(unittest.TestCase):
@@ -135,12 +133,12 @@ class TestLoadSave(unittest.TestCase):
             for empty_filename in DATA['empty_filenames']:
                 tfile = nib.streamlines.load(empty_filename,
                                              lazy_load=lazy_load)
-                assert_true(isinstance(tfile, TractogramFile))
+                assert isinstance(tfile, TractogramFile)
 
                 if lazy_load:
-                    assert_true(type(tfile.tractogram), Tractogram)
+                    assert type(tfile.tractogram), Tractogram
                 else:
-                    assert_true(type(tfile.tractogram), LazyTractogram)
+                    assert type(tfile.tractogram), LazyTractogram
 
                 assert_tractogram_equal(tfile.tractogram,
                                         DATA['empty_tractogram'])
@@ -150,12 +148,12 @@ class TestLoadSave(unittest.TestCase):
             for simple_filename in DATA['simple_filenames']:
                 tfile = nib.streamlines.load(simple_filename,
                                              lazy_load=lazy_load)
-                assert_true(isinstance(tfile, TractogramFile))
+                assert isinstance(tfile, TractogramFile)
 
                 if lazy_load:
-                    assert_true(type(tfile.tractogram), Tractogram)
+                    assert type(tfile.tractogram), Tractogram
                 else:
-                    assert_true(type(tfile.tractogram), LazyTractogram)
+                    assert type(tfile.tractogram), LazyTractogram
 
                 assert_tractogram_equal(tfile.tractogram,
                                         DATA['simple_tractogram'])
@@ -165,12 +163,12 @@ class TestLoadSave(unittest.TestCase):
             for complex_filename in DATA['complex_filenames']:
                 tfile = nib.streamlines.load(complex_filename,
                                              lazy_load=lazy_load)
-                assert_true(isinstance(tfile, TractogramFile))
+                assert isinstance(tfile, TractogramFile)
 
                 if lazy_load:
-                    assert_true(type(tfile.tractogram), Tractogram)
+                    assert type(tfile.tractogram), Tractogram
                 else:
-                    assert_true(type(tfile.tractogram), LazyTractogram)
+                    assert type(tfile.tractogram), LazyTractogram
 
                 tractogram = Tractogram(DATA['streamlines'],
                                         affine_to_rasmm=np.eye(4))
@@ -191,19 +189,19 @@ class TestLoadSave(unittest.TestCase):
         trk_file = trk.TrkFile(tractogram)
 
         # No need for keyword arguments.
-        assert_raises(ValueError, nib.streamlines.save,
-                      trk_file, "dummy.trk", header={})
+        with self.assertRaises(ValueError):
+            nib.streamlines.save(trk_file, "dummy.trk", header={})
 
         # Wrong extension.
         with clear_and_catch_warnings(record=True,
                                       modules=[nib.streamlines]) as w:
             trk_file = trk.TrkFile(tractogram)
-            assert_raises(ValueError, nib.streamlines.save,
-                          trk_file, "dummy.tck", header={})
+            with self.assertRaises(ValueError):
+                nib.streamlines.save(trk_file, "dummy.tck", header={})
 
-            assert_equal(len(w), 1)
-            assert_true(issubclass(w[0].category, ExtensionWarning))
-            assert_true("extension" in str(w[0].message))
+            assert len(w) == 1
+            assert issubclass(w[0].category, ExtensionWarning)
+            assert "extension" in str(w[0].message)
 
         with InTemporaryDirectory():
             nib.streamlines.save(trk_file, "dummy.trk")
@@ -250,9 +248,9 @@ class TestLoadSave(unittest.TestCase):
                         ((not cls.SUPPORTS_DATA_PER_POINT) +
                          (not cls.SUPPORTS_DATA_PER_STREAMLINE))
 
-                    assert_equal(len(w), nb_expected_warnings)
+                    assert len(w) == nb_expected_warnings
                     for i in range(nb_expected_warnings):
-                        assert_true(issubclass(w[i].category, Warning))
+                        assert issubclass(w[i].category, Warning)
 
                     tractogram = Tractogram(DATA['streamlines'],
                                             affine_to_rasmm=np.eye(4))
@@ -281,10 +279,12 @@ class TestLoadSave(unittest.TestCase):
                 assert_tractogram_equal(tractogram, original_tractogram)
 
     def test_load_unknown_format(self):
-        assert_raises(ValueError, nib.streamlines.load, "")
+        with self.assertRaises(ValueError):
+            nib.streamlines.load("")
 
     def test_save_unknown_format(self):
-        assert_raises(ValueError, nib.streamlines.save, Tractogram(), "")
+        with self.assertRaises(ValueError):
+            nib.streamlines.save(Tractogram(), "")
 
     def test_save_from_generator(self):
         tractogram = Tractogram(DATA['streamlines'],

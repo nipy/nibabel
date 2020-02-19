@@ -476,14 +476,14 @@ class TestMyWrapStruct(_TestWrapStructBase):
         assert fhdr['an_integer'] == 1
         assert (message ==
                      'an_integer should be 1; set an_integer to 1')
-        assert_raises(*raiser)
+        pytest.raises(*raiser)
         # lower case string
         hdr = HC()
         hdr['a_str'] = 'Hello'  # severity = 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert (message == 'a_str should be lower case; '
                      'set a_str to lower case')
-        assert_raises(*raiser)
+        pytest.raises(*raiser)
 
     def test_logger_error(self):
         # Check that we can reset the logger and error level

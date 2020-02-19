@@ -40,24 +40,6 @@ jobs:
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
-        nosetests --with-doctest --with-coverage --cover-package nibabel nibabel ^
-          -I test_data ^
-          -I test_environment ^
-          -I test_euler ^
-          -I test_giftiio ^
-          -I test_netcdf ^
-          -I test_pkg_info ^
-          -I test_quaternions ^
-          -I test_scaling ^
-          -I test_scripts ^
-          -I test_spaces ^
-          -I test_testing
-      displayName: 'Nose tests'
-      condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'nosetests'))
-    - script: |
-        mkdir for_testing
-        cd for_testing
-        cp ../.coveragerc .
         pytest --doctest-modules --cov nibabel -v --pyargs nibabel
       displayName: 'Pytest tests'
       condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'test'))

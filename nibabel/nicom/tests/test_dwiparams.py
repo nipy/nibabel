@@ -6,10 +6,9 @@ import numpy as np
 
 from ..dwiparams import B2q, q2bg
 
-from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
+import pytest
 
-from numpy.testing import (assert_array_equal, assert_array_almost_equal,
-                           assert_equal as np_assert_equal)
+from numpy.testing import (assert_array_almost_equal, assert_equal as np_assert_equal)
 
 
 def test_b2q():
@@ -27,17 +26,20 @@ def test_b2q():
     assert_array_almost_equal(-q * s, B2q(B))
     # Massive negative eigs
     B = np.eye(3) * -1
-    assert_raises(ValueError, B2q, B)
+    with pytest.raises(ValueError):
+        B2q(B)
     # no error if we up the tolerance
     q = B2q(B, tol=1)
     # Less massive negativity, dropping tol
     B = np.diag([-1e-14, 10., 1])
-    assert_raises(ValueError, B2q, B)
+    with pytest.raises(ValueError):
+        B2q(B)
     assert_array_almost_equal(B2q(B, tol=5e-13), [0, 10, 0])
     # Confirm that we assume symmetric
     B = np.eye(3)
     B[0, 1] = 1e-5
-    assert_raises(ValueError, B2q, B)
+    with pytest.raises(ValueError):
+        B2q(B)
 
 
 def test_q2bg():

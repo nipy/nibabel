@@ -25,7 +25,7 @@ Long-running tests
 Long-running tests are not enabled by default, and can be resource-intensive. To run these tests:
 
 * Set environment variable ``NIPY_EXTRA_TESTS=slow``;
-* Run ``nosetests``.
+* Run ``pytest nibabel``.
 
 Note that some tests may require a machine with >4GB of RAM.
 
