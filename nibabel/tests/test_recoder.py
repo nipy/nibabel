@@ -49,7 +49,7 @@ def test_recoder_3():
     with pytest.raises(AttributeError):
         rc.label
 
-def test_recoder_3():
+def test_recoder_4():
     # with explicit column names
     codes = ((1, 'one'), (2, 'two'))
     rc = Recoder(codes, ['code1', 'label'])
@@ -61,7 +61,7 @@ def test_recoder_3():
     assert rc.label['one'] == 'one'
 
 
-def test_recoder_4():
+def test_recoder_5():
     # code, label, aliases
     codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes)  # just with implicit alias
@@ -70,7 +70,7 @@ def test_recoder_4():
     assert rc.code['first'] == 1
 
 
-def test_recoder_5():
+def test_recoder_6():
     # with explicit column names
     codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes, ['code1', 'label'])
