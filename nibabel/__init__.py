@@ -116,15 +116,11 @@ def test(label=None, verbose=1, extra_argv=None,
     if label is not None:
         raise NotImplementedError("Labels cannot be set at present")
 
-    try:
-        verbose = int(verbose)
-    except ValueError:
-        pass
-    else:
-        if verbose > 0:
-            args.append("-" + "v" * verbose)
-        elif verbose < 0:
-            args.append("-" + "q" * -verbose)
+    verbose = int(verbose)
+    if verbose > 0:
+        args.append("-" + "v" * verbose)
+    elif verbose < 0:
+        args.append("-" + "q" * -verbose)
 
     if extra_argv:
         args.extend(extra_argv)
@@ -132,7 +128,7 @@ def test(label=None, verbose=1, extra_argv=None,
         args.append("--doctest-modules")
     if coverage:
         args.extend(["--cov", "nibabel"])
-    if raise_warnings:
+    if raise_warnings is not None:
         raise NotImplementedError("Warning filters are not implemented")
     if timer:
         raise NotImplementedError("Timing is not implemented")
