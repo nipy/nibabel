@@ -267,25 +267,25 @@ def test_ornt2axcodes():
     # Recoding orientation to axis codes
     labels = (('left', 'right'), ('back', 'front'), ('down', 'up'))
     assert ornt2axcodes([[0, 1],
-                               [1, 1],
-                               [2, 1]], labels) == ('right', 'front', 'up')
+                         [1, 1],
+                         [2, 1]], labels) == ('right', 'front', 'up')
     assert ornt2axcodes([[0, -1],
-                               [1, -1],
-                               [2, -1]], labels) == ('left', 'back', 'down')
+                         [1, -1],
+                         [2, -1]], labels) == ('left', 'back', 'down')
     assert ornt2axcodes([[2, -1],
-                               [1, -1],
-                               [0, -1]], labels) == ('down', 'back', 'left')
+                         [1, -1],
+                         [0, -1]], labels) == ('down', 'back', 'left')
     assert ornt2axcodes([[1, 1],
-                               [2, -1],
-                               [0, 1]], labels) == ('front', 'down', 'right')
+                         [2, -1],
+                         [0, 1]], labels) == ('front', 'down', 'right')
     # default is RAS output directions
     assert ornt2axcodes([[0, 1],
-                               [1, 1],
-                               [2, 1]]) == ('R', 'A', 'S')
+                         [1, 1],
+                         [2, 1]]) == ('R', 'A', 'S')
     # dropped axes produce None
     assert ornt2axcodes([[0, 1],
-                               [np.nan, np.nan],
-                               [2, 1]]) == ('R', None, 'S')
+                         [np.nan, np.nan],
+                         [2, 1]]) == ('R', None, 'S')
     # Non integer axes raises error
     with pytest.raises(ValueError):
         ornt2axcodes([[0.1, 1]])
@@ -365,10 +365,8 @@ def test_axcodes2ornt():
 def test_aff2axcodes():
     assert aff2axcodes(np.eye(4)) == tuple('RAS')
     aff = [[0, 1, 0, 10], [-1, 0, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]
-    assert (aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))) ==
-                 ('B', 'R', 'U'))
-    assert (aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))) ==
-                 ('B', 'R', 'U'))
+    assert aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))) == ('B', 'R', 'U')
+    assert aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))) == ('B', 'R', 'U')
 
 
 def test_inv_ornt_aff():

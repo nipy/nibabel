@@ -57,7 +57,7 @@ def test_files_interface():
     assert img.get_filename() == 'test.nii'
     assert img.file_map['image'].filename == 'test.nii'
     with pytest.raises(KeyError):
-        img.file_map.__getitem__('header')
+        img.file_map['header']
     # pair - note new class
     img = Nifti1Pair(arr, aff)
     img.set_filename('test')

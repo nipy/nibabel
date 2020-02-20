@@ -412,8 +412,7 @@ def test_parrec2nii_with_data():
             for line in csvreader:
                 nlines += 1
 
-        assert sorted(csv_keys) == ['diffusion b value number',
-                                        'gradient orientation number']
+        assert sorted(csv_keys) == ['diffusion b value number', 'gradient orientation number']
         assert nlines == 8  # 8 volumes present in DTI.PAR
 
 

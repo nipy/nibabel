@@ -26,7 +26,7 @@ def assert_bad(pkg_name, min_version=None):
     assert not have_pkg
     assert isinstance(pkg, TripWire)
     with pytest.raises(TripWireError):
-        getattr(pkg, 'a_method')
+        pkg.a_method
     with pytest.raises(SkipTest):
         setup()
 
@@ -77,7 +77,6 @@ def test_versions():
         try:
             pkg.some_method
         except TripWireError as err:
-            assert (str(err) ==
-                         'These functions need _a_fake_package version >= 3.0')
+            assert str(err) == 'These functions need _a_fake_package version >= 3.0'
     finally:
         del sys.modules[fake_name]

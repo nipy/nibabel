@@ -131,15 +131,15 @@ def test_a2f_nan2zero():
     assert_array_equal(data_back, [np.array(np.nan).astype(np.int32), 99])
 
 
-@pytest.mark.parametrize("in_type, out_type, err", [
-    (np.int16, np.int16, None),
-    (np.int16, np.int8, None),
-    (np.uint16, np.uint8, None),
-    (np.int32, np.int8, None),
-    (np.float32, np.uint8, None),
-    (np.float32, np.int16, None)
+@pytest.mark.parametrize("in_type, out_type", [
+    (np.int16, np.int16),
+    (np.int16, np.int8),
+    (np.uint16, np.uint8),
+    (np.int32, np.int8),
+    (np.float32, np.uint8),
+    (np.float32, np.int16)
 ])
-def test_array_file_scales(in_type, out_type, err):
+def test_array_file_scales(in_type, out_type):
     # Test scaling works for max, min when going from larger to smaller type,
     # and from float to integer.
     bio = BytesIO()
@@ -147,10 +147,6 @@ def test_array_file_scales(in_type, out_type, err):
     arr = np.zeros((3,), dtype=in_type)
     info = type_info(in_type)
     arr[0], arr[1] = info['min'], info['max']
-    if not err is None:
-        with pytest.raises(err):
-            _calculate_scale(arr, out_dtype, True)
-        return
     slope, inter, mn, mx = _calculate_scale(arr, out_dtype, True)
     array_to_file(arr, bio, out_type, 0, inter, slope, mn, mx)
     bio.seek(0)
@@ -225,5 +221,4 @@ def check_int_a2f(in_type, out_type):
     # Clip at extremes to remove inf
     info = type_info(in_type)
     out_min, out_max = info['min'], info['max']
-    assert np.allclose(big_floater(data),
-                            big_floater(np.clip(data_back, out_min, out_max)))
+    assert np.allclose(big_floater(data), big_floater(np.clip(data_back, out_min, out_max)))

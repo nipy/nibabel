@@ -137,8 +137,7 @@ def test_save_load():
             del re_img2
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
-            assert isinstance(re_img3,
-                                   spm99.Spm99AnalyzeImage)
+            assert isinstance(re_img3, spm99.Spm99AnalyzeImage)
             assert_array_equal(re_img3.get_fdata(), data)
             assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
@@ -301,30 +300,14 @@ def test_analyze_detection():
 
 def test_guessed_image_type():
     # Test whether we can guess the image type from example files
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'example4d.nii.gz')) ==
-        Nifti1Image)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'nifti1.hdr')) ==
-        Nifti1Pair)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'example_nifti2.nii.gz')) ==
-        Nifti2Image)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'nifti2.hdr')) ==
-        Nifti2Pair)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'tiny.mnc')) ==
-        Minc1Image)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'small.mnc')) ==
-        Minc2Image)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'test.mgz')) ==
-        MGHImage)
-    assert (nils.guessed_image_type(
-        pjoin(DATA_PATH, 'analyze.hdr')) ==
-        Spm2AnalyzeImage)
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'example4d.nii.gz')) == Nifti1Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti1.hdr')) == Nifti1Pair
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'example_nifti2.nii.gz')) == Nifti2Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti2.hdr')) == Nifti2Pair
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'tiny.mnc')) == Minc1Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'small.mnc')) == Minc2Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'test.mgz')) == MGHImage
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'analyze.hdr')) == Spm2AnalyzeImage
 
 
 def test_fail_save():

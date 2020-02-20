@@ -435,8 +435,7 @@ class TestSpatialImage(TestCase):
             sliceobj = [slice(None, None, 2)] * 3 + \
                 [slice(None)] * (len(dshape) - 3)
             downsampled_img = img.slicer[tuple(sliceobj)]
-            assert (downsampled_img.header.get_zooms()[:3]
-                    == np.array(spatial_zooms) * 2).all()
+            assert (downsampled_img.header.get_zooms()[:3] == np.array(spatial_zooms) * 2).all()
 
             max4d = (hasattr(img.header, '_structarr') and
                      'dims' in img.header._structarr.dtype.fields and

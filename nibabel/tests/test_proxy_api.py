@@ -104,7 +104,7 @@ class _TestProxyAPI(ValidateAPI):
         assert_array_equal(prox.shape, params['shape'])
         # Read only
         with pytest.raises(AttributeError):
-            setattr(prox, 'shape', params['shape'])
+            prox.shape = params['shape']
 
     def validate_ndim(self, pmaker, params):
         # Check shape
@@ -112,7 +112,7 @@ class _TestProxyAPI(ValidateAPI):
         assert prox.ndim == len(params['shape'])
         # Read only
         with pytest.raises(AttributeError):
-            setattr(prox, 'ndim', len(params['shape']))
+            prox.ndim = len(params['shape'])
 
     def validate_is_proxy(self, pmaker, params):
         # Check shape
@@ -122,7 +122,7 @@ class _TestProxyAPI(ValidateAPI):
         assert not is_proxy(np.arange(10))
         # Read only
         with pytest.raises(AttributeError):
-            setattr(prox, 'is_proxy', False)
+            prox.is_proxy = False
 
     def validate_asarray(self, pmaker, params):
         # Check proxy returns expected array from asarray
@@ -311,7 +311,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
         prox, fio, hdr = pmaker()
         assert_dt_equal(prox.dtype, params['dtype'])
         with pytest.raises(AttributeError):
-            prox.__setattr__('dtype', np.dtype(prox.dtype))
+            prox.dtype = np.dtype(prox.dtype)
 
     def validate_slope_inter_offset(self, pmaker, params):
         # Check slope, inter, offset

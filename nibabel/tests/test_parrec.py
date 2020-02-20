@@ -345,8 +345,7 @@ def test_sorting_multiple_echos_and_contrasts():
                            np.arange(1, nslices+1))
         current_echo = slice_offset % nechos + 1
         # same echo for each slice in the group
-        assert (np.all(sorted_echos[istart:iend] == current_echo) ==
-                     True)
+        assert np.all(sorted_echos[istart:iend] == current_echo)
     # outermost sort index is image_type_mr
     assert np.all(sorted_types[:ntotal//4] == 0)
     assert np.all(sorted_types[ntotal//4:ntotal//2] == 1)
@@ -403,8 +402,7 @@ def test_sorting_multiecho_ASL():
 
     # check volume labels
     vol_labels = asl_hdr.get_volume_labels()
-    assert (list(vol_labels.keys()) ==
-                 ['echo number', 'label type', 'dynamic scan number'])
+    assert list(vol_labels.keys()) == ['echo number', 'label type', 'dynamic scan number']
     assert_array_equal(vol_labels['dynamic scan number'], [1]*6 + [2]*6)
     assert_array_equal(vol_labels['label type'], [1]*3 + [2]*3 + [1]*3 + [2]*3)
     assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)

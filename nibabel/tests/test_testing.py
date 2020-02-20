@@ -165,9 +165,8 @@ def test_assert_re_in_exception(args):
 
 def test_test_data():
     assert test_data() == data_path
-    assert (test_data() ==
-                 os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                              '..', 'tests', 'data')))
+    assert test_data() == os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                       '..', 'tests', 'data'))
     for subdir in ('nicom', 'gifti', 'externals'):
         assert test_data(subdir) == os.path.join(data_path[:-10], subdir, 'tests', 'data')
         assert os.path.exists(test_data(subdir))

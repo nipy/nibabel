@@ -255,7 +255,7 @@ def test_read_geometry():
                        [ 0, 0, 0,    1]]
     expected_dimensions = (91, 109, 91)
     assert (geometry_mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix ==
-                 expected_affine).all()
+            expected_affine).all()
     assert geometry_mapping.volume.volume_dimensions == expected_dimensions
 
 

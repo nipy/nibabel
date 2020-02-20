@@ -287,17 +287,11 @@ def test_resample_to_output():
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    assert (
-        resample_to_output(img_ni2).__class__ ==
-        Nifti1Image)
+    assert resample_to_output(img_ni2).__class__ == Nifti1Image
     # Can be overriden
-    assert (
-        resample_to_output(img_ni1, out_class=Nifti2Image).__class__ ==
-        Nifti2Image)
+    assert resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
-    assert (
-        resample_to_output(img_ni2, out_class=None).__class__ ==
-        Nifti2Image)
+    assert resample_to_output(img_ni2, out_class=None).__class__ == Nifti2Image
 
 
 @needs_scipy
@@ -347,17 +341,11 @@ def test_smooth_image():
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    assert (
-        smooth_image(img_ni2, 0).__class__ ==
-        Nifti1Image)
+    assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
     # Can be overriden
-    assert (
-        smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__ ==
-        Nifti2Image)
+    assert smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
-    assert (
-        smooth_image(img_ni2, 0, out_class=None).__class__ ==
-        Nifti2Image)
+    assert smooth_image(img_ni2, 0, out_class=None).__class__ == Nifti2Image
 
 
 @needs_scipy

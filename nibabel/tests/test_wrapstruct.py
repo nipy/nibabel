@@ -165,7 +165,7 @@ class _TestWrapStructBase(BaseTestCase):
     def test_mappingness(self):
         hdr = self.header_class()
         with pytest.raises(ValueError):
-            hdr.__setitem__('nonexistent key', 0.1)
+            hdr['nonexistent key'] = 0.1
         hdr_dt = hdr.structarr.dtype
         keys = hdr.keys()
         assert keys == list(hdr)
@@ -201,7 +201,7 @@ class _TestWrapStructBase(BaseTestCase):
         '''
         hdr = self.header_class()
         with pytest.raises(AttributeError):
-            hdr.__setattr__('endianness', '<')
+            hdr.endianness = '<'
 
     def test_endian_guess(self):
         # Check guesses of endian
@@ -231,7 +231,7 @@ class _TestWrapStructBase(BaseTestCase):
         hdr.structarr
         # That it's read only
         with pytest.raises(AttributeError):
-            hdr.__setattr__('structarr', 0)
+            hdr.structarr = 0
 
     def log_chk(self, hdr, level):
         return log_chk(hdr, level)
@@ -347,8 +347,7 @@ class _TestLabeledWrapStruct(_TestWrapStructBase):
             # Speculating that we can set code value 0 or 1
             new_code = 1 if code == 0 else 0
             hdr[key] = new_code
-            assert (hdr.get_value_label(key) ==
-                         '<unknown code {0}>'.format(new_code))
+            assert hdr.get_value_label(key) == '<unknown code {0}>'.format(new_code)
 
 
 class MyWrapStruct(WrapStruct):
@@ -474,15 +473,13 @@ class TestMyWrapStruct(_TestWrapStructBase):
         fhdr, message, raiser = self.log_chk(hdr, 40)
         return
         assert fhdr['an_integer'] == 1
-        assert (message ==
-                     'an_integer should be 1; set an_integer to 1')
+        assert message == 'an_integer should be 1; set an_integer to 1'
         pytest.raises(*raiser)
         # lower case string
         hdr = HC()
         hdr['a_str'] = 'Hello'  # severity = 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert (message == 'a_str should be lower case; '
-                     'set a_str to lower case')
+        assert message == 'a_str should be lower case; set a_str to lower case'
         pytest.raises(*raiser)
 
     def test_logger_error(self):
@@ -502,9 +499,7 @@ class TestMyWrapStruct(_TestWrapStructBase):
             # Check log message appears in new logger
             imageglobals.logger = logger
             hdr.copy().check_fix()
-            assert (str_io.getvalue() ==
-                         'a_str should be lower case; '
-                         'set a_str to lower case\n')
+            assert str_io.getvalue() == 'a_str should be lower case; set a_str to lower case\n'
             # Check that error_level in fact causes error to be raised
             imageglobals.error_level = 20
             with pytest.raises(HeaderDataError):

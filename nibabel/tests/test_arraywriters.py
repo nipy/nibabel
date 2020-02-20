@@ -610,12 +610,12 @@ def test_dumber_writers():
     aw.slope = 2.0
     assert aw.slope == 2.0
     with pytest.raises(AttributeError):
-        getattr(aw, 'inter')
+        aw.inter
     aw = ArrayWriter(arr)
     with pytest.raises(AttributeError):
-        getattr(aw, 'slope')
+        aw.slope
     with pytest.raises(AttributeError):
-        getattr(aw, 'inter')
+        aw.inter
     # Attempt at scaling should raise error for dumb type
     with pytest.raises(WriterError):
         ArrayWriter(arr, np.int16)

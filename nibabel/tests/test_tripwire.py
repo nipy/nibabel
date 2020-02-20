@@ -14,7 +14,7 @@ def test_tripwire():
     # Test tripwire object
     silly_module_name = TripWire('We do not have silly_module_name')
     with pytest.raises(TripWireError):
-        getattr(silly_module_name, 'do_silly_thing')
+        silly_module_name.do_silly_thing
     # Check AttributeError can be checked too
     try:
         silly_module_name.__wrapped__
