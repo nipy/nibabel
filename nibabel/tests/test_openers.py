@@ -18,6 +18,7 @@ from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
+import unittest
 from unittest import mock
 import pytest
 from ..testing import error_warnings
@@ -160,19 +161,8 @@ def test_Opener_gzip_type():
             with patch_indexed_gzip(igzip_present):
                 assert isinstance(Opener(fname, **kwargs).fobj, expected)
 
-@pytest.fixture(scope="class")
-def image_opener_setup(request):
-    compress_ext_map = ImageOpener.compress_ext_map.copy()
-    request.cls.compress_ext_map = compress_ext_map
 
-    def teardown():
-        ImageOpener.compress_ext_map = request.cls.compress_ext_map
-    request.addfinalizer(teardown)
-
-
-@pytest.mark.usefixtures("image_opener_setup")
-class TestImageOpener:
-
+class TestImageOpener(unittest.TestCase):
     def test_vanilla(self):
         # Test that ImageOpener does add '.mgz' as gzipped file type
         with InTemporaryDirectory():
@@ -181,6 +171,7 @@ class TestImageOpener:
             with ImageOpener('test.mgz', 'w') as fobj:
                 assert hasattr(fobj.fobj, 'compress')
 
+    @mock.patch.dict('nibabel.openers.ImageOpener.compress_ext_map')
     def test_new_association(self):
         def file_opener(fileish, mode):
             return open(fileish, mode)
