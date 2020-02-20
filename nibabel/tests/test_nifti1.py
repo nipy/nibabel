@@ -451,7 +451,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             if dt == np.void:
                 continue
             hdr.set_data_dtype(code)
-            assert hdr.get_data_dtype(), data_type_codes.dtype[code]
+            assert hdr.get_data_dtype() == data_type_codes.dtype[code]
         # Check that checks also see new datatypes
         hdr.set_data_dtype(np.complex128)
         hdr.check_fix()
