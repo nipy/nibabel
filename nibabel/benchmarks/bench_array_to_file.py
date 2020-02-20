@@ -7,7 +7,7 @@ Run benchmarks with::
 
 Run this benchmark with::
 
-    pytest -c <path>/benchmarks/pytest.benchmark.ini <path>/benchmarks/bench_load_save.py
+    pytest -c <path>/benchmarks/pytest.benchmark.ini <path>/benchmarks/bench_array_to_file.py
 """
 
 import sys
