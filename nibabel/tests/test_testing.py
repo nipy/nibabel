@@ -136,31 +136,24 @@ def test_warn_ignore():
     with pytest.raises(ValueError):
         f()
 
-@pytest.mark.parametrize("args", [
+@pytest.mark.parametrize("regex, entries", [
     [".*", ""],
     [".*", ["any"]],
     ["ab", "abc"],
     # Sufficient to have one entry matching
     ["ab", ["", "abc", "laskdjf"]],
     # Tuples should be ok too
-    ["ab", ("", "abc", "laskdjf")]
-])
-def test_assert_re_in(args):
-    assert_re_in(*args)
-
-
-@pytest.mark.parametrize("args", [
+    ["ab", ("", "abc", "laskdjf")],
     # Should do match not search
-    ["ab", "cab"],
-    ["ab$", "abc"],
-    ["ab$", ["ddd", ""]],
-    ["ab$", ("ddd", "")],
+    pytest.param("ab", "cab", marks=pytest.mark.xfail),
+    pytest.param("ab$", "abc", marks=pytest.mark.xfail),
+    pytest.param("ab$", ["ddd", ""], marks=pytest.mark.xfail),
+    pytest.param("ab$", ("ddd", ""), marks=pytest.mark.xfail),
     #Shouldn't "match" the empty list
-    ["", []]
+    pytest.param("", [], marks=pytest.mark.xfail)
 ])
-def test_assert_re_in_exception(args):
-    with pytest.raises(AssertionError):
-        assert_re_in(*args)
+def test_assert_re_in(regex, entries):
+    assert_re_in(regex, entries)
 
 
 def test_test_data():
