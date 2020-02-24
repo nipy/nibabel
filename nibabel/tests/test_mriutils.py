@@ -10,12 +10,8 @@
 """
 
 
-from numpy.testing import (assert_almost_equal,
-                           assert_array_equal)
-
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
-
+from numpy.testing import assert_almost_equal
+import pytest
 
 from ..mriutils import calculate_dwell_time, MRIError
 
@@ -28,5 +24,7 @@ def test_calculate_dwell_time():
                         3.3 / (42.576 * 3.4 * 3 * 3))
     # Echo train length of 1 is valid, but returns 0 dwell time
     assert_almost_equal(calculate_dwell_time(3.3, 1, 3), 0)
-    assert_raises(MRIError, calculate_dwell_time, 3.3, 0, 3.0)
-    assert_raises(MRIError, calculate_dwell_time, 3.3, 2, -0.1)
+    with pytest.raises(MRIError):
+        calculate_dwell_time(3.3, 0, 3.0)
+    with pytest.raises(MRIError):
+        calculate_dwell_time(3.3, 2, -0.1)

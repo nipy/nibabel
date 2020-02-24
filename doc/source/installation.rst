@@ -90,7 +90,7 @@ Requirements
 *  h5py_ (optional, for MINC2 support)
 *  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
-*  nose_ 0.11 or greater and pytest_ (optional, to run the tests)
+*  pytest_ (optional, to run the tests)
 *  sphinx_ (optional, to build the documentation)
 
 Get the development sources
@@ -128,7 +128,7 @@ module to see if everything is fine.  It should look something like this::
     >>>
 
 
-To run the nibabel test suite, from the terminal run ``nosetests nibabel`` or
+To run the nibabel test suite, from the terminal run ``pytest nibabel`` or
 ``python -c "import nibabel; nibabel.test()``.
 
 To run an extended test suite that validates ``nibabel`` for long-running and

@@ -7,10 +7,8 @@ import sys
 import builtins
 from distutils.version import LooseVersion
 
-from nose import SkipTest
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal)
-
+from unittest import SkipTest
+import pytest
 
 from nibabel.optpkg import optional_package
 from nibabel.tripwire import TripWire, TripWireError
@@ -18,17 +16,19 @@ from nibabel.tripwire import TripWire, TripWireError
 
 def assert_good(pkg_name, min_version=None):
     pkg, have_pkg, setup = optional_package(pkg_name, min_version=min_version)
-    assert_true(have_pkg)
-    assert_equal(sys.modules[pkg_name], pkg)
-    assert_equal(setup(), None)
+    assert have_pkg
+    assert sys.modules[pkg_name] == pkg
+    assert setup() is None
 
 
 def assert_bad(pkg_name, min_version=None):
     pkg, have_pkg, setup = optional_package(pkg_name, min_version=min_version)
-    assert_false(have_pkg)
-    assert_true(isinstance(pkg, TripWire))
-    assert_raises(TripWireError, getattr, pkg, 'a_method')
-    assert_raises(SkipTest, setup)
+    assert not have_pkg
+    assert isinstance(pkg, TripWire)
+    with pytest.raises(TripWireError):
+        pkg.a_method
+    with pytest.raises(SkipTest):
+        setup()
 
 
 def test_basic():
@@ -39,10 +39,10 @@ def test_basic():
     # We never have package _not_a_package
     assert_bad('_not_a_package')
 
-    # setup_module imports nose, so make sure we don't disrupt that
+    # setup_module imports unittest, so make sure we don't disrupt that
     orig_import = builtins.__import__
     def raise_Exception(*args, **kwargs):
-        if args[0] == 'nose':
+        if args[0] == 'unittest':
             return orig_import(*args, **kwargs)
         raise Exception(
             "non ImportError could be thrown by some malfunctioning module "
@@ -54,7 +54,7 @@ def test_basic():
 def test_versions():
     fake_name = '_a_fake_package'
     fake_pkg = types.ModuleType(fake_name)
-    assert_false('fake_pkg' in sys.modules)
+    assert 'fake_pkg' not in sys.modules
     # Not inserted yet
     assert_bad(fake_name)
     try:
@@ -77,7 +77,6 @@ def test_versions():
         try:
             pkg.some_method
         except TripWireError as err:
-            assert_equal(str(err),
-                         'These functions need _a_fake_package version >= 3.0')
+            assert str(err) == 'These functions need _a_fake_package version >= 3.0'
     finally:
         del sys.modules[fake_name]

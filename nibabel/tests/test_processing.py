@@ -27,17 +27,14 @@ from nibabel.affines import (AffineError, from_matvec, to_matvec, apply_affine,
                              voxel_sizes)
 from nibabel.eulerangles import euler2mat
 
-from numpy.testing import (assert_almost_equal,
-                           assert_array_equal)
-from ..testing import skipif
-
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal, assert_not_equal)
+from numpy.testing import assert_almost_equal, assert_array_equal
+import unittest
+import pytest
 
 from nibabel.tests.test_spaces import assert_all_in, get_outspace_params
 from nibabel.testing import assert_allclose_safely
 
-needs_scipy = skipif(not have_scipy, 'These tests need scipy')
+needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
 
 DATA_DIR = pjoin(dirname(__file__), 'data')
 
@@ -59,8 +56,8 @@ def test_sigma2fwhm():
     # direct test fwhm2sigma and sigma2fwhm are inverses of each other
     fwhm = np.arange(1.0, 5.0, 0.1)
     sigma = np.arange(1.0, 5.0, 0.1)
-    assert_true(np.allclose(sigma2fwhm(fwhm2sigma(fwhm)), fwhm))
-    assert_true(np.allclose(fwhm2sigma(sigma2fwhm(sigma)), sigma))
+    assert np.allclose(sigma2fwhm(fwhm2sigma(fwhm)), fwhm)
+    assert np.allclose(fwhm2sigma(sigma2fwhm(sigma)), sigma)
 
 
 def test_adapt_affine():
@@ -158,24 +155,25 @@ def test_resample_from_to():
     assert_almost_equal(out.dataobj, exp_out)
     # Out class
     out = resample_from_to(img, trans_img)
-    assert_equal(out.__class__, Nifti1Image)
+    assert out.__class__ == Nifti1Image
     # By default, type of from_img makes no difference
     n1_img = Nifti2Image(data, affine)
     out = resample_from_to(n1_img, trans_img)
-    assert_equal(out.__class__, Nifti1Image)
+    assert out.__class__ == Nifti1Image
     # Passed as keyword arg
     out = resample_from_to(img, trans_img, out_class=Nifti2Image)
-    assert_equal(out.__class__, Nifti2Image)
+    assert out.__class__ == Nifti2Image
     # If keyword arg is None, use type of from_img
     out = resample_from_to(n1_img, trans_img, out_class=None)
-    assert_equal(out.__class__, Nifti2Image)
+    assert out.__class__ == Nifti2Image
     # to_img type irrelevant in all cases
     n1_trans_img = Nifti2Image(data, trans_aff)
     out = resample_from_to(img, n1_trans_img, out_class=None)
-    assert_equal(out.__class__, Nifti1Image)
+    assert out.__class__ == Nifti1Image
     # From 2D to 3D, error, the fixed affine is not invertible
     img_2d = Nifti1Image(data[:, :, 0], affine)
-    assert_raises(AffineError, resample_from_to, img_2d, img)
+    with pytest.raises(AffineError):
+        resample_from_to(img_2d, img)
     # 3D to 2D, we don't need to invert the fixed matrix
     out = resample_from_to(img, img_2d)
     assert_array_equal(out.dataobj, data[:, :, 0])
@@ -189,8 +187,10 @@ def test_resample_from_to():
     assert_almost_equal(data_4d, out.dataobj)
     assert_array_equal(img_4d.affine, out.affine)
     # Errors trying to match 3D to 4D
-    assert_raises(ValueError, resample_from_to, img_4d, img)
-    assert_raises(ValueError, resample_from_to, img, img_4d)
+    with pytest.raises(ValueError):
+        resample_from_to(img_4d, img)
+    with pytest.raises(ValueError):
+        resample_from_to(img, img_4d)
 
 
 @needs_scipy
@@ -226,7 +226,8 @@ def test_resample_to_output():
     assert_array_equal(img3.dataobj, data[0, 0][..., None, None])
     # But 4D does not
     img_4d = Nifti1Image(data.reshape(2, 3, 2, 2), np.eye(4))
-    assert_raises(ValueError, resample_to_output, img_4d)
+    with pytest.raises(ValueError):
+        resample_to_output(img_4d)
     # Run vox2vox_out tests, checking output shape, coordinate transform
     for in_shape, in_aff, vox, out_shape, out_aff in get_outspace_params():
         # Allow for expansion of image shape from < 3D
@@ -240,7 +241,7 @@ def test_resample_to_output():
         img = Nifti1Image(np.ones(in_shape), in_aff)
         out_img = resample_to_output(img, vox)
         assert_all_in(in_shape, in_aff, out_img.shape, out_img.affine)
-        assert_equal(out_img.shape, out_shape)
+        assert out_img.shape == out_shape
         assert_almost_equal(out_img.affine, out_aff)
     # Check data is as expected with some transforms
     # Flip first axis
@@ -261,7 +262,7 @@ def test_resample_to_output():
     rot_3_img = Nifti1Image(data, rot_3)
     out_img = resample_to_output(rot_3_img)
     exp_shape = (4, 4, 4)
-    assert_equal(out_img.shape, exp_shape)
+    assert out_img.shape == exp_shape
     exp_aff = np.array([[1, 0, 0, -2 * np.cos(np.pi / 4)],
                         [0, 1, 0, 0],
                         [0, 0, 1, 0],
@@ -286,17 +287,11 @@ def test_resample_to_output():
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    assert_equal(
-        resample_to_output(img_ni2).__class__,
-        Nifti1Image)
+    assert resample_to_output(img_ni2).__class__ == Nifti1Image
     # Can be overriden
-    assert_equal(
-        resample_to_output(img_ni1, out_class=Nifti2Image).__class__,
-        Nifti2Image)
+    assert resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
-    assert_equal(
-        resample_to_output(img_ni2, out_class=None).__class__,
-        Nifti2Image)
+    assert resample_to_output(img_ni2, out_class=None).__class__ == Nifti2Image
 
 
 @needs_scipy
@@ -315,7 +310,8 @@ def test_smooth_image():
     exp_out = spnd.gaussian_filter(data, sd, mode='nearest')
     assert_array_equal(smooth_image(img, 8).dataobj, exp_out)
     assert_array_equal(smooth_image(img, [8, 8, 8]).dataobj, exp_out)
-    assert_raises(ValueError, smooth_image, img, [8, 8])
+    with pytest.raises(ValueError):
+        smooth_image(img, [8, 8])
     # Not isotropic
     mixed_sd = fwhm2sigma(np.true_divide([8, 7, 6], [4, 5, 6]))
     exp_out = spnd.gaussian_filter(data, mixed_sd, mode='nearest')
@@ -325,14 +321,16 @@ def test_smooth_image():
     exp_out = spnd.gaussian_filter(data[0], sd[:2], mode='nearest')
     assert_array_equal(smooth_image(img_2d, 8).dataobj, exp_out)
     assert_array_equal(smooth_image(img_2d, [8, 8]).dataobj, exp_out)
-    assert_raises(ValueError, smooth_image, img_2d, [8, 8, 8])
+    with pytest.raises(ValueError):
+        smooth_image(img_2d, [8, 8, 8])
     # Isotropic in 4D has zero for last dimension in scalar case
     data_4d = np.arange(24 * 5).reshape((2, 3, 4, 5))
     img_4d = Nifti1Image(data_4d, aff)
     exp_out = spnd.gaussian_filter(data_4d, list(sd) + [0], mode='nearest')
     assert_array_equal(smooth_image(img_4d, 8).dataobj, exp_out)
     # But raises error for vector case
-    assert_raises(ValueError, smooth_image, img_4d, [8, 8, 8])
+    with pytest.raises(ValueError):
+        smooth_image(img_4d, [8, 8, 8])
     # mode, cval
     exp_out = spnd.gaussian_filter(data, sd, mode='constant')
     assert_array_equal(smooth_image(img, 8, mode='constant').dataobj, exp_out)
@@ -343,17 +341,11 @@ def test_smooth_image():
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    assert_equal(
-        smooth_image(img_ni2, 0).__class__,
-        Nifti1Image)
+    assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
     # Can be overriden
-    assert_equal(
-        smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__,
-        Nifti2Image)
+    assert smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
-    assert_equal(
-        smooth_image(img_ni2, 0, out_class=None).__class__,
-        Nifti2Image)
+    assert smooth_image(img_ni2, 0, out_class=None).__class__ == Nifti2Image
 
 
 @needs_scipy
@@ -370,10 +362,12 @@ def test_spatial_axes_check():
         out = resample_to_output(img, voxel_sizes(img.affine))
     for fname in MINC_4DS:
         img = nib.load(pjoin(DATA_DIR, fname))
-        assert_raises(ValueError, smooth_image, img, 0)
-        assert_raises(ValueError, resample_from_to, img, img, mode='nearest')
-        assert_raises(ValueError,
-                      resample_to_output, img, voxel_sizes(img.affine))
+        with pytest.raises(ValueError):
+            smooth_image(img, 0)
+        with pytest.raises(ValueError):
+            resample_from_to(img, img, mode='nearest')
+        with pytest.raises(ValueError):
+            resample_to_output(img, voxel_sizes(img.affine))
 
 
 def assert_spm_resampling_close(from_img, our_resampled, spm_resampled):

@@ -11,6 +11,7 @@ jobs:
   variables:
     EXTRA_WHEELS: "https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
     DEPENDS: numpy scipy matplotlib h5py pydicom
+    CHECK_TYPE: test
   strategy:
     matrix:
       ${{ insert }}: ${{ parameters.matrix }}
@@ -29,19 +30,20 @@ jobs:
       displayName: 'Update build tools'
     - script: |
         python -m pip install --find-links %EXTRA_WHEELS% %DEPENDS%
-        python -m pip install nose mock coverage codecov pytest
       displayName: 'Install dependencies'
     - script: |
-        python -m pip install .
+        python -m pip install .[$(CHECK_TYPE)]
         SET NIBABEL_DATA_DIR=%CD%\\nibabel-data
       displayName: 'Install nibabel'
     - script: |
         mkdir for_testing
         cd for_testing
         cp ../.coveragerc .
-        nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
-      displayName: 'Nose tests'
+        pytest --doctest-modules --cov nibabel -v --pyargs nibabel
+      displayName: 'Pytest tests'
+      condition: and(succeeded(), eq(variables['CHECK_TYPE'], 'test'))
     - script: |
+        python -m pip install codecov
         cd for_testing
         codecov
       displayName: 'Upload To Codecov'

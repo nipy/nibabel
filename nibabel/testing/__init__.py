@@ -13,22 +13,14 @@ import os
 import sys
 import warnings
 from pkg_resources import resource_filename
-from os.path import dirname, abspath, join as pjoin
+
+import unittest
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_warns
-from numpy.testing import dec
-skipif = dec.skipif
-slow = dec.slow
+from numpy.testing import assert_array_equal
 
-from ..deprecated import deprecate_with_version as _deprecate_with_version
-
-# Allow failed import of nose if not now running tests
-try:
-    from nose.tools import (assert_equal, assert_not_equal,
-                            assert_true, assert_false, assert_raises)
-except ImportError:
-    pass
+from .np_features import memmap_after_ufunc
+from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
 
 from itertools import zip_longest
 
@@ -51,14 +43,12 @@ def test_data(subdir=None, fname=None):
 data_path = test_data()
 
 
-from .np_features import memmap_after_ufunc
-
 def assert_dt_equal(a, b):
     """ Assert two numpy dtype specifiers are equal
 
     Avoids failed comparison between int32 / int64 and intp
     """
-    assert_equal(np.dtype(a).str, np.dtype(b).str)
+    assert np.dtype(a).str == np.dtype(b).str
 
 
 def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
@@ -68,7 +58,7 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     a, b = np.broadcast_arrays(a, b)
     if match_nans:
         nans = np.isnan(a)
-        np.testing.assert_array_equal(nans, np.isnan(b))
+        assert_array_equal(nans, np.isnan(b))
         to_test = ~nans
     else:
         to_test = np.ones(a.shape, dtype=bool)
@@ -81,13 +71,13 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
         a = a.astype(float)
     if b.dtype.kind in 'ui':
         b = b.astype(float)
-    assert_true(np.allclose(a, b, rtol=rtol, atol=atol))
+    assert np.allclose(a, b, rtol=rtol, atol=atol)
 
 
 def assert_arrays_equal(arrays1, arrays2):
     """ Check two iterables yield the same sequence of arrays. """
     for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
-        assert_false(arr1 is None or arr2 is None)
+        assert (arr1 is not None and arr2 is not None)
         assert_array_equal(arr1, arr2)
 
 
@@ -204,26 +194,30 @@ class suppress_warnings(error_warnings):
     filter = 'ignore'
 
 
-@_deprecate_with_version('catch_warn_reset is deprecated; use '
-                         'nibabel.testing.clear_and_catch_warnings.',
-                         since='2.1.0', until='3.0.0')
-class catch_warn_reset(clear_and_catch_warnings):
-    pass
-
-
 EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
 
 
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return skipif(test_str not in EXTRA_SET,
-                  "Skip {0} tests.".format(test_str))
+    return unittest.skipUnless(test_str in EXTRA_SET, "Skip {0} tests.".format(test_str))
 
 
 def assert_arr_dict_equal(dict1, dict2):
     """ Assert that two dicts are equal, where dicts contain arrays
     """
-    assert_equal(set(dict1), set(dict2))
+    assert set(dict1) == set(dict2)
     for key, value1 in dict1.items():
         value2 = dict2[key]
         assert_array_equal(value1, value2)
+
+
+class BaseTestCase(unittest.TestCase):
+    """ TestCase that does not attempt to run if prefixed with a ``_``
+
+    This restores the nose-like behavior of skipping so-named test cases
+    in test runners like pytest.
+    """
+    def setUp(self):
+        if self.__class__.__name__.startswith('_'):
+            raise unittest.SkipTest("Base test case - subclass to run")
+        super().setUp()

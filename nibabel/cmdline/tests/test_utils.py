@@ -5,8 +5,7 @@
 Test running scripts
 """
 
-from nose.tools import assert_equal
-from numpy.testing import assert_raises
+import pytest
 
 import nibabel as nib
 import numpy as np
@@ -19,18 +18,18 @@ from io import StringIO
 
 
 def test_table2string():
-    assert_equal(table2string([["A", "B", "C", "D"], ["E", "F", "G", "H"]]), "A B C D\nE F G H\n")
-    assert_equal(table2string([["Let's", "Make", "Tests", "And"], ["Have", "Lots", "Of", "Fun"],
-                               ["With", "Python", "Guys", "!"]]), "Let's  Make  Tests And\n Have  Lots    Of  Fun"+
-                                                                  "\n With Python  Guys  !\n")
+    assert table2string([["A", "B", "C", "D"], ["E", "F", "G", "H"]]) == "A B C D\nE F G H\n"
+    assert table2string([["Let's", "Make", "Tests", "And"], ["Have", "Lots", "Of", "Fun"],
+                               ["With", "Python", "Guys", "!"]]) == "Let's  Make  Tests And\n Have  Lots    Of  Fun"+ \
+                                                                  "\n With Python  Guys  !\n"
 
 
 def test_ap():
-    assert_equal(ap([1, 2], "%2d"), " 1,  2")
-    assert_equal(ap([1, 2], "%3d"), "  1,   2")
-    assert_equal(ap([1, 2], "%-2d"), "1 , 2 ")
-    assert_equal(ap([1, 2], "%d", "+"), "1+2")
-    assert_equal(ap([1, 2, 3], "%d", "-"), "1-2-3")
+    assert ap([1, 2], "%2d") == " 1,  2"
+    assert ap([1, 2], "%3d") == "  1,   2"
+    assert ap([1, 2], "%-2d") == "1 , 2 "
+    assert ap([1, 2], "%d", "+") == "1+2"
+    assert ap([1, 2, 3], "%d", "-") == "1-2-3"
 
 
 def test_safe_get():
@@ -44,8 +43,8 @@ def test_safe_get():
     test = TestObject()
     test.test = 2
 
-    assert_equal(safe_get(test, "test"), 2)
-    assert_equal(safe_get(test, "failtest"), "-")
+    assert safe_get(test, "test") == 2
+    assert safe_get(test, "failtest") == "-"
 
 
 def test_get_headers_diff():
@@ -107,14 +106,14 @@ def test_display_diff():
                                                        "                                                     " \
                                                        "\n"
 
-    assert_equal(display_diff(bogus_names, dict_values), expected_output)
+    assert display_diff(bogus_names, dict_values) == expected_output
 
 
 def test_get_data_diff():
     #  testing for identical files specifically as md5 may vary by computer
     test_names = [pjoin(data_path, f)
                   for f in ('standard.nii.gz', 'standard.nii.gz')]
-    assert_equal(get_data_hash_diff(test_names), [])
+    assert get_data_hash_diff(test_names) == []
 
     #  testing the maximum relative and absolute differences' different use cases
     test_array = np.arange(16).reshape(4, 4)
@@ -124,37 +123,37 @@ def test_get_data_diff():
     test_array_5 = np.arange(64).reshape(8, 8)
 
     # same shape, 2 files
-    assert_equal(get_data_diff([test_array, test_array_2]),
-                 OrderedDict([('DATA(diff 1:)', [None, OrderedDict([('abs', 1), ('rel', 2.0)])])]))
+    assert get_data_diff([test_array, test_array_2]) == \
+                 OrderedDict([('DATA(diff 1:)', [None, OrderedDict([('abs', 1), ('rel', 2.0)])])])
 
     # same shape, 3 files
-    assert_equal(get_data_diff([test_array, test_array_2, test_array_3]),
+    assert get_data_diff([test_array, test_array_2, test_array_3]) == \
                  OrderedDict([('DATA(diff 1:)', [None, OrderedDict([('abs', 1), ('rel', 2.0)]),
                                                  OrderedDict([('abs', 2), ('rel', 2.0)])]),
                               ('DATA(diff 2:)', [None, None,
-                                                 OrderedDict([('abs', 1), ('rel', 0.66666666666666663)])])]))
+                                                 OrderedDict([('abs', 1), ('rel', 0.66666666666666663)])])])
 
     # same shape, 2 files, modified maximum abs/rel
-    assert_equal(get_data_diff([test_array, test_array_2], max_abs=2, max_rel=2), OrderedDict())
+    assert get_data_diff([test_array, test_array_2], max_abs=2, max_rel=2) == OrderedDict()
 
     # different shape, 2 files
-    assert_equal(get_data_diff([test_array_2, test_array_4]),
-                 OrderedDict([('DATA(diff 1:)', [None, {'CMP': 'incompat'}])]))
+    assert get_data_diff([test_array_2, test_array_4]) == \
+                 OrderedDict([('DATA(diff 1:)', [None, {'CMP': 'incompat'}])])
 
     # different shape, 3 files
-    assert_equal(get_data_diff([test_array_4, test_array_5, test_array_2]),
+    assert get_data_diff([test_array_4, test_array_5, test_array_2]) == \
                  OrderedDict([('DATA(diff 1:)', [None, {'CMP': 'incompat'}, {'CMP': 'incompat'}]),
-                              ('DATA(diff 2:)', [None, None, {'CMP': 'incompat'}])]))
+                              ('DATA(diff 2:)', [None, None, {'CMP': 'incompat'}])])
 
     test_return = get_data_diff([test_array, test_array_2], dtype=np.float32)
-    assert_equal(type(test_return['DATA(diff 1:)'][1]['abs']), np.float32)
-    assert_equal(type(test_return['DATA(diff 1:)'][1]['rel']), np.float32)
+    assert type(test_return['DATA(diff 1:)'][1]['abs']) is np.float32
+    assert type(test_return['DATA(diff 1:)'][1]['rel']) is np.float32
 
     test_return_2 = get_data_diff([test_array, test_array_2, test_array_3])
-    assert_equal(type(test_return_2['DATA(diff 1:)'][1]['abs']), np.float64)
-    assert_equal(type(test_return_2['DATA(diff 1:)'][1]['rel']), np.float64)
-    assert_equal(type(test_return_2['DATA(diff 2:)'][2]['abs']), np.float64)
-    assert_equal(type(test_return_2['DATA(diff 2:)'][2]['rel']), np.float64)
+    assert type(test_return_2['DATA(diff 1:)'][1]['abs']) is np.float64
+    assert type(test_return_2['DATA(diff 1:)'][1]['rel']) is np.float64
+    assert type(test_return_2['DATA(diff 2:)'][2]['abs']) is np.float64
+    assert type(test_return_2['DATA(diff 2:)'][2]['rel']) is np.float64
 
 
 def test_main():
@@ -195,10 +194,10 @@ def test_main():
                               -7.24879837e+00]).astype(dtype="float32")]),
         ('DATA(md5)', ['0a2576dd6badbb25bfb3b12076df986b', 'b0abbc492b4fd533b2c80d82570062cf'])])
 
-    with assert_raises(SystemExit):
+    with pytest.raises(SystemExit):
         np.testing.assert_equal(main(test_names, StringIO()), expected_difference)
 
     test_names_2 = [pjoin(data_path, f) for f in ('standard.nii.gz', 'standard.nii.gz')]
 
-    with assert_raises(SystemExit):
-        assert_equal(main(test_names_2, StringIO()), "These files are identical.")
+    with pytest.raises(SystemExit):
+        assert main(test_names_2, StringIO()) == "These files are identical."

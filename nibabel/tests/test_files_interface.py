@@ -17,10 +17,8 @@ from io import BytesIO
 from ..fileholders import FileHolderError
 from ..spatialimages import SpatialImage
 
-from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
-
 from numpy.testing import assert_array_equal
-
+import pytest
 
 def test_files_spatialimages():
     # test files creation in image classes
@@ -31,9 +29,9 @@ def test_files_spatialimages():
     for klass in klasses:
         file_map = klass.make_file_map()
         for key, value in file_map.items():
-            assert_equal(value.filename, None)
-            assert_equal(value.fileobj, None)
-            assert_equal(value.pos, 0)
+            assert value.filename is None
+            assert value.fileobj is None
+            assert value.pos == 0
         # If we can't create new images in memory without loading, bail here
         if not klass.makeable:
             continue
@@ -44,9 +42,9 @@ def test_files_spatialimages():
         else:
             img = klass(arr, aff)
         for key, value in img.file_map.items():
-            assert_equal(value.filename, None)
-            assert_equal(value.fileobj, None)
-            assert_equal(value.pos, 0)
+            assert value.filename is None
+            assert value.fileobj is None
+            assert value.pos == 0
 
 
 def test_files_interface():
@@ -56,15 +54,16 @@ def test_files_interface():
     img = Nifti1Image(arr, aff)
     # single image
     img.set_filename('test')
-    assert_equal(img.get_filename(), 'test.nii')
-    assert_equal(img.file_map['image'].filename, 'test.nii')
-    assert_raises(KeyError, img.file_map.__getitem__, 'header')
+    assert img.get_filename() == 'test.nii'
+    assert img.file_map['image'].filename == 'test.nii'
+    with pytest.raises(KeyError):
+        img.file_map['header']
     # pair - note new class
     img = Nifti1Pair(arr, aff)
     img.set_filename('test')
-    assert_equal(img.get_filename(), 'test.img')
-    assert_equal(img.file_map['image'].filename, 'test.img')
-    assert_equal(img.file_map['header'].filename, 'test.hdr')
+    assert img.get_filename() == 'test.img'
+    assert img.file_map['image'].filename == 'test.img'
+    assert img.file_map['header'].filename == 'test.hdr'
     # fileobjs - single image
     img = Nifti1Image(arr, aff)
     img.file_map['image'].fileobj = BytesIO()
@@ -76,7 +75,8 @@ def test_files_interface():
     img = Nifti1Pair(arr, aff)
     img.file_map['image'].fileobj = BytesIO()
     # no header yet
-    assert_raises(FileHolderError, img.to_file_map)
+    with pytest.raises(FileHolderError):
+        img.to_file_map()
     img.file_map['header'].fileobj = BytesIO()
     img.to_file_map()  # saves to files
     img2 = Nifti1Pair.from_file_map(img.file_map)

@@ -12,10 +12,8 @@ from ..affines import voxel_sizes
 
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
-from nose import SkipTest
-from nose.tools import assert_equal
-from nose.tools import assert_true
-
+import unittest
+import pytest
 from numpy.testing import assert_almost_equal
 
 BALLS = pjoin(get_nibabel_data(), 'nitest-balls1')
@@ -36,7 +34,7 @@ def test_loading():
             continue
         # Check we can load the image
         pimg = load(par)
-        assert_equal(pimg.shape[:3], (80, 80, 10))
+        assert pimg.shape[:3] == (80, 80, 10)
         # Compare against NIFTI if present
         nifti_fname = pjoin(BALLS, 'NIFTI', par_root + '.nii.gz')
         if exists(nifti_fname):
@@ -47,10 +45,10 @@ def test_loading():
             assert_almost_equal(aff_off, AFF_OFF, 4)
             # The difference is max in the order of 0.5 voxel
             vox_sizes = voxel_sizes(nimg.affine)
-            assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.501))
+            assert np.all(np.abs(aff_off / vox_sizes) <= 0.501)
             # The data is very close, unless it's the fieldmap
             if par_root != 'fieldmap':
-                assert_true(np.allclose(pimg.dataobj, nimg.dataobj))
+                assert np.allclose(pimg.dataobj, nimg.dataobj)
             # Not sure what's going on with the fieldmap image - TBA
 
 
@@ -63,7 +61,7 @@ def test_fieldmap():
     fieldmap_nii = pjoin(BALLS, 'NIFTI', 'fieldmap.nii.gz')
     load(fieldmap_par)
     top_load(fieldmap_nii)
-    raise SkipTest('Fieldmap remains puzzling')
+    raise unittest.SkipTest('Fieldmap remains puzzling')
 
 
 @needs_nibabel_data('parrec_oblique')
@@ -73,7 +71,7 @@ def test_oblique_loading():
         par_root, ext = splitext(basename(par))
         # Check we can load the image
         pimg = load(par)
-        assert_equal(pimg.shape, (560, 560, 1))
+        assert pimg.shape == (560, 560, 1)
         # Compare against NIFTI if present
         nifti_fname = pjoin(OBLIQUE, 'NIFTI', par_root + '.nii')
         nimg = top_load(nifti_fname)
@@ -83,6 +81,6 @@ def test_oblique_loading():
         aff_off = pimg.affine[:3, 3] - nimg.affine[:3, 3]
         # The difference is max in the order of 0.5 voxel
         vox_sizes = voxel_sizes(nimg.affine)
-        assert_true(np.all(np.abs(aff_off / vox_sizes) <= 0.5))
+        assert np.all(np.abs(aff_off / vox_sizes) <= 0.5)
         # The data is very close
-        assert_true(np.allclose(pimg.dataobj, nimg.dataobj))
+        assert np.allclose(pimg.dataobj, nimg.dataobj)

@@ -18,7 +18,7 @@ from ..loadsave import save
 from ..tmpdirs import InTemporaryDirectory
 
 from numpy.testing import assert_array_equal
-from nose.tools import (assert_true, assert_false, assert_equal, assert_raises)
+import pytest
 
 _counter = 0
 
@@ -33,7 +33,8 @@ def _as_fname(img):
 
 def test_concat():
     # Smoke test: concat empty list.
-    assert_raises(ValueError, concat_images, [])
+    with pytest.raises(ValueError):
+        concat_images([])
 
     # Build combinations of 3D, 4D w/size[3] == 1, and 4D w/size[3] == 3
     all_shapes_5D = ((1, 4, 5, 3, 3),
@@ -104,25 +105,23 @@ def test_concat():
                                 all_imgs = concat_images([img0, img1],
                                                          **concat_imgs_kwargs)
                             except ValueError as ve:
-                                assert_true(expect_error, str(ve))
+                                assert expect_error, str(ve)
                             else:
-                                assert_false(
-                                    expect_error, "Expected a concatenation error, but got none.")
+                                assert not expect_error, "Expected a concatenation error, but got none."
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
                             # check that not-matching affines raise error
-                            assert_raises(ValueError, concat_images, [
-                                          img0, img2], **concat_imgs_kwargs)
+                            with pytest.raises(ValueError):
+                                concat_images([img0, img2], **concat_imgs_kwargs)
 
                             # except if check_affines is False
                             try:
                                 all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
                             except ValueError as ve:
-                                assert_true(expect_error, str(ve))
+                                assert expect_error, str(ve)
                             else:
-                                assert_false(
-                                    expect_error, "Expected a concatenation error, but got none.")
+                                assert not expect_error, "Expected a concatenation error, but got none."
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
@@ -134,12 +133,12 @@ def test_closest_canonical():
     # Test with an AnalyzeImage first
     img = AnalyzeImage(arr, np.eye(4))
     xyz_img = as_closest_canonical(img)
-    assert_true(img is xyz_img)
+    assert img is xyz_img
 
     # And a case where the Analyze image has to be flipped
     img = AnalyzeImage(arr, np.diag([-1, 1, 1, 1]))
     xyz_img = as_closest_canonical(img)
-    assert_false(img is xyz_img)
+    assert img is not xyz_img
     out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.flipud(arr))
 
@@ -151,14 +150,14 @@ def test_closest_canonical():
     # re-order them properly
     img.header.set_dim_info(0, 1, 2)
     xyz_img = as_closest_canonical(img)
-    assert_true(img is xyz_img)
+    assert img is xyz_img
 
     # a axis flip
     img = Nifti1Image(arr, np.diag([-1, 1, 1, 1]))
     img.header.set_dim_info(0, 1, 2)
     xyz_img = as_closest_canonical(img)
-    assert_false(img is xyz_img)
-    assert_true(img.header.get_dim_info() == xyz_img.header.get_dim_info())
+    assert img is not xyz_img
+    assert img.header.get_dim_info() == xyz_img.header.get_dim_info()
     out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.flipud(arr))
 
@@ -170,9 +169,10 @@ def test_closest_canonical():
     # although it's more or less canonical already
     img = Nifti1Image(arr, aff)
     xyz_img = as_closest_canonical(img)
-    assert_true(img is xyz_img)
+    assert img is xyz_img
     # it's still not diagnonal
-    assert_raises(OrientationError, as_closest_canonical, img, True)
+    with pytest.raises(OrientationError):
+        as_closest_canonical(img, True)
 
     # an axis swap
     aff = np.diag([1, 0, 0, 1])
@@ -181,14 +181,14 @@ def test_closest_canonical():
     img.header.set_dim_info(0, 1, 2)
 
     xyz_img = as_closest_canonical(img)
-    assert_false(img is xyz_img)
+    assert img is not xyz_img
     # Check both the original and new objects
-    assert_true(img.header.get_dim_info() == (0, 1, 2))
-    assert_true(xyz_img.header.get_dim_info() == (0, 2, 1))
+    assert img.header.get_dim_info() == (0, 1, 2)
+    assert xyz_img.header.get_dim_info() == (0, 2, 1)
     out_arr = xyz_img.get_fdata()
     assert_array_equal(out_arr, np.transpose(arr, (0, 2, 1, 3)))
 
     # same axis swap but with None dim info (except for slice dim)
     img.header.set_dim_info(None, None, 2)
     xyz_img = as_closest_canonical(img)
-    assert_true(xyz_img.header.get_dim_info() == (None, None, 1))
+    assert xyz_img.header.get_dim_info() == (None, None, 1)

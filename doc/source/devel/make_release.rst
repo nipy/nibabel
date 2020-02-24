@@ -79,7 +79,7 @@ Release checklist
 
 * Make sure all tests pass (from the nibabel root directory)::
 
-    nosetests --with-doctest nibabel
+    pytest --doctest-modules nibabel
 
 * Make sure you are set up to use the ``try_branch.py`` - see
   https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots

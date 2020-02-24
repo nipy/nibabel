@@ -2,7 +2,6 @@
 """
 import sys
 
-from distutils.version import LooseVersion
 
 import numpy as np
 
@@ -12,8 +11,7 @@ from ..casting import (floor_exact, ceil_exact, as_int, FloatingError,
                        longdouble_precision_improved)
 from ..testing import suppress_warnings
 
-from nose import SkipTest
-from nose.tools import assert_equal, assert_raises, assert_true, assert_false
+import pytest
 
 IEEE_floats = [np.float16, np.float32, np.float64]
 
@@ -35,17 +33,17 @@ def test_type_info():
     for dtt in np.sctypes['int'] + np.sctypes['uint']:
         info = np.iinfo(dtt)
         infod = type_info(dtt)
-        assert_equal(dict(min=info.min, max=info.max,
-                          nexp=None, nmant=None,
-                          minexp=None, maxexp=None,
-                          width=np.dtype(dtt).itemsize), infod)
-        assert_equal(infod['min'].dtype.type, dtt)
-        assert_equal(infod['max'].dtype.type, dtt)
+        assert dict(min=info.min, max=info.max,
+                    nexp=None, nmant=None,
+                    minexp=None, maxexp=None,
+                    width=np.dtype(dtt).itemsize) == infod
+        assert infod['min'].dtype.type == dtt
+        assert infod['max'].dtype.type == dtt
     for dtt in IEEE_floats + [np.complex64, np.complex64]:
         infod = type_info(dtt)
-        assert_equal(dtt2dict(dtt), infod)
-        assert_equal(infod['min'].dtype.type, dtt)
-        assert_equal(infod['max'].dtype.type, dtt)
+        assert dtt2dict(dtt) == infod
+        assert infod['min'].dtype.type == dtt
+        assert infod['max'].dtype.type == dtt
     # What is longdouble?
     ld_dict = dtt2dict(np.longdouble)
     dbl_dict = dtt2dict(np.float64)
@@ -70,14 +68,14 @@ def test_type_info():
         ld_dict['width'] = width
     else:
         raise ValueError("Unexpected float type {} to test".format(np.longdouble))
-    assert_equal(ld_dict, infod)
+    assert ld_dict == infod
 
 
 def test_nmant():
     for t in IEEE_floats:
-        assert_equal(type_info(t)['nmant'], np.finfo(t).nmant)
+        assert type_info(t)['nmant'] == np.finfo(t).nmant
     if (LD_INFO['nmant'], LD_INFO['nexp']) == (63, 15):
-        assert_equal(type_info(np.longdouble)['nmant'], 63)
+        assert type_info(np.longdouble)['nmant'] == 63
 
 
 def test_check_nmant_nexp():
@@ -85,35 +83,37 @@ def test_check_nmant_nexp():
     for t in IEEE_floats:
         nmant = np.finfo(t).nmant
         maxexp = np.finfo(t).maxexp
-        assert_true(_check_nmant(t, nmant))
-        assert_false(_check_nmant(t, nmant - 1))
-        assert_false(_check_nmant(t, nmant + 1))
+        assert _check_nmant(t, nmant)
+        assert not _check_nmant(t, nmant - 1)
+        assert not _check_nmant(t, nmant + 1)
         with suppress_warnings():  # overflow
-            assert_true(_check_maxexp(t, maxexp))
-        assert_false(_check_maxexp(t, maxexp - 1))
+            assert _check_maxexp(t, maxexp)
+        assert not _check_maxexp(t, maxexp - 1)
         with suppress_warnings():
-            assert_false(_check_maxexp(t, maxexp + 1))
+            assert not _check_maxexp(t, maxexp + 1)
     # Check against type_info
     for t in ok_floats():
         ti = type_info(t)
         if ti['nmant'] not in (105, 106):  # This check does not work for PPC double pair
-            assert_true(_check_nmant(t, ti['nmant']))
+            assert _check_nmant(t, ti['nmant'])
         # Test fails for longdouble after blacklisting of OSX powl as of numpy
         # 1.12 - see https://github.com/numpy/numpy/issues/8307
         if t != np.longdouble or sys.platform != 'darwin':
-            assert_true(_check_maxexp(t, ti['maxexp']))
+            assert _check_maxexp(t, ti['maxexp'])
 
 
 def test_as_int():
     # Integer representation of number
-    assert_equal(as_int(2.0), 2)
-    assert_equal(as_int(-2.0), -2)
-    assert_raises(FloatingError, as_int, 2.1)
-    assert_raises(FloatingError, as_int, -2.1)
-    assert_equal(as_int(2.1, False), 2)
-    assert_equal(as_int(-2.1, False), -2)
+    assert as_int(2.0) == 2
+    assert as_int(-2.0) == -2
+    with pytest.raises(FloatingError):
+        as_int(2.1)
+    with pytest.raises(FloatingError):
+        as_int(-2.1)
+    assert as_int(2.1, False) == 2
+    assert as_int(-2.1, False) == -2
     v = np.longdouble(2**64)
-    assert_equal(as_int(v), 2**64)
+    assert as_int(v) == 2**64
     # Have all long doubles got 63+1 binary bits of precision?  Windows 32-bit
     # longdouble appears to have 52 bit precision, but we avoid that by checking
     # for known precisions that are less than that required
@@ -122,13 +122,15 @@ def test_as_int():
     except FloatingError:
         nmant = 63  # Unknown precision, let's hope it's at least 63
     v = np.longdouble(2) ** (nmant + 1) - 1
-    assert_equal(as_int(v), 2**(nmant + 1) - 1)
+    assert as_int(v) == 2**(nmant + 1) - 1
     # Check for predictable overflow
     nexp64 = floor_log2(type_info(np.float64)['max'])
     with np.errstate(over='ignore'):
         val = np.longdouble(2**nexp64) * 2  # outside float64 range
-    assert_raises(OverflowError, as_int, val)
-    assert_raises(OverflowError, as_int, -val)
+    with pytest.raises(OverflowError):
+        as_int(val)
+    with pytest.raises(OverflowError):
+        as_int(-val)
 
 
 def test_int_to_float():
@@ -138,18 +140,20 @@ def test_int_to_float():
         nmant = type_info(ie3)['nmant']
         for p in range(nmant + 3):
             i = 2**p + 1
-            assert_equal(int_to_float(i, ie3), ie3(i))
-            assert_equal(int_to_float(-i, ie3), ie3(-i))
+            assert int_to_float(i, ie3) == ie3(i)
+            assert int_to_float(-i, ie3) == ie3(-i)
         # IEEEs in this case are binary formats only
         nexp = floor_log2(type_info(ie3)['max'])
         # Values too large for the format
         smn, smx = -2**(nexp + 1), 2**(nexp + 1)
         if ie3 is np.float64:
-            assert_raises(OverflowError, int_to_float, smn, ie3)
-            assert_raises(OverflowError, int_to_float, smx, ie3)
+            with pytest.raises(OverflowError):
+                int_to_float(smn, ie3)
+            with pytest.raises(OverflowError):
+                int_to_float(smx, ie3)
         else:
-            assert_equal(int_to_float(smn, ie3), ie3(smn))
-            assert_equal(int_to_float(smx, ie3), ie3(smx))
+            assert int_to_float(smn, ie3) == ie3(smn)
+            assert int_to_float(smx, ie3) == ie3(smx)
     # Longdoubles do better than int, we hope
     LD = np.longdouble
     # up to integer precision of float64 nmant, we get the same result as for
@@ -157,29 +161,31 @@ def test_int_to_float():
     nmant = type_info(np.float64)['nmant']
     for p in range(nmant + 2):  # implicit
         i = 2**p - 1
-        assert_equal(int_to_float(i, LD), LD(i))
-        assert_equal(int_to_float(-i, LD), LD(-i))
+        assert int_to_float(i, LD) == LD(i)
+        assert int_to_float(-i, LD) == LD(-i)
     # Above max of float64, we're hosed
     nexp64 = floor_log2(type_info(np.float64)['max'])
     smn64, smx64 = -2**(nexp64 + 1), 2**(nexp64 + 1)
     # The algorithm here implemented goes through float64, so supermax and
     # supermin will cause overflow errors
-    assert_raises(OverflowError, int_to_float, smn64, LD)
-    assert_raises(OverflowError, int_to_float, smx64, LD)
+    with pytest.raises(OverflowError):
+        int_to_float(smn64, LD)
+    with pytest.raises(OverflowError):
+        int_to_float(smx64, LD)
     try:
         nmant = type_info(np.longdouble)['nmant']
     except FloatingError:  # don't know where to test
         return
     # test we recover precision just above nmant
     i = 2**(nmant + 1) - 1
-    assert_equal(as_int(int_to_float(i, LD)), i)
-    assert_equal(as_int(int_to_float(-i, LD)), -i)
+    assert as_int(int_to_float(i, LD)) == i
+    assert as_int(int_to_float(-i, LD)) == -i
     # If longdouble can cope with 2**64, test
     if nmant >= 63:
         # Check conversion to int; the line below causes an error subtracting
         # ints / uint64 values, at least for Python 3.3 and numpy dev 1.8
         big_int = np.uint64(2**64 - 1)
-        assert_equal(as_int(int_to_float(big_int, LD)), big_int)
+        assert as_int(int_to_float(big_int, LD)) == big_int
 
 
 def test_as_int_np_fix():
@@ -188,13 +194,13 @@ def test_as_int_np_fix():
     for t in np.sctypes['int'] + np.sctypes['uint']:
         info = np.iinfo(t)
         mn, mx = np.array([info.min, info.max], dtype=t)
-        assert_equal((mn, mx), (as_int(mn), as_int(mx)))
+        assert (mn, mx) == (as_int(mn), as_int(mx))
 
 
 def test_floor_exact_16():
     # A normal integer can generate an inf in float16
-    assert_equal(floor_exact(2**31, np.float16), np.inf)
-    assert_equal(floor_exact(-2**31, np.float16), -np.inf)
+    assert floor_exact(2**31, np.float16) == np.inf
+    assert floor_exact(-2**31, np.float16) == -np.inf
 
 
 def test_floor_exact_64():
@@ -203,11 +209,11 @@ def test_floor_exact_64():
         start = np.float64(2**e)
         across = start + np.arange(2048, dtype=np.float64)
         gaps = set(np.diff(across)).difference([0])
-        assert_equal(len(gaps), 1)
+        assert len(gaps) == 1
         gap = gaps.pop()
-        assert_equal(gap, int(gap))
+        assert gap == int(gap)
         test_val = 2**(e + 1) - 1
-        assert_equal(floor_exact(test_val, np.float64), 2**(e + 1) - int(gap))
+        assert floor_exact(test_val, np.float64) == 2**(e + 1) - int(gap)
 
 
 def test_floor_exact():
@@ -226,21 +232,21 @@ def test_floor_exact():
     for t in to_test:
         # A number bigger than the range returns the max
         info = type_info(t)
-        assert_equal(floor_exact(2**5000, t), np.inf)
-        assert_equal(ceil_exact(2**5000, t), np.inf)
+        assert floor_exact(2**5000, t) == np.inf
+        assert ceil_exact(2**5000, t) == np.inf
         # A number more negative returns -inf
-        assert_equal(floor_exact(-2**5000, t), -np.inf)
-        assert_equal(ceil_exact(-2**5000, t), -np.inf)
+        assert floor_exact(-2**5000, t) == -np.inf
+        assert ceil_exact(-2**5000, t) == -np.inf
         # Check around end of integer precision
         nmant = info['nmant']
         for i in range(nmant + 1):
             iv = 2**i
             # up to 2**nmant should be exactly representable
             for func in (int_flex, int_ceex):
-                assert_equal(func(iv, t), iv)
-                assert_equal(func(-iv, t), -iv)
-                assert_equal(func(iv - 1, t), iv - 1)
-                assert_equal(func(-iv + 1, t), -iv + 1)
+                assert func(iv, t) == iv
+                assert func(-iv, t) == -iv
+                assert func(iv - 1, t) == iv - 1
+                assert func(-iv + 1, t) == -iv + 1
         if t is np.longdouble and (
                 on_powerpc() or
                 longdouble_precision_improved()):
@@ -251,28 +257,28 @@ def test_floor_exact():
             continue
         # Confirm to ourselves that 2**(nmant+1) can't be exactly represented
         iv = 2**(nmant + 1)
-        assert_equal(int_flex(iv + 1, t), iv)
-        assert_equal(int_ceex(iv + 1, t), iv + 2)
+        assert int_flex(iv + 1, t) == iv
+        assert int_ceex(iv + 1, t) == iv + 2
         # negatives
-        assert_equal(int_flex(-iv - 1, t), -iv - 2)
-        assert_equal(int_ceex(-iv - 1, t), -iv)
+        assert int_flex(-iv - 1, t) == -iv - 2
+        assert int_ceex(-iv - 1, t) == -iv
         # The gap in representable numbers is 2 above 2**(nmant+1), 4 above
         # 2**(nmant+2), and so on.
         for i in range(5):
             iv = 2**(nmant + 1 + i)
             gap = 2**(i + 1)
-            assert_equal(as_int(t(iv) + t(gap)), iv + gap)
+            assert as_int(t(iv) + t(gap)) == iv + gap
             for j in range(1, gap):
-                assert_equal(int_flex(iv + j, t), iv)
-                assert_equal(int_flex(iv + gap + j, t), iv + gap)
-                assert_equal(int_ceex(iv + j, t), iv + gap)
-                assert_equal(int_ceex(iv + gap + j, t), iv + 2 * gap)
+                assert int_flex(iv + j, t) == iv
+                assert int_flex(iv + gap + j, t) == iv + gap
+                assert int_ceex(iv + j, t) == iv + gap
+                assert int_ceex(iv + gap + j, t) == iv + 2 * gap
             # negatives
             for j in range(1, gap):
-                assert_equal(int_flex(-iv - j, t), -iv - gap)
-                assert_equal(int_flex(-iv - gap - j, t), -iv - 2 * gap)
-                assert_equal(int_ceex(-iv - j, t), -iv)
-                assert_equal(int_ceex(-iv - gap - j, t), -iv - gap)
+                assert int_flex(-iv - j, t) == -iv - gap
+                assert int_flex(-iv - gap - j, t) == -iv - 2 * gap
+                assert int_ceex(-iv - j, t) == -iv
+                assert int_ceex(-iv - gap - j, t) == -iv - gap
 
 
 def test_usable_binary128():
@@ -280,7 +286,6 @@ def test_usable_binary128():
     yes = have_binary128()
     with np.errstate(over='ignore'):
         exp_test = np.longdouble(2) ** 16383
-    assert_equal(yes,
-                 exp_test.dtype.itemsize == 16 and
-                 np.isfinite(exp_test) and
-                 _check_nmant(np.longdouble, 112))
+    assert yes == (exp_test.dtype.itemsize == 16 and
+                   np.isfinite(exp_test) and
+                   _check_nmant(np.longdouble, 112))

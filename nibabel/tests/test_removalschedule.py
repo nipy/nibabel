@@ -1,57 +1,85 @@
 from ..pkg_info import cmp_pkg_version
-from ..testing import assert_raises, assert_false
+import unittest
+from unittest import mock
+import pytest
 
 MODULE_SCHEDULE = [
-    ('5.0.0', ['nibabel.keywordonly']),
-    ('4.0.0', ['nibabel.trackvis']),
-    ('3.0.0', ['nibabel.minc', 'nibabel.checkwarns']),
+    ("5.0.0", ["nibabel.keywordonly"]),
+    ("4.0.0", ["nibabel.trackvis"]),
+    ("3.0.0", ["nibabel.minc", "nibabel.checkwarns"]),
     # Verify that the test will be quiet if the schedule outlives the modules
-    ('1.0.0', ['nibabel.neverexisted']),
-    ]
+    ("1.0.0", ["nibabel.nosuchmod"]),
+]
 
 OBJECT_SCHEDULE = [
-    ('3.0.0', [('nibabel.testing', 'catch_warn_reset')]),
+    ("5.0.0", [("nibabel.pydicom_compat", "dicom_test")]),
+    ("3.0.0", [("nibabel.testing", "catch_warn_reset")]),
     # Verify that the test will be quiet if the schedule outlives the modules
-    ('1.0.0', [('nibabel', 'neverexisted')]),
-    ]
+    ("1.0.0", [("nibabel.nosuchmod", "anyobj"), ("nibabel.nifti1", "nosuchobj")]),
+]
 
 ATTRIBUTE_SCHEDULE = [
-    ('5.0.0', [('nibabel.dataobj_images', 'DataobjImage', 'get_data')]),
+    ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data")]),
     # Verify that the test will be quiet if the schedule outlives the modules
-    ('1.0.0', [('nibabel', 'Nifti1Image', 'neverexisted')]),
-    ]
+    ("1.0.0", [("nibabel.nosuchmod", "anyobj", "anyattr"),
+               ("nibabel.nifti1", "nosuchobj", "anyattr"),
+               ("nibabel.nifti1", "Nifti1Image", "nosuchattr")]),
+]
+
+
+def _filter(schedule):
+    return [entry for ver, entries in schedule if cmp_pkg_version(ver) < 1 for entry in entries]
 
 
 def test_module_removal():
-    for version, to_remove in MODULE_SCHEDULE:
-        if cmp_pkg_version(version) < 1:
-            for module in to_remove:
-                with assert_raises(ImportError, msg="Time to remove " + module):
-                    __import__(module)
+    for module in _filter(MODULE_SCHEDULE):
+        with pytest.raises(ImportError):
+            __import__(module)
+            assert False, "Time to remove %s" % module
 
 
 def test_object_removal():
-    for version, to_remove in OBJECT_SCHEDULE:
-        if cmp_pkg_version(version) < 1:
-            for module_name, obj in to_remove:
-                try:
-                    module = __import__(module_name)
-                except ImportError:
-                    continue
-                assert_false(hasattr(module, obj), msg="Time to remove %s.%s" % (module_name, obj))
+    for module_name, obj in _filter(OBJECT_SCHEDULE):
+        try:
+            module = __import__(module_name)
+        except ImportError:
+            continue
+        assert not hasattr(module, obj), "Time to remove %s.%s" % (module_name, obj,)
 
 
 def test_attribute_removal():
-    for version, to_remove in ATTRIBUTE_SCHEDULE:
-        if cmp_pkg_version(version) < 1:
-            for module_name, cls, attr in to_remove:
-                try:
-                    module = __import__(module_name)
-                except ImportError:
-                    continue
-                try:
-                    klass = getattr(module, cls)
-                except AttributeError:
-                    continue
-                assert_false(hasattr(klass, attr),
-                             msg="Time to remove %s.%s.%s" % (module_name, cls, attr))
+    for module_name, cls, attr in _filter(ATTRIBUTE_SCHEDULE):
+        try:
+            module = __import__(module_name)
+        except ImportError:
+            continue
+        try:
+            klass = getattr(module, cls)
+        except AttributeError:
+            continue
+        assert not hasattr(klass, attr), "Time to remove %s.%s.%s" % (module_name, cls, attr,)
+
+
+#
+# Test the tests, making sure that we will get errors when the time comes
+#
+
+_sched = "nibabel.tests.test_removalschedule.{}_SCHEDULE".format
+
+
+@mock.patch(_sched("MODULE"), [("3.0.0", ["nibabel.nifti1"])])
+def test_unremoved_module():
+    with pytest.raises(AssertionError):
+        test_module_removal()
+
+
+@mock.patch(_sched("OBJECT"), [("3.0.0", [("nibabel.nifti1", "Nifti1Image")])])
+def test_unremoved_object():
+    with pytest.raises(AssertionError):
+        test_object_removal()
+
+
+@mock.patch(_sched("ATTRIBUTE"), [("3.0.0", [("nibabel.nifti1", "Nifti1Image", "affine")])])
+def test_unremoved_attr():
+    with pytest.raises(AssertionError):
+        test_attribute_removal()

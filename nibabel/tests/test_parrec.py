@@ -20,9 +20,7 @@ from ..volumeutils import array_from_file
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
 
-from nose.tools import (assert_true, assert_false, assert_raises,
-                        assert_equal)
-
+import pytest
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
                        assert_arr_dict_equal)
 
@@ -177,15 +175,15 @@ def test_header():
             v41_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
         for hdr in (v42_hdr, v41_hdr, v4_hdr):
             hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-            assert_equal(hdr.get_data_shape(), (64, 64, 9, 3))
-            assert_equal(hdr.get_data_dtype(), np.dtype('<u2'))
-            assert_equal(hdr.get_zooms(), (3.75, 3.75, 8.0, 2.0))
-            assert_equal(hdr.get_data_offset(), 0)
+            assert hdr.get_data_shape() == (64, 64, 9, 3)
+            assert hdr.get_data_dtype() == np.dtype('<u2')
+            assert hdr.get_zooms() == (3.75, 3.75, 8.0, 2.0)
+            assert hdr.get_data_offset() == 0
             si = np.array(
                 [np.unique(x) for x in hdr.get_data_scaling()]).ravel()
             assert_almost_equal(si, (1.2903541326522827, 0.0), 5)
-            assert_equal(hdr.get_q_vectors(), None)
-            assert_equal(hdr.get_bvals_bvecs(), (None, None))
+            assert hdr.get_q_vectors() is None
+            assert hdr.get_bvals_bvecs() == (None, None)
 
 
 def test_header_scaling():
@@ -202,37 +200,38 @@ def test_header_scaling():
         scaling = [np.unique(x) for x in hdr.get_data_scaling()]
         assert_array_equal(scaling, dv_scaling)
     # Check we can change the default
-    assert_false(np.all(fp_scaling == dv_scaling))
+    assert not np.all(fp_scaling == dv_scaling)
 
 
 def test_header_volume_labels():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     # check volume labels
     vol_labels = hdr.get_volume_labels()
-    assert_equal(list(vol_labels.keys()), ['dynamic scan number'])
+    assert list(vol_labels.keys()) == ['dynamic scan number']
     assert_array_equal(vol_labels['dynamic scan number'], [1, 2, 3])
     # check that output is ndarray rather than list
-    assert_true(isinstance(vol_labels['dynamic scan number'], np.ndarray))
+    assert isinstance(vol_labels['dynamic scan number'], np.ndarray)
 
 
 def test_orientation():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     assert_array_equal(HDR_DEFS['slice orientation'], 1)
-    assert_equal(hdr.get_slice_orientation(), 'transverse')
+    assert hdr.get_slice_orientation() == 'transverse'
     hdr_defc = hdr.image_defs
     hdr_defc['slice orientation'] = 2
-    assert_equal(hdr.get_slice_orientation(), 'sagittal')
+    assert hdr.get_slice_orientation() == 'sagittal'
     hdr_defc['slice orientation'] = 3
-    assert_equal(hdr.get_slice_orientation(), 'coronal')
+    assert hdr.get_slice_orientation() == 'coronal'
 
 
 def test_data_offset():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    assert_equal(hdr.get_data_offset(), 0)
+    assert hdr.get_data_offset() == 0
     # Can set 0
     hdr.set_data_offset(0)
     # Can't set anything else
-    assert_raises(PARRECError, hdr.set_data_offset, 1)
+    with pytest.raises(PARRECError):
+        hdr.set_data_offset(1)
 
 
 def test_affine():
@@ -244,7 +243,7 @@ def test_affine():
     # rotation part is same
     assert_array_equal(scanner[:3, :3], fov[:3, :3])
     # offset not
-    assert_false(np.all(scanner[:3, 3] == fov[:3, 3]))
+    assert not np.all(scanner[:3, 3] == fov[:3, 3])
     # Regression test against what we were getting before
     assert_almost_equal(default, AN_OLD_AFFINE)
     # Test against RZS of Philips affine
@@ -264,10 +263,8 @@ def test_affine_regression():
 
 def test_get_voxel_size_deprecated():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
-        simplefilter('always')
+    with pytest.deprecated_call():
         hdr.get_voxel_size()
-    assert_equal(wlist[0].category, DeprecationWarning)
 
 
 def test_get_sorted_slice_indices():
@@ -305,13 +302,13 @@ def test_sorting_dual_echo_T1():
     sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
     n_half = len(t1_hdr.image_defs) // 2
     # first half (volume 1) should all correspond to echo 1
-    assert_equal(np.all(sorted_echos[:n_half] == 1), True)
+    assert np.all(sorted_echos[:n_half] == 1)
     # second half (volume 2) should all correspond to echo 2
-    assert_equal(np.all(sorted_echos[n_half:] == 2), True)
+    assert np.all(sorted_echos[n_half:] == 2)
 
     # check volume labels
     vol_labels = t1_hdr.get_volume_labels()
-    assert_equal(list(vol_labels.keys()), ['echo number'])
+    assert list(vol_labels.keys()) == ['echo number']
     assert_array_equal(vol_labels['echo number'], [1, 2])
 
 
@@ -348,17 +345,16 @@ def test_sorting_multiple_echos_and_contrasts():
                            np.arange(1, nslices+1))
         current_echo = slice_offset % nechos + 1
         # same echo for each slice in the group
-        assert_equal(np.all(sorted_echos[istart:iend] == current_echo),
-                     True)
+        assert np.all(sorted_echos[istart:iend] == current_echo)
     # outermost sort index is image_type_mr
-    assert_equal(np.all(sorted_types[:ntotal//4] == 0), True)
-    assert_equal(np.all(sorted_types[ntotal//4:ntotal//2] == 1), True)
-    assert_equal(np.all(sorted_types[ntotal//2:3*ntotal//4] == 2), True)
-    assert_equal(np.all(sorted_types[3*ntotal//4:ntotal] == 3), True)
+    assert np.all(sorted_types[:ntotal//4] == 0)
+    assert np.all(sorted_types[ntotal//4:ntotal//2] == 1)
+    assert np.all(sorted_types[ntotal//2:3*ntotal//4] == 2)
+    assert np.all(sorted_types[3*ntotal//4:ntotal] == 3)
 
     # check volume labels
     vol_labels = t1_hdr.get_volume_labels()
-    assert_equal(list(vol_labels.keys()), ['echo number', 'image_type_mr'])
+    assert list(vol_labels.keys()) == ['echo number', 'image_type_mr']
     assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
     assert_array_equal(vol_labels['image_type_mr'],
                        [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3])
@@ -384,10 +380,10 @@ def test_sorting_multiecho_ASL():
     nechos = sorted_echos.max()
     nlabels = sorted_labels.max()
     ndynamics = sorted_dynamics.max()
-    assert_equal(nslices, 8)
-    assert_equal(nechos, 3)
-    assert_equal(nlabels, 2)
-    assert_equal(ndynamics, 2)
+    assert nslices == 8
+    assert nechos == 3
+    assert nlabels == 2
+    assert ndynamics == 2
     # check that dynamics vary slowest
     assert_array_equal(
         np.all(sorted_dynamics[:ntotal//ndynamics] == 1), True)
@@ -406,8 +402,7 @@ def test_sorting_multiecho_ASL():
 
     # check volume labels
     vol_labels = asl_hdr.get_volume_labels()
-    assert_equal(list(vol_labels.keys()),
-                 ['echo number', 'label type', 'dynamic scan number'])
+    assert list(vol_labels.keys()) == ['echo number', 'label type', 'dynamic scan number']
     assert_array_equal(vol_labels['dynamic scan number'], [1]*6 + [2]*6)
     assert_array_equal(vol_labels['label type'], [1]*3 + [2]*3 + [1]*3 + [2]*3)
     assert_array_equal(vol_labels['echo number'], [1, 2, 3]*4)
@@ -434,8 +429,10 @@ def test_vol_is_full():
     assert_array_equal(vol_is_full([3, 2, 4, 1], 4), True)
     assert_array_equal(vol_is_full([3, 2, 1], 3, 0), False)
     assert_array_equal(vol_is_full([3, 2, 0, 1], 3, 0), True)
-    assert_raises(ValueError, vol_is_full, [2, 1, 0], 2)
-    assert_raises(ValueError, vol_is_full, [3, 2, 1], 3, 2)
+    with pytest.raises(ValueError):
+        vol_is_full([2, 1, 0], 2)
+    with pytest.raises(ValueError):
+        vol_is_full([3, 2, 1], 3, 2)
     assert_array_equal(vol_is_full([3, 2, 1, 2, 3, 1], 3),
                        [True] * 6)
     assert_array_equal(vol_is_full([3, 2, 1, 2, 3], 3),
@@ -452,10 +449,11 @@ def test_truncated_load():
     # Test loading of truncated header
     with open(TRUNC_PAR, 'rt') as fobj:
         gen_info, slice_info = parse_PAR_header(fobj)
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info)
     with clear_and_catch_warnings(record=True) as wlist:
         PARRECHeader(gen_info, slice_info, True)
-        assert_equal(len(wlist), 1)
+        assert len(wlist) == 1
 
 
 def test_vol_calculations():
@@ -464,7 +462,7 @@ def test_vol_calculations():
         gen_info, slice_info = parse_PAR_header(fobj)
         slice_nos = slice_info['slice number']
         max_slice = gen_info['max_slices']
-        assert_equal(set(slice_nos), set(range(1, max_slice + 1)))
+        assert set(slice_nos) == set(range(1, max_slice + 1))
         assert_array_equal(vol_is_full(slice_nos, max_slice), True)
         if par.endswith('NA.PAR'):
             continue  # Cannot parse this one
@@ -474,7 +472,7 @@ def test_vol_calculations():
         # Fourth dimension shows same number of volumes as vol_numbers
         shape = hdr.get_data_shape()
         d4 = 1 if len(shape) == 3 else shape[3]
-        assert_equal(max(vol_numbers(slice_nos)), d4 - 1)
+        assert max(vol_numbers(slice_nos)) == d4 - 1
 
 
 def test_diffusion_parameters():
@@ -482,8 +480,8 @@ def test_diffusion_parameters():
     dti_par = pjoin(DATA_PATH, 'DTI.PAR')
     with open(dti_par, 'rt') as fobj:
         dti_hdr = PARRECHeader.from_fileobj(fobj)
-    assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
-    assert_equal(dti_hdr.general_info['diffusion'], 1)
+    assert dti_hdr.get_data_shape() == (80, 80, 10, 8)
+    assert dti_hdr.general_info['diffusion'] == 1
     bvals, bvecs = dti_hdr.get_bvals_bvecs()
     assert_almost_equal(bvals, DTI_PAR_BVALS)
     # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
@@ -502,8 +500,8 @@ def test_diffusion_parameters_strict_sort():
     # should get the correct order even if we randomly shuffle the order
     dti_hdr.image_defs = _shuffle(dti_hdr.image_defs)
 
-    assert_equal(dti_hdr.get_data_shape(), (80, 80, 10, 8))
-    assert_equal(dti_hdr.general_info['diffusion'], 1)
+    assert dti_hdr.get_data_shape() == (80, 80, 10, 8)
+    assert dti_hdr.general_info['diffusion'] == 1
     bvals, bvecs = dti_hdr.get_bvals_bvecs()
     assert_almost_equal(bvals, np.sort(DTI_PAR_BVALS))
     # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
@@ -520,13 +518,13 @@ def test_diffusion_parameters_v4():
     dti_v4_par = pjoin(DATA_PATH, 'DTIv40.PAR')
     with open(dti_v4_par, 'rt') as fobj:
         dti_v4_hdr = PARRECHeader.from_fileobj(fobj)
-    assert_equal(dti_v4_hdr.get_data_shape(), (80, 80, 10, 8))
-    assert_equal(dti_v4_hdr.general_info['diffusion'], 1)
+    assert dti_v4_hdr.get_data_shape() == (80, 80, 10, 8)
+    assert dti_v4_hdr.general_info['diffusion'] == 1
     bvals, bvecs = dti_v4_hdr.get_bvals_bvecs()
     assert_almost_equal(bvals, DTI_PAR_BVALS)
     # no b-vector info in V4 .PAR files
-    assert_equal(bvecs, None)
-    assert_equal(dti_v4_hdr.get_q_vectors(), None)
+    assert bvecs is None
+    assert dti_v4_hdr.get_q_vectors() is None
 
 
 def test_null_diffusion_params():
@@ -537,8 +535,8 @@ def test_null_diffusion_params():
         gen_info, slice_info = parse_PAR_header(fobj)
         with suppress_warnings():
             hdr = PARRECHeader(gen_info, slice_info, True)
-        assert_equal(hdr.get_bvals_bvecs(), (None, None))
-        assert_equal(hdr.get_q_vectors(), None)
+        assert hdr.get_bvals_bvecs() == (None, None)
+        assert hdr.get_q_vectors() is None
 
 
 def test_epi_params():
@@ -547,7 +545,7 @@ def test_epi_params():
         epi_par = pjoin(DATA_PATH, par_root + '.PAR')
         with open(epi_par, 'rt') as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
-        assert_equal(len(epi_hdr.get_data_shape()), 4)
+        assert len(epi_hdr.get_data_shape()) == 4
         assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
 
 
@@ -558,37 +556,43 @@ def test_truncations():
         gen_info, slice_info = parse_PAR_header(fobj)
     # Header is well-formed as is
     hdr = PARRECHeader(gen_info, slice_info)
-    assert_equal(hdr.get_data_shape(), (80, 80, 10, 2))
+    assert hdr.get_data_shape() == (80, 80, 10, 2)
     # Drop one line, raises error
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info[:-1])
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info[:-1])
     # When we are permissive, we raise a warning, and drop a volume
     with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
         hdr = PARRECHeader(gen_info, slice_info[:-1], permit_truncated=True)
-        assert_equal(len(wlist), 1)
-    assert_equal(hdr.get_data_shape(), (80, 80, 10))
+        assert len(wlist) == 1
+    assert hdr.get_data_shape() == (80, 80, 10)
     # Increase max slices to raise error
     gen_info['max_slices'] = 11
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info)
     gen_info['max_slices'] = 10
     hdr = PARRECHeader(gen_info, slice_info)
     # Increase max_echoes
     gen_info['max_echoes'] = 2
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info)
     gen_info['max_echoes'] = 1
     hdr = PARRECHeader(gen_info, slice_info)
     # dyamics
     gen_info['max_dynamics'] = 3
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info)
     gen_info['max_dynamics'] = 2
     hdr = PARRECHeader(gen_info, slice_info)
     # number of b values
     gen_info['max_diffusion_values'] = 2
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info)
     gen_info['max_diffusion_values'] = 1
     hdr = PARRECHeader(gen_info, slice_info)
     # number of unique gradients
     gen_info['max_gradient_orient'] = 2
-    assert_raises(PARRECError, PARRECHeader, gen_info, slice_info)
+    with pytest.raises(PARRECError):
+        PARRECHeader(gen_info, slice_info)
     gen_info['max_gradient_orient'] = 1
     hdr = PARRECHeader(gen_info, slice_info)
 
@@ -596,28 +600,32 @@ def test_truncations():
 def test__get_uniqe_image_defs():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS.copy())
     uip = hdr._get_unique_image_prop
-    assert_equal(uip('image pixel size'), 16)
+    assert uip('image pixel size') == 16
     # Make values not same - raise error
     hdr.image_defs['image pixel size'][3] = 32
-    assert_raises(PARRECError, uip, 'image pixel size')
+    with pytest.raises(PARRECError):
+        uip('image pixel size')
     assert_array_equal(uip('recon resolution'), [64, 64])
     hdr.image_defs['recon resolution'][4, 1] = 32
-    assert_raises(PARRECError, uip, 'recon resolution')
+    with pytest.raises(PARRECError):
+        uip('recon resolution')
     assert_array_equal(uip('image angulation'), [-13.26, 0, 0])
     hdr.image_defs['image angulation'][5, 2] = 1
-    assert_raises(PARRECError, uip, 'image angulation')
+    with pytest.raises(PARRECError):
+        uip('image angulation')
     # This one differs from the outset
-    assert_raises(PARRECError, uip, 'slice number')
+    with pytest.raises(PARRECError):
+        uip('slice number')
 
 
 def test_copy_on_init():
     # Test that input dict / array gets copied when making header
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    assert_false(hdr.general_info is HDR_INFO)
+    assert hdr.general_info is not HDR_INFO
     hdr.general_info['max_slices'] = 10
-    assert_equal(hdr.general_info['max_slices'], 10)
-    assert_equal(HDR_INFO['max_slices'], 9)
-    assert_false(hdr.image_defs is HDR_DEFS)
+    assert hdr.general_info['max_slices'] == 10
+    assert HDR_INFO['max_slices'] == 9
+    assert hdr.image_defs is not HDR_DEFS
     hdr.image_defs['image pixel size'] = 8
     assert_array_equal(hdr.image_defs['image pixel size'], 8)
     assert_array_equal(HDR_DEFS['image pixel size'], 16)
@@ -625,7 +633,7 @@ def test_copy_on_init():
 
 def assert_structarr_equal(star1, star2):
     # Compare structured arrays (array_equal does not work for np 1.5)
-    assert_equal(star1.dtype, star2.dtype)
+    assert star1.dtype == star2.dtype
     for name in star1.dtype.names:
         assert_array_equal(star1[name], star2[name])
 
@@ -636,21 +644,22 @@ def test_header_copy():
     hdr2 = hdr.copy()
 
     def assert_copy_ok(hdr1, hdr2):
-        assert_false(hdr1 is hdr2)
-        assert_equal(hdr1.permit_truncated, hdr2.permit_truncated)
-        assert_false(hdr1.general_info is hdr2.general_info)
+        assert hdr1 is not hdr2
+        assert hdr1.permit_truncated == hdr2.permit_truncated
+        assert hdr1.general_info is not hdr2.general_info
         assert_arr_dict_equal(hdr1.general_info, hdr2.general_info)
-        assert_false(hdr1.image_defs is hdr2.image_defs)
+        assert hdr1.image_defs is not hdr2.image_defs
         assert_structarr_equal(hdr1.image_defs, hdr2.image_defs)
 
     assert_copy_ok(hdr, hdr2)
-    assert_false(hdr.permit_truncated)
-    assert_false(hdr2.permit_truncated)
+    assert not hdr.permit_truncated
+    assert not hdr2.permit_truncated
     with open(TRUNC_PAR, 'rt') as fobj:
-        assert_raises(PARRECError, PARRECHeader.from_fileobj, fobj)
+        with pytest.raises(PARRECError):
+            PARRECHeader.from_fileobj(fobj)
     with open(TRUNC_PAR, 'rt') as fobj:
         trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
-    assert_true(trunc_hdr.permit_truncated)
+    assert trunc_hdr.permit_truncated
     trunc_hdr2 = trunc_hdr.copy()
     assert_copy_ok(trunc_hdr, trunc_hdr2)
 
@@ -672,11 +681,13 @@ def test_image_creation():
         img = func(good_param)
         assert_array_equal(img.dataobj, arr_prox_dv)
         # permit_truncated is keyword only
-        assert_raises(TypeError, func, good_param, False)
+        with pytest.raises(TypeError):
+            func(good_param, False)
         img = func(good_param, permit_truncated=False)
         assert_array_equal(img.dataobj, arr_prox_dv)
         # scaling is keyword only
-        assert_raises(TypeError, func, good_param, False, 'dv')
+        with pytest.raises(TypeError):
+            func(good_param, False, 'dv')
         img = func(good_param, permit_truncated=False, scaling='dv')
         assert_array_equal(img.dataobj, arr_prox_dv)
         img = func(good_param, scaling='dv')
@@ -685,8 +696,10 @@ def test_image_creation():
         img = func(good_param, scaling='fp')
         assert_array_equal(img.dataobj, arr_prox_fp)
         # Truncated raises error without permit_truncated=True
-        assert_raises(PARRECError, func, trunc_param)
-        assert_raises(PARRECError, func, trunc_param, permit_truncated=False)
+        with pytest.raises(PARRECError):
+            func(trunc_param)
+        with pytest.raises(PARRECError):
+            func(trunc_param, permit_truncated=False)
         img = func(trunc_param, permit_truncated=True)
         assert_array_equal(img.dataobj, arr_prox_dv)
         img = func(trunc_param, permit_truncated=True, scaling='dv')
@@ -745,7 +758,8 @@ def test_bitpix():
     hdr_defs = HDR_DEFS.copy()
     for pix_size in (24, 32):
         hdr_defs['image pixel size'] = pix_size
-        assert_raises(PARRECError, PARRECHeader, HDR_INFO, hdr_defs)
+        with pytest.raises(PARRECError):
+            PARRECHeader(HDR_INFO, hdr_defs)
 
 
 def test_varying_scaling():
@@ -778,10 +792,10 @@ def test_anonymized():
     with open(ANON_PAR, 'rt') as fobj:
         anon_hdr = PARRECHeader.from_fileobj(fobj)
     gen_defs, img_defs = anon_hdr.general_info, anon_hdr.image_defs
-    assert_equal(gen_defs['patient_name'], '')
-    assert_equal(gen_defs['exam_name'], '')
-    assert_equal(gen_defs['protocol_name'], '')
-    assert_equal(gen_defs['series_type'], 'Image   MRSERIES')
+    assert gen_defs['patient_name'] == ''
+    assert gen_defs['exam_name'] == ''
+    assert gen_defs['protocol_name'] == ''
+    assert gen_defs['series_type'] == 'Image   MRSERIES'
     assert_almost_equal(img_defs['window center'][0], -2374.72283272283, 6)
     assert_almost_equal(img_defs['window center'][-1], 236.385836385836, 6)
     assert_almost_equal(img_defs['window width'][0], 767.277167277167, 6)
@@ -792,25 +806,25 @@ def test_exts2par():
     # Test we can load PAR headers from NIfTI extensions
     par_img = PARRECImage.from_filename(EG_PAR)
     nii_img = Nifti1Image.from_image(par_img)
-    assert_equal(exts2pars(nii_img), [])
-    assert_equal(exts2pars(nii_img.header), [])
-    assert_equal(exts2pars(nii_img.header.extensions), [])
-    assert_equal(exts2pars([]), [])
+    assert exts2pars(nii_img) == []
+    assert exts2pars(nii_img.header) == []
+    assert exts2pars(nii_img.header.extensions) == []
+    assert exts2pars([]) == []
     # Add a header extension
     with open(EG_PAR, 'rb') as fobj:
         hdr_dump = fobj.read()
         dump_ext = Nifti1Extension('comment', hdr_dump)
     nii_img.header.extensions.append(dump_ext)
     hdrs = exts2pars(nii_img)
-    assert_equal(len(hdrs), 1)
+    assert len(hdrs) == 1
     # Test attribute from PARRECHeader
-    assert_equal(hdrs[0].get_slice_orientation(), 'transverse')
+    assert hdrs[0].get_slice_orientation() == 'transverse'
     # Add another PAR extension
     nii_img.header.extensions.append(Nifti1Extension('comment', hdr_dump))
     hdrs = exts2pars(nii_img)
-    assert_equal(len(hdrs), 2)
+    assert len(hdrs) == 2
     # Test attribute from PARRECHeader
-    assert_equal(hdrs[1].get_slice_orientation(), 'transverse')
+    assert hdrs[1].get_slice_orientation() == 'transverse'
     # Add null extension, ignored
     nii_img.header.extensions.append(Nifti1Extension('comment', b''))
     # Check all valid inputs
@@ -819,7 +833,7 @@ def test_exts2par():
                    nii_img.header.extensions,
                    list(nii_img.header.extensions)):
         hdrs = exts2pars(source)
-        assert_equal(len(hdrs), 2)
+        assert len(hdrs) == 2
 
 
 def test_dualTR():
@@ -828,11 +842,11 @@ def test_dualTR():
         with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
             simplefilter('always')
             dualTR_hdr = PARRECHeader.from_fileobj(fobj)
-        assert_equal(len(wlist), 1)
+        assert len(wlist) == 1
         assert_array_equal(dualTR_hdr.general_info['repetition_time'],
                            expected_TRs)
         # zoom on 4th dimensions is the first TR (in seconds)
-        assert_equal(dualTR_hdr.get_zooms()[3], expected_TRs[0]/1000)
+        assert dualTR_hdr.get_zooms()[3] == expected_TRs[0]/1000
 
 
 def test_ADC_map():
@@ -845,13 +859,13 @@ def test_ADC_map():
         # but neither of these exist in the post-processed ADC volume.
         with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
             adc_hdr = PARRECHeader.from_fileobj(fobj, permit_truncated=True)
-            assert_equal(len(wlist), 2)
+            assert len(wlist) == 2
 
         # general_info indicates it is a diffusion scan, but because it is
         # a post-processed image, the bvals and bvecs aren't available
         bvals, bvecs = adc_hdr.get_bvals_bvecs()
-        assert_equal(bvals, None)
-        assert_equal(bvecs, None)
+        assert bvals is None
+        assert bvecs is None
 
 
 def test_alternative_header_field_names():
@@ -860,7 +874,7 @@ def test_alternative_header_field_names():
     # the alternate spelling were read.
     with ImageOpener(VARIANT_PAR, 'rt') as _fobj:
         HDR_INFO, HDR_DEFS = parse_PAR_header(_fobj)
-    assert_equal(HDR_INFO['series_type'], 'Image   MRSERIES')
-    assert_equal(HDR_INFO['diffusion_echo_time'], 0.0)
-    assert_equal(HDR_INFO['repetition_time'], npa([ 21225.76]))
-    assert_equal(HDR_INFO['patient_position'], 'HFS')
+    assert HDR_INFO['series_type'] == 'Image   MRSERIES'
+    assert HDR_INFO['diffusion_echo_time'] == 0.0
+    assert HDR_INFO['repetition_time'] == npa([ 21225.76])
+    assert HDR_INFO['patient_position'] == 'HFS'

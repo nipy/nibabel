@@ -3,13 +3,9 @@
     import nibabel as nib
     nib.bench()
 
-If you have doctests enabled by default in nose (with a noserc file or
-environment variable), and you have a numpy version <= 1.6.1, this will also
-run the doctests, let's hope they pass.
+Run this benchmark with::
 
-Run this benchmark with:
-
-    nosetests -s --match '(?:^|[\\b_\\.//-])[Bb]ench' /path/to/bench_fileslice.py
+    pytest -c <path>/benchmarks/pytest.benchmark.ini <path>/benchmarks/bench_fileslice.py
 """
 
 import sys

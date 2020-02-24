@@ -13,19 +13,18 @@ import numpy as np
 from ..spatialimages import HeaderTypeError, HeaderDataError
 from ..spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 
+import pytest
 from numpy.testing import assert_array_equal
 
-from ..testing import assert_equal, assert_raises
 
 from . import test_spm99analyze
-
 
 class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
     header_class = Spm2AnalyzeHeader
 
     def test_slope_inter(self):
         hdr = self.header_class()
-        assert_equal(hdr.get_slope_inter(), (1.0, 0.0))
+        assert hdr.get_slope_inter() == (1.0, 0.0)
         for in_tup, exp_err, out_tup, raw_slope in (
                 ((2.0,), None, (2.0, 0.), 2.),
                 ((None,), None, (None, None), np.nan),
@@ -43,16 +42,17 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
                 ((None, 0.0), None, (None, None), np.nan)):
             hdr = self.header_class()
             if not exp_err is None:
-                assert_raises(exp_err, hdr.set_slope_inter, *in_tup)
+                with pytest.raises(exp_err):
+                    hdr.set_slope_inter(*in_tup)
                 # raw set
                 if not in_tup[0] is None:
                     hdr['scl_slope'] = in_tup[0]
             else:
                 hdr.set_slope_inter(*in_tup)
-                assert_equal(hdr.get_slope_inter(), out_tup)
+                assert hdr.get_slope_inter() == out_tup
                 # Check set survives through checking
                 hdr = Spm2AnalyzeHeader.from_header(hdr, check=True)
-                assert_equal(hdr.get_slope_inter(), out_tup)
+                assert hdr.get_slope_inter() == out_tup
             assert_array_equal(hdr['scl_slope'], raw_slope)
 
 
