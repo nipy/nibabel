@@ -5,6 +5,7 @@
 # stdlib imports
 import sys
 import re
+import os
 from os.path import join as pjoin
 
 # local imports
@@ -48,12 +49,25 @@ if __name__ == '__main__':
 
     installed_version = V(module.__version__)
 
-    info_file = pjoin('..', package, 'info.py')
-    info_lines = open(info_file).readlines()
-    source_version = '.'.join([v.split('=')[1].strip(" '\n.")
-                               for v in info_lines if re.match(
-                                       '^_version_(major|minor|micro|extra)', v
-                                       )])
+    version_file = pjoin('..', package, '_version.py')
+    source_version = None
+    if os.path.exists(version_file):
+        # Versioneer
+        from runpy import run_path
+        try:
+            source_version = run_path(version_file)['get_versions']()['version']
+        except (FileNotFoundError, KeyError):
+            pass
+        if source_version == '0+unknown':
+            source_version = None
+    if source_version is None:
+        # Legacy fall-back
+        info_file = pjoin('..', package, 'info.py')
+        info_lines = open(info_file).readlines()
+        source_version = '.'.join([v.split('=')[1].strip(" '\n.")
+                                   for v in info_lines if re.match(
+                                           '^_version_(major|minor|micro|extra)', v
+                                           )])
     print('***', source_version)
 
     if source_version != installed_version:
