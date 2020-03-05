@@ -250,7 +250,7 @@ class AFNIArrayProxy(ArrayProxy):
             a new file handle is created every time the image is accessed.
             If ``file_like`` refers to an open file handle, this setting has no
             effect. The default value (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         super(AFNIArrayProxy, self).__init__(file_like,
                                              header,
@@ -533,7 +533,7 @@ class AFNIImage(SpatialImage):
             a new file handle is created every time the image is accessed.
             If ``file_like`` refers to an open file handle, this setting has no
             effect. The default value (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj)
@@ -553,6 +553,7 @@ class AFNIImage(SpatialImage):
         afni.nimh.nih.gov/pub/dist/doc/program_help/README.compression.html.
         Thus, if you have AFNI files my_image.HEAD and my_image.BRIK.gz and you
         want to load the AFNI BRIK / HEAD pair, you can specify:
+
             * The HEAD filename - e.g., my_image.HEAD
             * The BRIK filename w/o compressed extension - e.g., my_image.BRIK
             * The full BRIK filename - e.g., my_image.BRIK.gz

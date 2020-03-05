@@ -306,7 +306,7 @@ def obliquity(affine):
     This implementation is inspired by `AFNI's implementation
     <https://github.com/afni/afni/blob/b6a9f7a21c1f3231ff09efbd861f8975ad48e525/src/thd_coords.c#L660-L698>`_.
     For further details about *obliquity*, check `AFNI's documentation
-    <https://sscc.nimh.nih.gov/sscc/dglen/Obliquity>_.
+    <https://sscc.nimh.nih.gov/sscc/dglen/Obliquity>`_.
 
     Parameters
     ----------

@@ -23,7 +23,7 @@ Numpy indexing also works on axes
 (except for SeriesAxis objects, which have to remain monotonically increasing or decreasing).
 
 Creating new CIFTI-2 axes
------------------------
+-------------------------
 New Axis objects can be constructed by providing a description for what is contained
 in each row/column of the described tensor. For each Axis sub-class this descriptor is:
 
@@ -250,7 +250,7 @@ class BrainModelAxis(Axis):
         factory methods:
 
         - :py:meth:`~BrainModelAxis.from_mask`: creates surface or volumetric BrainModelAxis axis
-        from respectively 1D or 3D masks
+          from respectively 1D or 3D masks
         - :py:meth:`~BrainModelAxis.from_surface`: creates a surface BrainModelAxis axis
 
         The resulting BrainModelAxis axes can be concatenated by adding them together.
