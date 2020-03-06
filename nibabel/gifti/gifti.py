@@ -207,18 +207,21 @@ class GiftiCoordSystem(xml.XmlSerializable):
     Attributes
     ----------
     dataspace : int
-        From the spec: "Contains the stereotaxic space of a DataArray's data
+        From the spec: Contains the stereotaxic space of a DataArray's data
         prior to application of the transformation matrix. The stereotaxic
         space should be one of:
-            NIFTI_XFORM_UNKNOWN
-            NIFTI_XFORM_SCANNER_ANAT
-            NIFTI_XFORM_ALIGNED_ANAT
-            NIFTI_XFORM_TALAIRACH
-            NIFTI_XFORM_MNI_152"
+
+          - NIFTI_XFORM_UNKNOWN
+          - NIFTI_XFORM_SCANNER_ANAT
+          - NIFTI_XFORM_ALIGNED_ANAT
+          - NIFTI_XFORM_TALAIRACH
+          - NIFTI_XFORM_MNI_152
+
     xformspace : int
         Spec: "Contains the stereotaxic space of a DataArray's data after
         application of the transformation matrix. See the DataSpace element for
         a list of stereotaxic spaces."
+
     xform : array-like shape (4, 4)
         Affine transformation matrix
     """

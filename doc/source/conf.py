@@ -21,10 +21,8 @@
 
 import sys
 import os
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser  # PY2
+from runpy import run_path
+from configparser import ConfigParser
 
 # Check for external Sphinx extensions we depend on
 try:
@@ -51,9 +49,7 @@ except ImportError:
 # -- General configuration ----------------------------------------------------
 
 # We load the nibabel release info into a dict by explicit execution
-rel = {}
-with open(os.path.join('..', '..', 'nibabel', 'info.py'), 'r') as fobj:
-    exec(fobj.read(), rel)
+rel = run_path(os.path.join('..', '..', 'nibabel', 'info.py'))
 
 # Write long description from info
 with open('_long_description.inc', 'wt') as fobj:
@@ -62,10 +58,7 @@ with open('_long_description.inc', 'wt') as fobj:
 # Load metadata from setup.cfg
 config = ConfigParser()
 config.read(os.path.join('..', '..', 'setup.cfg'))
-try:
-    metadata = config['metadata']
-except AttributeError:
-    metadata = dict(config.items('metadata'))  # PY2
+metadata = config['metadata']
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
