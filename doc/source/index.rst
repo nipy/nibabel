@@ -105,6 +105,7 @@ contributed code and discussion (in rough order of appearance):
 * Dorota Jarecka
 * Chris Gorgolewski
 * Benjamin C Darwin
+* Zvi Baratz
 
 License reprise
 ===============

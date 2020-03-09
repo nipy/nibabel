@@ -263,9 +263,9 @@ class Tractogram(object):
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
     construction time. When applied to streamlines coordinates, that
     transformation matrix should bring the streamlines back to world space
-    (RAS+ and mm space) [1]_.
+    (RAS+ and mm space) [#]_.
 
-    Moreover, when streamlines are mapped back to voxel space [2]_, a
+    Moreover, when streamlines are mapped back to voxel space [#]_, a
     streamline point located at an integer coordinate (i,j,k) is considered
     to be at the center of the corresponding voxel. This is in contrast with
     other conventions where it might have referred to a corner.
@@ -292,8 +292,8 @@ class Tractogram(object):
 
     References
     ----------
-    [1] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
-    [2] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
+    .. [#] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
+    .. [#] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
@@ -515,9 +515,9 @@ class LazyTractogram(Tractogram):
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
     construction time. When applied to streamlines coordinates, that
     transformation matrix should bring the streamlines back to world space
-    (RAS+ and mm space) [1]_.
+    (RAS+ and mm space) [#]_.
 
-    Moreover, when streamlines are mapped back to voxel space [2]_, a
+    Moreover, when streamlines are mapped back to voxel space [#]_, a
     streamline point located at an integer coordinate (i,j,k) is considered
     to be at the center of the corresponding voxel. This is in contrast with
     other conventions where it might have referred to a corner.
@@ -553,8 +553,8 @@ class LazyTractogram(Tractogram):
 
     References
     ----------
-    [1] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
-    [2] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
+    .. [#] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
+    .. [#] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
     def __init__(self, streamlines=None,
                  data_per_streamline=None,
