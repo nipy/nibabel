@@ -21,40 +21,39 @@ env:
         - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
 
 python:
-    - 3.6
     - 3.7
     - 3.8
 
 jobs:
   include:
     # Basic dependencies only
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="-r requirements.txt"
     # Clean install
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS=""
         - CHECK_TYPE=skiptests
     # Absolute minimum dependencies
-    - python: 3.5
+    - python: 3.6
       env:
         - SETUP_REQUIRES="setuptools==30.3.0"
         - DEPENDS="-r min-requirements.txt"
     # Absolute minimum dependencies plus oldest MPL
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="-r min-requirements.txt matplotlib==1.5.3"
     # Minimum pydicom dependency
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="-r min-requirements.txt pydicom==0.9.9 pillow==2.6"
     # pydicom master branch
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
-    # test 3.7 against pre-release builds of everything
-    - python: 3.7
+    # test 3.8 against pre-release builds of everything
+    - python: 3.8
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # OSX Python support is basically accidental. Take whatever version we can
@@ -67,23 +66,23 @@ jobs:
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # Test that PyPI installs from source pass
-    - python: 3.5
+    - python: 3.6
       env:
         - INSTALL_TYPE=sdist
     # Wheels (binary distributions)
-    - python: 3.5
+    - python: 3.6
       env:
         - INSTALL_TYPE=wheel
     # Install from git archive (e.g., https://github.com/nipy/nibabel/archive/master.zip)
-    - python: 3.5
+    - python: 3.6
       env:
         - INSTALL_TYPE=archive
     # Run flake8... Might not be needed now we have pep8speaks
-    - python: 3.5
+    - python: 3.6
       env:
         - CHECK_TYPE="style"
     # Documentation doctests
-    - python: 3.5
+    - python: 3.6
       env:
         - CHECK_TYPE="doc"
 
