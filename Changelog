@@ -38,6 +38,7 @@ Maintenance
 * Fix typo in documentation (backport of pr/893) (Zvi Baratz, reviewed by CM)
 * Set minimum matplotlib to 1.5.3 to ensure wheels are available on all
   supported Python versions. (backport of pr/887) (CM)
+* Remove ``pyproject.toml`` for now. (issue/859) (CM)
 
 
 3.0.1 (Monday 27 January 2020)
