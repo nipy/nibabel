@@ -11,14 +11,14 @@ language: python
 cache: pip
 env:
     global:
-        - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
-        - DEPENDS="numpy scipy matplotlib h5py pillow pydicom indexed_gzip"
-        - INSTALL_TYPE="setup"
-        - CHECK_TYPE="test"
-        - EXTRA_WHEELS="https://3f23b170c54c2533c070-1c8a9b3114517dc5fe17b7c3f8c63a43.ssl.cf2.rackcdn.com"
-        - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
-        - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
-        - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
+        - SETUP_REQUIRES=pip setuptools>=30.3.0 wheel
+        - DEPENDS=numpy scipy matplotlib h5py pillow pydicom indexed_gzip
+        - INSTALL_TYPE=setup
+        - CHECK_TYPE=test
+        - EXTRA_WHEELS=https://3f23b170c54c2533c070-1c8a9b3114517dc5fe17b7c3f8c63a43.ssl.cf2.rackcdn.com
+        - PRE_WHEELS=https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com
+        - EXTRA_PIP_FLAGS=--find-links=$EXTRA_WHEELS
+        - PRE_PIP_FLAGS=--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS
 
 python:
     - 3.6
@@ -30,33 +30,33 @@ matrix:
     # Basic dependencies only
     - python: 3.5
       env:
-        - DEPENDS="-r requirements.txt"
+        - DEPENDS=-r requirements.txt
     # Clean install
     - python: 3.5
       env:
-        - DEPENDS=""
+        - DEPENDS=
         - CHECK_TYPE=skiptests
     # Absolute minimum dependencies
     - python: 3.5
       env:
-        - SETUP_REQUIRES="setuptools==30.3.0"
-        - DEPENDS="-r min-requirements.txt"
+        - SETUP_REQUIRES=setuptools==30.3.0
+        - DEPENDS=-r min-requirements.txt
     # Absolute minimum dependencies plus oldest MPL
     - python: 3.5
       env:
-        - DEPENDS="-r min-requirements.txt matplotlib==1.5.3"
+        - DEPENDS=-r min-requirements.txt matplotlib==1.5.3
     # Minimum pydicom dependency
     - python: 3.5
       env:
-        - DEPENDS="-r min-requirements.txt pydicom==0.9.9 pillow==2.6"
+        - DEPENDS=-r min-requirements.txt pydicom==0.9.9 pillow==2.6
     # pydicom master branch
     - python: 3.5
       env:
-        - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
+        - DEPENDS=numpy git+https://github.com/pydicom/pydicom.git@master
     # test 3.7 against pre-release builds of everything
     - python: 3.7
       env:
-        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
+        - EXTRA_PIP_FLAGS=$PRE_PIP_FLAGS
     - python: 3.5
       env:
         - INSTALL_TYPE=sdist
@@ -68,11 +68,11 @@ matrix:
         - INSTALL_TYPE=archive
     - python: 3.5
       env:
-        - CHECK_TYPE="style"
+        - CHECK_TYPE=style
     # Documentation doctests
     - python: 3.5
       env:
-        - CHECK_TYPE="doc"
+        - CHECK_TYPE=doc
 
 # Set up virtual environment, build package, build from depends
 before_install:
