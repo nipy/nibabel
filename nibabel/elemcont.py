@@ -100,13 +100,13 @@ class ElemList(MutableSequence):
     '''
     def __init__(self, data=None):
         self._elems = list()
-        if data is not None:
-            if isinstance(data, self.__class__):
-                for idx in range(len(data)):
-                    self.append(data.get_elem(idx))
-            else:
-                for elem in data:
-                    self.append(elem)
+        if data is None: return
+        if isinstance(data, self.__class__):
+            for idx in range(len(data)):
+                self.append(data.get_elem(idx))
+        else:
+            for elem in data:
+                self.append(elem)
 
     def _tuple_from_slice(self, slc):
         '''Get (start, end, step) tuple from slice object.
@@ -117,7 +117,7 @@ class ElemList(MutableSequence):
           if end < start:
             end = start
           step = None
-        if slc.step == None:
+        if slc.step is None:
           step = None
         return (start, end, step)
 
@@ -130,19 +130,19 @@ class ElemList(MutableSequence):
     def __setitem__(self, idx, val):
         if isinstance(idx, slice):
             (start, end, step) = self._tuple_from_slice(idx)
-            if step != None:
-                # Extended slice
-                indices = range(start, end, step)
-                if len(val) != len(indices):
-                    raise ValueError(('attempt to assign sequence of size %d' +
-                                      ' to extended slice of size %d') %
-                                     (len(value), len(indices)))
-                for j, assign_val in enumerate(val):
-                    self.insert(indices[j], assign_val)
-            else:
+            if step is None:
                 # Normal slice
                 for j, assign_val in enumerate(val):
                     self.insert(start + j, assign_val)
+                return
+            # Extended slice
+            indices = range(start, end, step)
+            if len(val) != len(indices):
+                raise ValueError(('attempt to assign sequence of size %d' +
+                                  ' to extended slice of size %d') %
+                                 (len(value), len(indices)))
+            for j, assign_val in enumerate(val):
+                self.insert(indices[j], assign_val)
         else:
             self.insert(idx, val)
 
