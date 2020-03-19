@@ -28,9 +28,8 @@ class InvalidElemError(Exception):
     '''The object being added to the container doesn't have a `value` attribute
 	'''
     def __init__(self, invalid_val):
-        self.invalid_val = invalid_val
         message = ("Provided value '%s' of type %s does not have a 'value' "
-                   "attribute" % (self.invalid_val, type(invalid_val)))
+                   "attribute" % (invalid_val, type(invalid_val)))
         super(InvalidElemError, self).__init__(message)
 
 
