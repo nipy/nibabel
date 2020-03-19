@@ -1,9 +1,11 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-'''Containers for storing "elements" which have both a core data value as well
-as some additional meta data. When indexing into these containers it is this
-core value that is returned, which allows for much cleaner and more readable
-access to nested structures.
+'''Containers that provide easy access to the values of nested elements
+
+These containers are for storing "elements" which have both a core data value 
+as well as some additional meta data. When indexing into these containers it is 
+this core value that is returned, which allows for much cleaner and more 
+readable access to nested structures.
 
 Each object stored in these containers must have an attribute `value` which
 provides the core data value for the element. To get the element object itself
@@ -23,8 +25,8 @@ class Elem(object):
 
 
 class InvalidElemError(Exception):
-    '''Raised when trying to add an object without a `value` attribute to an
-    `ElemDict`.'''
+    '''The object being added to the container doesn't have a `value` attribute
+	'''
     def __init__(self, invalid_val):
         self.invalid_val = invalid_val
         message = ("Provided value '%s' of type %s does not have a 'value' "
@@ -33,11 +35,11 @@ class InvalidElemError(Exception):
 
 
 class ElemDict(MutableMapping):
-    '''Ordered dict-like where each value is an "element", which is defined as
-    any object which has a `value` attribute.
-
-    When looking up an item in the dict, it is this `value` attribute that
-    is returned. To get the element itself use the `get_elem` method.
+    '''Ordered dict-like providing easy access to nested elements
+ 
+    Each value added to the dict must in turn have a `value` attribute, which 
+	is what is returned by subsequent calls to `__getitem__`. To get the 
+	element itself use the `get_elem` method.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -91,11 +93,11 @@ class ElemDict(MutableMapping):
 
 
 class ElemList(MutableSequence):
-    '''A list-like container where each value is an "element", which is
-    defined as any object which has a `value` attribute.
+    '''A list-like container providing easy access to nested elements
 
-    When looking up an item in the list, it is this `value` attribute that
-    is returned. To get the element itself use the `get_elem` method.
+    Each value added to the list must in turn have a `value` attribute, which 
+	is what is returned by subsequent calls to `__getitem__`. To get the 
+	element itself use the `get_elem` method.
     '''
     def __init__(self, data=None):
         self._elems = list()
@@ -186,3 +188,4 @@ class ElemList(MutableSequence):
 
     def get_elem(self, idx):
         return self._elems[idx]
+
