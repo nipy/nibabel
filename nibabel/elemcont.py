@@ -17,7 +17,7 @@ from .externals import OrderedDict
 from .externals.six import iteritems
 
 
-class Elem(object):
+class MetaElem(object):
     '''Basic element type has a `value` and a `meta` attribute.'''
     def __init__(self, value, meta=None):
         self.value = value
