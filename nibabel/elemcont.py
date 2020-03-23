@@ -2,9 +2,9 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 '''Containers that provide easy access to the values of nested elements
 
-These containers are for storing "elements" which have both a core data value 
-as well as some additional meta data. When indexing into these containers it is 
-this core value that is returned, which allows for much cleaner and more 
+These containers are for storing "elements" which have both a core data value
+as well as some additional meta data. When indexing into these containers it is
+this core value that is returned, which allows for much cleaner and more
 readable access to nested structures.
 
 Each object stored in these containers must have an attribute `value` which
@@ -26,7 +26,7 @@ class MetaElem(object):
 
 class InvalidElemError(Exception):
     '''The object being added to the container doesn't have a `value` attribute
-	'''
+    '''
     def __init__(self, invalid_val):
         message = ("Provided value '%s' of type %s does not have a 'value' "
                    "attribute" % (invalid_val, type(invalid_val)))
@@ -35,10 +35,10 @@ class InvalidElemError(Exception):
 
 class ElemDict(MutableMapping):
     '''Ordered dict-like providing easy access to nested elements
- 
-    Each value added to the dict must in turn have a `value` attribute, which 
-	is what is returned by subsequent calls to `__getitem__`. To get the 
-	element itself use the `get_elem` method.
+
+    Each value added to the dict must in turn have a `value` attribute, which
+    is what is returned by subsequent calls to `__getitem__`. To get the
+    element itself use the `get_elem` method.
     '''
 
     def __init__(self, *args, **kwargs):
@@ -94,13 +94,14 @@ class ElemDict(MutableMapping):
 class ElemList(MutableSequence):
     '''A list-like container providing easy access to nested elements
 
-    Each value added to the list must in turn have a `value` attribute, which 
-	is what is returned by subsequent calls to `__getitem__`. To get the 
-	element itself use the `get_elem` method.
+    Each value added to the list must in turn have a `value` attribute, which
+    is what is returned by subsequent calls to `__getitem__`. To get the
+    element itself use the `get_elem` method.
     '''
     def __init__(self, data=None):
         self._elems = list()
-        if data is None: return
+        if data is None:
+            return
         if isinstance(data, self.__class__):
             for idx in range(len(data)):
                 self.append(data.get_elem(idx))
@@ -114,11 +115,11 @@ class ElemList(MutableSequence):
         (start, end, step) = slc.indices(len(self))
         # Replace (0, -1, 1) with (0, 0, 1) (misfeature in .indices()).
         if step == 1:
-          if end < start:
-            end = start
-          step = None
+            if end < start:
+                end = start
+            step = None
         if slc.step is None:
-          step = None
+            step = None
         return (start, end, step)
 
     def __getitem__(self, idx):
@@ -187,4 +188,3 @@ class ElemList(MutableSequence):
 
     def get_elem(self, idx):
         return self._elems[idx]
-
