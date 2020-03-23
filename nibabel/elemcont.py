@@ -14,7 +14,6 @@ the `get_elem` method must be used.
 from collections import MutableMapping, MutableSequence
 
 from .externals import OrderedDict
-from .externals.six import iteritems
 
 
 class MetaElem(object):
@@ -50,12 +49,12 @@ class ElemDict(MutableMapping):
             if hasattr(arg, 'get_elem'):
                 it = ((k, arg.get_elem(k)) for k in arg)
             elif hasattr(arg, 'items'):
-                it = iteritems(arg)
+                it = arg.items()
             else:
                 it = arg
             for key, val in it:
                 self[key] = val
-        for key, val in iteritems(kwargs):
+        for key, val in kwargs.items():
             self[key] = val
 
     def __getitem__(self, key):
@@ -84,7 +83,7 @@ class ElemDict(MutableMapping):
             for key in other:
                 self[key] = other.get_elem(key)
         else:
-            for key, elem in iteritems(other):
+            for key, elem in other.items():
                 self[key] = elem
 
     def get_elem(self, key):
