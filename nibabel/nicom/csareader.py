@@ -188,11 +188,11 @@ def write(csa_header):
         result.append(csa_header['unused0'])
     if not 0 < csa_header['n_tags'] <= 128:
         raise CSAWriteError('Number of tags `t` should be '
-                           '0 < t <= 128')
+                            '0 < t <= 128')
     result.append(struct.pack('2I',
                               csa_header['n_tags'],
                               csa_header['check'])
-                 )
+                  )
 
     # Build list of tags in correct order
     tags = list(csa_header['tags'].items())
@@ -212,7 +212,7 @@ def write(csa_header):
                                   tag_dict['syngodt'],
                                   n_items,
                                   tag_dict['last3'])
-                     )
+                      )
 
         # Figure out the number of values for this tag
         if vm == 0:
@@ -242,7 +242,7 @@ def write(csa_header):
                     if item_no < vm:
                         items.append('')
                     break
-            else: # CSA2
+            else:  # CSA2
                 x1 = item_len
             result.append(struct.pack('4i', x0, x1, x2, x3))
 
