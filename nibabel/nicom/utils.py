@@ -1,7 +1,7 @@
 """ Utilities for working with DICOM datasets
 """
 
-import re, string
+import re
 
 from numpy.compat.py3k import asstr
 import numpy as np
