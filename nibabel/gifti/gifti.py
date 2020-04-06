@@ -284,7 +284,7 @@ def _data_tag_element(dataarray, encoding, dtype, ordering):
         # XXX Accommodating data_tag API - don't try to fix dtype
         if isinstance(dtype, str):
             dtype = dataarray.dtype
-        out = np.asanyarray(dataarray, dtype).tostring(order)
+        out = np.asanyarray(dataarray, dtype).tobytes(order)
         if enclabel == 'B64GZ':
             out = zlib.compress(out)
         da = base64.b64encode(out).decode()

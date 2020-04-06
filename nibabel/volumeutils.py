@@ -480,13 +480,13 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     >>> from io import BytesIO
     >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> _ = bio.write(arr.tostring('F')) # outputs int in python3
+    >>> _ = bio.write(arr.tobytes('F')) # outputs int in python3
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
     >>> bio = BytesIO()
     >>> _ = bio.write(b' ' * 10)
-    >>> _ = bio.write(arr.tostring('F'))
+    >>> _ = bio.write(arr.tobytes('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
     True
@@ -608,19 +608,19 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> sio = BytesIO()
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
-    >>> sio.getvalue() == data.tostring('F')
+    >>> sio.getvalue() == data.tobytes('F')
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0) # outputs 0 in python 3
     >>> array_to_file(data, sio, np.int16)
-    >>> sio.getvalue() == data.astype(np.int16).tostring()
+    >>> sio.getvalue() == data.astype(np.int16).tobytes()
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data.byteswap(), sio, np.float)
-    >>> sio.getvalue() == data.byteswap().tostring('F')
+    >>> sio.getvalue() == data.byteswap().tobytes('F')
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data, sio, np.float, order='C')
-    >>> sio.getvalue() == data.tostring('C')
+    >>> sio.getvalue() == data.tobytes('C')
     True
     '''
     # Shield special case
@@ -830,7 +830,7 @@ def _write_data(data,
                 dslice[nans] = nan_fill
         if dslice.dtype != out_dtype:
             dslice = dslice.astype(out_dtype)
-        fileobj.write(dslice.tostring())
+        fileobj.write(dslice.tobytes())
 
 
 def _dt_min_max(dtype_like, mn=None, mx=None):

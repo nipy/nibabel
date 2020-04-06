@@ -265,7 +265,7 @@ class SpatialHeader(FileBasedHeader):
         '''
         data = np.asarray(data)
         dtype = self.get_data_dtype()
-        fileobj.write(data.astype(dtype).tostring(order=self.data_layout))
+        fileobj.write(data.astype(dtype).tobytes(order=self.data_layout))
 
     def data_from_fileobj(self, fileobj):
         ''' Read binary image data from `fileobj` '''

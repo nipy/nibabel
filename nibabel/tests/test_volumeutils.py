@@ -101,7 +101,7 @@ def test_fobj_string_assumptions():
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
-            fobj_w.write(in_arr.tostring())
+            fobj_w.write(in_arr.tobytes())
             fobj_w.close()
             # Read back from file
             fobj_r = opener(fname, 'rb')
@@ -177,7 +177,7 @@ def test_array_from_file_mmap():
         for dt in (np.int16, np.float):
             arr = np.arange(np.prod(shape), dtype=dt).reshape(shape)
             with open('test.bin', 'wb') as fobj:
-                fobj.write(arr.tostring(order='F'))
+                fobj.write(arr.tobytes(order='F'))
             with open('test.bin', 'rb') as fobj:
                 res = array_from_file(shape, dt, fobj)
                 assert_array_equal(res, arr)
@@ -214,7 +214,7 @@ def test_array_from_file_mmap():
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
     ''' Write contents of in_arr into fileobj, read back, check same '''
-    instr = b' ' * offset + in_arr.tostring(order='F')
+    instr = b' ' * offset + in_arr.tobytes(order='F')
     out_buf.write(instr)
     out_buf.flush()
     if in_buf is None:  # we're using in_buf from out_buf
@@ -240,7 +240,7 @@ def test_array_from_file_openers():
             with Opener(fname, 'wb') as out_buf:
                 if offset != 0:  # avoid https://bugs.python.org/issue16828
                     out_buf.write(b' ' * offset)
-                out_buf.write(in_arr.tostring(order='F'))
+                out_buf.write(in_arr.tobytes(order='F'))
             with Opener(fname, 'rb') as in_buf:
                 out_arr = array_from_file(shape, dtype, in_buf, offset)
                 assert_array_almost_equal(in_arr, out_arr)
@@ -266,7 +266,7 @@ def test_array_from_file_reread():
             # Write array to file
             fobj_w = opener() if is_bio else opener(fname, 'wb')
             fobj_w.write(b' ' * offset)
-            fobj_w.write(in_arr.tostring(order=order))
+            fobj_w.write(in_arr.tobytes(order=order))
             if is_bio:
                 fobj_r = fobj_w
             else:

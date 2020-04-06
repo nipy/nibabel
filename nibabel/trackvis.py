@@ -370,7 +370,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
         # write header without streams
         hdr = _hdr_from_mapping(None, hdr_mapping, endianness)
         with ImageOpener(fileobj, 'wb') as fileobj:
-            fileobj.write(hdr.tostring())
+            fileobj.write(hdr.tobytes())
         return
     if endianness is None:
         endianness = endian_codes[streams0[0].dtype.byteorder]
@@ -411,7 +411,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
         mm2tv = np.dot(vx2tv, mm2vx).astype('f4')
     # write header
     fileobj = ImageOpener(fileobj, mode='wb')
-    fileobj.write(hdr.tostring())
+    fileobj.write(hdr.tobytes())
     # track preliminaries
     f4dt = np.dtype(endianness + 'f4')
     i_fmt = endianness + 'i'
@@ -439,7 +439,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
             if scalars.dtype != f4dt:
                 scalars = scalars.astype(f4dt)
             pts = np.c_[pts, scalars]
-        fileobj.write(pts.tostring())
+        fileobj.write(pts.tobytes())
         if n_p == 0:
             if not (props is None or len(props) == 0):
                 raise DataError('Expecting 0 properties per point')
@@ -448,7 +448,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
                 raise DataError('Properties should be size %s' % n_p)
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
-            fileobj.write(props.tostring())
+            fileobj.write(props.tobytes())
     fileobj.close_if_mine()
 
 

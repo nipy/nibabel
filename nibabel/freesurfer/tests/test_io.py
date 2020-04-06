@@ -310,7 +310,7 @@ def test_read_annot_old_format():
         # number of vertices
         fbytes += struct.pack(dt, nverts)
         # vertices + annotation values
-        fbytes += bytes(vdata.astype(dt).tostring())
+        fbytes += vdata.astype(dt).tobytes()
         # is there a colour table?
         fbytes += struct.pack(dt, 1)
         # number of entries in colour table
@@ -322,7 +322,7 @@ def test_read_annot_old_format():
             # length of entry name (+1 for terminating byte)
             fbytes += struct.pack(dt, len(names[i]) + 1)
             fbytes += names[i].encode('ascii') + b'\x00'
-            fbytes += bytes(rgba[i, :].astype(dt).tostring())
+            fbytes += rgba[i, :].astype(dt).tobytes()
         with open(fpath, 'wb') as f:
             f.write(fbytes)
     with InTemporaryDirectory():

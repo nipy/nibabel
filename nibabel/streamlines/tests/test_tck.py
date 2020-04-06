@@ -129,8 +129,8 @@ class TestTCK(unittest.TestCase):
         assert_raises(HeaderError, TckFile.load, BytesIO(new_tck_file))
 
         # Simulate a TCK file which is missing a streamline delimiter.
-        eos = TckFile.FIBER_DELIMITER.tostring()
-        eof = TckFile.EOF_DELIMITER.tostring()
+        eos = TckFile.FIBER_DELIMITER.tobytes()
+        eof = TckFile.EOF_DELIMITER.tobytes()
         new_tck_file = tck_file[:-(len(eos) + len(eof))] + tck_file[-len(eof):]
 
         # Force TCK loading to use buffering.

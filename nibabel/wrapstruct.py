@@ -209,7 +209,7 @@ class WrapStruct(object):
         >>> len(wstr.binaryblock)
         2
         '''
-        return self._structarr.tostring()
+        return self._structarr.tobytes()
 
     def write_to(self, fileobj):
         ''' Write structure to fileobj
@@ -296,7 +296,7 @@ class WrapStruct(object):
             return False
         if this_end == other_end:
             return this_bb == other_bb
-        other_bb = other._structarr.byteswap().tostring()
+        other_bb = other._structarr.byteswap().tobytes()
         return this_bb == other_bb
 
     def __ne__(self, other):
@@ -480,9 +480,7 @@ class WrapStruct(object):
         if endianness == current:
             return self.copy()
         wstr_data = self._structarr.byteswap()
-        return self.__class__(wstr_data.tostring(),
-                              endianness,
-                              check=False)
+        return self.__class__(wstr_data.tobytes(), endianness, check=False)
 
     @classmethod
     def _get_checks(klass):

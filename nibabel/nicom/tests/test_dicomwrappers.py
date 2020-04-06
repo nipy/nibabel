@@ -616,7 +616,7 @@ class TestMultiFrameWrapper(TestCase):
         # data hash depends on the endianness
         if endian_codes[data.dtype.byteorder] == '>':
             data = data.byteswap()
-        dat_str = data.tostring()
+        dat_str = data.tobytes()
         assert_equal(sha1(dat_str).hexdigest(),
                      '149323269b0af92baa7508e19ca315240f77fa8c')
 

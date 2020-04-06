@@ -145,8 +145,7 @@ class _Series(object):
             max = data.max()
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
-        im = frombytes('L', (self.rows, self.columns),
-                       data.tostring())
+        im = frombytes('L', (self.rows, self.columns), data.tobytes())
 
         s = BytesIO()
         im.save(s, 'PNG')
@@ -214,7 +213,7 @@ class _Series(object):
         s = BytesIO()
         hdr.write_to(s)
 
-        return s.getvalue() + data.tostring()
+        return s.getvalue() + data.tobytes()
 
     def nifti_size(self):
         return 352 + 2 * len(self.storage_instances) * self.columns * self.rows
