@@ -981,7 +981,7 @@ class EcatImage(SpatialImage):
 
             # Write subheader
             subhdr = subheaders.subheaders[index]
-            imgf.write(subhdr.tostring())
+            imgf.write(subhdr.tobytes())
 
             # Seek to the next image block
             pos = imgf.tell()

@@ -175,17 +175,17 @@ def test_read_data():
         data = np.arange(6).reshape((1, 2, 3))
         hdr.data_to_fileobj(data, fobj)
         assert_equal(fobj.getvalue(),
-                     data.astype(np.int32).tostring(order=order))
+                     data.astype(np.int32).tobytes(order=order))
         # data_to_fileobj accepts kwarg 'rescale', but no effect in this case
         fobj.seek(0)
         hdr.data_to_fileobj(data, fobj, rescale=True)
         assert_equal(fobj.getvalue(),
-                     data.astype(np.int32).tostring(order=order))
+                     data.astype(np.int32).tobytes(order=order))
         # data_to_fileobj can be a list
         fobj.seek(0)
         hdr.data_to_fileobj(data.tolist(), fobj, rescale=True)
         assert_equal(fobj.getvalue(),
-                     data.astype(np.int32).tostring(order=order))
+                     data.astype(np.int32).tobytes(order=order))
         # Read data back again
         fobj.seek(0)
         data2 = hdr.data_from_fileobj(fobj)

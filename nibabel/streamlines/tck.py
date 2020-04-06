@@ -205,7 +205,7 @@ class TckFile(TractogramFile):
                 self._finalize_header(f, header, offset=beginning)
 
                 # Add the EOF_DELIMITER.
-                f.write(asbytes(self.EOF_DELIMITER.tostring()))
+                f.write(self.EOF_DELIMITER.tobytes())
                 return
 
             data_for_streamline = first_item.data_for_streamline
@@ -224,13 +224,13 @@ class TckFile(TractogramFile):
 
             for t in tractogram:
                 data = np.r_[t.streamline, self.FIBER_DELIMITER]
-                f.write(data.astype(dtype).tostring())
+                f.write(data.astype(dtype).tobytes())
                 nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
 
             # Add the EOF_DELIMITER.
-            f.write(asbytes(self.EOF_DELIMITER.tostring()))
+            f.write(asbytes(self.EOF_DELIMITER.tobytes()))
             self._finalize_header(f, header, offset=beginning)
 
     @staticmethod

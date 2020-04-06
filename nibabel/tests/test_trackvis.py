@@ -18,7 +18,7 @@ def test_write():
     streams = []
     out_f = BytesIO()
     tv.write(out_f, [], {})
-    assert_equal(out_f.getvalue(), tv.empty_header().tostring())
+    assert_equal(out_f.getvalue(), tv.empty_header().tobytes())
     out_f.truncate(0)
     out_f.seek(0)
     # Write something not-default
@@ -474,7 +474,7 @@ def test_tv_class():
     assert_equal(tvf.filename, None)
     out_f = BytesIO()
     tvf.to_file(out_f)
-    assert_equal(out_f.getvalue(), tv.empty_header().tostring())
+    assert_equal(out_f.getvalue(), tv.empty_header().tobytes())
     out_f.truncate(0)
     out_f.seek(0)
     # Write something not-default
@@ -604,12 +604,12 @@ def test_read_truncated():
     again_hdr = hdr.copy()
     assert_equal(again_hdr['n_count'], 2)
     again_hdr['n_count'] = 0
-    again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
+    again_bytes = again_hdr.tobytes() + value[again_hdr.itemsize:]
     again_f = BytesIO(again_bytes)
     streams2, _ = tv.read(again_f, strict=False)
     assert_true(streamlist_equal(streams2, short_streams))
     # Set count to one above actual number of tracks, always raise error
     again_hdr['n_count'] = 3
-    again_bytes = again_hdr.tostring() + value[again_hdr.itemsize:]
+    again_bytes = again_hdr.tobytes() + value[again_hdr.itemsize:]
     again_f = BytesIO(again_bytes)
     assert_raises(tv.DataError, tv.read, again_f, strict=False)

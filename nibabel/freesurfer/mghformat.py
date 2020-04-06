@@ -407,7 +407,7 @@ class MGHHeader(LabeledWrapStruct):
                                   buffer=self.binaryblock)
         # goto the very beginning of the file-like obj
         fileobj.seek(0)
-        fileobj.write(hdr_nofooter.tostring())
+        fileobj.write(hdr_nofooter.tobytes())
 
     def writeftr_to(self, fileobj):
         ''' Write footer to fileobj
@@ -427,7 +427,7 @@ class MGHHeader(LabeledWrapStruct):
         ftr_nd = np.ndarray((), dtype=self._ftrdtype,
                             buffer=self.binaryblock, offset=ftr_loc_in_hdr)
         fileobj.seek(self.get_footer_offset())
-        fileobj.write(ftr_nd.tostring())
+        fileobj.write(ftr_nd.tobytes())
 
     def copy(self):
         ''' Return copy of structure '''
