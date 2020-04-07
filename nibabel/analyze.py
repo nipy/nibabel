@@ -508,7 +508,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         >>> str_io = BytesIO()
         >>> data = np.arange(6).reshape(1,2,3)
         >>> hdr.data_to_fileobj(data, str_io)
-        >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+        >>> data.astype(np.float64).tobytes('F') == str_io.getvalue()
         True
         '''
         data = np.asanyarray(data)

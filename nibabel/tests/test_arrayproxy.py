@@ -66,7 +66,7 @@ def test_init():
     dtype = np.int32
     arr = np.arange(24, dtype=dtype).reshape(shape)
     bio.seek(16)
-    bio.write(arr.tostring(order='F'))
+    bio.write(arr.tobytes(order='F'))
     hdr = FunkyHeader(shape)
     ap = ArrayProxy(bio, hdr)
     assert ap.file_like is bio
@@ -84,7 +84,7 @@ def test_init():
     # C order also possible
     bio = BytesIO()
     bio.seek(16)
-    bio.write(arr.tostring(order='C'))
+    bio.write(arr.tobytes(order='C'))
     ap = CArrayProxy(bio, FunkyHeader((2, 3, 4)))
     assert_array_equal(np.asarray(ap), arr)
     # Illegal init
@@ -98,7 +98,7 @@ def test_tuplespec():
     dtype = np.int32
     arr = np.arange(24, dtype=dtype).reshape(shape)
     bio.seek(16)
-    bio.write(arr.tostring(order='F'))
+    bio.write(arr.tobytes(order='F'))
     # Create equivalent header and tuple specs
     hdr = FunkyHeader(shape)
     tuple_spec = (hdr.get_data_shape(), hdr.get_data_dtype(),
@@ -129,7 +129,7 @@ def write_raw_data(arr, hdr, fileobj):
     hdr.set_data_shape(arr.shape)
     hdr.set_data_dtype(arr.dtype)
     fileobj.write(b'\x00' * hdr.get_data_offset())
-    fileobj.write(arr.tostring(order='F'))
+    fileobj.write(arr.tobytes(order='F'))
 
 
 def test_nifti1_init():
@@ -167,7 +167,7 @@ def test_proxy_slicing():
             for order, klass in ('F', ArrayProxy), ('C', CArrayProxy):
                 fobj = BytesIO()
                 fobj.write(b'\0' * offset)
-                fobj.write(arr.tostring(order=order))
+                fobj.write(arr.tobytes(order=order))
                 prox = klass(fobj, hdr)
                 for sliceobj in slicer_samples(shape):
                     assert_array_equal(arr[sliceobj], prox[sliceobj])
@@ -175,7 +175,7 @@ def test_proxy_slicing():
     hdr.set_slope_inter(2.0, 1.0)
     fobj = BytesIO()
     fobj.write(b'\0' * offset)
-    fobj.write(arr.tostring(order='F'))
+    fobj.write(arr.tobytes(order='F'))
     prox = ArrayProxy(fobj, hdr)
     sliceobj = (None, slice(None), 1, -1)
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])
@@ -203,7 +203,7 @@ def test_reshape_dataobj():
     bio = BytesIO()
     prox = ArrayProxy(bio, hdr)
     arr = np.arange(np.prod(shape), dtype=prox.dtype).reshape(shape)
-    bio.write(b'\x00' * prox.offset + arr.tostring(order='F'))
+    bio.write(b'\x00' * prox.offset + arr.tobytes(order='F'))
     assert_array_equal(prox, arr)
     assert_array_equal(reshape_dataobj(prox, (2, 3, 4)),
                        np.reshape(arr, (2, 3, 4)))
@@ -252,7 +252,7 @@ def test_get_unscaled():
     # Check standard read works
     arr = np.arange(24, dtype=np.int32).reshape(shape, order='F')
     bio.write(b'\x00' * hdr.get_data_offset())
-    bio.write(arr.tostring(order='F'))
+    bio.write(arr.tobytes(order='F'))
     prox = ArrayProxy(bio, hdr)
     assert_array_almost_equal(np.array(prox), arr * 2.1 + 3.14)
     # Check unscaled read works
@@ -301,7 +301,7 @@ def check_mmap(hdr, offset, proxy_class,
     with InTemporaryDirectory():
         with open(fname, 'wb') as fobj:
             fobj.write(b' ' * offset)
-            fobj.write(arr.tostring(order='F'))
+            fobj.write(arr.tobytes(order='F'))
         for mmap, expected_mode in (
                 # mmap value, expected memmap mode
                 # mmap=None -> no mmap value
@@ -413,10 +413,10 @@ def test_keep_file_open_true_false_invalid():
             # create the test data file
             if filetype == 'gz':
                 with gzip.open(fname, 'wb') as fobj:
-                    fobj.write(data.tostring(order='F'))
+                    fobj.write(data.tobytes(order='F'))
             else:
                 with open(fname, 'wb') as fobj:
-                    fobj.write(data.tostring(order='F'))
+                    fobj.write(data.tobytes(order='F'))
             # pass in a file name or open file handle. If the latter, we open
             # two file handles, because we're going to create two proxies
             # below.
@@ -467,7 +467,7 @@ def test_keep_file_open_true_false_invalid():
     with InTemporaryDirectory():
         fname = 'testdata'
         with open(fname, 'wb') as fobj:
-            fobj.write(data.tostring(order='F'))
+            fobj.write(data.tobytes(order='F'))
 
         for invalid_kfo in (55, 'auto', 'cauto'):
             with pytest.raises(ValueError):

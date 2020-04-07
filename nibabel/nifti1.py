@@ -376,7 +376,7 @@ class Nifti1Extension(object):
         extinfo = np.array((rawsize, self._code), dtype=np.int32)
         if byteswap:
             extinfo = extinfo.byteswap()
-        fileobj.write(extinfo.tostring())
+        fileobj.write(extinfo.tobytes())
         # followed by the actual extension content
         # XXX if mangling upon load is implemented, it should be reverted here
         fileobj.write(self._mangle(self._content))

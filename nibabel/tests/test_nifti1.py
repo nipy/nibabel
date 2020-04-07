@@ -1187,7 +1187,7 @@ def test_extension_io():
     start = np.zeros((1,), dtype=exp_dtype)
     start['esize'] = 24
     start['ecode'] = 6
-    bio.write(start.tostring())
+    bio.write(start.tobytes())
     bio.seek(24)
     ext2.write_to(bio, False)
     # Result should still be OK, but with a warning

@@ -209,7 +209,7 @@ class _TestWrapStructBase(BaseTestCase):
         assert eh.endianness == native_code
         hdr_data = eh.structarr.copy()
         hdr_data = hdr_data.byteswap(swapped_code)
-        eh_swapped = self.header_class(hdr_data.tostring())
+        eh_swapped = self.header_class(hdr_data.tobytes())
         assert eh_swapped.endianness == swapped_code
 
     def test_binblock_is_file(self):
