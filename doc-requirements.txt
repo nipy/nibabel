@@ -1,6 +1,6 @@
 # Requirements for building docs
 -r requirements.txt
-sphinx
+sphinx<3
 numpydoc
 texext
 matplotlib>=1.3

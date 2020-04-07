@@ -6,4 +6,4 @@
 #   doc/source/installation.rst
 
 six>=1.3
-numpy>=1.8
+numpy>=1.8,<1.17dev
