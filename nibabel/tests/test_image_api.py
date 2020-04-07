@@ -153,7 +153,9 @@ class GenericImageAPI(ValidateAPI):
           with InTemporaryDirectory():
               # Validate that saving or loading a file doesn't use deprecated methods internally
               with clear_and_catch_warnings() as w:
-                  warnings.simplefilter('error', DeprecationWarning)
+                  warnings.filterwarnings('error',
+                                          category=DeprecationWarning,
+                                          module=r"nibabel.*")
                   img.to_filename(path)
                   rt_img = img.__class__.from_filename(path)
               assert_array_equal(img.shape, rt_img.shape)

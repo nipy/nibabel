@@ -661,7 +661,7 @@ def test_read_segments():
     # Test segment reading
     fobj = BytesIO()
     arr = np.arange(100, dtype=np.int16)
-    fobj.write(arr.tostring())
+    fobj.write(arr.tobytes())
     _check_bytes(read_segments(fobj, [(0, 200)], 200), arr)
     _check_bytes(read_segments(fobj, [(0, 100), (100, 100)], 200), arr)
     _check_bytes(read_segments(fobj, [(0, 50), (100, 50)], 100),
@@ -679,7 +679,7 @@ def test_read_segments_lock():
     # Test read_segment locking with multiple threads
     fobj = BytesIO()
     arr = np.array(np.random.randint(0, 256, 1000), dtype=np.uint8)
-    fobj.write(arr.tostring())
+    fobj.write(arr.tobytes())
 
     # Encourage the interpreter to switch threads between a seek/read pair
     def yielding_read(*args, **kwargs):
@@ -777,7 +777,7 @@ def test_fileslice():
             for offset in (0, 20):
                 fobj = BytesIO()
                 fobj.write(b'\0' * offset)
-                fobj.write(arr.tostring(order=order))
+                fobj.write(arr.tobytes(order=order))
                 for sliceobj in slicer_samples(shape):
                     _check_slicer(sliceobj, arr, fobj, offset, order)
 
@@ -787,7 +787,7 @@ def test_fileslice_dtype():
     sliceobj = (slice(None), slice(2))
     for dt in (np.dtype('int32'), np.int32, 'i4', 'int32', '>i4', '<i4'):
         arr = np.arange(24, dtype=dt).reshape((2, 3, 4))
-        fobj = BytesIO(arr.tostring())
+        fobj = BytesIO(arr.tobytes())
         new_slice = fileslice(fobj, sliceobj, arr.shape, dt)
         assert_array_equal(arr[sliceobj], new_slice)
 
@@ -795,7 +795,7 @@ def test_fileslice_dtype():
 def test_fileslice_errors():
     # Test fileslice causes error on fancy indexing
     arr = np.arange(24).reshape((2, 3, 4))
-    fobj = BytesIO(arr.tostring())
+    fobj = BytesIO(arr.tobytes())
     _check_slicer((1,), arr, fobj, 0, 'C')
     # Fancy indexing raises error
     assert_raises(ValueError,
@@ -809,7 +809,7 @@ def test_fileslice_heuristic():
     for heuristic in (_always, _never, _partial, threshold_heuristic):
         for order in 'FC':
             fobj = BytesIO()
-            fobj.write(arr.tostring(order=order))
+            fobj.write(arr.tobytes(order=order))
             sliceobj = (1, slice(0, 15, 2), slice(None))
             _check_slicer(sliceobj, arr, fobj, 0, order, heuristic)
             # Check _simple_fileslice while we're at it - si como no?

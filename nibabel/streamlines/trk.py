@@ -438,7 +438,7 @@ class TrkFile(TractogramFile):
             beginning = f.tell()
 
             # Write temporary header that we will update at the end
-            f.write(header.tostring())
+            f.write(header.tobytes())
 
             i4_dtype = np.dtype("<i4")  # Always save in little-endian.
             f4_dtype = np.dtype("<f4")  # Always save in little-endian.
@@ -467,7 +467,7 @@ class TrkFile(TractogramFile):
                 header[Field.NB_PROPERTIES_PER_STREAMLINE] = 0
                 # Overwrite header with updated one.
                 f.seek(beginning, os.SEEK_SET)
-                f.write(header.tostring())
+                f.write(header.tobytes())
                 return
 
             # Update field 'property_name' using 'data_per_streamline'.
@@ -523,8 +523,8 @@ class TrkFile(TractogramFile):
                 data = struct.pack(i4_dtype.str[:-1], len(points))
                 pts_scalars = np.concatenate(
                     [points, scalars], axis=1).astype(f4_dtype)
-                data += pts_scalars.tostring()
-                data += properties.tostring()
+                data += pts_scalars.tobytes()
+                data += properties.tobytes()
                 f.write(data)
 
                 nb_streamlines += 1
@@ -552,7 +552,7 @@ class TrkFile(TractogramFile):
 
             # Overwrite header with updated one.
             f.seek(beginning, os.SEEK_SET)
-            f.write(header.tostring())
+            f.write(header.tobytes())
 
     @staticmethod
     def _read_header(fileobj):

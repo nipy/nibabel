@@ -48,7 +48,7 @@ def run_slices(file_like, repeat=3, offset=0, order='F'):
     times_arr = np.zeros((n_dim, n_slicers))
     with ImageOpener(file_like, 'wb') as fobj:
         fobj.write(b'\0' * offset)
-        fobj.write(arr.tostring(order=order))
+        fobj.write(arr.tobytes(order=order))
     with ImageOpener(file_like, 'rb') as fobj:
         for i, L in enumerate(SHAPE):
             for j, slicer in enumerate(_slices_for_len(L)):
