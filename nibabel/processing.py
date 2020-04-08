@@ -319,7 +319,7 @@ def conform(from_img,
             order=3,
             cval=0.0,
             orientation='RAS',
-            out_class=Nifti1Image):
+            out_class=None):
     """ Resample image to ``out_shape`` with voxels of size ``voxel_size``.
 
     Using the default arguments, this function is meant to replicate most parts
