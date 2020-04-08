@@ -32,6 +32,12 @@ def test_default(tmpdir):
     assert c.header.get_zooms() == (1, 1, 1)
     assert nib.orientations.aff2axcodes(c.affine) == ('R', 'A', 'S')
 
+    with pytest.raises(FileExistsError):
+        main([str(infile), str(outfile)])
+
+    main([str(infile), str(outfile), "--force"])
+    assert outfile.isfile()
+
 
 @needs_scipy
 def test_nondefault(tmpdir):
