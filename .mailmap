@@ -8,6 +8,7 @@
 # This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
 # gives no duplicates.
 Alexandre Gramfort <alexandre.gramfort@inria.fr> Alexandre Gramfort <alexandre.gramfort@m4x.org>
+Anibal Sólon <anibalsolon@gmail.com>
 Ariel Rokem <arokem@gmail.com> arokem <arokem@gmail.com>
 B. Nolan Nichols <nolan.nichols@gmail.com> Nolan Nichols <nolan.nichols@gmail.com>
 Basile Pinsard <basile.pinsard@gmail.com> bpinsard <basile.pinsard@gmail.com>
@@ -52,8 +53,11 @@ Michael Hanke <michael.hanke@gmail.com> <michaelhanke@mvpa1.dartmouth.edu>
 Michiel Cottaar <MichielCottaar@protonmail.com> Michiel Cottaar <MichielCottaar@protonmail.ch>
 Ly Nguyen <nguyen60@seattleu.edu> lxn2 <lxn2@uw.edu>
 Oliver P. Hinds <ohinds@gmail.com> ohinds <ohinds@gmail.com>
+Or Duek <orduek@gmail.com>
 Oscar Esteban <code@oscaresteban.es>
 Paul McCarthy <pauldmccarthy@gmail.com> Paul McCarthy <pauld.mccarthy@gmail.com>
+Roberto Guidotti <robbenson18@gmail.com>
+Roberto Guidotti <robbenson18@gmail.com> <guidotr1@cs-087.org.aalto.fi>
 Satrajit Ghosh <satra@mit.edu> Satrajit Ghosh <satrajit.ghosh@gmail.com>
 Serge Koudoro <skab12@gmail.com> skoudoro <skab12@gmail.com>
 Stephan Gerhard <git@unidesign.ch> Stephan Gerhard <git@github.com>
