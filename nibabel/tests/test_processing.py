@@ -445,9 +445,12 @@ def test_conform():
     assert isinstance(c, Nifti2Image)
 
     # Error on non-3D arguments.
-    assert_raises(ValueError, conform, anat, out_shape=(100, 100))
-    assert_raises(ValueError, conform, anat, voxel_size=(2, 2))
+    with pytest.raises(ValueError):
+        conform(anat, out_shape=(100, 100))
+    with pytest.raises(ValueError):
+        conform(anat, voxel_size=(2, 2))
 
     # Error on non-3D images.
     func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
-    assert_raises(ValueError, conform, func)
+    with pytest.raises(ValueError):
+        conform(func)
