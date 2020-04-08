@@ -8,13 +8,20 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import unittest
+
 import pytest
 
 import nibabel as nib
 from nibabel.testing import test_data
 from nibabel.cmdline.conform import main
+from nibabel.optpkg import optional_package
+
+_, have_scipy, _ = optional_package('scipy.ndimage')
+needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
 
 
+@needs_scipy
 def test_default(tmpdir):
     infile = test_data(fname="anatomical.nii")
     outfile = tmpdir / "output.nii.gz"
@@ -26,6 +33,7 @@ def test_default(tmpdir):
     assert nib.orientations.aff2axcodes(c.affine) == ('R', 'A', 'S')
 
 
+@needs_scipy
 def test_nondefault(tmpdir):
     infile = test_data(fname="anatomical.nii")
     outfile = tmpdir / "output.nii.gz"
@@ -42,6 +50,7 @@ def test_nondefault(tmpdir):
     assert nib.orientations.aff2axcodes(c.affine) == tuple(orientation)
 
 
+@needs_scipy
 def test_non3d(tmpdir):
     infile = test_data(fname="functional.nii")
     outfile = tmpdir / "output.nii.gz"
