@@ -443,14 +443,3 @@ def test_conform():
     assert c.dataobj.dtype.type == anat.dataobj.dtype.type
     assert aff2axcodes(c.affine) == ('L', 'P', 'I')
     assert isinstance(c, Nifti2Image)
-
-    # Error on non-3D arguments.
-    with pytest.raises(ValueError):
-        conform(anat, out_shape=(100, 100))
-    with pytest.raises(ValueError):
-        conform(anat, voxel_size=(2, 2))
-
-    # Error on non-3D images.
-    func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
-    with pytest.raises(ValueError):
-        conform(func)

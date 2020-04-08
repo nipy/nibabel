@@ -48,11 +48,3 @@ def test_nondefault(tmpdir):
     assert c.shape == out_shape
     assert c.header.get_zooms() == voxel_size
     assert nib.orientations.aff2axcodes(c.affine) == tuple(orientation)
-
-
-@needs_scipy
-def test_non3d(tmpdir):
-    infile = test_data(fname="functional.nii")
-    outfile = tmpdir / "output.nii.gz"
-    with pytest.raises(ValueError):
-        main([str(infile), str(outfile)])
