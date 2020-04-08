@@ -23,7 +23,7 @@ spnd, _, _ = optional_package('scipy.ndimage')
 
 from .affines import AffineError, to_matvec, from_matvec, append_diag
 from .spaces import vox2out_vox
-from .nifti1 import Nifti1Header, Nifti1Image
+from .nifti1 import Nifti1Image
 from .orientations import axcodes2ornt, io_orientation, ornt_transform
 from .imageclasses import spatial_axes_first
 
