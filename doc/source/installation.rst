@@ -83,7 +83,7 @@ Requirements
 
 .. check these against setup.cfg
 
-*  Python_ 3.5.1 or greater
+*  Python_ 3.6 or greater
 *  NumPy_ 1.13 or greater
 *  Packaging_ 14.3 or greater
 *  SciPy_ (optional, for full SPM-ANALYZE support)
