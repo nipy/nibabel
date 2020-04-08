@@ -62,4 +62,4 @@ def main(args=None):
         cval=0.0,
         orientation=kwargs["orientation"])
 
-    out_img.to_filename(kwargs["outfile"])
+    nb.save(out_img, kwargs["outfile"])
