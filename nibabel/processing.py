@@ -22,7 +22,6 @@ from .optpkg import optional_package
 spnd, _, _ = optional_package('scipy.ndimage')
 
 from .affines import AffineError, to_matvec, from_matvec, append_diag
-from .funcs import as_closest_canonical
 from .spaces import vox2out_vox
 from .nifti1 import Nifti1Header, Nifti1Image
 from .orientations import axcodes2ornt

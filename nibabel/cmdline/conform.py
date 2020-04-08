@@ -15,8 +15,6 @@ import argparse
 from pathlib import Path
 import sys
 
-import numpy as np
-
 from nibabel import __version__
 from nibabel.loadsave import load
 from nibabel.processing import conform
@@ -56,7 +54,8 @@ def main(args=None):
     if not kwargs["force"] and Path(kwargs["outfile"]).exists():
         raise FileExistsError("Output file exists: {}".format(kwargs["outfile"]))
 
-    out_img = conform(from_img=from_img,
+    out_img = conform(
+        from_img=from_img,
         out_shape=kwargs["out_shape"],
         voxel_size=kwargs["voxel_size"],
         order=3,
