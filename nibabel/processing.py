@@ -386,7 +386,6 @@ def conform(from_img,
         from_img=from_img, to_vox_map=to_img, order=order, mode="constant",
         cval=cval, out_class=out_class)
 
-    labels =list(zip('LPI', 'RAS'))
-    # list(zip('RPI', 'LAS')
     # Reorient to desired orientation.
-    return out_img.as_reoriented(axcodes2ornt(orientation, labels=labels))
+    ornt = axcodes2ornt(orientation, labels=list(zip('RPI', 'LAS')))
+    return out_img.as_reoriented(ornt)
