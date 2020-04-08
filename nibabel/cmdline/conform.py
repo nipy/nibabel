@@ -27,9 +27,9 @@ def _get_parser():
                    help="Neuroimaging volume to conform.")
     p.add_argument("outfile",
                    help="Name of output file.")
-    p.add_argument("--out-shape", nargs=3, default=(256, 256, 256),
+    p.add_argument("--out-shape", nargs=3, default=(256, 256, 256), type=int,
                    help="Shape of the conformed output.")
-    p.add_argument("--voxel-size", nargs=3, default=(1, 1, 1),
+    p.add_argument("--voxel-size", nargs=3, default=(1, 1, 1), type=int,
                    help="Voxel size in millimeters of the conformed output.")
     p.add_argument("--orientation", default="RAS",
                    help="Orientation of the conformed output.")
