@@ -13,10 +13,9 @@ Conform neuroimaging volume to arbitrary shape and voxel size.
 
 import argparse
 from pathlib import Path
-import sys
 
 from nibabel import __version__
-from nibabel.loadsave import load
+from nibabel.loadsave import load, save
 from nibabel.processing import conform
 
 
@@ -43,23 +42,18 @@ def _get_parser():
 def main(args=None):
     """Main program function."""
     parser = _get_parser()
-    if args is None:
-        namespace = parser.parse_args(sys.argv[1:])
-    else:
-        namespace = parser.parse_args(args)
+    opts = parser.parse_args(args)
+    from_img = load(opts.infile)
 
-    kwargs = vars(namespace)
-    from_img = load(kwargs["infile"])
-
-    if not kwargs["force"] and Path(kwargs["outfile"]).exists():
-        raise FileExistsError("Output file exists: {}".format(kwargs["outfile"]))
+    if not opts.force and Path(opts.outfile).exists():
+        raise FileExistsError("Output file exists: {}".format(opts.outfile))
 
     out_img = conform(
         from_img=from_img,
-        out_shape=kwargs["out_shape"],
-        voxel_size=kwargs["voxel_size"],
+        out_shape=opts.out_shape,
+        voxel_size=opts.voxel_size,
         order=3,
         cval=0.0,
-        orientation=kwargs["orientation"])
+        orientation=opts.orientation)
 
-    nb.save(out_img, kwargs["outfile"])
+    save(out_img, opts.outfile)
