@@ -19,7 +19,6 @@ from ..nifti2 import (Nifti2Header, Nifti2PairHeader, Nifti2Image, Nifti2Pair)
 from .test_nifti1 import (TestNifti1PairHeader, TestNifti1SingleHeader,
                           TestNifti1Pair, TestNifti1Image, TestNifti1General)
 
-from nose.tools import assert_equal
 from numpy.testing import assert_array_equal
 
 from ..testing import data_path
@@ -50,16 +49,14 @@ class _Nifti2Mixin(object):
         hdr['eol_check'] = 0
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert_array_equal(fhdr['eol_check'], good_eol)
-        assert_equal(message,
-                     'EOL check all 0; '
-                     'setting EOL check to 13, 10, 26, 10')
+        assert message == 'EOL check all 0; setting EOL check to 13, 10, 26, 10'
         hdr['eol_check'] = (13, 10, 0, 10)
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_array_equal(fhdr['eol_check'], good_eol)
-        assert_equal(message,
-                     'EOL check not 0 or 13, 10, 26, 10; '
-                     'data may be corrupted by EOL conversion; '
-                     'setting EOL check to 13, 10, 26, 10')
+        assert (message ==
+                'EOL check not 0 or 13, 10, 26, 10; '
+                'data may be corrupted by EOL conversion; '
+                'setting EOL check to 13, 10, 26, 10')
 
 
 class TestNifti2PairHeader(_Nifti2Mixin, TestNifti1PairHeader):
@@ -110,6 +107,6 @@ def test_nifti12_conversion():
         in_hdr.set_data_dtype(dtype_type)
         in_hdr.extensions[:] = [ext1, ext2]
         out_hdr = out_type.from_header(in_hdr)
-        assert_equal(out_hdr.get_data_shape(), shape)
-        assert_equal(out_hdr.get_data_dtype(), dtype_type)
-        assert_equal(in_hdr.extensions, out_hdr.extensions)
+        assert out_hdr.get_data_shape() == shape
+        assert out_hdr.get_data_dtype() == dtype_type
+        assert in_hdr.extensions == out_hdr.extensions

@@ -20,10 +20,10 @@ class ModuleProxy(object):
 
     ::
         arr = np.arange(24).reshape((2, 3, 4))
-        minc = ModuleProxy('nibabel.minc')
-        minc_image = minc.Minc1Image(arr, np.eye(4))
+        nifti1 = ModuleProxy('nibabel.nifti1')
+        nifti1_image = nifti1.Nifti1Image(arr, np.eye(4))
 
-    So, the ``minc`` object is a proxy that will import the required module
+    So, the ``nifti1`` object is a proxy that will import the required module
     when you do attribute access and return the attributes of the imported
     module.
     """

@@ -12,8 +12,8 @@ import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from nose.tools import assert_true, assert_equal, assert_raises
-from nibabel.testing import (
+import pytest
+from ...testing import (
     clear_and_catch_warnings, error_warnings, suppress_warnings, assert_array_equal)
 
 affine = [[-1.5, 0, 0, 90],
@@ -64,37 +64,36 @@ def create_geometry_map(applies_to_matrix_dimension):
 
 
 def check_geometry_map(mapping):
-    assert_equal(mapping.indices_map_to_data_type,
-                 'CIFTI_INDEX_TYPE_BRAIN_MODELS')
-    assert_equal(len(list(mapping.brain_models)), 3)
+    assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_BRAIN_MODELS'
+    assert len(list(mapping.brain_models)) == 3
     left_thalamus, left_cortex, right_cortex = mapping.brain_models
 
-    assert_equal(left_thalamus.index_offset, 0)
-    assert_equal(left_thalamus.index_count, 4)
-    assert_equal(left_thalamus.model_type, 'CIFTI_MODEL_TYPE_VOXELS')
-    assert_equal(left_thalamus.brain_structure, brain_models[0][0])
-    assert_equal(left_thalamus.vertex_indices, None)
-    assert_equal(left_thalamus.surface_number_of_vertices, None)
-    assert_equal(left_thalamus.voxel_indices_ijk._indices, brain_models[0][1])
+    assert left_thalamus.index_offset == 0
+    assert left_thalamus.index_count == 4
+    assert left_thalamus.model_type == 'CIFTI_MODEL_TYPE_VOXELS'
+    assert left_thalamus.brain_structure == brain_models[0][0]
+    assert left_thalamus.vertex_indices is None
+    assert left_thalamus.surface_number_of_vertices is None
+    assert left_thalamus.voxel_indices_ijk._indices == brain_models[0][1]
 
-    assert_equal(left_cortex.index_offset, 4)
-    assert_equal(left_cortex.index_count, 5)
-    assert_equal(left_cortex.model_type, 'CIFTI_MODEL_TYPE_SURFACE')
-    assert_equal(left_cortex.brain_structure, brain_models[1][0])
-    assert_equal(left_cortex.voxel_indices_ijk, None)
-    assert_equal(left_cortex.vertex_indices._indices, brain_models[1][1])
-    assert_equal(left_cortex.surface_number_of_vertices, number_of_vertices)
+    assert left_cortex.index_offset == 4
+    assert left_cortex.index_count == 5
+    assert left_cortex.model_type == 'CIFTI_MODEL_TYPE_SURFACE'
+    assert left_cortex.brain_structure == brain_models[1][0]
+    assert left_cortex.voxel_indices_ijk is None
+    assert left_cortex.vertex_indices._indices == brain_models[1][1]
+    assert left_cortex.surface_number_of_vertices == number_of_vertices
 
-    assert_equal(right_cortex.index_offset, 9)
-    assert_equal(right_cortex.index_count, 1)
-    assert_equal(right_cortex.model_type, 'CIFTI_MODEL_TYPE_SURFACE')
-    assert_equal(right_cortex.brain_structure, brain_models[2][0])
-    assert_equal(right_cortex.voxel_indices_ijk, None)
-    assert_equal(right_cortex.vertex_indices._indices, brain_models[2][1])
-    assert_equal(right_cortex.surface_number_of_vertices, number_of_vertices)
+    assert right_cortex.index_offset == 9
+    assert right_cortex.index_count == 1
+    assert right_cortex.model_type == 'CIFTI_MODEL_TYPE_SURFACE'
+    assert right_cortex.brain_structure == brain_models[2][0]
+    assert right_cortex.voxel_indices_ijk is None
+    assert right_cortex.vertex_indices._indices == brain_models[2][1]
+    assert right_cortex.surface_number_of_vertices == number_of_vertices
 
-    assert_equal(mapping.volume.volume_dimensions, dimensions)
-    assert_true((mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all())
+    assert mapping.volume.volume_dimensions == dimensions
+    assert (mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all()
 
 
 parcels = [('volume_parcel', ([[60, 60, 60],
@@ -134,27 +133,26 @@ def create_parcel_map(applies_to_matrix_dimension):
 
 
 def check_parcel_map(mapping):
-    assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_PARCELS')
-    assert_equal(len(list(mapping.parcels)), len(parcels))
+    assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_PARCELS'
+    assert len(list(mapping.parcels)) == len(parcels)
     for (name, elements), parcel in zip(parcels, mapping.parcels):
-        assert_equal(parcel.name, name)
+        assert parcel.name == name
         idx_surface = 0
         for element in elements:
             if isinstance(element[0], str):
                 surface = parcel.vertices[idx_surface]
-                assert_equal(surface.brain_structure, element[0])
-                assert_equal(surface._vertices, element[1])
+                assert surface.brain_structure == element[0]
+                assert surface._vertices == element[1]
                 idx_surface += 1
             else:
-                assert_equal(parcel.voxel_indices_ijk._indices, element)
+                assert parcel.voxel_indices_ijk._indices == element
 
     for surface, orientation in zip(mapping.surfaces, ('LEFT', 'RIGHT')):
-        assert_equal(surface.brain_structure,
-                     'CIFTI_STRUCTURE_CORTEX_%s' % orientation)
-        assert_equal(surface.surface_number_of_vertices, number_of_vertices)
+        assert surface.brain_structure == 'CIFTI_STRUCTURE_CORTEX_%s' % orientation
+        assert surface.surface_number_of_vertices == number_of_vertices
 
-    assert_equal(mapping.volume.volume_dimensions, dimensions)
-    assert_true((mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all())
+    assert mapping.volume.volume_dimensions == dimensions
+    assert (mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all()
 
 
 scalars = [('first_name', {'meta_key': 'some_metadata'}),
@@ -170,15 +168,15 @@ def create_scalar_map(applies_to_matrix_dimension):
 
 
 def check_scalar_map(mapping):
-    assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_SCALARS')
-    assert_equal(len(list(mapping.named_maps)), 2)
+    assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_SCALARS'
+    assert len(list(mapping.named_maps)) == 2
 
     for expected, named_map in zip(scalars, mapping.named_maps):
-        assert_equal(named_map.map_name, expected[0])
+        assert named_map.map_name == expected[0]
         if len(expected[1]) == 0:
-            assert_equal(named_map.metadata, None)
+            assert named_map.metadata is None
         else:
-            assert_equal(named_map.metadata, expected[1])
+            assert named_map.metadata == expected[1]
 
 
 labels = [('first_name', {'meta_key': 'some_metadata'},
@@ -202,15 +200,15 @@ def create_label_map(applies_to_matrix_dimension):
 
 
 def check_label_map(mapping):
-    assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_LABELS')
-    assert_equal(len(list(mapping.named_maps)), 2)
+    assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_LABELS'
+    assert len(list(mapping.named_maps)) == 2
 
     for expected, named_map in zip(scalars, mapping.named_maps):
-        assert_equal(named_map.map_name, expected[0])
+        assert named_map.map_name == expected[0]
         if len(expected[1]) == 0:
-            assert_equal(named_map.metadata, None)
+            assert named_map.metadata is None
         else:
-            assert_equal(named_map.metadata, expected[1])
+            assert named_map.metadata == expected[1]
 
 
 def create_series_map(applies_to_matrix_dimension):
@@ -222,12 +220,12 @@ def create_series_map(applies_to_matrix_dimension):
 
 
 def check_series_map(mapping):
-    assert_equal(mapping.indices_map_to_data_type, 'CIFTI_INDEX_TYPE_SERIES')
-    assert_equal(mapping.number_of_series_points, 13)
-    assert_equal(mapping.series_exponent, -3)
-    assert_equal(mapping.series_start, 18.2)
-    assert_equal(mapping.series_step, 10.5)
-    assert_equal(mapping.series_unit, 'SECOND')
+    assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_SERIES'
+    assert mapping.number_of_series_points == 13
+    assert mapping.series_exponent == -3
+    assert mapping.series_start == 18.2
+    assert mapping.series_step == 10.5
+    assert mapping.series_unit == 'SECOND'
 
 
 def test_dtseries():
@@ -244,9 +242,8 @@ def test_dtseries():
     with InTemporaryDirectory():
         ci.save(img, 'test.dtseries.nii')
         img2 = nib.load('test.dtseries.nii')
-        assert_equal(img2.nifti_header.get_intent()[0],
-                     'ConnDenseSeries')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnDenseSeries'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_series_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
@@ -267,8 +264,8 @@ def test_dscalar():
     with InTemporaryDirectory():
         ci.save(img, 'test.dscalar.nii')
         img2 = nib.load('test.dscalar.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnDenseScalar')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnDenseScalar'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_scalar_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
@@ -289,8 +286,8 @@ def test_dlabel():
     with InTemporaryDirectory():
         ci.save(img, 'test.dlabel.nii')
         img2 = nib.load('test.dlabel.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnDenseLabel')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnDenseLabel'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_label_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
@@ -309,11 +306,10 @@ def test_dconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.dconn.nii')
         img2 = nib.load('test.dconn.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnDense')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnDense'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
-        assert_equal(img2.header.matrix.get_index_map(0),
-                     img2.header.matrix.get_index_map(1))
+        assert img2.header.matrix.get_index_map(0) == img2.header.matrix.get_index_map(1)
         check_geometry_map(img2.header.matrix.get_index_map(0))
         del img2
 
@@ -332,8 +328,8 @@ def test_ptseries():
     with InTemporaryDirectory():
         ci.save(img, 'test.ptseries.nii')
         img2 = nib.load('test.ptseries.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnParcelSries')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnParcelSries'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_series_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
@@ -354,8 +350,8 @@ def test_pscalar():
     with InTemporaryDirectory():
         ci.save(img, 'test.pscalar.nii')
         img2 = nib.load('test.pscalar.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnParcelScalr')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnParcelScalr'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_scalar_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
@@ -376,8 +372,8 @@ def test_pdconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.pdconn.nii')
         img2 = ci.load('test.pdconn.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnParcelDense')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnParcelDense'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_geometry_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
@@ -398,8 +394,8 @@ def test_dpconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.dpconn.nii')
         img2 = ci.load('test.dpconn.nii')
-        assert_equal(img2.nifti_header.get_intent()[0], 'ConnDenseParcel')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img2.nifti_header.get_intent()[0] == 'ConnDenseParcel'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
@@ -419,8 +415,8 @@ def test_plabel():
     with InTemporaryDirectory():
         ci.save(img, 'test.plabel.nii')
         img2 = ci.load('test.plabel.nii')
-        assert_equal(img.nifti_header.get_intent()[0], 'ConnUnknown')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img.nifti_header.get_intent()[0] == 'ConnUnknown'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_label_map(img2.header.matrix.get_index_map(0))
         check_parcel_map(img2.header.matrix.get_index_map(1))
@@ -439,11 +435,10 @@ def test_pconn():
     with InTemporaryDirectory():
         ci.save(img, 'test.pconn.nii')
         img2 = ci.load('test.pconn.nii')
-        assert_equal(img.nifti_header.get_intent()[0], 'ConnParcels')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img.nifti_header.get_intent()[0] == 'ConnParcels'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
-        assert_equal(img2.header.matrix.get_index_map(0),
-                     img2.header.matrix.get_index_map(1))
+        assert img2.header.matrix.get_index_map(0) == img2.header.matrix.get_index_map(1)
         check_parcel_map(img2.header.matrix.get_index_map(0))
         del img2
 
@@ -464,11 +459,10 @@ def test_pconnseries():
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnseries.nii')
         img2 = ci.load('test.pconnseries.nii')
-        assert_equal(img.nifti_header.get_intent()[0], 'ConnPPSr')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img.nifti_header.get_intent()[0] == 'ConnPPSr'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
-        assert_equal(img2.header.matrix.get_index_map(0),
-                     img2.header.matrix.get_index_map(1))
+        assert img2.header.matrix.get_index_map(0) == img2.header.matrix.get_index_map(1)
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_series_map(img2.header.matrix.get_index_map(2))
         del img2
@@ -490,11 +484,10 @@ def test_pconnscalar():
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnscalar.nii')
         img2 = ci.load('test.pconnscalar.nii')
-        assert_equal(img.nifti_header.get_intent()[0], 'ConnPPSc')
-        assert_true(isinstance(img2, ci.Cifti2Image))
+        assert img.nifti_header.get_intent()[0] == 'ConnPPSc'
+        assert isinstance(img2, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
-        assert_equal(img2.header.matrix.get_index_map(0),
-                     img2.header.matrix.get_index_map(1))
+        assert img2.header.matrix.get_index_map(0) == img2.header.matrix.get_index_map(1)
 
         check_parcel_map(img2.header.matrix.get_index_map(0))
         check_scalar_map(img2.header.matrix.get_index_map(2))
@@ -520,8 +513,11 @@ def test_wrong_shape():
     ):
         with clear_and_catch_warnings():
             with error_warnings():
-                assert_raises(UserWarning, ci.Cifti2Image, data, hdr)
+                with pytest.raises(UserWarning):
+                    ci.Cifti2Image(data, hdr)
         with suppress_warnings():
             img = ci.Cifti2Image(data, hdr)
-        assert_raises(ValueError, img.to_file_map)
+        
+        with pytest.raises(ValueError):
+            img.to_file_map()
 

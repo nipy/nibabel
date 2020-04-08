@@ -36,7 +36,6 @@ import numpy as np
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
-from .keywordonly import kw_only_meth
 from .spatialimages import (
     SpatialImage,
     SpatialHeader,
@@ -220,14 +219,13 @@ class AFNIArrayProxy(ArrayProxy):
         None
     """
 
-    @kw_only_meth(2)
-    def __init__(self, file_like, header, mmap=True, keep_file_open=None):
+    def __init__(self, file_like, header, *, mmap=True, keep_file_open=None):
         """
         Initialize AFNI array proxy
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -250,7 +248,7 @@ class AFNIArrayProxy(ArrayProxy):
             a new file handle is created every time the image is accessed.
             If ``file_like`` refers to an open file handle, this setting has no
             effect. The default value (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         super(AFNIArrayProxy, self).__init__(file_like,
                                              header,
@@ -504,14 +502,13 @@ class AFNIImage(SpatialImage):
     ImageArrayProxy = AFNIArrayProxy
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """
         Creates an AFNIImage instance from `file_map`
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -533,7 +530,7 @@ class AFNIImage(SpatialImage):
             a new file handle is created every time the image is accessed.
             If ``file_like`` refers to an open file handle, this setting has no
             effect. The default value (``None``) will result in the value of
-            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT` being used.
+            ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
         with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj)
@@ -553,6 +550,7 @@ class AFNIImage(SpatialImage):
         afni.nimh.nih.gov/pub/dist/doc/program_help/README.compression.html.
         Thus, if you have AFNI files my_image.HEAD and my_image.BRIK.gz and you
         want to load the AFNI BRIK / HEAD pair, you can specify:
+
             * The HEAD filename - e.g., my_image.HEAD
             * The BRIK filename w/o compressed extension - e.g., my_image.BRIK
             * The full BRIK filename - e.g., my_image.BRIK.gz

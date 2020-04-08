@@ -376,7 +376,7 @@ class Nifti1Extension(object):
         extinfo = np.array((rawsize, self._code), dtype=np.int32)
         if byteswap:
             extinfo = extinfo.byteswap()
-        fileobj.write(extinfo.tostring())
+        fileobj.write(extinfo.tobytes())
         # followed by the actual extension content
         # XXX if mangling upon load is implemented, it should be reverted here
         fileobj.write(self._mangle(self._content))
@@ -1775,18 +1775,18 @@ class Nifti1Pair(analyze.AnalyzeImage):
             self._affine2header()
     # Copy docstring
     __init__.__doc__ = analyze.AnalyzeImage.__init__.__doc__ + '''
-    Notes
-    -----
+        Notes
+        -----
 
-    If both a `header` and an `affine` are specified, and the `affine` does
-    not match the affine that is in the `header`, the `affine` will be used,
-    but the ``sform_code`` and ``qform_code`` fields in the header will be
-    re-initialised to their default values. This is performed on the basis
-    that, if you are changing the affine, you are likely to be changing the
-    space to which the affine is pointing.  The :meth:`set_sform` and
-    :meth:`set_qform` methods can be used to update the codes after an image
-    has been created - see those methods, and the :ref:`manual
-    <default-sform-qform-codes>` for more details.  '''
+        If both a `header` and an `affine` are specified, and the `affine` does
+        not match the affine that is in the `header`, the `affine` will be used,
+        but the ``sform_code`` and ``qform_code`` fields in the header will be
+        re-initialised to their default values. This is performed on the basis
+        that, if you are changing the affine, you are likely to be changing the
+        space to which the affine is pointing.  The :meth:`set_sform` and
+        :meth:`set_qform` methods can be used to update the codes after an image
+        has been created - see those methods, and the :ref:`manual
+        <default-sform-qform-codes>` for more details.  '''
 
     def update_header(self):
         ''' Harmonize header with image data and affine

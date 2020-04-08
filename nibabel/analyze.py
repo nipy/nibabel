@@ -95,7 +95,6 @@ from .spatialimages import (HeaderDataError, HeaderTypeError,
 from .fileholders import copy_file_map
 from .batteryrunners import Report
 from .arrayproxy import ArrayProxy
-from .keywordonly import kw_only_meth
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -509,7 +508,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         >>> str_io = BytesIO()
         >>> data = np.arange(6).reshape(1,2,3)
         >>> hdr.data_to_fileobj(data, str_io)
-        >>> data.astype(np.float64).tostring('F') == str_io.getvalue()
+        >>> data.astype(np.float64).tobytes('F') == str_io.getvalue()
         True
         '''
         data = np.asanyarray(data)
@@ -933,13 +932,12 @@ class AnalyzeImage(SpatialImage):
         self._header.set_data_dtype(dtype)
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         ''' Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------

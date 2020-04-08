@@ -16,7 +16,6 @@ from .spatialimages import HeaderDataError, HeaderTypeError
 
 from .batteryrunners import Report
 from . import analyze  # module import
-from .keywordonly import kw_only_meth
 from .optpkg import optional_package
 have_scipy = optional_package('scipy')[1]
 
@@ -244,13 +243,12 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     rw = have_scipy
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         ''' Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------

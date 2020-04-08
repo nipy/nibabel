@@ -400,17 +400,17 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
 
     Examples
     --------
-    >>> can_cast(np.float64, np.float32)
+    >>> can_cast(np.float64, np.float32)  # doctest: +SKIP
     True
-    >>> can_cast(np.complex128, np.float32)
+    >>> can_cast(np.complex128, np.float32)  # doctest: +SKIP
     False
-    >>> can_cast(np.int64, np.float32)
+    >>> can_cast(np.int64, np.float32)  # doctest: +SKIP
     True
-    >>> can_cast(np.float32, np.int16)
+    >>> can_cast(np.float32, np.int16)  # doctest: +SKIP
     False
-    >>> can_cast(np.float32, np.int16, False, True)
+    >>> can_cast(np.float32, np.int16, False, True)  # doctest: +SKIP
     True
-    >>> can_cast(np.int16, np.uint8)
+    >>> can_cast(np.int16, np.uint8)  # doctest: +SKIP
     False
 
     Whether we can actually cast int to uint when we don't have an intercept
@@ -420,9 +420,9 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
 
     Here we need an intercept to scale the full range of an int to a uint
 
-    >>> can_cast(np.int16, np.uint8, False, True)
+    >>> can_cast(np.int16, np.uint8, False, True)  # doctest: +SKIP
     False
-    >>> can_cast(np.int16, np.uint8, True, True)
+    >>> can_cast(np.int16, np.uint8, True, True)  # doctest: +SKIP
     True
     '''
     in_dtype = np.dtype(in_type)
@@ -479,13 +479,13 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     >>> from io import BytesIO
     >>> bio = BytesIO()
     >>> arr = np.arange(6).reshape(1,2,3)
-    >>> _ = bio.write(arr.tostring('F'))  # outputs int
+    >>> _ = bio.write(arr.tobytes('F'))  # outputs int
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio)
     >>> np.all(arr == arr2)
     True
     >>> bio = BytesIO()
     >>> _ = bio.write(b' ' * 10)
-    >>> _ = bio.write(arr.tostring('F'))
+    >>> _ = bio.write(arr.tobytes('F'))
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
     True
@@ -607,19 +607,19 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> sio = BytesIO()
     >>> data = np.arange(10, dtype=np.float)
     >>> array_to_file(data, sio, np.float)
-    >>> sio.getvalue() == data.tostring('F')
+    >>> sio.getvalue() == data.tobytes('F')
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)  # outputs 0
     >>> array_to_file(data, sio, np.int16)
-    >>> sio.getvalue() == data.astype(np.int16).tostring()
+    >>> sio.getvalue() == data.astype(np.int16).tobytes()
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data.byteswap(), sio, np.float)
-    >>> sio.getvalue() == data.byteswap().tostring('F')
+    >>> sio.getvalue() == data.byteswap().tobytes('F')
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)
     >>> array_to_file(data, sio, np.float, order='C')
-    >>> sio.getvalue() == data.tostring('C')
+    >>> sio.getvalue() == data.tobytes('C')
     True
     '''
     # Shield special case
@@ -829,7 +829,7 @@ def _write_data(data,
                 dslice[nans] = nan_fill
         if dslice.dtype != out_dtype:
             dslice = dslice.astype(out_dtype)
-        fileobj.write(dslice.tostring())
+        fileobj.write(dslice.tobytes())
 
 
 def _dt_min_max(dtype_like, mn=None, mx=None):
@@ -1094,26 +1094,26 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
 
     Examples
     --------
-    >>> scale_min_max(0, 255, np.uint8, False)
+    >>> scale_min_max(0, 255, np.uint8, False)  # doctest: +SKIP
     (1.0, 0.0)
-    >>> scale_min_max(-128, 127, np.int8, False)
+    >>> scale_min_max(-128, 127, np.int8, False)  # doctest: +SKIP
     (1.0, 0.0)
-    >>> scale_min_max(0, 127, np.int8, False)
+    >>> scale_min_max(0, 127, np.int8, False)  # doctest: +SKIP
     (1.0, 0.0)
-    >>> scaling, intercept = scale_min_max(0, 127, np.int8,  True)
-    >>> np.allclose((0 - intercept) / scaling, -128)
+    >>> scaling, intercept = scale_min_max(0, 127, np.int8,  True)  # doctest: +SKIP
+    >>> np.allclose((0 - intercept) / scaling, -128)  # doctest: +SKIP
     True
-    >>> np.allclose((127 - intercept) / scaling, 127)
+    >>> np.allclose((127 - intercept) / scaling, 127)  # doctest: +SKIP
     True
-    >>> scaling, intercept = scale_min_max(-10, -1, np.int8, True)
-    >>> np.allclose((-10 - intercept) / scaling, -128)
+    >>> scaling, intercept = scale_min_max(-10, -1, np.int8, True)  # doctest: +SKIP
+    >>> np.allclose((-10 - intercept) / scaling, -128)  # doctest: +SKIP
     True
-    >>> np.allclose((-1 - intercept) / scaling, 127)
+    >>> np.allclose((-1 - intercept) / scaling, 127)  # doctest: +SKIP
     True
-    >>> scaling, intercept = scale_min_max(1, 10, np.int8, True)
-    >>> np.allclose((1 - intercept) / scaling, -128)
+    >>> scaling, intercept = scale_min_max(1, 10, np.int8, True)  # doctest: +SKIP
+    >>> np.allclose((1 - intercept) / scaling, -128)  # doctest: +SKIP
     True
-    >>> np.allclose((10 - intercept) / scaling, 127)
+    >>> np.allclose((10 - intercept) / scaling, 127)  # doctest: +SKIP
     True
 
     Notes

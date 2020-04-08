@@ -54,7 +54,6 @@ from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
 from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
-from .keywordonly import kw_only_meth
 from .deprecated import deprecate_with_version
 
 BLOCK_SIZE = 512
@@ -888,8 +887,7 @@ class EcatImage(SpatialImage):
         return file_map['header'], file_map['image']
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """class method to create image from mapping
         specified in file_map
         """
@@ -981,7 +979,7 @@ class EcatImage(SpatialImage):
 
             # Write subheader
             subhdr = subheaders.subheaders[index]
-            imgf.write(subhdr.tostring())
+            imgf.write(subhdr.tobytes())
 
             # Seek to the next image block
             pos = imgf.tell()

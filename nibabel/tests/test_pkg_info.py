@@ -1,11 +1,13 @@
 """ Testing package info
 """
 
+from packaging.version import Version
+
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
 from ..info import VERSION
 
-from nose.tools import (assert_raises, assert_equal)
+import pytest
 
 
 def test_pkg_info():
@@ -21,7 +23,7 @@ def test_pkg_info():
 
 def test_version():
     # Test info version is the same as our own version
-    assert_equal(nib.pkg_info.__version__, nib.__version__)
+    assert nib.pkg_info.__version__ == nib.__version__
 
 
 def test_fallback_version():
@@ -30,44 +32,66 @@ def test_fallback_version():
     This should only fail if we fail to bump nibabel.info.VERSION immediately
     after release
     """
+    ver = Version(nib.__version__)
+    fallback = Version(VERSION)
     assert (
+        # Releases have no local information, archive matches versioneer
+        ver.local is None or
         # dev version should be larger than tag+commit-githash
-        cmp_pkg_version(VERSION) >= 0 or
-        # Allow VERSION bump to lag releases by one commit
-        VERSION == nib.__version__ + 'dev'), \
-        "nibabel.info.VERSION does not match current tag information"
+        fallback >= ver), \
+        "nibabel.info.VERSION does not match latest tag information"
 
 
-def test_cmp_pkg_version():
+def test_cmp_pkg_version_0():
     # Test version comparator
-    assert_equal(cmp_pkg_version(nib.__version__), 0)
-    assert_equal(cmp_pkg_version('0.0'), -1)
-    assert_equal(cmp_pkg_version('1000.1000.1'), 1)
-    assert_equal(cmp_pkg_version(nib.__version__, nib.__version__), 0)
-    for test_ver, pkg_ver, exp_out in (('1.0', '1.0', 0),
-                                       ('1.0.0', '1.0', 0),
-                                       ('1.0', '1.0.0', 0),
-                                       ('1.1', '1.1', 0),
-                                       ('1.2', '1.1', 1),
-                                       ('1.1', '1.2', -1),
-                                       ('1.1.1', '1.1.1', 0),
-                                       ('1.1.2', '1.1.1', 1),
-                                       ('1.1.1', '1.1.2', -1),
-                                       ('1.1', '1.1dev', 1),
-                                       ('1.1dev', '1.1', -1),
-                                       ('1.2.1', '1.2.1rc1', 1),
-                                       ('1.2.1rc1', '1.2.1', -1),
-                                       ('1.2.1rc1', '1.2.1rc', 1),
-                                       ('1.2.1rc', '1.2.1rc1', -1),
-                                       ('1.2.1rc1', '1.2.1rc', 1),
-                                       ('1.2.1rc', '1.2.1rc1', -1),
-                                       ('1.2.1b', '1.2.1a', 1),
-                                       ('1.2.1a', '1.2.1b', -1),
-                                      ):
-        assert_equal(cmp_pkg_version(test_ver, pkg_ver), exp_out)
-    assert_raises(ValueError, cmp_pkg_version, 'foo.2')
-    assert_raises(ValueError, cmp_pkg_version, 'foo.2', '1.0')
-    assert_raises(ValueError, cmp_pkg_version, '1.0', 'foo.2')
-    assert_raises(ValueError, cmp_pkg_version, '1')
-    assert_raises(ValueError, cmp_pkg_version, 'foo')
+    assert cmp_pkg_version(nib.__version__) == 0
+    assert cmp_pkg_version('0.0') == -1
+    assert cmp_pkg_version('1000.1000.1') == 1
+    assert cmp_pkg_version(nib.__version__, nib.__version__) == 0
 
+    # Check dev/RC sequence
+    seq = ('3.0.0dev', '3.0.0rc1', '3.0.0rc1.post.dev', '3.0.0rc2', '3.0.0rc2.post.dev', '3.0.0')
+    for stage1, stage2 in zip(seq[:-1], seq[1:]):
+        assert cmp_pkg_version(stage1, stage2) == -1
+        assert cmp_pkg_version(stage2, stage1) == 1
+
+
+@pytest.mark.parametrize("test_ver, pkg_ver, exp_out",
+                         [
+                             ('1.0', '1.0', 0),
+                             ('1.0.0', '1.0', 0),
+                             ('1.0', '1.0.0', 0),
+                             ('1.1', '1.1', 0),
+                             ('1.2', '1.1', 1),
+                             ('1.1', '1.2', -1),
+                             ('1.1.1', '1.1.1', 0),
+                             ('1.1.2', '1.1.1', 1),
+                             ('1.1.1', '1.1.2', -1),
+                             ('1.1', '1.1dev', 1),
+                             ('1.1dev', '1.1', -1),
+                             ('1.2.1', '1.2.1rc1', 1),
+                             ('1.2.1rc1', '1.2.1', -1),
+                             ('1.2.1rc1', '1.2.1rc', 1),
+                             ('1.2.1rc', '1.2.1rc1', -1),
+                             ('1.2.1rc1', '1.2.1rc', 1),
+                             ('1.2.1rc', '1.2.1rc1', -1),
+                             ('1.2.1b', '1.2.1a', 1),
+                             ('1.2.1a', '1.2.1b', -1),
+                             ('1.2.0+1', '1.2', 1),
+                             ('1.2', '1.2.0+1', -1),
+                             ('1.2.1+1', '1.2.1', 1),
+                             ('1.2.1', '1.2.1+1', -1),
+                             ('1.2.1rc1+1', '1.2.1', -1),
+                             ('1.2.1', '1.2.1rc1+1', 1),
+                             ('1.2.1rc1+1', '1.2.1+1', -1),
+                             ('1.2.1+1', '1.2.1rc1+1', 1),
+                         ])
+def test_cmp_pkg_version_1(test_ver, pkg_ver, exp_out):
+    # Test version comparator
+    assert cmp_pkg_version(test_ver, pkg_ver) == exp_out
+
+
+@pytest.mark.parametrize("args", [['foo.2'], ['foo.2', '1.0'], ['1.0', 'foo.2'], ['foo']])
+def test_cmp_pkg_version_error(args):
+    with pytest.raises(ValueError):
+        cmp_pkg_version(*args)

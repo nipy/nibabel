@@ -11,7 +11,6 @@ This can either be an actual numpy array, or an object that:
 import numpy as np
 
 from .filebasedimages import FileBasedImage
-from .keywordonly import kw_only_meth
 from .deprecated import deprecate_with_version
 
 
@@ -415,13 +414,12 @@ class DataobjImage(FileBasedImage):
         return self.shape
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         ''' Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -453,13 +451,12 @@ class DataobjImage(FileBasedImage):
         raise NotImplementedError
 
     @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, keep_file_open=None):
+    def from_filename(klass, filename, *, mmap=True, keep_file_open=None):
         '''Class method to create image from filename `filename`
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------

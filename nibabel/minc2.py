@@ -27,9 +27,6 @@ and compare against command line output of::
 """
 import numpy as np
 
-from .keywordonly import kw_only_meth
-from ._h5py_compat import h5py
-
 from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
 
 
@@ -158,8 +155,10 @@ class Minc2Image(Minc1Image):
     header_class = Minc2Header
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
+        # Import of h5py might take awhile for MPI-enabled builds
+        # So we are importing it here "on demand"
+        from ._h5py_compat import h5py
         holder = file_map['image']
         if holder.filename is None:
             raise MincError('MINC2 needs filename for load')

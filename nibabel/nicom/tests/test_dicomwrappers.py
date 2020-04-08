@@ -9,18 +9,17 @@ from copy import copy
 
 import numpy as np
 
-from nibabel.pydicom_compat import (have_dicom, pydicom, read_file, dicom_test,
-                                    tag_for_keyword)
+from nibabel.pydicom_compat import have_dicom, pydicom, read_file, tag_for_keyword
 
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
 from ...volumeutils import endian_codes
 
+import pytest
 from unittest import TestCase
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_not_equal, assert_raises)
+from . import dicom_test
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_warns
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -71,31 +70,37 @@ def test_wrappers():
                         (didw.MosaicWrapper, ({}, None, 10)),
                         (didw.MultiframeWrapper, (multi_minimal,))):
         dw = maker(*args)
-        assert_equal(dw.get('InstanceNumber'), None)
-        assert_equal(dw.get('AcquisitionNumber'), None)
-        assert_raises(KeyError, dw.__getitem__, 'not an item')
-        assert_raises(didw.WrapperError, dw.get_data)
-        assert_raises(didw.WrapperError, dw.get_affine)
-        assert_raises(TypeError, maker)
+        assert dw.get('InstanceNumber') is None
+        assert dw.get('AcquisitionNumber') is None
+        with pytest.raises(KeyError):
+            dw['not an item']
+        with pytest.raises(didw.WrapperError):
+            dw.get_data()
+        with pytest.raises(didw.WrapperError):
+            dw.affine
+        with pytest.raises(TypeError):
+            maker()
         # Check default attributes
         if not maker is didw.MosaicWrapper:
-            assert_false(dw.is_mosaic)
-        assert_equal(dw.b_matrix, None)
-        assert_equal(dw.q_vector, None)
+            assert not dw.is_mosaic
+        assert dw.b_matrix is None
+        assert dw.q_vector is None
     for maker in (didw.wrapper_from_data,
                   didw.Wrapper,
                   didw.SiemensWrapper,
                   didw.MosaicWrapper
                   ):
         dw = maker(DATA)
-        assert_equal(dw.get('InstanceNumber'), 2)
-        assert_equal(dw.get('AcquisitionNumber'), 2)
-        assert_raises(KeyError, dw.__getitem__, 'not an item')
+        assert dw.get('InstanceNumber') == 2
+        assert dw.get('AcquisitionNumber') == 2
+        with pytest.raises(KeyError):
+            dw['not an item']
     for maker in (didw.MosaicWrapper, didw.wrapper_from_data):
         dw = maker(DATA)
-        assert_true(dw.is_mosaic)
+        assert dw.is_mosaic
     # DATA is not a Multiframe DICOM file
-    assert_raises(didw.WrapperError, didw.MultiframeWrapper, DATA)
+    with pytest.raises(didw.WrapperError):
+        didw.MultiframeWrapper(DATA)
 
 
 def test_get_from_wrapper():
@@ -103,12 +108,13 @@ def test_get_from_wrapper():
     # data
     dcm_data = {'some_key': 'some value'}
     dw = didw.Wrapper(dcm_data)
-    assert_equal(dw.get('some_key'), 'some value')
-    assert_equal(dw.get('some_other_key'), None)
+    assert dw.get('some_key') == 'some value'
+    assert dw.get('some_other_key') is None
     # Getitem uses the same dictionary access
-    assert_equal(dw['some_key'], 'some value')
+    assert dw['some_key'] == 'some value'
     # And raises a WrapperError for missing keys
-    assert_raises(KeyError, dw.__getitem__, 'some_other_key')
+    with pytest.raises(KeyError):
+        dw['some_other_key']
     # Test we don't use attributes for get
 
     class FakeData(dict):
@@ -116,7 +122,7 @@ def test_get_from_wrapper():
     d = FakeData()
     d.some_key = 'another bit of data'
     dw = didw.Wrapper(d)
-    assert_equal(dw.get('some_key'), None)
+    assert dw.get('some_key') is None
     # Check get defers to dcm_data get
 
     class FakeData2(object):
@@ -126,7 +132,7 @@ def test_get_from_wrapper():
     d = FakeData2()
     d.some_key = 'another bit of data'
     dw = didw.Wrapper(d)
-    assert_equal(dw.get('some_key'), 1)
+    assert dw.get('some_key') == 1
 
 
 @dicom_test
@@ -134,36 +140,40 @@ def test_wrapper_from_data():
     # test wrapper from data, wrapper from file
     for dw in (didw.wrapper_from_data(DATA),
                didw.wrapper_from_file(DATA_FILE)):
-        assert_equal(dw.get('InstanceNumber'), 2)
-        assert_equal(dw.get('AcquisitionNumber'), 2)
-        assert_raises(KeyError, dw.__getitem__, 'not an item')
-        assert_true(dw.is_mosaic)
+        assert dw.get('InstanceNumber') == 2
+        assert dw.get('AcquisitionNumber') == 2
+        with pytest.raises(KeyError):
+            dw['not an item']
+        assert dw.is_mosaic
         assert_array_almost_equal(
-            np.dot(didr.DPCS_TO_TAL, dw.get_affine()),
+            np.dot(didr.DPCS_TO_TAL, dw.affine),
             EXPECTED_AFFINE)
     for dw in (didw.wrapper_from_data(DATA_PHILIPS),
                didw.wrapper_from_file(DATA_FILE_PHILIPS)):
-        assert_equal(dw.get('InstanceNumber'), 1)
-        assert_equal(dw.get('AcquisitionNumber'), 3)
-        assert_raises(KeyError, dw.__getitem__, 'not an item')
-        assert_true(dw.is_multiframe)
+        assert dw.get('InstanceNumber') == 1
+        assert dw.get('AcquisitionNumber') == 3
+        with pytest.raises(KeyError):
+            dw['not an item']
+        assert dw.is_multiframe
     # Another CSA file
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
-    assert_true(dw.is_mosaic)
+    assert dw.is_mosaic
     # Check that multiframe requires minimal set of DICOM tags
     fake_data = dict()
     fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.2'
     dw = didw.wrapper_from_data(fake_data)
-    assert_false(dw.is_multiframe)
+    assert not dw.is_multiframe
     # use the correct SOPClassUID
     fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
-    assert_raises(didw.WrapperError, didw.wrapper_from_data, fake_data)
+    with pytest.raises(didw.WrapperError):
+        didw.wrapper_from_data(fake_data)
     fake_data['PerFrameFunctionalGroupsSequence'] = [None]
-    assert_raises(didw.WrapperError, didw.wrapper_from_data, fake_data)
+    with pytest.raises(didw.WrapperError):
+        didw.wrapper_from_data(fake_data)
     fake_data['SharedFunctionalGroupsSequence'] = [None]
     # minimal set should now be met
     dw = didw.wrapper_from_data(fake_data)
-    assert_true(dw.is_multiframe)
+    assert dw.is_multiframe
 
 
 @dicom_test
@@ -179,19 +189,18 @@ def test_wrapper_args_kwds():
     assert_array_equal(data, dcm2.get_data())
     # Trying to read non-dicom file raises pydicom error, usually
     csa_fname = pjoin(IO_DATA_PATH, 'csa2_b0.bin')
-    assert_raises(pydicom.filereader.InvalidDicomError,
-                  didw.wrapper_from_file,
-                  csa_fname)
+    with pytest.raises(pydicom.filereader.InvalidDicomError):
+        didw.wrapper_from_file(csa_fname)
     # We can force the read, in which case rubbish returns
     dcm_malo = didw.wrapper_from_file(csa_fname, force=True)
-    assert_false(dcm_malo.is_mosaic)
+    assert not dcm_malo.is_mosaic
 
 
 @dicom_test
 def test_dwi_params():
     dw = didw.wrapper_from_data(DATA)
     b_matrix = dw.b_matrix
-    assert_equal(b_matrix.shape, (3, 3))
+    assert b_matrix.shape == (3, 3)
     q = dw.q_vector
     b = np.sqrt(np.sum(q * q))  # vector norm
     g = q / b
@@ -204,9 +213,9 @@ def test_q_vector_etc():
     # Test diffusion params in wrapper classes
     # Default is no q_vector, b_value, b_vector
     dw = didw.Wrapper(DATA)
-    assert_equal(dw.q_vector, None)
-    assert_equal(dw.b_value, None)
-    assert_equal(dw.b_vector, None)
+    assert dw.q_vector is None
+    assert dw.b_value is None
+    assert dw.b_vector is None
     for pos in range(3):
         q_vec = np.zeros((3,))
         q_vec[pos] = 10.
@@ -214,12 +223,12 @@ def test_q_vector_etc():
         dw = didw.Wrapper(DATA)
         dw.q_vector = q_vec
         assert_array_equal(dw.q_vector, q_vec)
-        assert_equal(dw.b_value, 10)
+        assert dw.b_value == 10
         assert_array_equal(dw.b_vector, q_vec / 10.)
     # Reset wrapped dicom to refresh one_time property
     dw = didw.Wrapper(DATA)
     dw.q_vector = np.array([0, 0, 1e-6])
-    assert_equal(dw.b_value, 0)
+    assert dw.b_value == 0
     assert_array_equal(dw.b_vector, np.zeros((3,)))
     # Test MosaicWrapper
     sdw = didw.MosaicWrapper(DATA)
@@ -230,7 +239,7 @@ def test_q_vector_etc():
     # Reset wrapped dicom to refresh one_time property
     sdw = didw.MosaicWrapper(DATA)
     sdw.q_vector = np.array([0, 0, 1e-6])
-    assert_equal(sdw.b_value, 0)
+    assert sdw.b_value == 0
     assert_array_equal(sdw.b_vector, np.zeros((3,)))
 
 
@@ -238,51 +247,51 @@ def test_q_vector_etc():
 def test_vol_matching():
     # make the Siemens wrapper, check it compares True against itself
     dw_siemens = didw.wrapper_from_data(DATA)
-    assert_true(dw_siemens.is_mosaic)
-    assert_true(dw_siemens.is_csa)
-    assert_true(dw_siemens.is_same_series(dw_siemens))
+    assert dw_siemens.is_mosaic
+    assert dw_siemens.is_csa
+    assert dw_siemens.is_same_series(dw_siemens)
     # make plain wrapper, compare against itself
     dw_plain = didw.Wrapper(DATA)
-    assert_false(dw_plain.is_mosaic)
-    assert_false(dw_plain.is_csa)
-    assert_true(dw_plain.is_same_series(dw_plain))
+    assert not dw_plain.is_mosaic
+    assert not dw_plain.is_csa
+    assert dw_plain.is_same_series(dw_plain)
     # specific vs plain wrapper compares False, because the Siemens
     # wrapper has more non-empty information
-    assert_false(dw_plain.is_same_series(dw_siemens))
+    assert not dw_plain.is_same_series(dw_siemens)
     # and this should be symmetric
-    assert_false(dw_siemens.is_same_series(dw_plain))
+    assert not dw_siemens.is_same_series(dw_plain)
     # we can even make an empty wrapper.  This compares True against
     # itself but False against the others
     dw_empty = didw.Wrapper({})
-    assert_true(dw_empty.is_same_series(dw_empty))
-    assert_false(dw_empty.is_same_series(dw_plain))
-    assert_false(dw_plain.is_same_series(dw_empty))
+    assert dw_empty.is_same_series(dw_empty)
+    assert not dw_empty.is_same_series(dw_plain)
+    assert not dw_plain.is_same_series(dw_empty)
     # Just to check the interface, make a pretend signature-providing
     # object.
 
     class C(object):
         series_signature = {}
-    assert_true(dw_empty.is_same_series(C()))
+    assert dw_empty.is_same_series(C())
 
     # make the Philips wrapper, check it compares True against itself
     dw_philips = didw.wrapper_from_data(DATA_PHILIPS)
-    assert_true(dw_philips.is_multiframe)
-    assert_true(dw_philips.is_same_series(dw_philips))
+    assert dw_philips.is_multiframe
+    assert dw_philips.is_same_series(dw_philips)
     # make plain wrapper, compare against itself
     dw_plain_philips = didw.Wrapper(DATA)
-    assert_false(dw_plain_philips.is_multiframe)
-    assert_true(dw_plain_philips.is_same_series(dw_plain_philips))
+    assert not dw_plain_philips.is_multiframe
+    assert dw_plain_philips.is_same_series(dw_plain_philips)
     # specific vs plain wrapper compares False, because the Philips
     # wrapper has more non-empty information
-    assert_false(dw_plain_philips.is_same_series(dw_philips))
+    assert not dw_plain_philips.is_same_series(dw_philips)
     # and this should be symmetric
-    assert_false(dw_philips.is_same_series(dw_plain_philips))
+    assert not dw_philips.is_same_series(dw_plain_philips)
     # we can even make an empty wrapper.  This compares True against
     # itself but False against the others
     dw_empty = didw.Wrapper({})
-    assert_true(dw_empty.is_same_series(dw_empty))
-    assert_false(dw_empty.is_same_series(dw_plain_philips))
-    assert_false(dw_plain_philips.is_same_series(dw_empty))
+    assert dw_empty.is_same_series(dw_empty)
+    assert not dw_empty.is_same_series(dw_plain_philips)
+    assert not dw_plain_philips.is_same_series(dw_empty)
 
 
 @dicom_test
@@ -290,10 +299,10 @@ def test_slice_indicator():
     dw_0 = didw.wrapper_from_file(DATA_FILE_B0)
     dw_1000 = didw.wrapper_from_data(DATA)
     z = dw_0.slice_indicator
-    assert_false(z is None)
-    assert_equal(z, dw_1000.slice_indicator)
+    assert not z is None
+    assert z == dw_1000.slice_indicator
     dw_empty = didw.Wrapper({})
-    assert_true(dw_empty.slice_indicator is None)
+    assert dw_empty.slice_indicator is None
 
 
 @dicom_test
@@ -301,7 +310,7 @@ def test_orthogonal():
     # Test that the slice normal is sufficiently orthogonal
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     R = dw.rotation_matrix
-    assert_true(np.allclose(np.eye(3), np.dot(R, R.T), atol=1e-6))
+    assert np.allclose(np.eye(3), np.dot(R, R.T), atol=1e-6)
 
     # Test the threshold for rotation matrix orthogonality
     d = {}
@@ -313,7 +322,8 @@ def test_orthogonal():
     assert_array_almost_equal(dw.rotation_matrix, np.eye(3), 5)
     d['ImageOrientationPatient'] = [1e-4, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
-    assert_raises(didw.WrapperPrecisionError, getattr, dw, 'rotation_matrix')
+    with pytest.raises(didw.WrapperPrecisionError):
+        dw.rotation_matrix
 
 
 @dicom_test
@@ -338,7 +348,7 @@ def test_use_csa_sign():
     iop = dw.image_orient_patient
     dw.image_orient_patient = np.c_[iop[:, 1], iop[:, 0]]
     dw2 = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
-    assert_true(np.allclose(dw.slice_normal, dw2.slice_normal))
+    assert np.allclose(dw.slice_normal, dw2.slice_normal)
 
 
 @dicom_test
@@ -347,7 +357,8 @@ def test_assert_parallel():
     # slice normal are not parallel
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     dw.image_orient_patient = np.c_[[1., 0., 0.], [0., 1., 0.]]
-    assert_raises(AssertionError, dw.__getattribute__, 'slice_normal')
+    with pytest.raises(AssertionError):
+        dw.slice_normal
 
 
 @dicom_test
@@ -355,7 +366,7 @@ def test_decimal_rescale():
     # Test that we don't get back a data array with dtype np.object when our
     # rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
-    assert_not_equal(dw.get_data().dtype, np.object)
+    assert dw.get_data().dtype != np.object
 
 
 def fake_frames(seq_name, field_name, value_seq):
@@ -449,84 +460,95 @@ class TestMultiFrameWrapper(TestCase):
         MFW = self.WRAPCLASS
         dw = MFW(fake_mf)
         # No rows, cols, raise WrapperError
-        assert_raises(didw.WrapperError, getattr, dw, 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            dw.image_shape
         fake_mf['Rows'] = 64
-        assert_raises(didw.WrapperError, getattr, dw, 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            dw.image_shape
         fake_mf.pop('Rows')
         fake_mf['Columns'] = 64
-        assert_raises(didw.WrapperError, getattr, dw, 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            dw.image_shape
         fake_mf['Rows'] = 32
         # Missing frame data, raise AssertionError
-        assert_raises(AssertionError, getattr, dw, 'image_shape')
+        with pytest.raises(AssertionError):
+            dw.image_shape
         fake_mf['NumberOfFrames'] = 4
         # PerFrameFunctionalGroupsSequence does not match NumberOfFrames
-        assert_raises(AssertionError, getattr, dw, 'image_shape')
+        with pytest.raises(AssertionError):
+            dw.image_shape
         # check 3D shape when StackID index is 0
         div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
+        assert MFW(fake_mf).image_shape == (32, 64, 4)
         # Check stack number matching when StackID index is 0
         div_seq = ((1, 1), (1, 2), (1, 3), (2, 4))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # Make some fake frame data for 4D when StackID index is 0
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
                 (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
         # Check stack number matching for 4D when StackID index is 0
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2),
                 (1, 1, 3), (2, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # Check indices can be non-contiguous when StackID index is 0
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 2)
         # Check indices can include zero when StackID index is 0
         div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 2))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 2)
         # check 3D shape when there is no StackID index
         div_seq = ((1,), (2,), (3,), (4,))
         sid_seq = (1, 1, 1, 1)
         fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
+        assert MFW(fake_mf).image_shape == (32, 64, 4)
         # check 3D stack number matching when there is no StackID index
         div_seq = ((1,), (2,), (3,), (4,))
         sid_seq = (1, 1, 1, 2)
         fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # check 4D shape when there is no StackID index
         div_seq = ((1, 1), (2, 1), (1, 2), (2, 2), (1, 3), (2, 3))
         sid_seq = (1, 1, 1, 1, 1, 1)
         fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
         # check 4D stack number matching when there is no StackID index
         div_seq = ((1, 1), (2, 1), (1, 2), (2, 2), (1, 3), (2, 3))
         sid_seq = (1, 1, 1, 1, 1, 2)
         fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # check 3D shape when StackID index is 1
         div_seq = ((1, 1), (2, 1), (3, 1), (4, 1))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 4))
+        assert MFW(fake_mf).image_shape == (32, 64, 4)
         # Check stack number matching when StackID index is 1
         div_seq = ((1, 1), (2, 1), (3, 2), (4, 1))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'image_shape')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # Make some fake frame data for 4D when StackID index is 1
         div_seq = ((1, 1, 1), (2, 1, 1), (1, 1, 2), (2, 1, 2),
                 (1, 1, 3), (2, 1, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
-        assert_equal(MFW(fake_mf).image_shape, (32, 64, 2, 3))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
 
     def test_iop(self):
         # Test Image orient patient for multiframe
         fake_mf = copy(self.MINIMAL_MF)
         MFW = self.WRAPCLASS
         dw = MFW(fake_mf)
-        assert_raises(didw.WrapperError, getattr, dw, 'image_orient_patient')
+        with pytest.raises(didw.WrapperError):
+            dw.image_orient_patient
         # Make a fake frame
         fake_frame = fake_frames('PlaneOrientationSequence',
                                  'ImageOrientationPatient',
@@ -535,8 +557,8 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(MFW(fake_mf).image_orient_patient,
                            [[0, 1], [1, 0], [0, 0]])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
-        assert_raises(didw.WrapperError,
-                      getattr, MFW(fake_mf), 'image_orient_patient')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_orient_patient
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient,
                            [[0, 1], [1, 0], [0, 0]])
@@ -546,14 +568,16 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf = copy(self.MINIMAL_MF)
         MFW = self.WRAPCLASS
         dw = MFW(fake_mf)
-        assert_raises(didw.WrapperError, getattr, dw, 'voxel_sizes')
+        with pytest.raises(didw.WrapperError):
+            dw.voxel_sizes
         # Make a fake frame
         fake_frame = fake_frames('PixelMeasuresSequence',
                                  'PixelSpacing',
                                  [[2.1, 3.2]])[0]
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         # Still not enough, we lack information for slice distances
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'voxel_sizes')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).voxel_sizes
         # This can come from SpacingBetweenSlices or frame SliceThickness
         fake_mf['SpacingBetweenSlices'] = 4.3
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
@@ -565,7 +589,8 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
         # Removing shared leads to error again
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
-        assert_raises(didw.WrapperError, getattr, MFW(fake_mf), 'voxel_sizes')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).voxel_sizes
         # Restoring to frames makes it work again
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
@@ -584,7 +609,8 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf = copy(self.MINIMAL_MF)
         MFW = self.WRAPCLASS
         dw = MFW(fake_mf)
-        assert_raises(didw.WrapperError, getattr, dw, 'image_position')
+        with pytest.raises(didw.WrapperError):
+            dw.image_position
         # Make a fake frame
         fake_frame = fake_frames('PlanePositionSequence',
                                  'ImagePositionPatient',
@@ -592,21 +618,23 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
-        assert_raises(didw.WrapperError,
-                      getattr, MFW(fake_mf), 'image_position')
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_position
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         # Check lists of Decimals work
         fake_frame.PlanePositionSequence[0].ImagePositionPatient = [
             Decimal(str(v)) for v in [-2, 3, 7]]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
-        assert_equal(MFW(fake_mf).image_position.dtype, float)
+        assert MFW(fake_mf).image_position.dtype == float
 
     @dicom_test
     def test_affine(self):
         # Make sure we find orientation/position/spacing info
         dw = didw.wrapper_from_file(DATA_FILE_4D)
-        dw.get_affine()
+        aff = dw.affine
+        with pytest.deprecated_call():
+            assert np.array_equal(dw.get_affine(), aff)
 
     @dicom_test
     def test_data_real(self):
@@ -618,14 +646,13 @@ class TestMultiFrameWrapper(TestCase):
         # data hash depends on the endianness
         if endian_codes[data.dtype.byteorder] == '>':
             data = data.byteswap()
-        dat_str = data.tostring()
-        assert_equal(sha1(dat_str).hexdigest(),
-                     '149323269b0af92baa7508e19ca315240f77fa8c')
+        dat_str = data.tobytes()
+        assert sha1(dat_str).hexdigest() == '149323269b0af92baa7508e19ca315240f77fa8c'
 
     @dicom_test
     def test_slicethickness_fallback(self):
         dw = didw.wrapper_from_file(DATA_FILE_EMPTY_ST)
-        assert_equal(dw.voxel_sizes[2], 1.0)
+        assert dw.voxel_sizes[2] == 1.0
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
@@ -633,14 +660,15 @@ class TestMultiFrameWrapper(TestCase):
         # Test 4D diffusion data with an additional trace volume included
         # Excludes the trace volume and generates the correct shape
         dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
-        assert_equal(dw.image_shape, (96, 96, 60, 33))
+        assert dw.image_shape == (96, 96, 60, 33)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
     def test_data_unreadable_private_headers(self):
         # Test CT image with unreadable CSA tags
-        dw = assert_warns(UserWarning, didw.wrapper_from_file, DATA_FILE_CT)
-        assert_equal(dw.image_shape, (512, 571))
+        with pytest.warns(UserWarning):
+            dw = didw.wrapper_from_file(DATA_FILE_CT)
+        assert dw.image_shape == (512, 571)
 
     @dicom_test
     def test_data_fake(self):
@@ -649,19 +677,22 @@ class TestMultiFrameWrapper(TestCase):
         MFW = self.WRAPCLASS
         dw = MFW(fake_mf)
         # Fails - no shape
-        assert_raises(didw.WrapperError, dw.get_data)
+        with pytest.raises(didw.WrapperError):
+            dw.get_data()
         # Set shape by cheating
         dw.image_shape = (2, 3, 4)
         # Still fails - no data
-        assert_raises(didw.WrapperError, dw.get_data)
+        with pytest.raises(didw.WrapperError):
+            dw.get_data()
         # Make shape and indices
         fake_mf['Rows'] = 2
         fake_mf['Columns'] = 3
         dim_idxs = ((1, 1), (1, 2), (1, 3), (1, 4))
         fake_mf.update(fake_shape_dependents(dim_idxs, sid_dim=0))
-        assert_equal(MFW(fake_mf).image_shape, (2, 3, 4))
+        assert MFW(fake_mf).image_shape == (2, 3, 4)
         # Still fails - no data
-        assert_raises(didw.WrapperError, dw.get_data)
+        with pytest.raises(didw.WrapperError):
+            dw.get_data()
         # Add data - 3D
         data = np.arange(24).reshape((2, 3, 4))
         # Frames dim is first for some reason
@@ -723,7 +754,8 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
         # Lacking RescaleIntercept -> Error
         dw = MFW(fake_mf)
-        assert_raises(AttributeError, dw._scale_data, data)
+        with pytest.raises(AttributeError):
+            dw._scale_data(data)
         fake_frame.PixelValueTransformationSequence[0].RescaleIntercept = -2
         assert_array_equal(data * 3 - 2, dw._scale_data(data))
         # Decimals are OK

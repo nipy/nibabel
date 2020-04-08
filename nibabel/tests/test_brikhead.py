@@ -14,12 +14,11 @@ import numpy as np
 from .. import load, Nifti1Image
 from .. import brikhead
 
-from nose.tools import (assert_true, assert_equal, assert_raises)
+import pytest
 from numpy.testing import assert_array_equal
-from ..testing import data_path
+from ..testing import data_path, assert_data_similar
 
 from .test_fileslice import slicer_samples
-from .test_helpers import assert_data_similar
 
 EXAMPLE_IMAGES = [
     dict(
@@ -80,10 +79,10 @@ class TestAFNIHeader(object):
         for tp in self.test_files:
             head1 = self.module.AFNIHeader.from_fileobj(tp['head'])
             head2 = self.module.AFNIHeader.from_header(head1)
-            assert_equal(head1, head2)
-            with assert_raises(self.module.AFNIHeaderError):
+            assert head1 == head2
+            with pytest.raises(self.module.AFNIHeaderError):
                 self.module.AFNIHeader.from_header(header=None)
-            with assert_raises(self.module.AFNIHeaderError):
+            with pytest.raises(self.module.AFNIHeaderError):
                 self.module.AFNIHeader.from_header(tp['fname'])
 
 
@@ -94,22 +93,22 @@ class TestAFNIImage(object):
     def test_brikheadfile(self):
         for tp in self.test_files:
             brik = self.module.load(tp['fname'])
-            assert_equal(brik.get_data_dtype().type, tp['dtype'])
-            assert_equal(brik.shape, tp['shape'])
-            assert_equal(brik.header.get_zooms(), tp['zooms'])
+            assert brik.get_data_dtype().type == tp['dtype']
+            assert brik.shape == tp['shape']
+            assert brik.header.get_zooms() == tp['zooms']
             assert_array_equal(brik.affine, tp['affine'])
-            assert_equal(brik.header.get_space(), tp['space'])
+            assert brik.header.get_space() == tp['space']
             data = brik.get_fdata()
-            assert_equal(data.shape, tp['shape'])
+            assert data.shape == tp['shape']
             assert_array_equal(brik.dataobj.scaling, tp['scaling'])
-            assert_equal(brik.header.get_volume_labels(), tp['labels'])
+            assert brik.header.get_volume_labels() == tp['labels']
 
     def test_load(self):
         # Check highest level load of brikhead works
         for tp in self.test_files:
             img = self.module.load(tp['head'])
             data = img.get_fdata()
-            assert_equal(data.shape, tp['shape'])
+            assert data.shape == tp['shape']
             # min, max, mean values
             assert_data_similar(data, tp)
             # check if file can be converted to nifti
@@ -123,7 +122,7 @@ class TestAFNIImage(object):
             img = self.module.load(tp['fname'])
             arr = img.get_fdata()
             prox = img.dataobj
-            assert_true(prox.is_proxy)
+            assert prox.is_proxy
             for sliceobj in slicer_samples(img.shape):
                 assert_array_equal(arr[sliceobj], prox[sliceobj])
 
@@ -134,7 +133,7 @@ class TestBadFiles(object):
 
     def test_brikheadfile(self):
         for tp in self.test_files:
-            with assert_raises(tp['err']):
+            with pytest.raises(tp['err']):
                 self.module.load(tp['head'])
 
 
@@ -145,5 +144,5 @@ class TestBadVars(object):
 
     def test_unpack_var(self):
         for var in self.vars:
-            with assert_raises(self.module.AFNIHeaderError):
+            with pytest.raises(self.module.AFNIHeaderError):
                 self.module._unpack_var(var)

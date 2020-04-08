@@ -19,7 +19,6 @@ from .._h5py_compat import h5py, have_h5py, setup_module
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from .. import load as top_load, Nifti1Image
 
-from nose.tools import assert_equal
 from numpy.testing import (assert_array_equal, assert_almost_equal)
 
 MINC2_PATH = pjoin(get_nibabel_data(), 'nitest-minc2')
@@ -58,14 +57,14 @@ class TestEPIFrame(object):
     def test_load(self):
         # Check highest level load of minc works
         img = self.opener(self.example_params['fname'])
-        assert_equal(img.shape, self.example_params['shape'])
+        assert img.shape == self.example_params['shape']
         assert_almost_equal(img.header.get_zooms(),
                             self.example_params['zooms'], 5)
         assert_almost_equal(img.affine, self.example_params['affine'], 4)
-        assert_equal(img.get_data_dtype().type, self.example_params['type'])
+        assert img.get_data_dtype().type == self.example_params['type']
         # Check correspondence of data and recorded shape
         data = img.get_fdata()
-        assert_equal(data.shape, self.example_params['shape'])
+        assert data.shape == self.example_params['shape']
         # min, max, mean values from read in SPM2
         assert_almost_equal(data.min(), self.example_params['min'], 4)
         assert_almost_equal(data.max(), self.example_params['max'], 4)

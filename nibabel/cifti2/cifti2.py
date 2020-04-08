@@ -24,7 +24,6 @@ from ..filebasedimages import FileBasedHeader
 from ..dataobj_images import DataobjImage
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
-from ..keywordonly import kw_only_meth
 from warnings import warn
 
 
@@ -172,7 +171,7 @@ class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
 
 
 class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
-    """ CIFTI-2 label table: a sequence of ``Cifti2Label``s
+    """ CIFTI-2 label table: a sequence of ``Cifti2Label``\s
 
     * Description - Used by NamedMap when IndicesMapToDataType is
       "CIFTI_INDEX_TYPE_LABELS" in order to associate names and display colors
@@ -927,8 +926,8 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
     * Text Content: [NA]
     * Parent Element - Matrix
 
-    Attribute
-    ---------
+    Attributes
+    ----------
     applies_to_matrix_dimension : list of ints
         Dimensions of this matrix that follow this mapping
     indices_map_to_data_type : str one of CIFTI_MAP_TYPES
@@ -1389,8 +1388,7 @@ class Cifti2Image(DataobjImage):
         return self._nifti_header
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """ Load a CIFTI-2 image from a file_map
 
         Parameters

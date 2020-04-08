@@ -130,7 +130,6 @@ from io import StringIO
 from locale import getpreferredencoding
 from collections import OrderedDict
 
-from .keywordonly import kw_only_meth
 from .spatialimages import SpatialHeader, SpatialImage
 from .eulerangles import euler2mat
 from .volumeutils import Recoder, array_from_file
@@ -584,8 +583,7 @@ def exts2pars(exts_source):
 
 class PARRECArrayProxy(object):
 
-    @kw_only_meth(2)
-    def __init__(self, file_like, header, mmap=True, scaling='dv'):
+    def __init__(self, file_like, header, *, mmap=True, scaling='dv'):
         """ Initialize PARREC array proxy
 
         Parameters
@@ -1273,8 +1271,7 @@ class PARRECImage(SpatialImage):
     ImageArrayProxy = PARRECArrayProxy
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, permit_truncated=False,
+    def from_file_map(klass, file_map, *, mmap=True, permit_truncated=False,
                       scaling='dv', strict_sort=False):
         """ Create PARREC image from file map `file_map`
 
@@ -1314,8 +1311,7 @@ class PARRECImage(SpatialImage):
                      file_map=file_map)
 
     @classmethod
-    @kw_only_meth(1)
-    def from_filename(klass, filename, mmap=True, permit_truncated=False,
+    def from_filename(klass, filename, *, mmap=True, permit_truncated=False,
                       scaling='dv', strict_sort=False):
         """ Create PARREC image from filename `filename`
 

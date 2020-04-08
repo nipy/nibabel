@@ -21,7 +21,6 @@ from ..filename_parser import _stringify_path
 from ..spatialimages import HeaderDataError, SpatialImage
 from ..fileholders import FileHolder
 from ..arrayproxy import ArrayProxy, reshape_dataobj
-from ..keywordonly import kw_only_meth
 from ..openers import ImageOpener
 from ..batteryrunners import BatteryRunner, Report
 from ..wrapstruct import LabeledWrapStruct
@@ -407,7 +406,7 @@ class MGHHeader(LabeledWrapStruct):
                                   buffer=self.binaryblock)
         # goto the very beginning of the file-like obj
         fileobj.seek(0)
-        fileobj.write(hdr_nofooter.tostring())
+        fileobj.write(hdr_nofooter.tobytes())
 
     def writeftr_to(self, fileobj):
         ''' Write footer to fileobj
@@ -427,7 +426,7 @@ class MGHHeader(LabeledWrapStruct):
         ftr_nd = np.ndarray((), dtype=self._ftrdtype,
                             buffer=self.binaryblock, offset=ftr_loc_in_hdr)
         fileobj.seek(self.get_footer_offset())
-        fileobj.write(ftr_nd.tostring())
+        fileobj.write(ftr_nd.tobytes())
 
     def copy(self):
         ''' Return copy of structure '''
@@ -537,13 +536,12 @@ class MGHImage(SpatialImage, SerializableImage):
         return super(MGHImage, klass).filespec_to_file_map(filespec)
 
     @classmethod
-    @kw_only_meth(1)
-    def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         ''' Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It will raise an error in nibabel 3.0.
+            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------

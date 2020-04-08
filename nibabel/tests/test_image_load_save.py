@@ -30,7 +30,7 @@ from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_not_equal, assert_raises
+import pytest
 
 _, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
 DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -68,15 +68,15 @@ def test_save_load_endian():
     data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
     # Native endian image
     img = Nifti1Image(data, affine)
-    assert_equal(img.header.endianness, native_code)
+    assert img.header.endianness == native_code
     img2 = round_trip(img)
-    assert_equal(img2.header.endianness, native_code)
+    assert img2.header.endianness == native_code
     assert_array_equal(img2.get_fdata(), data)
     assert_array_equal(np.asanyarray(img2.dataobj), data)
     # byte swapped endian image
     bs_hdr = img.header.as_byteswapped()
     bs_img = Nifti1Image(data, affine, bs_hdr)
-    assert_equal(bs_img.header.endianness, swapped_code)
+    assert bs_img.header.endianness == swapped_code
     # of course the data is the same because it's not written to disk
     assert_array_equal(bs_img.get_fdata(), data)
     assert_array_equal(np.asanyarray(bs_img.dataobj), data)
@@ -84,27 +84,27 @@ def test_save_load_endian():
     cbs_img = AnalyzeImage.from_image(bs_img)
     # this will make the header native by doing the header conversion
     cbs_hdr = cbs_img.header
-    assert_equal(cbs_hdr.endianness, native_code)
+    assert cbs_hdr.endianness == native_code
     # and the byte order follows it back into another image
     cbs_img2 = Nifti1Image.from_image(cbs_img)
     cbs_hdr2 = cbs_img2.header
-    assert_equal(cbs_hdr2.endianness, native_code)
+    assert cbs_hdr2.endianness == native_code
     # Try byteswapped round trip
     bs_img2 = round_trip(bs_img)
     bs_data2 = np.asanyarray(bs_img2.dataobj)
     bs_fdata2 = bs_img2.get_fdata()
     # now the data dtype was swapped endian, so the read data is too
-    assert_equal(bs_data2.dtype.byteorder, swapped_code)
-    assert_equal(bs_img2.header.endianness, swapped_code)
+    assert bs_data2.dtype.byteorder == swapped_code
+    assert bs_img2.header.endianness == swapped_code
     assert_array_equal(bs_data2, data)
     # but get_fdata uses native endian
-    assert_not_equal(bs_fdata2.dtype.byteorder, swapped_code)
+    assert bs_fdata2.dtype.byteorder != swapped_code
     assert_array_equal(bs_fdata2, data)
     # Now mix up byteswapped data and non-byteswapped header
     mixed_img = Nifti1Image(bs_data2, affine)
-    assert_equal(mixed_img.header.endianness, native_code)
+    assert mixed_img.header.endianness == native_code
     m_img2 = round_trip(mixed_img)
-    assert_equal(m_img2.header.endianness, native_code)
+    assert m_img2.header.endianness == native_code
     assert_array_equal(m_img2.get_fdata(), data)
 
 
@@ -121,7 +121,7 @@ def test_save_load():
         sifn = 'another_image.img'
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
-        assert_true(isinstance(re_img, ni1.Nifti1Image))
+        assert isinstance(re_img, ni1.Nifti1Image)
         assert_array_equal(re_img.get_fdata(), data)
         assert_array_equal(re_img.affine, affine)
         # These and subsequent del statements are to prevent confusing
@@ -131,20 +131,19 @@ def test_save_load():
         if have_scipy:  # skip we we cannot read .mat files
             spm2.save(img, sifn)
             re_img2 = nils.load(sifn)
-            assert_true(isinstance(re_img2, spm2.Spm2AnalyzeImage))
+            assert isinstance(re_img2, spm2.Spm2AnalyzeImage)
             assert_array_equal(re_img2.get_fdata(), data)
             assert_array_equal(re_img2.affine, affine)
             del re_img2
             spm99.save(img, sifn)
             re_img3 = nils.load(sifn)
-            assert_true(isinstance(re_img3,
-                                   spm99.Spm99AnalyzeImage))
+            assert isinstance(re_img3, spm99.Spm99AnalyzeImage)
             assert_array_equal(re_img3.get_fdata(), data)
             assert_array_equal(re_img3.affine, affine)
             ni1.save(re_img3, nifn)
             del re_img3
         re_img = nils.load(nifn)
-        assert_true(isinstance(re_img, ni1.Nifti1Image))
+        assert isinstance(re_img, ni1.Nifti1Image)
         assert_array_equal(re_img.get_fdata(), data)
         assert_array_equal(re_img.affine, affine)
         del re_img
@@ -159,13 +158,13 @@ def test_two_to_one():
     affine[:3, 3] = [3, 2, 1]
     # single file format
     img = ni1.Nifti1Image(data, affine)
-    assert_equal(img.header['magic'], b'n+1')
+    assert img.header['magic'] == b'n+1'
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
     # check that the single format vox offset stays at zero
     img.to_file_map()
-    assert_equal(img.header['magic'], b'n+1')
-    assert_equal(img.header['vox_offset'], 0)
+    assert img.header['magic'] == b'n+1'
+    assert img.header['vox_offset'] == 0
     # make a new pair image, with the single image header
     pimg = ni1.Nifti1Pair(data, affine, img.header)
     isio = BytesIO()
@@ -174,32 +173,32 @@ def test_two_to_one():
     pimg.file_map['header'].fileobj = hsio
     pimg.to_file_map()
     # the offset stays at zero (but is 352 on disk)
-    assert_equal(pimg.header['magic'], b'ni1')
-    assert_equal(pimg.header['vox_offset'], 0)
+    assert pimg.header['magic'] == b'ni1'
+    assert pimg.header['vox_offset'] == 0
     assert_array_equal(pimg.get_fdata(), data)
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
-    assert_equal(ana_img.header['vox_offset'], 0)
+    assert ana_img.header['vox_offset'] == 0
     # back to the single image, save it again to a stringio
     str_io = BytesIO()
     img.file_map['image'].fileobj = str_io
     img.to_file_map()
-    assert_equal(img.header['vox_offset'], 0)
+    assert img.header['vox_offset'] == 0
     aimg = ana.AnalyzeImage.from_image(img)
-    assert_equal(aimg.header['vox_offset'], 0)
+    assert aimg.header['vox_offset'] == 0
     aimg = spm99.Spm99AnalyzeImage.from_image(img)
-    assert_equal(aimg.header['vox_offset'], 0)
+    assert aimg.header['vox_offset'] == 0
     aimg = spm2.Spm2AnalyzeImage.from_image(img)
-    assert_equal(aimg.header['vox_offset'], 0)
+    assert aimg.header['vox_offset'] == 0
     nfimg = ni1.Nifti1Pair.from_image(img)
-    assert_equal(nfimg.header['vox_offset'], 0)
+    assert nfimg.header['vox_offset'] == 0
     # now set the vox offset directly
     hdr = nfimg.header
     hdr['vox_offset'] = 16
-    assert_equal(nfimg.header['vox_offset'], 16)
+    assert nfimg.header['vox_offset'] == 16
     # check it gets properly set by the nifti single image
     nfimg = ni1.Nifti1Image.from_image(img)
-    assert_equal(nfimg.header['vox_offset'], 0)
+    assert nfimg.header['vox_offset'] == 0
 
 
 def test_negative_load_save():
@@ -260,7 +259,7 @@ def test_filename_save():
                 nils.save(img, path)
                 rt_img = nils.load(path)
                 assert_array_almost_equal(rt_img.get_fdata(), data)
-                assert_true(type(rt_img) is loadklass)
+                assert type(rt_img) is loadklass
                 # delete image to allow file close.  Otherwise windows
                 # raises an error when trying to delete the directory
                 del rt_img
@@ -274,57 +273,41 @@ def test_analyze_detection():
     def wat(hdr):
         return nils.which_analyze_type(hdr.binaryblock)
     n1_hdr = Nifti1Header(b'\0' * 348, check=False)
-    assert_equal(wat(n1_hdr), None)
+    assert wat(n1_hdr) is None
     n1_hdr['sizeof_hdr'] = 540
-    assert_equal(wat(n1_hdr), 'nifti2')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti2')
+    assert wat(n1_hdr) == 'nifti2'
+    assert wat(n1_hdr.as_byteswapped()) == 'nifti2'
     n1_hdr['sizeof_hdr'] = 348
-    assert_equal(wat(n1_hdr), 'analyze')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'analyze')
+    assert wat(n1_hdr) == 'analyze'
+    assert wat(n1_hdr.as_byteswapped()) == 'analyze'
     n1_hdr['magic'] = b'n+1'
-    assert_equal(wat(n1_hdr), 'nifti1')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti1')
+    assert wat(n1_hdr) == 'nifti1'
+    assert wat(n1_hdr.as_byteswapped()) == 'nifti1'
     n1_hdr['magic'] = b'ni1'
-    assert_equal(wat(n1_hdr), 'nifti1')
-    assert_equal(wat(n1_hdr.as_byteswapped()), 'nifti1')
+    assert wat(n1_hdr) == 'nifti1'
+    assert wat(n1_hdr.as_byteswapped()) == 'nifti1'
     # Doesn't matter what magic is if it's not a nifti1 magic
     n1_hdr['magic'] = b'ni2'
-    assert_equal(wat(n1_hdr), 'analyze')
+    assert wat(n1_hdr) == 'analyze'
     n1_hdr['sizeof_hdr'] = 0
     n1_hdr['magic'] = b''
-    assert_equal(wat(n1_hdr), None)
+    assert wat(n1_hdr) is None
     n1_hdr['magic'] = 'n+1'
-    assert_equal(wat(n1_hdr), 'nifti1')
+    assert wat(n1_hdr) == 'nifti1'
     n1_hdr['magic'] = 'ni1'
-    assert_equal(wat(n1_hdr), 'nifti1')
+    assert wat(n1_hdr) == 'nifti1'
 
 
 def test_guessed_image_type():
     # Test whether we can guess the image type from example files
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'example4d.nii.gz')),
-        Nifti1Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'nifti1.hdr')),
-        Nifti1Pair)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'example_nifti2.nii.gz')),
-        Nifti2Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'nifti2.hdr')),
-        Nifti2Pair)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'tiny.mnc')),
-        Minc1Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'small.mnc')),
-        Minc2Image)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'test.mgz')),
-        MGHImage)
-    assert_equal(nils.guessed_image_type(
-        pjoin(DATA_PATH, 'analyze.hdr')),
-        Spm2AnalyzeImage)
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'example4d.nii.gz')) == Nifti1Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti1.hdr')) == Nifti1Pair
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'example_nifti2.nii.gz')) == Nifti2Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti2.hdr')) == Nifti2Pair
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'tiny.mnc')) == Minc1Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'small.mnc')) == Minc2Image
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'test.mgz')) == MGHImage
+    assert nils.guessed_image_type(pjoin(DATA_PATH, 'analyze.hdr')) == Spm2AnalyzeImage
 
 
 def test_fail_save():
@@ -333,6 +316,6 @@ def test_fail_save():
         affine = np.eye(4, dtype=np.float32)
         img = SpatialImage(dataobj, affine)
         # Fails because float16 is not supported.
-        with assert_raises(AttributeError):
+        with pytest.raises(AttributeError):
             nils.save(img, 'foo.nii.gz')
         del img

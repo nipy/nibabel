@@ -8,8 +8,7 @@ from numpy import array as npa
 import nibabel
 from nibabel.cmdline import parrec2nii
 
-from mock import Mock, MagicMock, patch
-from nose.tools import assert_true
+from unittest.mock import Mock, MagicMock, patch
 from numpy.testing import (assert_almost_equal, assert_array_equal)
 
 from nibabel.tests.test_parrec import EG_PAR, VARY_PAR
@@ -89,8 +88,8 @@ def test_parrec2nii_save_load_qform_code(*args):
         for fname in [EG_PAR, VARY_PAR]:
             parrec2nii.proc_file(fname, opts)
             outfname = join(pth, basename(fname)).replace('.PAR', '.nii')
-            assert_true(isfile(outfname))
+            assert isfile(outfname)
             img = nibabel.load(outfname)
             assert_almost_equal(img.affine, PAR_AFFINE, 4)
-            assert_array_equal(img.header['qform_code'], 1)
+            assert img.header['qform_code'] == 1
             assert_array_equal(img.header['sform_code'], 1)

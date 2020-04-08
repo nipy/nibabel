@@ -30,9 +30,9 @@ class TckFile(TractogramFile):
     -----
     MRtrix (so its file format: TCK) considers streamlines coordinates
     to be in world space (RAS+ and mm space). MRtrix refers to that space
-    as the "real" or "scanner" space [1]_.
+    as the "real" or "scanner" space [#]_.
 
-    Moreover, when streamlines are mapped back to voxel space [2]_, a
+    Moreover, when streamlines are mapped back to voxel space [#]_, a
     streamline point located at an integer coordinate (i,j,k) is considered
     to be at the center of the corresponding voxel. This is in contrast with
     TRK's internal convention where it would have referred to a corner.
@@ -40,10 +40,8 @@ class TckFile(TractogramFile):
     NiBabel's streamlines internal representation follows the same
     convention as MRtrix.
 
-    References
-    ----------
-    [1] http://www.nitrc.org/pipermail/mrtrix-discussion/2014-January/000859.html
-    [2] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
+    .. [#] http://www.nitrc.org/pipermail/mrtrix-discussion/2014-January/000859.html
+    .. [#] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
     # Constants
     MAGIC_NUMBER = "mrtrix tracks"
@@ -207,7 +205,7 @@ class TckFile(TractogramFile):
                 self._finalize_header(f, header, offset=beginning)
 
                 # Add the EOF_DELIMITER.
-                f.write(asbytes(self.EOF_DELIMITER.tostring()))
+                f.write(self.EOF_DELIMITER.tobytes())
                 return
 
             data_for_streamline = first_item.data_for_streamline
@@ -226,13 +224,13 @@ class TckFile(TractogramFile):
 
             for t in tractogram:
                 data = np.r_[t.streamline, self.FIBER_DELIMITER]
-                f.write(data.astype(dtype).tostring())
+                f.write(data.astype(dtype).tobytes())
                 nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
 
             # Add the EOF_DELIMITER.
-            f.write(asbytes(self.EOF_DELIMITER.tostring()))
+            f.write(asbytes(self.EOF_DELIMITER.tobytes()))
             self._finalize_header(f, header, offset=beginning)
 
     @staticmethod

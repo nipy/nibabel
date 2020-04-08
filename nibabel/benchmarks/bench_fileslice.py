@@ -3,13 +3,9 @@
     import nibabel as nib
     nib.bench()
 
-If you have doctests enabled by default in nose (with a noserc file or
-environment variable), and you have a numpy version <= 1.6.1, this will also
-run the doctests, let's hope they pass.
+Run this benchmark with::
 
-Run this benchmark with:
-
-    nosetests -s --match '(?:^|[\\b_\\.//-])[Bb]ench' /path/to/bench_fileslice.py
+    pytest -c <path>/benchmarks/pytest.benchmark.ini <path>/benchmarks/bench_fileslice.py
 """
 
 import sys
@@ -48,7 +44,7 @@ def run_slices(file_like, repeat=3, offset=0, order='F'):
     times_arr = np.zeros((n_dim, n_slicers))
     with ImageOpener(file_like, 'wb') as fobj:
         fobj.write(b'\0' * offset)
-        fobj.write(arr.tostring(order=order))
+        fobj.write(arr.tobytes(order=order))
     with ImageOpener(file_like, 'rb') as fobj:
         for i, L in enumerate(SHAPE):
             for j, slicer in enumerate(_slices_for_len(L)):

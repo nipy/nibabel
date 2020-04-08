@@ -20,20 +20,19 @@ import gzip
 import bz2
 import threading
 import time
-import pytest
 
 import numpy as np
 
 from ..tmpdirs import InTemporaryDirectory
 from ..openers import ImageOpener
-from .. import volumeutils
 from ..volumeutils import (array_from_file,
                            _is_compressed_fobj,
                            array_to_file,
                            allopen,  # for backwards compatibility
                            fname_ext_ul_case,
-                           calculate_scale,
-                           can_cast,
+                           calculate_scale,  # Deprecated
+                           can_cast,  # Deprecated
+                           scale_min_max,  # Deprecated
                            write_zeros,
                            seek_tell,
                            apply_read_scaling,
@@ -52,11 +51,13 @@ from ..volumeutils import (array_from_file,
 from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
+from ..deprecator import ExpiredDeprecationError
+
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
+import pytest
 
-from ..testing_pytest import (assert_dt_equal, assert_allclose_safely,
-                              suppress_warnings, clear_and_catch_warnings)
+from ..testing import assert_dt_equal, assert_allclose_safely, suppress_warnings
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -65,6 +66,15 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 INT_TYPES = np.sctypes['int']
 IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
+
+
+def test_deprecated_functions():
+    with pytest.raises(ExpiredDeprecationError):
+        scale_min_max(0, 1, np.uint8, True)
+    with pytest.raises(ExpiredDeprecationError):
+        calculate_scale(np.array([-2, -1], dtype=np.int8), np.uint8, True)
+    with pytest.raises(ExpiredDeprecationError):
+        can_cast(np.float32, np.float32)
 
 
 def test__is_compressed_fobj():
@@ -99,7 +109,7 @@ def test_fobj_string_assumptions():
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
-            fobj_w.write(in_arr.tostring())
+            fobj_w.write(in_arr.tobytes())
             fobj_w.close()
             # Read back from file
             fobj_r = opener(fname, 'rb')
@@ -175,7 +185,7 @@ def test_array_from_file_mmap():
         for dt in (np.int16, np.float):
             arr = np.arange(np.prod(shape), dtype=dt).reshape(shape)
             with open('test.bin', 'wb') as fobj:
-                fobj.write(arr.tostring(order='F'))
+                fobj.write(arr.tobytes(order='F'))
             with open('test.bin', 'rb') as fobj:
                 res = array_from_file(shape, dt, fobj)
                 assert_array_equal(res, arr)
@@ -212,7 +222,7 @@ def test_array_from_file_mmap():
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
     ''' Write contents of in_arr into fileobj, read back, check same '''
-    instr = b' ' * offset + in_arr.tostring(order='F')
+    instr = b' ' * offset + in_arr.tobytes(order='F')
     out_buf.write(instr)
     out_buf.flush()
     if in_buf is None:  # we're using in_buf from out_buf
@@ -238,7 +248,7 @@ def test_array_from_file_openers():
             with Opener(fname, 'wb') as out_buf:
                 if offset != 0:  # avoid https://bugs.python.org/issue16828
                     out_buf.write(b' ' * offset)
-                out_buf.write(in_arr.tostring(order='F'))
+                out_buf.write(in_arr.tobytes(order='F'))
             with Opener(fname, 'rb') as in_buf:
                 out_arr = array_from_file(shape, dtype, in_buf, offset)
                 assert_array_almost_equal(in_arr, out_arr)
@@ -264,7 +274,7 @@ def test_array_from_file_reread():
             # Write array to file
             fobj_w = opener() if is_bio else opener(fname, 'wb')
             fobj_w.write(b' ' * offset)
-            fobj_w.write(in_arr.tostring(order=order))
+            fobj_w.write(in_arr.tobytes(order=order))
             if is_bio:
                 fobj_r = fobj_w
             else:
@@ -294,9 +304,7 @@ def test_array_to_file():
         for code in '<>':
             ndt = dt.newbyteorder(code)
             for allow_intercept in (True, False):
-                with suppress_warnings():  # deprecated
-                    scale, intercept, mn, mx = \
-                        calculate_scale(arr, ndt, allow_intercept)
+                scale, intercept, mn, mx = _calculate_scale(arr, ndt, allow_intercept)
                 data_back = write_return(arr, str_io, ndt,
                                          0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
@@ -875,28 +883,6 @@ def test_best_write_scale_ftype():
         assert best_write_scale_ftype(arr, lower_t(0.5), 0) == lower_t
 
 
-def test_can_cast():
-    tests = ((np.float32, np.float32, True, True, True),
-             (np.float64, np.float32, True, True, True),
-             (np.complex128, np.float32, False, False, False),
-             (np.float32, np.complex128, True, True, True),
-             (np.float32, np.uint8, False, True, True),
-             (np.uint32, np.complex128, True, True, True),
-             (np.int64, np.float32, True, True, True),
-             (np.complex128, np.int16, False, False, False),
-             (np.float32, np.int16, False, True, True),
-             (np.uint8, np.int16, True, True, True),
-             (np.uint16, np.int16, False, True, True),
-             (np.int16, np.uint16, False, False, True),
-             (np.int8, np.uint16, False, False, True),
-             (np.uint16, np.uint8, False, True, True),
-             )
-    for intype, outtype, def_res, scale_res, all_res in tests:
-        assert def_res == can_cast(intype, outtype)
-        assert scale_res == can_cast(intype, outtype, False, True)
-        assert all_res == can_cast(intype, outtype, True, True)
-
-
 def test_write_zeros():
     bio = BytesIO()
     write_zeros(bio, 10000)
@@ -1032,8 +1018,7 @@ def test_fname_ext_ul_case():
 def test_allopen():
     # This import into volumeutils is for compatibility.  The code is the
     # ``openers`` module.
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+    with pytest.deprecated_call() as w:
         # Test default mode is 'rb'
         fobj = allopen(__file__)
         # Check we got the deprecation warning
@@ -1291,3 +1276,49 @@ def test__ftype4scaled_finite_warningfilters():
 
     if err:
         raise err[0]
+
+
+def _calculate_scale(data, out_dtype, allow_intercept):
+    ''' Calculate scaling and optional intercept for data
+
+    Copy of the deprecated volumeutils.calculate_scale, to preserve tests
+
+    Parameters
+    ----------
+    data : array
+    out_dtype : dtype
+       output data type in some form understood by ``np.dtype``
+    allow_intercept : bool
+       If True allow non-zero intercept
+
+    Returns
+    -------
+    scaling : None or float
+       scalefactor to divide into data.  None if no valid data
+    intercept : None or float
+       intercept to subtract from data.  None if no valid data
+    mn : None or float
+       minimum of finite value in data or None if this will not
+       be used to threshold data
+    mx : None or float
+       minimum of finite value in data, or None if this will not
+       be used to threshold data
+    '''
+    # Code here is a compatibility shell around arraywriters refactor
+    in_dtype = data.dtype
+    out_dtype = np.dtype(out_dtype)
+    if np.can_cast(in_dtype, out_dtype):
+        return 1.0, 0.0, None, None
+    from ..arraywriters import make_array_writer, WriterError, get_slope_inter
+    try:
+        writer = make_array_writer(data, out_dtype, True, allow_intercept)
+    except WriterError as e:
+        raise ValueError(str(e))
+    if out_dtype.kind in 'fc':
+        return (1.0, 0.0, None, None)
+    mn, mx = writer.finite_range()
+    if (mn, mx) == (np.inf, -np.inf):  # No valid data
+        return (None, None, None, None)
+    if in_dtype.kind not in 'fc':
+        mn, mx = (None, None)
+    return get_slope_inter(writer) + (mn, mx)

@@ -4,7 +4,7 @@
 from ..tractogram import Tractogram
 from ..tractogram_file import TractogramFile
 
-from nose.tools import assert_raises, assert_equal
+import pytest
 
 
 def test_subclassing_tractogram_file():
@@ -23,7 +23,8 @@ def test_subclassing_tractogram_file():
         def create_empty_header(cls):
             return None
 
-    assert_raises(TypeError, DummyTractogramFile, Tractogram())
+    with pytest.raises(TypeError):
+        DummyTractogramFile(Tractogram())
 
     # Missing 'load' method
     class DummyTractogramFile(TractogramFile):
@@ -38,7 +39,8 @@ def test_subclassing_tractogram_file():
         def create_empty_header(cls):
             return None
 
-    assert_raises(TypeError, DummyTractogramFile, Tractogram())
+    with pytest.raises(TypeError):
+        DummyTractogramFile(Tractogram())
 
     # Now we have everything required.
     class DummyTractogramFile(TractogramFile):
@@ -57,12 +59,14 @@ def test_subclassing_tractogram_file():
     dtf = DummyTractogramFile(Tractogram())
 
     # Default create_empty_header is empty dict
-    assert_equal(dtf.header, {})
+    assert dtf.header == {}
 
 
 def test_tractogram_file():
-    assert_raises(NotImplementedError, TractogramFile.is_correct_format, "")
-    assert_raises(NotImplementedError, TractogramFile.load, "")
+    with pytest.raises(NotImplementedError):
+        TractogramFile.is_correct_format("")
+    with pytest.raises(NotImplementedError):
+        TractogramFile.load("")
 
     # Testing calling the 'save' method of `TractogramFile` object.
     class DummyTractogramFile(TractogramFile):
@@ -78,6 +82,5 @@ def test_tractogram_file():
         def save(self, fileobj):
             pass
 
-    assert_raises(NotImplementedError,
-                  super(DummyTractogramFile,
-                        DummyTractogramFile(Tractogram)).save, "")
+    with pytest.raises(NotImplementedError):
+        super(DummyTractogramFile, DummyTractogramFile(Tractogram)).save("")

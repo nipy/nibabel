@@ -20,7 +20,6 @@ from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 Spm2AnalyzeImage, Spm99AnalyzeImage,
                 MGHImage, all_image_classes)
 
-from nose.tools import assert_true
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 
@@ -64,7 +63,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                                               'sizeof_hdr', 0)
                 current_sizeof_hdr = 0 if new_sniff is None else \
                     len(new_sniff[0])
-                assert_true(current_sizeof_hdr >= expected_sizeof_hdr, new_msg)
+                assert current_sizeof_hdr >= expected_sizeof_hdr, new_msg
 
                 # Check that the image type was recognized.
                 new_msg = '%s (%s) image is%s a %s image.' % (
@@ -72,7 +71,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                     msg,
                     '' if is_img else ' not',
                     img_klass.__name__)
-                assert_true(is_img, new_msg)
+                assert is_img, new_msg
 
             if sniff_mode == 'vanilla':
                 return new_sniff

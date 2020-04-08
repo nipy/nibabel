@@ -25,8 +25,40 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
-3.0.0 (To Be Determined)
-========================
+3.0.2 (Monday 9 March 2020)
+===========================
+
+Bug fixes
+---------
+* Attempt to find versioneer version when building docs (pr/894) (CM)
+* Delay import of h5py until neded (backport of pr/889) (YOH, reviewed by CM)
+
+Maintenance
+-----------
+* Fix typo in documentation (backport of pr/893) (Zvi Baratz, reviewed by CM)
+* Set minimum matplotlib to 1.5.3 to ensure wheels are available on all
+  supported Python versions. (backport of pr/887) (CM)
+* Remove ``pyproject.toml`` for now. (issue/859) (CM)
+
+
+3.0.1 (Monday 27 January 2020)
+==============================
+
+Bug fixes
+---------
+* Test failed by using array method on tuple. (pr/860) (Ben Darwin, reviewed by
+  CM)
+* Validate ``ExpiredDeprecationError``\s, promoted by 3.0 release from
+  ``DeprecationWarning``\s. (pr/857) (CM)
+
+Maintenance
+-----------
+* Remove logic accommodating numpy without float16 types. (pr/866) (CM)
+* Accommodate new numpy dtype strings. (pr/858) (CM)
+
+
+3.0.0 (Wednesday 18 December 2019)
+==================================
 
 New features
 ------------
@@ -63,9 +95,11 @@ Enhancements
 
 Bug fixes
 ---------
-* Sliced ``Tractogram``s no longer ``apply_affine`` to the original
+* Sliced ``Tractogram``\s no longer ``apply_affine`` to the original
   ``Tractogram``'s streamlines. (pr/811) (MC, reviewed by Serge Koudoro,
   Philippe Poulin, CM, MB)
+* Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+  by CM)
 * Re-import externals/netcdf.py from scipy to resolve numpy deprecation
   (pr/821) (CM)
 
@@ -79,6 +113,10 @@ Maintenance
 
 API changes and deprecations
 ----------------------------
+* Fully remove deprecated ``checkwarns`` and ``minc`` modules. (pr/852) (CM)
+* The ``keep_file_open`` argument to file load operations and ``ArrayProxy``\s
+  no longer acccepts the value ``"auto"``, raising a ``ValueError``. (pr/852)
+  (CM)
 * Deprecate ``ArraySequence.data`` in favor of ``ArraySequence.get_data()``,
   which will return a copy. ``ArraySequence.data`` now returns a read-only
   view. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin, CM, MB)
@@ -398,7 +436,7 @@ New features
 * Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
   MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)
 * Added ``get_fdata()`` as default method to retrieve scaled floating point
-  data from ``DataobjImage``s (pr/551) (MB, reviewed by CM, SG)
+  data from ``DataobjImage``\s (pr/551) (MB, reviewed by CM, SG)
 
 Enhancements
 ------------

@@ -4,91 +4,104 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 
+os: linux
 dist: xenial
-sudo: true
 language: python
-
 cache: pip
+
 env:
     global:
         - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
         - DEPENDS="numpy scipy matplotlib h5py pillow pydicom indexed_gzip"
         - INSTALL_TYPE="setup"
         - CHECK_TYPE="test"
-        - OLD_WHEELS="https://5cf40426d9f06eb7461d-6fe47d9331aba7cd62fc36c7196769e4.ssl.cf2.rackcdn.com"
         - EXTRA_WHEELS="https://3f23b170c54c2533c070-1c8a9b3114517dc5fe17b7c3f8c63a43.ssl.cf2.rackcdn.com"
         - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
-        - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS --find-links=$OLD_WHEELS"
+        - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
         - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
 
 python:
-    - 3.6
     - 3.7
     - 3.8
 
-matrix:
+jobs:
   include:
     # Basic dependencies only
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="-r requirements.txt"
     # Clean install
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS=""
         - CHECK_TYPE=skiptests
     # Absolute minimum dependencies
-    - python: 3.5
+    - python: 3.6
       env:
         - SETUP_REQUIRES="setuptools==30.3.0"
         - DEPENDS="-r min-requirements.txt"
     # Absolute minimum dependencies plus oldest MPL
-    - python: 3.5
+    - python: 3.6
       env:
-        - DEPENDS="-r min-requirements.txt matplotlib==1.3.1"
+        - DEPENDS="-r min-requirements.txt matplotlib==1.5.3"
     # Minimum pydicom dependency
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="-r min-requirements.txt pydicom==0.9.9 pillow==2.6"
     # pydicom master branch
-    - python: 3.5
+    - python: 3.6
       env:
         - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
-    # test 3.7 against pre-release builds of everything
-    - python: 3.7
+    # test 3.8 against pre-release builds of everything
+    - python: 3.8
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    - python: 3.5
+    # OSX Python support is basically accidental. Take whatever version we can
+    # get and test with full dependencies...
+    - os: osx
+      language: minimal
+    # and pre-releases. No min-requirements.txt because we can't assume a wheel that old.
+    - os: osx
+      language: minimal
+      env:
+        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
+    # Test that PyPI installs from source pass
+    - python: 3.6
       env:
         - INSTALL_TYPE=sdist
-    - python: 3.5
+    # Wheels (binary distributions)
+    - python: 3.6
       env:
         - INSTALL_TYPE=wheel
-    - python: 3.5
+    # Install from git archive (e.g., https://github.com/nipy/nibabel/archive/master.zip)
+    - python: 3.6
       env:
         - INSTALL_TYPE=archive
-    - python: 3.5
+    # Run flake8... Might not be needed now we have pep8speaks
+    - python: 3.6
       env:
         - CHECK_TYPE="style"
     # Documentation doctests
-    - python: 3.5
+    - python: 3.6
       env:
         - CHECK_TYPE="doc"
 
 # Set up virtual environment, build package, build from depends
 before_install:
-    - travis_retry python -m pip install --upgrade pip virtualenv
-    - virtualenv --python=python venv
+    - travis_retry python3 -m pip install --upgrade pip virtualenv
+    - virtualenv --python=python3 venv
     - source venv/bin/activate
-    - python --version # just to check
-    - travis_retry pip install -U $SETUP_REQUIRES
+    - python3 --version # just to check
+    - travis_retry python3 -m pip install -U $SETUP_REQUIRES
+    - which python3
+    - which pip
     - |
       if [ "$INSTALL_TYPE" == "sdist" ]; then
-        python setup.py egg_info  # check egg_info while we're here
-        python setup.py sdist
+        python3 setup.py egg_info  # check egg_info while we're here
+        python3 setup.py sdist
         export ARCHIVE=$( ls dist/*.tar.gz )
       elif [ "$INSTALL_TYPE" == "wheel" ]; then
-        python setup.py bdist_wheel
+        python3 setup.py bdist_wheel
         export ARCHIVE=$( ls dist/*.whl )
       elif [ "$INSTALL_TYPE" == "archive" ]; then
         export ARCHIVE="package.tar.gz"
@@ -100,19 +113,19 @@ before_install:
 install:
     - |
       if [ "$INSTALL_TYPE" == "setup" ]; then
-          python setup.py install
+          python3 setup.py install
       else
           pip install $EXTRA_PIP_FLAGS $ARCHIVE
       fi
     # Basic import check
-    - python -c 'import nibabel; print(nibabel.__version__)'
+    - python3 -c 'import nibabel; print(nibabel.__version__)'
     - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
 
 before_script:
     # Point to nibabel data directory
     - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
     # Because nibabel is already installed, will just look up the extra
-    - pip install $EXTRA_PIP_FLAGS "nibabel[$CHECK_TYPE]"
+    - python3 -m pip install $EXTRA_PIP_FLAGS "nibabel[$CHECK_TYPE]"
 
 # command to run tests, e.g. python setup.py test
 script:
@@ -122,20 +135,19 @@ script:
           flake8 nibabel
       elif [ "${CHECK_TYPE}" == "doc" ]; then
           cd doc
-          make html;
-          make doctest;
+          make html && make doctest
       elif [ "${CHECK_TYPE}" == "test" ]; then
           # Change into an innocuous directory and find tests from installation
           mkdir for_testing
           cd for_testing
           cp ../.coveragerc .
-          nosetests --with-doctest --with-coverage --cover-package nibabel nibabel
+          pytest --doctest-modules --cov nibabel -v --pyargs nibabel
       else
           false
       fi
 
 after_script:
-    - travis_retry pip install codecov
+    - travis_retry python3 -m pip install codecov
     - codecov
 
 notifications:

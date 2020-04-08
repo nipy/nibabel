@@ -11,7 +11,7 @@
 import numpy as np
 import warnings
 
-from nose.tools import assert_true, assert_equal, assert_raises
+import pytest
 
 from numpy.testing import assert_array_equal
 
@@ -128,15 +128,12 @@ def test_apply():
     # Test 4D with an example orientation
     ornt = OUT_ORNTS[-1]
     t_arr = apply_orientation(a[:, :, :, None], ornt)
-    assert_equal(t_arr.ndim, 4)
+    assert t_arr.ndim == 4
     # Orientation errors
-    assert_raises(OrientationError,
-                  apply_orientation,
-                  a[:, :, 1], ornt)
-    assert_raises(OrientationError,
-                  apply_orientation,
-                  a,
-                  [[0, 1], [np.nan, np.nan], [2, 1]])
+    with pytest.raises(OrientationError):
+        apply_orientation(a[:, :, 1], ornt)
+    with pytest.raises(OrientationError):
+        apply_orientation(a, [[0, 1], [np.nan, np.nan], [2, 1]])
     shape = np.array(a.shape)
     for ornt in ALL_ORNTS:
         t_arr = apply_orientation(a, ornt)
@@ -171,7 +168,7 @@ def test_io_orientation():
             ornt = io_orientation(in_arr)
             assert_array_equal(ornt, out_ornt)
             taff = inv_ornt_aff(ornt, shape)
-            assert_true(same_transform(taff, ornt, shape))
+            assert same_transform(taff, ornt, shape)
             for axno in range(3):
                 arr = in_arr.copy()
                 ex_ornt = out_ornt.copy()
@@ -182,7 +179,7 @@ def test_io_orientation():
                 ornt = io_orientation(arr)
                 assert_array_equal(ornt, ex_ornt)
                 taff = inv_ornt_aff(ornt, shape)
-                assert_true(same_transform(taff, ornt, shape))
+                assert same_transform(taff, ornt, shape)
     # Test nasty hang for zero columns
     rzs = np.c_[np.diag([2, 3, 4, 5]), np.zeros((4, 3))]
     arr = from_matvec(rzs, [15, 16, 17, 18])
@@ -252,54 +249,52 @@ def test_ornt_transform():
                        [[1, -1], [2, 1], [0, 1]]
                        )
     # Must have same shape
-    assert_raises(ValueError,
-                  ornt_transform,
-                  [[0, 1], [1, 1]],
-                  [[0, 1], [1, 1], [2, 1]])
+    with pytest.raises(ValueError):
+        ornt_transform([[0, 1], [1, 1]], [[0, 1], [1, 1], [2, 1]])
 
     # Must be (N,2) in shape
-    assert_raises(ValueError,
-                  ornt_transform,
-                  [[0, 1, 1], [1, 1, 1]],
-                  [[0, 1, 1], [1, 1, 1]])
+    with pytest.raises(ValueError):
+        ornt_transform([[0, 1, 1], [1, 1, 1]],
+                       [[0, 1, 1], [1, 1, 1]])
 
     # Target axes must exist in source
-    assert_raises(ValueError,
-                  ornt_transform,
-                  [[0, 1], [1, 1], [1, 1]],
-                  [[0, 1], [1, 1], [2, 1]])
+    with pytest.raises(ValueError):
+        ornt_transform([[0, 1], [1, 1], [1, 1]],
+                       [[0, 1], [1, 1], [2, 1]])
 
 
 def test_ornt2axcodes():
     # Recoding orientation to axis codes
     labels = (('left', 'right'), ('back', 'front'), ('down', 'up'))
-    assert_equal(ornt2axcodes([[0, 1],
-                               [1, 1],
-                               [2, 1]], labels), ('right', 'front', 'up'))
-    assert_equal(ornt2axcodes([[0, -1],
-                               [1, -1],
-                               [2, -1]], labels), ('left', 'back', 'down'))
-    assert_equal(ornt2axcodes([[2, -1],
-                               [1, -1],
-                               [0, -1]], labels), ('down', 'back', 'left'))
-    assert_equal(ornt2axcodes([[1, 1],
-                               [2, -1],
-                               [0, 1]], labels), ('front', 'down', 'right'))
+    assert ornt2axcodes([[0, 1],
+                         [1, 1],
+                         [2, 1]], labels) == ('right', 'front', 'up')
+    assert ornt2axcodes([[0, -1],
+                         [1, -1],
+                         [2, -1]], labels) == ('left', 'back', 'down')
+    assert ornt2axcodes([[2, -1],
+                         [1, -1],
+                         [0, -1]], labels) == ('down', 'back', 'left')
+    assert ornt2axcodes([[1, 1],
+                         [2, -1],
+                         [0, 1]], labels) == ('front', 'down', 'right')
     # default is RAS output directions
-    assert_equal(ornt2axcodes([[0, 1],
-                               [1, 1],
-                               [2, 1]]), ('R', 'A', 'S'))
+    assert ornt2axcodes([[0, 1],
+                         [1, 1],
+                         [2, 1]]) == ('R', 'A', 'S')
     # dropped axes produce None
-    assert_equal(ornt2axcodes([[0, 1],
-                               [np.nan, np.nan],
-                               [2, 1]]), ('R', None, 'S'))
+    assert ornt2axcodes([[0, 1],
+                         [np.nan, np.nan],
+                         [2, 1]]) == ('R', None, 'S')
     # Non integer axes raises error
-    assert_raises(ValueError, ornt2axcodes, [[0.1, 1]])
+    with pytest.raises(ValueError):
+        ornt2axcodes([[0.1, 1]])
     # As do directions not in range
-    assert_raises(ValueError, ornt2axcodes, [[0, 0]])
+    with pytest.raises(ValueError):
+        ornt2axcodes([[0, 0]])
 
     for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS):
-        assert_equal(ornt2axcodes(ornt), axcodes)
+        assert ornt2axcodes(ornt) == axcodes
 
 
 def test_axcodes2ornt():
@@ -339,51 +334,50 @@ def test_axcodes2ornt():
 
     # Missing axcodes raise an error
     assert_array_equal(axcodes2ornt('RAS'), default)
-    assert_raises(ValueError, axcodes2ornt, 'rAS')
+    with pytest.raises(ValueError):
+        axcodes2ornt('rAS')
     # None is OK as axis code
     assert_array_equal(axcodes2ornt(('R', None, 'S')),
                                     [[0, 1],
                                      [np.nan, np.nan],
                                      [2, 1]])
     # Bad axis code with None also raises error.
-    assert_raises(ValueError, axcodes2ornt, ('R', None, 's'))
+    with pytest.raises(ValueError):
+        axcodes2ornt(('R', None, 's'))
     # Axis codes checked with custom labels
     labels = ('SD', 'BF', 'lh')
     assert_array_equal(axcodes2ornt('BlD', labels),
                        [[1, -1],
                         [2, -1],
                         [0, 1]])
-    assert_raises(ValueError, axcodes2ornt, 'blD', labels)
+    with pytest.raises(ValueError):
+        axcodes2ornt('blD', labels)
 
     # Duplicate labels
-    assert_raises(ValueError, axcodes2ornt, 'blD', ('SD', 'BF', 'lD'))
-    assert_raises(ValueError, axcodes2ornt, 'blD', ('SD', 'SF', 'lD'))
+    for labels in [('SD', 'BF', 'lD'),('SD', 'SF', 'lD')]:
+        with pytest.raises(ValueError):
+            axcodes2ornt('blD', labels)
 
     for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS):
         assert_array_equal(axcodes2ornt(axcodes), ornt)
 
 
 def test_aff2axcodes():
-    assert_equal(aff2axcodes(np.eye(4)), tuple('RAS'))
+    assert aff2axcodes(np.eye(4)) == tuple('RAS')
     aff = [[0, 1, 0, 10], [-1, 0, 0, 20], [0, 0, 1, 30], [0, 0, 0, 1]]
-    assert_equal(aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))),
-                 ('B', 'R', 'U'))
-    assert_equal(aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))),
-                 ('B', 'R', 'U'))
+    assert aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))) == ('B', 'R', 'U')
+    assert aff2axcodes(aff, (('L', 'R'), ('B', 'F'), ('D', 'U'))) == ('B', 'R', 'U')
 
 
 def test_inv_ornt_aff():
     # Extra tests for inv_ornt_aff routines (also tested in
     # io_orientations test)
-    assert_raises(OrientationError, inv_ornt_aff,
-                  [[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
+    with pytest.raises(OrientationError):
+        inv_ornt_aff([[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
 
 
 def test_orientation_affine_deprecation():
     aff1 = inv_ornt_aff([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-    with warnings.catch_warnings(record=True) as warns:
-        warnings.simplefilter('always')
+    with pytest.deprecated_call():
         aff2 = orientation_affine([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-        assert_equal(len(warns), 1)
-        assert_equal(warns[0].category, DeprecationWarning)
     assert_array_equal(aff1, aff2)

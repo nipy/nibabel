@@ -3,5 +3,4 @@
 sphinx
 numpydoc
 texext
-matplotlib>=1.3
-mock
+matplotlib >=1.3.1

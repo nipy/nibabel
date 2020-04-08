@@ -67,7 +67,7 @@ The first two values of $\mathbf{s}$ ($s_1, s_2$) are given by the
 ``PixelSpacing`` field.  We get $s_3$ (the slice scaling
 value) from ``SpacingBetweenSlices``.
 
-The :ref:`spm-dicom` code has a comment saying that mosaic DICOM imagqes
+The :ref:`spm-dicom` code has a comment saying that mosaic DICOM images
 have an incorrect ``ImagePositionPatient`` field. The
 ``ImagePositionPatient`` field usually gives the $\mathbf{t}$ vector.
 The comments imply that Siemens has derived ``ImagePositionPatient``
