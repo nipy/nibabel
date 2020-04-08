@@ -374,11 +374,11 @@ def conform(from_img,
         raise ValueError("`voxel_size` must have {} values".format(required_ndim))
 
     # Create fake image of the image we want to resample to.
-    hdr = Nifti1Header()
+    hdr = from_img.header_class()
     hdr.set_data_shape(out_shape)
     hdr.set_zooms(voxel_size)
     dst_aff = hdr.get_best_affine()
-    to_img = Nifti1Image(np.empty(out_shape), affine=dst_aff, header=hdr)
+    to_img = from_img.__class__(np.empty(out_shape), affine=dst_aff, header=hdr)
 
     # Resample input image.
     out_img = resample_from_to(
