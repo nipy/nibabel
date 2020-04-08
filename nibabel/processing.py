@@ -24,7 +24,7 @@ spnd, _, _ = optional_package('scipy.ndimage')
 from .affines import AffineError, to_matvec, from_matvec, append_diag
 from .spaces import vox2out_vox
 from .nifti1 import Nifti1Header, Nifti1Image
-from .orientations import axcodes2ornt
+from .orientations import axcodes2ornt, io_orientation, ornt_transform
 from .imageclasses import spatial_axes_first
 
 SIGMA2FWHM = np.sqrt(8 * np.log(2))
@@ -386,5 +386,7 @@ def conform(from_img,
         cval=cval, out_class=out_class)
 
     # Reorient to desired orientation.
-    ornt = axcodes2ornt(orientation, labels=list(zip('RPI', 'LAS')))
-    return out_img.as_reoriented(ornt)
+    start_ornt = io_orientation(out_img.affine)
+    end_ornt = axcodes2ornt(orientation)
+    transform = ornt_transform(start_ornt, end_ornt)
+    return out_img.as_reoriented(transform)
