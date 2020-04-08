@@ -25,6 +25,7 @@ from .affines import AffineError, to_matvec, from_matvec, append_diag
 from .funcs import as_closest_canonical
 from .spaces import vox2out_vox
 from .nifti1 import Nifti1Header, Nifti1Image
+from .orientations import axcodes2ornt
 from .imageclasses import spatial_axes_first
 
 SIGMA2FWHM = np.sqrt(8 * np.log(2))
@@ -313,36 +314,12 @@ def smooth_image(img,
     return out_class(sm_data, img.affine, img.header)
 
 
-def _transform_range(x, new_min, new_max):
-    """ Transform data to a new range, while maintaining ratios.
-
-    Parameters
-    ----------
-    x : array-like
-        The data to transform.
-    new_min, new_max : scalar
-        The minimum and maximum of the output array.
-
-    Returns
-    -------
-    transformed : array-like
-        A copy of the transformed data.
-
-    Examples
-    --------
-    >>> _transform_range([2, 4, 6], -1, 1)
-    array([-1.,  0.,  1.])
-    """
-    x = np.asarray(x)
-    x_min, x_max = x.min(), x.max()
-    return (x - x_min) * (new_max - new_min) / (x_max - x_min) + new_min
-
-
 def conform(from_img,
             out_shape=(256, 256, 256),
             voxel_size=(1.0, 1.0, 1.0),
             order=3,
             cval=0.0,
+            orientation='RAS',
             out_class=Nifti1Image):
     """ Resample image to ``out_shape`` with voxels of size ``voxel_size``.
 
@@ -351,9 +328,11 @@ def conform(from_img,
     function:
         - Resamples data to ``output_shape``
         - Resamples voxel sizes to ``voxel_size``
-        - Transforms data to range [0, 255] (while maintaining ratios)
-        - Casts to unsigned eight-bit integer
         - Reorients to RAS (``mri_convert --conform`` reorients to LIA)
+
+    Unlike ``mri_convert --conform``, this command does not:
+        - Transform data to range [0, 255]
+        - Cast to unsigned eight-bit integer
 
     Parameters
     ----------
@@ -373,6 +352,8 @@ def conform(from_img,
         Value used for points outside the boundaries of the input if
         ``mode='constant'``. Default is 0.0 (see
         ``scipy.ndimage.affine_transform``)
+    orientation : str, optional
+        Orientation of output image. Default is "RAS".
     out_class : None or SpatialImage class, optional
         Class of output image.  If None, use ``from_img.__class__``.
 
@@ -383,24 +364,29 @@ def conform(from_img,
         resampling `from_img` into axes aligned to the output space of
         ``from_img.affine``
     """
-    if from_img.ndim != 3:
+    # Only support 3D images. This can be made more general in the future, once tests
+    # are written.
+    required_ndim = 3
+    if from_img.ndim != required_ndim:
         raise ValueError("Only 3D images are supported.")
+    elif len(out_shape) != required_ndim:
+        raise ValueError("`out_shape` must have {} values".format(required_ndim))
+    elif len(voxel_size) != required_ndim:
+        raise ValueError("`voxel_size` must have {} values".format(required_ndim))
+
     # Create fake image of the image we want to resample to.
     hdr = Nifti1Header()
     hdr.set_data_shape(out_shape)
     hdr.set_zooms(voxel_size)
     dst_aff = hdr.get_best_affine()
     to_img = Nifti1Image(np.empty(out_shape), affine=dst_aff, header=hdr)
+
     # Resample input image.
     out_img = resample_from_to(
         from_img=from_img, to_vox_map=to_img, order=order, mode="constant",
         cval=cval, out_class=out_class)
-    # Cast to uint8.
-    data = out_img.get_fdata()
-    data = _transform_range(data, new_min=0.0, new_max=255.0)
-    data = data.round(out=data).astype(np.uint8)
-    out_img._dataobj = data
-    out_img.set_data_dtype(data.dtype)
-    # Reorient to RAS.
-    out_img = as_closest_canonical(out_img)
-    return out_img
+
+    labels =list(zip('LPI', 'RAS'))
+    # list(zip('RPI', 'LAS')
+    # Reorient to desired orientation.
+    return out_img.as_reoriented(axcodes2ornt(orientation, labels=labels))

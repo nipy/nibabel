@@ -20,7 +20,7 @@ spnd, have_scipy, _ = optional_package('scipy.ndimage')
 import nibabel as nib
 from nibabel.processing import (sigma2fwhm, fwhm2sigma, adapt_affine,
                                 resample_from_to, resample_to_output, smooth_image,
-                                _transform_range, conform)
+                                conform)
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 from nibabel.orientations import aff2axcodes, flip_axis, inv_ornt_aff
@@ -429,30 +429,30 @@ def test_against_spm_resample():
     assert_spm_resampling_close(moved_anat, moved2output, spm2output);
 
 
-def test__transform_range():
-    assert_array_equal(_transform_range([2, 4, 6], -1, 1), [-1, 0, 1])
-    assert_array_equal(_transform_range([-1, 0, 1], 2, 6), [2, 4, 6])
-    assert_array_equal(_transform_range(np.arange(11), 0, 5),
-                       np.arange(0, 5.5, 0.5))
-    assert_array_equal(_transform_range(np.arange(-100, 101), 0, 200),
-                       np.arange(201))
-
-
 @needs_scipy
 def test_conform():
     anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
 
+    # Test with default arguments.
     c = conform(anat)
     assert c.shape == (256, 256, 256)
     assert c.header.get_zooms() == (1, 1, 1)
-    assert c.dataobj.dtype == np.dtype(np.uint8)
+    assert c.dataobj.dtype.type == anat.dataobj.dtype.type
     assert aff2axcodes(c.affine) == ('R', 'A', 'S')
+    assert isinstance(c, Nifti1Image)
 
-    c = conform(anat, out_shape=(100, 100, 200), voxel_size=(2, 2, 1.5))
+    # Test with non-default arguments.
+    c = conform(anat, out_shape=(100, 100, 200), voxel_size=(2, 2, 1.5),
+        orientation="LPI", out_class=Nifti2Image)
     assert c.shape == (100, 100, 200)
     assert c.header.get_zooms() == (2, 2, 1.5)
-    assert c.dataobj.dtype == np.dtype(np.uint8)
-    assert aff2axcodes(c.affine) == ('R', 'A', 'S')
+    assert c.dataobj.dtype.type == anat.dataobj.dtype.type
+    assert aff2axcodes(c.affine) == ('L', 'P', 'I')
+    assert isinstance(c, Nifti2Image)
+
+    # Error on non-3D arguments.
+    assert_raises(ValueError, conform, anat, out_shape=(100, 100))
+    assert_raises(ValueError, conform, anat, voxel_size=(2, 2))
 
     # Error on non-3D images.
     func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
