@@ -25,11 +25,18 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
-2.5.2 (To Be Determined)
-========================
+2.5.2 (Wednesday 8 April 2020)
+==============================
 
-This and all future releases in 2.5.x series will be incompatible with Python
-3.9.
+Bug-fix release in the 2.5.x series. This is an extended-support series,
+providing bug fixes for Python 2.7 and 3.4.
+
+This and all future releases in the 2.5.x series will be incompatible with
+Python 3.9. The last compatible series of numpy and scipy are 1.16.x and
+1.2.x, respectively.
+
+If you are able to upgrade to Python 3, it is recommended to upgrade to
+NiBabel 3.
 
 Bug fixes
 ---------
@@ -37,6 +44,11 @@ Bug fixes
   by CM)
 * Re-import externals/netcdf.py from scipy to resolve numpy deprecation
   (pr/821) (CM)
+
+Maintenance
+-----------
+* Set maximum numpy to 1.16.x, maximum scipy to 1.2.x (pr/901) (CM)
+
 
 2.5.1 (Monday 23 September 2019)
 ================================
@@ -304,7 +316,7 @@ Maintenance
 * Use SSH address to use key-based auth (pr/587) (CM, reviewed by MB)
 * Fix doctests for numpy 1.14 array printing (pr/591) (MB, reviewed by CM)
 * Refactor for pydicom 1.0 API changes (pr/599) (MB, reviewed by CM)
-* Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by 
+* Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by
   Yaroslav Halchenko, MB)
 * Move ``nib-ls`` and other programs to a new cmdline module (pr/601, pr/615)
   (Chris Cheng, reviewed by MB, Yaroslav Halchenko)
