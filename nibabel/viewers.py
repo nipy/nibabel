@@ -331,7 +331,29 @@ class OrthoSlicer3D(object):
         self._alpha = alpha
         self.draw()
 
-    def set_overlay(self, data, affine=None, threshold=None, cmap='viridis'):
+    def set_overlay(self, data, affine=None, threshold=None, cmap='viridis',
+                    alpha=0.7):
+        """ Sets `data` as overlay for currently plotted image
+
+        Parameters
+        ----------
+        data : array-like
+            The data that will be overlayed on the slicer. Should have 3+
+            dimensions.
+        affine : array-like or None, optional
+            Affine transform for the provided data. This is used to determine
+            how the data should be sliced for plotting into the sagittal,
+            coronal, and axial view axes. If this does not match the currently
+            plotted slicer the provided data will be resampled.
+        threshold : float or None, optional
+            Threshold for overlay data; values below this threshold will not
+            be displayed. Default: None
+        cmap : str, optional
+            The Colormap instance or registered colormap name used to map
+            scalar data to colors. Default: 'viridis'
+        alpha : [0, 1] float, optional
+            Set the alpha value used for blending. Default: 0.7
+        """
         if affine is None:
             try:  # did we get an image?
                 affine = data.affine
@@ -384,8 +406,7 @@ class OrthoSlicer3D(object):
 
         # set transparency and new cmap
         self._overlay.cmap = cmap
-        for im in self._overlay._ims:
-            im.set_alpha(0.7)
+        self._overlay.alpha = alpha
 
         # no double cross-hairs (they get confused when we have linked orthos)
         for cross in self._overlay._crosshairs:
