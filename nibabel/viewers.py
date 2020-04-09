@@ -380,6 +380,7 @@ class OrthoSlicer3D(object):
                                     (target_shape, self._affine)).dataobj
             affine = self._affine
 
+        # we already have a plotted overlay
         if self._overlay is not None:
             # remove all images + cross hair lines
             for nn, im in enumerate(self._overlay._ims):
@@ -392,12 +393,13 @@ class OrthoSlicer3D(object):
                 a = self._axes.pop(-1)
                 a.remove()
 
-        # create an axis if we have a 4D overlay (vs a 3D underlay)
         axes = self._axes
         o_n_volumes = int(np.prod(data.shape[3:]))
-        if o_n_volumes > self.n_volumes:
+        # 3D underlay, 4D overlay
+        if o_n_volumes > self.n_volumes and self.n_volumes == 1:
             axes += [axes[0].figure.add_subplot(224)]
-        elif o_n_volumes < self.n_volumes:
+        # 4D underlay, 3D overlay
+        elif o_n_volumes < self.n_volumes and o_n_volumes == 1:
             axes = axes[:-1]
 
         # mask array for provided threshold
