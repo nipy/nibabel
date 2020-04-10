@@ -48,7 +48,7 @@ def is_fancy(sliceobj):
     if not isinstance(sliceobj, tuple):
         sliceobj = (sliceobj,)
     for slicer in sliceobj:
-        if hasattr(slicer, 'dtype') and slicer.ndim > 0:  # ndarray always fancy
+        if getattr(slicer, 'ndim', 0) > 0:  # ndarray always fancy, but scalars are safe
             return True
         # slice or Ellipsis or None OK for  basic
         if isinstance(slicer, slice) or slicer in (None, Ellipsis):
