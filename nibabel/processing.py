@@ -373,16 +373,15 @@ def conform(from_img,
     elif len(voxel_size) != required_ndim:
         raise ValueError("`voxel_size` must have {} values".format(required_ndim))
 
-    # Create fake image of the image we want to resample to.
-    hdr = from_img.header_class()
-    hdr.set_data_shape(out_shape)
-    hdr.set_zooms(voxel_size)
-    dst_aff = hdr.get_best_affine()
-    to_img = from_img.__class__(np.empty(out_shape), affine=dst_aff, header=hdr)
+    # Create template image to which input is resampled.
+    tmpl_hdr = from_img.header_class().from_header(from_img.header)
+    tmpl_hdr.set_data_shape(out_shape)
+    tmpl_hdr.set_zooms(voxel_size)
+    tmpl = from_img.__class__(np.empty(out_shape), affine=np.eye(4), header=tmpl_hdr)
 
     # Resample input image.
     out_img = resample_from_to(
-        from_img=from_img, to_vox_map=to_img, order=order, mode="constant",
+        from_img=from_img, to_vox_map=tmpl, order=order, mode="constant",
         cval=cval, out_class=out_class)
 
     # Reorient to desired orientation.
