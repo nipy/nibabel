@@ -21,7 +21,7 @@ import numpy.linalg as npl
 from .optpkg import optional_package
 spnd, _, _ = optional_package('scipy.ndimage')
 
-from .affines import AffineError, to_matvec, from_matvec, append_diag
+from .affines import AffineError, to_matvec, from_matvec, append_diag, rescale_affine
 from .spaces import vox2out_vox
 from .nifti1 import Nifti1Image
 from .orientations import axcodes2ornt, io_orientation, ornt_transform
@@ -373,19 +373,18 @@ def conform(from_img,
     elif len(voxel_size) != required_ndim:
         raise ValueError("`voxel_size` must have {} values".format(required_ndim))
 
-    # Create template image to which input is resampled.
-    tmpl_hdr = from_img.header_class().from_header(from_img.header)
-    tmpl_hdr.set_data_shape(out_shape)
-    tmpl_hdr.set_zooms(voxel_size)
-    tmpl = from_img.__class__(np.empty(out_shape), affine=np.eye(4), header=tmpl_hdr)
+    start_ornt = io_orientation(from_img.affine)
+    end_ornt = axcodes2ornt(orientation)
+    transform = ornt_transform(start_ornt, end_ornt)
+
+    # Reorient first to ensure shape matches expectations
+    reoriented = from_img.as_reoriented(transform)
+
+    out_aff = rescale_affine(reoriented.affine, reoriented.shape, voxel_size, out_shape)
 
     # Resample input image.
     out_img = resample_from_to(
-        from_img=from_img, to_vox_map=tmpl, order=order, mode="constant",
+        from_img=from_img, to_vox_map=(out_shape, out_aff), order=order, mode="constant",
         cval=cval, out_class=out_class)
 
-    # Reorient to desired orientation.
-    start_ornt = io_orientation(out_img.affine)
-    end_ornt = axcodes2ornt(orientation)
-    transform = ornt_transform(start_ornt, end_ornt)
-    return out_img.as_reoriented(transform)
+    return out_img
