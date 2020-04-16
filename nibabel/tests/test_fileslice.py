@@ -33,7 +33,7 @@ def _check_slice(sliceobj):
 
 
 def test_is_fancy():
-    slices = (2, [2], [2, 3], Ellipsis, np.array(2), np.array((2, 3)))
+    slices = (2, [2], [2, 3], Ellipsis, np.array((2, 3)))
     for slice0 in slices:
         _check_slice(slice0)
         _check_slice((slice0,))  # tuple is same
@@ -46,7 +46,7 @@ def test_is_fancy():
     assert not is_fancy((None,))
     assert not is_fancy((None, 1))
     assert not is_fancy((1, None))
-    # Chack that actual False returned (rather than falsey)
+    # Check that actual False returned (rather than falsey)
     assert is_fancy(1) is False
 
 
@@ -57,7 +57,9 @@ def test_canonical_slicers():
                slice(0, 9),
                slice(1, 10),
                slice(1, 10, 2),
-               2)
+               2,
+               np.array(2))
+
     shape = (10, 10)
     for slice0 in slicers:
         assert canonical_slicers((slice0,), shape) == (slice0, slice(None))
@@ -93,9 +95,9 @@ def test_canonical_slicers():
     assert canonical_slicers(slice(None), shape) == (slice(None), slice(None))
     # Check fancy indexing raises error
     with pytest.raises(ValueError):
-        canonical_slicers((np.array(1), 1), shape)
+        canonical_slicers((np.array([1]), 1), shape)
     with pytest.raises(ValueError):
-        canonical_slicers((1, np.array(1)), shape)
+        canonical_slicers((1, np.array([1])), shape)
     # Check out of range integer raises error
     with pytest.raises(ValueError):
         canonical_slicers((10,), shape)
@@ -111,6 +113,11 @@ def test_canonical_slicers():
     # Check negative -> positive
     assert canonical_slicers(-1, shape) == (9, slice(None))
     assert canonical_slicers((slice(None), -1), shape) == (slice(None), 9)
+    # check numpy integer scalars behave the same as numpy integers
+    assert canonical_slicers(np.array(2), shape) == canonical_slicers(2, shape)
+    assert canonical_slicers((np.array(2), np.array(1)), shape) == canonical_slicers((2, 1), shape)
+    assert canonical_slicers((2, np.array(1)), shape) == canonical_slicers((2, 1), shape)
+    assert canonical_slicers((np.array(2), 1), shape) == canonical_slicers((2, 1), shape)
 
 
 def test_slice2outax():
@@ -664,20 +671,29 @@ def slicer_samples(shape):
     if ndim == 0:
         return
     yield (None, 0)
+    yield (None, np.array(0))
     yield (0, None)
+    yield (np.array(0), None)
     yield (Ellipsis, -1)
+    yield (Ellipsis, np.array(-1))
     yield (-1, Ellipsis)
+    yield (np.array(-1), Ellipsis)
     yield (None, Ellipsis)
     yield (Ellipsis, None)
     yield (Ellipsis, None, None)
     if ndim == 1:
         return
     yield (0, None, slice(None))
+    yield (np.array(0), None, slice(None))
     yield (Ellipsis, -1, None)
+    yield (Ellipsis, np.array(-1), None)
     yield (0, Ellipsis, None)
+    yield (np.array(0), Ellipsis, None)
     if ndim == 2:
         return
     yield (slice(None), 0, -1, None)
+    yield (slice(None), np.array(0), np.array(-1), None)
+    yield (np.array(0), slice(None), np.array(-1), None)
 
 
 def test_fileslice():
@@ -711,7 +727,7 @@ def test_fileslice_errors():
     _check_slicer((1,), arr, fobj, 0, 'C')
     # Fancy indexing raises error
     with pytest.raises(ValueError):
-        fileslice(fobj, (np.array(1),), (2, 3, 4), arr.dtype)
+        fileslice(fobj, (np.array([1]),), (2, 3, 4), arr.dtype)
 
 
 def test_fileslice_heuristic():
