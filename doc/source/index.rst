@@ -87,6 +87,7 @@ contributed code and discussion (in rough order of appearance):
 * Mathias Goncalves
 * Jakub Kaczmarzyk
 * Dimitri Papadopoulos Orfanos
+* Ross Markello
 * Miguel Estevan Moreno
 * Thomas Roos
 * Igor Solovey
@@ -106,6 +107,9 @@ contributed code and discussion (in rough order of appearance):
 * Chris Gorgolewski
 * Benjamin C Darwin
 * Zvi Baratz
+* Roberto Guidotti
+* Or Duek
+* Anibal Sólon
 
 License reprise
 ===============
