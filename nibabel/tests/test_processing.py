@@ -19,10 +19,11 @@ spnd, have_scipy, _ = optional_package('scipy.ndimage')
 
 import nibabel as nib
 from nibabel.processing import (sigma2fwhm, fwhm2sigma, adapt_affine,
-                                resample_from_to, resample_to_output, smooth_image)
+                                resample_from_to, resample_to_output, smooth_image,
+                                conform)
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
-from nibabel.orientations import flip_axis, inv_ornt_aff
+from nibabel.orientations import aff2axcodes, flip_axis, inv_ornt_aff
 from nibabel.affines import (AffineError, from_matvec, to_matvec, apply_affine,
                              voxel_sizes)
 from nibabel.eulerangles import euler2mat
@@ -420,3 +421,35 @@ def test_against_spm_resample():
     moved2output = resample_to_output(moved_anat, 4, order=1, cval=np.nan)
     spm2output = nib.load(pjoin(DATA_DIR, 'reoriented_anat_moved.nii'))
     assert_spm_resampling_close(moved_anat, moved2output, spm2output);
+
+
+@needs_scipy
+def test_conform():
+    anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
+
+    # Test with default arguments.
+    c = conform(anat)
+    assert c.shape == (256, 256, 256)
+    assert c.header.get_zooms() == (1, 1, 1)
+    assert c.dataobj.dtype.type == anat.dataobj.dtype.type
+    assert aff2axcodes(c.affine) == ('R', 'A', 'S')
+    assert isinstance(c, Nifti1Image)
+
+    # Test with non-default arguments.
+    c = conform(anat, out_shape=(100, 100, 200), voxel_size=(2, 2, 1.5),
+        orientation="LPI", out_class=Nifti2Image)
+    assert c.shape == (100, 100, 200)
+    assert c.header.get_zooms() == (2, 2, 1.5)
+    assert c.dataobj.dtype.type == anat.dataobj.dtype.type
+    assert aff2axcodes(c.affine) == ('L', 'P', 'I')
+    assert isinstance(c, Nifti2Image)
+
+    # TODO: support nD images in `conform` in the future, but for now, test that we get
+    # errors on non-3D images.
+    func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
+    with pytest.raises(ValueError):
+        conform(func)
+    with pytest.raises(ValueError):
+        conform(anat, out_shape=(100, 100))
+    with pytest.raises(ValueError):
+        conform(anat, voxel_size=(2, 2))
