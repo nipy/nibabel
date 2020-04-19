@@ -21,9 +21,64 @@ Nibabel releases
 Most work on NiBabel so far has been by Matthew Brett (MB), Chris Markiewicz
 (CM), Michael Hanke (MH), Marc-Alexandre Côté (MC), Ben Cipollini (BC), Paul
 McCarthy (PM), Chris Cheng (CC), Yaroslav Halchenko (YOH), Satra Ghosh (SG),
-Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
+Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
+
+3.1.0 (Monday 20 April 2020)
+============================
+
+New feature release in the 3.1.x series.
+
+New features
+------------
+* Conformation function (``processing.conform``) and CLI tool
+  (``nib-conform``) to apply shape, orientation and zooms (pr/853) (Jakub
+  Kaczmarzyk, reviewed by CM, YOH)
+* Affine rescaling function (``affines.rescale_affine``) to update
+  dimensions and voxel sizes (pr/853) (CM, reviewed by Jakub Kaczmarzyk)
+
+Bug fixes
+---------
+* Delay import of h5py until neded (pr/889) (YOH, reviewed by CM)
+
+Maintenance
+-----------
+* Fix typo in documentation (pr/893) (Zvi Baratz, reviewed by CM)
+* Tests converted from nose to pytest (pr/865 + many sub-PRs)
+  (Dorota Jarecka, Krzyzstof Gorgolewski, Roberto Guidotti, Anibal Solon,
+  and Or Duek)
+
+API changes and deprecations
+----------------------------
+* ``kw_only_meth``/``kw_only_func`` decorators are deprecated (pr/848)
+  (RM, reviewed by CM)
+
+
+2.5.2 (Wednesday 8 April 2020)
+==============================
+
+Bug-fix release in the 2.5.x series. This is an extended-support series,
+providing bug fixes for Python 2.7 and 3.4.
+
+This and all future releases in the 2.5.x series will be incompatible with
+Python 3.9. The last compatible series of numpy and scipy are 1.16.x and
+1.2.x, respectively.
+
+If you are able to upgrade to Python 3, it is recommended to upgrade to
+NiBabel 3.
+
+Bug fixes
+---------
+* Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+  by CM)
+* Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+  (pr/821) (CM)
+
+Maintenance
+-----------
+* Set maximum numpy to 1.16.x, maximum scipy to 1.2.x (pr/901) (CM)
+
 
 3.0.2 (Monday 9 March 2020)
 ===========================
