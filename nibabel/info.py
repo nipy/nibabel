@@ -11,7 +11,7 @@ relative imports.
 # This should be set to the intended next version + dev to indicate a
 # development (pre-release) version.
 _version_major = 3
-_version_minor = 1
+_version_minor = 2
 _version_micro = 0
 _version_extra = 'dev'
 
