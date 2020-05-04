@@ -4,13 +4,14 @@
 # for it to be on multiple physical lines, so long as you remember: - There
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 
+os: linux
 dist: xenial
-sudo: true
 language: python
-
 cache: pip
+
 env:
     global:
+        - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
         - DEPENDS="six numpy<1.17dev scipy<1.3dev matplotlib h5py pillow pydicom"
         - OPTIONAL_DEPENDS=""
         - INSTALL_TYPE="setup"
@@ -19,15 +20,18 @@ env:
         - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
         - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
         - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
+
 python:
     - 3.5
     - 3.6
     - 3.7
-matrix:
+
+jobs:
   include:
     - python: 3.4
       dist: trusty
-      sudo: false
+      env:
+        - SETUP_REQUIRES="pip<19.2 setuptools>=30.3.0 wheel"
     # Absolute minimum dependencies
     - python: 2.7
       env:
@@ -96,7 +100,7 @@ before_install:
     - virtualenv --python=python venv
     - source venv/bin/activate
     - python --version # just to check
-    - travis_retry pip install -U pip setuptools>=27.0 wheel
+    - travis_retry pip install -U $SETUP_REQUIRES
     - travis_retry pip install coverage
     - if [ "${CHECK_TYPE}" == "test" ]; then
       travis_retry pip install nose mock;
