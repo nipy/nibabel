@@ -171,7 +171,7 @@ class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
 
 
 class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
-    """ CIFTI-2 label table: a sequence of ``Cifti2Label``\s
+    r""" CIFTI-2 label table: a sequence of ``Cifti2Label``\s
 
     * Description - Used by NamedMap when IndicesMapToDataType is
       "CIFTI_INDEX_TYPE_LABELS" in order to associate names and display colors
