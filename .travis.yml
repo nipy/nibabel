@@ -17,9 +17,9 @@ env:
         - INSTALL_TYPE="setup"
         - CHECK_TYPE="test"
         - EXTRA_WHEELS="https://3f23b170c54c2533c070-1c8a9b3114517dc5fe17b7c3f8c63a43.ssl.cf2.rackcdn.com"
-        - PRE_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com"
+        - NIGHTLY_WHEELS="https://pypi.anaconda.org/scipy-wheels-nightly/simple"
         - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
-        - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --find-links $PRE_WHEELS"
+        - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --extra-index-url $NIGHTLY_WHEELS"
 
 python:
     - 3.7
@@ -31,6 +31,7 @@ jobs:
       python: 3.6
       env:
         - DEPENDS="numpy"
+        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # Basic dependencies only
     - python: 3.6
       env:
