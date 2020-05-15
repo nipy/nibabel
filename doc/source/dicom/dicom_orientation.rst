@@ -243,7 +243,11 @@ Where:
 For later convenience we also define values useful for 3D volumes:
 
 * $s$ : slice index to the slice plane. The first slice index is zero.
-* $\Delta{s}$ - spacing in mm between slices. 
+* $\Delta{s}$ - Spacing in mm between slices, given by the Spacing
+  Between Slices (0018,0088) attribute in units of mm (if exists).
+  Can also be calculated from the Image Orientation (Patient) of
+  multiple slices together with Image Orientation (Patient), as
+  explained in :ref:`dicom-affine-defs`.
 
 .. _dicom-3d-affines:
 
