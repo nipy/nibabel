@@ -3,8 +3,8 @@
 Notes on the SPM orientation machinery.
 
 There are symbolic versions of the code in ``spm_dicom_convert``,
-``write_volume`` subfunction, around line 509 in the version I have
-(SPM8, late 2009 vintage).
+``write_volume`` subfunction, around line 509 in the version I have (SPM8, late
+2009 vintage).
 '''
 
 import numpy as np
@@ -12,14 +12,17 @@ import numpy as np
 import sympy
 from sympy import Matrix, Symbol, symbols, zeros, ones, eye
 
+
 # The code below is general (independent of SPMs code)
 def numbered_matrix(nrows, ncols, symbol_prefix):
     return Matrix(nrows, ncols, lambda i, j: Symbol(
             symbol_prefix + '_{%d%d}' % (i+1, j+1)))
 
+
 def numbered_vector(nrows, symbol_prefix):
     return Matrix(nrows, 1, lambda i, j: Symbol(
             symbol_prefix + '_{%d}' % (i+1)))
+
 
 # premultiplication matrix to go from 0 based to 1 based indexing
 one_based = eye(4)
