@@ -242,12 +242,8 @@ Where:
 
 For later convenience we also define values useful for 3D volumes:
 
-* $s$ : slice index to the slice plane. The first slice index is zero.
-* $\Delta{s}$ - Spacing in mm between slices, given by the Spacing
-  Between Slices (0018,0088) attribute in units of mm (if exists).
-  Can also be calculated from the Image Orientation (Patient) of
-  multiple slices together with Image Orientation (Patient), as
-  explained in :ref:`dicom-affine-defs`.
+* $s$ : Slice index to the slice plane. The first slice index is zero.
+* $\Delta{s}$ - Spacing in mm between slices.
 
 .. _dicom-3d-affines:
 
@@ -334,6 +330,10 @@ and therefore:
 
 See :download:`derivations/spm_dicom_orient.py` for the derivations and
 some explanations.
+
+For a single slice $N=1$ the affine matrix is $A_{single}$. In this
+case, the slice spacing $\Delta{s}$ may be obtained by the Spacing
+Between Slices (0018,0088) attribute in units of mm, if it exists.
 
 .. _dicom-z-from-slice:
 
