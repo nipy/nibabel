@@ -40,7 +40,7 @@ pos_pat_0 = numbered_vector(3, 'T^1')
 pos_pat_N = numbered_vector(3, 'T^N')
 pixel_spacing = symbols(('\Delta{r}', '\Delta{c}'))
 NZ = Symbol('N')
-slice_thickness = Symbol('\Delta{s}')
+slice_spacing = Symbol('\Delta{s}')
 
 R3 = orient_pat * np.diag(pixel_spacing)
 R = zeros((4,2))
@@ -74,7 +74,7 @@ orient[:3,:2] = orient_pat
 orient[:,2] = orient_cross
 x2_ss = Matrix((0,0,1,0))
 y2_ss = zeros((4,1))
-y2_ss[:3,:] = orient * Matrix((0,0,slice_thickness))
+y2_ss[:3,:] = orient * Matrix((0,0,slice_spacing))
 A_ss = spm_full_matrix(x2_ss, y2_ss)
 
 # many slice case
@@ -91,7 +91,7 @@ A_ms = spm_full_matrix(x2_ms, y2_ms)
 # single slice case
 single_aff = eye(4)
 rot = orient
-rot_scale = rot * np.diag(pixel_spacing[:] + [slice_thickness])
+rot_scale = rot * np.diag(pixel_spacing[:] + [slice_spacing])
 single_aff[:3,:3] = rot_scale
 single_aff[:3,3] = pos_pat_0
 
