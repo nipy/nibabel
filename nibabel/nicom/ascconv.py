@@ -54,7 +54,7 @@ class Atom:
         self.obj_id = obj_id
 
 
-class NoValue(object):
+class NoValue:
     """ Signals no value present """
 
 
