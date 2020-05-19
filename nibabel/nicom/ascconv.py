@@ -17,7 +17,7 @@ class AscconvParseError(Exception):
     """ Error parsing ascconv file """
 
 
-class Atom(object):
+class Atom:
     """ Object to hold operation, object type and object identifier
 
     An atom represents an element in an expression.  For example::
