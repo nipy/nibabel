@@ -184,7 +184,7 @@ class OrthoSlicer3D(object):
                                                 5).astype(int)))
             ax.set_xlim(x[0], x[-1])
             yl = [self._data.min(), self._data.max()]
-            yl = [l + s * np.diff(lims)[0] for l, s in zip(yl, [-1.01, 1.01])]
+            yl = [lim + s * np.diff(lims)[0] for lim, s in zip(yl, [-1.01, 1.01])]
             patch = mpl_patch.Rectangle([-0.5, yl[0]], 1., np.diff(yl)[0],
                                         fill=True, facecolor=(0, 1, 0),
                                         edgecolor=(0, 1, 0), alpha=0.25)

@@ -25,6 +25,31 @@ Eric Larson (EL), Demian Wassermann, and Stephan Gerhard.
 
 References like "pr/298" refer to github pull request numbers.
 
+2.5.2 (Wednesday 8 April 2020)
+==============================
+
+Bug-fix release in the 2.5.x series. This is an extended-support series,
+providing bug fixes for Python 2.7 and 3.4.
+
+This and all future releases in the 2.5.x series will be incompatible with
+Python 3.9. The last compatible series of numpy and scipy are 1.16.x and
+1.2.x, respectively.
+
+If you are able to upgrade to Python 3, it is recommended to upgrade to
+NiBabel 3.
+
+Bug fixes
+---------
+* Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+  by CM)
+* Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+  (pr/821) (CM)
+
+Maintenance
+-----------
+* Set maximum numpy to 1.16.x, maximum scipy to 1.2.x (pr/901) (CM)
+
+
 3.0.2 (Monday 9 March 2020)
 ===========================
 

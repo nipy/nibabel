@@ -138,7 +138,7 @@ def concat_images(images, check_affines=True, axis=None):
                     i, len(img.shape), n_dim))
         if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
             raise ValueError('shape {0} for image {1} not compatible with '
-                             'first image shape {2} with axis == {0}'.format(
+                             'first image shape {2} with axis == {3}'.format(
                                  img.shape, i, shape0, axis))
         if check_affines and not np.all(img.affine == affine):
             raise ValueError('Affine for image {0} does not match affine '
