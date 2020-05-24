@@ -71,7 +71,7 @@ def big_bad_ulp(arr):
     nzs = working_arr > 0
     fl2[nzs] = np.floor(np.log(working_arr[nzs]) / LOGe2)
     fl2 = np.clip(fl2, info['minexp'], np.inf)
-    return 2**(fl2 - info['nmant'])
+    return 2 ** (fl2 - info['nmant'])
 
 
 def test_big_bad_ulp():
@@ -101,7 +101,7 @@ def test_round_trip():
     f_types = [np.float32, np.float64]
     # Expanding standard deviations
     for i, sd_10 in enumerate(sd_10s):
-        sd = 10.0**sd_10
+        sd = 10.0 ** sd_10
         V_in = rng.normal(0, sd, size=(N, 1))
         for j, in_type in enumerate(f_types):
             for k, out_type in enumerate(iuint_types):
@@ -160,7 +160,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             Ai = arr - scaling_type(inter)
         Ais = Ai / scaling_type(slope)
         exp_abs_err = inting_err + inter_err + (
-            big_bad_ulp(Ai) + big_bad_ulp(Ais))
+                big_bad_ulp(Ai) + big_bad_ulp(Ais))
         # Relative scaling error from calculation of slope
         # This threshold needs to be 2 x larger on windows 32 bit and PPC for
         # some reason
@@ -181,14 +181,14 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             rel_mx_e = rel_err[abs_fails].max()
         else:
             rel_mx_e = None
-        print (test_id,
-               np.dtype(in_type).str,
-               np.dtype(out_type).str,
-               exp_abs_mx_e,
-               abs_mx_e,
-               rel_thresh,
-               rel_mx_e,
-               slope, inter)
+        print(test_id,
+              np.dtype(in_type).str,
+              np.dtype(out_type).str,
+              exp_abs_mx_e,
+              abs_mx_e,
+              rel_thresh,
+              rel_mx_e,
+              slope, inter)
         # To help debugging failures with --pdb-failure
         np.nonzero(all_fails)
     assert this_test
