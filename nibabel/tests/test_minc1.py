@@ -100,23 +100,6 @@ EXAMPLE_IMAGES = [
 ]
 
 
-def test_old_namespace():
-    # Check old names are defined in minc1 module and top level
-    # Check warnings raised
-    arr = np.arange(24).reshape((2, 3, 4))
-    aff = np.diag([2, 3, 4, 1])
-
-    from .. import Minc1Image, MincImage
-    assert Minc1Image is not MincImage
-    with pytest.raises(ExpiredDeprecationError):
-        MincImage(arr, aff)
-    # Another old name
-    from ..minc1 import MincFile, Minc1File
-    assert MincFile is not Minc1File
-    with pytest.raises(ExpiredDeprecationError):
-        mf = MincFile(netcdf_file(EG_FNAME))
-
-
 class _TestMincFile(object):
     module = minc1
     file_class = Minc1File

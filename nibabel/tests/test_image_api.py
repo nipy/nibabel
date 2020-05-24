@@ -427,12 +427,6 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         with pytest.raises(AttributeError):
             img.ndim = 5
 
-    def validate_shape_deprecated(self, imaker, params):
-        # Check deprecated get_shape API
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_shape()
-
     def validate_mmap_parameter(self, imaker, params):
         img = imaker()
         fname = img.get_filename()

@@ -301,15 +301,6 @@ class TestSpatialImage(TestCase):
         img = img_klass(np.zeros((2, 3, 4), dtype=np.int16), np.eye(4))
         assert len(str(img)) > 0
 
-    def test_get_shape(self):
-        # Check that get_shape raises an ExpiredDeprecationError
-        img_klass = self.image_class
-        # Assumes all possible images support int16
-        # See https://github.com/nipy/nibabel/issues/58
-        img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_shape()
-
     def test_get_fdata(self):
         # Test array image and proxy image interface for floating point data
         img_klass = self.image_class
@@ -538,35 +529,6 @@ class TestSpatialImage(TestCase):
                         with pytest.deprecated_call():
                             assert (sliced_data == img.get_data()[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
-
-    def test_api_deprecations(self):
-
-        class FakeImage(self.image_class):
-
-            files_types = (('image', '.foo'),)
-
-            @classmethod
-            def to_file_map(self, file_map=None):
-                pass
-
-            @classmethod
-            def from_file_map(self, file_map=None):
-                pass
-
-        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
-        aff = np.eye(4)
-        img = FakeImage(arr, aff)
-        bio = BytesIO()
-        file_map = FakeImage.make_file_map({'image': bio})
-
-        with pytest.raises(ExpiredDeprecationError):
-            img.to_files(file_map)
-        with pytest.raises(ExpiredDeprecationError):
-            img.to_filespec('an_image')
-        with pytest.raises(ExpiredDeprecationError):
-            FakeImage.from_files(file_map)
-        with pytest.raises(ExpiredDeprecationError):
-            FakeImage.filespec_to_files('an_image')
 
 
 class MmapImageMixin(object):

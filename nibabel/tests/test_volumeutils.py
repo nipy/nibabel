@@ -68,15 +68,6 @@ IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-def test_deprecated_functions():
-    with pytest.raises(ExpiredDeprecationError):
-        scale_min_max(0, 1, np.uint8, True)
-    with pytest.raises(ExpiredDeprecationError):
-        calculate_scale(np.array([-2, -1], dtype=np.int8), np.uint8, True)
-    with pytest.raises(ExpiredDeprecationError):
-        can_cast(np.float32, np.float32)
-
-
 def test__is_compressed_fobj():
     # _is_compressed helper function
     with InTemporaryDirectory():
