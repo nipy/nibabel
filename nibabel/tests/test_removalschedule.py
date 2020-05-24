@@ -35,7 +35,7 @@ def test_module_removal():
     for module in _filter(MODULE_SCHEDULE):
         with pytest.raises(ImportError):
             __import__(module)
-            assert False, "Time to remove %s" % module
+            assert False, f"Time to remove {module}"
 
 
 def test_object_removal():
@@ -44,7 +44,7 @@ def test_object_removal():
             module = __import__(module_name)
         except ImportError:
             continue
-        assert not hasattr(module, obj), "Time to remove %s.%s" % (module_name, obj,)
+        assert not hasattr(module, obj), f"Time to remove {module_name}.{obj}"
 
 
 def test_attribute_removal():
@@ -57,7 +57,7 @@ def test_attribute_removal():
             klass = getattr(module, cls)
         except AttributeError:
             continue
-        assert not hasattr(klass, attr), "Time to remove %s.%s.%s" % (module_name, cls, attr,)
+        assert not hasattr(klass, attr), f"Time to remove {module_name}.{cls}.{attr}"
 
 
 #

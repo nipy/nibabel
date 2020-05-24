@@ -41,9 +41,9 @@ def load(filename, **kwargs):
     try:
         stat_result = os.stat(filename)
     except OSError:
-        raise FileNotFoundError("No such file or no access: '%s'" % filename)
+        raise FileNotFoundError(f"No such file or no access: '{filename}'")
     if stat_result.st_size <= 0:
-        raise ImageFileError("Empty file: '%s'" % filename)
+        raise ImageFileError(f"Empty file: '{filename}'")
 
     sniff = None
     for image_klass in all_image_classes:
@@ -52,8 +52,7 @@ def load(filename, **kwargs):
             img = image_klass.from_filename(filename, **kwargs)
             return img
 
-    raise ImageFileError('Cannot work out file type of "%s"' %
-                         filename)
+    raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
 @deprecate_with_version('guessed_image_type deprecated.'
@@ -78,8 +77,7 @@ def guessed_image_type(filename):
         if is_valid:
             return image_klass
 
-    raise ImageFileError('Cannot work out file type of "%s"' %
-                         filename)
+    raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
 def save(img, filename):
@@ -130,8 +128,7 @@ def save(img, filename):
         valid_klasses = [klass for klass in all_image_classes
                          if ext in klass.valid_exts]
         if not valid_klasses:  # if list is empty
-            raise ImageFileError('Cannot work out file type of "%s"' %
-                                 filename)
+            raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
         # Got a list of valid extensions, but that's no guarantee
         #   the file conversion will work. So, try each image
@@ -207,7 +204,7 @@ def read_img_data(img, prefer='scaled'):
     other formats with more complicated scaling - such as MINC.
     """
     if prefer not in ('scaled', 'unscaled'):
-        raise ValueError('Invalid string "%s" for "prefer"' % prefer)
+        raise ValueError(f'Invalid string "{prefer}" for "prefer"')
     hdr = img.header
     if not hasattr(hdr, 'raw_data_from_fileobj'):
         # We can only do scaled

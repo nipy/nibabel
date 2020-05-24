@@ -369,9 +369,9 @@ def conform(from_img,
     if from_img.ndim != required_ndim:
         raise ValueError("Only 3D images are supported.")
     elif len(out_shape) != required_ndim:
-        raise ValueError("`out_shape` must have {} values".format(required_ndim))
+        raise ValueError(f"`out_shape` must have {required_ndim} values")
     elif len(voxel_size) != required_ndim:
-        raise ValueError("`voxel_size` must have {} values".format(required_ndim))
+        raise ValueError(f"`voxel_size` must have {required_ndim} values")
 
     start_ornt = io_orientation(from_img.affine)
     end_ornt = axcodes2ornt(orientation)

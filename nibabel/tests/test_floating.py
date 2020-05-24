@@ -67,7 +67,7 @@ def test_type_info():
         ld_dict = dbl_dict.copy()
         ld_dict['width'] = width
     else:
-        raise ValueError("Unexpected float type {} to test".format(np.longdouble))
+        raise ValueError(f"Unexpected float type {np.longdouble} to test")
     assert ld_dict == infod
 
 

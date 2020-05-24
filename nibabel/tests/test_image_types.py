@@ -57,8 +57,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
             if expect_success:
                 # Check that the sniff returned is appropriate.
-                new_msg = '%s returned sniff==None (%s)' % (img_klass.__name__,
-                                                            msg)
+                new_msg = f'{img_klass.__name__} returned sniff==None ({msg})'
                 expected_sizeof_hdr = getattr(img_klass.header_class,
                                               'sizeof_hdr', 0)
                 current_sizeof_hdr = 0 if new_sniff is None else \

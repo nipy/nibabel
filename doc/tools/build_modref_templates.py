@@ -18,7 +18,7 @@ from distutils.version import LooseVersion as V
 
 
 def abort(error):
-    print('*WARNING* API documentation not generated: %s' % error)
+    print(f'*WARNING* API documentation not generated: {error}')
     exit(1)
 
 

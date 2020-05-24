@@ -417,8 +417,7 @@ class WrapStruct(object):
 
     def __str__(self):
         """ Return string representation for printing """
-        summary = "%s object, endian='%s'" % (self.__class__,
-                                              self.endianness)
+        summary = f"{self.__class__} object, endian='{self.endianness}'"
         return '\n'.join([summary, pretty_mapping(self)])
 
     def as_byteswapped(self, endianness=None):
@@ -529,16 +528,16 @@ class LabeledWrapStruct(WrapStruct):
         'two'
         """
         if fieldname not in self._field_recoders:
-            raise ValueError('%s not a coded field' % fieldname)
+            raise ValueError(f'{fieldname} not a coded field')
         code = int(self._structarr[fieldname])
         try:
             return self._field_recoders[fieldname].label[code]
         except KeyError:
-            return '<unknown code {0}>'.format(code)
+            return f'<unknown code {code}>'
 
     def __str__(self):
         """ Return string representation for printing """
-        summary = "%s object, endian='%s'" % (self.__class__, self.endianness)
+        summary = f"{self.__class__} object, endian='{self.endianness}'"
 
         def _getter(obj, key):
             try:

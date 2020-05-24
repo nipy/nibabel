@@ -118,11 +118,9 @@ def _unpack_var(var):
                'Offending attribute:\n%s' % var)
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
-        raise AFNIHeaderError('Invalid attribute type entry in HEAD file. '
-                              '%s' % err_msg)
+        raise AFNIHeaderError(f'Invalid attribute type entry in HEAD file. {err_msg}')
     if len(aname) != 1:
-        raise AFNIHeaderError('Invalid attribute name entry in HEAD file. '
-                              '%s' % err_msg)
+        raise AFNIHeaderError(f'Invalid attribute name entry in HEAD file. {err_msg}')
     atype = _attr_dic.get(atype[0], str)
     attr = ' '.join(var.strip().splitlines()[3:])
     if atype is not str:

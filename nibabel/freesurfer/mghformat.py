@@ -223,7 +223,7 @@ class MGHHeader(LabeledWrapStruct):
         try:
             code = self._data_type_codes[datatype]
         except KeyError:
-            raise MGHError('datatype dtype "%s" not recognized' % datatype)
+            raise MGHError(f'datatype dtype "{datatype}" not recognized')
         self._structarr['type'] = code
 
     def _ndims(self):
@@ -284,8 +284,7 @@ class MGHHeader(LabeledWrapStruct):
         hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
             if zooms[3] < 0:
-                raise HeaderDataError('TR must be non-negative; got {!r}'
-                                      ''.format(zooms[3]))
+                raise HeaderDataError(f'TR must be non-negative; got {zooms[3]!r}')
             hdr['tr'] = zooms[3]
 
     def get_data_shape(self):

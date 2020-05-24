@@ -134,8 +134,7 @@ def types_filenames(template_fname, types_exts,
                 # is ignored). It's confusing to change
                 # this to test.img.gz, or test.gz.img, so error
                 raise TypesFilenamesError(
-                    'Confusing ignored suffix %s without extension'
-                    % ignored)
+                    f'Confusing ignored suffix {ignored} without extension')
         # if we've got to here, we have a guessed name and a found
         # extension.
     else:  # not enforcing extensions. If there's an extension, we set the

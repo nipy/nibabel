@@ -14,7 +14,7 @@ def test_back_tick():
     assert_equal(back_tick(cmd), "Hello")
     assert_equal(back_tick(cmd, ret_err=True), ("Hello", ""))
     assert_equal(back_tick(cmd, True, False), (b"Hello", b""))
-    cmd = '{0} -c "raise ValueError()"'.format(PYTHON)
+    cmd = f'{PYTHON} -c "raise ValueError()"'
     assert_raises(RuntimeError, back_tick, cmd)
 
 

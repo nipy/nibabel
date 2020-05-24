@@ -33,7 +33,7 @@ def verbose(thing, msg):
     """
     # TODO: consider using nibabel's logger
     if thing <= int(verbose_level):
-        print("%s%s" % (' ' * thing, msg))
+        print(f"{' ' * thing}{msg}")
 
 
 def table2string(table, out=None):
@@ -78,8 +78,7 @@ def table2string(table, out=None):
                 align = item[1]
                 item = item[2:]
                 if align not in ['l', 'r', 'c', 'w']:
-                    raise ValueError('Unknown alignment %s. Known are l,r,c' %
-                                     align)
+                    raise ValueError(f'Unknown alignment {align}. Known are l,r,c')
             else:
                 align = 'c'
 
@@ -93,7 +92,7 @@ def table2string(table, out=None):
             elif align == 'r':
                 nspacesl, nspacesr = nspacesl + nspacesr, 0
             else:
-                raise RuntimeError('Should not get here with align=%s' % align)
+                raise RuntimeError(f'Should not get here with align={align}')
 
             string_ += "%%%ds%%s%%%ds " \
                        % (nspacesl, nspacesr) % ('', item, '')
@@ -121,5 +120,5 @@ def safe_get(obj, name):
         f = getattr(obj, 'get_' + name)
         return f()
     except Exception as e:
-        verbose(2, "get_%s() failed -- %s" % (name, e))
+        verbose(2, f"get_{name}() failed -- {e}")
         return '-'

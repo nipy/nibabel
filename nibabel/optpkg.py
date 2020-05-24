@@ -99,10 +99,9 @@ def optional_package(name, trip_msg=None, min_version=None):
         # Failed version check
         if trip_msg is None:
             if callable(min_version):
-                trip_msg = 'Package %s fails version check' % min_version
+                trip_msg = f'Package {min_version} fails version check'
             else:
-                trip_msg = ('These functions need %s version >= %s' %
-                            (name, min_version))
+                trip_msg = (f'These functions need {name} version >= {min_version}')
     if trip_msg is None:
         trip_msg = ('We need package %s for these functions, but '
                     '``import %s`` raised %s'
@@ -111,6 +110,6 @@ def optional_package(name, trip_msg=None, min_version=None):
 
     def setup_module():
         import unittest
-        raise unittest.SkipTest('No %s for these tests' % name)
+        raise unittest.SkipTest(f'No {name} for these tests')
 
     return pkg, False, setup_module

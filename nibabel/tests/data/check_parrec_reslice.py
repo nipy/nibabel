@@ -71,6 +71,4 @@ if __name__ == '__main__':
         fixed_img = resample_img2img(normal_img, funny_img)
         fixed_data = fixed_img.get_fdata()
         difference_data = normal_normed - gmean_norm(fixed_data)
-        print('RMS resliced {:<52} : {}'.format(
-            parfile,
-            np.sqrt(np.sum(difference_data ** 2))))
+        print(f'RMS resliced {parfile:<52} : {np.sqrt(np.sum(difference_data ** 2))}')

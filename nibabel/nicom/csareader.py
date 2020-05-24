@@ -56,7 +56,7 @@ def get_csa_header(dcm_data, csa_type='image'):
     elif csa_type == 'series':
         element_offset = 0x20
     else:
-        raise ValueError('Invalid CSA header type "%s"' % csa_type)
+        raise ValueError(f'Invalid CSA header type "{csa_type}"')
     if not (0x29, 0x10) in dcm_data:  # Cannot be Siemens CSA
         return None
     section_start = find_private_section(dcm_data, 0x29, 'SIEMENS CSA HEADER')
@@ -123,8 +123,7 @@ def read(csa_str):
         if tag_no == 1:
             tag0_n_items = n_items
         if n_items > MAX_CSA_ITEMS:
-            raise CSAReadError('Expected <= {0} tags, got {1}'.format(
-                MAX_CSA_ITEMS, n_items))
+            raise CSAReadError(f'Expected <= {MAX_CSA_ITEMS} tags, got {n_items}')
         items = []
         for item_no in range(n_items):
             x0, x1, x2, x3 = up_str.unpack('4i')

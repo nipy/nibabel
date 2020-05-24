@@ -44,16 +44,14 @@ def bench_load_trk():
         streamlines_old = [d[0] - 0.5
                            for d in tv.read(trk_file, points_space="rasmm")[0]]
         mtime_old = measure('tv.read(trk_file, points_space="rasmm")', repeat)
-        print("Old: Loaded {:,} streamlines in {:6.2f}".format(NB_STREAMLINES,
-                                                               mtime_old))
+        print(f"Old: Loaded {NB_STREAMLINES:,} streamlines in {mtime_old:6.2f}")
 
         trk = nib.streamlines.load(trk_file, lazy_load=False)
         streamlines_new = trk.streamlines
         mtime_new = measure('nib.streamlines.load(trk_file, lazy_load=False)',
                             repeat)
-        print("\nNew: Loaded {:,} streamlines in {:6.2}".format(NB_STREAMLINES,
-                                                                mtime_new))
-        print("Speedup of {:.2f}".format(mtime_old / mtime_new))
+        print(f"\nNew: Loaded {NB_STREAMLINES:,} streamlines in {mtime_new:6.2}")
+        print(f"Speedup of {mtime_old / mtime_new:.2f}")
         for s1, s2 in zip(streamlines_new, streamlines_old):
             assert_array_equal(s1, s2)
 
@@ -81,7 +79,7 @@ def bench_load_trk():
                             repeat)
         msg = "New: Loaded {:,} streamlines with scalars in {:6.2f}"
         print(msg.format(NB_STREAMLINES, mtime_new))
-        print("Speedup of {:2f}".format(mtime_old / mtime_new))
+        print(f"Speedup of {mtime_old / mtime_new:2f}")
         for s1, s2 in zip(scalars_new, scalars_old):
             assert_array_equal(s1, s2)
 

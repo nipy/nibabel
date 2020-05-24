@@ -34,7 +34,7 @@ def _get_parser():
                    help="Orientation of the conformed output.")
     p.add_argument("-f", "--force", action="store_true",
                    help="Overwrite existing output files.")
-    p.add_argument("-V", "--version", action="version", version="{} {}".format(p.prog, __version__))
+    p.add_argument("-V", "--version", action="version", version=f"{p.prog} {__version__}")
 
     return p
 
@@ -46,7 +46,7 @@ def main(args=None):
     from_img = load(opts.infile)
 
     if not opts.force and Path(opts.outfile).exists():
-        raise FileExistsError("Output file exists: {}".format(opts.outfile))
+        raise FileExistsError(f"Output file exists: {opts.outfile}")
 
     out_img = conform(
         from_img=from_img,

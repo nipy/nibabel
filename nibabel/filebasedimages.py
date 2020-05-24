@@ -301,8 +301,7 @@ class FileBasedImage(object):
                 trailing_suffixes=klass._compressed_suffixes)
         except TypesFilenamesError:
             raise ImageFileError(
-                'Filespec "{0}" does not look right for class {1}'.format(
-                    filespec, klass))
+                f'Filespec "{filespec}" does not look right for class {klass}')
         file_map = {}
         for key, fname in filenames.items():
             file_map[key] = FileHolder(filename=fname)

@@ -20,7 +20,7 @@ from ..rstutils import rst_table
 from ..tmpdirs import InTemporaryDirectory
 
 SHAPE = (64, 64, 32, 100)
-ROW_NAMES = ['axis {0}, len {1}'.format(i, SHAPE[i])
+ROW_NAMES = [f'axis {i}, len {SHAPE[i]}'
              for i in range(len(SHAPE))]
 COL_NAMES = ['mid int',
              'step 1',
@@ -79,7 +79,7 @@ def bench_fileslice(bytes=True,
         print()
         print(rst_table(times, ROW_NAMES, COL_NAMES, title,
                         val_fmt='{0[0]:3.2f} ({0[1]:3.2f})'))
-        print('Base time: {0:3.2f}'.format(base))
+        print(f'Base time: {base:3.2f}')
     if bytes:
         fobj = BytesIO()
         times, base = run_slices(fobj, repeat)
