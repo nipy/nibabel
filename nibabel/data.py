@@ -124,7 +124,7 @@ class VersionedDatasource(Datasource):
         Datasource.__init__(self, base_path)
         if config_filename is None:
             config_filename = 'config.ini'
-        self.config = configparser.SafeConfigParser()
+        self.config = configparser.ConfigParser()
         cfg_file = self.get_filename(config_filename)
         readfiles = self.config.read(cfg_file)
         if not readfiles:
