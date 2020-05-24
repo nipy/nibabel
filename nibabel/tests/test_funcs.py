@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for image funcs '''
+""" Test for image funcs """
 
 import numpy as np
 

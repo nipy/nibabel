@@ -76,7 +76,7 @@ intent_codes.add_codes((
 
 
 class _Cifti2AsNiftiHeader(Nifti2Header):
-    ''' Class for Cifti2 header extension '''
+    """ Class for Cifti2 header extension """
 
     @classmethod
     def _valid_intent_code(klass, intent_code):
@@ -126,7 +126,7 @@ class _Cifti2AsNiftiImage(Nifti2Image):
 
 
 class Cifti2Parser(xml.XmlParser):
-    '''Class to parse an XML string into a CIFTI-2 header object'''
+    """Class to parse an XML string into a CIFTI-2 header object"""
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
         super(Cifti2Parser, self).__init__(encoding=encoding,
                                            buffer_size=buffer_size,

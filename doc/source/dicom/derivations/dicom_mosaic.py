@@ -1,4 +1,4 @@
-''' Just showing the mosaic simplification '''
+""" Just showing the mosaic simplification """
 import sympy
 from sympy import Matrix, Symbol, symbols, zeros, ones, eye
 

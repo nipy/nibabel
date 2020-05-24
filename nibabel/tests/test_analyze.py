@@ -6,11 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test Analyze headers
+""" Test Analyze headers
 
 See test_wrapstruct.py for tests of the wrapped structarr-ness of the Analyze
 header
-'''
+"""
 
 import os
 import re

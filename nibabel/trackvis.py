@@ -103,7 +103,7 @@ class DataError(Exception):
                         'nibabel.streamlines.load, instead.',
                         since='2.5.0', until='4.0.0')
 def read(fileobj, as_generator=False, points_space=None, strict=True):
-    ''' Read trackvis file from `fileobj`, return `streamlines`, `header`
+    """ Read trackvis file from `fileobj`, return `streamlines`, `header`
 
     Parameters
     ----------
@@ -152,7 +152,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     coordinates, ``x, y, z``, where ``x`` is the floating point voxel
     coordinate along the first image axis, multiplied by the voxel size for
     that axis.
-    '''
+    """
     fileobj = ImageOpener(fileobj)
     hdr_str = fileobj.read(header_2_dtype.itemsize)
     # try defaulting to version 2 format
@@ -262,7 +262,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
                         since='2.5.0', until='4.0.0')
 def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
           points_space=None):
-    ''' Write header and `streamlines` to trackvis file `fileobj`
+    """ Write header and `streamlines` to trackvis file `fileobj`
 
     The parameters from the streamlines override conflicting parameters
     in the `hdr_mapping` information.  In particular, the number of
@@ -356,7 +356,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
     This information comes from some helpful replies on the trackvis forum
     about `interpreting point coordiantes
     <http://trackvis.org/blog/forum/diffusion-toolkit-usage/interpretation-of-track-point-coordinates>`_
-    '''
+    """
     stream_iter = iter(streamlines)
     try:
         streams0 = next(stream_iter)
@@ -511,7 +511,7 @@ def _check_hdr_points_space(hdr, points_space):
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
-    ''' Fill `hdr` from mapping `mapping`, with given endianness '''
+    """ Fill `hdr` from mapping `mapping`, with given endianness """
     if hdr is None:
         # passed a valid mapping as header?  Copy and return
         if isinstance(mapping, np.ndarray):
@@ -546,7 +546,7 @@ def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
                         'nibabel.streamlines.TrkFile.create_empty_header, instead.',
                         since='2.5.0', until='4.0.0')
 def empty_header(endianness=None, version=2):
-    ''' Empty trackvis header
+    """ Empty trackvis header
 
     Parameters
     ----------
@@ -583,7 +583,7 @@ def empty_header(endianness=None, version=2):
     missing.  We make no attempt to fill it with sensible defaults on
     the basis that, if the information is missing, it is better to be
     explicit.
-    '''
+    """
     if version == 1:
         dt = header_1_dtype
     elif version == 2:
@@ -603,7 +603,7 @@ def empty_header(endianness=None, version=2):
                         'nibabel.streamlines.trk.get_affine_trackvis_to_rasmm, instead.',
                         since='2.5.0', until='4.0.0')
 def aff_from_hdr(trk_hdr, atleast_v2=True):
-    ''' Return voxel to mm affine from trackvis header
+    """ Return voxel to mm affine from trackvis header
 
     Affine is mapping from voxel space to Nifti (RAS) output coordinate
     system convention; x: Left -> Right, y: Posterior -> Anterior, z:
@@ -636,7 +636,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=True):
     allow negative voxel sizes (needed for recording axis flips) and sets the
     origin field to 0. In future, we'll raise an error rather than try and
     estimate the affine from version 1 fields
-    '''
+    """
     if trk_hdr['version'] == 2:
         aff = trk_hdr['vox_to_ras']
         if aff[3, 3] != 0:
@@ -683,7 +683,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=True):
                         'nibabel.streamlines.TrkFile.affine_to_rasmm property, instead.',
                         since='2.5.0', until='4.0.0')
 def aff_to_hdr(affine, trk_hdr, pos_vox=True, set_order=True):
-    ''' Set affine `affine` into trackvis header `trk_hdr`
+    """ Set affine `affine` into trackvis header `trk_hdr`
 
     Affine is mapping from voxel space to Nifti RAS) output coordinate
     system convention; x: Left -> Right, y: Posterior -> Anterior, z:
@@ -723,7 +723,7 @@ def aff_to_hdr(affine, trk_hdr, pos_vox=True, set_order=True):
     reliably.  It turns out that negative flips upset trackvis (the
     application).  The application also ignores the origin field, and may not
     use the 'image_orientation_patient' field.
-    '''
+    """
     try:
         version = trk_hdr['version']
     except (KeyError, ValueError):  # dict or structured array
@@ -765,7 +765,7 @@ class TrackvisFileError(Exception):
 
 
 class TrackvisFile(object):
-    ''' Convenience class to encapsulate trackvis file information
+    """ Convenience class to encapsulate trackvis file information
 
     Parameters
     ----------
@@ -792,7 +792,7 @@ class TrackvisFile(object):
         Affine expressing relationship of voxels in an image to mm in RAS mm
         space. If 'points_space' is not None, you can use this to give the
         relationship between voxels, rasmm and voxmm space (above).
-    '''
+    """
 
     @deprecate_with_version('TrackvisFile is deprecated; please use '
                             'nibabel.streamlines.TrkFile, instead.',

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Create filename pairs, triplets etc, with expected extensions '''
+""" Create filename pairs, triplets etc, with expected extensions """
 
 import os
 import pathlib
@@ -50,7 +50,7 @@ def types_filenames(template_fname, types_exts,
                     trailing_suffixes=('.gz', '.bz2'),
                     enforce_extensions=True,
                     match_case=False):
-    ''' Return filenames with standard extensions from template name
+    """ Return filenames with standard extensions from template name
 
     The typical case is returning image and header filenames for an
     Analyze image, that expects an 'image' file type with extension ``.img``,
@@ -108,7 +108,7 @@ def types_filenames(template_fname, types_exts,
     ...                        enforce_extensions=False)
     >>> tfns == {'t1': '/path/test.funny', 't2': '/path/test.ext2'}
     True
-    '''
+    """
     template_fname = _stringify_path(template_fname)
     if not isinstance(template_fname, str):
         raise TypesFilenamesError('Need file name as input '
@@ -175,7 +175,7 @@ def parse_filename(filename,
                    types_exts,
                    trailing_suffixes,
                    match_case=False):
-    '''Split filename into fileroot, extension, trailing suffix; guess type.
+    """Split filename into fileroot, extension, trailing suffix; guess type.
 
     Parameters
     ----------
@@ -217,7 +217,7 @@ def parse_filename(filename,
     ('/path/fname', 'ext2', None, 't2')
     >>> parse_filename('/path/fnameext2.gz', types_exts, ('.gz',))
     ('/path/fname', 'ext2', '.gz', 't2')
-    '''
+    """
     filename = _stringify_path(filename)
 
     ignored = None
@@ -256,7 +256,7 @@ def _iendswith(whole, end):
 def splitext_addext(filename,
                     addexts=('.gz', '.bz2'),
                     match_case=False):
-    ''' Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
+    """ Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
 
     where ``.gz`` may be any of passed `addext` trailing suffixes.
 
@@ -286,7 +286,7 @@ def splitext_addext(filename,
     ('fname', '.ext', '')
     >>> splitext_addext('fname.ext.foo', ('.foo', '.bar'))
     ('fname', '.ext', '.foo')
-    '''
+    """
     filename = _stringify_path(filename)
 
     if match_case:

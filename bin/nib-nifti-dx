@@ -7,7 +7,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Print nifti diagnostics for header files '''
+""" Print nifti diagnostics for header files """
 
 from nibabel.cmdline.nifti_dx import main
 

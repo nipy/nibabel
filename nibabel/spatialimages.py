@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' A simple spatial image class
+""" A simple spatial image class
 
 The image class maintains the association between a 3D (or greater)
 array, and an affine transform that maps voxel coordinates to some world space.
@@ -132,7 +132,7 @@ work:
     >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 
-'''
+"""
 
 import numpy as np
 
@@ -147,15 +147,15 @@ from .orientations import apply_orientation, inv_ornt_aff
 
 
 class HeaderDataError(Exception):
-    ''' Class to indicate error in getting or setting header data '''
+    """ Class to indicate error in getting or setting header data """
 
 
 class HeaderTypeError(Exception):
-    ''' Class to indicate error in parameters into header functions '''
+    """ Class to indicate error in parameters into header functions """
 
 
 class SpatialHeader(FileBasedHeader):
-    ''' Template class to implement header protocol '''
+    """ Template class to implement header protocol """
     default_x_flip = True
     data_layout = 'F'
 
@@ -202,11 +202,11 @@ class SpatialHeader(FileBasedHeader):
         return not self == other
 
     def copy(self):
-        ''' Copy object to independent representation
+        """ Copy object to independent representation
 
         The copy should not be affected by any changes to the original
         object.
-        '''
+        """
         return self.__class__(self._dtype, self._shape, self._zooms)
 
     def get_data_dtype(self):
@@ -252,7 +252,7 @@ class SpatialHeader(FileBasedHeader):
     get_best_affine = get_base_affine
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
-        ''' Write array data `data` as binary to `fileobj`
+        """ Write array data `data` as binary to `fileobj`
 
         Parameters
         ----------
@@ -263,13 +263,13 @@ class SpatialHeader(FileBasedHeader):
         rescale : {True, False}, optional
             Whether to try and rescale data to match output dtype specified by
             header. For this minimal header, `rescale` has no effect
-        '''
+        """
         data = np.asarray(data)
         dtype = self.get_data_dtype()
         fileobj.write(data.astype(dtype).tobytes(order=self.data_layout))
 
     def data_from_fileobj(self, fileobj):
-        ''' Read binary image data from `fileobj` '''
+        """ Read binary image data from `fileobj` """
         dtype = self.get_data_dtype()
         shape = self.get_data_shape()
         data_size = int(np.prod(shape) * dtype.itemsize)
@@ -309,7 +309,7 @@ def supported_np_types(obj):
 
 
 class Header(SpatialHeader):
-    '''Alias for SpatialHeader; kept for backwards compatibility.'''
+    """Alias for SpatialHeader; kept for backwards compatibility."""
 
     @deprecate_with_version('Header class is deprecated.\n'
                             'Please use SpatialHeader instead.'
@@ -324,10 +324,10 @@ class ImageDataError(Exception):
 
 
 class SpatialFirstSlicer(object):
-    ''' Slicing interface that returns a new image with an updated affine
+    """ Slicing interface that returns a new image with an updated affine
 
     Checks that an image's first three axes are spatial
-    '''
+    """
     def __init__(self, img):
         # Local import to avoid circular import on module load
         from .imageclasses import spatial_axes_first
@@ -350,7 +350,7 @@ class SpatialFirstSlicer(object):
         return self.img.__class__(dataobj.copy(), affine, self.img.header)
 
     def check_slicing(self, slicer, return_spatial=False):
-        ''' Canonicalize slicers and check for scalar indices in spatial dims
+        """ Canonicalize slicers and check for scalar indices in spatial dims
 
         Parameters
         ----------
@@ -365,7 +365,7 @@ class SpatialFirstSlicer(object):
         slicer : object
             Validated slicer object that will slice image's `dataobj`
             without collapsing spatial dimensions
-        '''
+        """
         slicer = canonical_slicers(slicer, self.img.shape)
         # We can get away with this because we've checked the image's
         # first three axes are spatial.
@@ -417,13 +417,13 @@ class SpatialFirstSlicer(object):
 
 
 class SpatialImage(DataobjImage):
-    ''' Template class for volumetric (3D/4D) images '''
+    """ Template class for volumetric (3D/4D) images """
     header_class = SpatialHeader
     ImageSlicer = SpatialFirstSlicer
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None):
-        ''' Initialize image
+        """ Initialize image
 
         The image is a combination of (array-like, affine matrix, header), with
         optional metadata in `extra`, and filename / file-like objects
@@ -447,7 +447,7 @@ class SpatialImage(DataobjImage):
            metadata of this image type
         file_map : mapping, optional
            mapping giving file information for this image format
-        '''
+        """
         super(SpatialImage, self).__init__(dataobj, header=header, extra=extra,
                                            file_map=file_map)
         if affine is not None:
@@ -474,7 +474,7 @@ class SpatialImage(DataobjImage):
         return self._affine
 
     def update_header(self):
-        ''' Harmonize header with image data and affine
+        """ Harmonize header with image data and affine
 
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
@@ -486,7 +486,7 @@ class SpatialImage(DataobjImage):
         True
         >>> img.header.get_zooms()
         (1.0, 2.0, 3.0)
-        '''
+        """
         hdr = self._header
         shape = self._dataobj.shape
         # We need to update the header if the data shape has changed.  It's a
@@ -539,7 +539,7 @@ class SpatialImage(DataobjImage):
 
     @classmethod
     def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
+        """ Class method to create new instance of own class from `img`
 
         Parameters
         ----------
@@ -551,7 +551,7 @@ class SpatialImage(DataobjImage):
         -------
         cimg : ``spatialimage`` instance
            Image, of our own class
-        '''
+        """
         return klass(img.dataobj,
                      img.affine,
                      klass.header_class.from_header(img.header),
@@ -578,11 +578,11 @@ class SpatialImage(DataobjImage):
         return self.ImageSlicer(self)
 
     def __getitem__(self, idx):
-        ''' No slicing or dictionary interface for images
+        """ No slicing or dictionary interface for images
 
         Use the slicer attribute to perform cropping and subsampling at your
         own risk.
-        '''
+        """
         raise TypeError(
             "Cannot slice image objects; consider using `img.slicer[slice]` "
             "to generate a sliced image (see documentation for caveats) or "

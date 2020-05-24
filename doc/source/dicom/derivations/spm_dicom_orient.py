@@ -1,11 +1,11 @@
-''' Symbolic versions of the DICOM orientation mathemeatics.
+""" Symbolic versions of the DICOM orientation mathemeatics.
 
 Notes on the SPM orientation machinery.
 
 There are symbolic versions of the code in ``spm_dicom_convert``,
 ``write_volume`` subfunction, around line 509 in the version I have
 (SPM8, late 2009 vintage).
-'''
+"""
 
 import numpy as np
 

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Utility functions for analyze-like formats '''
+""" Utility functions for analyze-like formats """
 
 import sys
 import warnings
@@ -42,7 +42,7 @@ COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File)
 
 
 class Recoder(object):
-    ''' class to return canonical code(s) from code or aliases
+    """ class to return canonical code(s) from code or aliases
 
     The concept is a lot easier to read in the implementation and
     tests than it is to explain, so...
@@ -73,10 +73,10 @@ class Recoder(object):
     >>> # indexing the object directly
     >>> recodes[2]
     2
-    '''
+    """
 
     def __init__(self, codes, fields=('code',), map_maker=OrderedDict):
-        ''' Create recoder object
+        """ Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
         ``fields`` are names by which the entries in these sequences can be
@@ -103,7 +103,7 @@ class Recoder(object):
             Default is ``dict``.  ``map_maker()`` generates an empty mapping.
             The mapping need only implement ``__getitem__, __setitem__, keys,
             values``.
-        '''
+        """
         self.fields = tuple(fields)
         self.field1 = {}  # a placeholder for the check below
         for name in fields:
@@ -115,7 +115,7 @@ class Recoder(object):
         self.add_codes(codes)
 
     def add_codes(self, code_syn_seqs):
-        ''' Add codes to object
+        """ Add codes to object
 
         Parameters
         ----------
@@ -139,7 +139,7 @@ class Recoder(object):
         True
         >>> print(rc.value_set())  # set is actually ordered
         OrderedSet([2, 1, 3])
-        '''
+        """
         for code_syns in code_syn_seqs:
             # Add all the aliases
             for alias in code_syns:
@@ -149,7 +149,7 @@ class Recoder(object):
                     self.__dict__[field_name][alias] = code_syns[field_ind]
 
     def __getitem__(self, key):
-        ''' Return value from field1 dictionary (first column of values)
+        """ Return value from field1 dictionary (first column of values)
 
         Returns same value as ``obj.field1[key]`` and, with the
         default initializing ``fields`` argument of fields=('code',),
@@ -158,7 +158,7 @@ class Recoder(object):
         >>> codes = ((1, 'one'), (2, 'two'))
         >>> Recoder(codes)['two']
         2
-        '''
+        """
         return self.field1[key]
 
     def __contains__(self, key):
@@ -171,7 +171,7 @@ class Recoder(object):
         return True
 
     def keys(self):
-        ''' Return all available code and alias values
+        """ Return all available code and alias values
 
         Returns same value as ``obj.field1.keys()`` and, with the
         default initializing ``fields`` argument of fields=('code',),
@@ -181,11 +181,11 @@ class Recoder(object):
         >>> k = Recoder(codes).keys()
         >>> set(k) == set([1, 2, 'one', 'repeat value', 'two'])
         True
-        '''
+        """
         return self.field1.keys()
 
     def value_set(self, name=None):
-        ''' Return OrderedSet of possible returned values for column
+        """ Return OrderedSet of possible returned values for column
 
         By default, the column is the first column.
 
@@ -206,7 +206,7 @@ class Recoder(object):
         >>> rc = Recoder(codes, fields=('code', 'label'))
         >>> rc.value_set('label') == set(('one', 'two', 'repeat value'))
         True
-        '''
+        """
         if name is None:
             d = self.field1
         else:
@@ -274,7 +274,7 @@ class DtypeMapper(object):
 
 
 def pretty_mapping(mapping, getterfunc=None):
-    ''' Make pretty string from mapping
+    """ Make pretty string from mapping
 
     Adjusts text column to print values on basis of longest key.
     Probably only sensible if keys are mainly strings.
@@ -320,7 +320,7 @@ def pretty_mapping(mapping, getterfunc=None):
     >>> print(pretty_mapping(C(), getter))
     short_field   : 0
     longer_field  : method string
-    '''
+    """
     if getterfunc is None:
         getterfunc = lambda obj, key: obj[key]
     lens = [len(str(name)) for name in mapping]
@@ -334,7 +334,7 @@ def pretty_mapping(mapping, getterfunc=None):
 
 
 def make_dt_codes(codes_seqs):
-    ''' Create full dt codes Recoder instance from datatype codes
+    """ Create full dt codes Recoder instance from datatype codes
 
     Include created numpy dtype (from numpy type) and opposite endian
     numpy dtype
@@ -354,7 +354,7 @@ def make_dt_codes(codes_seqs):
        of the corresponding code, name, type, dtype, or swapped dtype.
        You can also index with ``niistring`` values if codes_seqs had sequences
        of length 4 instead of 3.
-    '''
+    """
     fields = ['code', 'label', 'type']
     len0 = len(codes_seqs[0])
     if len0 not in (3, 4):
@@ -378,7 +378,7 @@ def make_dt_codes(codes_seqs):
                         '1.2',
                         '3.0')
 def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
-    ''' Return True if we can safely cast ``in_type`` to ``out_type``
+    """ Return True if we can safely cast ``in_type`` to ``out_type``
 
     Parameters
     ----------
@@ -424,7 +424,7 @@ def can_cast(in_type, out_type, has_intercept=False, has_slope=False):
     False
     >>> can_cast(np.int16, np.uint8, True, True)  # doctest: +SKIP
     True
-    '''
+    """
     in_dtype = np.dtype(in_type)
     # Whether we can cast depends on the data, and we've only got the type.
     # Let's assume integers use all of their range but floats etc not
@@ -448,7 +448,7 @@ def _is_compressed_fobj(fobj):
 
 
 def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
-    ''' Get array from file with specified shape, dtype and file offset
+    """ Get array from file with specified shape, dtype and file offset
 
     Parameters
     ----------
@@ -489,7 +489,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     >>> arr2 = array_from_file((1,2,3), arr.dtype, bio, 10)
     >>> np.all(arr == arr2)
     True
-    '''
+    """
     if mmap not in (True, False, 'c', 'r', 'r+'):
         raise ValueError("mmap value should be one of True, False, 'c', "
                          "'r', 'r+'")
@@ -542,7 +542,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
 def array_to_file(data, fileobj, out_dtype=None, offset=0,
                   intercept=0.0, divslope=1.0,
                   mn=None, mx=None, order='F', nan2zero=True):
-    ''' Helper function for writing arrays to file objects
+    """ Helper function for writing arrays to file objects
 
     Writes arrays as scaled by `intercept` and `divslope`, and clipped
     at (prescaling) `mn` minimum, and `mx` maximum.
@@ -621,7 +621,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> array_to_file(data, sio, np.float, order='C')
     >>> sio.getvalue() == data.tobytes('C')
     True
-    '''
+    """
     # Shield special case
     div_none = divslope is None
     if not np.all(
@@ -1015,7 +1015,7 @@ def working_type(in_type, slope=1.0, inter=0.0):
                         '1.2',
                         '3.0')
 def calculate_scale(data, out_dtype, allow_intercept):
-    ''' Calculate scaling and optional intercept for data
+    """ Calculate scaling and optional intercept for data
 
     Parameters
     ----------
@@ -1037,7 +1037,7 @@ def calculate_scale(data, out_dtype, allow_intercept):
     mx : None or float
        minimum of finite value in data, or None if this will not
        be used to threshold data
-    '''
+    """
     # Code here is a compatibility shell around arraywriters refactor
     in_dtype = data.dtype
     out_dtype = np.dtype(out_dtype)
@@ -1063,7 +1063,7 @@ def calculate_scale(data, out_dtype, allow_intercept):
                         '1.2',
                         '3.0')
 def scale_min_max(mn, mx, out_type, allow_intercept):
-    ''' Return scaling and intercept min, max of data, given output type
+    """ Return scaling and intercept min, max of data, given output type
 
     Returns ``scalefactor`` and ``intercept`` to best fit data with
     given ``mn`` and ``mx`` min and max values into range of data type
@@ -1124,7 +1124,7 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
     The large integers lead to python long types as max / min for type.
     To contain the rounding error, we need to use the maximum numpy
     float types when casting to float.
-    '''
+    """
     if mn > mx:
         raise ValueError('min value > max value')
     info = type_info(out_type)
@@ -1361,7 +1361,7 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
 
 
 def finite_range(arr, check_nan=False):
-    ''' Get range (min, max) or range and flag (min, max, has_nan) from `arr`
+    """ Get range (min, max) or range and flag (min, max, has_nan) from `arr`
 
     Parameters
     ----------
@@ -1405,7 +1405,7 @@ def finite_range(arr, check_nan=False):
     Traceback (most recent call last):
        ...
     TypeError: Can only handle numeric types
-    '''
+    """
     arr = np.asarray(arr)
     if arr.size == 0:
         return (np.inf, -np.inf) + (False,) * check_nan
@@ -1457,7 +1457,7 @@ def finite_range(arr, check_nan=False):
 
 
 def shape_zoom_affine(shape, zooms, x_flip=True):
-    ''' Get affine implied by given shape and zooms
+    """ Get affine implied by given shape and zooms
 
     We get the translations from the center of the image (implied by
     `shape`).
@@ -1492,7 +1492,7 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
            [ 0.,  2.,  0., -4.],
            [ 0.,  0.,  1., -3.],
            [ 0.,  0.,  0.,  1.]])
-    '''
+    """
     shape = np.asarray(shape)
     zooms = np.array(zooms)  # copy because of flip below
     ndims = len(shape)
@@ -1519,7 +1519,7 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
 
 
 def rec2dict(rec):
-    ''' Convert recarray to dictionary
+    """ Convert recarray to dictionary
 
     Also converts scalar values to scalars
 
@@ -1539,7 +1539,7 @@ def rec2dict(rec):
     >>> d = rec2dict(r)
     >>> d == {'x': 0, 's': b''}
     True
-    '''
+    """
     dct = {}
     for key in rec.dtype.fields:
         val = rec[key]

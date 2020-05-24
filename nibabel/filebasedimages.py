@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Common interface for any image format--volume or surface, binary or xml.'''
+""" Common interface for any image format--volume or surface, binary or xml."""
 
 import io
 from copy import deepcopy
@@ -22,7 +22,7 @@ class ImageFileError(Exception):
 
 
 class FileBasedHeader(object):
-    ''' Template class to implement header protocol '''
+    """ Template class to implement header protocol """
 
     @classmethod
     def from_header(klass, header=None):
@@ -51,16 +51,16 @@ class FileBasedHeader(object):
         return not self == other
 
     def copy(self):
-        ''' Copy object to independent representation
+        """ Copy object to independent representation
 
         The copy should not be affected by any changes to the original
         object.
-        '''
+        """
         return deepcopy(self)
 
 
 class FileBasedImage(object):
-    '''
+    """
     Abstract image class with interface for loading/saving images from disk.
 
     The class doesn't define any image properties.
@@ -162,7 +162,7 @@ class FileBasedImage(object):
     carry the position at which a write (with ``to_files``) should place the
     data.  The ``file_map`` contents should therefore be such, that this will
     work:
-    '''
+    """
     header_class = FileBasedHeader
     _meta_sniff_len = 0
     files_types = (('image', None),)
@@ -173,7 +173,7 @@ class FileBasedImage(object):
     rw = True  # Used in test code
 
     def __init__(self, header=None, extra=None, file_map=None):
-        ''' Initialize image
+        """ Initialize image
 
         The image is a combination of (header), with
         optional metadata in `extra`, and filename / file-like objects
@@ -188,7 +188,7 @@ class FileBasedImage(object):
            metadata of this image type
         file_map : mapping, optional
            mapping giving file information for this image format
-        '''
+        """
         self._header = self.header_class.from_header(header)
         if extra is None:
             extra = {}
@@ -203,8 +203,8 @@ class FileBasedImage(object):
         return self._header
 
     def __getitem__(self):
-        ''' No slicing or dictionary interface for images
-        '''
+        """ No slicing or dictionary interface for images
+        """
         raise TypeError("Cannot slice image objects.")
 
     @deprecate_with_version('get_header method is deprecated.\n'
@@ -217,7 +217,7 @@ class FileBasedImage(object):
         return self.header
 
     def get_filename(self):
-        ''' Fetch the image filename
+        """ Fetch the image filename
 
         Parameters
         ----------
@@ -230,7 +230,7 @@ class FileBasedImage(object):
            If an image may have several filenames associated with it (e.g.
            Analyze ``.img, .hdr`` pair) then we return the more characteristic
            filename (the ``.img`` filename in the case of Analyze')
-        '''
+        """
         # which filename is returned depends on the ordering of the
         # 'files_types' class attribute - we return the name
         # corresponding to the first in that tuple
@@ -238,7 +238,7 @@ class FileBasedImage(object):
         return self.file_map[characteristic_type].filename
 
     def set_filename(self, filename):
-        ''' Sets the files in the object from a given filename
+        """ Sets the files in the object from a given filename
 
         The different image formats may check whether the filename has
         an extension characteristic of the format, and raise an error if
@@ -251,7 +251,7 @@ class FileBasedImage(object):
            this will be the only filename set into the image
            ``.file_map`` attribute. Otherwise, the image instance will
            try and guess the other filenames from this given filename.
-        '''
+        """
         self.file_map = self.__class__.filespec_to_file_map(filename)
 
     @classmethod
@@ -317,7 +317,7 @@ class FileBasedImage(object):
         return klass.filespec_to_file_map(filespec)
 
     def to_filename(self, filename):
-        ''' Write image to files implied by filename string
+        """ Write image to files implied by filename string
 
         Parameters
         ----------
@@ -329,7 +329,7 @@ class FileBasedImage(object):
         Returns
         -------
         None
-        '''
+        """
         self.file_map = self.filespec_to_file_map(filename)
         self.to_file_map()
 
@@ -350,7 +350,7 @@ class FileBasedImage(object):
 
     @classmethod
     def make_file_map(klass, mapping=None):
-        ''' Class method to make files holder for this image type
+        """ Class method to make files holder for this image type
 
         Parameters
         ----------
@@ -366,7 +366,7 @@ class FileBasedImage(object):
            sequence klass.files_types, and values of type FileHolder,
            where FileHolder objects have default values, other than
            those given by `mapping`
-        '''
+        """
         if mapping is None:
             mapping = {}
         file_map = {}
@@ -383,7 +383,7 @@ class FileBasedImage(object):
 
     @classmethod
     def instance_to_filename(klass, img, filename):
-        ''' Save `img` in our own format, to name implied by `filename`
+        """ Save `img` in our own format, to name implied by `filename`
 
         This is a class method
 
@@ -393,13 +393,13 @@ class FileBasedImage(object):
 
         filename : str
            Filename, implying name to which to save image.
-        '''
+        """
         img = klass.from_image(img)
         img.to_filename(filename)
 
     @classmethod
     def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
+        """ Class method to create new instance of own class from `img`
 
         Parameters
         ----------
@@ -410,7 +410,7 @@ class FileBasedImage(object):
         -------
         cimg : ``spatialimage`` instance
            Image, of our own class
-        '''
+        """
         raise NotImplementedError()
 
     @classmethod
@@ -514,7 +514,7 @@ class FileBasedImage(object):
 
 
 class SerializableImage(FileBasedImage):
-    '''
+    """
     Abstract image class for (de)serializing images to/from byte strings.
 
     The class doesn't define any image properties.
@@ -562,7 +562,7 @@ class SerializableImage(FileBasedImage):
     images) currently do not support this interface.
     For multi-file images, ``to_bytes()`` and ``from_bytes()`` must be
     overridden, and any encoding details should be documented.
-    '''
+    """
 
     @classmethod
     def from_bytes(klass, bytestring):

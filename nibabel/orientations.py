@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Utilities for calculating and applying affine orientations '''
+""" Utilities for calculating and applying affine orientations """
 
 
 import numpy as np
@@ -20,7 +20,7 @@ class OrientationError(Exception):
 
 
 def io_orientation(affine, tol=None):
-    ''' Orientation of input axes in terms of output axes for `affine`
+    """ Orientation of input axes in terms of output axes for `affine`
 
     Valid for an affine transformation from ``p`` dimensions to ``q``
     dimensions (``affine.shape == (q + 1, p + 1)``).
@@ -50,7 +50,7 @@ def io_orientation(affine, tol=None):
        input axis is in the same direction as the corresponding output axis and
        -1 if it is in the opposite direction.  If a row is [np.nan, np.nan],
        which can happen when p > q, then this row should be considered dropped.
-    '''
+    """
     affine = np.asarray(affine)
     q, p = affine.shape[0] - 1, affine.shape[1] - 1
     # extract the underlying rotation, zoom, shear matrix
@@ -93,7 +93,7 @@ def io_orientation(affine, tol=None):
 
 
 def ornt_transform(start_ornt, end_ornt):
-    '''Return the orientation that transforms from `start_ornt` to `end_ornt`.
+    """Return the orientation that transforms from `start_ornt` to `end_ornt`.
 
     Parameters
     ----------
@@ -107,7 +107,7 @@ def ornt_transform(start_ornt, end_ornt):
     -------
     orientations : (p, 2) ndarray
        The orientation that will transform the `start_ornt` to the `end_ornt`.
-    '''
+    """
     start_ornt = np.asarray(start_ornt)
     end_ornt = np.asarray(end_ornt)
     if start_ornt.shape != end_ornt.shape:
@@ -132,7 +132,7 @@ def ornt_transform(start_ornt, end_ornt):
 
 
 def apply_orientation(arr, ornt):
-    ''' Apply transformations implied by `ornt` to the first
+    """ Apply transformations implied by `ornt` to the first
     n axes of the array `arr`
 
     Parameters
@@ -151,7 +151,7 @@ def apply_orientation(arr, ornt):
     -------
     t_arr : ndarray
        data array `arr` transformed according to ornt
-    '''
+    """
     t_arr = np.asarray(arr)
     ornt = np.asarray(ornt)
     n = ornt.shape[0]
@@ -174,7 +174,7 @@ def apply_orientation(arr, ornt):
 
 
 def inv_ornt_aff(ornt, shape):
-    ''' Affine transform reversing transforms implied in `ornt`
+    """ Affine transform reversing transforms implied in `ornt`
 
     Imagine you have an array ``arr`` of shape `shape`, and you apply the
     transforms implied by `ornt` (more below), to get ``tarr``.
@@ -209,7 +209,7 @@ def inv_ornt_aff(ornt, shape):
     influence the output space, and is thus effectively dropped from the output
     space.  In that case one ``tarr`` coordinate maps to many ``arr``
     coordinates, we can't invert the transform, and we raise an error
-    '''
+    """
     ornt = np.asarray(ornt)
     if np.any(np.isnan(ornt)):
         raise OrientationError("We cannot invert orientation transform")
@@ -242,7 +242,7 @@ def orientation_affine(ornt, shape):
                         '3.2',
                         '4.0')
 def flip_axis(arr, axis=0):
-    ''' Flip contents of `axis` in array `arr`
+    """ Flip contents of `axis` in array `arr`
 
     Equivalent to ``np.flip(arr, axis=0)``.
 
@@ -256,7 +256,7 @@ def flip_axis(arr, axis=0):
     -------
     farr : array
        Array with axis `axis` flipped
-    '''
+    """
     return np.flip(arr, axis)
 
 

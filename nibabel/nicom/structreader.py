@@ -1,4 +1,4 @@
-''' Stream-like reader for packed data '''
+""" Stream-like reader for packed data """
 
 from struct import Struct
 
@@ -6,7 +6,7 @@ _ENDIAN_CODES = '@=<>!'
 
 
 class Unpacker(object):
-    ''' Class to unpack values from buffer object
+    """ Class to unpack values from buffer object
 
     The buffer object is usually a string. Caches compiled :mod:`struct`
     format strings so that repeated unpacking with the same format
@@ -26,10 +26,10 @@ class Unpacker(object):
     True
     >>> upk.ptr
     7
-    '''
+    """
 
     def __init__(self, buf, ptr=0, endian=None):
-        ''' Initialize unpacker
+        """ Initialize unpacker
 
         Parameters
         ----------
@@ -43,14 +43,14 @@ class Unpacker(object):
            behavior of ``struct`` - assuming system endian unless you
            specify the byte order specifically in the format string
            passed to ``unpack``
-        '''
+        """
         self.buf = buf
         self.ptr = ptr
         self.endian = endian
         self._cache = {}
 
     def unpack(self, fmt):
-        ''' Unpack values from contained buffer
+        """ Unpack values from contained buffer
 
         Unpacks values from ``self.buf`` and updates ``self.ptr`` to the
         position after the read data.
@@ -64,7 +64,7 @@ class Unpacker(object):
         -------
         values : tuple
            values as unpacked from ``self.buf`` according to `fmt`
-        '''
+        """
         # try and get a struct corresponding to the format string from
         # the cache
         pkst = self._cache.get(fmt)
@@ -89,7 +89,7 @@ class Unpacker(object):
         return values
 
     def read(self, n_bytes=-1):
-        ''' Return byte string of length `n_bytes` at current position
+        """ Return byte string of length `n_bytes` at current position
 
         Returns sub-string from ``self.buf`` and updates ``self.ptr`` to the
         position after the read data.
@@ -103,7 +103,7 @@ class Unpacker(object):
         Returns
         -------
         s : byte string
-        '''
+        """
         start = self.ptr
         if n_bytes == -1:
             end = len(self.buf)

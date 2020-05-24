@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for volumeutils module '''
+""" Test for volumeutils module """
 
 import os
 from os.path import exists
@@ -221,7 +221,7 @@ def test_array_from_file_mmap():
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
-    ''' Write contents of in_arr into fileobj, read back, check same '''
+    """ Write contents of in_arr into fileobj, read back, check same """
     instr = b' ' * offset + in_arr.tobytes(order='F')
     out_buf.write(instr)
     out_buf.flush()
@@ -1279,7 +1279,7 @@ def test__ftype4scaled_finite_warningfilters():
 
 
 def _calculate_scale(data, out_dtype, allow_intercept):
-    ''' Calculate scaling and optional intercept for data
+    """ Calculate scaling and optional intercept for data
 
     Copy of the deprecated volumeutils.calculate_scale, to preserve tests
 
@@ -1303,7 +1303,7 @@ def _calculate_scale(data, out_dtype, allow_intercept):
     mx : None or float
        minimum of finite value in data, or None if this will not
        be used to threshold data
-    '''
+    """
     # Code here is a compatibility shell around arraywriters refactor
     in_dtype = data.dtype
     out_dtype = np.dtype(out_dtype)

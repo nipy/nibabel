@@ -1,4 +1,4 @@
-''' Distutils / setuptools helpers '''
+""" Distutils / setuptools helpers """
 
 import os
 from os.path import join as pjoin, split as psplit, splitext
@@ -48,7 +48,7 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
     package for an example.
     """
     class MyBuildPy(build_cmd):
-        ''' Subclass to write commit data into installation tree '''
+        """ Subclass to write commit data into installation tree """
         def run(self):
             build_cmd.run(self)
             import subprocess
@@ -88,7 +88,7 @@ def package_check(pkg_name, version=None,
                   messages=None,
                   setuptools_args=None
                   ):
-    ''' Check if package `pkg_name` is present and has good enough version
+    """ Check if package `pkg_name` is present and has good enough version
 
     Has two modes of operation.  If `setuptools_args` is None (the default),
     raise an error for missing non-optional dependencies and log warnings for
@@ -130,7 +130,7 @@ def package_check(pkg_name, version=None,
        If None, raise errors / warnings for missing non-optional / optional
        dependencies.  If dict fill key values ``install_requires`` and
        ``extras_require`` for non-optional and optional dependencies.
-    '''
+    """
     setuptools_mode = not setuptools_args is None
     optional_tf = bool(optional)
     if version_getter is None:

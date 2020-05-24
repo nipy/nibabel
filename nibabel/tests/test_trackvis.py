@@ -1,4 +1,4 @@
-''' Testing trackvis module '''
+""" Testing trackvis module """
 
 from functools import partial
 

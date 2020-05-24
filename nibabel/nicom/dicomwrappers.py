@@ -600,7 +600,7 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def voxel_sizes(self):
-        ''' Get i, j, k voxel sizes '''
+        """ Get i, j, k voxel sizes """
         try:
             pix_measures = self.shared.PixelMeasuresSequence[0]
         except AttributeError:

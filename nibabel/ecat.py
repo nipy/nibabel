@@ -291,8 +291,8 @@ class EcatHeader(WrapStruct):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        ''' Return header data for empty header with given endianness
-        '''
+        """ Return header data for empty header with given endianness
+        """
         hdr_data = super(EcatHeader, klass).default_structarr(endianness)
         hdr_data['magic_number'] = 'MATRIX72'
         hdr_data['sw_version'] = 74
@@ -323,7 +323,7 @@ class EcatHeader(WrapStruct):
 
     @classmethod
     def _get_checks(klass):
-        ''' Return sequence of check functions for this class '''
+        """ Return sequence of check functions for this class """
         return ()
 
 
@@ -597,7 +597,7 @@ class EcatSubHeader(object):
         return int(self._mlist[frame][1] * BLOCK_SIZE)
 
     def _get_oriented_data(self, raw_data, orientation=None):
-        '''
+        """
         Get data oriented following ``patient_orientation`` header field. If
         the ``orientation`` parameter is given, return data according to this
         orientation.
@@ -605,7 +605,7 @@ class EcatSubHeader(object):
         :param raw_data: Numpy array containing the raw data
         :param orientation: None (default), 'neurological' or 'radiological'
         :rtype: Numpy array containing the oriented data
-        '''
+        """
         if orientation is None:
             orientation = self._header['patient_orientation']
         elif orientation == 'neurological':
@@ -624,7 +624,7 @@ class EcatSubHeader(object):
         return raw_data
 
     def raw_data_from_fileobj(self, frame=0, orientation=None):
-        '''
+        """
         Get raw data from file object.
 
         :param frame: Time frame index from where to fetch data
@@ -632,7 +632,7 @@ class EcatSubHeader(object):
         :rtype: Numpy array containing (possibly oriented) raw data
 
         .. seealso:: data_from_fileobj
-        '''
+        """
         dtype = self._get_data_dtype(frame)
         if self._header.endianness is not native_code:
             dtype = dtype.newbyteorder(self._header.endianness)
@@ -644,7 +644,7 @@ class EcatSubHeader(object):
         return raw_data
 
     def data_from_fileobj(self, frame=0, orientation=None):
-        '''
+        """
         Read scaled data from file for a given frame
 
         :param frame: Time frame index from where to fetch data
@@ -652,7 +652,7 @@ class EcatSubHeader(object):
         :rtype: Numpy array containing (possibly oriented) raw data
 
         .. seealso:: raw_data_from_fileobj
-        '''
+        """
         header = self._header
         subhdr = self.subheaders[frame]
         raw_data = self.raw_data_from_fileobj(frame, orientation)
@@ -663,11 +663,11 @@ class EcatSubHeader(object):
 
 
 class EcatImageArrayProxy(object):
-    ''' Ecat implemention of array proxy protocol
+    """ Ecat implemention of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
-    '''
+    """
 
     def __init__(self, subheader):
         self._subheader = subheader
@@ -689,7 +689,7 @@ class EcatImageArrayProxy(object):
         return True
 
     def __array__(self, dtype=None):
-        ''' Read of data from file
+        """ Read of data from file
 
         This reads ALL FRAMES into one array, can be memory expensive.
 
@@ -705,7 +705,7 @@ class EcatImageArrayProxy(object):
         -------
         array
             Scaled image data with type `dtype`.
-        '''
+        """
         # dtype=None is interpreted as float64
         data = np.empty(self.shape)
         frame_mapping = get_frame_order(self._subheader._mlist)
@@ -837,13 +837,13 @@ class EcatImage(SpatialImage):
         return self._subheader.get_frame_affine(frame=frame)
 
     def get_frame(self, frame, orientation=None):
-        '''
+        """
         Get full volume for a time frame
 
         :param frame: Time frame index from where to fetch data
         :param orientation: None (default), 'neurological' or 'radiological'
         :rtype: Numpy array containing (possibly oriented) raw data
-        '''
+        """
         return self._subheader.data_from_fileobj(frame, orientation)
 
     def get_data_dtype(self, frame):
@@ -915,21 +915,21 @@ class EcatImage(SpatialImage):
         return img
 
     def _get_empty_dir(self):
-        '''
+        """
         Get empty directory entry of the form
         [numAvail, nextDir, previousDir, numUsed]
-        '''
+        """
         return np.array([31, 2, 0, 0], dtype=np.int32)
 
     def _write_data(self, data, stream, pos, dtype=None, endianness=None):
-        '''
+        """
         Write data to ``stream`` using an array_writer
 
         :param data: Numpy array containing the dat
         :param stream: The file-like object to write the data to
         :param pos: The position in the stream to write the data to
         :param endianness: Endianness code of the data to write
-        '''
+        """
         if dtype is None:
             dtype = data.dtype
 
@@ -941,7 +941,7 @@ class EcatImage(SpatialImage):
                           dtype).to_fileobj(stream)
 
     def to_file_map(self, file_map=None):
-        ''' Write ECAT7 image to `file_map` or contained ``self.file_map``
+        """ Write ECAT7 image to `file_map` or contained ``self.file_map``
 
         The format consist of:
 
@@ -950,7 +950,7 @@ class EcatImage(SpatialImage):
         - For every frame (3D volume in 4D data)
           - A subheader (size = frame_offset)
           - Frame data (3D volume)
-        '''
+        """
         if file_map is None:
             file_map = self.file_map
 
