@@ -58,9 +58,9 @@ from .gifti import GiftiImage
 from .freesurfer import MGHImage
 from .funcs import (squeeze_image, concat_images, four_to_three,
                     as_closest_canonical)
-from .orientations import (io_orientation, orientation_affine,
-                           flip_axis, OrientationError,
-                           apply_orientation, aff2axcodes)
+from .orientations import (io_orientation, flip_axis,
+                           OrientationError, apply_orientation,
+                           aff2axcodes)
 from .imageclasses import class_map, ext_map, all_image_classes
 from .deprecated import ModuleProxy as _ModuleProxy
 trackvis = _ModuleProxy('nibabel.trackvis')

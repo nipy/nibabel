@@ -17,8 +17,7 @@ from numpy.testing import assert_array_equal
 
 from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
                             apply_orientation, OrientationError,
-                            ornt2axcodes, axcodes2ornt, aff2axcodes,
-                            orientation_affine)
+                            ornt2axcodes, axcodes2ornt, aff2axcodes)
 
 from ..affines import from_matvec, to_matvec
 
@@ -353,9 +352,3 @@ def test_inv_ornt_aff():
     with pytest.raises(OrientationError):
         inv_ornt_aff([[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
 
-
-def test_orientation_affine_deprecation():
-    aff1 = inv_ornt_aff([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-    with pytest.deprecated_call():
-        aff2 = orientation_affine([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-    assert_array_equal(aff1, aff2)

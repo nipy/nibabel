@@ -30,9 +30,6 @@ from ..volumeutils import (array_from_file,
                            array_to_file,
                            allopen,  # for backwards compatibility
                            fname_ext_ul_case,
-                           calculate_scale,  # Deprecated
-                           can_cast,  # Deprecated
-                           scale_min_max,  # Deprecated
                            write_zeros,
                            seek_tell,
                            apply_read_scaling,
