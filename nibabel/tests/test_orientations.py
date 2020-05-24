@@ -16,7 +16,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
-                            flip_axis, apply_orientation, OrientationError,
+                            apply_orientation, OrientationError,
                             ornt2axcodes, axcodes2ornt, aff2axcodes,
                             orientation_affine)
 
@@ -138,28 +138,6 @@ def test_apply():
     for ornt in ALL_ORNTS:
         t_arr = apply_orientation(a, ornt)
         assert_array_equal(a.shape, np.array(t_arr.shape)[np.array(ornt)[:, 0]])
-
-
-def test_flip_axis():
-    a = np.arange(24).reshape((2, 3, 4))
-    assert_array_equal(
-        flip_axis(a),
-        np.flipud(a))
-    assert_array_equal(
-        flip_axis(a, axis=0),
-        np.flipud(a))
-    assert_array_equal(
-        flip_axis(a, axis=1),
-        np.fliplr(a))
-    # check accepts array-like
-    assert_array_equal(
-        flip_axis(a.tolist(), axis=0),
-        np.flipud(a))
-    # third dimension
-    b = a.transpose()
-    b = np.flipud(b)
-    b = b.transpose()
-    assert_array_equal(flip_axis(a, axis=2), b)
 
 
 def test_io_orientation():

@@ -165,7 +165,7 @@ def apply_orientation(arr, ornt):
     # apply ornt transformations
     for ax, flip in enumerate(ornt[:, 1]):
         if flip == -1:
-            t_arr = flip_axis(t_arr, axis=ax)
+            t_arr = np.flip(t_arr, axis=ax)
     full_transpose = np.arange(t_arr.ndim)
     # ornt indicates the transpose that has occurred - we reverse it
     full_transpose[:n] = np.argsort(ornt[:, 0])
@@ -237,13 +237,14 @@ def orientation_affine(ornt, shape):
     return inv_ornt_aff(ornt, shape)
 
 
+@deprecate_with_version('flip_axis is deprecated. '
+                        'Please use numpy.flip instead'
+                        '3.2',
+                        '4.0')
 def flip_axis(arr, axis=0):
     ''' Flip contents of `axis` in array `arr`
 
-    ``flip_axis`` is the same transform as ``np.flipud``, but for any
-    axis.  For example ``flip_axis(arr, axis=0)`` is the same transform
-    as ``np.flipud(arr)``, and ``flip_axis(arr, axis=1)`` is the same
-    transform as ``np.fliplr(arr)``
+    Equivalent to ``np.flip(arr, axis=0)``.
 
     Parameters
     ----------
@@ -255,24 +256,8 @@ def flip_axis(arr, axis=0):
     -------
     farr : array
        Array with axis `axis` flipped
-
-    Examples
-    --------
-    >>> a = np.arange(6).reshape((2,3))
-    >>> a
-    array([[0, 1, 2],
-           [3, 4, 5]])
-    >>> flip_axis(a, axis=0)
-    array([[3, 4, 5],
-           [0, 1, 2]])
-    >>> flip_axis(a, axis=1)
-    array([[2, 1, 0],
-           [5, 4, 3]])
     '''
-    arr = np.asanyarray(arr)
-    arr = arr.swapaxes(0, axis)
-    arr = np.flipud(arr)
-    return arr.swapaxes(axis, 0)
+    return np.flip(arr, axis)
 
 
 def ornt2axcodes(ornt, labels=None):
