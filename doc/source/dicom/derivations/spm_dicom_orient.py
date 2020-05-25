@@ -3,8 +3,8 @@
 Notes on the SPM orientation machinery.
 
 There are symbolic versions of the code in ``spm_dicom_convert``,
-``write_volume`` subfunction, around line 509 in the version I have
-(SPM8, late 2009 vintage).
+``write_volume`` subfunction, around line 509 in the version I have (SPM8, late
+2009 vintage).
 '''
 
 import numpy as np
@@ -12,14 +12,17 @@ import numpy as np
 import sympy
 from sympy import Matrix, Symbol, symbols, zeros, ones, eye
 
+
 # The code below is general (independent of SPMs code)
 def numbered_matrix(nrows, ncols, symbol_prefix):
     return Matrix(nrows, ncols, lambda i, j: Symbol(
             symbol_prefix + '_{%d%d}' % (i+1, j+1)))
 
+
 def numbered_vector(nrows, symbol_prefix):
     return Matrix(nrows, 1, lambda i, j: Symbol(
             symbol_prefix + '_{%d}' % (i+1)))
+
 
 # premultiplication matrix to go from 0 based to 1 based indexing
 one_based = eye(4)
@@ -35,27 +38,27 @@ orient_cross = numbered_vector(3, 'n')
 missing_r_col = numbered_vector(3, 'k')
 pos_pat_0 = numbered_vector(3, 'T^1')
 pos_pat_N = numbered_vector(3, 'T^N')
-pixel_spacing = symbols(('\Delta{r}', '\Delta{c}'))
+pixel_spacing = symbols((r'\Delta{r}', r'\Delta{c}'))
 NZ = Symbol('N')
-slice_thickness = Symbol('\Delta{s}')
+slice_spacing = Symbol('\Delta{s}')
 
 R3 = orient_pat * np.diag(pixel_spacing)
-R = zeros((4,2))
+R = zeros(4, 2)
 R[:3,:] = R3
 
 # The following is specific to the SPM algorithm. 
-x1 = ones((4,1))
-y1 = ones((4,1))
+x1 = ones(4, 1)
+y1 = ones(4, 1)
 y1[:3,:] = pos_pat_0
 
-to_inv = zeros((4,4))
+to_inv = zeros(4, 4)
 to_inv[:,0] = x1
-to_inv[:,1] = symbols('abcd')
+to_inv[:,1] = symbols('a b c d')
 to_inv[0,2] = 1
 to_inv[1,3] = 1
-inv_lhs = zeros((4,4))
+inv_lhs = zeros(4, 4)
 inv_lhs[:,0] = y1
-inv_lhs[:,1] = symbols('efgh')
+inv_lhs[:,1] = symbols('e f g h')
 inv_lhs[:,2:] = R
 
 def spm_full_matrix(x2, y2):
@@ -66,17 +69,17 @@ def spm_full_matrix(x2, y2):
     return lhs * rhs.inv()
 
 # single slice case
-orient = zeros((3,3))
+orient = zeros(3, 3)
 orient[:3,:2] = orient_pat
 orient[:,2] = orient_cross
 x2_ss = Matrix((0,0,1,0))
-y2_ss = zeros((4,1))
-y2_ss[:3,:] = orient * Matrix((0,0,slice_thickness))
+y2_ss = zeros(4, 1)
+y2_ss[:3,:] = orient * Matrix((0,0,slice_spacing))
 A_ss = spm_full_matrix(x2_ss, y2_ss)
 
 # many slice case
 x2_ms = Matrix((1,1,NZ,1))
-y2_ms = ones((4,1))
+y2_ms = ones(4, 1)
 y2_ms[:3,:] = pos_pat_N
 A_ms = spm_full_matrix(x2_ms, y2_ms)
 
@@ -88,7 +91,7 @@ A_ms = spm_full_matrix(x2_ms, y2_ms)
 # single slice case
 single_aff = eye(4)
 rot = orient
-rot_scale = rot * np.diag(pixel_spacing[:] + [slice_thickness])
+rot_scale = rot * np.diag(pixel_spacing[:] + (slice_spacing,))
 single_aff[:3,:3] = rot_scale
 single_aff[:3,3] = pos_pat_0
 
@@ -137,23 +140,23 @@ def my_latex(expr):
     S = sympy.latex(expr)
     return S[1:-1]
 
-print 'Latex stuff'
-print '   R = ' + my_latex(to_inv)
-print '   '
-print '   L = ' + my_latex(inv_lhs)
-print
-print '   0B = ' + my_latex(one_based)
-print
-print '   ' + my_latex(solved)
-print
-print '   A_{multi} = ' + my_latex(multi_aff_solved)
-print '   '
-print '   A_{single} = ' + my_latex(single_aff)
-print
-print r'   \left(\begin{smallmatrix}T^N\\1\end{smallmatrix}\right) = A ' + my_latex(trans_z_N)
-print
-print '   A_j = A_{single} ' + my_latex(nz_trans)
-print
-print '   T^j = ' + my_latex(IPP_j)
-print
-print '   T^j \cdot \mathbf{c} = ' + my_latex(spm_z)
+print('Latex stuff')
+print('   R = ' + my_latex(to_inv))
+print('   ')
+print('   L = ' + my_latex(inv_lhs))
+print()
+print('   0B = ' + my_latex(one_based))
+print()
+print('   ' + my_latex(solved))
+print()
+print('   A_{multi} = ' + my_latex(multi_aff_solved))
+print('   ')
+print('   A_{single} = ' + my_latex(single_aff))
+print()
+print(r'   \left(\begin{smallmatrix}T^N\\1\end{smallmatrix}\right) = A ' + my_latex(trans_z_N))
+print()
+print('   A_j = A_{single} ' + my_latex(nz_trans))
+print()
+print('   T^j = ' + my_latex(IPP_j))
+print()
+print('   T^j \cdot \mathbf{c} = ' + my_latex(spm_z))
