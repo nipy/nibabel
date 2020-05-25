@@ -138,7 +138,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     rel_err = np.abs(top / arr)
     abs_err = np.abs(top)
     if slope == 1:  # integers output, offset only scaling
-        if set((in_type, out_type)) == set((np.int64, np.uint64)):
+        if {in_type, out_type} == {np.int64, np.uint64}:
             # Scaling to or from 64 bit ints can go outside range of continuous
             # integers for float64 and thus lose precision; take this into
             # account
@@ -181,14 +181,14 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             rel_mx_e = rel_err[abs_fails].max()
         else:
             rel_mx_e = None
-        print (test_id,
-               np.dtype(in_type).str,
-               np.dtype(out_type).str,
-               exp_abs_mx_e,
-               abs_mx_e,
-               rel_thresh,
-               rel_mx_e,
-               slope, inter)
+        print(test_id,
+              np.dtype(in_type).str,
+              np.dtype(out_type).str,
+              exp_abs_mx_e,
+              abs_mx_e,
+              rel_thresh,
+              rel_mx_e,
+              slope, inter)
         # To help debugging failures with --pdb-failure
         np.nonzero(all_fails)
     assert this_test

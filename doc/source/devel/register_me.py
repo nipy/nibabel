@@ -1,10 +1,7 @@
 from os.path import join as pjoin, expanduser, abspath, dirname
 import sys
-# Python 3 compatibility
-try:
-    import configparser as cfp
-except ImportError:
-    import ConfigParser as cfp
+import configparser as cfp
+
 
 if sys.platform == 'win32':
     HOME_INI = pjoin(expanduser('~'), '_dpkg', 'local.dsource')
@@ -15,6 +12,7 @@ OUR_PATH = dirname(__file__)
 OUR_META = pjoin(OUR_PATH, 'meta.ini')
 DISCOVER_INIS = {'user': HOME_INI, 'system': SYS_INI}
 
+
 def main():
     # Get ini file to which to write
     try:
@@ -23,7 +21,7 @@ def main():
         reg_to = 'user'
     if reg_to in ('user', 'system'):
         ini_fname = DISCOVER_INIS[reg_to]
-    else: # it is an ini file name
+    else:  # it is an ini file name
         ini_fname = reg_to
 
     # Read parameters for our distribution
@@ -42,7 +40,7 @@ def main():
     dsource.set(name, version, OUR_PATH)
     dsource.write(file(ini_fname, 'wt'))
 
-    print 'Registered package %s, %s to %s' % (name, version, ini_fname)
+    print('Registered package %s, %s to %s' % (name, version, ini_fname))
 
 
 if __name__ == '__main__':

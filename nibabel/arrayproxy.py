@@ -79,7 +79,7 @@ class ArrayProxy(object):
     * get_slope_inter
 
     A header should also have a 'copy' method.  This requirement will go away
-    when the deprecated 'header' propoerty goes away.
+    when the deprecated 'header' property goes away.
 
     This implementation allows us to deal with Analyze and its variants,
     including Nifti1, and with the MGH format.

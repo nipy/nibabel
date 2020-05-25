@@ -543,7 +543,7 @@ class EcatSubHeader(object):
         x = subhdr['x_dimension'].item()
         y = subhdr['y_dimension'].item()
         z = subhdr['z_dimension'].item()
-        return (x, y, z)
+        return x, y, z
 
     def get_nframes(self):
         """returns number of frames"""
