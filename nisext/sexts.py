@@ -2,22 +2,15 @@
 
 import os
 from os.path import join as pjoin, split as psplit, splitext
-import sys
-PY3 = sys.version_info[0] >= 3
-if PY3:
-    string_types = str,
-else:
-    string_types = basestring,
-try:
-    from ConfigParser import ConfigParser
-except ImportError:
-    from configparser import ConfigParser
+
+from configparser import ConfigParser
 
 from distutils.version import LooseVersion
 from distutils.command.build_py import build_py
 from distutils.command.install_scripts import install_scripts
 
 from distutils import log
+
 
 def get_comrec_build(pkg_dir, build_cmd=build_py):
     """ Return extended build command class for recording commit
@@ -82,7 +75,7 @@ def _add_append_key(in_dict, key, value):
     # Append value to in_dict[key] list
     if key not in in_dict:
         in_dict[key] = []
-    elif isinstance(in_dict[key], string_types):
+    elif isinstance(in_dict[key], str):
         in_dict[key] = [in_dict[key]]
     in_dict[key].append(value)
 
@@ -179,7 +172,7 @@ def package_check(pkg_name, version=None,
                     + msgs['opt suffix'])
         return
     # setuptools mode
-    if optional_tf and not isinstance(optional, string_types):
+    if optional_tf and not isinstance(optional, str):
         raise RuntimeError('Not-False optional arg should be string')
     dependency = pkg_name
     if version:
