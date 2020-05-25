@@ -244,7 +244,7 @@ def orientation_affine(ornt, shape):
 def flip_axis(arr, axis=0):
     """ Flip contents of `axis` in array `arr`
 
-    Equivalent to ``np.flip(arr, axis=0)``.
+    Equivalent to ``np.flip(arr, axis)``.
 
     Parameters
     ----------
