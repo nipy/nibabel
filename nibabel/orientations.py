@@ -232,7 +232,7 @@ def inv_ornt_aff(ornt, shape):
 @deprecate_with_version('orientation_affine deprecated. '
                         'Please use inv_ornt_aff instead.',
                         '1.3',
-                        '3.0')
+                        '4.0')
 def orientation_affine(ornt, shape):
     return inv_ornt_aff(ornt, shape)
 
