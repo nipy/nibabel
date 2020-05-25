@@ -23,7 +23,7 @@ from nibabel.processing import (sigma2fwhm, fwhm2sigma, adapt_affine,
                                 conform)
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
-from nibabel.orientations import aff2axcodes, flip_axis, inv_ornt_aff
+from nibabel.orientations import aff2axcodes, inv_ornt_aff
 from nibabel.affines import (AffineError, from_matvec, to_matvec, apply_affine,
                              voxel_sizes)
 from nibabel.eulerangles import euler2mat
@@ -110,7 +110,7 @@ def test_resample_from_to():
         ax_flip_ornt = flip_ornt.copy()
         ax_flip_ornt[axis, 1] = -1
         aff_flip_i = inv_ornt_aff(ax_flip_ornt, (2, 3, 4))
-        flipped_img = Nifti1Image(flip_axis(data, axis),
+        flipped_img = Nifti1Image(np.flip(data, axis),
                                   np.dot(affine, aff_flip_i))
         out = resample_from_to(flipped_img, ((2, 3, 4), affine))
         assert_almost_equal(img.dataobj, out.dataobj)
