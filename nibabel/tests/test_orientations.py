@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Testing for orientations module '''
+""" Testing for orientations module """
 
 import numpy as np
 import warnings

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for loader function '''
+""" Tests for loader function """
 from io import BytesIO
 
 import shutil

@@ -129,7 +129,7 @@ class WrapStruct(object):
                  binaryblock=None,
                  endianness=None,
                  check=True):
-        ''' Initialize WrapStruct from binary data block
+        """ Initialize WrapStruct from binary data block
 
         Parameters
         ----------
@@ -153,7 +153,7 @@ class WrapStruct(object):
         >>> wstr1['integer'] = 1
         >>> wstr1['integer']
         array(1, dtype=int16)
-        '''
+        """
         if binaryblock is None:
             self._structarr = self.__class__.default_structarr(endianness)
             return
@@ -176,7 +176,7 @@ class WrapStruct(object):
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        ''' Return read structure with given or guessed endiancode
+        """ Return read structure with given or guessed endiancode
 
         Parameters
         ----------
@@ -189,13 +189,13 @@ class WrapStruct(object):
         -------
         wstr : WrapStruct object
            WrapStruct object initialized from data in fileobj
-        '''
+        """
         raw_str = fileobj.read(klass.template_dtype.itemsize)
         return klass(raw_str, endianness, check)
 
     @property
     def binaryblock(self):
-        ''' binary block of data as string
+        """ binary block of data as string
 
         Returns
         -------
@@ -208,11 +208,11 @@ class WrapStruct(object):
         >>> wstr = WrapStruct()
         >>> len(wstr.binaryblock)
         2
-        '''
+        """
         return self._structarr.tobytes()
 
     def write_to(self, fileobj):
-        ''' Write structure to fileobj
+        """ Write structure to fileobj
 
         Write starts at fileobj current file position.
 
@@ -233,12 +233,12 @@ class WrapStruct(object):
         >>> wstr.write_to(str_io)
         >>> wstr.binaryblock == str_io.getvalue()
         True
-        '''
+        """
         fileobj.write(self.binaryblock)
 
     @property
     def endianness(self):
-        ''' endian code of binary data
+        """ endian code of binary data
 
         The endianness code gives the current byte order
         interpretation of the binary data.
@@ -256,13 +256,13 @@ class WrapStruct(object):
         read only because the only common use case is to set the
         endianness on initialization, or occasionally byteswapping the
         data - but this is done via the as_byteswapped method
-        '''
+        """
         if self._structarr.dtype.isnative:
             return native_code
         return swapped_code
 
     def copy(self):
-        ''' Return copy of structure
+        """ Return copy of structure
 
         >>> wstr = WrapStruct()
         >>> wstr['integer'] = 3
@@ -271,11 +271,11 @@ class WrapStruct(object):
         False
         >>> wstr2['integer']
         array(3, dtype=int16)
-        '''
+        """
         return self.__class__(self.binaryblock, self.endianness, check=False)
 
     def __eq__(self, other):
-        ''' equality between two structures defined by binaryblock
+        """ equality between two structures defined by binaryblock
 
         Examples
         --------
@@ -286,7 +286,7 @@ class WrapStruct(object):
         >>> wstr3 = WrapStruct(endianness=swapped_code)
         >>> wstr == wstr3
         True
-        '''
+        """
         this_end = self.endianness
         this_bb = self.binaryblock
         try:
@@ -303,18 +303,18 @@ class WrapStruct(object):
         return not self == other
 
     def __getitem__(self, item):
-        ''' Return values from structure data
+        """ Return values from structure data
 
         Examples
         --------
         >>> wstr = WrapStruct()
         >>> wstr['integer'] == 0
         True
-        '''
+        """
         return self._structarr[item]
 
     def __setitem__(self, item, value):
-        ''' Set values in structured data
+        """ Set values in structured data
 
         Examples
         --------
@@ -322,31 +322,31 @@ class WrapStruct(object):
         >>> wstr['integer'] = 3
         >>> wstr['integer']
         array(3, dtype=int16)
-        '''
+        """
         self._structarr[item] = value
 
     def __iter__(self):
         return iter(self.keys())
 
     def keys(self):
-        ''' Return keys from structured data'''
+        """ Return keys from structured data"""
         return list(self.template_dtype.names)
 
     def values(self):
-        ''' Return values from structured data'''
+        """ Return values from structured data"""
         data = self._structarr
         return [data[key] for key in self.template_dtype.names]
 
     def items(self):
-        ''' Return items from structured data'''
+        """ Return items from structured data"""
         return zip(self.keys(), self.values())
 
     def get(self, k, d=None):
-        ''' Return value for the key k if present or d otherwise'''
+        """ Return value for the key k if present or d otherwise"""
         return self._structarr[k] if k in self.keys() else d
 
     def check_fix(self, logger=None, error_level=None):
-        ''' Check structured data with checks
+        """ Check structured data with checks
 
         Parameters
         ----------
@@ -354,7 +354,7 @@ class WrapStruct(object):
         error_level : None or int
             Level of error severity at which to raise error.  Any error of
             severity >= `error_level` will cause an exception.
-        '''
+        """
         if logger is None:
             logger = imageglobals.logger
         if error_level is None:
@@ -366,7 +366,7 @@ class WrapStruct(object):
 
     @classmethod
     def diagnose_binaryblock(klass, binaryblock, endianness=None):
-        ''' Run checks over binary data, return string '''
+        """ Run checks over binary data, return string """
         wstr = klass(binaryblock, endianness=endianness, check=False)
         battrun = BatteryRunner(klass._get_checks())
         reports = battrun.check_only(wstr)
@@ -375,7 +375,7 @@ class WrapStruct(object):
 
     @classmethod
     def guessed_endian(self, mapping):
-        ''' Guess intended endianness from mapping-like ``mapping``
+        """ Guess intended endianness from mapping-like ``mapping``
 
         Parameters
         ----------
@@ -387,13 +387,13 @@ class WrapStruct(object):
         -------
         endianness : {'<', '>'}
            Guessed endianness of binary data in ``wstr``
-        '''
+        """
         raise NotImplementedError
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        ''' Return structured array for default structure with given endianness
-        '''
+        """ Return structured array for default structure with given endianness
+        """
         dt = klass.template_dtype
         if endianness is not None:
             endianness = endian_codes[endianness]
@@ -402,7 +402,7 @@ class WrapStruct(object):
 
     @property
     def structarr(self):
-        ''' Structured data, with data fields
+        """ Structured data, with data fields
 
         Examples
         --------
@@ -412,17 +412,17 @@ class WrapStruct(object):
         Traceback (most recent call last):
            ...
         AttributeError: can't set attribute
-        '''
+        """
         return self._structarr
 
     def __str__(self):
-        ''' Return string representation for printing '''
+        """ Return string representation for printing """
         summary = "%s object, endian='%s'" % (self.__class__,
                                               self.endianness)
         return '\n'.join([summary, pretty_mapping(self)])
 
     def as_byteswapped(self, endianness=None):
-        ''' return new byteswapped object with given ``endianness``
+        """ return new byteswapped object with given ``endianness``
 
         Guaranteed to make a copy even if endianness is the same as
         the current endianness.
@@ -468,7 +468,7 @@ class WrapStruct(object):
         True
         >>> nbs_wstr is wstr
         False
-        '''
+        """
         current = self.endianness
         if endianness is None:
             if current == native_code:
@@ -484,7 +484,7 @@ class WrapStruct(object):
 
     @classmethod
     def _get_checks(klass):
-        ''' Return sequence of check functions for this class '''
+        """ Return sequence of check functions for this class """
         return ()
 
 
@@ -494,7 +494,7 @@ class LabeledWrapStruct(WrapStruct):
     _field_recoders = {}  # for recoding values for str
 
     def get_value_label(self, fieldname):
-        ''' Returns label for coded field
+        """ Returns label for coded field
 
         A coded field is an int field containing codes that stand for
         discrete values that also have string labels.
@@ -527,7 +527,7 @@ class LabeledWrapStruct(WrapStruct):
         >>> hdr['datatype'] = 2
         >>> hdr.get_value_label('datatype')
         'two'
-        '''
+        """
         if fieldname not in self._field_recoders:
             raise ValueError('%s not a coded field' % fieldname)
         code = int(self._structarr[fieldname])
@@ -537,7 +537,7 @@ class LabeledWrapStruct(WrapStruct):
             return '<unknown code {0}>'.format(code)
 
     def __str__(self):
-        ''' Return string representation for printing '''
+        """ Return string representation for printing """
         summary = "%s object, endian='%s'" % (self.__class__, self.endianness)
 
         def _getter(obj, key):

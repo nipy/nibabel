@@ -42,12 +42,12 @@ class MincError(Exception):
 
 
 class Minc1File(object):
-    ''' Class to wrap MINC1 format opened netcdf object
+    """ Class to wrap MINC1 format opened netcdf object
 
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC file, to pull out useful header
     information, and for the method of reading the data out
-    '''
+    """
 
     def __init__(self, mincfile):
         self._mincfile = mincfile
@@ -118,12 +118,12 @@ class Minc1File(object):
         return aff
 
     def _get_valid_range(self):
-        ''' Return valid range for image data
+        """ Return valid range for image data
 
         The valid range can come from the image 'valid_range' or
         image 'valid_min' and 'valid_max', or, failing that, from the
         data type range
-        '''
+        """
         ddt = self.get_data_dtype()
         info = np.iinfo(ddt.type)
         try:
@@ -238,11 +238,11 @@ class Minc1File(object):
 
 
 class MincImageArrayProxy(object):
-    ''' MINC implementation of array proxy protocol
+    """ MINC implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
-    '''
+    """
 
     def __init__(self, minc_file):
         self.minc_file = minc_file
@@ -308,12 +308,12 @@ class Minc1Header(MincHeader):
 
 
 class Minc1Image(SpatialImage):
-    ''' Class for MINC1 format images
+    """ Class for MINC1 format images
 
     The MINC1 image class uses the default header type, rather than a specific
     MINC header type - and reads the relevant information from the MINC file on
     load.
-    '''
+    """
     header_class = Minc1Header
     _meta_sniff_len = 4
     valid_exts = ('.mnc',)

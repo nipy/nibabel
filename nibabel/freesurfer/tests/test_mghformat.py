@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-'''Tests for mghformat reading writing'''
+"""Tests for mghformat reading writing"""
 
 import os
 import io
@@ -162,9 +162,9 @@ def test_set_zooms():
 
 
 def bad_dtype_mgh():
-    ''' This function raises an MGHError exception because
+    """ This function raises an MGHError exception because
     uint16 is not a valid MGH datatype.
-    '''
+    """
     # try to write an unsigned short and make sure it
     # raises MGHError
     v = np.ones((7, 13, 3, 22)).astype(np.uint16)

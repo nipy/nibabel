@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test quaternion calculations '''
+""" Test quaternion calculations """
 
 import numpy as np
 from numpy import pi
@@ -18,7 +18,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal, dec
 from .. import quaternions as nq
 from .. import eulerangles as nea
 
-# Example rotations '''
+# Example rotations """
 eg_rots = []
 params = (-pi, pi, pi / 2)
 zs = np.arange(*params)

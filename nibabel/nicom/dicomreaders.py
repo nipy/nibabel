@@ -16,7 +16,7 @@ DPCS_TO_TAL = np.diag([-1, -1, 1, 1])
 
 
 def mosaic_to_nii(dcm_data):
-    ''' Get Nifti file from Siemens
+    """ Get Nifti file from Siemens
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ def mosaic_to_nii(dcm_data):
     -------
     img : ``Nifti1Image``
        Nifti image object
-    '''
+    """
     dcm_w = wrapper_from_data(dcm_data)
     if not dcm_w.is_mosaic:
         raise DicomReadError('data does not appear to be in mosaic format')
@@ -45,7 +45,7 @@ def read_mosaic_dwi_dir(dicom_path, globber='*.dcm', dicom_kwargs=None):
 
 def read_mosaic_dir(dicom_path,
                     globber='*.dcm', check_is_dwi=False, dicom_kwargs=None):
-    ''' Read all Siemens mosaic DICOMs in directory, return arrays, params
+    """ Read all Siemens mosaic DICOMs in directory, return arrays, params
 
     Parameters
     ----------
@@ -74,7 +74,7 @@ def read_mosaic_dir(dicom_path,
     unit_gradients : (N, 3) array
        gradient directions of unit length for each acquisition.  (nan,
        nan, nan) if we did not find diffusion information.
-    '''
+    """
     if dicom_kwargs is None:
         dicom_kwargs = {}
     full_globber = pjoin(dicom_path, globber)
@@ -116,7 +116,7 @@ def read_mosaic_dir(dicom_path,
 
 
 def slices_to_series(wrappers):
-    ''' Sort sequence of slice wrappers into series
+    """ Sort sequence of slice wrappers into series
 
     This follows the SPM model fairly closely
 
@@ -130,7 +130,7 @@ def slices_to_series(wrappers):
     series : sequence
        sequence of sequences of wrapper objects, where each sequence is
        wrapper objects comprising a series, sorted into slice order
-    '''
+    """
     # first pass
     volume_lists = [wrappers[0:1]]
     for dw in wrappers[1:]:
@@ -171,7 +171,7 @@ def _instance_sorter(s):
 
 
 def _third_pass(wrappers):
-    ''' What we do when there are not unique zs in a slice set '''
+    """ What we do when there are not unique zs in a slice set """
     inos = [s.instance_number for s in wrappers]
     msg_fmt = ('Plausibly matching slices, but where some have '
                'the same apparent slice location, and %s; '

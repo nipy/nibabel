@@ -1,4 +1,4 @@
-''' Data packages for DICOM testing '''
+""" Data packages for DICOM testing """
 
 from ... import data as nibd
 

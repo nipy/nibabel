@@ -1,4 +1,4 @@
-''' Test package information in various install settings
+""" Test package information in various install settings
 
 The routines here install the package from source directories, zips or eggs, and
 check these installations by running tests, checking version information,
@@ -27,7 +27,7 @@ the Makefile targets from nibabel::
     bdist-egg-tests:
         $(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel")'
 
-'''
+"""
 
 
 import os
@@ -94,7 +94,7 @@ def back_tick(cmd, ret_err=False, as_str=True):
 
 
 def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
-    ''' Run command in own process in anonymous path
+    """ Run command in own process in anonymous path
 
     Parameters
     ----------
@@ -116,7 +116,7 @@ def run_mod_cmd(mod_name, pkg_path, cmd, script_dir=None, print_location=True):
         stdout as str
     stderr : str
         stderr as str
-    '''
+    """
     if script_dir is None:
         paths_add = ''
     else:
@@ -162,11 +162,11 @@ import {mod_name}
 
 
 def zip_extract_all(fname, path=None):
-    ''' Extract all members from zipfile
+    """ Extract all members from zipfile
 
     Deals with situation where the directory is stored in the zipfile as a name,
     as well as files that have to go into this directory.
-    '''
+    """
     zf = zipfile.ZipFile(fname)
     members = zf.namelist()
     # Remove members that are just bare directories
@@ -241,7 +241,7 @@ def install_from_zip(zip_fname, install_path, pkg_finder=None,
 
 
 def contexts_print_info(mod_name, repo_path, install_path):
-    ''' Print result of get_info from different installation routes
+    """ Print result of get_info from different installation routes
 
     Runs installation from:
 
@@ -260,7 +260,7 @@ def contexts_print_info(mod_name, repo_path, install_path):
        path to location of git repository
     install_path : str
        path into which to install temporary installations
-    '''
+    """
     site_pkgs_path = os.path.join(install_path, PY_LIB_SDIR)
     # first test archive
     pwd = os.path.abspath(os.getcwd())
@@ -282,7 +282,7 @@ def contexts_print_info(mod_name, repo_path, install_path):
 
 
 def info_from_here(mod_name):
-    ''' Run info context checks starting in working directory
+    """ Run info context checks starting in working directory
 
     Runs checks from current working directory, installing temporary
     installations into a new temporary directory
@@ -291,7 +291,7 @@ def info_from_here(mod_name):
     ----------
     mod_name : str
        package name that will be installed, and tested
-    '''
+    """
     repo_path = os.path.abspath(os.getcwd())
     install_path = tempfile.mkdtemp()
     try:
