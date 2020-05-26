@@ -140,28 +140,6 @@ def test_apply():
         assert_array_equal(a.shape, np.array(t_arr.shape)[np.array(ornt)[:, 0]])
 
 
-def test_flip_axis():
-    a = np.arange(24).reshape((2, 3, 4))
-    assert_array_equal(
-        flip_axis(a),
-        np.flipud(a))
-    assert_array_equal(
-        flip_axis(a, axis=0),
-        np.flipud(a))
-    assert_array_equal(
-        flip_axis(a, axis=1),
-        np.fliplr(a))
-    # check accepts array-like
-    assert_array_equal(
-        flip_axis(a.tolist(), axis=0),
-        np.flipud(a))
-    # third dimension
-    b = a.transpose()
-    b = np.flipud(b)
-    b = b.transpose()
-    assert_array_equal(flip_axis(a, axis=2), b)
-
-
 def test_io_orientation():
     for shape in ((2, 3, 4), (20, 15, 7)):
         for in_arr, out_ornt in zip(IN_ARRS, OUT_ORNTS):
@@ -381,3 +359,11 @@ def test_orientation_affine_deprecation():
     with pytest.deprecated_call():
         aff2 = orientation_affine([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
     assert_array_equal(aff1, aff2)
+
+
+def test_flip_axis_deprecation():
+    a = np.arange(24).reshape((2, 3, 4))
+    axis = 1
+    with pytest.deprecated_call():
+        a_flipped = flip_axis(a, axis)
+    assert_array_equal(a_flipped, np.flip(a, axis))

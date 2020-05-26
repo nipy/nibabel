@@ -18,7 +18,7 @@ import numpy as np
 import nibabel as nib
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
-from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
+from ..orientations import aff2axcodes, inv_ornt_aff
 
 import unittest
 import pytest
@@ -273,7 +273,7 @@ def test_parrec2nii():
             assert code == 1
             # Default scaling is dv
             pr_img = load(fname)
-            flipped_data = flip_axis(pr_img.get_fdata(), 1)
+            flipped_data = np.flip(pr_img.get_fdata(), 1)
             base_cmd = ['parrec2nii', '--overwrite', fname]
             check_conversion(base_cmd, flipped_data, out_froot)
             check_conversion(base_cmd + ['--scaling=dv'],
@@ -281,12 +281,12 @@ def test_parrec2nii():
                              out_froot)
             # fp
             pr_img = load(fname, scaling='fp')
-            flipped_data = flip_axis(pr_img.get_fdata(), 1)
+            flipped_data = np.flip(pr_img.get_fdata(), 1)
             check_conversion(base_cmd + ['--scaling=fp'],
                              flipped_data,
                              out_froot)
             # no scaling
-            unscaled_flipped = flip_axis(pr_img.dataobj.get_unscaled(), 1)
+            unscaled_flipped = np.flip(pr_img.dataobj.get_unscaled(), 1)
             check_conversion(base_cmd + ['--scaling=off'],
                              unscaled_flipped,
                              out_froot)
@@ -335,7 +335,7 @@ def test_parrec2nii_with_data():
                 assert np.all(np.abs(aff_off / vox_sizes) <= 0.501)
                 # The data is very close, unless it's the fieldmap
                 if par_root != 'fieldmap':
-                    conved_data_lps = flip_axis(conved_img.dataobj, 1)
+                    conved_data_lps = np.flip(conved_img.dataobj, 1)
                     assert np.allclose(conved_data_lps, philips_img.dataobj)
     with InTemporaryDirectory():
         # Test some options
