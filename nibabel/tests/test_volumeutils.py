@@ -678,7 +678,7 @@ def test_a2f_nan2zero_range():
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=129)
         # OK with nan2zero false, but we get whatever nan casts to
-        nan_cast = np.array(np.nan).astype(np.int8)
+        nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
         back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
