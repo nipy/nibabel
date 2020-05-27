@@ -31,7 +31,7 @@ MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage="%s [OPTIONS] [FILE ...]\n\n" % sys.argv[0] + __doc__,
+        usage=f"{sys.argv[0]} [OPTIONS] [FILE ...]\n\n" + __doc__,
         version="%prog " + nib.__version__)
 
     p.add_options([
@@ -65,20 +65,20 @@ def get_opt_parser():
 
 
 def proc_file(f, opts):
-    verbose(1, "Loading %s" % f)
+    verbose(1, f"Loading {f}")
 
-    row = ["@l%s" % f]
+    row = [f"@l{f}"]
     try:
         vol = nib.load(f)
         h = vol.header
     except Exception as e:
         row += ['failed']
-        verbose(2, "Failed to gather information -- %s" % str(e))
+        verbose(2, f"Failed to gather information -- {str(e)}")
         return row
 
     row += [str(safe_get(h, 'data_dtype')),
-            '@l[%s]' % ap(safe_get(h, 'data_shape'), '%3g'),
-            '@l%s' % ap(safe_get(h, 'zooms'), '%.2f', 'x')]
+            f"@l[{ap(safe_get(h, 'data_shape'), '%3g')}]",
+            f"@l{ap(safe_get(h, 'zooms'), '%.2f', 'x')}"]
     # Slope
     if hasattr(h, 'has_data_slope') and \
             (h.has_data_slope or h.has_data_intercept) and \
@@ -116,7 +116,7 @@ def proc_file(f, opts):
         else:
             row += ['']
     except Exception as e:
-        verbose(2, "Failed to obtain qform or sform -- %s" % str(e))
+        verbose(2, f"Failed to obtain qform or sform -- {str(e)}")
         if isinstance(h, nib.AnalyzeHeader):
             row += ['']
         else:
@@ -136,7 +136,7 @@ def proc_file(f, opts):
                 # just # of elements
                 row += ["@l[%d]" % np.prod(d.shape)]
                 # stats
-                row += [len(d) and '@l[%.2g, %.2g]' % (np.min(d), np.max(d)) or '-']
+                row += [len(d) and f'@l[{np.min(d):.2g}, {np.max(d):.2g}]' or '-']
             if opts.counts:
                 items, inv = np.unique(d, return_inverse=True)
                 if len(items) > 1000 and not opts.all_counts:
@@ -146,7 +146,7 @@ def proc_file(f, opts):
                     counts = " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))
                 row += ["@l" + counts]
         except IOError as e:
-            verbose(2, "Failed to obtain stats/counts -- %s" % str(e))
+            verbose(2, f"Failed to obtain stats/counts -- {str(e)}")
             row += [_err()]
     return row
 

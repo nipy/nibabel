@@ -23,7 +23,7 @@ __license__ = 'MIT'
 def main(args=None):
     """ Go go team """
     parser = OptionParser(
-        usage="%s [FILE ...]\n\n" % sys.argv[0] + __doc__,
+        usage=f"{sys.argv[0]} [FILE ...]\n\n" + __doc__,
         version="%prog " + nib.__version__)
     (opts, files) = parser.parse_args(args=args)
 
@@ -32,7 +32,7 @@ def main(args=None):
             hdr = fobj.read(nib.nifti1.header_dtype.itemsize)
         result = nib.Nifti1Header.diagnose_binaryblock(hdr)
         if len(result):
-            print('Picky header check output for "%s"\n' % fname)
+            print(f'Picky header check output for "{fname}\"\n')
             print(result + '\n')
         else:
-            print('Header for "%s" is clean' % fname)
+            print(f'Header for "{fname}" is clean')

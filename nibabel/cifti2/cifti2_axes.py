@@ -348,7 +348,7 @@ class BrainModelAxis(Axis):
         else:
             affine = np.asanyarray(affine)
         if affine.shape != (4, 4):
-            raise ValueError("Affine transformation should be a 4x4 array or None, not %r" % affine)
+            raise ValueError(f"Affine transformation should be a 4x4 array or None, not {affine!r}")
 
         mask = np.asanyarray(mask)
         if mask.ndim == 1:
@@ -533,9 +533,9 @@ class BrainModelAxis(Axis):
                 orientation = 'both'
                 structure = name
         if orientation.lower() == 'both':
-            proposed_name = 'CIFTI_STRUCTURE_%s' % structure.upper()
+            proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}'
         else:
-            proposed_name = 'CIFTI_STRUCTURE_%s_%s' % (structure.upper(), orientation.upper())
+            proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}_{orientation.upper()}'
         if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES:
             raise ValueError('%s was interpreted as %s, which is not a valid CIFTI brain structure'
                              % (name, proposed_name))
@@ -990,9 +990,9 @@ class ParcelsAxis(Axis):
         if isinstance(item, str):
             idx = np.where(self.name == item)[0]
             if len(idx) == 0:
-                raise IndexError("Parcel %s not found" % item)
+                raise IndexError(f"Parcel {item} not found")
             if len(idx) > 1:
-                raise IndexError("Multiple parcels with name %s found" % item)
+                raise IndexError(f"Multiple parcels with name {item} found")
             return self.voxels[idx[0]], self.vertices[idx[0]]
         if isinstance(item, int):
             return self.get_element(item)

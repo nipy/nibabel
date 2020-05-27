@@ -108,8 +108,7 @@ class Recoder(object):
         self.field1 = {}  # a placeholder for the check below
         for name in fields:
             if name in self.__dict__:
-                raise KeyError('Input name %s already in object dict'
-                               % name)
+                raise KeyError(f'Input name {name} already in object dict')
             self.__dict__[name] = map_maker()
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)

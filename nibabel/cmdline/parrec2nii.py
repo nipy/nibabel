@@ -22,7 +22,7 @@ from nibabel.affines import apply_affine, from_matvec, to_matvec
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage="%s [OPTIONS] <PAR files>\n\n" % sys.argv[0] + __doc__,
+        usage=f"{sys.argv[0]} [OPTIONS] <PAR files>\n\n" + __doc__,
         version="%prog " + nibabel.__version__)
     p.add_option(
         Option("-v", "--verbose", action="store_true", dest="verbose",
@@ -136,7 +136,7 @@ def get_opt_parser():
 
 def verbose(msg, indent=0):
     if verbose.switch:
-        print("%s%s" % (' ' * indent, msg))
+        print(f"{' ' * indent}{msg}")
 
 
 def error(msg, exit_code):
@@ -172,7 +172,7 @@ def proc_file(infile, opts):
     affine = pr_hdr.get_affine(origin=opts.origin)
     slope, intercept = pr_hdr.get_data_scaling(scaling)
     if opts.scaling != 'off':
-        verbose('Using data scaling "%s"' % opts.scaling)
+        verbose(f'Using data scaling "{opts.scaling}"')
     # get original scaling, and decide if we scale in-place or not
     if opts.scaling == 'off':
         slope = np.array([1.])
@@ -208,8 +208,7 @@ def proc_file(infile, opts):
             bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
             if bad_mask.sum() > 0:
                 pl = 's' if bad_mask.sum() != 1 else ''
-                verbose('Removing %s DTI trace volume%s'
-                        % (bad_mask.sum(), pl))
+                verbose(f'Removing {bad_mask.sum()} DTI trace volume{pl}')
                 good_mask = ~bad_mask
                 in_data = in_data[..., good_mask]
                 bvals = bvals[good_mask]
@@ -243,7 +242,7 @@ def proc_file(infile, opts):
             dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
         nhdr.extensions.append(dump_ext)
 
-    verbose('Writing %s' % outfilename)
+    verbose(f'Writing {outfilename}')
     nibabel.save(nimg, outfilename)
 
     # write out bvals/bvecs if requested
@@ -256,7 +255,7 @@ def proc_file(infile, opts):
             with open(basefilename + '.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 for val in bvals:
-                    fid.write('%s ' % val)
+                    fid.write(f'{val} ')
                 fid.write('\n')
         else:
             verbose('Writing .bvals and .bvecs files')
@@ -267,12 +266,12 @@ def proc_file(infile, opts):
             with open(basefilename + '.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 for val in bvals:
-                    fid.write('%s ' % val)
+                    fid.write(f'{val} ')
                 fid.write('\n')
             with open(basefilename + '.bvecs', 'w') as fid:
                 for row in bvecs.T:
                     for val in row:
-                        fid.write('%s ' % val)
+                        fid.write(f'{val} ')
                     fid.write('\n')
 
     # export data labels varying along the 4th dimensions if requested
@@ -299,7 +298,7 @@ def proc_file(infile, opts):
             verbose('Writing dwell time (%r sec) calculated assuming %sT '
                     'magnet' % (dwell_time, opts.field_strength))
             with open(basefilename + '.dwell_time', 'w') as fid:
-                fid.write('%r\n' % dwell_time)
+                fid.write(f'{dwell_time!r}\n')
     # done
 
 
@@ -310,18 +309,18 @@ def main():
     verbose.switch = opts.verbose
 
     if opts.origin not in ['scanner', 'fov']:
-        error("Unrecognized value for --origin: '%s'." % opts.origin, 1)
+        error(f"Unrecognized value for --origin: '{opts.origin}'.", 1)
     if opts.dwell_time and opts.field_strength is None:
         error('Need --field-strength for dwell time calculation', 1)
 
     # store any exceptions
     errs = []
     for infile in infiles:
-        verbose('Processing %s' % infile)
+        verbose(f'Processing {infile}')
         try:
             proc_file(infile, opts)
         except Exception as e:
-            errs.append('%s: %s' % (infile, e))
+            errs.append(f'{infile}: {e}')
 
     if len(errs):
         error('Caught %i exceptions. Dump follows:\n\n %s'

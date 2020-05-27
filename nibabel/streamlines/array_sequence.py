@@ -74,7 +74,7 @@ def _define_operators(cls):
                "__floordiv__", "__truediv__", "__lshift__", "__rshift__",
                "__or__", "__and__", "__xor__"]:
         _wrap(cls, op=op, inplace=False)
-        _wrap(cls, op="__i{}__".format(op.strip("_")), inplace=True)
+        _wrap(cls, op=f"__i{op.strip('_')}__", inplace=True)
 
     for op in ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
         _wrap(cls, op)
@@ -526,8 +526,7 @@ class ArraySequence(object):
         else:
             data = str(list(self))
 
-        return "{name}({data})".format(name=self.__class__.__name__,
-                                       data=data)
+        return f"{self.__class__.__name__}({data})"
 
     def save(self, filename):
         """ Saves this :class:`ArraySequence` object to a .npz file. """

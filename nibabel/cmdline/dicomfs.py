@@ -71,31 +71,31 @@ class DICOMFS(fuse.Fuse):
         for study in dft.get_studies(self.dicom_path, self.followlinks):
             pd = paths.setdefault(study.patient_name_or_uid(), {})
             patient_info = 'patient information\n'
-            patient_info = 'name: %s\n' % study.patient_name
-            patient_info += 'ID: %s\n' % study.patient_id
-            patient_info += 'birth date: %s\n' % study.patient_birth_date
-            patient_info += 'sex: %s\n' % study.patient_sex
+            patient_info = f'name: {study.patient_name}\n'
+            patient_info += f'ID: {study.patient_id}\n'
+            patient_info += f'birth date: {study.patient_birth_date}\n'
+            patient_info += f'sex: {study.patient_sex}\n'
             pd['INFO'] = patient_info.encode('ascii', 'replace')
-            study_datetime = '%s_%s' % (study.date, study.time)
+            study_datetime = f'{study.date}_{study.time}'
             study_info = 'study info\n'
-            study_info += 'UID: %s\n' % study.uid
-            study_info += 'date: %s\n' % study.date
-            study_info += 'time: %s\n' % study.time
-            study_info += 'comments: %s\n' % study.comments
+            study_info += f'UID: {study.uid}\n'
+            study_info += f'date: {study.date}\n'
+            study_info += f'time: {study.time}\n'
+            study_info += f'comments: {study.comments}\n'
             d = {'INFO': study_info.encode('ascii', 'replace')}
             for series in study.series:
                 series_info = 'series info\n'
-                series_info += 'UID: %s\n' % series.uid
-                series_info += 'number: %s\n' % series.number
-                series_info += 'description: %s\n' % series.description
+                series_info += f'UID: {series.uid}\n'
+                series_info += f'number: {series.number}\n'
+                series_info += f'description: {series.description}\n'
                 series_info += 'rows: %d\n' % series.rows
                 series_info += 'columns: %d\n' % series.columns
                 series_info += 'bits allocated: %d\n' % series.bits_allocated
                 series_info += 'bits stored: %d\n' % series.bits_stored
                 series_info += 'storage instances: %d\n' % len(series.storage_instances)
                 d[series.number] = {'INFO': series_info.encode('ascii', 'replace'),
-                                    '%s.nii' % series.number: (series.nifti_size, series.as_nifti),
-                                    '%s.png' % series.number: (series.png_size, series.as_png)}
+                                    f'{series.number}.nii': (series.nifti_size, series.as_nifti),
+                                    f'{series.number}.png': (series.png_size, series.as_png)}
             pd[study_datetime] = d
         return paths
 
@@ -105,7 +105,7 @@ class DICOMFS(fuse.Fuse):
             logger.debug('return root')
             return wd
         for part in path.lstrip('/').split('/'):
-            logger.debug("path:%s part:%s" % (path, part))
+            logger.debug(f"path:{path} part:{part}")
             if part not in wd:
                 return None
             wd = wd[part]
@@ -113,20 +113,20 @@ class DICOMFS(fuse.Fuse):
         return wd
 
     def readdir(self, path, fh):
-        logger.info('readdir %s' % (path,))
+        logger.info(f'readdir {path}')
         matched_path = self.match_path(path)
         if matched_path is None:
             return -errno.ENOENT
-        logger.debug('matched %s' % (matched_path,))
+        logger.debug(f'matched {matched_path}')
         fnames = [k.encode('ascii', 'replace') for k in matched_path.keys()]
         fnames.append('.')
         fnames.append('..')
         return [fuse.Direntry(f) for f in fnames]
 
     def getattr(self, path):
-        logger.debug('getattr %s' % path)
+        logger.debug(f'getattr {path}')
         matched_path = self.match_path(path)
-        logger.debug('matched: %s' % (matched_path,))
+        logger.debug(f'matched: {matched_path}')
         now = time.time()
         st = fuse.Stat()
         if isinstance(matched_path, dict):
@@ -161,7 +161,7 @@ class DICOMFS(fuse.Fuse):
         return -errno.ENOENT
 
     def open(self, path, flags):
-        logger.debug('open %s' % (path,))
+        logger.debug(f'open {path}')
         matched_path = self.match_path(path)
         if matched_path is None:
             return -errno.ENOENT
@@ -223,7 +223,7 @@ def main(args=None):
         logger.setLevel(opts.verbose > 1 and logging.DEBUG or logging.INFO)
 
     if len(files) != 2:
-        sys.stderr.write("Please provide two arguments:\n%s\n" % parser.usage)
+        sys.stderr.write(f"Please provide two arguments:\n{parser.usage}\n")
         sys.exit(1)
 
     fs = DICOMFS(

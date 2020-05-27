@@ -409,7 +409,7 @@ def test_keep_file_open_true_false_invalid():
         with InTemporaryDirectory(), \
              mock.patch('nibabel.openers.ImageOpener', CountingImageOpener), \
              patch_indexed_gzip(have_igzip):
-            fname = 'testdata.{}'.format(filetype)
+            fname = f'testdata.{filetype}'
             # create the test data file
             if filetype == 'gz':
                 with gzip.open(fname, 'wb') as fobj:

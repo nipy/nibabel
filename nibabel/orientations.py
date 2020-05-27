@@ -113,8 +113,7 @@ def ornt_transform(start_ornt, end_ornt):
     if start_ornt.shape != end_ornt.shape:
         raise ValueError("The orientations must have the same shape")
     if start_ornt.shape[1] != 2:
-        raise ValueError("Invalid shape for an orientation: %s" %
-                         (start_ornt.shape,))
+        raise ValueError(f"Invalid shape for an orientation: {start_ornt.shape}")
     result = np.empty_like(start_ornt)
     for end_in_idx, (end_out_idx, end_flip) in enumerate(end_ornt):
         for start_in_idx, (start_out_idx, start_flip) in enumerate(start_ornt):
@@ -296,7 +295,7 @@ def ornt2axcodes(ornt, labels=None):
             continue
         axint = int(np.round(axno))
         if axint != axno:
-            raise ValueError('Non integer axis number %f' % axno)
+            raise ValueError(f'Non integer axis number {axno:f}')
         elif direction == 1:
             axcode = labels[axint][1]
         elif direction == -1:
@@ -336,7 +335,7 @@ def axcodes2ornt(axcodes, labels=None):
     labels = list(zip('LPI', 'RAS')) if labels is None else labels
     allowed_labels = sum([list(L) for L in labels], []) + [None]
     if len(allowed_labels) != len(set(allowed_labels)):
-        raise ValueError('Duplicate labels in {}'.format(allowed_labels))
+        raise ValueError(f'Duplicate labels in {allowed_labels}')
     if not set(axcodes).issubset(allowed_labels):
         raise ValueError('Not all axis codes {} in label set {}'
                          .format(list(axcodes), allowed_labels))

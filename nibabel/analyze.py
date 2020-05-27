@@ -571,16 +571,16 @@ class AnalyzeHeader(LabeledWrapStruct):
                 dt = np.dtype(dt)
             except TypeError:
                 raise HeaderDataError(
-                    'data dtype "{0}" not recognized'.format(datatype))
+                    f'data dtype "{datatype}" not recognized')
             if dt not in self._data_type_codes:
                 raise HeaderDataError(
-                    'data dtype "{0}" not supported'.format(datatype))
+                    f'data dtype "{datatype}" not supported')
         code = self._data_type_codes[dt]
         dtype = self._data_type_codes.dtype[code]
         # test for void, being careful of user-defined types
         if dtype.type is np.void and not dtype.fields:
             raise HeaderDataError(
-                'data dtype "{0}" known but not supported'.format(datatype))
+                f'data dtype "{datatype}" known but not supported')
         self._structarr['datatype'] = code
         self._structarr['bitpix'] = dtype.itemsize * 8
 
@@ -632,8 +632,7 @@ class AnalyzeHeader(LabeledWrapStruct):
             values_fit = np.all(dims[1:ndims + 1] == shape)
         # Error if we did not succeed setting dimensions
         if not values_fit:
-            raise HeaderDataError('shape %s does not fit in dim datatype' %
-                                  (shape,))
+            raise HeaderDataError(f'shape {shape} does not fit in dim datatype')
         self._structarr['pixdim'][ndims + 1:] = 1.0
 
     def get_base_affine(self):

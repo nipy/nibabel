@@ -373,7 +373,7 @@ class TestTRK(unittest.TestCase):
         # TRK supports up to 10 data_per_point.
         data_per_point = {}
         for i in range(10):
-            data_per_point['#{0}'.format(i)] = DATA['fa']
+            data_per_point[f'#{i}'] = DATA['fa']
 
             tractogram = Tractogram(DATA['streamlines'],
                                     data_per_point=data_per_point,
@@ -388,7 +388,7 @@ class TestTRK(unittest.TestCase):
             assert_tractogram_equal(new_trk.tractogram, tractogram)
 
         # More than 10 data_per_point should raise an error.
-        data_per_point['#{0}'.format(i+1)] = DATA['fa']
+        data_per_point[f'#{i + 1}'] = DATA['fa']
 
         tractogram = Tractogram(DATA['streamlines'],
                                 data_per_point=data_per_point,
@@ -401,7 +401,7 @@ class TestTRK(unittest.TestCase):
         # TRK supports up to 10 data_per_streamline.
         data_per_streamline = {}
         for i in range(10):
-            data_per_streamline['#{0}'.format(i)] = DATA['mean_torsion']
+            data_per_streamline[f'#{i}'] = DATA['mean_torsion']
 
             tractogram = Tractogram(DATA['streamlines'],
                                     data_per_streamline=data_per_streamline,
@@ -416,7 +416,7 @@ class TestTRK(unittest.TestCase):
             assert_tractogram_equal(new_trk.tractogram, tractogram)
 
         # More than 10 data_per_streamline should raise an error.
-        data_per_streamline['#{0}'.format(i+1)] = DATA['mean_torsion']
+        data_per_streamline[f'#{i + 1}'] = DATA['mean_torsion']
 
         tractogram = Tractogram(DATA['streamlines'],
                                 data_per_streamline=data_per_streamline)

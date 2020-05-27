@@ -167,8 +167,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     else:
         hdr = hdr.newbyteorder()
         if hdr['hdr_size'] != 1000:
-            raise HeaderError('Invalid hdr_size of %s'
-                              % hdr['hdr_size'])
+            raise HeaderError(f"Invalid hdr_size of {hdr['hdr_size']}")
         endianness = swapped_code
     # Check version and adapt structure accordingly
     version = hdr['version']
@@ -248,8 +247,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
         # Raise error if we didn't get as many streams as claimed
         if n_streams_required != np.inf and n_streams < n_streams_required:
             raise DataError(
-                'Expecting {0} streamlines, found only {1}'.format(
-                    stream_count, n_streams))
+                f'Expecting {stream_count} streamlines, found only {n_streams}')
 
     streamlines = track_gen()
     if not as_generator:
@@ -428,8 +426,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
                 raise DataError('Expecting 0 scalars per point')
         else:
             if scalars.shape != (n_pts, n_s):
-                raise DataError('Scalars should be shape (%s, %s)' %
-                                (n_pts, n_s))
+                raise DataError(f'Scalars should be shape ({n_pts}, {n_s})')
             if scalars.dtype != f4dt:
                 scalars = scalars.astype(f4dt)
             pts = np.c_[pts, scalars]
@@ -439,7 +436,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
                 raise DataError('Expecting 0 properties per point')
         else:
             if props.size != n_p:
-                raise DataError('Properties should be size %s' % n_p)
+                raise DataError(f'Properties should be size {n_p}')
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tobytes())
@@ -480,7 +477,7 @@ def _check_hdr_points_space(hdr, points_space):
             raise HeaderError('Cannot convert between voxels and voxmm when '
                               '"voxel_sizes" all 0')
         if np.any(voxel_size == 0):
-            warnings.warn('zero values in "voxel_size" - %s' % voxel_size)
+            warnings.warn(f'zero values in "voxel_size" - {voxel_size}')
         return
     elif points_space == 'rasmm':
         try:

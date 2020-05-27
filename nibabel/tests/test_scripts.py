@@ -175,7 +175,7 @@ def test_help():
                 continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])
         assert code == 0
-        assert_re_in(".*%s" % cmd, stdout)
+        assert_re_in(f".*{cmd}", stdout)
         assert_re_in(".*Usage", stdout)
         # Some third party modules might like to announce some Deprecation
         # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
@@ -194,15 +194,15 @@ def test_nib_nifti_dx():
     clean_hdr = pjoin(DATA_PATH, 'nifti1.hdr')
     cmd = ['nib-nifti-dx', clean_hdr]
     code, stdout, stderr = run_command(cmd)
-    assert stdout.strip() == 'Header for "%s" is clean' % clean_hdr
+    assert stdout.strip() == f'Header for "{clean_hdr}" is clean'
     dirty_hdr = pjoin(DATA_PATH, 'analyze.hdr')
     cmd = ['nib-nifti-dx', dirty_hdr]
     code, stdout, stderr = run_command(cmd)
-    expected = """Picky header check output for "%s"
+    expected = f"""Picky header check output for "{dirty_hdr}"
 
 pixdim[0] (qfac) should be 1 (default) or -1
 magic string "" is not valid
-sform_code 11776 not valid""" % (dirty_hdr,)
+sform_code 11776 not valid"""
     # Split strings to remove line endings
     assert stdout == expected
 

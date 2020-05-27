@@ -213,8 +213,8 @@ class OrthoSlicer3D(object):
         self._draw()
 
     def __repr__(self):
-        title = '' if self._title is None else ('%s ' % self._title)
-        vol = '' if self.n_volumes <= 1 else (', %s' % self.n_volumes)
+        title = '' if self._title is None else (f'{self._title} ')
+        vol = '' if self.n_volumes <= 1 else (f', {self.n_volumes}')
         r = ('<%s: %s(%s, %s, %s%s)>'
              % (self.__class__.__name__, title, self._sizes[0], self._sizes[1],
                 self._sizes[2], vol))

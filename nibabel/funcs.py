@@ -134,8 +134,7 @@ def concat_images(images, check_affines=True, axis=None):
     for i, img in enumerate(images):
         if len(img.shape) != n_dim:
             raise ValueError(
-                'Image {0} has {1} dimensions, image 0 has {2}'.format(
-                    i, len(img.shape), n_dim))
+                f'Image {i} has {len(img.shape)} dimensions, image 0 has {n_dim}')
         if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
             raise ValueError('shape {0} for image {1} not compatible with '
                              'first image shape {2} with axis == {3}'.format(

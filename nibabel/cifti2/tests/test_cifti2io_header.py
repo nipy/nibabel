@@ -330,7 +330,7 @@ def test_read_parcels():
             assert len(vertices) == length
             assert vertices[0] == first_element
             assert vertices[-1] == last_element
-            assert vertices.brain_structure == 'CIFTI_STRUCTURE_CORTEX_%s' % orientation
+            assert vertices.brain_structure == f'CIFTI_STRUCTURE_CORTEX_{orientation}'
 
 
 @needs_nibabel_data('nitest-cifti2')

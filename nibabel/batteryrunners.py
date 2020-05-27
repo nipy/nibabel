@@ -291,8 +291,7 @@ class Report(object):
            write the report to `stream`, otherwise we write nothing.
         """
         if self.problem_level >= log_level:
-            stream.write('Level %s: %s\n' %
-                         (self.problem_level, self.message))
+            stream.write(f'Level {self.problem_level}: {self.message}\n')
         if self.problem_level and self.problem_level >= error_level:
             if self.error:
                 raise self.error(self.problem_msg)

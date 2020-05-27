@@ -52,8 +52,7 @@ def read_zt_byte_strings(fobj, n_strings=1, bufsize=1024):
         if eof or n_found >= n_strings:
             break
     if n_found < n_strings:
-        raise ValueError('Expected {0} strings, found {1}'.format(
-            n_strings, n_found))
+        raise ValueError(f'Expected {n_strings} strings, found {n_found}')
     n_extra = n_found - n_strings
     leftover_strings = byte_strings[n_strings:] + [trailing]
     # Add number of extra strings to account for lost terminal 0s

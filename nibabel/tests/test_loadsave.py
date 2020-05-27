@@ -89,7 +89,7 @@ def test_read_img_data_nifti():
             with pytest.raises(ImageFileError):
                 read_img_data(img)
             # Make a filemap
-            froot = 'an_image_{0}'.format(i)
+            froot = f'an_image_{i}'
             img.file_map = img.filespec_to_file_map(froot)
             # Trying to read from this filemap will generate an error because
             # we are going to read from files that do not exist

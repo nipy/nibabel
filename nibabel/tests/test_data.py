@@ -141,7 +141,7 @@ def test_data_path(with_nimd_env):
         tmpfile = pjoin(tmpdir, 'config.ini')
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
-            fobj.write('path = %s' % tst_pth)
+            fobj.write(f'path = {tst_pth}')
         nibd.get_nipy_user_dir = lambda: tmpdir
         assert get_data_path() == tst_list + def_dirs + [tmpdir]
     nibd.get_nipy_user_dir = lambda: fake_user_dir
@@ -152,7 +152,7 @@ def test_data_path(with_nimd_env):
         tmpfile = pjoin(tmpdir, 'an_example.ini')
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')
-            fobj.write('path = %s\n' % tst_pth)
+            fobj.write(f'path = {tst_pth}\n')
         tmpfile = pjoin(tmpdir, 'another_example.ini')
         with open(tmpfile, 'wt') as fobj:
             fobj.write('[DATA]\n')

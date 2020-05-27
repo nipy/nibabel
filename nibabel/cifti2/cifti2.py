@@ -92,7 +92,7 @@ CIFTI_BRAIN_STRUCTURES = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
 def _value_if_klass(val, klass):
     if val is None or isinstance(val, klass):
         return val
-    raise ValueError('Not a valid %s instance.' % klass.__name__)
+    raise ValueError(f'Not a valid {klass.__name__} instance.')
 
 
 def _underscore(string):

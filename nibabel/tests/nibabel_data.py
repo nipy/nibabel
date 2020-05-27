@@ -46,4 +46,4 @@ def needs_nibabel_data(subdir=None):
     # Path should not be empty (as is the case for not-updated submodules)
     have_files = exists(required_path) and len(listdir(required_path)) > 0
     return unittest.skipUnless(have_files,
-                               "Need files in {0} for these tests".format(required_path))
+                               f"Need files in {required_path} for these tests")

@@ -268,7 +268,7 @@ def type_info(np_type):
     # and then give up. At this stage we're expecting exotic longdouble or
     # their complex equivalent.
     if np_type not in (np.longdouble, np.longcomplex) or width not in (16, 32):
-        raise FloatingError('We had not expected type %s' % np_type)
+        raise FloatingError(f'We had not expected type {np_type}')
     if (vals == (1, 1, 16) and on_powerpc() and
             _check_maxexp(np.longdouble, 1024)):
         # double pair on PPC.  The _check_nmant routine does not work for this
@@ -402,7 +402,7 @@ def as_int(x, check=True):
         return ix
     fx = np.floor(x)
     if check and fx != x:
-        raise FloatingError('Not an integer: %s' % x)
+        raise FloatingError(f'Not an integer: {x}')
     if not fx.dtype.type == np.longdouble:
         return int(x)
     # Subtract float64 chunks until we have all of the number. If the int is

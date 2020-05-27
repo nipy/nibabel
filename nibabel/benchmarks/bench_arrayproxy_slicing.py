@@ -96,7 +96,7 @@ def bench_arrayproxy_slicing():
                 slcstr.append(s)
             else:
                 slcstr.append(str(int(s * SHAPE[i])))
-        return '[{}]'.format(', '.join(slcstr))
+        return f"[{', '.join(slcstr)}]"
 
     with InTemporaryDirectory():
 
@@ -133,8 +133,7 @@ def bench_arrayproxy_slicing():
             have_igzip, keep_open, sliceobj = test
             seed = seeds[SLICEOBJS.index(sliceobj)]
 
-            print('Running test {} of {} ({})...'.format(
-                ti + 1, len(tests), label))
+            print(f'Running test {ti + 1} of {len(tests)} ({label})...')
 
             # load uncompressed and compressed versions of the image
             img = nib.load(testfile, keep_file_open=keep_open)

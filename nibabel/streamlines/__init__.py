@@ -90,7 +90,7 @@ def load(fileobj, lazy_load=False):
     tractogram_file = detect_format(fileobj)
 
     if tractogram_file is None:
-        raise ValueError("Unknown format for 'fileobj': {}".format(fileobj))
+        raise ValueError(f"Unknown format for 'fileobj': {fileobj}")
 
     return tractogram_file.load(fileobj, lazy_load=lazy_load)
 
@@ -116,7 +116,7 @@ def save(tractogram, filename, **kwargs):
     tractogram_file_class = detect_format(filename)
     if isinstance(tractogram, Tractogram):
         if tractogram_file_class is None:
-            msg = "Unknown tractogram file format: '{}'".format(filename)
+            msg = f"Unknown tractogram file format: '{filename}'"
             raise ValueError(msg)
 
         tractogram_file = tractogram_file_class(tractogram, **kwargs)

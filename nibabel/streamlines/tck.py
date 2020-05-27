@@ -252,9 +252,9 @@ class TckFile(TractogramFile):
 
         lines = []
         lines.append(asstr(header[Field.MAGIC_NUMBER]))
-        lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
+        lines.append(f"count: {header[Field.NB_STREAMLINES]:010}")
         lines.append("datatype: Float32LE")  # Always Float32LE.
-        lines.extend(["{0}: {1}".format(k, v)
+        lines.extend([f"{k}: {v}"
                       for k, v in header.items()
                       if k not in exclude and not k.startswith("_")])
         lines.append("file: . ")  # Manually add this last field.
@@ -262,12 +262,12 @@ class TckFile(TractogramFile):
 
         # Check the header is well formatted.
         if out.count("\n") > len(lines) - 1:  # \n only allowed between lines.
-            msg = "Key-value pairs cannot contain '\\n':\n{}".format(out)
+            msg = f"Key-value pairs cannot contain '\\n':\n{out}"
             raise HeaderError(msg)
 
         if out.count(":") > len(lines) - 1:
             # : only one per line (except the last one which contains END).
-            msg = "Key-value pairs cannot contain ':':\n{}".format(out)
+            msg = f"Key-value pairs cannot contain ':':\n{out}"
             raise HeaderError(msg)
 
         # Write header to file.
@@ -338,7 +338,7 @@ class TckFile(TractogramFile):
             msg = ("Missing 'file' attribute in TCK header."
                    " Will try to guess it.")
             warnings.warn(msg, HeaderWarning)
-            hdr['file'] = '. {}'.format(offset_data)
+            hdr['file'] = f'. {offset_data}'
 
         if hdr['file'].split()[0] != '.':
             msg = ("TCK only supports single-file - in other words the"
@@ -452,7 +452,7 @@ class TckFile(TractogramFile):
         hdr = self.header
 
         info = ""
-        info += "\nMAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
+        info += f"\nMAGIC NUMBER: {hdr[Field.MAGIC_NUMBER]}"
         info += "\n"
         info += "\n".join(["{}: {}".format(k, v)
                            for k, v in hdr.items() if not k.startswith('_')])

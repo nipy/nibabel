@@ -80,7 +80,7 @@ class ScriptRunner(object):
         self.local_script_dir = local_script_dir(script_sdir)
         self.local_module_dir = local_module_dir(module_sdir)
         if debug_print_var is None:
-            debug_print_var = '{0}_DEBUG_PRINT'.format(module_sdir.upper())
+            debug_print_var = f'{module_sdir.upper()}_DEBUG_PRINT'
         self.debug_print = os.environ.get(debug_print_var, False)
         self.output_processor = output_processor
 
@@ -119,9 +119,9 @@ class ScriptRunner(object):
             # Quote any arguments with spaces. The quotes delimit the arguments
             # on Windows, and the arguments might be file paths with spaces.
             # On Unix the list elements are each separate arguments.
-            cmd = ['"{0}"'.format(c) if ' ' in c else c for c in cmd]
+            cmd = [f'"{c}"' if ' ' in c else c for c in cmd]
         if self.debug_print:
-            print("Running command '%s'" % cmd)
+            print(f"Running command '{cmd}'")
         env = os.environ
         if not self.local_module_dir is None:
             # module likely comes from the current working directory. We might need
@@ -139,13 +139,13 @@ class ScriptRunner(object):
             proc.terminate()
         if check_code and proc.returncode != 0:
             raise RuntimeError(
-                """Command "{0}" failed with
+                f"""Command "{cmd}" failed with
                 stdout
                 ------
-                {1}
+                {stdout}
                 stderr
                 ------
-                {2}
-                """.format(cmd, stdout, stderr))
+                {stderr}
+                """)
         opp = self.output_processor
         return proc.returncode, opp(stdout), opp(stderr)

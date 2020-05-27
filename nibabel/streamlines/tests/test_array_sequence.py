@@ -402,7 +402,7 @@ class TestArraySequence(unittest.TestCase):
             if op in CMP_OPS:
                 continue
 
-            op = "__i{}__".format(op.strip("_"))
+            op = f"__i{op.strip('_')}__"
             _test_binary(op, seq, SCALARS, ARRSEQS, inplace=True)
 
             if op == "__itruediv__":

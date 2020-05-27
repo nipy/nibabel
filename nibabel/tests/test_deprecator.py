@@ -100,8 +100,7 @@ class TestDeprecatorFunc(object):
         with pytest.raises(ExpiredDeprecationError):
             func()
         assert (func.__doc__ ==
-                'foo\n\n* Raises {} as of version: 1.8\n'
-                .format(ExpiredDeprecationError))
+                f'foo\n\n* Raises {ExpiredDeprecationError} as of version: 1.8\n')
         func = dec('foo', '1.2', '1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()

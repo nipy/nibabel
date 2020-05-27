@@ -430,8 +430,7 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     slice_set = set(range(slice_min, slice_max + 1))
     if not slice_set.issuperset(slice_nos):
         raise ValueError(
-            'Slice numbers outside inclusive range {0} to {1}'.format(
-                slice_min, slice_max))
+            f'Slice numbers outside inclusive range {slice_min} to {slice_max}')
     vol_nos = np.array(vol_numbers(slice_nos))
     slice_nos = np.asarray(slice_nos)
     is_full = np.ones(slice_nos.shape, dtype=bool)
@@ -500,10 +499,10 @@ def parse_PAR_header(fobj):
     version, gen_dict, image_lines = _split_header(fobj)
     if version not in supported_versions:
         warnings.warn(one_line(
-            """ PAR/REC version '{0}' is currently not supported -- making an
+            f""" PAR/REC version '{version}' is currently not supported -- making an
             attempt to read nevertheless. Please email the NiBabel mailing
             list, if you are interested in adding support for this version.
-            """.format(version)))
+            """))
     general_info = _process_gen_dict(gen_dict)
     image_defs = _process_image_lines(image_lines, version)
     return general_info, image_defs
@@ -980,7 +979,7 @@ class PARRECHeader(SpatialHeader):
         permute_to_psl = ACQ_TO_PSL.get(slice_orientation)
         if permute_to_psl is None:
             raise PARRECError(
-                "Unknown slice orientation ({0}).".format(slice_orientation))
+                f"Unknown slice orientation ({slice_orientation}).")
         # hdr has deg, we need radians
         # Order is [ap, fh, rl]
         ap_rot, fh_rot, rl_rot = self.general_info['angulation'] * DEG2RAD
@@ -1076,7 +1075,7 @@ class PARRECHeader(SpatialHeader):
             slope = 1.0 / scale_slope
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
-            raise ValueError("Unknown scaling method '%s'." % method)
+            raise ValueError(f"Unknown scaling method '{method}'.")
         reorder = self.get_sorted_slice_indices()
         slope = slope[reorder]
         intercept = intercept[reorder]

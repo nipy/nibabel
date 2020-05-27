@@ -128,11 +128,11 @@ class VersionedDatasource(Datasource):
         cfg_file = self.get_filename(config_filename)
         readfiles = self.config.read(cfg_file)
         if not readfiles:
-            raise DataError('Could not read config file %s' % cfg_file)
+            raise DataError(f'Could not read config file {cfg_file}')
         try:
             self.version = self.config.get('DEFAULT', 'version')
         except configparser.Error:
-            raise DataError('Could not get version from %s' % cfg_file)
+            raise DataError(f'Could not get version from {cfg_file}')
         version_parts = self.version.split('.')
         self.major_version = int(version_parts[0])
         self.minor_version = int(version_parts[1])
@@ -294,12 +294,11 @@ def make_datasource(pkg_def, **kwargs):
         pth = [pjoin(this_data_path, *names)
                for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-        msg = ('%s; Is it possible you have not installed a data package?' %
-               e)
+        msg = (f'{e}; Is it possible you have not installed a data package?')
         if 'name' in pkg_def:
-            msg += '\n\nYou may need the package "%s"' % pkg_def['name']
+            msg += f"\n\nYou may need the package \"{pkg_def['name']}\""
         if pkg_hint is not None:
-            msg += '\n\n%s' % pkg_hint
+            msg += f'\n\n{pkg_hint}'
         raise DataError(msg)
     return VersionedDatasource(pth)
 

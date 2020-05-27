@@ -25,7 +25,7 @@ def main():
     for tractogram in args.tractograms:
         tractogram_format = nib.streamlines.detect_format(tractogram)
         if tractogram_format is not nib.streamlines.TrkFile:
-            print("Skipping non TRK file: '{}'".format(tractogram))
+            print(f"Skipping non TRK file: '{tractogram}'")
             continue
 
         filename, _ = os.path.splitext(tractogram)

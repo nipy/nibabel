@@ -10,8 +10,8 @@ import shutil
 from  toollib import *
 
 tag = commands.getoutput('git describe')
-base_name = 'nibabel-%s' % tag
-tar_name = '%s.tgz' % base_name
+base_name = f'nibabel-{tag}'
+tar_name = f'{base_name}.tgz'
 
 # git archive is weird:  Even if I give it a specific path, it still won't
 # archive the whole tree.  It seems the only way to get the whole tree is to cd
@@ -22,4 +22,4 @@ start_dir = os.getcwd()
 cd('..')
 git_tpl = 'git archive --format=tar --prefix={0}/ HEAD | gzip > {1}'
 c(git_tpl.format(base_name, tar_name))
-c('mv {0} tools/'.format(tar_name))
+c(f'mv {tar_name} tools/')

@@ -342,8 +342,7 @@ class ApiDocWriter(object):
         elif match_type == 'package':
             patterns = self.package_skip_patterns
         else:
-            raise ValueError('Cannot interpret match type "%s"'
-                             % match_type)
+            raise ValueError(f'Cannot interpret match type "{match_type}"')
         # Match to URI without package name
         L = len(self.package_name)
         if matchstr[:L] == self.package_name:
@@ -424,7 +423,7 @@ class ApiDocWriter(object):
         written_modules = []
 
         for ulm, mods in module_by_ulm.items():
-            print("Generating docs for %s:" % ulm)
+            print(f"Generating docs for {ulm}:")
             document_head = []
             document_body = []
 
@@ -505,5 +504,5 @@ class ApiDocWriter(object):
         w("=" * len(title) + "\n\n")
         w('.. toctree::\n\n')
         for f in self.written_modules:
-            w('   %s\n' % os.path.join(relpath, f))
+            w(f'   {os.path.join(relpath, f)}\n')
         idx.close()

@@ -487,7 +487,7 @@ class GiftiDataArray(xml.XmlSerializable):
 \tExternalFileOffset="%d">\n"""
         di = ""
         for i, n in enumerate(self.dims):
-            di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
+            di = di + f'\tDim{str(i)}="{str(n)}\"\n'
         return out % (intent_codes.niistring[self.intent],
                       data_type_codes.niistring[self.datatype],
                       array_index_order_codes.label[self.ind_ord],
@@ -838,7 +838,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             print(self.labeltable.print_summary())
         for i, da in enumerate(self.darrays):
             print('----')
-            print('DataArray %s:' % i)
+            print(f'DataArray {i}:')
             print(da.print_summary())
         print('----end----')
 

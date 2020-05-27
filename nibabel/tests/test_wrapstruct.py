@@ -347,7 +347,7 @@ class _TestLabeledWrapStruct(_TestWrapStructBase):
             # Speculating that we can set code value 0 or 1
             new_code = 1 if code == 0 else 0
             hdr[key] = new_code
-            assert hdr.get_value_label(key) == '<unknown code {0}>'.format(new_code)
+            assert hdr.get_value_label(key) == f'<unknown code {new_code}>'
 
 
 class MyWrapStruct(WrapStruct):
