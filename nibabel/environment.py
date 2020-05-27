@@ -1,8 +1,8 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-'''
+"""
 Settings from the system environment relevant to NIPY
-'''
+"""
 
 import os
 from os.path import join as pjoin
@@ -66,7 +66,7 @@ def get_nipy_user_dir():
 
 
 def get_nipy_system_dir():
-    r''' Get systemwide NIPY configuration file directory
+    r""" Get systemwide NIPY configuration file directory
 
     On posix systems this will be ``/etc/nipy``.
     On Windows, the directory is less useful, but by default it will be
@@ -87,7 +87,7 @@ def get_nipy_system_dir():
     Examples
     --------
     >>> pth = get_nipy_system_dir()
-    '''
+    """
     if os.name == 'nt':
         return r'C:\etc\nipy'
     if os.name == 'posix':

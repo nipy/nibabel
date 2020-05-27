@@ -15,10 +15,10 @@ from .deprecated import deprecate_with_version
 
 
 class DataobjImage(FileBasedImage):
-    ''' Template class for images that have dataobj data stores'''
+    """ Template class for images that have dataobj data stores"""
 
     def __init__(self, dataobj, header=None, extra=None, file_map=None):
-        ''' Initialize dataobj image
+        """ Initialize dataobj image
 
         The datobj image is a combination of (dataobj, header), with optional
         metadata in `extra`, and filename / file-like objects contained in the
@@ -37,7 +37,7 @@ class DataobjImage(FileBasedImage):
            metadata of this image type
         file_map : mapping, optional
            mapping giving file information for this image format
-        '''
+        """
         super(DataobjImage, self).__init__(header=header, extra=extra,
                                            file_map=file_map)
         self._dataobj = dataobj
@@ -415,7 +415,7 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
-        ''' Class method to create image from mapping in ``file_map``
+        """ Class method to create image from mapping in ``file_map``
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
@@ -447,12 +447,12 @@ class DataobjImage(FileBasedImage):
         Returns
         -------
         img : DataobjImage instance
-        '''
+        """
         raise NotImplementedError
 
     @classmethod
     def from_filename(klass, filename, *, mmap=True, keep_file_open=None):
-        '''Class method to create image from filename `filename`
+        """Class method to create image from filename `filename`
 
         .. deprecated:: 2.4.1
             ``keep_file_open='auto'`` is redundant with `False` and has
@@ -481,7 +481,7 @@ class DataobjImage(FileBasedImage):
         Returns
         -------
         img : DataobjImage instance
-        '''
+        """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)

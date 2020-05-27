@@ -1,4 +1,4 @@
-''' Just showing the mosaic simplification '''
+""" Just showing the mosaic simplification """
 
 from sympy import Matrix, Symbol, symbols, simplify
 
@@ -19,12 +19,12 @@ mdc, mdr, rdc, rdr = symbols(
     'md_{cols} md_{rows} rd_{cols} rd_{rows}')
 
 md_adj = Matrix((mdc - 1, mdr - 1, 0)) / -2
-rd_adj = Matrix((rdc - 1 , rdr - 1, 0)) / -2
+rd_adj = Matrix((rdc - 1, rdr - 1, 0)) / -2
 
 adj = -(RS * md_adj) + RS * rd_adj
 adj.simplify()
 
-Q = RS[:,:2] * Matrix((
+Q = RS[:, :2] * Matrix((
         (mdc - rdc) / 2,
         (mdr - rdr) / 2))
 

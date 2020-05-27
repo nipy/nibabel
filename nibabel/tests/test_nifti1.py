@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for nifti reading package '''
+""" Tests for nifti reading package """
 import os
 import warnings
 import struct

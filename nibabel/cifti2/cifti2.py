@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to CIFTI-2 image format
+""" Read / write access to CIFTI-2 image format
 
 Format of the NIFTI2 container format described here:
 
@@ -15,7 +15,7 @@ Format of the NIFTI2 container format described here:
 Definition of the CIFTI-2 header format and file extensions can be found at:
 
     http://www.nitrc.org/projects/cifti
-'''
+"""
 import re
 from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
@@ -786,7 +786,7 @@ class Cifti2VertexIndices(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2BrainModel(xml.XmlSerializable):
-    ''' Element representing a mapping of the dimension to vertex or voxels.
+    """ Element representing a mapping of the dimension to vertex or voxels.
 
     Mapping to vertices of voxels must be specified.
 
@@ -840,7 +840,7 @@ class Cifti2BrainModel(xml.XmlSerializable):
         Indices on the image towards where the array indices are mapped
     vertex_indices : Cifti2VertexIndices, optional
         Indices of the vertices towards where the array indices are mapped
-    '''
+    """
 
     def __init__(self, index_offset=None, index_count=None, model_type=None,
                  brain_structure=None, n_surface_vertices=None,
@@ -1126,9 +1126,9 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
 
     @property
     def mapped_indices(self):
-        '''
+        """
         List of matrix indices that are mapped
-        '''
+        """
         mapped_indices = []
         for v in self:
             a2md = self._get_indices_from_mim(v)
@@ -1136,7 +1136,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         return mapped_indices
 
     def get_index_map(self, index):
-        '''
+        """
         Cifti2 Mapping class for a given index
 
         Parameters
@@ -1150,7 +1150,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         cifti2_map : Cifti2MatrixIndicesMap
             Returns the Cifti2MatrixIndicesMap corresponding to
             the given index.
-        '''
+        """
 
         for v in self:
             a2md = self._get_indices_from_mim(v)
@@ -1205,7 +1205,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         return mat
 
     def get_axis(self, index):
-        '''
+        """
         Generates the Cifti2 axis for a given dimension
 
         Parameters
@@ -1216,7 +1216,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         Returns
         -------
         axis : :class:`.cifti2_axes.Axis`
-        '''
+        """
         from . import cifti2_axes
         return cifti2_axes.from_index_mapping(self.get_index_map(index))
 
@@ -1238,7 +1238,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
-    ''' Class for CIFTI-2 header extension '''
+    """ Class for CIFTI-2 header extension """
 
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
@@ -1263,20 +1263,20 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
 
     @property
     def number_of_mapped_indices(self):
-        '''
+        """
         Number of mapped indices
-        '''
+        """
         return len(self.matrix)
 
     @property
     def mapped_indices(self):
-        '''
+        """
         List of matrix indices that are mapped
-        '''
+        """
         return self.matrix.mapped_indices
 
     def get_index_map(self, index):
-        '''
+        """
         Cifti2 Mapping class for a given index
 
         Parameters
@@ -1290,11 +1290,11 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         cifti2_map : Cifti2MatrixIndicesMap
             Returns the Cifti2MatrixIndicesMap corresponding to
             the given index.
-        '''
+        """
         return self.matrix.get_index_map(index)
 
     def get_axis(self, index):
-        '''
+        """
         Generates the Cifti2 axis for a given dimension
 
         Parameters
@@ -1305,12 +1305,12 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         Returns
         -------
         axis : :class:`.cifti2_axes.Axis`
-        '''
+        """
         return self.matrix.get_axis(index)
 
     @classmethod
     def from_axes(cls, axes):
-        '''
+        """
         Creates a new Cifti2 header based on the Cifti2 axes
 
         Parameters
@@ -1322,7 +1322,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         -------
         header : Cifti2Header
             new header describing the rows/columns in a format consistent with Cifti2
-        '''
+        """
         from . import cifti2_axes
         return cifti2_axes.to_header(axes)
 
@@ -1342,7 +1342,7 @@ class Cifti2Image(DataobjImage):
                  nifti_header=None,
                  extra=None,
                  file_map=None):
-        ''' Initialize image
+        """ Initialize image
 
         The image is a combination of (dataobj, header), with optional metadata
         in `nifti_header` (a NIfTI2 header).  There may be more metadata in the
@@ -1365,7 +1365,7 @@ class Cifti2Image(DataobjImage):
             Extra metadata not captured by `header` or `nifti_header`.
         file_map : mapping, optional
             Mapping giving file information for this image format.
-        '''
+        """
         if not isinstance(header, Cifti2Header) and header:
             header = Cifti2Header.from_axes(header)
         super(Cifti2Image, self).__init__(dataobj, header=header,
@@ -1423,7 +1423,7 @@ class Cifti2Image(DataobjImage):
 
     @classmethod
     def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
+        """ Class method to create new instance of own class from `img`
 
         Parameters
         ----------
@@ -1434,7 +1434,7 @@ class Cifti2Image(DataobjImage):
         -------
         cimg : instance
             Image, of our own class
-        '''
+        """
         if isinstance(img, klass):
             return img
         raise NotImplementedError
@@ -1474,7 +1474,7 @@ class Cifti2Image(DataobjImage):
         img.to_file_map(file_map or self.file_map)
 
     def update_headers(self):
-        ''' Harmonize NIfTI headers with image data
+        """ Harmonize NIfTI headers with image data
 
         >>> import numpy as np
         >>> data = np.zeros((2,3,4))
@@ -1484,7 +1484,7 @@ class Cifti2Image(DataobjImage):
         >>> img.update_headers()
         >>> img.nifti_header.get_data_shape() == (2, 3, 4)
         True
-        '''
+        """
         self._nifti_header.set_data_shape(self._dataobj.shape)
 
     def get_data_dtype(self):

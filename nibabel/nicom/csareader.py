@@ -1,6 +1,6 @@
-''' CSA header reader from SPM spec
+""" CSA header reader from SPM spec
 
-'''
+"""
 import numpy as np
 
 from .structreader import Unpacker
@@ -30,7 +30,7 @@ class CSAReadError(CSAError):
 
 
 def get_csa_header(dcm_data, csa_type='image'):
-    ''' Get CSA header information from DICOM header
+    """ Get CSA header information from DICOM header
 
     Return None if the header does not contain CSA information of the
     specified `csa_type`
@@ -49,7 +49,7 @@ def get_csa_header(dcm_data, csa_type='image'):
     csa_info : None or dict
        Parsed CSA field of `csa_type` or None, if we cannot find the CSA
        information.
-    '''
+    """
     csa_type = csa_type.lower()
     if csa_type == 'image':
         element_offset = 0x10
@@ -72,7 +72,7 @@ def get_csa_header(dcm_data, csa_type='image'):
 
 
 def read(csa_str):
-    ''' Read CSA header from string `csa_str`
+    """ Read CSA header from string `csa_str`
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def read(csa_str):
        header information as dict, where `header` has fields (at least)
        ``type, n_tags, tags``.  ``header['tags']`` is also a dictionary
        with one key, value pair for each tag in the header.
-    '''
+    """
     csa_len = len(csa_str)
     csa_dict = {'tags': {}}
     hdr_id = csa_str[:4]
@@ -185,7 +185,7 @@ def get_vector(csa_dict, tag_name, n):
 
 
 def is_mosaic(csa_dict):
-    ''' Return True if the data is of Mosaic type
+    """ Return True if the data is of Mosaic type
 
     Parameters
     ----------
@@ -197,7 +197,7 @@ def is_mosaic(csa_dict):
     tf : bool
        True if the `dcm_data` appears to be of Siemens mosaic type,
        False otherwise
-    '''
+    """
     if csa_dict is None:
         return False
     if get_acq_mat_txt(csa_dict) is None:
@@ -244,7 +244,7 @@ def get_ice_dims(csa_dict):
 
 
 def nt_str(s):
-    ''' Strip string to first null
+    """ Strip string to first null
 
     Parameters
     ----------
@@ -254,7 +254,7 @@ def nt_str(s):
     -------
     sdash : str
        s stripped to first occurence of null (0)
-    '''
+    """
     zero_pos = s.find(b'\x00')
     if zero_pos == -1:
         return s

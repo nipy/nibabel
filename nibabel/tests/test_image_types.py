@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for is_image / may_contain_header functions '''
+""" Tests for is_image / may_contain_header functions """
 
 import copy
 from os.path import dirname, basename, join as pjoin

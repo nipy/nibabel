@@ -7,7 +7,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Print nifti diagnostics for header files '''
+""" Print nifti diagnostics for header files """
 
 import sys
 from optparse import OptionParser

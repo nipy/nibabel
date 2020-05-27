@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for SPM2 header stuff '''
+""" Tests for SPM2 header stuff """
 
 import numpy as np
 

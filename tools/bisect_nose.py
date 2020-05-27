@@ -66,7 +66,7 @@ def main():
     parser = ArgumentParser(description=DESCRIP,
                             epilog=EPILOG,
                             formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('test_path',  type=str,
+    parser.add_argument('test_path', type=str,
                         help='Path to test')
     parser.add_argument('--error-txt', type=str,
                         help='regular expression for error of interest')

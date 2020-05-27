@@ -21,7 +21,7 @@ from .deprecated import deprecate_with_version
 
 
 def load(filename, **kwargs):
-    r''' Load file given filename, guessing at file type
+    r""" Load file given filename, guessing at file type
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ def load(filename, **kwargs):
     -------
     img : ``SpatialImage``
        Image of guessed type
-    '''
+    """
     filename = _stringify_path(filename)
 
     # Check file exists and is not empty
@@ -83,7 +83,7 @@ def guessed_image_type(filename):
 
 
 def save(img, filename):
-    ''' Save an image to file adapting format to `filename`
+    """ Save an image to file adapting format to `filename`
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ def save(img, filename):
     Returns
     -------
     None
-    '''
+    """
     filename = _stringify_path(filename)
 
     # Save the type as expected

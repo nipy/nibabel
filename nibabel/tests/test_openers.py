@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for openers module '''
+""" Test for openers module """
 import os
 import contextlib
 from gzip import GzipFile

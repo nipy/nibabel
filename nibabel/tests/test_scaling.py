@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for scaling / rounding in volumeutils module '''
+""" Test for scaling / rounding in volumeutils module """
 
 import numpy as np
 

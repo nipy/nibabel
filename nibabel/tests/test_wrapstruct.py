@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test binary header objects
+""" Test binary header objects
 
 This is a root testing class, used in the Analyze and other tests as a
 framework for all the tests common to the Analyze types
@@ -22,7 +22,7 @@ diagnose_binaryblock
 With deprecation warnings
 
 _field_recoders -> field_recoders
-'''
+"""
 import logging
 import numpy as np
 
@@ -107,10 +107,10 @@ def log_chk(hdr, level):
 
 
 class _TestWrapStructBase(BaseTestCase):
-    ''' Class implements base tests for binary headers
+    """ Class implements base tests for binary headers
 
     It serves as a base class for other binary header tests
-    '''
+    """
     header_class = None
 
     def get_bad_bb(self):
@@ -193,12 +193,12 @@ class _TestWrapStructBase(BaseTestCase):
 
     def test_endianness_ro(self):
         # endianness is a read only property
-        ''' Its use in initialization tested in the init tests.
+        """ Its use in initialization tested in the init tests.
         Endianness gives endian interpretation of binary data. It is
         read only because the only common use case is to set the
         endianness on initialization (or occasionally byteswapping the
         data) - but this is done via via the as_byteswapped method
-        '''
+        """
         hdr = self.header_class()
         with pytest.raises(AttributeError):
             hdr.endianness = '<'
@@ -369,11 +369,11 @@ class MyWrapStruct(WrapStruct):
 
     @classmethod
     def _get_checks(klass):
-        ''' Return sequence of check functions for this class '''
+        """ Return sequence of check functions for this class """
         return (klass._chk_integer,
                 klass._chk_string)
 
-    ''' Check functions in format expected by BatteryRunner class '''
+    """ Check functions in format expected by BatteryRunner class """
     @staticmethod
     def _chk_integer(hdr, fix=False):
         rep = Report(HeaderDataError)
