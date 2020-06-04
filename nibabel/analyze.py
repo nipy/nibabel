@@ -394,11 +394,9 @@ class AnalyzeHeader(LabeledWrapStruct):
         try:
             obj.set_data_dtype(orig_code)
         except HeaderDataError:
-            raise HeaderDataError('Input header %s has datatype %s but '
-                                  'output header %s does not support it'
-                                  % (header.__class__,
-                                     header.get_value_label('datatype'),
-                                     klass))
+            raise HeaderDataError(f"Input header {header.__class__} has "
+                                  f"datatype {header.get_value_label('datatype')} "
+                                  f"but output header {klass} does not support it")
         obj.set_data_dtype(header.get_data_dtype())
         obj.set_data_shape(header.get_data_shape())
         obj.set_zooms(header.get_zooms())

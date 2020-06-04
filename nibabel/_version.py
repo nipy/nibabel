@@ -125,8 +125,8 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
             root = os.path.dirname(root)  # up a level
 
     if verbose:
-        print("Tried directories %s but none started with prefix %s" %
-              (str(rootdirs), parentdir_prefix))
+        print(f"Tried directories {str(rootdirs)} but "
+              f"none started with prefix {parentdir_prefix}")
     raise NotThisMethod("rootdir doesn't start with parentdir_prefix")
 
 
@@ -283,17 +283,17 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
         mo = re.search(r'^(.+)-(\d+)-g([0-9a-f]+)$', git_describe)
         if not mo:
             # unparseable. Maybe git-describe is misbehaving?
-            pieces["error"] = (f"unable to parse git-describe output: '{describe_out}'")
+            pieces["error"] = f"unable to parse git-describe output: '{describe_out}'"
             return pieces
 
         # tag
         full_tag = mo.group(1)
         if not full_tag.startswith(tag_prefix):
             if verbose:
-                fmt = "tag '%s' doesn't start with prefix '%s'"
-                print(fmt % (full_tag, tag_prefix))
-            pieces["error"] = ("tag '%s' doesn't start with prefix '%s'"
-                               % (full_tag, tag_prefix))
+                txt = f"tag '{full_tag}' doesn't start with prefix '{tag_prefix}'"
+                print(txt)
+            pieces["error"] = (f"tag '{full_tag}' doesn't start with prefix "
+                               f"'{tag_prefix}'")
             return pieces
         pieces["closest-tag"] = full_tag[len(tag_prefix):]
 

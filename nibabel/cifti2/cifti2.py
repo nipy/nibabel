@@ -291,8 +291,8 @@ class Cifti2Label(xml.XmlSerializable):
                 v = _float_01(getattr(self, c_))
             except ValueError:
                 raise Cifti2HeaderError(
-                    'Label invalid %s needs to be a float between 0 and 1. '
-                    'and it is %s' % (c_, v)
+                    f'Label invalid {c_} needs to be a '
+                    f'float between 0 and 1. and it is {v}'
                 )
 
         lab = xml.Element('Label')
@@ -1379,9 +1379,8 @@ class Cifti2Image(DataobjImage):
         self.update_headers()
 
         if self._dataobj.shape != self.header.matrix.get_data_shape():
-            warn("Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
-                self._dataobj.shape, self.header.matrix.get_data_shape()
-            ))
+            warn(f"Dataobj shape {self._dataobj.shape} does not match shape "
+                 f"expected from CIFTI-2 header {self.header.matrix.get_data_shape()}")
 
     @property
     def nifti_header(self):
@@ -1459,9 +1458,8 @@ class Cifti2Image(DataobjImage):
         header.extensions.append(extension)
         if self._dataobj.shape != self.header.matrix.get_data_shape():
             raise ValueError(
-                "Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
-                    self._dataobj.shape, self.header.matrix.get_data_shape()
-                ))
+                f"Dataobj shape {self._dataobj.shape} does not match shape "
+                f"expected from CIFTI-2 header {self.header.matrix.get_data_shape()}")
         # if intent code is not set, default to unknown CIFTI
         if header.get_intent()[0] == 'none':
             header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')

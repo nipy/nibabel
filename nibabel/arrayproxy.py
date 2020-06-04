@@ -255,8 +255,8 @@ class ArrayProxy(object):
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
             if keep_file_open not in (True, False):
-                raise ValueError("nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT must be boolean. "
-                                 "Found: {}".format(keep_file_open))
+                raise ValueError(f"nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT "
+                                 f"must be boolean. Found: {keep_file_open}")
         elif keep_file_open not in (True, False):
             raise ValueError('keep_file_open must be one of {None, True, False}')
 
@@ -412,8 +412,8 @@ class ArrayProxy(object):
             shape = tuple(unknown_size if e == -1 else e for e in shape)
 
         if np.prod(shape) != size:
-            raise ValueError("cannot reshape array of size {:d} into shape "
-                             "{!s}".format(size, shape))
+            raise ValueError(f"cannot reshape array of size {size:d} "
+                             f"into shape {shape!s}")
         return self.__class__(file_like=self.file_like,
                               spec=(shape, self._dtype, self._offset,
                                     self._slope, self._inter),
