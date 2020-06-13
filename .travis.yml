@@ -53,10 +53,6 @@ jobs:
     - python: 2.7
       env:
         - DEPENDS="numpy==1.8 pydicom==0.9.9 pillow==2.6"
-    # pydicom master branch
-    - python: 3.5
-      env:
-        - DEPENDS="numpy<1.17dev git+https://github.com/pydicom/pydicom.git@master"
     # test 2.7 against pre-release builds of everything
     - python: 2.7
       env:
