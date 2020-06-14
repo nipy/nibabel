@@ -1879,10 +1879,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> aff = np.diag([2, 3, 4, 1])
         >>> img = Nifti1Pair(data, aff)
         >>> img.get_qform()
-        array([[ 2.,  0.,  0.,  0.],
-               [ 0.,  3.,  0.,  0.],
-               [ 0.,  0.,  4.,  0.],
-               [ 0.,  0.,  0.,  1.]])
+        array([[2., 0., 0., 0.],
+               [0., 3., 0., 0.],
+               [0., 0., 4., 0.],
+               [0., 0., 0., 1.]])
         >>> img.get_qform(coded=True)
         (None, 0)
         >>> aff2 = np.diag([3, 4, 5, 1])
@@ -1962,16 +1962,16 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> aff = np.diag([2, 3, 4, 1])
         >>> img = Nifti1Pair(data, aff)
         >>> img.get_sform()
-        array([[ 2.,  0.,  0.,  0.],
-               [ 0.,  3.,  0.,  0.],
-               [ 0.,  0.,  4.,  0.],
-               [ 0.,  0.,  0.,  1.]])
+        array([[2., 0., 0., 0.],
+               [0., 3., 0., 0.],
+               [0., 0., 4., 0.],
+               [0., 0., 0., 1.]])
         >>> saff, code = img.get_sform(coded=True)
         >>> saff
-        array([[ 2.,  0.,  0.,  0.],
-               [ 0.,  3.,  0.,  0.],
-               [ 0.,  0.,  4.,  0.],
-               [ 0.,  0.,  0.,  1.]])
+        array([[2., 0., 0., 0.],
+               [0., 3., 0., 0.],
+               [0., 0., 4., 0.],
+               [0., 0., 0., 1.]])
         >>> int(code)
         2
         >>> aff2 = np.diag([3, 4, 5, 1])

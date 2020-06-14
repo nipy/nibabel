@@ -466,13 +466,13 @@ def quat2angle_axis(quat, identity_thresh=None):
     >>> np.allclose(theta, np.pi)
     True
     >>> vec
-    array([ 1.,  0.,  0.])
+    array([1., 0., 0.])
 
     If this is an identity rotation, we return a zero angle and an
     arbitrary vector
 
     >>> quat2angle_axis([1, 0, 0, 0])
-    (0.0, array([ 1.,  0.,  0.]))
+    (0.0, array([1., 0., 0.]))
 
     Notes
     -----
