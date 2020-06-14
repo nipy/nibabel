@@ -1200,7 +1200,7 @@ def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
         >>> arr = np.array([np.finfo(np.float32).max], dtype=np.float32)
         >>> res = arr + np.iinfo(np.int16).max
         >>> arr == res
-        array([ True], dtype=bool)
+        array([ True])
     """
     ii = np.iinfo(ifmt)
     tst_arr = np.array([ii.min, ii.max], dtype=ifmt)

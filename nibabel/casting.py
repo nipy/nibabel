@@ -585,7 +585,7 @@ def int_abs(arr):
     >>> int_abs(np.array([-128, 127], dtype=np.int8))
     array([128, 127], dtype=uint8)
     >>> int_abs(np.array([-128, 127], dtype=np.float32))
-    array([ 128.,  127.], dtype=float32)
+    array([128., 127.], dtype=float32)
     """
     arr = np.array(arr, copy=False)
     dt = arr.dtype

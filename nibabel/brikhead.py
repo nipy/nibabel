@@ -421,7 +421,7 @@ class AFNIHeader(SpatialHeader):
         >>> fname = os.path.join(datadir, 'scaled+tlrc.HEAD')
         >>> header = AFNIHeader(parse_AFNI_header(fname))
         >>> header.get_data_scaling()
-        array([  3.88336300e-08])
+        array([3.883363e-08])
         """
         # BRICK_FLOAT_FACS has one value per sub-brick, such that the scaled
         # values for sub-brick array [n] are the values read from disk *

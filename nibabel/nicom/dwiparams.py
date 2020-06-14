@@ -89,9 +89,9 @@ def nearest_pos_semi_def(B):
     --------
     >>> B = np.diag([1, 1, -1])
     >>> nearest_pos_semi_def(B)
-    array([[ 0.75,  0.  ,  0.  ],
-           [ 0.  ,  0.75,  0.  ],
-           [ 0.  ,  0.  ,  0.  ]])
+    array([[0.75, 0.  , 0.  ],
+           [0.  , 0.75, 0.  ],
+           [0.  , 0.  , 0.  ]])
     """
     B = np.asarray(B)
     vals, vecs = npl.eigh(B)
@@ -146,11 +146,11 @@ def q2bg(q_vector, tol=1e-5):
     Examples
     --------
     >>> q2bg([1, 0, 0])
-    (1.0, array([ 1.,  0.,  0.]))
+    (1.0, array([1., 0., 0.]))
     >>> q2bg([0, 10, 0])
-    (10.0, array([ 0.,  1.,  0.]))
+    (10.0, array([0., 1., 0.]))
     >>> q2bg([0, 0, 0])
-    (0.0, array([ 0.,  0.,  0.]))
+    (0.0, array([0., 0., 0.]))
     """
     q_vec = np.asarray(q_vector)
     norm = np.sqrt(np.sum(q_vec * q_vec))
