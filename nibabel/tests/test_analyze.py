@@ -141,7 +141,8 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             fhdr, message, raiser = self.log_chk(hdr, 30)
 
         assert fhdr['sizeof_hdr'] == self.sizeof_hdr
-        assert message == 'sizeof_hdr should be {0}; set sizeof_hdr to {0}'.format(self.sizeof_hdr)
+        assert (message == f'sizeof_hdr should be {self.sizeof_hdr}; '
+                           f'set sizeof_hdr to {self.sizeof_hdr}')
         pytest.raises(*raiser)
         # RGB datatype does not raise error
         hdr = HC()

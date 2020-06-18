@@ -109,8 +109,8 @@ class PerArrayDict(SliceableDataDict):
 
         # We make sure there is the right amount of values
         if self.n_rows > 0 and len(value) != self.n_rows:
-            msg = ("The number of values ({0}) should match n_elements "
-                   "({1}).").format(len(value), self.n_rows)
+            msg = (f"The number of values ({len(value)}) should match "
+                   f"n_elements ({self.n_rows}).")
             raise ValueError(msg)
 
         self.store[key] = value
@@ -140,10 +140,9 @@ class PerArrayDict(SliceableDataDict):
         """
         if (len(self) > 0 and len(other) > 0 and
                 sorted(self.keys()) != sorted(other.keys())):
-            msg = ("Entry mismatched between the two PerArrayDict objects."
-                   " This PerArrayDict contains '{0}' whereas the other "
-                   " contains '{1}'.").format(sorted(self.keys()),
-                                              sorted(other.keys()))
+            msg = (f"Entry mismatched between the two PerArrayDict objects. "
+                   f"This PerArrayDict contains '{sorted(self.keys())}' "
+                   f"whereas the other contains '{sorted(other.keys())}'.")
             raise ValueError(msg)
 
         self.n_rows += other.n_rows
@@ -365,8 +364,8 @@ class Tractogram(object):
         if value is not None:
             value = np.array(value)
             if value.shape != (4, 4):
-                msg = ("Affine matrix has a shape of (4, 4) but a ndarray with"
-                       "shape {} was provided instead.").format(value.shape)
+                msg = (f"Affine matrix has a shape of (4, 4) but a ndarray with"
+                       f"shape {value.shape} was provided instead.")
                 raise ValueError(msg)
 
         self._affine_to_rasmm = value

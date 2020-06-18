@@ -330,8 +330,8 @@ class TckFile(TractogramFile):
             hdr['datatype'] = "Float32LE"
 
         if not hdr['datatype'].startswith('Float32'):
-            msg = ("TCK only supports float32 dtype but 'datatype: {}' was"
-                   " specified in the header.").format(hdr['datatype'])
+            msg = (f"TCK only supports float32 dtype but 'datatype: "
+                   f"{hdr['datatype']}' was specified in the header.")
             raise HeaderError(msg)
 
         if 'file' not in hdr:
@@ -341,9 +341,9 @@ class TckFile(TractogramFile):
             hdr['file'] = f'. {offset_data}'
 
         if hdr['file'].split()[0] != '.':
-            msg = ("TCK only supports single-file - in other words the"
-                   " filename part must be specified as '.' but '{}' was"
-                   " specified.").format(hdr['file'].split()[0])
+            msg = (f"TCK only supports single-file - in other words the"
+                   f" filename part must be specified as '.' but "
+                   f"'{hdr['file'].split()[0]}' was specified.")
             raise HeaderError("Missing 'file' attribute in TCK header.")
 
         # Set endianness and _dtype attributes in the header.
@@ -454,6 +454,6 @@ class TckFile(TractogramFile):
         info = ""
         info += f"\nMAGIC NUMBER: {hdr[Field.MAGIC_NUMBER]}"
         info += "\n"
-        info += "\n".join(["{}: {}".format(k, v)
+        info += "\n".join([f"{k}: {v}"
                            for k, v in hdr.items() if not k.startswith('_')])
         return info
