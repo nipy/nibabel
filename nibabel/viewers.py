@@ -213,11 +213,10 @@ class OrthoSlicer3D(object):
         self._draw()
 
     def __repr__(self):
-        title = '' if self._title is None else (f'{self._title} ')
-        vol = '' if self.n_volumes <= 1 else (f', {self.n_volumes}')
-        r = ('<%s: %s(%s, %s, %s%s)>'
-             % (self.__class__.__name__, title, self._sizes[0], self._sizes[1],
-                self._sizes[2], vol))
+        title = '' if self._title is None else f'{self._title} '
+        vol = '' if self.n_volumes <= 1 else f', {self.n_volumes}'
+        r = (f'<{self.__class__.__name__}: {title}({self._sizes[0]}, '
+             f'{self._sizes[1]}, {self._sizes[2]}{vol})>')
         return r
 
     # User-level functions ###################################################
@@ -295,8 +294,8 @@ class OrthoSlicer3D(object):
             Other viewer to use to link movements.
         """
         if not isinstance(other, self.__class__):
-            raise TypeError('other must be an instance of %s, not %s'
-                            % (self.__class__.__name__, type(other)))
+            raise TypeError(f'other must be an instance of '
+                            f'{self.__class__.__name__}, not {type(other)}')
         self._link(other, is_primary=True)
 
     def _link(self, other, is_primary):

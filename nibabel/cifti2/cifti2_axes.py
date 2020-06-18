@@ -320,8 +320,8 @@ class BrainModelAxis(Axis):
         for check_name in ('name', 'voxel', 'vertex'):
             shape = (self.size, 3) if check_name == 'voxel' else (self.size, )
             if getattr(self, check_name).shape != shape:
-                raise ValueError("Input {} has incorrect shape ({}) for BrainModelAxis axis".format(
-                        check_name, getattr(self, check_name).shape))
+                raise ValueError(f"Input {check_name} has incorrect shape "
+                                 f"({getattr(self, check_name).shape}) for BrainModelAxis axis")
 
     @classmethod
     def from_mask(cls, mask, name='other', affine=None):
@@ -537,8 +537,8 @@ class BrainModelAxis(Axis):
         else:
             proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}_{orientation.upper()}'
         if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES:
-            raise ValueError('%s was interpreted as %s, which is not a valid CIFTI brain structure'
-                             % (name, proposed_name))
+            raise ValueError(f'{name} was interpreted as {proposed_name}, which is not '
+                             f'a valid CIFTI brain structure')
         return proposed_name
 
     @property
@@ -650,8 +650,8 @@ class BrainModelAxis(Axis):
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError("Trying to concatenate two BrainModels with inconsistent "
-                                 "number of vertices for %s" % name)
+                raise ValueError(f"Trying to concatenate two BrainModels with "
+                                 f"inconsistent number of vertices for {name}")
             nvertices[name] = value
         return self.__class__(
                 np.append(self.name, other.name),
@@ -763,8 +763,8 @@ class ParcelsAxis(Axis):
 
         for check_name in ('name', 'voxels', 'vertices'):
             if getattr(self, check_name).shape != (self.size, ):
-                raise ValueError("Input {} has incorrect shape ({}) for Parcel axis".format(
-                        check_name, getattr(self, check_name).shape))
+                raise ValueError(f"Input {check_name} has incorrect shape "
+                                 f"({getattr(self, check_name).shape}) for Parcel axis")
 
     @classmethod
     def from_brain_models(cls, named_brain_models):
@@ -804,8 +804,8 @@ class ParcelsAxis(Axis):
             for name, _, bm_part in bm.iter_structures():
                 if name in bm.nvertices.keys():
                     if name in nvertices.keys() and nvertices[name] != bm.nvertices[name]:
-                        raise ValueError("Got multiple conflicting number of "
-                                         "vertices for surface structure %s" % name)
+                        raise ValueError(f"Got multiple conflicting number of "
+                                         f"vertices for surface structure {name}")
                     nvertices[name] = bm.nvertices[name]
                     vertices[name] = bm_part.vertex
             all_vertices[idx_parcel] = vertices
@@ -846,8 +846,7 @@ class ParcelsAxis(Axis):
                 name = vertex.brain_structure
                 vertices[vertex.brain_structure] = np.array(vertex)
                 if name not in nvertices.keys():
-                    raise ValueError("Number of vertices for surface structure %s not defined" %
-                                     name)
+                    raise ValueError(f"Number of vertices for surface structure {name} not defined")
             all_voxels[idx_parcel] = voxels
             all_vertices[idx_parcel] = vertices
             all_names.append(parcel.name)
@@ -968,9 +967,8 @@ class ParcelsAxis(Axis):
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError("Trying to concatenate two ParcelsAxis with inconsistent "
-                                 "number of vertices for %s"
-                                 % name)
+                raise ValueError(f"Trying to concatenate two ParcelsAxis with "
+                                 f"inconsistent number of vertices for {name}")
             nvertices[name] = value
         return self.__class__(
                 np.append(self.name, other.name),
@@ -1042,8 +1040,8 @@ class ScalarAxis(Axis):
 
         for check_name in ('name', 'meta'):
             if getattr(self, check_name).shape != (self.size, ):
-                raise ValueError("Input {} has incorrect shape ({}) for ScalarAxis axis".format(
-                        check_name, getattr(self, check_name).shape))
+                raise ValueError(f"Input {check_name} has incorrect shape "
+                                 f"({getattr(self, check_name).shape}) for ScalarAxis axis")
 
     @classmethod
     def from_index_mapping(cls, mim):
@@ -1176,8 +1174,8 @@ class LabelAxis(Axis):
 
         for check_name in ('name', 'meta', 'label'):
             if getattr(self, check_name).shape != (self.size, ):
-                raise ValueError("Input {} has incorrect shape ({}) for LabelAxis axis".format(
-                        check_name, getattr(self, check_name).shape))
+                raise ValueError(f"Input {check_name} has incorrect shape "
+                                 f"({getattr(self, check_name).shape}) for LabelAxis axis")
 
     @classmethod
     def from_index_mapping(cls, mim):

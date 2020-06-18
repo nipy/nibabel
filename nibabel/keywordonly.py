@@ -19,8 +19,8 @@ def kw_only_func(n):
         def wrapper(*args, **kwargs):
             if len(args) > n:
                 raise TypeError(
-                    '{0} takes at most {1} positional argument{2}'.format(
-                        func.__name__, n, 's' if n > 1 else ''))
+                    f"{func.__name__} takes at most {n} positional "
+                    f"argument{'s' if n > 1 else ''}")
             return func(*args, **kwargs)
         return wrapper
     return decorator

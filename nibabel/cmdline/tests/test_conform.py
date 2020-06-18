@@ -46,8 +46,8 @@ def test_nondefault(tmpdir):
     out_shape = (100, 100, 150)
     voxel_size = (1, 2, 4)
     orientation = "LAS"
-    args = "{} {} --out-shape {} --voxel-size {} --orientation {}".format(
-        infile, outfile, " ".join(map(str, out_shape)), " ".join(map(str, voxel_size)), orientation)
+    args = (f"{infile} {outfile} --out-shape {' '.join(map(str, out_shape))} "
+            f"--voxel-size {' '.join(map(str, voxel_size))} --orientation {orientation}")
     main(args.split())
     assert outfile.isfile()
     c = nib.load(outfile)

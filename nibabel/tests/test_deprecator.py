@@ -94,8 +94,8 @@ class TestDeprecatorFunc(object):
             assert func() is None
             assert len(w) == 1
         assert (func.__doc__ ==
-                    'foo\n\n* Will raise {} as of version: 99.4\n'
-                    .format(ExpiredDeprecationError))
+                f'foo\n\n* Will raise {ExpiredDeprecationError} '
+                f'as of version: 99.4\n')
         func = dec('foo', until='1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()
@@ -105,16 +105,13 @@ class TestDeprecatorFunc(object):
         with pytest.raises(ExpiredDeprecationError):
             func()
         assert (func.__doc__ ==
-                'foo\n\n* deprecated from version: 1.2\n'
-                '* Raises {} as of version: 1.8\n'
-                .format(ExpiredDeprecationError))
+                f'foo\n\n* deprecated from version: 1.2\n* Raises '
+                f'{ExpiredDeprecationError} as of version: 1.8\n')
         func = dec('foo', '1.2', '1.8')(func_doc_long)
         assert (func.__doc__ ==
-                'A docstring\n   \n   foo\n   \n'
-                '   * deprecated from version: 1.2\n'
-                '   * Raises {} as of version: 1.8\n   \n'
-                '   Some text\n'
-                .format(ExpiredDeprecationError))
+                f'A docstring\n   \n   foo\n   \n   * deprecated from version: 1.2\n   '
+                f'* Raises {ExpiredDeprecationError} as of version: 1.8\n   \n'
+                f'   Some text\n')
         with pytest.raises(ExpiredDeprecationError):
             func()
 

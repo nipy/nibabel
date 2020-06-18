@@ -240,9 +240,8 @@ def find_data_dir(root_dirs, *names):
         pth = pjoin(path, ds_relative)
         if os.path.isdir(pth):
             return pth
-    raise DataError('Could not find datasource "%s" in data path "%s"' %
-                    (ds_relative,
-                     os.path.pathsep.join(root_dirs)))
+    raise DataError(f'Could not find datasource "{ds_relative}" in '
+                    f'data path "{os.path.pathsep.join(root_dirs)}"')
 
 
 def make_datasource(pkg_def, **kwargs):
@@ -313,9 +312,8 @@ class Bomber(object):
     def __getattr__(self, attr_name):
         """ Raise informative error accessing not-found attributes """
         raise BomberError(
-            'Trying to access attribute "%s" '
-            'of non-existent data "%s"\n\n%s\n' %
-            (attr_name, self.name, self.msg))
+            f'Trying to access attribute "{attr_name}" of '
+            f'non-existent data "{self.name}"\n\n{self.msg}\n')
 
 
 def datasource_or_bomber(pkg_def, **options):
@@ -358,10 +356,6 @@ def datasource_or_bomber(pkg_def, **options):
         pkg_name = pkg_def['name']
     else:
         pkg_name = 'data at ' + unix_relpath
-    msg = ('%(name)s is version %(pkg_version)s but we need '
-           'version >= %(req_version)s\n\n%(pkg_hint)s' %
-           dict(name=pkg_name,
-                pkg_version=ds.version,
-                req_version=version,
-                pkg_hint=pkg_hint))
+    msg = (f"{pkg_name} is version {ds.version} but we need "
+           f"version >= {version}\n\n{pkg_hint}")
     return Bomber(sys_relpath, DataError(msg))

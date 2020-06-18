@@ -158,8 +158,8 @@ def proc_file(infile, opts):
     else:
         outfilename = basefilename + '.nii'
     if os.path.isfile(outfilename) and not opts.overwrite:
-        raise IOError('Output file "%s" exists, use --overwrite to '
-                      'overwrite it' % outfilename)
+        raise IOError(f'Output file "{outfilename}" exists, '
+                      f'use --overwrite to overwrite it')
 
     # load the PAR header and data
     scaling = 'dv' if opts.scaling == 'off' else opts.scaling
@@ -295,8 +295,8 @@ def proc_file(infile, opts):
         except MRIError:
             verbose('No EPI factors, dwell time not written')
         else:
-            verbose('Writing dwell time (%r sec) calculated assuming %sT '
-                    'magnet' % (dwell_time, opts.field_strength))
+            verbose(f'Writing dwell time ({dwell_time!r} sec) '
+                    f'calculated assuming {opts.field_strength}T magnet')
             with open(basefilename + '.dwell_time', 'w') as fid:
                 fid.write(f'{dwell_time!r}\n')
     # done

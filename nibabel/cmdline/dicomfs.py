@@ -196,8 +196,8 @@ class DICOMFS(fuse.Fuse):
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage="%s [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>"
-              % os.path.basename(sys.argv[0]),
+        usage=f"{os.path.basename(sys.argv[0])} [OPTIONS] "
+              f"<DIRECTORY CONTAINING DICOMSs> <mount point>",
         version="%prog " + nib.__version__)
 
     p.add_options([

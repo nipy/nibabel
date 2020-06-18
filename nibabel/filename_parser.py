@@ -127,8 +127,8 @@ def types_filenames(template_fname, types_exts,
             if found_ext:
                 # an extension, but the wrong one
                 raise TypesFilenamesError(
-                    'File extension "%s" was not in expected list: %s'
-                    % (found_ext, [e for t, e in types_exts]))
+                    f'File extension "{found_ext}" was not in '
+                    f'expected list: {[e for t, e in types_exts]}')
             elif ignored:  # there was no extension, but an ignored suffix
                 # This is a special case like 'test.gz' (where .gz
                 # is ignored). It's confusing to change

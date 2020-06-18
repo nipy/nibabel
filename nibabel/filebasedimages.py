@@ -34,8 +34,8 @@ class FileBasedHeader(object):
         # different field names
         if type(header) == klass:
             return header.copy()
-        raise NotImplementedError("Header class requires a conversion"
-                                  " from %s to %s" % (klass, type(header)))
+        raise NotImplementedError(f"Header class requires a conversion "
+                                  f"from {klass} to {type(header)}")
 
     @classmethod
     def from_fileobj(klass, fileobj):

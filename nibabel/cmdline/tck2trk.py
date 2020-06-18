@@ -41,8 +41,9 @@ def main():
         filename, _ = os.path.splitext(tractogram)
         output_filename = filename + '.trk'
         if os.path.isfile(output_filename) and not args.force:
-            msg = "Skipping existing file: '{}'. Use -f to overwrite."
-            print(msg.format(output_filename))
+            msg = (f"Skipping existing file: '{output_filename}'. "
+                   f"Use -f to overwrite.")
+            print(msg)
             continue
 
         # Build header using infos from the anatomical image.

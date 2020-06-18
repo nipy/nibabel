@@ -386,9 +386,8 @@ class GiftiDataArray(xml.XmlSerializable):
         '2.1', '4.0')
     def num_dim(self, value):
         if value != len(self.dims):
-            raise ValueError('num_dim value {0} != number of dimensions '
-                             'len(self.dims) {1}'
-                             .format(value, len(self.dims)))
+            raise ValueError(f'num_dim value {value} != number of '
+                             f'dimensions len(self.dims) {len(self.dims)}')
 
     @classmethod
     @deprecate_with_version(

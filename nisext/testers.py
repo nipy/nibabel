@@ -191,10 +191,10 @@ def install_from_to(from_dir, to_dir, py_lib_sdir=PY_LIB_SDIR, bin_sdir='bin'):
         subdirectory within `to_dir` to which scripts will be installed
     """
     site_pkgs_path = os.path.join(to_dir, py_lib_sdir)
-    py_lib_locs = ' --install-purelib=%s --install-platlib=%s' % (
-        site_pkgs_path, site_pkgs_path)
+    py_lib_locs = (f' --install-purelib={site_pkgs_path} '
+                   f'--install-platlib={site_pkgs_path}')
     pwd = os.path.abspath(os.getcwd())
-    cmd = (f'{PYTHON} setup.py --quiet install --prefix={to_dir} {py_lib_locs}')
+    cmd = f'{PYTHON} setup.py --quiet install --prefix={to_dir} {py_lib_locs}'
     try:
         os.chdir(from_dir)
         back_tick(cmd)
@@ -526,9 +526,8 @@ def make_dist(repo_path, out_dir, setup_params, zipglob):
         back_tick(f'{PYTHON} setup.py {setup_params} --dist-dir={out_dir}')
         zips = glob(pjoin(out_dir, zipglob))
         if len(zips) != 1:
-            raise OSError('There must be one and only one %s file, '
-                          'but I found "%s"' %
-                          (zipglob, ': '.join(zips)))
+            raise OSError(f"There must be one and only one {zipglob} "
+                          f"file, but I found \"{': '.join(zips)}\"")
     finally:
         os.chdir(pwd)
     return zips[0]

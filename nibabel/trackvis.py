@@ -221,9 +221,8 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
                 actual_n_pts = int(len(pts_str) / pt_size)
                 if actual_n_pts != n_pts:
                     if strict:
-                        raise DataError('Expecting {0} points for stream {1}, '
-                                        'found {2}'.format(
-                                            n_pts, n_streams, actual_n_pts))
+                        raise DataError(f'Expecting {n_pts} points for stream '
+                                        f'{n_streams}, found {actual_n_pts}')
                     n_pts = actual_n_pts
                     end_of_file = True
             # Cast bytes to points array
@@ -471,8 +470,8 @@ def _check_hdr_points_space(hdr, points_space):
     if points_space == 'voxel':
         voxel_size = hdr['voxel_size']
         if np.any(voxel_size < 0):
-            raise HeaderError('Negative voxel sizes %s not valid for voxel - '
-                              'voxmm conversion' % voxel_size)
+            raise HeaderError(f'Negative voxel sizes {voxel_size} not '
+                              f'valid for voxel - voxmm conversion')
         if np.all(voxel_size == 0):
             raise HeaderError('Cannot convert between voxels and voxmm when '
                               '"voxel_sizes" all 0')
@@ -492,19 +491,18 @@ def _check_hdr_points_space(hdr, points_space):
         zooms = hdr['voxel_size']
         aff_zooms = np.sqrt(np.sum(affine[:3, :3]**2, axis=0))
         if not np.allclose(aff_zooms, zooms):
-            raise HeaderError('Affine zooms %s differ from voxel_size '
-                              'field value %s' % (aff_zooms, zooms))
+            raise HeaderError(f'Affine zooms {aff_zooms} differ '
+                              f'from voxel_size field value {zooms}')
         aff_order = ''.join(aff2axcodes(affine))
         voxel_order = asstr(hdr['voxel_order'].item())
         if voxel_order == '':
             voxel_order = 'LPS'  # trackvis default
         if not voxel_order == aff_order:
-            raise HeaderError('Affine implies voxel_order %s but '
-                              'header voxel_order is %s' %
-                              (aff_order, voxel_order))
+            raise HeaderError(f'Affine implies voxel_order {aff_order} '
+                              f'but header voxel_order is {voxel_order}')
     else:
-        raise ValueError('Painfully confusing "points_space" value of "%s"'
-                         % points_space)
+        raise ValueError(f'Painfully confusing "points_space" value of '
+                         f'"{points_space}"')
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -671,8 +669,8 @@ def aff_from_hdr(trk_hdr, atleast_v2=True):
         aff[:, 2] *= -1
         exp_order = ''.join(aff2axcodes(aff))
         if voxel_order != exp_order:
-            raise HeaderError('Estimate of header affine does not match '
-                              'voxel_order of %s' % exp_order)
+            raise HeaderError(f'Estimate of header affine does not match '
+                              f'voxel_order of {exp_order}')
     return aff
 
 

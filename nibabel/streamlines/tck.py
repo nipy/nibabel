@@ -211,15 +211,15 @@ class TckFile(TractogramFile):
             data_for_streamline = first_item.data_for_streamline
             if len(data_for_streamline) > 0:
                 keys = ", ".join(data_for_streamline.keys())
-                msg = ("TCK format does not support saving additional data"
-                       " alongside streamlines. Dropping: {}".format(keys))
+                msg = (f"TCK format does not support saving additional "
+                       f"data alongside streamlines. Dropping: {keys}")
                 warnings.warn(msg, DataWarning)
 
             data_for_points = first_item.data_for_points
             if len(data_for_points) > 0:
                 keys = ", ".join(data_for_points.keys())
-                msg = ("TCK format does not support saving additional data"
-                       " alongside points. Dropping: {}".format(keys))
+                msg = (f"TCK format does not support saving additional "
+                       f"data alongside points. Dropping: {keys}")
                 warnings.warn(msg, DataWarning)
 
             for t in tractogram:

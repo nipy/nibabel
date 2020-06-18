@@ -619,6 +619,6 @@ def _serialize_volume_info(volume_info):
             strings.append(f'{key} = {val[0]} {val[1]} {val[2]}\n'.encode('utf-8'))
         else:
             val = volume_info[key]
-            strings.append('{0} = {1:0.10g} {2:0.10g} {3:0.10g}\n'.format(
-                key.ljust(6), val[0], val[1], val[2]).encode('utf-8'))
+            strings.append(f'{key.ljust(6)} = {val[0]:0.10g} {val[1]:0.10g} '
+                           f'{val[2]:0.10g}\n'.encode('utf-8'))
     return b''.join(strings)

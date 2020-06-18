@@ -136,12 +136,11 @@ def concat_images(images, check_affines=True, axis=None):
             raise ValueError(
                 f'Image {i} has {len(img.shape)} dimensions, image 0 has {n_dim}')
         if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
-            raise ValueError('shape {0} for image {1} not compatible with '
-                             'first image shape {2} with axis == {3}'.format(
-                                 img.shape, i, shape0, axis))
+            raise ValueError(f'shape {img.shape} for image {i} not compatible with '
+                             f'first image shape {shape0} with axis == {axis}')
         if check_affines and not np.all(img.affine == affine):
-            raise ValueError('Affine for image {0} does not match affine '
-                             'for first image'.format(i))
+            raise ValueError(f'Affine for image {i} does not match affine for '
+                             f'first image')
         # Do not fill cache in image if it is empty
         out_data[i] = np.asanyarray(img.dataobj)
 

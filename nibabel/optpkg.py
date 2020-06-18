@@ -101,11 +101,11 @@ def optional_package(name, trip_msg=None, min_version=None):
             if callable(min_version):
                 trip_msg = f'Package {min_version} fails version check'
             else:
-                trip_msg = (f'These functions need {name} version >= {min_version}')
+                trip_msg = (f'These functions need {name} '
+                            f'version >= {min_version}')
     if trip_msg is None:
-        trip_msg = ('We need package %s for these functions, but '
-                    '``import %s`` raised %s'
-                    % (name, name, exc))
+        trip_msg = (f'We need package {name} for these functions, '
+                    f'but ``import {name}`` raised {exc}')
     pkg = TripWire(trip_msg)
 
     def setup_module():

@@ -459,8 +459,8 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
         n_expected = general_info[gdef_max_name]
         if n_have != n_expected:
             _err_or_warn(
-                "Header inconsistency: Found {0} {1} values, "
-                "but expected {2}".format(n_have, idef_name, n_expected))
+                f"Header inconsistency: Found {n_have} {idef_name} "
+                f"values, but expected {n_expected}")
 
     _chk_trunc('slice', 'max_slices')
     _chk_trunc('echo', 'max_echoes')
@@ -732,9 +732,8 @@ class PARRECHeader(SpatialHeader):
         # dtype
         bitpix = self._get_unique_image_prop('image pixel size')
         if bitpix not in (8, 16):
-            raise PARRECError('Only 8- and 16-bit data supported (not %s)'
-                              'please report this to the nibabel developers'
-                              % bitpix)
+            raise PARRECError(f'Only 8- and 16-bit data supported (not {bitpix}) '
+                              f'please report this to the nibabel developers')
         # REC data always little endian
         dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
         super(PARRECHeader, self).__init__(data_dtype=dt,
@@ -768,11 +767,11 @@ class PARRECHeader(SpatialHeader):
         # the NIfTI1 header, specifically in nifti1.py `header_dtd` defs.
         # Here we set the parameters we can to simplify PAR/REC
         # to NIfTI conversion.
-        descr = ("%s;%s;%s;%s"
-                 % (self.general_info['exam_name'],
-                    self.general_info['patient_name'],
-                    self.general_info['exam_date'].replace(' ', ''),
-                    self.general_info['protocol_name']))[:80]  # max len
+        descr = (f"{self.general_info['exam_name']};"
+                 f"{self.general_info['patient_name']};"
+                 f"{self.general_info['exam_date'].replace(' ', '')};"
+                 f"{self.general_info['protocol_name']}"
+                 )[:80]  # max len
         is_fmri = (self.general_info['max_dynamics'] > 1)
         t = 'msec' if is_fmri else 'unknown'
         xyzt_units = unit_codes['mm'] + unit_codes[t]
@@ -868,8 +867,8 @@ class PARRECHeader(SpatialHeader):
         """
         props = self.image_defs[name]
         if np.any(np.diff(props, axis=0)):
-            raise PARRECError('Varying {0} in image sequence ({1}). This is '
-                              'not suppported.'.format(name, props))
+            raise PARRECError(f'Varying {name} in image sequence '
+                              f'({props}). This is not suppported.')
         return props[0]
 
     @deprecate_with_version('get_voxel_size deprecated. '
