@@ -745,7 +745,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
             nan_fill = np.clip(nan_fill, both_mn, both_mx)
         else:
             raise ValueError(f"nan_fill == {nan_fill}, outside safe int range "
-                             f"({int(both_mn)}-{int(both_mx)}); change scaling or set nan2zero=False?")
+                             f"({int(both_mn)}-{int(both_mx)}); "
+                             f"change scaling or set nan2zero=False?")
     # Make sure non-nan output clipped to shared range
     post_mn = np.max([post_mn, both_mn])
     post_mx = np.min([post_mx, both_mx])
