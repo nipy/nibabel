@@ -87,20 +87,20 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False,
             if e.errno == errno.ENOENT:
                 continue
             if verbose:
-                print(f"unable to run {dispcmd}")
+                print("unable to run %s" % dispcmd)
                 print(e)
             return None, None
     else:
         if verbose:
-            print(f"unable to find command, tried {commands}")
+            print("unable to find command, tried %s" % (commands,))
         return None, None
     stdout = p.communicate()[0].strip()
     if sys.version_info[0] >= 3:
         stdout = stdout.decode()
     if p.returncode != 0:
         if verbose:
-            print(f"unable to run {dispcmd} (error)")
-            print(f"stdout was {stdout}")
+            print("unable to run %s (error)" % dispcmd)
+            print("stdout was %s" % stdout)
         return None, p.returncode
     return stdout, p.returncode
 
@@ -125,8 +125,8 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
             root = os.path.dirname(root)  # up a level
 
     if verbose:
-        print(f"Tried directories {str(rootdirs)} but "
-              f"none started with prefix {parentdir_prefix}")
+        print("Tried directories %s but none started with prefix %s" %
+              (str(rootdirs), parentdir_prefix))
     raise NotThisMethod("rootdir doesn't start with parentdir_prefix")
 
 
@@ -201,9 +201,9 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         # "stabilization", as well as "HEAD" and "master".
         tags = set([r for r in refs if re.search(r'\d', r)])
         if verbose:
-            print(f"discarding '{','.join(refs - tags)}', no digits")
+            print("discarding '%s', no digits" % ",".join(refs - tags))
     if verbose:
-        print(f"likely tags: {','.join(sorted(tags))}")
+        print("likely tags: %s" % ",".join(sorted(tags)))
     for ref in sorted(tags):
         # sorting will prefer e.g. "2.0" over "2.0rc1"
         if ref.startswith(tag_prefix):
@@ -214,7 +214,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
             if not re.match(r'\d', r):
                 continue
             if verbose:
-                print(f"picking {r}")
+                print("picking %s" % r)
             return {"version": r,
                     "full-revisionid": keywords["full"].strip(),
                     "dirty": False, "error": None,
@@ -243,14 +243,14 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
                           hide_stderr=True)
     if rc != 0:
         if verbose:
-            print(f"Directory {root} not under git control")
+            print("Directory %s not under git control" % root)
         raise NotThisMethod("'git rev-parse --git-dir' returned error")
 
     # if there is a tag matching tag_prefix, this yields TAG-NUM-gHEX[-dirty]
     # if there isn't one, this yields HEX[-dirty] (no NUM)
     describe_out, rc = run_command(GITS, ["describe", "--tags", "--dirty",
                                           "--always", "--long",
-                                          "--match", f"{tag_prefix}*"],
+                                          "--match", "%s*" % tag_prefix],
                                    cwd=root)
     # --long was added in git-1.5.5
     if describe_out is None:
@@ -283,17 +283,18 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
         mo = re.search(r'^(.+)-(\d+)-g([0-9a-f]+)$', git_describe)
         if not mo:
             # unparseable. Maybe git-describe is misbehaving?
-            pieces["error"] = f"unable to parse git-describe output: '{describe_out}'"
+            pieces["error"] = ("unable to parse git-describe output: '%s'"
+                               % describe_out)
             return pieces
 
         # tag
         full_tag = mo.group(1)
         if not full_tag.startswith(tag_prefix):
             if verbose:
-                txt = f"tag '{full_tag}' doesn't start with prefix '{tag_prefix}'"
-                print(txt)
-            pieces["error"] = (f"tag '{full_tag}' doesn't start with prefix "
-                               f"'{tag_prefix}'")
+                fmt = "tag '%s' doesn't start with prefix '%s'"
+                print(fmt % (full_tag, tag_prefix))
+            pieces["error"] = ("tag '%s' doesn't start with prefix '%s'"
+                               % (full_tag, tag_prefix))
             return pieces
         pieces["closest-tag"] = full_tag[len(tag_prefix):]
 
@@ -383,13 +384,13 @@ def render_pep440_post(pieces):
             if pieces["dirty"]:
                 rendered += ".dev0"
             rendered += plus_or_dot(pieces)
-            rendered += f"g{pieces['short']}"
+            rendered += "g%s" % pieces["short"]
     else:
         # exception #1
         rendered = "0.post%d" % pieces["distance"]
         if pieces["dirty"]:
             rendered += ".dev0"
-        rendered += f"+g{pieces['short']}"
+        rendered += "+g%s" % pieces["short"]
     return rendered
 
 
@@ -480,7 +481,7 @@ def render(pieces, style):
     elif style == "git-describe-long":
         rendered = render_git_describe_long(pieces)
     else:
-        raise ValueError(f"unknown style '{style}'")
+        raise ValueError("unknown style '%s'" % style)
 
     return {"version": rendered, "full-revisionid": pieces["long"],
             "dirty": pieces["dirty"], "error": None,
