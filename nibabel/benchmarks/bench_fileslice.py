@@ -20,8 +20,7 @@ from ..rstutils import rst_table
 from ..tmpdirs import InTemporaryDirectory
 
 SHAPE = (64, 64, 32, 100)
-ROW_NAMES = [f'axis {i}, len {SHAPE[i]}'
-             for i in range(len(SHAPE))]
+ROW_NAMES = [f'axis {i}, len {dim}' for i, dim in enumerate(SHAPE)]
 COL_NAMES = ['mid int',
              'step 1',
              'half step 1',

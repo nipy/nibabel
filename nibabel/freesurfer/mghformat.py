@@ -278,12 +278,12 @@ class MGHHeader(LabeledWrapStruct):
         if len(zooms) > ndims:
             raise HeaderDataError('Expecting %d zoom values' % ndims)
         if np.any(zooms[:3] <= 0):
-            raise HeaderDataError(f'Spatial (first three) zooms must be '
-                                  f'positive; got {tuple(zooms[:3])!r}')
+            raise HeaderDataError('Spatial (first three) zooms must be positive; got '
+                                  f'{tuple(zooms[:3])}')
         hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
             if zooms[3] < 0:
-                raise HeaderDataError(f'TR must be non-negative; got {zooms[3]!r}')
+                raise HeaderDataError(f'TR must be non-negative; got {zooms[3]}')
             hdr['tr'] = zooms[3]
 
     def get_data_shape(self):

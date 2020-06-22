@@ -20,6 +20,5 @@ tar_name = f'{base_name}.tgz'
 
 start_dir = os.getcwd()
 cd('..')
-git_tpl = 'git archive --format=tar --prefix={0}/ HEAD | gzip > {1}'
-c(git_tpl.format(base_name, tar_name))
+c(f'git archive --format=tar --prefix={base_name}/ HEAD | gzip > {tar_name}')
 c(f'mv {tar_name} tools/')

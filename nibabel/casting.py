@@ -296,8 +296,7 @@ def type_info(np_type):
                    maxexp=16384,
                    width=width)
     else:  # don't recognize the type
-        raise FloatingError(f'We had not expected long double '
-                            f'type {np_type} with info {info}')
+        raise FloatingError(f'We had not expected long double type {np_type} with info {info}')
     return ret
 
 

@@ -114,7 +114,7 @@ def _unpack_var(var):
     TEMPLATE_SPACE ORIG
     """
 
-    err_msg = (f'Please check HEAD file to ensure it is AFNI compliant. '
+    err_msg = ('Please check HEAD file to ensure it is AFNI compliant. '
                f'Offending attribute:\n{var}')
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
@@ -127,7 +127,7 @@ def _unpack_var(var):
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
-            raise AFNIHeaderError(f'Failed to read variable from HEAD file '
+            raise AFNIHeaderError('Failed to read variable from HEAD file '
                                   f'due to improper type casting. {err_msg}')
     else:
         # AFNI string attributes will always start with open single quote and

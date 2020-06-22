@@ -291,8 +291,7 @@ class Cifti2Label(xml.XmlSerializable):
                 v = _float_01(getattr(self, c_))
             except ValueError:
                 raise Cifti2HeaderError(
-                    f'Label invalid {c_} needs to be a '
-                    f'float between 0 and 1. and it is {v}'
+                    f'Label invalid {c_} needs to be a float between 0 and 1. and it is {v}'
                 )
 
         lab = xml.Element('Label')

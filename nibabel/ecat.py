@@ -425,8 +425,8 @@ def get_frame_order(mlist):
     valid_order = np.argsort(ids)
     if not all(valid_order == sorted(valid_order)):
         # raise UserWarning if Frames stored out of order
-        warnings.warn_explicit(f'Frames stored out of order;true order = {valid_order}\n'
-                               f'frames will be accessed in order STORED, NOT true order',
+        warnings.warn_explicit(f'Frames stored out of order; true order = {valid_order}\n'
+                               'frames will be accessed in order STORED, NOT true order',
                                UserWarning, 'ecat', 0)
     id_dict = {}
     for i in range(n_valid):

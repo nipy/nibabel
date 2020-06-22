@@ -106,7 +106,7 @@ def assert_default_types(loaded):
             continue
         loadedtype = type(getattr(loaded, attr))
         assert loadedtype == defaulttype, (
-            f"Type mismatch for attribute: {attr} ({loadedtype!s} != {defaulttype!s})")
+            f"Type mismatch for attribute: {attr} ({loadedtype} != {defaulttype})")
 
 
 def test_default_types():

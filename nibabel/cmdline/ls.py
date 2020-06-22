@@ -116,7 +116,7 @@ def proc_file(f, opts):
         else:
             row += ['']
     except Exception as e:
-        verbose(2, f"Failed to obtain qform or sform -- {str(e)}")
+        verbose(2, f"Failed to obtain qform or sform -- {e}")
         if isinstance(h, nib.AnalyzeHeader):
             row += ['']
         else:
@@ -136,7 +136,7 @@ def proc_file(f, opts):
                 # just # of elements
                 row += ["@l[%d]" % np.prod(d.shape)]
                 # stats
-                row += [len(d) and f'@l[{np.min(d):.2g}, {np.max(d):.2g}]' or '-']
+                row += [f'@l[{np.min(d):.2g}, {np.max(d):.2g}]' if len(d) else '-']
             if opts.counts:
                 items, inv = np.unique(d, return_inverse=True)
                 if len(items) > 1000 and not opts.all_counts:
@@ -146,7 +146,7 @@ def proc_file(f, opts):
                     counts = " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))
                 row += ["@l" + counts]
         except IOError as e:
-            verbose(2, f"Failed to obtain stats/counts -- {str(e)}")
+            verbose(2, f"Failed to obtain stats/counts -- {e}")
             row += [_err()]
     return row
 

@@ -518,9 +518,9 @@ class SpatialImage(DataobjImage):
         return '\n'.join((str(self.__class__),
                           f'data shape {shape}',
                           'affine: ',
-                          f'{affine}',
+                          str(affine),
                           'metadata:',
-                          f'{self._header}'))
+                          str(self._header)))
 
     def get_data_dtype(self):
         return self._header.get_data_dtype()

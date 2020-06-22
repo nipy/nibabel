@@ -293,7 +293,7 @@ def make_datasource(pkg_def, **kwargs):
         pth = [pjoin(this_data_path, *names)
                for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-        msg = (f'{e}; Is it possible you have not installed a data package?')
+        msg = f'{e}; Is it possible you have not installed a data package?'
         if 'name' in pkg_def:
             msg += f"\n\nYou may need the package \"{pkg_def['name']}\""
         if pkg_hint is not None:
@@ -356,6 +356,5 @@ def datasource_or_bomber(pkg_def, **options):
         pkg_name = pkg_def['name']
     else:
         pkg_name = 'data at ' + unix_relpath
-    msg = (f"{pkg_name} is version {ds.version} but we need "
-           f"version >= {version}\n\n{pkg_hint}")
+    msg = f"{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}"
     return Bomber(sys_relpath, DataError(msg))

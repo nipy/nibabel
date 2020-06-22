@@ -395,7 +395,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
     except AttributeError:
         study_comments = ''
     try:
-        logger.debug(f'        storage instance {str(do.SOPInstanceUID)}')
+        logger.debug(f'        storage instance {do.SOPInstanceUID}')
         if str(do.StudyInstanceUID) not in studies:
             query = """INSERT INTO study (uid,
                                           date,
@@ -444,7 +444,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
     except AttributeError as data:
-        logger.debug(f'        {str(data)}')
+        logger.debug(f'        {data}')
         return None
     return str(do.SOPInstanceUID)
 

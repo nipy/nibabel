@@ -33,7 +33,7 @@ def verbose(thing, msg):
     """
     # TODO: consider using nibabel's logger
     if thing <= int(verbose_level):
-        print(f"{' ' * thing}{msg}")
+        print(' ' * thing + msg)
 
 
 def table2string(table, out=None):

@@ -337,8 +337,7 @@ def axcodes2ornt(axcodes, labels=None):
     if len(allowed_labels) != len(set(allowed_labels)):
         raise ValueError(f'Duplicate labels in {allowed_labels}')
     if not set(axcodes).issubset(allowed_labels):
-        raise ValueError(f'Not all axis codes {list(axcodes)} '
-                         f'in label set {allowed_labels}')
+        raise ValueError(f'Not all axis codes {list(axcodes)} in label set {allowed_labels}')
     n_axes = len(axcodes)
     ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
     for code_idx, code in enumerate(axcodes):

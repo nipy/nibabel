@@ -136,7 +136,7 @@ def get_opt_parser():
 
 def verbose(msg, indent=0):
     if verbose.switch:
-        print(f"{' ' * indent}{msg}")
+        print(' ' * indent + msg)
 
 
 def error(msg, exit_code):
@@ -158,8 +158,7 @@ def proc_file(infile, opts):
     else:
         outfilename = basefilename + '.nii'
     if os.path.isfile(outfilename) and not opts.overwrite:
-        raise IOError(f'Output file "{outfilename}" exists, '
-                      f'use --overwrite to overwrite it')
+        raise IOError(f'Output file "{outfilename}" exists, use --overwrite to overwrite it')
 
     # load the PAR header and data
     scaling = 'dv' if opts.scaling == 'off' else opts.scaling

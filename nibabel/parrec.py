@@ -733,7 +733,7 @@ class PARRECHeader(SpatialHeader):
         bitpix = self._get_unique_image_prop('image pixel size')
         if bitpix not in (8, 16):
             raise PARRECError(f'Only 8- and 16-bit data supported (not {bitpix}) '
-                              f'please report this to the nibabel developers')
+                              'please report this to the nibabel developers')
         # REC data always little endian
         dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
         super(PARRECHeader, self).__init__(data_dtype=dt,

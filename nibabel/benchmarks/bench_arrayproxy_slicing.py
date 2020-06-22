@@ -100,8 +100,7 @@ def bench_arrayproxy_slicing():
 
     with InTemporaryDirectory():
 
-        print(f'Generating test data... '
-              f'({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')
+        print(f'Generating test data... ({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')
 
         data = np.array(np.random.random(SHAPE), dtype=np.float32)
 
@@ -180,8 +179,7 @@ def bench_arrayproxy_slicing():
         data[:, 2] = np.nan
     data[:, 3] = [r[5] - r[6] for r in results]
 
-    rowlbls = [(f'Type {r[0]}, keep_open {r[1]}, '
-                f'slice {fmt_sliceobj(r[2])}') for r in results]
+    rowlbls = [f'Type {r[0]}, keep_open {r[1]}, slice {fmt_sliceobj(r[2])}' for r in results]
     collbls = ['Time', 'Baseline time', 'Time ratio', 'Memory deviation']
 
     print(rst_table(data, rowlbls, collbls))

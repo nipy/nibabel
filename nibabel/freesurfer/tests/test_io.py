@@ -49,12 +49,12 @@ def _hash_file_content(fname):
 @freesurfer_test
 def test_geometry():
     """Test IO of .surf"""
-    surf_path = pjoin(data_path, "surf", f"{'lh'}.{'inflated'}")
+    surf_path = pjoin(data_path, "surf", "lh.inflated")
     coords, faces = read_geometry(surf_path)
     assert 0 == faces.min()
     assert coords.shape[0] == faces.max() + 1
 
-    surf_path = pjoin(data_path, "surf", f"{'lh'}.{'sphere'}")
+    surf_path = pjoin(data_path, "surf", "lh.sphere")
     coords, faces, volume_info, create_stamp = read_geometry(
         surf_path, read_metadata=True, read_stamp=True)
 
@@ -132,7 +132,7 @@ def test_quad_geometry():
 @freesurfer_test
 def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
-    curv_path = pjoin(data_path, "surf", f"{'lh'}.{'curv'}")
+    curv_path = pjoin(data_path, "surf", "lh.curv")
     curv = read_morph_data(curv_path)
     assert -1.0 < curv.min() < 0
     assert 0 < curv.max() < 1.0
@@ -170,7 +170,7 @@ def test_annot():
     """Test IO of .annot against freesurfer example data."""
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
-        annot_path = pjoin(data_path, "label", f"{'lh'}.{a}.annot")
+        annot_path = pjoin(data_path, "label", f"lh.{a}.annot")
         hash_ = _hash_file_content(annot_path)
 
         labels, ctab, names = read_annot(annot_path)

@@ -97,8 +97,8 @@ def read_mosaic_dir(dicom_path,
             if check_is_dwi:
                 raise DicomReadError(
                     f'Could not find diffusion information reading file "{fname}";  '
-                    f'is it possible this is not a _raw_ diffusion directory? '
-                    f'Could it be a processed dataset like ADC etc?')
+                    'is it possible this is not a _raw_ diffusion directory? '
+                    'Could it be a processed dataset like ADC etc?')
             b = np.nan
             g = np.ones((3,)) + np.nan
         else:

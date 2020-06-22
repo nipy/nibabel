@@ -538,7 +538,7 @@ class BrainModelAxis(Axis):
             proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}_{orientation.upper()}'
         if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES:
             raise ValueError(f'{name} was interpreted as {proposed_name}, which is not '
-                             f'a valid CIFTI brain structure')
+                             'a valid CIFTI brain structure')
         return proposed_name
 
     @property
@@ -650,7 +650,7 @@ class BrainModelAxis(Axis):
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError(f"Trying to concatenate two BrainModels with "
+                raise ValueError("Trying to concatenate two BrainModels with "
                                  f"inconsistent number of vertices for {name}")
             nvertices[name] = value
         return self.__class__(
@@ -804,7 +804,7 @@ class ParcelsAxis(Axis):
             for name, _, bm_part in bm.iter_structures():
                 if name in bm.nvertices.keys():
                     if name in nvertices.keys() and nvertices[name] != bm.nvertices[name]:
-                        raise ValueError(f"Got multiple conflicting number of "
+                        raise ValueError("Got multiple conflicting number of "
                                          f"vertices for surface structure {name}")
                     nvertices[name] = bm.nvertices[name]
                     vertices[name] = bm_part.vertex
@@ -967,7 +967,7 @@ class ParcelsAxis(Axis):
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
             if name in nvertices.keys() and nvertices[name] != value:
-                raise ValueError(f"Trying to concatenate two ParcelsAxis with "
+                raise ValueError("Trying to concatenate two ParcelsAxis with "
                                  f"inconsistent number of vertices for {name}")
             nvertices[name] = value
         return self.__class__(

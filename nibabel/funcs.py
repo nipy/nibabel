@@ -139,8 +139,7 @@ def concat_images(images, check_affines=True, axis=None):
             raise ValueError(f'shape {img.shape} for image {i} not compatible with '
                              f'first image shape {shape0} with axis == {axis}')
         if check_affines and not np.all(img.affine == affine):
-            raise ValueError(f'Affine for image {i} does not match affine for '
-                             f'first image')
+            raise ValueError(f'Affine for image {i} does not match affine for first image')
         # Do not fill cache in image if it is empty
         out_data[i] = np.asanyarray(img.dataobj)
 
