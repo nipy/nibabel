@@ -98,7 +98,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 # Reuse the sniff... but it will only change for some
                 # sniff_mode values.
                 msg = (f'{expected_img_klass.__name__}/ {sniff_mode}/ '
-                       f'{str(expect_success)}')
+                       f'{expect_success}')
                 sniff = check_img(img_path, klass, sniff_mode=sniff_mode,
                                   sniff=sniff, expect_success=expect_success,
                                   msg=msg)

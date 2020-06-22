@@ -108,9 +108,8 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError("data_per_streamline must be a 2D array.")
 
         # We make sure there is the right amount of values
-        if self.n_rows > 0 and len(value) != self.n_rows:
-            msg = (f"The number of values ({len(value)}) should match "
-                   f"n_elements ({self.n_rows}).")
+        if 0 < self.n_rows != len(value):
+            msg = f"The number of values ({len(value)}) should match n_elements ({self.n_rows})."
             raise ValueError(msg)
 
         self.store[key] = value
@@ -140,7 +139,7 @@ class PerArrayDict(SliceableDataDict):
         """
         if (len(self) > 0 and len(other) > 0 and
                 sorted(self.keys()) != sorted(other.keys())):
-            msg = (f"Entry mismatched between the two PerArrayDict objects. "
+            msg = ("Entry mismatched between the two PerArrayDict objects. "
                    f"This PerArrayDict contains '{sorted(self.keys())}' "
                    f"whereas the other contains '{sorted(other.keys())}'.")
             raise ValueError(msg)
@@ -364,7 +363,7 @@ class Tractogram(object):
         if value is not None:
             value = np.array(value)
             if value.shape != (4, 4):
-                msg = (f"Affine matrix has a shape of (4, 4) but a ndarray with"
+                msg = ("Affine matrix has a shape of (4, 4) but a ndarray with "
                        f"shape {value.shape} was provided instead.")
                 raise ValueError(msg)
 

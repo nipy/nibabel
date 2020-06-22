@@ -73,7 +73,7 @@ def proc_file(f, opts):
         h = vol.header
     except Exception as e:
         row += ['failed']
-        verbose(2, f"Failed to gather information -- {str(e)}")
+        verbose(2, f"Failed to gather information -- {e}")
         return row
 
     row += [str(safe_get(h, 'data_dtype')),

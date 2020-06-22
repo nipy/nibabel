@@ -471,7 +471,7 @@ def _check_hdr_points_space(hdr, points_space):
         voxel_size = hdr['voxel_size']
         if np.any(voxel_size < 0):
             raise HeaderError(f'Negative voxel sizes {voxel_size} not '
-                              f'valid for voxel - voxmm conversion')
+                              'valid for voxel - voxmm conversion')
         if np.all(voxel_size == 0):
             raise HeaderError('Cannot convert between voxels and voxmm when '
                               '"voxel_sizes" all 0')
@@ -501,8 +501,7 @@ def _check_hdr_points_space(hdr, points_space):
             raise HeaderError(f'Affine implies voxel_order {aff_order} '
                               f'but header voxel_order is {voxel_order}')
     else:
-        raise ValueError(f'Painfully confusing "points_space" value of '
-                         f'"{points_space}"')
+        raise ValueError(f'Painfully confusing "points_space" value of "{points_space}"')
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -669,7 +668,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=True):
         aff[:, 2] *= -1
         exp_order = ''.join(aff2axcodes(aff))
         if voxel_order != exp_order:
-            raise HeaderError(f'Estimate of header affine does not match '
+            raise HeaderError('Estimate of header affine does not match '
                               f'voxel_order of {exp_order}')
     return aff
 

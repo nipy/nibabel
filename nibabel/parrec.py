@@ -429,8 +429,7 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     """
     slice_set = set(range(slice_min, slice_max + 1))
     if not slice_set.issuperset(slice_nos):
-        raise ValueError(
-            f'Slice numbers outside inclusive range {slice_min} to {slice_max}')
+        raise ValueError(f'Slice numbers outside inclusive range {slice_min} to {slice_max}')
     vol_nos = np.array(vol_numbers(slice_nos))
     slice_nos = np.asarray(slice_nos)
     is_full = np.ones(slice_nos.shape, dtype=bool)

@@ -486,7 +486,7 @@ class GiftiDataArray(xml.XmlSerializable):
 \tExternalFileOffset="%d">\n"""
         di = ""
         for i, n in enumerate(self.dims):
-            di = di + f'\tDim{i}="{n}"\n'
+            di = di + f'\tDim{i}="{n}\"\n'
         return out % (intent_codes.niistring[self.intent],
                       data_type_codes.niistring[self.datatype],
                       array_index_order_codes.label[self.ind_ord],

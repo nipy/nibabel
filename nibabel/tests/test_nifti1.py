@@ -266,7 +266,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             assert fhdr['vox_offset'] == bad_spm
             assert (message ==
                     f'vox offset (={bad_spm:g}) not divisible by 16, '
-                    f'not SPM compatible; leaving at current value')
+                    'not SPM compatible; leaving at current value')
         # Check minimum offset (if offset set)
         hdr['magic'] = hdr.single_magic
         hdr['vox_offset'] = 10

@@ -65,7 +65,7 @@ def load_small_file():
 def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
-    expected_re = (f" (int16|[<>]i2) \\[128,  96,  24,   2\\] 2.00x2.00x2.20x2000.00  "
+    expected_re = (" (int16|[<>]i2) \\[128,  96,  24,   2\\] 2.00x2.00x2.20x2000.00  "
                    f"#exts: 2{hdrs_str} sform{other_str}$")
     cmd = ['nib-ls'] + opts + [fname]
     code, stdout, stderr = run_command(cmd)

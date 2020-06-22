@@ -294,7 +294,7 @@ class OrthoSlicer3D(object):
             Other viewer to use to link movements.
         """
         if not isinstance(other, self.__class__):
-            raise TypeError(f'other must be an instance of '
+            raise TypeError('other must be an instance of '
                             f'{self.__class__.__name__}, not {type(other)}')
         self._link(other, is_primary=True)
 

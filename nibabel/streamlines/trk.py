@@ -160,7 +160,7 @@ def encode_value_in_name(value, name, max_name_len=20):
     if len(encoded_name) > max_name_len:
         msg = (f"Data information named '{name}' is too long (need to be less"
                f" than {max_name_len - (len(str(value)) + 1)} characters "
-               f"when storing more than one value for a given data information.")
+               "when storing more than one value for a given data information.")
         raise ValueError(msg)
     # Fill to the end with zeros
     return encoded_name.ljust(max_name_len, '\x00').encode('latin1')
@@ -195,8 +195,8 @@ def decode_value_from_name(encoded_name):
         value = int(splits[1])  # Decode value.
     elif len(splits) > 2:
         # The remaining bytes are not \x00, raising.
-        msg = (f"Wrong scalar_name or property_name: '{encoded_name}'."
-               f" Unused characters should be \\x00.")
+        msg = (f"Wrong scalar_name or property_name: '{encoded_name}'. "
+               "Unused characters should be \\x00.")
         raise HeaderError(msg)
 
     return name, value
@@ -473,8 +473,8 @@ class TrkFile(TractogramFile):
             data_for_streamline = first_item.data_for_streamline
             if len(data_for_streamline) > MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
                 msg = (f"Can only store {MAX_NB_NAMED_SCALARS_PER_POINT} named "
-                       f"data_per_streamline (also known as 'properties' in the "
-                       f"TRK format).")
+                       "data_per_streamline (also known as 'properties' in the "
+                       "TRK format).")
                 raise ValueError(msg)
 
             data_for_streamline_keys = sorted(data_for_streamline.keys())
@@ -491,8 +491,8 @@ class TrkFile(TractogramFile):
             data_for_points = first_item.data_for_points
             if len(data_for_points) > MAX_NB_NAMED_SCALARS_PER_POINT:
                 msg = (f"Can only store {MAX_NB_NAMED_SCALARS_PER_POINT} "
-                       f"named data_per_point (also known as 'scalars' in "
-                       f"the TRK format).")
+                       "named data_per_point (also known as 'scalars' in "
+                       "the TRK format).")
                 raise ValueError(msg)
 
             data_for_points_keys = sorted(data_for_points.keys())
@@ -615,8 +615,8 @@ class TrkFile(TractogramFile):
             # able to determine the axis directions.
             axcodes = aff2axcodes(header[Field.VOXEL_TO_RASMM])
             if None in axcodes:
-                msg = (f"The 'vox_to_ras' affine is invalid! Could not"
-                       f" determine the axis directions from it.\n"
+                msg = ("The 'vox_to_ras' affine is invalid! Could not"
+                       " determine the axis directions from it.\n"
                        f"{header[Field.VOXEL_TO_RASMM]}")
                 raise HeaderError(msg)
 
