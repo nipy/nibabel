@@ -255,7 +255,7 @@ class ArrayProxy(object):
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
             if keep_file_open not in (True, False):
-                raise ValueError(f"nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT "
+                raise ValueError("nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT "
                                  f"must be boolean. Found: {keep_file_open}")
         elif keep_file_open not in (True, False):
             raise ValueError('keep_file_open must be one of {None, True, False}')
