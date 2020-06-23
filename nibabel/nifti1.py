@@ -1165,8 +1165,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slope == 0 or not np.isfinite(slope):
             return None, None
         if not np.isfinite(inter):
-            raise HeaderDataError(
-                f'Valid slope but invalid intercept {inter}')
+            raise HeaderDataError(f'Valid slope but invalid intercept {inter}')
         return slope, inter
 
     def set_slope_inter(self, slope, inter=None):
