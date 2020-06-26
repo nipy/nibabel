@@ -35,6 +35,9 @@ try:
     del igzip, version
 
 except ImportError:
+    # nibabel.openers.IndexedGzipFile is imported by nibabel.volumeutils
+    # to detect compressed file types, so we give a fallback value here.
+    IndexedGzipFile = gzip.GzipFile
     HAVE_INDEXED_GZIP = False
 
 

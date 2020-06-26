@@ -19,7 +19,7 @@ from functools import reduce
 import numpy as np
 
 from .casting import (shared_range, type_info, OK_FLOATS)
-from .openers import Opener, BZ2File
+from .openers import Opener, BZ2File, IndexedGzipFile
 from .deprecated import deprecate_with_version
 from .externals.oset import OrderedSet
 
@@ -38,7 +38,7 @@ endian_codes = (  # numpy code, aliases
 default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
-COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File)
+COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File, IndexedGzipFile)
 
 
 class Recoder(object):
