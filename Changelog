@@ -25,6 +25,22 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+3.1.1 (Friday 26 June 2020)
+===========================
+
+Bug-fix release in the 3.1.x series.
+
+These are small compatibility fixes that support ARM64 architecture and
+``indexed_gzip>=1.3.0``.
+
+Bug fixes
+---------
+* Detect ``IndexedGzipFile`` as compressed file type (pr/925) (PM, reviewed by
+  CM)
+* Correctly cast ``nan`` when testing ``array_to_file``, fixing ARM64 builds
+  (pr/862) (CM, reviewed by MB)
+
+
 3.1.0 (Monday 20 April 2020)
 ============================
 
