@@ -19,7 +19,6 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 import re
 from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
-import numpy as np
 from .. import xmlutils as xml
 from ..filebasedimages import FileBasedHeader
 from ..dataobj_images import DataobjImage
@@ -1483,16 +1482,12 @@ class Cifti2Image(DataobjImage):
         >>> img.shape == (2, 3, 4)
         True
         >>> img.update_headers()
-        >>> img.nifti_header.get_data_shape() == (2, 3, 4)
+        >>> img.nifti_header.get_data_shape() == (1, 1, 1, 1, 2, 3, 4)
         True
-        >>> np.array_equal(img.nifti_header['dim'], [7, 1, 1, 1, 1, 2, 3, 4])
+        >>> img.shape == (2, 3, 4)
         True
         '''
-        self._nifti_header.set_data_shape(self._dataobj.shape)
-        _dims = np.ones((8), dtype=int)
-        _dims[0] = 7 if len(self._dataobj.shape) == 3 else 6
-        _dims[5:8] = (self._dataobj.shape + (1,))[:3]
-        self._nifti_header['dim'] = _dims
+        self._nifti_header.set_data_shape((1, 1, 1, 1) + self._dataobj.shape)
 
     def get_data_dtype(self):
         return self._nifti_header.get_data_dtype()
