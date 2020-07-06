@@ -92,7 +92,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = u'2006-2020, %(maintainer)s <%(author_email)s>' % metadata
+copyright = f"2006-2020, {metadata['maintainer']} <{metadata['author_email']}>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -206,7 +206,8 @@ html_index = 'index.html'
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'index': ['localtoc.html', 'relations.html', 'sourcelink.html', 'indexsidebar.html', 'searchbox.html', 'reggie.html']}
+html_sidebars = {'index': ['localtoc.html', 'relations.html', 'sourcelink.html',
+                           'indexsidebar.html', 'searchbox.html', 'reggie.html']}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.

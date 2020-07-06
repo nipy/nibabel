@@ -128,11 +128,11 @@ class VersionedDatasource(Datasource):
         cfg_file = self.get_filename(config_filename)
         readfiles = self.config.read(cfg_file)
         if not readfiles:
-            raise DataError('Could not read config file %s' % cfg_file)
+            raise DataError(f'Could not read config file {cfg_file}')
         try:
             self.version = self.config.get('DEFAULT', 'version')
         except configparser.Error:
-            raise DataError('Could not get version from %s' % cfg_file)
+            raise DataError(f'Could not get version from {cfg_file}')
         version_parts = self.version.split('.')
         self.major_version = int(version_parts[0])
         self.minor_version = int(version_parts[1])
@@ -240,9 +240,8 @@ def find_data_dir(root_dirs, *names):
         pth = pjoin(path, ds_relative)
         if os.path.isdir(pth):
             return pth
-    raise DataError('Could not find datasource "%s" in data path "%s"' %
-                    (ds_relative,
-                     os.path.pathsep.join(root_dirs)))
+    raise DataError(f'Could not find datasource "{ds_relative}" in '
+                    f'data path "{os.path.pathsep.join(root_dirs)}"')
 
 
 def make_datasource(pkg_def, **kwargs):
@@ -294,12 +293,11 @@ def make_datasource(pkg_def, **kwargs):
         pth = [pjoin(this_data_path, *names)
                for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-        msg = ('%s; Is it possible you have not installed a data package?' %
-               e)
+        msg = f'{e}; Is it possible you have not installed a data package?'
         if 'name' in pkg_def:
-            msg += '\n\nYou may need the package "%s"' % pkg_def['name']
+            msg += f"\n\nYou may need the package \"{pkg_def['name']}\""
         if pkg_hint is not None:
-            msg += '\n\n%s' % pkg_hint
+            msg += f'\n\n{pkg_hint}'
         raise DataError(msg)
     return VersionedDatasource(pth)
 
@@ -314,9 +312,8 @@ class Bomber(object):
     def __getattr__(self, attr_name):
         """ Raise informative error accessing not-found attributes """
         raise BomberError(
-            'Trying to access attribute "%s" '
-            'of non-existent data "%s"\n\n%s\n' %
-            (attr_name, self.name, self.msg))
+            f'Trying to access attribute "{attr_name}" of '
+            f'non-existent data "{self.name}"\n\n{self.msg}\n')
 
 
 def datasource_or_bomber(pkg_def, **options):
@@ -359,10 +356,5 @@ def datasource_or_bomber(pkg_def, **options):
         pkg_name = pkg_def['name']
     else:
         pkg_name = 'data at ' + unix_relpath
-    msg = ('%(name)s is version %(pkg_version)s but we need '
-           'version >= %(req_version)s\n\n%(pkg_hint)s' %
-           dict(name=pkg_name,
-                pkg_version=ds.version,
-                req_version=version,
-                pkg_hint=pkg_hint))
+    msg = f"{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}"
     return Bomber(sys_relpath, DataError(msg))

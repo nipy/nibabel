@@ -177,7 +177,7 @@ class GiftiImageParser(XmlParser):
                     attrs["ArrayIndexingOrder"]]
             num_dim = int(attrs.get("Dimensionality", 0))
             for i in range(num_dim):
-                di = "Dim%s" % str(i)
+                di = f"Dim{i}"
                 if di in attrs:
                     self.da.dims.append(int(attrs[di]))
             # dimensionality has to correspond to the number of DimX given

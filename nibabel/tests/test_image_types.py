@@ -57,8 +57,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
             if expect_success:
                 # Check that the sniff returned is appropriate.
-                new_msg = '%s returned sniff==None (%s)' % (img_klass.__name__,
-                                                            msg)
+                new_msg = f'{img_klass.__name__} returned sniff==None ({msg})'
                 expected_sizeof_hdr = getattr(img_klass.header_class,
                                               'sizeof_hdr', 0)
                 current_sizeof_hdr = 0 if new_sniff is None else \
@@ -66,11 +65,9 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 assert current_sizeof_hdr >= expected_sizeof_hdr, new_msg
 
                 # Check that the image type was recognized.
-                new_msg = '%s (%s) image is%s a %s image.' % (
-                    basename(img_path),
-                    msg,
-                    '' if is_img else ' not',
-                    img_klass.__name__)
+                new_msg = (f"{basename(img_path)} ({msg}) image "
+                           f"is{'' if is_img else ' not'} "
+                           f"a {img_klass.__name__} image.")
                 assert is_img, new_msg
 
             if sniff_mode == 'vanilla':
@@ -100,8 +97,8 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
                 # Reuse the sniff... but it will only change for some
                 # sniff_mode values.
-                msg = '%s/ %s/ %s' % (expected_img_klass.__name__, sniff_mode,
-                                      str(expect_success))
+                msg = (f'{expected_img_klass.__name__}/ {sniff_mode}/ '
+                       f'{expect_success}')
                 sniff = check_img(img_path, klass, sniff_mode=sniff_mode,
                                   sniff=sniff, expect_success=expect_success,
                                   msg=msg)

@@ -1224,9 +1224,8 @@ def test_array_from_file_overflow():
         array_from_file(shape, np.int8, NoStringIO())
     except IOError as err:
         message = str(err)
-    assert message == 'Expected {0} bytes, got {1} bytes from {2}\n' \
-                      ' - could the file be damaged?'.format(
-                      11390625000000000000, 0, 'object')
+    assert message == ("Expected 11390625000000000000 bytes, got 0 "
+                       "bytes from object\n - could the file be damaged?")
 
 
 def test__ftype4scaled_finite_warningfilters():

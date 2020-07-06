@@ -146,10 +146,8 @@ class Deprecator(object):
         if since:
             messages.append('* deprecated from version: ' + since)
         if until:
-            messages.append('* {0} {1} as of version: {2}'.format(
-                "Raises" if self.is_bad_version(until) else "Will raise",
-                error_class,
-                until))
+            messages.append(f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
+                            f"{error_class} as of version: {until}")
         message = '\n'.join(messages)
 
         def deprecator(func):

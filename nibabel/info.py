@@ -16,10 +16,7 @@ _version_micro = 0
 _version_extra = 'dev'
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-VERSION = "%s.%s.%s%s" % (_version_major,
-                          _version_minor,
-                          _version_micro,
-                          _version_extra)
+VERSION = f"{_version_major}.{_version_minor}.{_version_micro}{_version_extra}"
 
 
 # Note: this long_description is the canonical place to edit this text.

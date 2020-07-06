@@ -36,7 +36,7 @@ else:
         have_freesurfer = isdir(data_path)
 
 freesurfer_test = unittest.skipUnless(have_freesurfer,
-                                      'cannot find freesurfer {0} directory'.format(DATA_SDIR))
+                                      f'cannot find freesurfer {DATA_SDIR} directory')
 
 def _hash_file_content(fname):
     hasher = hashlib.md5()
@@ -49,12 +49,12 @@ def _hash_file_content(fname):
 @freesurfer_test
 def test_geometry():
     """Test IO of .surf"""
-    surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "inflated"))
+    surf_path = pjoin(data_path, "surf", "lh.inflated")
     coords, faces = read_geometry(surf_path)
     assert 0 == faces.min()
     assert coords.shape[0] == faces.max() + 1
 
-    surf_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "sphere"))
+    surf_path = pjoin(data_path, "surf", "lh.sphere")
     coords, faces, volume_info, create_stamp = read_geometry(
         surf_path, read_metadata=True, read_stamp=True)
 
@@ -68,8 +68,7 @@ def test_geometry():
     # with respect to read_geometry()
     with InTemporaryDirectory():
         surf_path = 'test'
-        create_stamp = "created by %s on %s" % (getpass.getuser(),
-                                                time.ctime())
+        create_stamp = f"created by {getpass.getuser()} on {time.ctime()}"
         volume_info['cras'] = [1., 2., 3.]
         write_geometry(surf_path, coords, faces, create_stamp, volume_info)
 
@@ -133,7 +132,7 @@ def test_quad_geometry():
 @freesurfer_test
 def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
-    curv_path = pjoin(data_path, "surf", "%s.%s" % ("lh", "curv"))
+    curv_path = pjoin(data_path, "surf", "lh.curv")
     curv = read_morph_data(curv_path)
     assert -1.0 < curv.min() < 0
     assert 0 < curv.max() < 1.0
@@ -171,7 +170,7 @@ def test_annot():
     """Test IO of .annot against freesurfer example data."""
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
-        annot_path = pjoin(data_path, "label", "%s.%s.annot" % ("lh", a))
+        annot_path = pjoin(data_path, "label", f"lh.{a}.annot")
         hash_ = _hash_file_content(annot_path)
 
         labels, ctab, names = read_annot(annot_path)
@@ -214,7 +213,7 @@ def test_read_write_annot():
     # 3 colours in the LUT.
     nvertices = 10
     nlabels = 3
-    names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+    names = [f'label {l}' for l in range(1, nlabels + 1)]
     # randomly generate a label for each vertex, making sure
     # that at least one of each label value is present. Label
     # values are in the range (0, nlabels-1) - they are used
@@ -248,7 +247,7 @@ def test_write_annot_fill_ctab():
     """Test the `fill_ctab` parameter to :func:`.write_annot`. """
     nvertices = 10
     nlabels = 3
-    names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+    names = [f'label {l}' for l in range(1, nlabels + 1)]
     labels = list(range(nlabels)) + \
              list(np.random.randint(0, nlabels, nvertices - nlabels))
     labels = np.array(labels, dtype=np.int32)
@@ -269,7 +268,7 @@ def test_write_annot_fill_ctab():
         rgbal = np.hstack((rgba, badannot))
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert any('Annotation values in {} will be incorrect'.format(annot_path) == str(ww.message)
+        assert any(f'Annotation values in {annot_path} will be incorrect' == str(ww.message)
                    for ww in w)
         labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
         names2 = [n.decode('ascii') for n in names2]
@@ -284,7 +283,7 @@ def test_write_annot_fill_ctab():
                        rgbal[:, 2] * (2 ** 16))
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert all('Annotation values in {} will be incorrect'.format(annot_path) != str(ww.message)
+        assert all(f'Annotation values in {annot_path} will be incorrect' != str(ww.message)
                    for ww in w)
         labels2, rgbal2, names2 = read_annot(annot_path)
         names2 = [n.decode('ascii') for n in names2]
@@ -322,7 +321,7 @@ def test_read_annot_old_format():
     with InTemporaryDirectory():
         nverts = 10
         nlabels = 3
-        names = ['Label {}'.format(l) for l in range(nlabels)]
+        names = [f'Label {l}' for l in range(nlabels)]
         labels = np.concatenate((
             np.arange(nlabels), np.random.randint(0, nlabels, nverts - nlabels)))
         np.random.shuffle(labels)
@@ -356,7 +355,7 @@ def test_write_annot_maxstruct():
     """Test writing ANNOT files with repeated labels"""
     with InTemporaryDirectory():
         nlabels = 3
-        names = ['label {}'.format(l) for l in range(1, nlabels + 1)]
+        names = [f'label {l}' for l in range(1, nlabels + 1)]
         # max label < n_labels
         labels = np.array([1, 1, 1], dtype=np.int32)
         rgba = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)

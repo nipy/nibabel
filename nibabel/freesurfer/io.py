@@ -228,12 +228,11 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
     magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
 
     if create_stamp is None:
-        create_stamp = "created by %s on %s" % (getpass.getuser(),
-                                                time.ctime())
+        create_stamp = f"created by {getpass.getuser()} on {time.ctime()}"
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
-        fobj.write(("%s\n\n" % create_stamp).encode('utf-8'))
+        fobj.write((f"{create_stamp}\n\n").encode('utf-8'))
 
         np.array([coords.shape[0], faces.shape[0]], dtype='>i4').tofile(fobj)
 
@@ -309,8 +308,7 @@ def write_morph_data(file_like, values, fnum=0):
     if vnum > i4info.max:
         raise ValueError("Too many values for morphometry file")
     if not i4info.min <= fnum <= i4info.max:
-        raise ValueError("Argument fnum must be between {0} and {1}".format(
-                         i4info.min, i4info.max))
+        raise ValueError(f"Argument fnum must be between {i4info.min} and {i4info.max}")
 
     with Opener(file_like, 'wb') as fobj:
         fobj.write(magic_bytes)
@@ -537,8 +535,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         if fill_ctab:
             ctab = np.hstack((ctab[:, :4], _pack_rgb(ctab[:, :3])))
         elif not np.array_equal(ctab[:, [4]], _pack_rgb(ctab[:, :3])):
-            warnings.warn('Annotation values in {} will be incorrect'.format(
-                filepath))
+            warnings.warn(f'Annotation values in {filepath} will be incorrect')
 
         # vtxct
         write(vnum)
@@ -605,7 +602,7 @@ def _serialize_volume_info(volume_info):
             'zras', 'cras']
     diff = set(volume_info.keys()).difference(keys)
     if len(diff) > 0:
-        raise ValueError('Invalid volume info: %s.' % diff.pop())
+        raise ValueError(f'Invalid volume info: {diff.pop()}.')
 
     strings = list()
     for key in keys:
@@ -616,13 +613,12 @@ def _serialize_volume_info(volume_info):
             strings.append(np.array(volume_info[key], dtype='>i4').tobytes())
         elif key in ('valid', 'filename'):
             val = volume_info[key]
-            strings.append('{0} = {1}\n'.format(key, val).encode('utf-8'))
+            strings.append(f'{key} = {val}\n'.encode('utf-8'))
         elif key == 'volume':
             val = volume_info[key]
-            strings.append('{0} = {1} {2} {3}\n'.format(
-                key, val[0], val[1], val[2]).encode('utf-8'))
+            strings.append(f'{key} = {val[0]} {val[1]} {val[2]}\n'.encode('utf-8'))
         else:
             val = volume_info[key]
-            strings.append('{0} = {1:0.10g} {2:0.10g} {3:0.10g}\n'.format(
-                key.ljust(6), val[0], val[1], val[2]).encode('utf-8'))
+            strings.append(
+                f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode('utf-8'))
     return b''.join(strings)

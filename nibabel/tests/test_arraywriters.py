@@ -655,7 +655,7 @@ def test_float_int_min_max():
         arr = np.array([finf['min'], finf['max']], dtype=in_dt)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(arr)):
-            print('Hit PPC max -> inf bug; skip in_type %s' % in_dt)
+            print(f'Hit PPC max -> inf bug; skip in_type {in_dt}')
             continue
         for out_dt in IUINT_TYPES:
             try:

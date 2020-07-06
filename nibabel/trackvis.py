@@ -167,8 +167,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
     else:
         hdr = hdr.newbyteorder()
         if hdr['hdr_size'] != 1000:
-            raise HeaderError('Invalid hdr_size of %s'
-                              % hdr['hdr_size'])
+            raise HeaderError(f"Invalid hdr_size of {hdr['hdr_size']}")
         endianness = swapped_code
     # Check version and adapt structure accordingly
     version = hdr['version']
@@ -222,9 +221,8 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
                 actual_n_pts = int(len(pts_str) / pt_size)
                 if actual_n_pts != n_pts:
                     if strict:
-                        raise DataError('Expecting {0} points for stream {1}, '
-                                        'found {2}'.format(
-                                            n_pts, n_streams, actual_n_pts))
+                        raise DataError(f'Expecting {n_pts} points for stream '
+                                        f'{n_streams}, found {actual_n_pts}')
                     n_pts = actual_n_pts
                     end_of_file = True
             # Cast bytes to points array
@@ -248,8 +246,7 @@ def read(fileobj, as_generator=False, points_space=None, strict=True):
         # Raise error if we didn't get as many streams as claimed
         if n_streams_required != np.inf and n_streams < n_streams_required:
             raise DataError(
-                'Expecting {0} streamlines, found only {1}'.format(
-                    stream_count, n_streams))
+                f'Expecting {stream_count} streamlines, found only {n_streams}')
 
     streamlines = track_gen()
     if not as_generator:
@@ -428,8 +425,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
                 raise DataError('Expecting 0 scalars per point')
         else:
             if scalars.shape != (n_pts, n_s):
-                raise DataError('Scalars should be shape (%s, %s)' %
-                                (n_pts, n_s))
+                raise DataError(f'Scalars should be shape ({n_pts}, {n_s})')
             if scalars.dtype != f4dt:
                 scalars = scalars.astype(f4dt)
             pts = np.c_[pts, scalars]
@@ -439,7 +435,7 @@ def write(fileobj, streamlines, hdr_mapping=None, endianness=None,
                 raise DataError('Expecting 0 properties per point')
         else:
             if props.size != n_p:
-                raise DataError('Properties should be size %s' % n_p)
+                raise DataError(f'Properties should be size {n_p}')
             if props.dtype != f4dt:
                 props = props.astype(f4dt)
             fileobj.write(props.tobytes())
@@ -474,13 +470,13 @@ def _check_hdr_points_space(hdr, points_space):
     if points_space == 'voxel':
         voxel_size = hdr['voxel_size']
         if np.any(voxel_size < 0):
-            raise HeaderError('Negative voxel sizes %s not valid for voxel - '
-                              'voxmm conversion' % voxel_size)
+            raise HeaderError(f'Negative voxel sizes {voxel_size} not '
+                              'valid for voxel - voxmm conversion')
         if np.all(voxel_size == 0):
             raise HeaderError('Cannot convert between voxels and voxmm when '
                               '"voxel_sizes" all 0')
         if np.any(voxel_size == 0):
-            warnings.warn('zero values in "voxel_size" - %s' % voxel_size)
+            warnings.warn(f'zero values in "voxel_size" - {voxel_size}')
         return
     elif points_space == 'rasmm':
         try:
@@ -495,19 +491,17 @@ def _check_hdr_points_space(hdr, points_space):
         zooms = hdr['voxel_size']
         aff_zooms = np.sqrt(np.sum(affine[:3, :3]**2, axis=0))
         if not np.allclose(aff_zooms, zooms):
-            raise HeaderError('Affine zooms %s differ from voxel_size '
-                              'field value %s' % (aff_zooms, zooms))
+            raise HeaderError(f'Affine zooms {aff_zooms} differ '
+                              f'from voxel_size field value {zooms}')
         aff_order = ''.join(aff2axcodes(affine))
         voxel_order = asstr(hdr['voxel_order'].item())
         if voxel_order == '':
             voxel_order = 'LPS'  # trackvis default
         if not voxel_order == aff_order:
-            raise HeaderError('Affine implies voxel_order %s but '
-                              'header voxel_order is %s' %
-                              (aff_order, voxel_order))
+            raise HeaderError(f'Affine implies voxel_order {aff_order} '
+                              f'but header voxel_order is {voxel_order}')
     else:
-        raise ValueError('Painfully confusing "points_space" value of "%s"'
-                         % points_space)
+        raise ValueError(f'Painfully confusing "points_space" value of "{points_space}"')
 
 
 def _hdr_from_mapping(hdr=None, mapping=None, endianness=native_code):
@@ -675,7 +669,7 @@ def aff_from_hdr(trk_hdr, atleast_v2=True):
         exp_order = ''.join(aff2axcodes(aff))
         if voxel_order != exp_order:
             raise HeaderError('Estimate of header affine does not match '
-                              'voxel_order of %s' % exp_order)
+                              f'voxel_order of {exp_order}')
     return aff
 
 

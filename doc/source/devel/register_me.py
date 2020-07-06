@@ -40,7 +40,7 @@ def main():
     dsource.set(name, version, OUR_PATH)
     dsource.write(file(ini_fname, 'wt'))
 
-    print('Registered package %s, %s to %s' % (name, version, ini_fname))
+    print(f'Registered package {name}, {version} to {ini_fname}')
 
 
 if __name__ == '__main__':

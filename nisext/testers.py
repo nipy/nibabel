@@ -137,7 +137,7 @@ else:
     os.environ['PYTHONPATH'] = r'"{pkg_path}"' + os.path.pathsep + PYTHONPATH
 """.format(**locals())
     if print_location:
-        p_loc = 'print(%s.__file__);' % mod_name
+        p_loc = f'print({mod_name}.__file__);'
     else:
         p_loc = ''
     cwd = os.getcwd()
@@ -154,7 +154,7 @@ sys.path.insert(0, r"{pkg_path}")
 import {mod_name}
 {p_loc}
 {cmd}""".format(**locals()))
-        res = back_tick('{0} script.py'.format(PYTHON), ret_err=True)
+        res = back_tick(f'{PYTHON} script.py', ret_err=True)
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmpdir)
@@ -191,11 +191,10 @@ def install_from_to(from_dir, to_dir, py_lib_sdir=PY_LIB_SDIR, bin_sdir='bin'):
         subdirectory within `to_dir` to which scripts will be installed
     """
     site_pkgs_path = os.path.join(to_dir, py_lib_sdir)
-    py_lib_locs = ' --install-purelib=%s --install-platlib=%s' % (
-        site_pkgs_path, site_pkgs_path)
+    py_lib_locs = (f' --install-purelib={site_pkgs_path} '
+                   f'--install-platlib={site_pkgs_path}')
     pwd = os.path.abspath(os.getcwd())
-    cmd = ('%s setup.py --quiet install --prefix=%s %s' %
-           (PYTHON, to_dir, py_lib_locs))
+    cmd = f'{PYTHON} setup.py --quiet install --prefix={to_dir} {py_lib_locs}'
     try:
         os.chdir(from_dir)
         back_tick(cmd)
@@ -267,11 +266,11 @@ def contexts_print_info(mod_name, repo_path, install_path):
     out_fname = pjoin(install_path, 'test.zip')
     try:
         os.chdir(repo_path)
-        back_tick('git archive --format zip -o %s HEAD' % out_fname)
+        back_tick(f'git archive --format zip -o {out_fname} HEAD')
     finally:
         os.chdir(pwd)
     install_from_zip(out_fname, install_path, None)
-    cmd_str = 'print(%s.get_info())' % mod_name
+    cmd_str = f'print({mod_name}.get_info())'
     print(run_mod_cmd(mod_name, site_pkgs_path, cmd_str)[0])
     # now test install into a directory from the repository
     install_from_to(repo_path, install_path, PY_LIB_SDIR)
@@ -444,7 +443,7 @@ def sdist_tests(mod_name, repo_path=None, label='fast', doctests=True):
         install_from_zip(zip_fname, install_path, pf, PY_LIB_SDIR, 'bin')
         site_pkgs_path = pjoin(install_path, PY_LIB_SDIR)
         script_path = pjoin(install_path, 'bin')
-        cmd = "%s.test(label='%s', doctests=%s)" % (mod_name, label, doctests)
+        cmd = f"{mod_name}.test(label='{label}', doctests={doctests})"
         stdout, stderr = run_mod_cmd(mod_name,
                                      site_pkgs_path,
                                      cmd,
@@ -479,7 +478,7 @@ def bdist_egg_tests(mod_name, repo_path=None, label='fast', doctests=True):
                               'bdist_egg',
                               '*.egg')
         zip_extract_all(zip_fname, install_path)
-        cmd = "%s.test(label='%s', doctests=%s)" % (mod_name, label, doctests)
+        cmd = f"{mod_name}.test(label='{label}', doctests={doctests})"
         stdout, stderr = run_mod_cmd(mod_name,
                                      install_path,
                                      cmd,
@@ -524,13 +523,11 @@ def make_dist(repo_path, out_dir, setup_params, zipglob):
     pwd = os.path.abspath(os.getcwd())
     try:
         os.chdir(repo_path)
-        back_tick('%s setup.py %s --dist-dir=%s'
-                  % (PYTHON, setup_params, out_dir))
+        back_tick(f'{PYTHON} setup.py {setup_params} --dist-dir={out_dir}')
         zips = glob(pjoin(out_dir, zipglob))
         if len(zips) != 1:
-            raise OSError('There must be one and only one %s file, '
-                          'but I found "%s"' %
-                          (zipglob, ': '.join(zips)))
+            raise OSError(f"There must be one and only one {zipglob} "
+                          f"file, but I found \"{': '.join(zips)}\"")
     finally:
         os.chdir(pwd)
     return zips[0]

@@ -142,7 +142,7 @@ def package_check(pkg_name, version=None,
     msgs = {
          'missing': 'Cannot import package "%s" - is it installed?',
          'missing opt': 'Missing optional package "%s"',
-         'opt suffix' : '; you may get run-time errors',
+         'opt suffix': '; you may get run-time errors',
          'version too old': 'You have version %s of package "%s"'
                             ' but we need version >= %s', }
     msgs.update(messages)
@@ -160,7 +160,7 @@ def package_check(pkg_name, version=None,
                      msgs['opt suffix'])
             return
         elif status == 'no-version':
-            raise RuntimeError('Cannot find version for %s' % pkg_name)
+            raise RuntimeError(f'Cannot find version for {pkg_name}')
         assert status == 'low-version'
         if not optional_tf:
             raise RuntimeError(msgs['version too old'] % (have_version,
@@ -253,7 +253,7 @@ class install_scripts_bat(install_scripts):
             froot, ext = splitext(fname)
             bat_file = pjoin(pth, froot + '.bat')
             bat_contents = BAT_TEMPLATE.replace('{FNAME}', fname)
-            log.info("Making %s wrapper for %s" % (bat_file, filepath))
+            log.info(f"Making {bat_file} wrapper for {filepath}")
             if self.dry_run:
                 continue
             with open(bat_file, 'wt') as fobj:

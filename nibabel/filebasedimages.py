@@ -34,8 +34,8 @@ class FileBasedHeader(object):
         # different field names
         if type(header) == klass:
             return header.copy()
-        raise NotImplementedError("Header class requires a conversion"
-                                  " from %s to %s" % (klass, type(header)))
+        raise NotImplementedError("Header class requires a conversion "
+                                  f"from {klass} to {type(header)}")
 
     @classmethod
     def from_fileobj(klass, fileobj):
@@ -301,8 +301,7 @@ class FileBasedImage(object):
                 trailing_suffixes=klass._compressed_suffixes)
         except TypesFilenamesError:
             raise ImageFileError(
-                'Filespec "{0}" does not look right for class {1}'.format(
-                    filespec, klass))
+                f'Filespec "{filespec}" does not look right for class {klass}')
         file_map = {}
         for key, fname in filenames.items():
             file_map[key] = FileHolder(filename=fname)

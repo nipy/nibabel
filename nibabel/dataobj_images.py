@@ -344,7 +344,7 @@ class DataobjImage(FileBasedImage):
             raise ValueError('caching value should be "fill" or "unchanged"')
         dtype = np.dtype(dtype)
         if not issubclass(dtype.type, np.inexact):
-            raise ValueError('{} should be floating point type'.format(dtype))
+            raise ValueError(f'{dtype} should be floating point type')
         # Return cache if cache present and of correct dtype.
         if self._fdata_cache is not None:
             if self._fdata_cache.dtype.type == dtype.type:

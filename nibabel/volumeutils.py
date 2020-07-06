@@ -108,8 +108,7 @@ class Recoder(object):
         self.field1 = {}  # a placeholder for the check below
         for name in fields:
             if name in self.__dict__:
-                raise KeyError('Input name %s already in object dict'
-                               % name)
+                raise KeyError(f'Input name {name} already in object dict')
             self.__dict__[name] = map_maker()
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
@@ -527,11 +526,8 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
         n_read = len(data_bytes)
         needs_copy = True
     if n_bytes != n_read:
-        raise IOError('Expected {0} bytes, got {1} bytes from {2}\n'
-                      ' - could the file be damaged?'.format(
-                          n_bytes,
-                          n_read,
-                          getattr(infile, 'name', 'object')))
+        raise IOError(f"Expected {n_bytes} bytes, got {n_read} bytes from "
+                      f"{getattr(infile, 'name', 'object')}\n - could the file be damaged?")
     arr = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
     if needs_copy:
         return arr.copy()
@@ -748,10 +744,9 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
             # nan_fill can be (just) outside clip range
             nan_fill = np.clip(nan_fill, both_mn, both_mx)
         else:
-            raise ValueError("nan_fill == {0}, outside safe int range "
-                             "({1}-{2}); change scaling or "
-                             "set nan2zero=False?".format(
-                                 nan_fill, int(both_mn), int(both_mx)))
+            raise ValueError(f"nan_fill == {nan_fill}, outside safe int range "
+                             f"({int(both_mn)}-{int(both_mx)}); "
+                             "change scaling or set nan2zero=False?")
     # Make sure non-nan output clipped to shared range
     post_mn = np.max([post_mn, both_mn])
     post_mx = np.min([post_mx, both_mx])

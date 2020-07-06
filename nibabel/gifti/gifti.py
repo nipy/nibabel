@@ -386,9 +386,8 @@ class GiftiDataArray(xml.XmlSerializable):
         '2.1', '4.0')
     def num_dim(self, value):
         if value != len(self.dims):
-            raise ValueError('num_dim value {0} != number of dimensions '
-                             'len(self.dims) {1}'
-                             .format(value, len(self.dims)))
+            raise ValueError(f'num_dim value {value} != number of '
+                             f'dimensions len(self.dims) {len(self.dims)}')
 
     @classmethod
     @deprecate_with_version(
@@ -487,7 +486,7 @@ class GiftiDataArray(xml.XmlSerializable):
 \tExternalFileOffset="%d">\n"""
         di = ""
         for i, n in enumerate(self.dims):
-            di = di + '\tDim%s=\"%s\"\n' % (str(i), str(n))
+            di = di + f'\tDim{i}="{n}\"\n'
         return out % (intent_codes.niistring[self.intent],
                       data_type_codes.niistring[self.datatype],
                       array_index_order_codes.label[self.ind_ord],
@@ -838,7 +837,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             print(self.labeltable.print_summary())
         for i, da in enumerate(self.darrays):
             print('----')
-            print('DataArray %s:' % i)
+            print(f'DataArray {i}:')
             print(da.print_summary())
         print('----end----')
 

@@ -115,22 +115,20 @@ def _unpack_var(var):
     """
 
     err_msg = ('Please check HEAD file to ensure it is AFNI compliant. '
-               'Offending attribute:\n%s' % var)
+               f'Offending attribute:\n{var}')
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
-        raise AFNIHeaderError('Invalid attribute type entry in HEAD file. '
-                              '%s' % err_msg)
+        raise AFNIHeaderError(f'Invalid attribute type entry in HEAD file. {err_msg}')
     if len(aname) != 1:
-        raise AFNIHeaderError('Invalid attribute name entry in HEAD file. '
-                              '%s' % err_msg)
+        raise AFNIHeaderError(f'Invalid attribute name entry in HEAD file. {err_msg}')
     atype = _attr_dic.get(atype[0], str)
     attr = ' '.join(var.strip().splitlines()[3:])
     if atype is not str:
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
-            raise AFNIHeaderError('Failed to read variable from HEAD file due '
-                                  'to improper type casting. %s' % err_msg)
+            raise AFNIHeaderError('Failed to read variable from HEAD file '
+                                  f'due to improper type casting. {err_msg}')
     else:
         # AFNI string attributes will always start with open single quote and
         # end with a tilde (NUL). These attributes CANNOT contain tildes (so

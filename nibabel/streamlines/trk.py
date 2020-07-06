@@ -153,15 +153,13 @@ def encode_value_in_name(value, name, max_name_len=20):
         `value`, padded with ``\x00`` bytes.
     """
     if len(name) > max_name_len:
-        msg = ("Data information named '{0}' is too long"
-               " (max {1} characters.)").format(name, max_name_len)
+        msg = f"Data information named '{name}' is too long (max {max_name_len} characters.)"
         raise ValueError(msg)
     encoded_name = name if value <= 1 else name + '\x00' + str(value)
     if len(encoded_name) > max_name_len:
-        msg = ("Data information named '{0}' is too long (need to be less"
-               " than {1} characters when storing more than one value"
-               " for a given data information."
-               ).format(name, max_name_len - (len(str(value)) + 1))
+        msg = (f"Data information named '{name}' is too long (need to be less"
+               f" than {max_name_len - (len(str(value)) + 1)} characters "
+               "when storing more than one value for a given data information.")
         raise ValueError(msg)
     # Fill to the end with zeros
     return encoded_name.ljust(max_name_len, '\x00').encode('latin1')
@@ -196,8 +194,8 @@ def decode_value_from_name(encoded_name):
         value = int(splits[1])  # Decode value.
     elif len(splits) > 2:
         # The remaining bytes are not \x00, raising.
-        msg = ("Wrong scalar_name or property_name: '{0}'."
-               " Unused characters should be \\x00.").format(encoded_name)
+        msg = (f"Wrong scalar_name or property_name: '{encoded_name}'. "
+               "Unused characters should be \\x00.")
         raise HeaderError(msg)
 
     return name, value
@@ -473,9 +471,9 @@ class TrkFile(TractogramFile):
             # Update field 'property_name' using 'data_per_streamline'.
             data_for_streamline = first_item.data_for_streamline
             if len(data_for_streamline) > MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE:
-                msg = ("Can only store {0} named data_per_streamline (also"
-                       " known as 'properties' in the TRK format)."
-                       ).format(MAX_NB_NAMED_SCALARS_PER_POINT)
+                msg = (f"Can only store {MAX_NB_NAMED_SCALARS_PER_POINT} named "
+                       "data_per_streamline (also known as 'properties' in the "
+                       "TRK format).")
                 raise ValueError(msg)
 
             data_for_streamline_keys = sorted(data_for_streamline.keys())
@@ -491,9 +489,9 @@ class TrkFile(TractogramFile):
             # Update field 'scalar_name' using 'tractogram.data_per_point'.
             data_for_points = first_item.data_for_points
             if len(data_for_points) > MAX_NB_NAMED_SCALARS_PER_POINT:
-                msg = ("Can only store {0} named data_per_point (also known"
-                       " as 'scalars' in the TRK format)."
-                       ).format(MAX_NB_NAMED_SCALARS_PER_POINT)
+                msg = (f"Can only store {MAX_NB_NAMED_SCALARS_PER_POINT} "
+                       "named data_per_point (also known as 'scalars' in "
+                       "the TRK format).")
                 raise ValueError(msg)
 
             data_for_points_keys = sorted(data_for_points.keys())
@@ -588,9 +586,9 @@ class TrkFile(TractogramFile):
                 # Swap byte order
                 header_rec = header_rec.newbyteorder()
                 if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
-                    msg = "Invalid hdr_size: {0} instead of {1}"
-                    raise HeaderError(msg.format(header_rec['hdr_size'],
-                                                 TrkFile.HEADER_SIZE))
+                    msg = (f"Invalid hdr_size: {header_rec['hdr_size']} "
+                           f"instead of {TrkFile.HEADER_SIZE}")
+                    raise HeaderError(msg)
 
             if header_rec['version'] == 1:
                 # There is no 4x4 matrix for voxel to RAS transformation.
@@ -617,8 +615,8 @@ class TrkFile(TractogramFile):
             axcodes = aff2axcodes(header[Field.VOXEL_TO_RASMM])
             if None in axcodes:
                 msg = ("The 'vox_to_ras' affine is invalid! Could not"
-                       " determine the axis directions from it.\n{0}"
-                       ).format(header[Field.VOXEL_TO_RASMM])
+                       " determine the axis directions from it.\n"
+                       f"{header[Field.VOXEL_TO_RASMM]}")
                 raise HeaderError(msg)
 
             # By default, the voxel order is LPS.

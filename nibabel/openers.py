@@ -24,8 +24,7 @@ try:
 
     # < 0.7 - no good
     if StrictVersion(version) < StrictVersion('0.7.0'):
-        warnings.warn('indexed_gzip is present, but too old '
-                      '(>= 0.7.0 required): {})'.format(version))
+        warnings.warn(f'indexed_gzip is present, but too old (>= 0.7.0 required): {version})')
         HAVE_INDEXED_GZIP = False
     # >= 0.8 SafeIndexedGzipFile renamed to IndexedGzipFile
     elif StrictVersion(version) < StrictVersion('0.8.0'):

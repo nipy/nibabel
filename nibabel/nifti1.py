@@ -345,7 +345,7 @@ class Nifti1Extension(object):
             # deal with unknown codes
             code = self._code
 
-        s = "Nifti1Extension('%s', '%s')" % (code, self._content)
+        s = f"Nifti1Extension('{code}', '{self._content}')"
         return s
 
     def __eq__(self, other):
@@ -438,8 +438,8 @@ class Nifti1DicomExtension(Nifti1Extension):
             self._is_implicit_VR = False
             self._content = pdcm.dataset.Dataset()
         else:
-            raise TypeError("content must be either a bytestring or a pydicom "
-                            "Dataset. Got %s" % content.__class__)
+            raise TypeError(f"content must be either a bytestring or a pydicom Dataset. "
+                            f"Got {content.__class__}")
 
     def _guess_implicit_VR(self):
         """Try to guess DICOM syntax by checking for valid VRs.
@@ -519,8 +519,7 @@ class Nifti1Extensions(list):
         return np.sum([e.get_sizeondisk() for e in self])
 
     def __repr__(self):
-        s = "Nifti1Extensions(%s)" % ', '.join(str(e) for e in self)
-        return s
+        return "Nifti1Extensions(%s)" % ', '.join(str(e) for e in self)
 
     def __cmp__(self, other):
         return cmp(list(self), list(other))
@@ -711,8 +710,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                 self._structarr['vox_offset'] = min_vox_offset
             elif vox_offset < min_vox_offset:
                 raise HeaderDataError(
-                    'vox offset set to {0}, but need at least {1}'.format(
-                        vox_offset, min_vox_offset))
+                    f'vox offset set to {vox_offset}, but need at least {min_vox_offset}')
         super(Nifti1Header, self).write_to(fileobj)
         # Write extensions
         if len(self.extensions) == 0:
@@ -875,8 +873,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             else:
                 overflow = hdr['glmin'] != shape[0]
             if overflow:
-                raise HeaderDataError('shape[0] %s does not fit in glmax '
-                                      'datatype' % shape[0])
+                raise HeaderDataError(f'shape[0] {shape[0]} does not fit in glmax datatype')
             warnings.warn('Using large vector Freesurfer hack; header will '
                           'not be compatible with SPM or FSL', stacklevel=2)
             shape = (-1, 1, 1) + shape[3:]
@@ -1168,8 +1165,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if slope == 0 or not np.isfinite(slope):
             return None, None
         if not np.isfinite(inter):
-            raise HeaderDataError(
-                'Valid slope but invalid intercept {0}'.format(inter))
+            raise HeaderDataError(f'Valid slope but invalid intercept {inter}')
         return slope, inter
 
     def set_slope_inter(self, slope, inter=None):
@@ -1397,8 +1393,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             icode = code
             p_descr = ('p1', 'p2', 'p3')
         if len(params) and len(params) != len(p_descr):
-            raise HeaderDataError('Need params of form %s, or empty'
-                                  % (p_descr,))
+            raise HeaderDataError(f'Need params of form {p_descr}, or empty')
         hdr['intent_code'] = icode
         hdr['intent_name'] = name
         all_params = [0] * 3
@@ -1462,9 +1457,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         try:
             slice_len = shape[slice_dim]
         except IndexError:
-            raise HeaderDataError('Slice dimension index (%s) outside '
-                                  'shape tuple (%s)'
-                                  % (slice_dim, shape))
+            raise HeaderDataError(f'Slice dimension index ({slice_dim}) '
+                                  f'outside shape tuple ({shape})')
         return slice_len
 
     def get_slice_times(self):
@@ -1582,13 +1576,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 matching_labels.append(label)
 
         if not matching_labels:
-            raise HeaderDataError('slice ordering of %s fits '
-                                  'with no known scheme' % st_order)
+            raise HeaderDataError(f'slice ordering of {st_order} fits with no known scheme')
         if len(matching_labels) > 1:
             warnings.warn(
-                'Multiple slice orders satisfy: %s. Choosing the first one'
-                % ', '.join(matching_labels)
-            )
+                f"Multiple slice orders satisfy: {', '.join(matching_labels)}. "
+                "Choosing the first one")
         label = matching_labels[0]
         # Set values into header
         hdr['slice_start'] = slice_start
@@ -1615,8 +1607,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             sp_ind_time_order = (list(range(n_slices - 2, -1, -2)) +
                                  list(range(n_slices - 1, -1, -2)))
         else:
-            raise HeaderDataError('We do not handle slice ordering "%s"'
-                                  % slabel)
+            raise HeaderDataError(f'We do not handle slice ordering "{slabel}"')
         return np.argsort(sp_ind_time_order)
 
     def get_xyzt_units(self):
@@ -1682,8 +1673,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         magic = hdr['magic'].item()
         if magic in (hdr.pair_magic, hdr.single_magic):
             return hdr, rep
-        rep.problem_msg = ('magic string "%s" is not valid' %
-                           asstr(magic))
+        rep.problem_msg = f'magic string "{asstr(magic)}" is not valid'
         rep.problem_level = 45
         if fix:
             rep.fix_msg = 'leaving as is, but future errors are likely'
@@ -1703,15 +1693,13 @@ class Nifti1Header(SpmAnalyzeHeader):
                                'single file nifti1' % offset)
             if fix:
                 hdr['vox_offset'] = hdr.single_vox_offset
-                rep.fix_msg = 'setting to minimum value of {0}'.format(
-                    hdr.single_vox_offset)
+                rep.fix_msg = f'setting to minimum value of {hdr.single_vox_offset}'
             return hdr, rep
         if not offset % 16:
             return hdr, rep
         # SPM uses memory mapping to read the data, and
         # apparently this has to start on 16 byte boundaries
-        rep.problem_msg = ('vox offset (={0:g}) not divisible '
-                           'by 16, not SPM compatible'.format(offset))
+        rep.problem_msg = f'vox offset (={offset:g}) not divisible by 16, not SPM compatible'
         rep.problem_level = 30
         if fix:
             rep.fix_msg = 'leaving at current value'
@@ -1895,7 +1883,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         """
         update_affine = kwargs.pop('update_affine', True)
         if kwargs:
-            raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
+            raise TypeError(f'Unexpected keyword argument(s) {kwargs}')
         self._header.set_qform(affine, code, strip_shears)
         if update_affine:
             if self._affine is None:
@@ -1984,7 +1972,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         """
         update_affine = kwargs.pop('update_affine', True)
         if kwargs:
-            raise TypeError('Unexpected keyword argument(s) %s' % kwargs)
+            raise TypeError(f'Unexpected keyword argument(s) {kwargs}')
         self._header.set_sform(affine, code)
         if update_affine:
             if self._affine is None:

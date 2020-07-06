@@ -286,7 +286,7 @@ class Wrapper(object):
     def __getitem__(self, key):
         """ Return values from DICOM object"""
         if key not in self.dcm_data:
-            raise KeyError('"%s" not in self.dcm_data' % key)
+            raise KeyError(f'"{key}" not in self.dcm_data')
         return self.dcm_data.get(key)
 
     def get(self, key, default=None):

@@ -83,7 +83,7 @@ def read_mosaic_dir(dicom_path,
     gradients = []
     arrays = []
     if len(filenames) == 0:
-        raise IOError('Found no files with "%s"' % full_globber)
+        raise IOError(f'Found no files with "{full_globber}"')
     for fname in filenames:
         dcm_w = wrapper_from_file(fname, **dicom_kwargs)
         # Because the routine sorts by filename, it only makes sense to use
@@ -95,12 +95,10 @@ def read_mosaic_dir(dicom_path,
         q = dcm_w.q_vector
         if q is None:  # probably not diffusion
             if check_is_dwi:
-                raise DicomReadError('Could not find diffusion '
-                                     'information reading file "%s"; '
-                                     ' is it possible this is not '
-                                     'a _raw_ diffusion directory? '
-                                     'Could it be a processed dataset '
-                                     'like ADC etc?' % fname)
+                raise DicomReadError(
+                    f'Could not find diffusion information reading file "{fname}";  '
+                    'is it possible this is not a _raw_ diffusion directory? '
+                    'Could it be a processed dataset like ADC etc?')
             b = np.nan
             g = np.ones((3,)) + np.nan
         else:
