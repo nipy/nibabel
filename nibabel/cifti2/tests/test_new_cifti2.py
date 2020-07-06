@@ -237,10 +237,9 @@ def test_dtseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dtseries.nii')
+        ci.save(img, 'test.dtseries.nii', infer_intent=True)
         img2 = nib.load('test.dtseries.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDenseSeries'
         assert isinstance(img2, ci.Cifti2Image)
@@ -281,10 +280,9 @@ def test_dlabel():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dlabel.nii')
+        ci.save(img, 'test.dlabel.nii', infer_intent=True)
         img2 = nib.load('test.dlabel.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDenseLabel'
         assert isinstance(img2, ci.Cifti2Image)
@@ -301,10 +299,9 @@ def test_dconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(10, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dconn.nii')
+        ci.save(img, 'test.dconn.nii', infer_intent=True)
         img2 = nib.load('test.dconn.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDense'
         assert isinstance(img2, ci.Cifti2Image)
@@ -323,10 +320,9 @@ def test_ptseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.ptseries.nii')
+        ci.save(img, 'test.ptseries.nii', infer_intent=True)
         img2 = nib.load('test.ptseries.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnParcelSries'
         assert isinstance(img2, ci.Cifti2Image)
@@ -345,10 +341,9 @@ def test_pscalar():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pscalar.nii')
+        ci.save(img, 'test.pscalar.nii', infer_intent=True)
         img2 = nib.load('test.pscalar.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnParcelScalr'
         assert isinstance(img2, ci.Cifti2Image)
@@ -367,10 +362,9 @@ def test_pdconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(10, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pdconn.nii')
+        ci.save(img, 'test.pdconn.nii', infer_intent=True)
         img2 = ci.load('test.pdconn.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnParcelDense'
         assert isinstance(img2, ci.Cifti2Image)
@@ -389,10 +383,9 @@ def test_dpconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dpconn.nii')
+        ci.save(img, 'test.dpconn.nii', infer_intent=True)
         img2 = ci.load('test.dpconn.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDenseParcel'
         assert isinstance(img2, ci.Cifti2Image)
@@ -430,10 +423,9 @@ def test_pconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pconn.nii')
+        ci.save(img, 'test.pconn.nii', infer_intent=True)
         img2 = ci.load('test.pconn.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnParcels'
         assert isinstance(img2, ci.Cifti2Image)
@@ -453,11 +445,9 @@ def test_pconnseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 13)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
-                                'PARCELLATED_SERIES')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pconnseries.nii')
+        ci.save(img, 'test.pconnseries.nii', infer_intent=True)
         img2 = ci.load('test.pconnseries.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnPPSr'
         assert isinstance(img2, ci.Cifti2Image)
@@ -478,11 +468,9 @@ def test_pconnscalar():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 2)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
-                                'PARCELLATED_SCALAR')
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pconnscalar.nii')
+        ci.save(img, 'test.pconnscalar.nii', infer_intent=True)
         img2 = ci.load('test.pconnscalar.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnPPSc'
         assert isinstance(img2, ci.Cifti2Image)
@@ -517,7 +505,7 @@ def test_wrong_shape():
                     ci.Cifti2Image(data, hdr)
         with suppress_warnings():
             img = ci.Cifti2Image(data, hdr)
-        
+
         with pytest.raises(ValueError):
             img.to_file_map()
 

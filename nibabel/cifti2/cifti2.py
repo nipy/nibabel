@@ -89,6 +89,23 @@ CIFTI_BRAIN_STRUCTURES = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
                           'CIFTI_STRUCTURE_THALAMUS_LEFT',
                           'CIFTI_STRUCTURE_THALAMUS_RIGHT')
 
+# "Standard CIFTI Mapping Combinations" within CIFTI-2 spec
+# https://www.nitrc.org/forum/attachment.php?attachid=341&group_id=454&forum_id=1955
+CIFTI_EXTENSIONS_TO_INTENTS = {
+    '.dconn': 'NIFTI_INTENT_CONNECTIVITY_DENSE',
+    '.dtseries': 'NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES',
+    '.pconn': 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED',
+    '.ptseries': 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES',
+    '.dscalar': 'NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS',
+    '.dlabel': 'NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS',
+    '.pscalar': 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR',
+    '.pdconn': 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE',
+    '.dpconn': 'NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED',
+    '.pconnseries': 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES',
+    '.pconnscalar': 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR',
+    '.dfan': 'NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES',
+}
+
 
 def _value_if_klass(val, klass):
     if val is None or isinstance(val, klass):
@@ -1466,11 +1483,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
             raise ValueError(
                 f"Dataobj shape {self._dataobj.shape} does not match shape "
                 f"expected from CIFTI-2 header {self.header.matrix.get_data_shape()}")
-        # if intent code is not set, default to unknown CIFTI
-        if header.get_intent()[0] == 'none':
-            header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
-        data = reshape_dataobj(self.dataobj,
-                               (1, 1, 1, 1) + self.dataobj.shape)
+        data = reshape_dataobj(self.dataobj, (1, 1, 1, 1) + self.dataobj.shape)
         # If qform not set, reset pixdim values so Nifti2 does not complain
         if header['qform_code'] == 0:
             header['pixdim'][:4] = 1
@@ -1508,6 +1521,33 @@ class Cifti2Image(DataobjImage, SerializableImage):
 
     def set_data_dtype(self, dtype):
         self._nifti_header.set_data_dtype(dtype)
+
+    def to_filename(self, filename, infer_intent=False):
+        """
+        Ensures NIfTI header intent code is set prior to saving.
+
+        Parameters
+        ----------
+        infer_intent : boolean, optional
+            If ``True``, attempt to infer and set intent code based on filename suffix.
+        """
+        header = self._nifti_header
+        if infer_intent:
+            # try to infer intent code based on filename suffix
+            intent = _infer_intent_from_filename(filename)
+            if intent is not None:
+                header.set_intent(intent)
+        # if intent code is not set, default to unknown
+        if header.get_intent()[0] == 'none':
+            header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
+        super().to_filename(filename)
+
+
+def _infer_intent_from_filename(filename):
+    """Parses output filename for common suffixes and fetches corresponding intent code"""
+    from pathlib import Path
+    ext = Path(filename).suffixes[0]
+    return CIFTI_EXTENSIONS_TO_INTENTS.get(ext)
 
 
 load = Cifti2Image.from_filename
