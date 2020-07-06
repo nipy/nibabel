@@ -438,8 +438,7 @@ class ArraySequence(object):
 
         if is_array_sequence(elements):
             if len(lengths) != len(elements):
-                msg = (f"Trying to set {len(lengths)} sequences with "
-                       f"{len(elements)} sequences.")
+                msg = f"Trying to set {len(lengths)} sequences with {len(elements)} sequences."
                 raise ValueError(msg)
 
             if sum(lengths) != elements.total_nb_rows:

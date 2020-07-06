@@ -340,9 +340,8 @@ class TckFile(TractogramFile):
             hdr['file'] = f'. {offset_data}'
 
         if hdr['file'].split()[0] != '.':
-            msg = (f"TCK only supports single-file - in other words the"
-                   f" filename part must be specified as '.' but "
-                   f"'{hdr['file'].split()[0]}' was specified.")
+            msg = ("TCK only supports single-file - in other words the filename part must be "
+                   f"specified as '.' but '{hdr['file'].split()[0]}' was specified.")
             raise HeaderError("Missing 'file' attribute in TCK header.")
 
         # Set endianness and _dtype attributes in the header.
@@ -453,6 +452,5 @@ class TckFile(TractogramFile):
         info = ""
         info += f"\nMAGIC NUMBER: {hdr[Field.MAGIC_NUMBER]}"
         info += "\n"
-        info += "\n".join([f"{k}: {v}"
-                           for k, v in hdr.items() if not k.startswith('_')])
+        info += "\n".join(f"{k}: {v}" for k, v in hdr.items() if not k.startswith('_'))
         return info

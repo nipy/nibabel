@@ -412,8 +412,7 @@ class ArrayProxy(object):
             shape = tuple(unknown_size if e == -1 else e for e in shape)
 
         if np.prod(shape) != size:
-            raise ValueError(f"cannot reshape array of size {size:d} "
-                             f"into shape {shape!s}")
+            raise ValueError(f"cannot reshape array of size {size:d} into shape {shape!s}")
         return self.__class__(file_like=self.file_like,
                               spec=(shape, self._dtype, self._offset,
                                     self._slope, self._inter),

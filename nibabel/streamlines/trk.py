@@ -153,8 +153,7 @@ def encode_value_in_name(value, name, max_name_len=20):
         `value`, padded with ``\x00`` bytes.
     """
     if len(name) > max_name_len:
-        msg = (f"Data information named '{name}' is too long"
-               f" (max {max_name_len} characters.)")
+        msg = f"Data information named '{name}' is too long (max {max_name_len} characters.)"
         raise ValueError(msg)
     encoded_name = name if value <= 1 else name + '\x00' + str(value)
     if len(encoded_name) > max_name_len:

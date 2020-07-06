@@ -168,8 +168,7 @@ class PerArraySequenceDict(PerArrayDict):
 
         # We make sure there is the right amount of data.
         if 0 < self.n_rows != value.total_nb_rows:
-            msg = (f"The number of values ({value.total_nb_rows}) "
-                   f"should match ({self.n_rows}).")
+            msg = f"The number of values ({value.total_nb_rows}) should match ({self.n_rows})."
             raise ValueError(msg)
 
         self.store[key] = value

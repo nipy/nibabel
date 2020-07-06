@@ -61,8 +61,7 @@ if __name__ == '__main__':
     normal_data = normal_img.get_fdata()
     normal_normed = gmean_norm(normal_data)
 
-    print(f"RMS of standard image {normal_fname:<44}: "
-          f"{np.sqrt(np.sum(normal_normed ** 2))}")
+    print(f"RMS of standard image {normal_fname:<44}: {np.sqrt(np.sum(normal_normed ** 2))}")
 
     for parfile in glob.glob("*.PAR"):
         if parfile == normal_fname:
