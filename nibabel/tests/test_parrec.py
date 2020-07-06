@@ -9,7 +9,7 @@ import numpy as np
 from numpy import array as npa
 
 from .. import load as top_load
-from ..nifti1 import Nifti1Image, Nifti1Extension
+from ..nifti1 import Nifti1Image, Nifti1Extension, Nifti1Header
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
                       vol_is_full, PARRECImage, PARRECArrayProxy, exts2pars)
@@ -547,6 +547,18 @@ def test_epi_params():
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         assert len(epi_hdr.get_data_shape()) == 4
         assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
+
+
+def test_xyzt_unit_conversion():
+    # Check conversion to NIfTI-like has sensible units
+    for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
+        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        with open(epi_par, 'rt') as fobj:
+            epi_hdr = PARRECHeader.from_fileobj(fobj)
+        nifti_hdr = Nifti1Header.from_header(epi_hdr)
+        assert len(nifti_hdr.get_data_shape()) == 4
+        assert_almost_equal(nifti_hdr.get_zooms()[-1], 2.0)
+        assert nifti_hdr.get_xyzt_units() == ('mm', 'sec')
 
 
 def test_truncations():
