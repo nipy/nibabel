@@ -442,8 +442,7 @@ class ArraySequence(object):
                 raise ValueError(msg)
 
             if sum(lengths) != elements.total_nb_rows:
-                msg = (f"Trying to set {sum(lengths)} points with "
-                       f"{elements.total_nb_rows} points.")
+                msg = f"Trying to set {sum(lengths)} points with {elements.total_nb_rows} points."
                 raise ValueError(msg)
 
             for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
