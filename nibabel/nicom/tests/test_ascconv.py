@@ -2,11 +2,11 @@
 """
 
 from os.path import join as pjoin, dirname
+from collections import OrderedDict
 
 import numpy as np
 
 from .. import ascconv
-from ...externals import OrderedDict
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 

@@ -5,7 +5,7 @@ Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 """
 import re
 import ast
-from ..externals import OrderedDict
+from collections import OrderedDict
 
 
 ASCCONV_RE = re.compile(
@@ -94,15 +94,20 @@ def assign2atoms(assign_ast, default_class=int):
             target = target.value
             prev_target_type = list
         else:
-            raise AscconvParseError(
-                'Unexpected LHS element {0}'.format(target))
+            raise AscconvParseError(f'Unexpected LHS element {target}')
     return reversed(atoms)
 
 
 def _create_obj_in(atom, root):
-    """ Create object defined in `atom` in dict-like given by `root`
+    """ Find / create object defined in `atom` in dict-like given by `root`
 
-    Return defined object.
+    Returns corresponding value if there is already a key matching
+    `atom.obj_id` in `root`.
+
+    Otherwise, create new object with ``atom.obj_type`, insert into dictionary,
+    and return new object.
+
+    Can therefore modify `root` in place.
     """
     name = atom.obj_id
     obj = root.get(name, NoValue)
@@ -114,9 +119,15 @@ def _create_obj_in(atom, root):
 
 
 def _create_subscript_in(atom, root):
-    """ Create object defined in `atom` at index ``atom.obj_id`` in list `root`
+    """ Find / create and insert object defined by `atom` from list `root`
 
-    Return defined object.
+    The `atom` has an index, defined in ``atom.obj_id``.  If `root` is long
+    enough to contain this index, return the object at that index.  Otherwise,
+    extend `root` with None elements to contain index ``atom.obj_id``, then
+    create a new object via ``atom.obj_type()``, insert at the end of the list,
+    and return this object.
+
+    Can therefore modify `root` in place.
     """
     curr_n = len(root)
     index = atom.obj_id
@@ -154,7 +165,7 @@ def obj_from_atoms(atoms, namespace):
             root_obj = _create_subscript_in(el, root_obj)
         if not isinstance(root_obj, el.obj_type):
             raise AscconvParseError(
-                'Unexpected type for {0} in {1}'.format(el.obj_id, prev_root))
+                f'Unexpected type for {el.obj_id} in {prev_root}')
     return prev_root, el.obj_id
 
 
@@ -166,7 +177,7 @@ def _get_value(assign):
         return value.s
     if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub):
         return -value.operand.n
-    raise AscconvParseError('Unexpected RHS of assignment: {0}'.format(value))
+    raise AscconvParseError(f'Unexpected RHS of assignment: {value}')
 
 
 def parse_ascconv(ascconv_str, str_delim='"'):
