@@ -775,7 +775,8 @@ class PARRECHeader(SpatialHeader):
                     self.general_info['exam_date'].replace(' ', ''),
                     self.general_info['protocol_name']))[:80]  # max len
         is_fmri = (self.general_info['max_dynamics'] > 1)
-        t = 'msec' if is_fmri else 'unknown'
+        # PAR/REC uses msec, but in _calc_zooms we convert to sec
+        t = 'sec' if is_fmri else 'unknown'
         xyzt_units = unit_codes['mm'] + unit_codes[t]
         return dict(descr=descr, xyzt_units=xyzt_units)  # , pixdim=pixdim)
 
