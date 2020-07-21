@@ -12,6 +12,7 @@ from nibabel.cifti2.cifti2 import _float_01, _value_if_klass, Cifti2HeaderError
 import pytest
 
 from nibabel.tests.test_dataobj_images import TestDataobjAPI as _TDA
+from nibabel.tests.test_image_api import SerializeMixin
 
 
 def compare_xml_leaf(str1, str2):
@@ -406,7 +407,7 @@ def test_underscoring():
         assert ci.cifti2._underscore(camel) == underscored
 
 
-class TestCifti2ImageAPI(_TDA):
+class TestCifti2ImageAPI(_TDA, SerializeMixin):
     """ Basic validation for Cifti2Image instances
     """
     # A callable returning an image from ``image_maker(data, header)``
