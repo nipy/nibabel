@@ -20,8 +20,9 @@ import re
 from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
 from .. import xmlutils as xml
-from ..filebasedimages import FileBasedHeader
+from ..filebasedimages import FileBasedHeader, SerializableImage
 from ..dataobj_images import DataobjImage
+from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from warnings import warn
@@ -1255,6 +1256,9 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
             cifti.append(mat_xml)
         return cifti
 
+    def __eq__(self, other):
+        return self.to_xml() == other.to_xml()
+
     @classmethod
     def may_contain_header(klass, binaryblock):
         from .parse_cifti2 import _Cifti2AsNiftiHeader
@@ -1326,7 +1330,7 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         return cifti2_axes.to_header(axes)
 
 
-class Cifti2Image(DataobjImage):
+class Cifti2Image(DataobjImage, SerializableImage):
     """ Class for single file CIFTI-2 format image
     """
     header_class = Cifti2Header
@@ -1454,6 +1458,9 @@ class Cifti2Image(DataobjImage):
         self.update_headers()
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
+        header.extensions = Nifti1Extensions(
+            ext for ext in header.extensions if not isinstance(ext, Cifti2Extension)
+        )
         header.extensions.append(extension)
         if self._dataobj.shape != self.header.matrix.get_data_shape():
             raise ValueError(
