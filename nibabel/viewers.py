@@ -293,6 +293,13 @@ class OrthoSlicer3D(object):
         """The current overlay """
         return self._overlay
 
+    @overlay.setter
+    def overlay(self, img):
+        if img is None:
+            self._remove_overlay()
+        else:
+            self.set_overlay(img)
+
     @property
     def threshold(self):
         """The current data display threshold  """
@@ -382,16 +389,7 @@ class OrthoSlicer3D(object):
 
         # we already have a plotted overlay
         if self._overlay is not None:
-            # remove all images + cross hair lines
-            for nn, im in enumerate(self._overlay._ims):
-                im.remove()
-                for line in self._overlay._crosshairs[nn].values():
-                    line.remove()
-            # remove the fourth axis, if it was created for the overlay
-            if (self._overlay.n_volumes > 1 and len(self._overlay._axes) > 3
-               and self.n_volumes == 1):
-                a = self._axes.pop(-1)
-                a.remove()
+            self._remove_overlay()
 
         axes = self._axes
         o_n_volumes = int(np.prod(data.shape[3:]))
@@ -401,6 +399,9 @@ class OrthoSlicer3D(object):
         # 4D underlay, 3D overlay
         elif o_n_volumes < self.n_volumes and o_n_volumes == 1:
             axes = axes[:-1]
+        # 4D underlay, 4D overlay
+        elif o_n_volumes > 1 and self.n_volumes > 1:
+            raise TypeError('Cannot set 4D overlay on top of 4D underlay')
 
         # mask array for provided threshold
         self._overlay = self.__class__(data, affine=affine, axes=axes)
@@ -415,6 +416,21 @@ class OrthoSlicer3D(object):
             cross['horiz'].set_visible(False)
             cross['vert'].set_visible(False)
         self._overlay._draw()
+
+    def _remove_overlay(self):
+        """ Removes current overlay image + associated axes """
+        # remove all images + cross hair lines
+        for nn, im in enumerate(self._overlay._ims):
+            im.remove()
+            for line in self._overlay._crosshairs[nn].values():
+                line.remove()
+        # remove the fourth axis, if it was created for the overlay
+        if (self._overlay.n_volumes > 1 and len(self._overlay._axes) > 3
+           and self.n_volumes == 1):
+            a = self._axes.pop(-1)
+            a.remove()
+
+        self._overlay = None
 
     def link_to(self, other):
         """Link positional changes between two canvases
