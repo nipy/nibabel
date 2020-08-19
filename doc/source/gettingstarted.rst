@@ -86,8 +86,8 @@ e.g.
 Corresponding "setter" methods allow modifying a header, while ensuring its
 compliance with the file format specifications.
 
-In some situations we need even more flexibility, and for with great courage,
-NiBabel also offers access to the raw header information
+In some situations we need even more flexibility and, for those with great
+courage, NiBabel also offers access to the raw header information
 
 >>> raw = hdr.structarr
 >>> raw['xyzt_units']
