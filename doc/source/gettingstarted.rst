@@ -114,11 +114,7 @@ and all other values are set to resonable defaults.
 Saving this new image to a file is trivial.  We won't do it here, but it looks
 like::
 
-    img.to_filename(os.path.join('build','test4d.nii.gz'))
-
-or::
-
-    nib.save(img, os.path.join('build','test4d.nii.gz'))
+    nib.save(img, os.path.join('build', 'test4d.nii.gz'))
 
 This short introduction only gave a quick overview of NiBabel's capabilities.
 Please have a look at the :ref:`api` for more details about supported file
