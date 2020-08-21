@@ -20,7 +20,7 @@ import numpy as np
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
-from ..onetime import setattr_on_read as one_time
+from ..onetime import auto_attr as one_time
 from ..pydicom_compat import tag_for_keyword, Sequence
 from ..deprecated import deprecate_with_version
 

@@ -20,6 +20,8 @@ Hettinger. http://users.rcn.com/python/download/Descriptor.htm
 [2] Python data model, https://docs.python.org/reference/datamodel.html
 """
 
+from nibabel.deprecated import deprecate_with_version
+
 # -----------------------------------------------------------------------------
 # Classes and Functions
 # -----------------------------------------------------------------------------
@@ -176,4 +178,6 @@ def auto_attr(func):
 # -----------------------------------------------------------------------------
 
 # For backwards compatibility
-setattr_on_read = auto_attr
+setattr_on_read = deprecate_with_version(
+    message="setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr",
+    since="3.2", until="5.0")(auto_attr)
