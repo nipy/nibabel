@@ -15,7 +15,7 @@ to their 'untriggered' state.
 References
 ----------
 [1] How-To Guide for Descriptors, Raymond
-Hettinger. http://users.rcn.com/python/download/Descriptor.htm
+Hettinger. https://docs.python.org/howto/descriptor.html
 
 [2] Python data model, https://docs.python.org/reference/datamodel.html
 """
