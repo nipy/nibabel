@@ -4,11 +4,13 @@
 import sys
 import warnings
 from functools import partial
+from textwrap import indent
 
 import pytest
 
 from nibabel.deprecator import (_ensure_cr, _add_dep_doc,
-                                ExpiredDeprecationError, Deprecator)
+                                ExpiredDeprecationError, Deprecator,
+                                TESTSETUP, TESTCLEANUP)
 
 from ..testing import clear_and_catch_warnings
 
@@ -81,7 +83,9 @@ class TestDeprecatorFunc(object):
         with pytest.deprecated_call() as w:
             assert func(1, 2) is None
             assert len(w) == 1
-        assert func.__doc__ == 'A docstring\n   \n   foo\n   \n   Some text\n'
+        assert (func.__doc__ ==
+                f'A docstring\n   \n   foo\n   \n{indent(TESTSETUP, "   ", lambda x: True)}'
+                f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}')
 
         # Try some since and until versions
         func = dec('foo', '1.1')(func_no_doc)
@@ -110,7 +114,8 @@ class TestDeprecatorFunc(object):
         assert (func.__doc__ ==
                 'A docstring\n   \n   foo\n   \n   * deprecated from version: 1.2\n   '
                 f'* Raises {ExpiredDeprecationError} as of version: 1.8\n   \n'
-                '   Some text\n')
+                f'{indent(TESTSETUP, "   ", lambda x: True)}'
+                f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}')
         with pytest.raises(ExpiredDeprecationError):
             func()
 
