@@ -2,6 +2,7 @@
 """
 
 import warnings
+import pytest
 
 from nibabel import pkg_info
 from nibabel.deprecated import (ModuleProxy, FutureWarningMixin,
@@ -77,6 +78,7 @@ def test_dev_version():
     try:
         pkg_info.cmp_pkg_version.__defaults__ = ('2.0dev',)
         # No error, even though version is dev version of current
-        assert func() == 99
+        with pytest.deprecated_call():
+            assert func() == 99
     finally:
         pkg_info.cmp_pkg_version.__defaults__ = ('2.0',)

@@ -134,6 +134,8 @@ class _TestMincFile(object):
             assert_array_equal(mnc.get_affine(), tp['affine'])
             data = mnc.get_scaled_data()
             assert data.shape == tp['shape']
+            # Can't close mmapped NetCDF with live mmap arrays
+            del mnc, data
 
     def test_mincfile_slicing(self):
         # Test slicing and scaling of mincfile data
@@ -151,6 +153,8 @@ class _TestMincFile(object):
                              ):
                 sliced_data = mnc.get_scaled_data(slicedef)
                 assert_array_equal(sliced_data, data[slicedef])
+            # Can't close mmapped NetCDF with live mmap arrays
+            del mnc, data
 
     def test_load(self):
         # Check highest level load of minc works

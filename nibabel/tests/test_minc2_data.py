@@ -71,8 +71,7 @@ class TestEPIFrame(object):
         assert_almost_equal(data.mean(), self.example_params['mean'], 4)
         # check if mnc can be converted to nifti
         ni_img = Nifti1Image.from_image(img)
-        assert_almost_equal(ni_img.get_affine(),
-                            self.example_params['affine'], 2)
+        assert_almost_equal(ni_img.affine, self.example_params['affine'], 2)
         assert_array_equal(ni_img.get_fdata(), data)
 
 

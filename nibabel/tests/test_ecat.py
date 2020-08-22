@@ -239,6 +239,11 @@ class TestEcatImage(TestCase):
         aff[0, 0] = 99
         assert not np.all(img.affine == aff)
 
+    def test_get_affine_deprecated(self):
+        with pytest.deprecated_call():
+            aff = self.img.get_affine()
+        assert np.array_equal(aff, self.img.affine)
+
     def test_float_affine(self):
         # Check affines get converted to float
         img_klass = self.image_class
@@ -248,9 +253,9 @@ class TestEcatImage(TestCase):
                                          self.img.get_subheaders(),
                                          self.img.get_mlist())
         img = img_klass(arr, aff.astype(np.float32), hdr, sub_hdr, mlist)
-        assert img.get_affine().dtype == np.dtype(np.float64)
+        assert img.affine.dtype == np.dtype(np.float64)
         img = img_klass(arr, aff.astype(np.int16), hdr, sub_hdr, mlist)
-        assert img.get_affine().dtype == np.dtype(np.float64)
+        assert img.affine.dtype == np.dtype(np.float64)
 
     def test_data_regression(self):
         # Test whether data read has changed since 1.3.0

@@ -10,6 +10,7 @@
 """
 
 from os.path import dirname, join as pjoin
+import logging
 
 import numpy as np
 import numpy.linalg as npl
@@ -94,7 +95,7 @@ def test_adapt_affine():
 
 
 @needs_scipy
-def test_resample_from_to():
+def test_resample_from_to(caplog):
     # Test resampling from image to image / image space
     data = np.arange(24).reshape((2, 3, 4))
     affine = np.diag([-4, 5, 6, 1])
@@ -147,7 +148,8 @@ def test_resample_from_to():
     exp_out[1:, :, :] = data[1, :, :]
     assert_almost_equal(out.dataobj, exp_out)
     out = resample_from_to(img, trans_p_25_img)
-    exp_out = spnd.affine_transform(data, [1, 1, 1], [-0.25, 0, 0], order=3)
+    with pytest.warns(UserWarning):
+        exp_out = spnd.affine_transform(data, [1, 1, 1], [-0.25, 0, 0], order=3)
     assert_almost_equal(out.dataobj, exp_out)
     # Test cval
     out = resample_from_to(img, trans_img, cval=99)
@@ -159,10 +161,12 @@ def test_resample_from_to():
     assert out.__class__ == Nifti1Image
     # By default, type of from_img makes no difference
     n1_img = Nifti2Image(data, affine)
-    out = resample_from_to(n1_img, trans_img)
+    with caplog.at_level(logging.CRITICAL):
+        out = resample_from_to(n1_img, trans_img)
     assert out.__class__ == Nifti1Image
     # Passed as keyword arg
-    out = resample_from_to(img, trans_img, out_class=Nifti2Image)
+    with caplog.at_level(logging.CRITICAL):
+        out = resample_from_to(img, trans_img, out_class=Nifti2Image)
     assert out.__class__ == Nifti2Image
     # If keyword arg is None, use type of from_img
     out = resample_from_to(n1_img, trans_img, out_class=None)
@@ -195,7 +199,7 @@ def test_resample_from_to():
 
 
 @needs_scipy
-def test_resample_to_output():
+def test_resample_to_output(caplog):
     # Test routine to sample iamges to output space
     # Image aligned to output axes - no-op
     data = np.arange(24).reshape((2, 3, 4))
@@ -250,9 +254,10 @@ def test_resample_to_output():
     assert_array_equal(out_img.dataobj, np.flipud(data))
     # Subsample voxels
     out_img = resample_to_output(Nifti1Image(data, np.diag([4, 5, 6, 1])))
-    exp_out = spnd.affine_transform(data,
-                                    [1/4, 1/5, 1/6],
-                                    output_shape = (5, 11, 19))
+    with pytest.warns(UserWarning):
+        exp_out = spnd.affine_transform(data,
+                                        [1/4, 1/5, 1/6],
+                                        output_shape = (5, 11, 19))
     assert_array_equal(out_img.dataobj, exp_out)
     # Unsubsample with voxel sizes
     out_img = resample_to_output(Nifti1Image(data, np.diag([4, 5, 6, 1])),
@@ -288,15 +293,17 @@ def test_resample_to_output():
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    assert resample_to_output(img_ni2).__class__ == Nifti1Image
+    with caplog.at_level(logging.CRITICAL):
+        assert resample_to_output(img_ni2).__class__ == Nifti1Image
     # Can be overriden
-    assert resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
+    with caplog.at_level(logging.CRITICAL):
+        assert resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
     assert resample_to_output(img_ni2, out_class=None).__class__ == Nifti2Image
 
 
 @needs_scipy
-def test_smooth_image():
+def test_smooth_image(caplog):
     # Test image smoothing
     data = np.arange(24).reshape((2, 3, 4))
     aff = np.diag([-4, 5, 6, 1])
@@ -339,23 +346,27 @@ def test_smooth_image():
     assert_array_equal(smooth_image(img, 8, mode='constant', cval=99).dataobj,
                        exp_out)
     # out_class
-    img_ni1 = Nifti2Image(data, np.eye(4))
+    img_ni1 = Nifti1Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
+    with caplog.at_level(logging.CRITICAL):
+        assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
     # Can be overriden
-    assert smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__ == Nifti2Image
+    with caplog.at_level(logging.CRITICAL):
+        assert smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
     assert smooth_image(img_ni2, 0, out_class=None).__class__ == Nifti2Image
 
 
 @needs_scipy
-def test_spatial_axes_check():
+def test_spatial_axes_check(caplog):
     for fname in MINC_3DS + OTHER_IMGS:
         img = nib.load(pjoin(DATA_DIR, fname))
-        s_img = smooth_image(img, 0)
+        with caplog.at_level(logging.CRITICAL):
+            s_img = smooth_image(img, 0)
         assert_array_equal(img.dataobj, s_img.dataobj)
-        out = resample_from_to(img, img, mode='nearest')
+        with caplog.at_level(logging.CRITICAL):
+            out = resample_from_to(img, img, mode='nearest')
         assert_almost_equal(img.dataobj, out.dataobj)
         if len(img.shape) > 3:
             continue
@@ -424,7 +435,7 @@ def test_against_spm_resample():
 
 
 @needs_scipy
-def test_conform():
+def test_conform(caplog):
     anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
 
     # Test with default arguments.
@@ -436,8 +447,9 @@ def test_conform():
     assert isinstance(c, Nifti1Image)
 
     # Test with non-default arguments.
-    c = conform(anat, out_shape=(100, 100, 200), voxel_size=(2, 2, 1.5),
-        orientation="LPI", out_class=Nifti2Image)
+    with caplog.at_level(logging.CRITICAL):
+        c = conform(anat, out_shape=(100, 100, 200), voxel_size=(2, 2, 1.5),
+                    orientation="LPI", out_class=Nifti2Image)
     assert c.shape == (100, 100, 200)
     assert c.header.get_zooms() == (2, 2, 1.5)
     assert c.dataobj.dtype.type == anat.dataobj.dtype.type

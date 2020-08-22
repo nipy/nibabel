@@ -670,9 +670,13 @@ def test_header_copy():
         with pytest.raises(PARRECError):
             PARRECHeader.from_fileobj(fobj)
     with open(TRUNC_PAR, 'rt') as fobj:
-        trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
+        # Parse but warn on inconsistent header
+        with pytest.warns(UserWarning):
+            trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
     assert trunc_hdr.permit_truncated
-    trunc_hdr2 = trunc_hdr.copy()
+    # Warn on inconsistent header when copying
+    with pytest.warns(UserWarning):
+        trunc_hdr2 = trunc_hdr.copy()
     assert_copy_ok(trunc_hdr, trunc_hdr2)
 
 
@@ -712,11 +716,14 @@ def test_image_creation():
             func(trunc_param)
         with pytest.raises(PARRECError):
             func(trunc_param, permit_truncated=False)
-        img = func(trunc_param, permit_truncated=True)
+        with pytest.warns(UserWarning):
+            img = func(trunc_param, permit_truncated=True)
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, permit_truncated=True, scaling='dv')
+        with pytest.warns(UserWarning):
+            img = func(trunc_param, permit_truncated=True, scaling='dv')
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, permit_truncated=True, scaling='fp')
+        with pytest.warns(UserWarning):
+            img = func(trunc_param, permit_truncated=True, scaling='fp')
         assert_array_equal(img.dataobj, arr_prox_fp)
 
 

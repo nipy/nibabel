@@ -13,7 +13,7 @@ from ..casting import best_float, ulp, type_info
 
 from numpy.testing import assert_array_equal
 
-DEBUG = True
+DEBUG = False
 
 
 def round_trip(arr, out_dtype):
