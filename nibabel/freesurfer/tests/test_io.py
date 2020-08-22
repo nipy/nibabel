@@ -86,14 +86,14 @@ def test_geometry():
 
         # now write an incomplete file
         write_geometry(surf_path, coords, faces)
-        with clear_and_catch_warnings() as w:
+        with pytest.warns(Warning) as w:
             warnings.filterwarnings('always', category=DeprecationWarning)
             read_geometry(surf_path, read_metadata=True)
 
         assert any('volume information contained' in str(ww.message) for ww in w)
         assert any('extension code' in str(ww.message) for ww in w)
         volume_info['head'] = [1, 2]
-        with clear_and_catch_warnings() as w:
+        with pytest.warns(Warning) as w:
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
         assert any('Unknown extension' in str(ww.message) for ww in w)
         volume_info['a'] = 0
@@ -266,7 +266,7 @@ def test_write_annot_fill_ctab():
         # values back.
         badannot = (10 * np.arange(nlabels, dtype=np.int32)).reshape(-1, 1)
         rgbal = np.hstack((rgba, badannot))
-        with clear_and_catch_warnings() as w:
+        with pytest.warns(Warning) as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         assert any(f'Annotation values in {annot_path} will be incorrect' == str(ww.message)
                    for ww in w)
