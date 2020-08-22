@@ -55,9 +55,7 @@ def load(filename, **kwargs):
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
-@deprecate_with_version('guessed_image_type deprecated.'
-                        '2.1',
-                        '4.0')
+@deprecate_with_version('guessed_image_type deprecated.', '2.1', '4.0')
 def guessed_image_type(filename):
     """ Guess image type from file `filename`
 
@@ -149,8 +147,8 @@ def save(img, filename):
     converted.to_filename(filename)
 
 
-@deprecate_with_version('read_img_data deprecated.'
-                        'Please use ``img.dataobj.get_unscaled()`` instead.'
+@deprecate_with_version('read_img_data deprecated. '
+                        'Please use ``img.dataobj.get_unscaled()`` instead.',
                         '2.0.1',
                         '4.0')
 def read_img_data(img, prefer='scaled'):
@@ -236,9 +234,7 @@ def read_img_data(img, prefer='scaled'):
         return hdr.raw_data_from_fileobj(fileobj)
 
 
-@deprecate_with_version('which_analyze_type deprecated.'
-                        '2.1',
-                        '4.0')
+@deprecate_with_version('which_analyze_type deprecated.', '2.1', '4.0')
 def which_analyze_type(binaryblock):
     """ Is `binaryblock` from NIfTI1, NIfTI2 or Analyze header?
 
