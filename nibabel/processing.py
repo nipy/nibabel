@@ -300,8 +300,10 @@ def smooth_image(img,
         fwhm = np.zeros((n_dim,))
         fwhm[:3] = fwhm_scalar
     # Voxel sizes
-    RZS = img.affine[:-1, :n_dim]
+    RZS = img.affine[:, :n_dim]
     vox = np.sqrt(np.sum(RZS ** 2, 0))
+    # Avoid divisions by zero for 4+D images
+    vox[3:] = 1
     # Smoothing in terms of voxels
     vox_fwhm = fwhm / vox
     vox_sd = fwhm2sigma(vox_fwhm)

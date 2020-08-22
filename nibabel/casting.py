@@ -4,6 +4,7 @@ Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
 """
 
+import warnings
 from numbers import Integral
 from platform import processor, machine
 
@@ -349,8 +350,9 @@ def _check_maxexp(np_type, maxexp):
     dt = np.dtype(np_type)
     np_type = dt.type
     two = np_type(2).reshape((1,))  # to avoid upcasting
-    return (np.isfinite(two ** (maxexp - 1)) and
-            not np.isfinite(two ** maxexp))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # Expected overflow warning
+        return np.isfinite(two ** (maxexp - 1)) and not np.isfinite(two ** maxexp)
 
 
 def as_int(x, check=True):
