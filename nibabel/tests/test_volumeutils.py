@@ -20,7 +20,6 @@ import gzip
 import bz2
 import threading
 import time
-from contextlib import nullcontext
 
 import numpy as np
 
@@ -58,7 +57,7 @@ from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 import pytest
 
-from ..testing import assert_dt_equal, assert_allclose_safely, suppress_warnings
+from nibabel.testing import nullcontext, assert_dt_equal, assert_allclose_safely, suppress_warnings
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']

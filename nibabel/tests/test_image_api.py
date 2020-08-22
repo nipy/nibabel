@@ -26,7 +26,6 @@ What is the image API?
 import warnings
 from functools import partial
 from itertools import product
-from contextlib import nullcontext
 import pathlib
 
 import numpy as np
@@ -46,8 +45,8 @@ import unittest
 import pytest
 
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
-from ..testing import (bytesio_round_trip, bytesio_filemap,
-                       assert_data_similar, clear_and_catch_warnings)
+from nibabel.testing import (bytesio_round_trip, bytesio_filemap, assert_data_similar,
+                             clear_and_catch_warnings, nullcontext)
 from ..tmpdirs import InTemporaryDirectory
 from ..deprecator import ExpiredDeprecationError
 
