@@ -660,7 +660,8 @@ class TestMultiFrameWrapper(TestCase):
         # Test 4D diffusion data with an additional trace volume included
         # Excludes the trace volume and generates the correct shape
         dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
-        assert dw.image_shape == (96, 96, 60, 33)
+        with pytest.warns(UserWarning):
+            assert dw.image_shape == (96, 96, 60, 33)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
