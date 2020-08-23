@@ -100,7 +100,8 @@ class TestArraySequence(unittest.TestCase):
         seq_with_buffer = ArraySequence(gen_2, buffer_size=256)
 
         # Check buffer size effect
-        assert seq_with_buffer.data.shape == seq.data.shape
+        with pytest.warns(Warning):
+            assert seq_with_buffer.data.shape == seq.data.shape
         assert seq_with_buffer._buffer_size > seq._buffer_size
 
         # Check generator result

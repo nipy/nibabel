@@ -811,7 +811,8 @@ class TestLazyTractogram(unittest.TestCase):
 
         # Empty `LazyTractogram`
         tractogram = LazyTractogram()
-        check_tractogram(tractogram)
+        with pytest.warns(Warning):
+            check_tractogram(tractogram)
         assert tractogram.affine_to_rasmm is None
 
         # Create tractogram with streamlines and other data
@@ -832,7 +833,8 @@ class TestLazyTractogram(unittest.TestCase):
     def test_lazy_tractogram_from_data_func(self):
         # Create an empty `LazyTractogram` yielding nothing.
         tractogram = LazyTractogram.from_data_func(lambda: iter([]))
-        check_tractogram(tractogram)
+        with pytest.warns(Warning):
+            check_tractogram(tractogram)
 
         # Create `LazyTractogram` from a generator function yielding
         # TractogramItem.
@@ -852,7 +854,8 @@ class TestLazyTractogram(unittest.TestCase):
                                      data_for_points)
 
         tractogram = LazyTractogram.from_data_func(_data_gen)
-        assert_tractogram_equal(tractogram, DATA['tractogram'])
+        with pytest.warns(Warning):
+            assert_tractogram_equal(tractogram, DATA['tractogram'])
 
         # Creating a LazyTractogram from not a corouting should raise an error.
         with pytest.raises(TypeError):
@@ -921,10 +924,11 @@ class TestLazyTractogram(unittest.TestCase):
         assert_array_equal(transformed_tractogram._affine_to_apply, affine)
         assert_array_equal(transformed_tractogram.affine_to_rasmm,
                            np.dot(np.eye(4), np.linalg.inv(affine)))
-        check_tractogram(transformed_tractogram,
-                         streamlines=[s*scaling for s in DATA['streamlines']],
-                         data_per_streamline=DATA['data_per_streamline'],
-                         data_per_point=DATA['data_per_point'])
+        with pytest.warns(Warning):
+            check_tractogram(transformed_tractogram,
+                             streamlines=[s*scaling for s in DATA['streamlines']],
+                             data_per_streamline=DATA['data_per_streamline'],
+                             data_per_point=DATA['data_per_point'])
 
         # Apply affine again and check the affine_to_rasmm.
         transformed_tractogram = transformed_tractogram.apply_affine(affine)
@@ -946,10 +950,11 @@ class TestLazyTractogram(unittest.TestCase):
         transformed_tractogram = tractogram.apply_affine(affine)
         assert_array_equal(transformed_tractogram._affine_to_apply, affine)
         assert transformed_tractogram.affine_to_rasmm is None
-        check_tractogram(transformed_tractogram,
-                         streamlines=[s*scaling for s in DATA['streamlines']],
-                         data_per_streamline=DATA['data_per_streamline'],
-                         data_per_point=DATA['data_per_point'])
+        with pytest.warns(Warning):
+            check_tractogram(transformed_tractogram,
+                             streamlines=[s*scaling for s in DATA['streamlines']],
+                             data_per_streamline=DATA['data_per_streamline'],
+                             data_per_point=DATA['data_per_point'])
 
         # Calling apply_affine with lazy=False should fail for LazyTractogram.
         tractogram = DATA['lazy_tractogram'].copy()
@@ -1019,4 +1024,5 @@ class TestLazyTractogram(unittest.TestCase):
                            DATA['lazy_tractogram']._affine_to_apply)
 
         # Check the data are the equivalent.
-        assert_tractogram_equal(tractogram, DATA['tractogram'])
+        with pytest.warns(Warning):
+            assert_tractogram_equal(tractogram, DATA['tractogram'])

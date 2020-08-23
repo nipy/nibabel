@@ -87,17 +87,23 @@ class TestTRK(unittest.TestCase):
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['empty_trk_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, DATA['empty_tractogram'])
+            with pytest.warns(None) as w:
+                assert_tractogram_equal(trk.tractogram, DATA['empty_tractogram'])
+            assert len(w) == lazy_load
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['simple_trk_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, DATA['simple_tractogram'])
+            with pytest.warns(None) as w:
+                assert_tractogram_equal(trk.tractogram, DATA['simple_tractogram'])
+            assert len(w) == lazy_load
 
     def test_load_complex_file(self):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['complex_trk_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
+            with pytest.warns(None) as w:
+                assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
+            assert len(w) == lazy_load
 
     def trk_with_bytes(self, trk_key='simple_trk_fname', endian='<'):
         """ Return example trk file bytes and struct view onto bytes """
@@ -129,12 +135,11 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK where `vox_to_ras` is not recorded (i.e. all zeros).
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.VOXEL_TO_RASMM] = np.zeros((4, 4))
-        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+        with pytest.warns(HeaderWarning) as w:
             trk = TrkFile.load(BytesIO(trk_bytes))
-            assert len(w) == 1
-            assert issubclass(w[0].category, HeaderWarning)
-            assert "identity" in str(w[0].message)
-            assert_array_equal(trk.affine, np.eye(4))
+        assert len(w) == 1
+        assert "identity" in str(w[0].message)
+        assert_array_equal(trk.affine, np.eye(4))
 
         # Simulate a TRK where `vox_to_ras` is invalid.
         trk_struct, trk_bytes = self.trk_with_bytes()
@@ -146,11 +151,10 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK file where `voxel_order` was not provided.
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.VOXEL_ORDER] = b''
-        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+        with pytest.warns(HeaderWarning) as w:
             TrkFile.load(BytesIO(trk_bytes))
-            assert len(w) == 1
-            assert issubclass(w[0].category, HeaderWarning)
-            assert "LPS" in str(w[0].message)
+        assert len(w) == 1
+        assert "LPS" in str(w[0].message)
 
         # Simulate a TRK file with an unsupported version.
         trk_struct, trk_bytes = self.trk_with_bytes()
@@ -186,13 +190,12 @@ class TestTRK(unittest.TestCase):
         assert_array_equal(trk.affine, np.diag([2, 3, 4, 1]))
         # Next check that affine assumed identity if version 1.
         trk_struct['version'] = 1
-        with clear_and_catch_warnings(record=True, modules=[trk_module]) as w:
+        with pytest.warns(HeaderWarning) as w:
             trk = TrkFile.load(BytesIO(trk_bytes))
-            assert len(w) == 1
-            assert issubclass(w[0].category, HeaderWarning)
-            assert "identity" in str(w[0].message)
-            assert_array_equal(trk.affine, np.eye(4))
-            assert_array_equal(trk.header['version'], 1)
+        assert len(w) == 1
+        assert "identity" in str(w[0].message)
+        assert_array_equal(trk.affine, np.eye(4))
+        assert_array_equal(trk.header['version'], 1)
 
     def test_load_complex_file_in_big_endian(self):
         trk_struct, trk_bytes = self.trk_with_bytes(
@@ -206,7 +209,9 @@ class TestTRK(unittest.TestCase):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['complex_trk_big_endian_fname'],
                                lazy_load=lazy_load)
-            assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
+            with pytest.warns(None) as w:
+                assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
+            assert len(w) == lazy_load
 
     def test_tractogram_file_properties(self):
         trk = TrkFile.load(DATA['simple_trk_fname'])
