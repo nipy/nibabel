@@ -113,7 +113,7 @@ and all other values are set to resonable defaults.
 
 Saving this new image to a file is trivial:
 
-    nib.save(img, os.path.join('build', 'test4d.nii.gz'))
+>>> nib.save(img, os.path.join('build', 'test4d.nii.gz'))  # doctest: +SKIP
 
 This short introduction only gave a quick overview of NiBabel's capabilities.
 Please have a look at the :ref:`api` for more details about supported file
