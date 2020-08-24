@@ -111,8 +111,7 @@ In this case, we used the identity matrix as the affine transformation. The
 image header is initialized from the provided data array (i.e. shape, dtype)
 and all other values are set to resonable defaults.
 
-Saving this new image to a file is trivial.  We won't do it here, but it looks
-like::
+Saving this new image to a file is trivial:
 
     nib.save(img, os.path.join('build', 'test4d.nii.gz'))
 
