@@ -4,7 +4,7 @@
 from functools import wraps
 import warnings
 
-warnings.warn("We will remove this module from nibabel 5.0. "
+warnings.warn("We will remove the 'keywordonly' module from nibabel 5.0. "
               "Please use the built-in Python `*` argument to ensure "
               "keyword-only parameters (see PEP 3102).",
               DeprecationWarning,
