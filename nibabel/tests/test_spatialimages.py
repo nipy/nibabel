@@ -517,12 +517,11 @@ class TestSpatialImage(TestCase):
                 img.slicer[[0], [-1]]
 
             # Check data is consistent with slicing numpy arrays
-            slice_elems = (None, Ellipsis, 0, 1, -1, [0], [1], [-1],
-                           slice(None), slice(1), slice(-1), slice(1, -1))
+            slice_elems = np.array((None, Ellipsis, 0, 1, -1, [0], [1], [-1],
+                                    slice(None), slice(1), slice(-1), slice(1, -1)), dtype=object)
             for n_elems in range(6):
                 for _ in range(1 if n_elems == 0 else 10):
-                    sliceobj = tuple(
-                        np.random.choice(slice_elems, n_elems).tolist())
+                    sliceobj = tuple(np.random.choice(slice_elems, n_elems))
                     try:
                         sliced_img = img.slicer[sliceobj]
                     except (IndexError, ValueError):
