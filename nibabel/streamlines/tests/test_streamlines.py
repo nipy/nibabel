@@ -201,13 +201,12 @@ class TestLoadSave(unittest.TestCase):
             nib.streamlines.save(trk_file, "dummy.trk", header={})
 
         # Wrong extension.
-        with pytest.warns(None) as w:
+        with pytest.warns(ExtensionWarning) as w:
             trk_file = trk.TrkFile(tractogram)
             with self.assertRaises(ValueError):
                 nib.streamlines.save(trk_file, "dummy.tck", header={})
 
         assert len(w) == 1
-        assert issubclass(w[0].category, ExtensionWarning)
         assert "extension" in str(w[0].message)
 
         with InTemporaryDirectory():

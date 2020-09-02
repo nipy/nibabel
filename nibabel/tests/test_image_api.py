@@ -58,7 +58,7 @@ from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 
 
 def maybe_deprecated(meth_name):
-    return pytest.deprecated_call() if meth_name =='get_data' else nullcontext()
+    return pytest.deprecated_call() if meth_name == 'get_data' else nullcontext()
 
 
 class GenericImageAPI(ValidateAPI):
