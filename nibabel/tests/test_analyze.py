@@ -734,10 +734,10 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(np.asanyarray(img2.dataobj), data)
         # now check read_img_data function - here we do see the changed
         # header
-        with pytest.deprecated_call():
+        with pytest.deprecated_call(match="from version: 3.2"):
             sc_data = read_img_data(img2)
         assert sc_data.shape == (3, 2, 2)
-        with pytest.deprecated_call():
+        with pytest.deprecated_call(match="from version: 3.2"):
             us_data = read_img_data(img2, prefer='unscaled')
         assert us_data.shape == (3, 2, 2)
 

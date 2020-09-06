@@ -148,7 +148,7 @@ def test_resample_from_to(caplog):
     exp_out[1:, :, :] = data[1, :, :]
     assert_almost_equal(out.dataobj, exp_out)
     out = resample_from_to(img, trans_p_25_img)
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning):  # Suppress scipy warning
         exp_out = spnd.affine_transform(data, [1, 1, 1], [-0.25, 0, 0], order=3)
     assert_almost_equal(out.dataobj, exp_out)
     # Test cval
@@ -161,7 +161,7 @@ def test_resample_from_to(caplog):
     assert out.__class__ == Nifti1Image
     # By default, type of from_img makes no difference
     n1_img = Nifti2Image(data, affine)
-    with caplog.at_level(logging.CRITICAL):
+    with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
         out = resample_from_to(n1_img, trans_img)
     assert out.__class__ == Nifti1Image
     # Passed as keyword arg
@@ -254,7 +254,7 @@ def test_resample_to_output(caplog):
     assert_array_equal(out_img.dataobj, np.flipud(data))
     # Subsample voxels
     out_img = resample_to_output(Nifti1Image(data, np.diag([4, 5, 6, 1])))
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning):  # Suppress scipy warning
         exp_out = spnd.affine_transform(data,
                                         [1/4, 1/5, 1/6],
                                         output_shape = (5, 11, 19))
@@ -293,7 +293,7 @@ def test_resample_to_output(caplog):
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    with caplog.at_level(logging.CRITICAL):
+    with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
         assert resample_to_output(img_ni2).__class__ == Nifti1Image
     # Can be overriden
     with caplog.at_level(logging.CRITICAL):
@@ -349,7 +349,7 @@ def test_smooth_image(caplog):
     img_ni1 = Nifti1Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    with caplog.at_level(logging.CRITICAL):
+    with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
         assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
     # Can be overriden
     with caplog.at_level(logging.CRITICAL):
@@ -362,7 +362,7 @@ def test_smooth_image(caplog):
 def test_spatial_axes_check(caplog):
     for fname in MINC_3DS + OTHER_IMGS:
         img = nib.load(pjoin(DATA_DIR, fname))
-        with caplog.at_level(logging.CRITICAL):
+        with caplog.at_level(logging.CRITICAL):  # Suppress logs when changing classes
             s_img = smooth_image(img, 0)
         assert_array_equal(img.dataobj, s_img.dataobj)
         with caplog.at_level(logging.CRITICAL):
@@ -447,7 +447,7 @@ def test_conform(caplog):
     assert isinstance(c, Nifti1Image)
 
     # Test with non-default arguments.
-    with caplog.at_level(logging.CRITICAL):
+    with caplog.at_level(logging.CRITICAL):  # Suppress logs when changing classes
         c = conform(anat, out_shape=(100, 100, 200), voxel_size=(2, 2, 1.5),
                     orientation="LPI", out_class=Nifti2Image)
     assert c.shape == (100, 100, 200)

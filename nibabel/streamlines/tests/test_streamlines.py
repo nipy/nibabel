@@ -201,13 +201,10 @@ class TestLoadSave(unittest.TestCase):
             nib.streamlines.save(trk_file, "dummy.trk", header={})
 
         # Wrong extension.
-        with pytest.warns(ExtensionWarning) as w:
+        with pytest.warns(ExtensionWarning, match="extension"):
             trk_file = trk.TrkFile(tractogram)
             with self.assertRaises(ValueError):
                 nib.streamlines.save(trk_file, "dummy.tck", header={})
-
-        assert len(w) == 1
-        assert "extension" in str(w[0].message)
 
         with InTemporaryDirectory():
             nib.streamlines.save(trk_file, "dummy.trk")
@@ -243,9 +240,6 @@ class TestLoadSave(unittest.TestCase):
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
 
-                with pytest.warns(None) as w:
-                    nib.streamlines.save(complex_tractogram, filename)
-
                 # If streamlines format does not support saving data
                 # per point or data per streamline, warning messages
                 # should be issued.
@@ -253,9 +247,9 @@ class TestLoadSave(unittest.TestCase):
                     ((not cls.SUPPORTS_DATA_PER_POINT) +
                      (not cls.SUPPORTS_DATA_PER_STREAMLINE))
 
+                with pytest.warns(Warning if nb_expected_warnings else None) as w:
+                    nib.streamlines.save(complex_tractogram, filename)
                 assert len(w) == nb_expected_warnings
-                for i in range(nb_expected_warnings):
-                    assert issubclass(w[i].category, Warning)
 
                 tractogram = Tractogram(DATA['streamlines'],
                                         affine_to_rasmm=np.eye(4))

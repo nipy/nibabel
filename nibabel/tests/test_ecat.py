@@ -240,7 +240,7 @@ class TestEcatImage(TestCase):
         assert not np.all(img.affine == aff)
 
     def test_get_affine_deprecated(self):
-        with pytest.deprecated_call():
+        with pytest.deprecated_call(match="from version: 2.1"):
             aff = self.img.get_affine()
         assert np.array_equal(aff, self.img.affine)
 

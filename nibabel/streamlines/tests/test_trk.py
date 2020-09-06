@@ -135,10 +135,8 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK where `vox_to_ras` is not recorded (i.e. all zeros).
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.VOXEL_TO_RASMM] = np.zeros((4, 4))
-        with pytest.warns(HeaderWarning) as w:
+        with pytest.warns(HeaderWarning, match="identity"):
             trk = TrkFile.load(BytesIO(trk_bytes))
-        assert len(w) == 1
-        assert "identity" in str(w[0].message)
         assert_array_equal(trk.affine, np.eye(4))
 
         # Simulate a TRK where `vox_to_ras` is invalid.
@@ -151,17 +149,14 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK file where `voxel_order` was not provided.
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.VOXEL_ORDER] = b''
-        with pytest.warns(HeaderWarning) as w:
+        with pytest.warns(HeaderWarning, match="LPS"):
             TrkFile.load(BytesIO(trk_bytes))
-        assert len(w) == 1
-        assert "LPS" in str(w[0].message)
 
         # Simulate a TRK file with an unsupported version.
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct['version'] = 123
         with pytest.raises(HeaderError):
             TrkFile.load(BytesIO(trk_bytes))
-        
 
         # Simulate a TRK file with a wrong hdr_size.
         trk_struct, trk_bytes = self.trk_with_bytes()
@@ -190,10 +185,8 @@ class TestTRK(unittest.TestCase):
         assert_array_equal(trk.affine, np.diag([2, 3, 4, 1]))
         # Next check that affine assumed identity if version 1.
         trk_struct['version'] = 1
-        with pytest.warns(HeaderWarning) as w:
+        with pytest.warns(HeaderWarning, match="identity"):
             trk = TrkFile.load(BytesIO(trk_bytes))
-        assert len(w) == 1
-        assert "identity" in str(w[0].message)
         assert_array_equal(trk.affine, np.eye(4))
         assert_array_equal(trk.header['version'], 1)
 

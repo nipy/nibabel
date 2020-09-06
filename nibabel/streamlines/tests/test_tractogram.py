@@ -811,7 +811,7 @@ class TestLazyTractogram(unittest.TestCase):
 
         # Empty `LazyTractogram`
         tractogram = LazyTractogram()
-        with pytest.warns(Warning):
+        with pytest.warns(Warning, match="Number of streamlines will be determined manually"):
             check_tractogram(tractogram)
         assert tractogram.affine_to_rasmm is None
 
@@ -833,7 +833,7 @@ class TestLazyTractogram(unittest.TestCase):
     def test_lazy_tractogram_from_data_func(self):
         # Create an empty `LazyTractogram` yielding nothing.
         tractogram = LazyTractogram.from_data_func(lambda: iter([]))
-        with pytest.warns(Warning):
+        with pytest.warns(Warning, match="Number of streamlines will be determined manually"):
             check_tractogram(tractogram)
 
         # Create `LazyTractogram` from a generator function yielding
@@ -854,7 +854,7 @@ class TestLazyTractogram(unittest.TestCase):
                                      data_for_points)
 
         tractogram = LazyTractogram.from_data_func(_data_gen)
-        with pytest.warns(Warning):
+        with pytest.warns(Warning, match="Number of streamlines will be determined manually"):
             assert_tractogram_equal(tractogram, DATA['tractogram'])
 
         # Creating a LazyTractogram from not a corouting should raise an error.
@@ -924,7 +924,7 @@ class TestLazyTractogram(unittest.TestCase):
         assert_array_equal(transformed_tractogram._affine_to_apply, affine)
         assert_array_equal(transformed_tractogram.affine_to_rasmm,
                            np.dot(np.eye(4), np.linalg.inv(affine)))
-        with pytest.warns(Warning):
+        with pytest.warns(Warning, match="Number of streamlines will be determined manually"):
             check_tractogram(transformed_tractogram,
                              streamlines=[s*scaling for s in DATA['streamlines']],
                              data_per_streamline=DATA['data_per_streamline'],
@@ -950,7 +950,7 @@ class TestLazyTractogram(unittest.TestCase):
         transformed_tractogram = tractogram.apply_affine(affine)
         assert_array_equal(transformed_tractogram._affine_to_apply, affine)
         assert transformed_tractogram.affine_to_rasmm is None
-        with pytest.warns(Warning):
+        with pytest.warns(Warning, match="Number of streamlines will be determined manually"):
             check_tractogram(transformed_tractogram,
                              streamlines=[s*scaling for s in DATA['streamlines']],
                              data_per_streamline=DATA['data_per_streamline'],
@@ -1024,5 +1024,5 @@ class TestLazyTractogram(unittest.TestCase):
                            DATA['lazy_tractogram']._affine_to_apply)
 
         # Check the data are the equivalent.
-        with pytest.warns(Warning):
+        with pytest.warns(Warning, match="Number of streamlines will be determined manually"):
             assert_tractogram_equal(tractogram, DATA['tractogram'])

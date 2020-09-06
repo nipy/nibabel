@@ -113,18 +113,14 @@ class TestTCK(unittest.TestCase):
         new_tck_file = tck_file.replace(b"datatype: Float32LE\n", b"")
         # Need to adjust data offset.
         new_tck_file = new_tck_file.replace(b"file: . 67\n", b"file: . 47\n")
-        with pytest.warns(HeaderWarning) as w:
+        with pytest.warns(HeaderWarning, match="Missing 'datatype'"):
             tck = TckFile.load(BytesIO(new_tck_file))
-        assert len(w) == 1
-        assert "Missing 'datatype'" in str(w[0].message)
         assert_array_equal(tck.header['datatype'], "Float32LE")
 
         # Simulate a TCK file with no `file` field.
         new_tck_file = tck_file.replace(b"\nfile: . 67", b"")
-        with pytest.warns(HeaderWarning) as w:
+        with pytest.warns(HeaderWarning, matches="Missing 'file'") as w:
             tck = TckFile.load(BytesIO(new_tck_file))
-        assert len(w) == 1
-        assert "Missing 'file'" in str(w[0].message)
         assert_array_equal(tck.header['file'], ". 56")
 
         # Simulate a TCK file with `file` field pointing to another file.
