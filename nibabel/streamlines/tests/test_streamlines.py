@@ -142,10 +142,9 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert type(tfile.tractogram), LazyTractogram
 
-                with pytest.warns(None) as w:
+                with pytest.warns(Warning if lazy_load else None):
                     assert_tractogram_equal(tfile.tractogram,
                                             DATA['empty_tractogram'])
-                assert len(w) == lazy_load
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
@@ -159,10 +158,9 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert type(tfile.tractogram), LazyTractogram
 
-                with pytest.warns(None) as w:
+                with pytest.warns(Warning if lazy_load else None):
                     assert_tractogram_equal(tfile.tractogram,
                                             DATA['simple_tractogram'])
-                assert len(w) == lazy_load
 
     def test_load_complex_file(self):
         for lazy_load in [False, True]:
@@ -186,10 +184,9 @@ class TestLoadSave(unittest.TestCase):
                     data = DATA['data_per_streamline']
                     tractogram.data_per_streamline = data
 
-                with pytest.warns(None) as w:
+                with pytest.warns(Warning if lazy_load else None):
                     assert_tractogram_equal(tfile.tractogram,
                                             tractogram)
-                assert len(w) == lazy_load
 
     def test_save_tractogram_file(self):
         tractogram = Tractogram(DATA['streamlines'],

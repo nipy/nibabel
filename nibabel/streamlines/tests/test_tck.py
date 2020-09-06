@@ -47,16 +47,14 @@ class TestTCK(unittest.TestCase):
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['empty_tck_fname'], lazy_load=lazy_load)
-            with pytest.warns(None) as w:
+            with pytest.warns(Warning if lazy_load else None):
                 assert_tractogram_equal(tck.tractogram, DATA['empty_tractogram'])
-            assert len(w) == lazy_load
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['simple_tck_fname'], lazy_load=lazy_load)
-            with pytest.warns(None) as w:
+            with pytest.warns(Warning if lazy_load else None):
                 assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
-            assert len(w) == lazy_load
 
         # Force TCK loading to use buffering.
         buffer_size = 1. / 1024**2  # 1 bytes
@@ -90,9 +88,8 @@ class TestTCK(unittest.TestCase):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['simple_tck_big_endian_fname'],
                                lazy_load=lazy_load)
-            with pytest.warns(None) as w:
+            with pytest.warns(Warning if lazy_load else None):
                 assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
-            assert len(w) == lazy_load
             assert tck.header['datatype'] == 'Float32BE'
 
     def test_load_file_with_wrong_information(self):
