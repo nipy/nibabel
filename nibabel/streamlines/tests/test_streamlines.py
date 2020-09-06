@@ -12,7 +12,7 @@ from io import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
 from numpy.compat.py3k import asbytes
 
-from nibabel.testing import data_path, clear_and_catch_warnings
+from nibabel.testing import data_path
 
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
