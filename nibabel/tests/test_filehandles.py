@@ -5,7 +5,7 @@ Check that loading an image does not use up filehandles.
 from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp
-from warnings import warn
+import unittest
 
 import numpy as np
 
@@ -21,13 +21,11 @@ from ..loadsave import load, save
 from ..nifti1 import Nifti1Image
 
 
+@unittest.skipIf(SOFT_LIMIT > 4900, "It would take too long to test filehandles")
 def test_multiload():
     # Make a tiny image, save, load many times.  If we are leaking filehandles,
     # this will cause us to run out and generate an error
     N = SOFT_LIMIT + 100
-    if N > 5000:
-        warn('It would take too long to test file handles, aborting')
-        return
     arr = np.arange(24).reshape((2, 3, 4))
     img = Nifti1Image(arr, np.eye(4))
     imgs = []

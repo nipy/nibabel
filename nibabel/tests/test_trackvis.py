@@ -12,6 +12,13 @@ from ..volumeutils import native_code, swapped_code
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def module_deprecated():
+    with pytest.deprecated_call():
+        yield
+
+
 def test_write():
     streams = []
     out_f = BytesIO()

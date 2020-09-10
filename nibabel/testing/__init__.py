@@ -24,6 +24,14 @@ from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
 
 from itertools import zip_longest
 
+try:
+    from contextlib import nullcontext
+except ImportError:  # PY36
+    from contextlib import contextmanager
+    @contextmanager
+    def nullcontext():
+        yield
+
 
 def test_data(subdir=None, fname=None):
     if subdir is None:

@@ -94,13 +94,18 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq(ArraySequence(iter(SEQ_DATA['data']), buffer_size),
                       SEQ_DATA['data'])
 
+    def test_deprecated_data_attribute(self):
+        seq = ArraySequence(SEQ_DATA['data'])
+        with pytest.deprecated_call(match="from version: 3.0"):
+            seq.data
+
     def test_creating_arraysequence_from_generator(self):
         gen_1, gen_2 = itertools.tee((e for e in SEQ_DATA['data']))
         seq = ArraySequence(gen_1)
         seq_with_buffer = ArraySequence(gen_2, buffer_size=256)
 
         # Check buffer size effect
-        assert seq_with_buffer.data.shape == seq.data.shape
+        assert seq_with_buffer.get_data().shape == seq.get_data().shape
         assert seq_with_buffer._buffer_size > seq._buffer_size
 
         # Check generator result

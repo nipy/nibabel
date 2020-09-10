@@ -107,13 +107,13 @@ def check_nib_diff_examples():
 
 @pytest.mark.parametrize("args", [
     [],
-    [['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"],
+    [['-H', 'dim,bitpix'], r" \[  4 128  96  24   2   1   1   1\] 16"],
     [['-c'], "", " !1030 uniques. Use --all-counts"],
     [['-c', '--all-counts'], "", " 2:3 3:2 4:1 5:1.*"],
     # both stats and counts
-    [['-c', '-s', '--all-counts'], "", " \[229725\] \[2, 1.2e\+03\] 2:3 3:2 4:1 5:1.*"],
+    [['-c', '-s', '--all-counts'], "", r" \[229725\] \[2, 1.2e\+03\] 2:3 3:2 4:1 5:1.*"],
     # and must not error out if we allow for zeros
-    [['-c', '-s', '-z', '--all-counts'], "", " \[589824\] \[0, 1.2e\+03\] 0:360099 2:3 3:2 4:1 5:1.*"],
+    [['-c', '-s', '-z', '--all-counts'], "", r" \[589824\] \[0, 1.2e\+03\] 0:360099 2:3 3:2 4:1 5:1.*"],
 ])
 @script_test
 def test_nib_ls(args):
@@ -136,8 +136,8 @@ def test_nib_ls_multiple():
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
     i_str = ' i' if sys.byteorder == 'little' else ' <i'
-    assert ([l[ln:ln + len(i_str)] for l in stdout_lines] == [i_str] * 4,
-            f"Type sub-string didn't start with '{i_str}'. Full output was: {stdout_lines}")
+    assert [l[ln:ln + len(i_str)] for l in stdout_lines] == [i_str] * 4, \
+            f"Type sub-string didn't start with '{i_str}'. Full output was: {stdout_lines}"
     # and if disregard type indicator which might vary
     assert (
         [l[l.index('['):] for l in stdout_lines] ==
@@ -436,7 +436,7 @@ def test_nib_trk2tck():
         assert os.path.isfile(simple_tck)
         trk = nib.streamlines.load(simple_trk)
         tck = nib.streamlines.load(simple_tck)
-        assert (tck.streamlines.data == trk.streamlines.data).all()
+        assert (tck.streamlines.get_data() == trk.streamlines.get_data()).all()
         assert isinstance(tck, nib.streamlines.TckFile)
 
         # Skip non TRK files.
@@ -455,7 +455,7 @@ def test_nib_trk2tck():
         assert len(stdout) == 0
         trk = nib.streamlines.load(standard_trk)
         tck = nib.streamlines.load(standard_tck)
-        assert (tck.streamlines.data == trk.streamlines.data).all()
+        assert (tck.streamlines.get_data() == trk.streamlines.get_data()).all()
 
 
 @script_test
@@ -482,7 +482,7 @@ def test_nib_tck2trk():
         assert os.path.isfile(standard_trk)
         tck = nib.streamlines.load(standard_tck)
         trk = nib.streamlines.load(standard_trk)
-        assert (trk.streamlines.data == tck.streamlines.data).all()
+        assert (trk.streamlines.get_data() == tck.streamlines.get_data()).all()
         assert isinstance(trk, nib.streamlines.TrkFile)
 
         # Skip non TCK files.
@@ -501,4 +501,4 @@ def test_nib_tck2trk():
         assert len(stdout) == 0
         tck = nib.streamlines.load(standard_tck)
         trk = nib.streamlines.load(standard_trk)
-        assert (tck.streamlines.data == trk.streamlines.data).all()
+        assert (tck.streamlines.get_data() == trk.streamlines.get_data()).all()

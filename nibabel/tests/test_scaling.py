@@ -9,6 +9,7 @@
 """ Test for scaling / rounding in volumeutils module """
 
 import numpy as np
+import warnings
 
 from io import BytesIO
 from ..volumeutils import finite_range, apply_read_scaling, array_to_file, array_from_file
@@ -199,7 +200,7 @@ def check_int_a2f(in_type, out_type):
         scale, inter, mn, mx = _calculate_scale(data, out_type, True)
     except ValueError as e:
         if DEBUG:
-            print(in_type, out_type, e)
+            warnings.warn(str((in_type, out_type, e)))
         return
     array_to_file(data, str_io, out_type, 0, inter, scale, mn, mx)
     data_back = array_from_file(data.shape, out_type, str_io)

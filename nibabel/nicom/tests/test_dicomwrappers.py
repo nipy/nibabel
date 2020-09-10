@@ -660,13 +660,14 @@ class TestMultiFrameWrapper(TestCase):
         # Test 4D diffusion data with an additional trace volume included
         # Excludes the trace volume and generates the correct shape
         dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
-        assert dw.image_shape == (96, 96, 60, 33)
+        with pytest.warns(UserWarning, match="Derived images found and removed"):
+            assert dw.image_shape == (96, 96, 60, 33)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
     def test_data_unreadable_private_headers(self):
         # Test CT image with unreadable CSA tags
-        with pytest.warns(UserWarning):
+        with pytest.warns(UserWarning, match="Error while attempting to read CSA header"):
             dw = didw.wrapper_from_file(DATA_FILE_CT)
         assert dw.image_shape == (512, 571)
 

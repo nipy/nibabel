@@ -13,6 +13,7 @@ import shutil
 from os.path import dirname, join as pjoin
 from tempfile import mkdtemp
 import pathlib
+import logging
 
 import numpy as np
 
@@ -42,7 +43,7 @@ def round_trip(img):
     return Nifti1Image.from_bytes(img.to_bytes())
 
 
-def test_conversion_spatialimages():
+def test_conversion_spatialimages(caplog):
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
     klasses = [klass for klass in all_image_classes
@@ -57,7 +58,9 @@ def test_conversion_spatialimages():
             for w_class in klasses:
                 if not w_class.makeable:
                     continue
-                img2 = w_class.from_image(img)
+                # Suppress header field mismatch reports
+                with caplog.at_level(logging.CRITICAL):
+                    img2 = w_class.from_image(img)
                 assert_array_equal(img2.get_fdata(), data)
                 assert_array_equal(img2.affine, affine)
 
@@ -271,7 +274,8 @@ def test_analyze_detection():
     # Test detection of Analyze, Nifti1 and Nifti2
     # Algorithm is as described in loadsave:which_analyze_type
     def wat(hdr):
-        return nils.which_analyze_type(hdr.binaryblock)
+        with pytest.deprecated_call():
+            return nils.which_analyze_type(hdr.binaryblock)
     n1_hdr = Nifti1Header(b'\0' * 348, check=False)
     assert wat(n1_hdr) is None
     n1_hdr['sizeof_hdr'] = 540
@@ -300,14 +304,15 @@ def test_analyze_detection():
 
 def test_guessed_image_type():
     # Test whether we can guess the image type from example files
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'example4d.nii.gz')) == Nifti1Image
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti1.hdr')) == Nifti1Pair
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'example_nifti2.nii.gz')) == Nifti2Image
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti2.hdr')) == Nifti2Pair
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'tiny.mnc')) == Minc1Image
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'small.mnc')) == Minc2Image
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'test.mgz')) == MGHImage
-    assert nils.guessed_image_type(pjoin(DATA_PATH, 'analyze.hdr')) == Spm2AnalyzeImage
+    with pytest.deprecated_call():
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'example4d.nii.gz')) == Nifti1Image
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti1.hdr')) == Nifti1Pair
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'example_nifti2.nii.gz')) == Nifti2Image
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti2.hdr')) == Nifti2Pair
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'tiny.mnc')) == Minc1Image
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'small.mnc')) == Minc2Image
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'test.mgz')) == MGHImage
+        assert nils.guessed_image_type(pjoin(DATA_PATH, 'analyze.hdr')) == Spm2AnalyzeImage
 
 
 def test_fail_save():

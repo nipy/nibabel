@@ -86,16 +86,15 @@ def test_geometry():
 
         # now write an incomplete file
         write_geometry(surf_path, coords, faces)
-        with clear_and_catch_warnings() as w:
-            warnings.filterwarnings('always', category=DeprecationWarning)
+        with pytest.warns(UserWarning) as w:
             read_geometry(surf_path, read_metadata=True)
-
         assert any('volume information contained' in str(ww.message) for ww in w)
         assert any('extension code' in str(ww.message) for ww in w)
+
         volume_info['head'] = [1, 2]
-        with clear_and_catch_warnings() as w:
+        with pytest.warns(UserWarning, match="Unknown extension"):
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
-        assert any('Unknown extension' in str(ww.message) for ww in w)
+
         volume_info['a'] = 0
         with pytest.raises(ValueError):
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
@@ -266,10 +265,9 @@ def test_write_annot_fill_ctab():
         # values back.
         badannot = (10 * np.arange(nlabels, dtype=np.int32)).reshape(-1, 1)
         rgbal = np.hstack((rgba, badannot))
-        with clear_and_catch_warnings() as w:
+        with pytest.warns(UserWarning,
+                          match=f'Annotation values in {annot_path} will be incorrect'):
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert any(f'Annotation values in {annot_path} will be incorrect' == str(ww.message)
-                   for ww in w)
         labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
         names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))

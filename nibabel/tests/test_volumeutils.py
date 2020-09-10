@@ -57,7 +57,7 @@ from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 import pytest
 
-from ..testing import assert_dt_equal, assert_allclose_safely, suppress_warnings
+from nibabel.testing import nullcontext, assert_dt_equal, assert_allclose_safely, suppress_warnings
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -620,11 +620,16 @@ def test_a2f_bad_scaling():
             (0, np.nan, -np.inf, np.inf)):
         arr = np.ones((2,), dtype=in_type)
         fobj = BytesIO()
+        cm = nullcontext()
+        if (np.issubdtype(in_type, np.complexfloating) and
+                not np.issubdtype(out_type, np.complexfloating)):
+            cm = pytest.warns(np.ComplexWarning)
         if (slope, inter) == (1, 0):
-            assert_array_equal(arr,
-                               write_return(arr, fobj, out_type,
-                                            intercept=inter,
-                                            divslope=slope))
+            with cm:
+                assert_array_equal(arr,
+                                   write_return(arr, fobj, out_type,
+                                                intercept=inter,
+                                                divslope=slope))
         elif (slope, inter) == (None, 0):
             assert_array_equal(0,
                                write_return(arr, fobj, out_type,
@@ -663,34 +668,42 @@ def test_a2f_nan2zero_range():
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
         # Error occurs for arrays without nans too
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
+        warn_type = np.ComplexWarning if np.issubdtype(dt, np.complexfloating) else None
         # No errors from explicit thresholding
         # mn thresholding excluding zero
-        assert_array_equal([1, 1, 1, 0],
-                           write_return(arr, fobj, np.int8, mn=1))
+        with pytest.warns(warn_type):
+            assert_array_equal([1, 1, 1, 0],
+                               write_return(arr, fobj, np.int8, mn=1))
         # mx thresholding excluding zero
-        assert_array_equal([-1, -1, -1, 0],
-                           write_return(arr, fobj, np.int8, mx=-1))
+        with pytest.warns(warn_type):
+            assert_array_equal([-1, -1, -1, 0],
+                               write_return(arr, fobj, np.int8, mx=-1))
         # Errors from datatype threshold after scaling
-        back_arr = write_return(arr, fobj, np.int8, intercept=128)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8, intercept=128)
         assert_array_equal([-128, -128, -127, -128], back_arr)
         with pytest.raises(ValueError):
             write_return(arr, fobj, np.int8, intercept=129)
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=129)
         # OK with nan2zero false, but we get whatever nan casts to
-        nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
-        back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
+        with pytest.warns(warn_type):
+            nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
-        back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
         assert_array_equal([-128, -128, -128, -128], back_arr)
         with pytest.raises(ValueError):
             write_return(arr, fobj, np.int8, intercept=257.1, divslope=2)
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2)
         # OK with nan2zero false
-        back_arr = write_return(arr, fobj, np.int8,
-                                intercept=257.1, divslope=2, nan2zero=False)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8,
+                                    intercept=257.1, divslope=2, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
 
 

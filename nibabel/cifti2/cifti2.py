@@ -1492,7 +1492,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
 
         >>> import numpy as np
         >>> data = np.zeros((2,3,4))
-        >>> img = Cifti2Image(data)
+        >>> img = Cifti2Image(data)  # doctest: +IGNORE_WARNINGS
         >>> img.shape == (2, 3, 4)
         True
         >>> img.update_headers()
