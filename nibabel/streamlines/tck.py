@@ -319,7 +319,8 @@ class TckFile(TractogramFile):
             offset_data = f.tell()
 
         # Build header dictionary from the buffer.
-        hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')[:-1])
+        hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')
+                   if ': ' in item)
         hdr[Field.MAGIC_NUMBER] = magic_number
 
         # Check integrity of TCK header.
