@@ -119,7 +119,7 @@ class OrthoSlicer3D(object):
                 fig.delaxes(self._axes[3])
                 self._axes.pop(-1)
             if self._title is not None:
-                fig.canvas.set_window_title(str(title))
+                fig.canvas.manager.set_window_title(str(title))
         else:
             self._axes = [axes[0], axes[1], axes[2]]
             if len(axes) > 3:
