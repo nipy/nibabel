@@ -34,7 +34,7 @@ class WrapperPrecisionError(WrapperError):
 
 
 def wrapper_from_file(file_like, *args, **kwargs):
-    """ Create DICOM wrapper from `file_like` object
+    r""" Create DICOM wrapper from `file_like` object
 
     Parameters
     ----------
