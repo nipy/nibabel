@@ -5,6 +5,7 @@ from nibabel.cmdline.roi import lossless_slice, parse_slice, main
 from nibabel.testing import data_path
 
 import unittest
+from unittest import mock
 import pytest
 
 
@@ -78,6 +79,23 @@ def test_lossless_slice_scaling(tmp_path):
     assert img1.dataobj.inter == img2.dataobj.inter
 
 
+def test_lossless_slice_noscaling(tmp_path):
+    fname = tmp_path / 'image.img'
+    img = nb.AnalyzeImage(np.random.uniform(-20000, 20000, (5, 5, 5, 5)).astype("float32"),
+                          affine=np.eye(4))
+    img.header.set_data_dtype("float32")
+    img.to_filename(fname)
+    img1 = nb.load(fname)
+    sliced_fname = tmp_path / 'sliced.img'
+    lossless_slice(img1, (slice(None), slice(None), slice(2, 4))).to_filename(sliced_fname)
+    img2 = nb.load(sliced_fname)
+
+    assert np.array_equal(img1.get_fdata()[:, :, 2:4], img2.get_fdata())
+    assert np.array_equal(img1.dataobj.get_unscaled()[:, :, 2:4], img2.dataobj.get_unscaled())
+    assert img1.dataobj.slope == img2.dataobj.slope
+    assert img1.dataobj.inter == img2.dataobj.inter
+
+
 @pytest.mark.parametrize("inplace", (True, False))
 def test_nib_roi(tmp_path, inplace):
     in_file = os.path.join(data_path, 'functional.nii')
@@ -112,3 +130,24 @@ def test_nib_roi_bad_slices(capsys, args, errmsg):
     assert retval != 0
     captured = capsys.readouterr()
     assert errmsg in captured.out
+
+
+def test_entrypoint(capsys):
+    # Check that we handle missing args as expected
+    with mock.patch("sys.argv", ["nib-roi", "--help"]):
+        try:
+            retval = main()
+        except SystemExit:
+            pass
+        else:
+            assert False, "argparse exits on --help. If changing to another parser, update test."
+    captured = capsys.readouterr()
+    assert captured.out.startswith("usage: nib-roi")
+
+
+def test_nib_roi_unknown_axes(capsys):
+    in_file = os.path.join(data_path, 'minc1_4d.mnc')
+    with pytest.raises(ValueError):
+        main([in_file, os.devnull, "-i", ":"])
+    captured = capsys.readouterr()
+    assert "Could not slice image." in captured.out
