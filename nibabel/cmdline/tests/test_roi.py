@@ -108,8 +108,7 @@ def test_nib_roi(tmp_path, inplace):
 def test_nib_roi_bad_slices(capsys, args, errmsg):
     in_file = os.path.join(data_path, 'functional.nii')
 
-    retval = main([in_file, '/dev/null', *args])
+    retval = main([in_file, os.devnull, *args])
     assert retval != 0
     captured = capsys.readouterr()
     assert errmsg in captured.out
-
