@@ -239,7 +239,7 @@ def test_dtseries():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dtseries.nii', infer_intent=True)
+        ci.save(img, 'test.dtseries.nii')
         img2 = nib.load('test.dtseries.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDenseSeries'
         assert isinstance(img2, ci.Cifti2Image)
@@ -282,7 +282,7 @@ def test_dlabel():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dlabel.nii', infer_intent=True)
+        ci.save(img, 'test.dlabel.nii')
         img2 = nib.load('test.dlabel.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDenseLabel'
         assert isinstance(img2, ci.Cifti2Image)
@@ -301,7 +301,7 @@ def test_dconn():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dconn.nii', infer_intent=True)
+        ci.save(img, 'test.dconn.nii')
         img2 = nib.load('test.dconn.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDense'
         assert isinstance(img2, ci.Cifti2Image)
@@ -322,7 +322,7 @@ def test_ptseries():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.ptseries.nii', infer_intent=True)
+        ci.save(img, 'test.ptseries.nii')
         img2 = nib.load('test.ptseries.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnParcelSries'
         assert isinstance(img2, ci.Cifti2Image)
@@ -343,7 +343,7 @@ def test_pscalar():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pscalar.nii', infer_intent=True)
+        ci.save(img, 'test.pscalar.nii')
         img2 = nib.load('test.pscalar.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnParcelScalr'
         assert isinstance(img2, ci.Cifti2Image)
@@ -364,7 +364,7 @@ def test_pdconn():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pdconn.nii', infer_intent=True)
+        ci.save(img, 'test.pdconn.nii')
         img2 = ci.load('test.pdconn.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnParcelDense'
         assert isinstance(img2, ci.Cifti2Image)
@@ -385,7 +385,7 @@ def test_dpconn():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.dpconn.nii', infer_intent=True)
+        ci.save(img, 'test.dpconn.nii')
         img2 = ci.load('test.dpconn.nii')
         assert img2.nifti_header.get_intent()[0] == 'ConnDenseParcel'
         assert isinstance(img2, ci.Cifti2Image)
@@ -425,7 +425,7 @@ def test_pconn():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pconn.nii', infer_intent=True)
+        ci.save(img, 'test.pconn.nii')
         img2 = ci.load('test.pconn.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnParcels'
         assert isinstance(img2, ci.Cifti2Image)
@@ -447,7 +447,7 @@ def test_pconnseries():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pconnseries.nii', infer_intent=True)
+        ci.save(img, 'test.pconnseries.nii')
         img2 = ci.load('test.pconnseries.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnPPSr'
         assert isinstance(img2, ci.Cifti2Image)
@@ -470,7 +470,7 @@ def test_pconnscalar():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.pconnscalar.nii', infer_intent=True)
+        ci.save(img, 'test.pconnscalar.nii')
         img2 = ci.load('test.pconnscalar.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnPPSc'
         assert isinstance(img2, ci.Cifti2Image)
@@ -509,3 +509,45 @@ def test_wrong_shape():
         with pytest.raises(ValueError):
             img.to_file_map()
 
+
+def test_cifti_validation():
+    # flip label / brain_model index maps
+    geometry_map = create_geometry_map((0, ))
+    label_map = create_label_map((1, ))
+    matrix = ci.Cifti2Matrix()
+    matrix.append(label_map)
+    matrix.append(geometry_map)
+    hdr = ci.Cifti2Header(matrix)
+    data = np.random.randn(10, 2)
+    img = ci.Cifti2Image(data, hdr)
+
+    # attempt to save and validate with an invalid extension
+    with pytest.raises(KeyError):
+        ci.save(img, 'test.dlabelz.nii')
+    # even with a proper extension, flipped index maps will fail
+    with pytest.raises(ci.Cifti2HeaderError):
+        ci.save(img, 'test.dlabel.nii')
+
+    label_map = create_label_map((0, ))
+    geometry_map = create_geometry_map((1, ))
+    matrix = ci.Cifti2Matrix()
+    matrix.append(label_map)
+    matrix.append(geometry_map)
+    hdr = ci.Cifti2Header(matrix)
+    data = np.random.randn(2, 10)
+    img = ci.Cifti2Image(data, hdr)
+
+    with InTemporaryDirectory():
+        # still fail with invalid extension and validation
+        with pytest.raises(KeyError):
+            ci.save(img, 'test.dlabelz.nii')
+        # but removing validation should work (though intent code will be unknown)
+        ci.save(img, 'test.dlabelz.nii', validate=False)
+
+        img2 = nib.load('test.dlabelz.nii')
+        assert img2.nifti_header.get_intent()[0] == 'ConnUnknown'
+        assert isinstance(img2, ci.Cifti2Image)
+        assert_array_equal(img2.get_fdata(), data)
+        check_label_map(img2.header.matrix.get_index_map(0))
+        check_geometry_map(img2.header.matrix.get_index_map(1))
+        del img2
