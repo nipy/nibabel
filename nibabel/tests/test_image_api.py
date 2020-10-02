@@ -123,7 +123,7 @@ class GenericImageAPI(ValidateAPI):
             hdr = img.get_header()
         assert hdr is img.header
 
-    def validate_filenames(self, imaker, params):
+    def validate_filenames(self, imaker, params, **kwargs):
         # Validate the filename, file_map interface
 
         if not self.can_save:
@@ -160,7 +160,7 @@ class GenericImageAPI(ValidateAPI):
                   warnings.filterwarnings('error',
                                           category=DeprecationWarning,
                                           module=r"nibabel.*")
-                  img.to_filename(path)
+                  img.to_filename(path, **kwargs)
                   rt_img = img.__class__.from_filename(path)
               assert_array_equal(img.shape, rt_img.shape)
               assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
@@ -456,7 +456,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         with pytest.raises(ExpiredDeprecationError):
             img.get_shape()
 
-    def validate_mmap_parameter(self, imaker, params):
+    def validate_mmap_parameter(self, imaker, params, **kwargs):
         img = imaker()
         fname = img.get_filename()
         with InTemporaryDirectory():
@@ -468,7 +468,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 if not img.rw or not img.valid_exts:
                     return
                 fname = 'image' + img.valid_exts[0]
-                img.to_filename(fname)
+                img.to_filename(fname, **kwargs)
             rt_img = img.__class__.from_filename(fname, mmap=True)
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
             rt_img = img.__class__.from_filename(fname, mmap=False)
@@ -533,22 +533,22 @@ class AffineMixin(object):
 
 
 class SerializeMixin(object):
-    def validate_to_bytes(self, imaker, params):
+    def validate_to_bytes(self, imaker, params, **kwargs):
         img = imaker()
         serialized = img.to_bytes()
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
-            img.to_filename(fname)
+            img.to_filename(fname, **kwargs)
             with open(fname, 'rb') as fobj:
                 file_contents = fobj.read()
         assert serialized == file_contents
 
-    def validate_from_bytes(self, imaker, params):
+    def validate_from_bytes(self, imaker, params, **kwargs):
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
-            img.to_filename(fname)
+            img.to_filename(fname, **kwargs)
 
             all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
             for img_params in all_images:
@@ -561,12 +561,12 @@ class SerializeMixin(object):
                 del img_a
                 del img_b
 
-    def validate_to_from_bytes(self, imaker, params):
+    def validate_to_from_bytes(self, imaker, params, **kwargs):
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
-            img.to_filename(fname)
+            img.to_filename(fname, **kwargs)
 
             all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
             for img_params in all_images:

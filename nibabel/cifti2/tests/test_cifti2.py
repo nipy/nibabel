@@ -427,3 +427,18 @@ class TestCifti2ImageAPI(_TDA, SerializeMixin):
             )
             header.matrix.append(mim)
         return lambda: self.image_maker(arr.copy(), header, ni_header)
+
+    def validate_filenames(self, imaker, params, validate=False):
+        super().validate_filenames(imaker, params, validate=validate)
+
+    def validate_mmap_parameter(self, imaker, params, validate=False):
+        super().validate_mmap_parameter(imaker, params, validate=validate)
+
+    def validate_to_bytes(self, imaker, params, validate=False):
+        super().validate_to_bytes(imaker, params, validate=validate)
+
+    def validate_from_bytes(self, imaker, params, validate=False):
+        super().validate_from_bytes(imaker, params, validate=validate)
+
+    def validate_to_from_bytes(self, imaker, params, validate=False):
+        super().validate_to_from_bytes(imaker, params, validate=validate)

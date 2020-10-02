@@ -406,7 +406,7 @@ def test_plabel():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.plabel.nii')
+        ci.save(img, 'test.plabel.nii', validate=False)
         img2 = ci.load('test.plabel.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnUnknown'
         assert isinstance(img2, ci.Cifti2Image)
