@@ -1545,7 +1545,11 @@ class Cifti2Image(DataobjImage, SerializableImage):
         >>> img.shape == (2, 3, 4)
         True
         """
-        self._nifti_header.set_data_shape((1, 1, 1, 1) + self._dataobj.shape)
+        header = self._nifti_header
+        header.set_data_shape((1, 1, 1, 1) + self._dataobj.shape)
+        # if intent code is not set, default to unknown
+        if header.get_intent()[0] == 'none':
+            header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
 
     def get_data_dtype(self):
         return self._nifti_header.get_data_dtype()
@@ -1565,8 +1569,6 @@ class Cifti2Image(DataobjImage, SerializableImage):
             for the expected IndicesMaps attributes.
             If validation fails, an error will be raised instead.
         """
-        nheader = self._nifti_header
-        # try to infer intent code based on filename suffix
         if validate:
             ext = _extract_cifti_extension(filename)
             try:
@@ -1576,7 +1578,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
                     f"Validation failed: No information for extension {ext} available"
                 ) from err
             intent = CIFTI_CODES.niistring[ext]
-            nheader.set_intent(intent)
+            self._nifti_header.set_intent(intent)
             # validate matrix indices
             for idx, mtype in enumerate(CIFTI_CODES.map_types[ext]):
                 try:
@@ -1586,9 +1588,6 @@ class Cifti2Image(DataobjImage, SerializableImage):
                         f"Validation failed: Cifti2Matrix index map {idx} does "
                         f"not match expected type {mtype}"
                     )
-        # if intent code is not set, default to unknown
-        if nheader.get_intent()[0] == 'none':
-            nheader.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
         super().to_filename(filename)
 
 
