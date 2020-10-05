@@ -83,7 +83,7 @@ def test_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
             img = ci.load(name)
-            ci.save(img, 'test.nii')
+            ci.save(img, 'test.nii', validate=False)
             img2 = ci.load('test.nii')
             assert len(img.header.matrix) == len(img2.header.matrix)
             # Order should be preserved in load/save
@@ -109,7 +109,7 @@ def test_nibabel_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
             img = nib.load(name)
-            nib.save(img, 'test.nii')
+            nib.save(img, 'test.nii', validate=False)
             img2 = nib.load('test.nii')
             assert len(img.header.matrix) == len(img2.header.matrix)
             # Order should be preserved in load/save
