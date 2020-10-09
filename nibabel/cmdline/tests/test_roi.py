@@ -80,13 +80,12 @@ def test_lossless_slice_scaling(tmp_path):
 
 
 def test_lossless_slice_noscaling(tmp_path):
-    fname = tmp_path / 'image.img'
-    img = nb.AnalyzeImage(np.random.uniform(-20000, 20000, (5, 5, 5, 5)).astype("float32"),
-                          affine=np.eye(4))
-    img.header.set_data_dtype("float32")
+    fname = tmp_path / 'image.mgh'
+    img = nb.MGHImage(np.random.uniform(-20000, 20000, (5, 5, 5, 5)).astype("float32"),
+                      affine=np.eye(4))
     img.to_filename(fname)
     img1 = nb.load(fname)
-    sliced_fname = tmp_path / 'sliced.img'
+    sliced_fname = tmp_path / 'sliced.mgh'
     lossless_slice(img1, (slice(None), slice(None), slice(2, 4))).to_filename(sliced_fname)
     img2 = nb.load(sliced_fname)
 
