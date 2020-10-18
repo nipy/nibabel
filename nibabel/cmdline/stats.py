@@ -13,7 +13,7 @@ Compute image statistics
 
 import argparse
 from nibabel.loadsave import load
-from nibabel.imagestats import mask_volume
+from nibabel.imagestats import mask_volume, count_nonzero_voxels
 
 
 def _get_parser():
@@ -34,6 +34,11 @@ def main(args=None):
     from_img = load(opts.infile)
 
     if opts.Volume:
-        computed_volume = mask_volume(from_img, opts.units)
+        if opts.units == 'mm3':
+            computed_volume = mask_volume(from_img)
+        elif opts.units == 'vox':
+            computed_volume = count_nonzero_voxels(from_img)
+        else:
+            raise ValueError(f'{opts.units} is not a valid unit. Choose "mm3" or "vox".')
         print(computed_volume)
         return 0

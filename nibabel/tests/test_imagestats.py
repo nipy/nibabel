@@ -11,19 +11,21 @@
 import numpy as np
 
 from .. import imagestats
-from nibabel.testing import test_data
-from nibabel.loadsave import load
+from .. import Nifti1Image
 
 import pytest
 
 
 def test_mask_volume():
     # Test mask volume computation
-    infile = test_data(fname="anatomical.nii")
-    img = load(infile)
-    vol_mm3 = imagestats.mask_volume(img)
-    vol_vox = imagestats.mask_volume(img, units='vox')
 
-    assert float(vol_mm3) == 2273328656.0
-    assert float(vol_vox) == 284166082.0
+    mask_data = np.zeros((20, 20, 20), dtype='u1')
+    mask_data[5:15, 5:15, 5:15] = 1
+    img = Nifti1Image(mask_data, np.eye(4))
+
+    vol_mm3 = imagestats.mask_volume(img)
+    vol_vox = imagestats.count_nonzero_voxels(img)
+
+    assert vol_mm3 == 1000.0
+    assert vol_vox == 1000
 

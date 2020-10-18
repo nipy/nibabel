@@ -8,17 +8,40 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from nibabel.testing import test_data
+from io import StringIO
+import sys
+import numpy as np
+
+from nibabel.loadsave import save
 from nibabel.cmdline.stats import main
+from nibabel import Nifti1Image
 
 
-def test_volume():
-    infile = test_data(fname="anatomical.nii")
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
+
+
+def test_volume(tmpdir):
+    mask_data = np.zeros((20, 20, 20), dtype='u1')
+    mask_data[5:15, 5:15, 5:15] = 1
+    img = Nifti1Image(mask_data, np.eye(4))
+
+    infile = tmpdir / "input.nii"
+    save(img, infile)
+
     args = (f"{infile} --Volume")
-    vol_mm3 = main(args.split())
+    with Capturing() as vol_mm3:
+        main(args.split())
     args = (f"{infile} --Volume --units vox")
-    vol_vox = main(args.split())
+    with Capturing() as vol_vox:
+        main(args.split())
 
-    assert float(vol_mm3) == 2273328656.0
-    assert float(vol_vox) == 284166082.0
-
+    assert float(vol_mm3[0]) == 1000.0
+    assert int(vol_vox[0]) == 1000
