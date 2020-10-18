@@ -38,6 +38,7 @@ def mask_volume(img, units='mm3'):
     Examples
     --------
     >>> import nibabel as nf
+    >>> path = 'path/to/nifti/mask.nii'
     >>> img = nf.load(path) # path is contains a path to an example nifti mask
     >>> mask_volume(img)
     50.3021
