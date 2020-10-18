@@ -8,16 +8,8 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import unittest
-
-import pytest
-
 from nibabel.testing import test_data
 from nibabel.cmdline.stats import main
-from nibabel.optpkg import optional_package
-
-_, have_scipy, _ = optional_package('scipy.ndimage')
-needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
 
 
 def test_volume():
@@ -29,5 +21,4 @@ def test_volume():
 
     assert float(vol_mm3) == 2273328656.0
     assert float(vol_vox) == 284166082.0
-
 

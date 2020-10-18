@@ -24,7 +24,7 @@ def _get_parser():
     p.add_argument("-V", "--Volume", action="store_true", required=False,
                    help="Compute mask volume of a given mask image.")
     p.add_argument("--units", default="mm3", required=False,
-                   help="Preferred output units of {mm3, vox}. Defaults to mm3")
+                   choices=("mm3", "vox"), help="Preferred output units")
     return p
 
 def main(args=None):
@@ -36,4 +36,4 @@ def main(args=None):
     if opts.Volume:
         computed_volume = mask_volume(from_img, opts.units)
         print(computed_volume)
-        return computed_volume
+        return 0
