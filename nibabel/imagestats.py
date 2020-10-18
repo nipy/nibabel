@@ -11,6 +11,7 @@ Functions for computing image statistics
 """
 
 import numpy as np
+from nibabel.imageclasses import spatial_axes_first
 
 
 def mask_volume(img, units='mm3'):
@@ -43,11 +44,10 @@ def mask_volume(img, units='mm3'):
     >>> mask_volume(img)
     50.3021
     """
-    header = img.header
-    _, vx, vy, vz, _, _, _, _ = header['pixdim']
-    voxel_volume_mm3 = vx * vy * vz
-    mask = img.get_fdata()
-    mask_volume_vx = np.sum(mask)
+    if not spatial_axes_first(img):
+        raise ValueError("Cannot calculate voxel volume for image with unknown spatial axes")
+    voxel_volume_mm3 = np.prod(img.header.get_zooms()[:3])
+    mask_volume_vx = np.count_nonzero(img.dataobj)
     mask_volume_mm3 = mask_volume_vx * voxel_volume_mm3
 
     if units == 'vox':
