@@ -216,33 +216,3 @@ def _aff_is_diag(aff):
     rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))
 
-
-def mask_volume(img):
-    """ Compute volume of mask image.
-    Equivalent to "fslstats /path/file.nii -V"
-
-    Parameters
-    ----------
-    img : ``SpatialImage``
-        All voxels of the mask should be of value 1, background should have value 0.
-
-    Returns
-    -------
-    mask_volume_mm3: float
-        Volume of mask expressed in mm3.
-
-    Examples
-    --------
-    >>> import nibabel as nf
-    >>> img = nf.load(path) # path is contains a path to an example nifti mask
-    >>> mask_volume(img)
-    50.3021
-    """
-    header = img.header
-    _, vx, vy, vz, _, _, _, _ = header['pixdim']
-    voxel_volume_mm3 = vx * vy * vz
-    mask = img.get_fdata()
-    mask_volume_vx = np.sum(mask)
-    mask_volume_mm3 = mask_volume_vx * voxel_volume_mm3
-
-    return mask_volume_mm3
