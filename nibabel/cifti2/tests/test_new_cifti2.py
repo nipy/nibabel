@@ -7,12 +7,11 @@ These functions are used in the tests to generate most CIFTI file types from
 scratch.
 """
 import numpy as np
-
 import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
-
 import pytest
+
 from ...testing import (
     clear_and_catch_warnings, error_warnings, suppress_warnings, assert_array_equal)
 
@@ -515,17 +514,13 @@ def test_cifti_validation():
     geometry_map = create_geometry_map((0, ))
     label_map = create_label_map((1, ))
     matrix = ci.Cifti2Matrix()
-    matrix.append(label_map)
     matrix.append(geometry_map)
+    matrix.append(label_map)
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(10, 2)
     img = ci.Cifti2Image(data, hdr)
-
-    # attempt to save and validate with an invalid extension
-    with pytest.raises(KeyError):
-        ci.save(img, 'test.dlabelz.nii')
-    # even with a proper extension, flipped index maps will fail
-    with pytest.raises(ci.Cifti2HeaderError):
+    # flipped index maps will warn
+    with InTemporaryDirectory(), pytest.warns(UserWarning):
         ci.save(img, 'test.dlabel.nii')
 
     label_map = create_label_map((0, ))
@@ -538,16 +533,16 @@ def test_cifti_validation():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        # still fail with invalid extension and validation
-        with pytest.raises(KeyError):
-            ci.save(img, 'test.dlabelz.nii')
-        # but removing validation should work (though intent code will be unknown)
-        ci.save(img, 'test.dlabelz.nii', validate=False)
+        ci.save(img, 'test.validate.nii', validate=False)
+        ci.save(img, 'test.dlabel.nii')
 
-        img2 = nib.load('test.dlabelz.nii')
-        assert img2.nifti_header.get_intent()[0] == 'ConnUnknown'
+        img2 = nib.load('test.dlabel.nii')
+        img3 = nib.load('test.validate.nii')
+        assert img2.nifti_header.get_intent()[0] == 'ConnDenseLabel'
+        assert img3.nifti_header.get_intent()[0] == 'ConnUnknown'
         assert isinstance(img2, ci.Cifti2Image)
+        assert isinstance(img3, ci.Cifti2Image)
         assert_array_equal(img2.get_fdata(), data)
         check_label_map(img2.header.matrix.get_index_map(0))
         check_geometry_map(img2.header.matrix.get_index_map(1))
-        del img2
+        del img2, img3
