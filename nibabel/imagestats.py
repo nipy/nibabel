@@ -13,6 +13,7 @@ Functions for computing image statistics
 import numpy as np
 from nibabel.imageclasses import spatial_axes_first
 
+
 def count_nonzero_voxels(img):
     """
     Count number of non-zero voxels
@@ -29,6 +30,7 @@ def count_nonzero_voxels(img):
 
     """
     return np.count_nonzero(img.dataobj)
+
 
 def mask_volume(img):
     """ Compute volume of mask image.

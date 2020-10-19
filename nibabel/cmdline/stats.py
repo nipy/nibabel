@@ -27,6 +27,7 @@ def _get_parser():
                    choices=("mm3", "vox"), help="Preferred output units")
     return p
 
+
 def main(args=None):
     """Main program function."""
     parser = _get_parser()
