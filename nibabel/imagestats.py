@@ -16,6 +16,7 @@ from nibabel.imageclasses import spatial_axes_first
 def count_nonzero_voxels(img):
     """
     Count number of non-zero voxels
+
     Parameters
     ----------
     img : ``SpatialImage``
@@ -23,7 +24,7 @@ def count_nonzero_voxels(img):
 
     Returns
     -------
-    non zero voxel volume: int
+    count : int
         Number of non-zero voxels
 
     """
@@ -31,6 +32,7 @@ def count_nonzero_voxels(img):
 
 def mask_volume(img):
     """ Compute volume of mask image.
+
     Equivalent to "fslstats /path/file.nii -V"
 
     Parameters
@@ -41,7 +43,7 @@ def mask_volume(img):
 
     Returns
     -------
-    mask_volume_mm3: float
+    volume : float
         Volume of mask expressed in mm3.
 
     Examples

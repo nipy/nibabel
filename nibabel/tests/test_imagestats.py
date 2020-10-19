@@ -13,8 +13,6 @@ import numpy as np
 from .. import imagestats
 from .. import Nifti1Image
 
-import pytest
-
 
 def test_mask_volume():
     # Test mask volume computation
@@ -28,4 +26,3 @@ def test_mask_volume():
 
     assert vol_mm3 == 1000.0
     assert vol_vox == 1000
-
