@@ -46,10 +46,11 @@ def mask_volume(img):
 
     Examples
     --------
+    >>> import numpy as np
     >>> import nibabel as nb
     >>> mask_data = np.zeros((20, 20, 20), dtype='u1')
     >>> mask_data[5:15, 5:15, 5:15] = 1
-    >>> nb.imagestats.mask_volume(nb.Nifti1Image(mask_data, np.eye(4))
+    >>> nb.imagestats.mask_volume(nb.Nifti1Image(mask_data, np.eye(4)))
     1000.0
     """
     if not spatial_axes_first(img):
