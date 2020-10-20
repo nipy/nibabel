@@ -25,6 +25,60 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+3.2.0 (Tuesday 20 October 2020)
+==============================
+
+New feature release in the 3.2.x series.
+
+New features
+------------
+* ``nib-stats`` CLI tool to expose new ``nibabel.imagestats`` API. Initial
+  implementation of volume calculations, a la ``fslstats -V``. (Julian Klug,
+  reviewed by CM and GitHub user 0rC0)
+* ``nib-roi`` CLI tool to crop images and/or flip axes (pr/947) (CM, reviewed
+  by Chris Cheng and Mathias Goncalves)
+* Parser for Siemens "ASCCONV" text format (pr/896) (Brendan Moloney and MB,
+  reviewed by CM)
+
+Enhancements
+------------
+* Drop confusing mention of ``img.to_filename()`` in getting started guide
+  (pr/946) (Fernando Pérez-Garcia, reviewed by MB, CM)
+* Implement ``to_bytes()``/``from_bytes()`` methods for ``Cifti2Image``
+  (pr/938) (CM, reviewed by Mathias Goncalves)
+* Clean up of DICOM documentation (pr/910) (Jonathan Daniel, reviewed by MB)
+
+Bug fixes
+---------
+* Use canvas manager API to set title in ``OrthoSlicer3D`` (pr/958) (EL,
+  reviewed by CM)
+* Record units as seconds parrec2nii; previously set TR to seconds but
+  retained msec units (pr/931) (CM, reviewed by MB)
+* Reflect on-disk dimensions in NIfTI-2 view of CIFTI-2 images (pr/930)
+  (Mathias Goncalves and CM)
+* Fix outdated Python 2 and Sympy code in DICOM derivations (pr/911) (MB,
+  reviewed by CM)
+* Change string with invalid escape to raw string (pr/909) (EL, reviewed
+  by MB)
+
+Maintenance
+-----------
+* Fix typo in docs (pr/955) (Carl Gauthier, reviewed by CM)
+* Purge nose from nisext tests (pr/934) (Markéta Calábková, reviewed by CM)
+* Suppress expected warnings in tests (pr/949) (CM, reviewed by Dorota
+  Jarecka)
+* Various cleanups and modernizations (pr/916, pr/917, pr/918, pr/919)
+  (Jonathan Daniel, reviewed by CM)
+* SVG logo for improved appearance in with zooming (pr/914) (Jonathan Daniel,
+  reviewed by CM)
+
+API changes and deprecations
+----------------------------
+* Drop support for Numpy < 1.13 (pr/922) (CM)
+* Warn on use of ``onetime.setattr_on_read``, which has been a deprecated
+  alias of ``auto_attr`` (pr/948) (CM, reviewed by Ariel Rokem)
+
+
 3.1.1 (Friday 26 June 2020)
 ===========================
 
