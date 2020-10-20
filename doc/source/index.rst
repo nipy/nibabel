@@ -110,6 +110,10 @@ contributed code and discussion (in rough order of appearance):
 * Roberto Guidotti
 * Or Duek
 * Anibal Sólon
+* Jonathan Daniel
+* Markéta Calábková
+* Carl Gauthier
+* Julian Klug
 
 License reprise
 ===============
