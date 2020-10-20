@@ -49,14 +49,14 @@
       "orcid": "0000-0003-4679-7724"
     },
     {
-      "affiliation": "MIT, HMS",
-      "name": "Ghosh, Satrajit",
-      "orcid": "0000-0002-5312-6729"
-    },
-    {
       "affiliation": "University of Washington: Seattle, WA, United States",
       "name": "Larson, Eric",
       "orcid": "0000-0003-4782-5360"
+    },
+    {
+      "affiliation": "MIT, HMS",
+      "name": "Ghosh, Satrajit",
+      "orcid": "0000-0002-5312-6729"
     },
     {
       "affiliation": "Athena EPI, Inria Sophia-Antipolis",
@@ -96,6 +96,9 @@
       "name": "Duek, Or"
     },
     {
+      "name": "Daniel, Jonathan"
+    },
+    {
       "affiliation": "The University of Washington eScience Institute",
       "name": "Rokem, Ariel",
       "orcid": "0000-0003-0679-1985"
@@ -104,10 +107,10 @@
       "name": "Madison, Cindee"
     },
     {
-      "name": "Morency, F\u00e9lix C."
+      "name": "Moloney, Brendan"
     },
     {
-      "name": "Moloney, Brendan"
+      "name": "Morency, F\u00e9lix C."
     },
     {
       "affiliation": "MIT",
@@ -168,6 +171,9 @@
       "orcid": "0000-0003-4662-0558"
     },
     {
+      "name": "Klug, Julian"
+    },
+    {
       "affiliation": "SRI International",
       "name": "Nichols, B. Nolan",
       "orcid": "0000-0003-1099-3328"
@@ -194,6 +200,11 @@
     },
     {
       "name": "Koudoro, Serge"
+    },
+    {
+      "affiliation": "University College London",
+      "name": "P\u00e9rez-Garc\u00eda, Fernando",
+      "orcid": "0000-0001-9090-3024"
     },
     {
       "name": "Oosterhof, Nikolaas N."
@@ -283,14 +294,12 @@
       "orcid": "0000-0001-5018-7895"
     },
     {
+      "name": "Gauthier, Carl"
+    },
+    {
       "affiliation": "CEA",
       "name": "Papadopoulos Orfanos, Dimitri",
       "orcid": "0000-0002-1242-8990"
-    },
-    {
-      "affiliation": "University College London",
-      "name": "P\u00e9rez-Garc\u00eda, Fernando",
-      "orcid": "0000-0001-9090-3024"
     },
     {
       "name": "Solovey, Igor"
@@ -314,6 +323,9 @@
     {
       "affiliation": "National Technical University of Athens, Greece",
       "name": "Raktivan, Konstantinos"
+    },
+    {
+      "name": "Cal\u00e1bkov\u00e1, Mark\u00e9ta"
     },
     {
       "affiliation": "Friedrich-Alexander-Universit\u00e4t Erlangen-N\u00fcrnberg, Erlangen, Germany",
