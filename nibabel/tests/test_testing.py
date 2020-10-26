@@ -23,7 +23,7 @@ def test_assert_allclose_safely():
     # Broadcastable matrices
     a = np.ones((2, 3))
     b = np.ones((3, 2, 3))
-    eps = np.finfo(np.float).eps
+    eps = np.finfo(np.float64).eps
     a[0, 0] = 1 + eps
     assert_allclose_safely(a, b)
     a[0, 0] = 1 + 1.1e-5

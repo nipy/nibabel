@@ -101,10 +101,10 @@ By use case.
     >>> mod_data[0,0] = 99
     >>> np.all(img4.data = mod_data)
     True
-    
+
     Prepare image for later writing
 
-    >>> img5 = Image(np.zeros(2,3,4)) 
+    >>> img5 = Image(np.zeros(2,3,4))
     >>> fp, fname2 = tempfile.mkstemp('.nii')
     >>> img5.set_filespec(fname2)
     >>> # then do some things to the image
@@ -115,7 +115,7 @@ By use case.
     >>> from nibabel.ioimps import guessed_imp
     >>> fp, fname3 = tempfile.mkstemp('.nii')
     >>> ioimp = guessed_imp(fname3)
-    >>> ioimp.set_data_dtype(np.float)
+    >>> ioimp.set_data_dtype(np.float64)
     >>> ioimp.set_data_shape((2,3,4)) # set_data_shape method
     >>> slice_def = (slice(None), slice(None), 0)
     >>> ioimp.write_slice(data[slice_def], slice_def) # write_slice method
@@ -124,6 +124,3 @@ By use case.
     Traceback (most recent call last):
        ...
     ImageIOError: data write is not contiguous
-    
-    
-    

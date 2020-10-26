@@ -137,7 +137,7 @@ class Minc1File(object):
         if valid_range[0] < info.min or valid_range[1] > info.max:
             raise ValueError('Valid range outside input '
                              'data type range')
-        return np.asarray(valid_range, dtype=np.float)
+        return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
         """ Get scalar value from NetCDF scalar """

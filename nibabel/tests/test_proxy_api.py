@@ -66,7 +66,7 @@ from .test_parrec import EG_REC, VARY_REC
 
 def _some_slicers(shape):
     ndim = len(shape)
-    slicers = np.eye(ndim).astype(np.int).astype(object)
+    slicers = np.eye(ndim).astype(int).astype(object)
     slicers[slicers == 0] = slice(None)
     for i in range(ndim):
         if i % 2:

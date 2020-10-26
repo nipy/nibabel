@@ -43,7 +43,7 @@ DEBUG = True
     ([np.inf, 1], (1, 1)),  # only look at finite values
     ([-np.inf, 1], (1, 1)),
     ([[], []], (np.inf, -np.inf)),  # empty array
-    (np.array([[-3, 0, 1], [2, -1, 4]], dtype=np.int), (-3, 4)),
+    (np.array([[-3, 0, 1], [2, -1, 4]], dtype=int), (-3, 4)),
     (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
     ([0., 1, 2, 3], (0, 3)),
     # Complex comparison works as if they are floats
@@ -64,7 +64,7 @@ def test_finite_range(in_arr, res):
     assert finite_range(flat_arr, True) == res + (has_nan,)
     # Check float types work as complex
     if in_arr.dtype.kind == 'f':
-        c_arr = in_arr.astype(np.complex)
+        c_arr = in_arr.astype(np.complex128)
         assert finite_range(c_arr) == res
         assert finite_range(c_arr, True) == res + (has_nan,)
 
@@ -181,7 +181,7 @@ def test_scaling_in_abstract(category0, category1, overflow):
 
 def check_int_a2f(in_type, out_type):
     # Check that array to / from file returns roughly the same as input
-    big_floater = np.maximum_sctype(np.float)
+    big_floater = np.maximum_sctype(np.float64)
     info = type_info(in_type)
     this_min, this_max = info['min'], info['max']
     if not in_type in np.sctypes['complex']:

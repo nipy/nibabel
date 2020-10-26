@@ -49,7 +49,7 @@ def _fread3_many(fobj, n):
         An array of 3 byte int
     """
     b1, b2, b3 = np.fromfile(fobj, ">u1", 3 * n).reshape(-1,
-                                                         3).astype(np.int).T
+                                                         3).astype(int).T
     return (b1 << 16) + (b2 << 8) + b3
 
 
@@ -148,14 +148,14 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
             nvert = _fread3(fobj)
             nquad = _fread3(fobj)
             (fmt, div) = (">i2", 100.) if magic == QUAD_MAGIC else (">f4", 1.)
-            coords = np.fromfile(fobj, fmt, nvert * 3).astype(np.float) / div
+            coords = np.fromfile(fobj, fmt, nvert * 3).astype(np.float64) / div
             coords = coords.reshape(-1, 3)
             quads = _fread3_many(fobj, nquad * 4)
             quads = quads.reshape(nquad, 4)
             #
             #   Face splitting follows
             #
-            faces = np.zeros((2 * nquad, 3), dtype=np.int)
+            faces = np.zeros((2 * nquad, 3), dtype=int)
             nface = 0
             for quad in quads:
                 if (quad[0] % 2) == 0:
@@ -182,7 +182,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
         else:
             raise ValueError("File does not appear to be a Freesurfer surface")
 
-    coords = coords.astype(np.float)  # XXX: due to mayavi bug on mac 32bits
+    coords = coords.astype(np.float64)  # XXX: due to mayavi bug on mac 32bits
 
     ret = (coords, faces)
     if read_metadata:
@@ -589,7 +589,7 @@ def read_label(filepath, read_scalars=False):
         Only returned if `read_scalars` is True.  Array of scalar data for each
         vertex.
     """
-    label_array = np.loadtxt(filepath, dtype=np.int, skiprows=2, usecols=[0])
+    label_array = np.loadtxt(filepath, dtype=int, skiprows=2, usecols=[0])
     if read_scalars:
         scalar_array = np.loadtxt(filepath, skiprows=2, usecols=[-1])
         return label_array, scalar_array
