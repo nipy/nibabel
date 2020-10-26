@@ -30,7 +30,7 @@ jobs:
     - arch: arm64
       python: 3.6
       env:
-        - DEPENDS="numpy"
+        - DEPENDS="numpy scipy pillow pydicom"
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # Basic dependencies only
     - python: 3.6
