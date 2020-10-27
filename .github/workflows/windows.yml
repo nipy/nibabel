@@ -2,6 +2,12 @@ name: Windows builds
 
 on: [push]
 
+env:
+  DEPENDS: numpy scipy matplotlib h5py pillow pydicom indexed_gzip
+  INSTALL_TYPE: setup
+  CHECK_TYPE: test
+  PRE_PIP_FLAGS: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
+
 jobs:
   build:
     runs-on: windows-latest
@@ -19,3 +25,9 @@ jobs:
         architecture: ${{ matrix.architecture }}
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
+    - name: Update build dependencies
+      run: python -m pip install --upgrade pip setuptools wheel
+    - name: Install dependencies
+      run: python -m pip install $(DEPENDS)
+    - name: Install nibabel
+      run: python -m pip install .[$(CHECK_TYPE)]
