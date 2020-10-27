@@ -2,7 +2,6 @@ name: Windows builds
 
 on: [push]
 
-
 defaults:
   run:
     shell: bash
@@ -15,22 +14,20 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
         architecture: ['x86', 'x64']
         depends: ['numpy scipy matplotlib h5py pillow pydicom indexed_gzip']
+        pip-flags: ['']
         include:
           - python-version: 3.9
             architecture: x86
             depends: numpy
-            env:
-              PIP_FLAGS: $PRE_PIP_FLAGS
+            pip-flags: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
           - python-version: 3.9
             architecture: x64
             depends: numpy
-            env:
-              PIP_FLAGS: $PRE_PIP_FLAGS
+            pip-flags: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
 
     env:
       INSTALL_TYPE: setup
       CHECK_TYPE: test
-      PRE_PIP_FLAGS: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
 
     steps:
     - uses: actions/checkout@v2
@@ -44,9 +41,9 @@ jobs:
     - name: Update build dependencies
       run: python -m pip install --upgrade pip setuptools wheel
     - name: Install dependencies
-      run: python -m pip install $PIP_FLAGS ${{ matrix.depends }}
+      run: python -m pip install ${{ matrix.pip-flags }} ${{ matrix.depends }}
     - name: Install nibabel
-      run: python -m pip install .[$CHECK_TYPE]
+      run: python -m pip install ${{ matrix.pip-flags }} .[$CHECK_TYPE]
     - name: Run tests
       run: |
         mkdir for_testing
