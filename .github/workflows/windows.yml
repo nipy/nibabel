@@ -24,12 +24,12 @@ jobs:
             architecture: x86
             env:
               DEPENDS: numpy
-              PIP_FLAGS: ${{ env.PRE_PIP_FLAGS }}
+              PIP_FLAGS: $PRE_PIP_FLAGS
           - python-version: 3.9
             architecture: x64
             env:
               DEPENDS: numpy
-              PIP_FLAGS: ${{ env.PRE_PIP_FLAGS }}
+              PIP_FLAGS: $PRE_PIP_FLAGS
 
     steps:
     - uses: actions/checkout@v2
