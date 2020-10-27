@@ -2,11 +2,6 @@ name: Windows builds
 
 on: [push]
 
-env:
-  DEPENDS: numpy scipy matplotlib h5py pillow pydicom indexed_gzip
-  INSTALL_TYPE: setup
-  CHECK_TYPE: test
-  PRE_PIP_FLAGS: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
 
 defaults:
   run:
@@ -30,6 +25,12 @@ jobs:
             env:
               DEPENDS: numpy
               PIP_FLAGS: $PRE_PIP_FLAGS
+
+    env:
+      DEPENDS: numpy scipy matplotlib h5py pillow pydicom indexed_gzip
+      INSTALL_TYPE: setup
+      CHECK_TYPE: test
+      PRE_PIP_FLAGS: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
 
     steps:
     - uses: actions/checkout@v2
