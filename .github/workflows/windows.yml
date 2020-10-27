@@ -46,3 +46,10 @@ jobs:
       run: python -m pip install $PIP_FLAGS $DEPENDS
     - name: Install nibabel
       run: python -m pip install .[$CHECK_TYPE]
+    - name: Run tests
+      run: |
+        mkdir for_testing
+        cd for_testing
+        cp ../.coveragerc .
+        pytest --doctest-modules --cov nibabel -v --pyargs nibabel
+    - uses: codecov/codecov-action@v1
