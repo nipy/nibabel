@@ -14,20 +14,20 @@ jobs:
       matrix:
         python-version: [3.6, 3.7, 3.8]
         architecture: ['x86', 'x64']
+        depends: ['numpy scipy matplotlib h5py pillow pydicom indexed_gzip']
         include:
           - python-version: 3.9
             architecture: x86
+            depends: numpy
             env:
-              DEPENDS: numpy
               PIP_FLAGS: $PRE_PIP_FLAGS
           - python-version: 3.9
             architecture: x64
+            depends: numpy
             env:
-              DEPENDS: numpy
               PIP_FLAGS: $PRE_PIP_FLAGS
 
     env:
-      DEPENDS: numpy scipy matplotlib h5py pillow pydicom indexed_gzip
       INSTALL_TYPE: setup
       CHECK_TYPE: test
       PRE_PIP_FLAGS: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
@@ -44,7 +44,7 @@ jobs:
     - name: Update build dependencies
       run: python -m pip install --upgrade pip setuptools wheel
     - name: Install dependencies
-      run: python -m pip install $PIP_FLAGS $DEPENDS
+      run: python -m pip install $PIP_FLAGS ${{ matrix.depends }}
     - name: Install nibabel
       run: python -m pip install .[$CHECK_TYPE]
     - name: Run tests
