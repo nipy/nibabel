@@ -8,6 +8,10 @@ env:
   CHECK_TYPE: test
   PRE_PIP_FLAGS: --pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     runs-on: windows-latest
