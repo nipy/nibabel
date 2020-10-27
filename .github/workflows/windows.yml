@@ -32,6 +32,6 @@ jobs:
     - name: Update build dependencies
       run: python -m pip install --upgrade pip setuptools wheel
     - name: Install dependencies
-      run: python -m pip install $(DEPENDS)
+      run: python -m pip install $DEPENDS
     - name: Install nibabel
-      run: python -m pip install .[$(CHECK_TYPE)]
+      run: python -m pip install .[$CHECK_TYPE]
