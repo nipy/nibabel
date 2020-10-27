@@ -17,8 +17,19 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8]
         architecture: ['x86', 'x64']
+        include:
+          - python-version: 3.9
+            architecture: x86
+            env:
+              DEPENDS: numpy
+              PIP_FLAGS: ${{ env.PRE_PIP_FLAGS }}
+          - python-version: 3.9
+            architecture: x64
+            env:
+              DEPENDS: numpy
+              PIP_FLAGS: ${{ env.PRE_PIP_FLAGS }}
 
     steps:
     - uses: actions/checkout@v2
@@ -32,6 +43,6 @@ jobs:
     - name: Update build dependencies
       run: python -m pip install --upgrade pip setuptools wheel
     - name: Install dependencies
-      run: python -m pip install $DEPENDS
+      run: python -m pip install $PIP_FLAGS $DEPENDS
     - name: Install nibabel
       run: python -m pip install .[$CHECK_TYPE]
