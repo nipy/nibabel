@@ -1386,7 +1386,7 @@ def finite_range(arr, check_nan=False):
     >>> a = np.array([[np.nan],[np.nan]])
     >>> finite_range(a) == (np.inf, -np.inf)
     True
-    >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=np.int)
+    >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=int)
     >>> finite_range(a)
     (-3, 4)
     >>> a = np.array([[1, 0, 1],[2,3,4]], dtype=np.uint)

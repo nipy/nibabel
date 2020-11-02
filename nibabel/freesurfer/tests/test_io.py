@@ -157,7 +157,7 @@ def test_write_morph_data():
         with pytest.raises(ValueError):
             write_morph_data('test.curv', np.zeros(shape), big_num)
         # Windows 32-bit overflows Python int
-        if np.dtype(np.int) != np.dtype(np.int32):
+        if np.dtype(int) != np.dtype(np.int32):
             with pytest.raises(ValueError):
                 write_morph_data('test.curv',  strided_scalar((big_num,)))
         for shape in bad_shapes:

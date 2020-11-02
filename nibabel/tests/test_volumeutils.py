@@ -182,7 +182,7 @@ def test_array_from_file_mmap():
     # Test memory mapping
     shape = (2, 21)
     with InTemporaryDirectory():
-        for dt in (np.int16, np.float):
+        for dt in (np.int16, np.float64):
             arr = np.arange(np.prod(shape), dtype=dt).reshape(shape)
             with open('test.bin', 'wb') as fobj:
                 fobj.write(arr.tobytes(order='F'))
@@ -299,7 +299,7 @@ def test_array_from_file_reread():
 def test_array_to_file():
     arr = np.arange(10).reshape(5, 2)
     str_io = BytesIO()
-    for tp in (np.uint64, np.float, np.complex):
+    for tp in (np.uint64, np.float64, np.complex128):
         dt = np.dtype(tp)
         for code in '<>':
             ndt = dt.newbyteorder(code)
@@ -365,10 +365,10 @@ def test_a2f_min_max():
             assert_array_equal(data_back, [1, 1, 2, 2])
     # Check that works OK with scaling and intercept
     arr = np.arange(4, dtype=np.float32)
-    data_back = write_return(arr, str_io, np.int, 0, -1, 0.5, 1, 2)
+    data_back = write_return(arr, str_io, int, 0, -1, 0.5, 1, 2)
     assert_array_equal(data_back * 0.5 - 1, [1, 1, 2, 2])
     # Even when scaling is negative
-    data_back = write_return(arr, str_io, np.int, 0, 1, -0.5, 1, 2)
+    data_back = write_return(arr, str_io, int, 0, 1, -0.5, 1, 2)
     assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
     # Check complex numbers
     arr = np.arange(4, dtype=np.complex64) + 100j
@@ -378,7 +378,7 @@ def test_a2f_min_max():
 
 
 def test_a2f_order():
-    ndt = np.dtype(np.float)
+    ndt = np.dtype(np.float64)
     arr = np.array([0.0, 1.0, 2.0])
     str_io = BytesIO()
     # order makes no difference in 1D case
@@ -393,7 +393,7 @@ def test_a2f_order():
 
 
 def test_a2f_nan2zero():
-    ndt = np.dtype(np.float)
+    ndt = np.dtype(np.float64)
     str_io = BytesIO()
     # nans set to 0 for integer output case, not float
     arr = np.array([[np.nan, 0], [0, np.nan]])
@@ -448,15 +448,15 @@ def test_a2f_offset():
     arr = np.array([[0.0, 1.0], [2.0, 3.0]])
     str_io = BytesIO()
     str_io.write(b'a' * 42)
-    array_to_file(arr, str_io, np.float, 42)
-    data_back = array_from_file(arr.shape, np.float, str_io, 42)
-    assert_array_equal(data_back, arr.astype(np.float))
+    array_to_file(arr, str_io, np.float64, 42)
+    data_back = array_from_file(arr.shape, np.float64, str_io, 42)
+    assert_array_equal(data_back, arr.astype(np.float64))
     # And that offset=None respected
     str_io.truncate(22)
     str_io.seek(22)
-    array_to_file(arr, str_io, np.float, None)
-    data_back = array_from_file(arr.shape, np.float, str_io, 22)
-    assert_array_equal(data_back, arr.astype(np.float))
+    array_to_file(arr, str_io, np.float64, None)
+    data_back = array_from_file(arr.shape, np.float64, str_io, 22)
+    assert_array_equal(data_back, arr.astype(np.float64))
 
 
 def test_a2f_dtype_default():
@@ -1138,7 +1138,7 @@ def test_dtypes():
     dtr = make_dt_codes(dt_defs)
     assert dtr[np.dtype('f4').newbyteorder('S')] == 16
     assert dtr.value_set() == set((16,))
-    assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype', 
+    assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype',
                           'sw_dtype')
     assert dtr.niistring[16] == 'ASTRING'
     # And that unequal elements raises error
