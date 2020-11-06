@@ -60,10 +60,10 @@ jobs:
     - python: 3.8
       env:
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # test 3.9 against pre-release builds of numpy
+    # test 3.9 against pre-release builds of dependencies that support it
     - python: 3.9
       env:
-        - DEPENDS="numpy"
+        - DEPENDS="numpy scipy h5py pillow pydicom"
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # OSX Python support is basically accidental. Take whatever version we can
     # get and test with full dependencies...
