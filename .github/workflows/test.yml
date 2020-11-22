@@ -1,0 +1,68 @@
+name: NiBabel tests
+
+on: [push]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
+        python-version: [3.8]
+        architecture: ['x64', 'x86']
+        install: ['setup']
+        include:
+          - os: ubuntu-latest
+            python-version: 3.8
+            architecture: x64
+            install: wheel
+          - os: ubuntu-latest
+            python-version: 3.8
+            architecture: x64
+            install: sdist
+          - os: ubuntu-latest
+            python-version: 3.8
+            architecture: x64
+            install: archive
+        exclude:
+          - os: ubuntu-latest
+            architecture: x86
+          - os: macos-latest
+            architecture: x86
+    env:
+      SETUP_REQUIRES: 'pip setuptools>=30.3.0 wheel'
+      DEPENDS: 'numpy scipy matplotlib h5py pillow pydicom indexed_gzip'
+      INSTALL_TYPE: ${{ matrix.install }}
+      CHECK_TYPE: 'test'
+      EXTRA_PIP_FLAGS: ''
+      NIGHTLY_WHEELS: 'https://pypi.anaconda.org/scipy-wheels-nightly/simple'
+      PRE_PIP_FLAGS: '--pre --extra-index-url $NIGHTLY_WHEELS'
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.architecture }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Create virtual environment
+        run: tools/ci/create_env.sh
+      - name: Build archive
+        run: |
+          source tools/ci/build_archive.sh
+          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: tools/ci/install_dependencies.sh
+      - name: Install NiBabel
+        run: tools/ci/install.sh
+      - name: Run tests
+        run: tools/ci/check.sh

@@ -11,6 +11,8 @@ echo CHECK_TYPE = $CHECK_TYPE
 
 set -x
 
+export NIBABEL_DATA_DIR="$PWD/nibabel-data"
+
 if [ "${CHECK_TYPE}" == "style" ]; then
     # Run styles only on core nibabel code.
     flake8 nibabel
