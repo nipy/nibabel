@@ -175,3 +175,9 @@ jobs:
         with:
           file: for_testing/coverage.xml
         if: ${{ always() }}
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
+          path: for_testing/test-results.xml
+        if: ${{ always() && matrix.check == 'test' }}
