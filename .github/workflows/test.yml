@@ -15,6 +15,7 @@ jobs:
         python-version: [3.8]
         architecture: ['x64', 'x86']
         install: ['setup']
+        pip-flags: ['']
         include:
           - os: ubuntu-latest
             python-version: 3.8
@@ -28,6 +29,11 @@ jobs:
             python-version: 3.8
             architecture: x64
             install: archive
+          - os: ubuntu-latest
+            python-version: 3.8
+            architecture: x64
+            install: archive
+            pip-flags: $PRE_PIP_FLAGS
         exclude:
           - os: ubuntu-latest
             architecture: x86
@@ -39,7 +45,7 @@ jobs:
       OPTIONAL_DEPENDS: 'h5py indexed_gzip'
       INSTALL_TYPE: ${{ matrix.install }}
       CHECK_TYPE: 'test'
-      EXTRA_PIP_FLAGS: ''
+      EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
       NIGHTLY_WHEELS: 'https://pypi.anaconda.org/scipy-wheels-nightly/simple'
       PRE_PIP_FLAGS: '--pre --extra-index-url $NIGHTLY_WHEELS'
 
