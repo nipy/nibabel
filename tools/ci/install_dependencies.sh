@@ -17,7 +17,7 @@ if [ -n "$EXTRA_PIP_FLAGS" ]; then
 fi
 
 if [ -n "$DEPENDS" ]; then
-    pip install ${EXTRA_PIP_FLAGS} $DEPENDS
+    pip install ${EXTRA_PIP_FLAGS} ${!DEPENDS}
     pip install ${EXTRA_PIP_FLAGS} $OPTIONAL_DEPENDS || true
 fi
 

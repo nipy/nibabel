@@ -9,44 +9,142 @@ defaults:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: [3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         architecture: ['x64', 'x86']
         install: ['setup']
+        check: ['test']
         pip-flags: ['']
+        depends: ['DEFAULT_DEPENDS']
         include:
+          # Mark Windows experimental but not Linux or OSX
+          - os: ubuntu-latest
+            experimental: false
+          - os: macos-latest
+            experimental: false
+          - os: windows-latest
+            experimental: true
+          # Basic dependencies only
+          - os: ubuntu-latest
+            python-version: 3.6
+            install: setup
+            check: test
+            pip-flags: ''
+            depends: REQUIREMENTS
+            experimental: false
+          # Absolute minimum dependencies
+          - os: ubuntu-latest
+            python-version: 3.6
+            install: setup
+            check: test
+            pip-flags: ''
+            depends: MIN_REQUIREMENTS
+            experimental: false
+          # Absolute minimum dependencies plus old MPL, Pydicom, Pillow
+          - os: ubuntu-latest
+            python-version: 3.6
+            install: setup
+            check: test
+            pip-flags: ''
+            depends: MIN_REQUIREMENTS_PLUS
+            experimental: false
+          # Clean install imports only with package-declared dependencies
+          - os: ubuntu-latest
+            python-version: 3.6
+            install: setup
+            check: skiptests
+            pip-flags: ''
+            depends: ''
+            experimental: false
+          # Check all installation methods
           - os: ubuntu-latest
             python-version: 3.8
-            architecture: x64
             install: wheel
+            check: test
+            pip-flags: ''
+            depends: DEFAULT_DEPENDS
+            experimental: false
           - os: ubuntu-latest
             python-version: 3.8
-            architecture: x64
             install: sdist
+            check: test
+            pip-flags: ''
+            depends: DEFAULT_DEPENDS
+            experimental: false
           - os: ubuntu-latest
             python-version: 3.8
-            architecture: x64
             install: archive
+            check: test
+            pip-flags: ''
+            depends: DEFAULT_DEPENDS
+            experimental: false
+          # Check pre-releases if available
           - os: ubuntu-latest
             python-version: 3.8
-            architecture: x64
-            install: archive
+            install: setup
+            check: test
             pip-flags: PRE_PIP_FLAGS
+            depends: DEFAULT_DEPENDS
+            experimental: true
+          - os: ubuntu-latest
+            python-version: 3.9
+            install: setup
+            check: test
+            pip-flags: PRE_PIP_FLAGS
+            depends: DEFAULT_DEPENDS
+            experimental: true
+          - os: macos-latest
+            python-version: 3.8
+            install: setup
+            check: test
+            pip-flags: PRE_PIP_FLAGS
+            depends: DEFAULT_DEPENDS
+            experimental: true
+          - os: windows-latest
+            python-version: 3.8
+            install: setup
+            check: test
+            pip-flags: PRE_PIP_FLAGS
+            depends: DEFAULT_DEPENDS
+            experimental: true
+          # Style check
+          - os: ubuntu-latest
+            python-version: 3.8
+            install: setup
+            check: style
+            experimental: false
+          # Documentation doctests
+          - os: ubuntu-latest
+            python-version: 3.8
+            install: setup
+            check: doc
+            experimental: false
         exclude:
           - os: ubuntu-latest
             architecture: x86
           - os: macos-latest
             architecture: x86
     env:
+      # Options
       SETUP_REQUIRES: 'pip setuptools>=30.3.0 wheel'
-      DEPENDS: 'numpy scipy matplotlib pillow pydicom'
+      # Dependencies that should always be installable
+      DEFAULT_DEPENDS: 'numpy scipy matplotlib pillow pydicom'
+      REQUIREMENTS: '-r requirements.txt'
+      # Full advertised range
+      MIN_REQUIREMENTS: '-r min-requirements.txt'
+      MIN_REQUIREMENTS_PLUS: '-r min-requirements.txt matplotlib==1.5.3 pydicom==0.9.9 pillow==2.6'
+      PYDICOM_MASTER: 'numpy git+https://github.com/pydicom/pydicom.git@master'
+      # Might not find wheels for these
       OPTIONAL_DEPENDS: 'h5py indexed_gzip'
-      INSTALL_TYPE: ${{ matrix.install }}
-      CHECK_TYPE: 'test'
-      EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
       PRE_PIP_FLAGS: '--pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple'
+      # Selection
+      DEPENDS: ${{ matrix.depends }}
+      INSTALL_TYPE: ${{ matrix.install }}
+      CHECK_TYPE: ${{ matrix.check }}
+      EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
 
     steps:
       - uses: actions/checkout@v2
@@ -72,3 +170,4 @@ jobs:
         run: tools/ci/install.sh
       - name: Run tests
         run: tools/ci/check.sh
+        if: ${{ matrix.check != 'skiptests' }}
