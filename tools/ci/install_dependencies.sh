@@ -14,6 +14,7 @@ set -x
 
 if [ -n "$DEPENDS" ]; then
     pip install $EXTRA_PIP_FLAGS $DEPENDS
+    pip install $EXTRA_PIP_FLAGS $OPTIONAL_DEPENDS || true
 fi
 
 set +eux

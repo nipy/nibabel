@@ -35,7 +35,8 @@ jobs:
             architecture: x86
     env:
       SETUP_REQUIRES: 'pip setuptools>=30.3.0 wheel'
-      DEPENDS: 'numpy scipy matplotlib h5py pillow pydicom indexed_gzip'
+      DEPENDS: 'numpy scipy matplotlib pillow pydicom'
+      OPTIONAL_DEPENDS: 'h5py indexed_gzip'
       INSTALL_TYPE: ${{ matrix.install }}
       CHECK_TYPE: 'test'
       EXTRA_PIP_FLAGS: ''
