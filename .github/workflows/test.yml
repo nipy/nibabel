@@ -33,7 +33,7 @@ jobs:
             python-version: 3.8
             architecture: x64
             install: archive
-            pip-flags: $PRE_PIP_FLAGS
+            pip-flags: PRE_PIP_FLAGS
         exclude:
           - os: ubuntu-latest
             architecture: x86
@@ -46,8 +46,7 @@ jobs:
       INSTALL_TYPE: ${{ matrix.install }}
       CHECK_TYPE: 'test'
       EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
-      NIGHTLY_WHEELS: 'https://pypi.anaconda.org/scipy-wheels-nightly/simple'
-      PRE_PIP_FLAGS: '--pre --extra-index-url $NIGHTLY_WHEELS'
+      PRE_PIP_FLAGS: '--pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple'
 
     steps:
       - uses: actions/checkout@v2

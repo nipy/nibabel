@@ -13,6 +13,10 @@ echo EXTRA_PIP_FLAGS = $EXTRA_PIP_FLAGS
 
 set -x
 
+if [ -n "$EXTRA_PIP_FLAGS" ]; then
+    EXTRA_PIP_FLAGS=${!EXTRA_PIP_FLAGS}
+fi
+
 if [ "$INSTALL_TYPE" == "setup" ]; then
     python setup.py install
 else
