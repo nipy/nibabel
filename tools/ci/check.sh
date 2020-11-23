@@ -24,7 +24,8 @@ elif [ "${CHECK_TYPE}" == "test" ]; then
     mkdir for_testing
     cd for_testing
     cp ../.coveragerc .
-    pytest --doctest-modules --doctest-plus --cov nibabel -v --pyargs nibabel
+    pytest --doctest-modules --doctest-plus --cov nibabel --cov-report xml \
+        -v --pyargs nibabel
 else
     false
 fi
