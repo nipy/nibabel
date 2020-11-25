@@ -278,7 +278,7 @@ def proc_file(infile, opts):
         labels = pr_img.header.get_volume_labels()
         if len(labels) > 0:
             vol_keys = list(labels.keys())
-            with open(basefilename + '.ordering.csv', 'w') as csvfile:
+            with open(basefilename + '.ordering.csv', 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=',')
                 csvwriter.writerow(vol_keys)
                 for vals in zip(*[labels[k] for k in vol_keys]):
