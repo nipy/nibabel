@@ -25,8 +25,20 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+3.2.1 (Saturday 28 November 2020)
+=================================
+
+Bug fix release in the 3.2.x series.
+
+Maintenance
+-----------
+* Drop references to builtin types in Numpy namespace like ``np.float``
+  (pr/964) (EL, reviewed by CM)
+* Ensure compatibility with Python 3.9 (pr/963) (CM)
+
+
 3.2.0 (Tuesday 20 October 2020)
-==============================
+===============================
 
 New feature release in the 3.2.x series.
 
