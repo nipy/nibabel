@@ -1,4 +1,10 @@
-name: NiBabel tests
+name: Stable tests
+
+# This file tests the claimed support range of NiBabel including
+#
+# * Operating systems: Linux, Windows (x64 & x86), OSX
+# * Dependencies: minimum requirements, optional requirements
+# * Installation methods: setup.py, sdist, wheel, archive
 
 on: [push]
 
@@ -7,9 +13,9 @@ defaults:
     shell: bash
 
 jobs:
-  test:
+  stable:
+    # Check each OS, all supported Python, minimum versions and latest releases
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
@@ -20,13 +26,6 @@ jobs:
         pip-flags: ['']
         depends: ['DEFAULT_DEPENDS']
         include:
-          # Mark Windows experimental but not Linux or OSX
-          - os: ubuntu-latest
-            experimental: false
-          - os: macos-latest
-            experimental: false
-          - os: windows-latest
-            experimental: true
           # Basic dependencies only
           - os: ubuntu-latest
             python-version: 3.6
@@ -34,7 +33,6 @@ jobs:
             check: test
             pip-flags: ''
             depends: REQUIREMENTS
-            experimental: false
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: 3.6
@@ -42,7 +40,6 @@ jobs:
             check: test
             pip-flags: ''
             depends: MIN_REQUIREMENTS
-            experimental: false
           # Absolute minimum dependencies plus old MPL, Pydicom, Pillow
           - os: ubuntu-latest
             python-version: 3.6
@@ -50,7 +47,6 @@ jobs:
             check: test
             pip-flags: ''
             depends: MIN_REQUIREMENTS_PLUS
-            experimental: false
           # Clean install imports only with package-declared dependencies
           - os: ubuntu-latest
             python-version: 3.6
@@ -58,7 +54,6 @@ jobs:
             check: skiptests
             pip-flags: ''
             depends: ''
-            experimental: false
           # Check all installation methods
           - os: ubuntu-latest
             python-version: 3.8
@@ -66,62 +61,18 @@ jobs:
             check: test
             pip-flags: ''
             depends: DEFAULT_DEPENDS
-            experimental: false
           - os: ubuntu-latest
             python-version: 3.8
             install: sdist
             check: test
             pip-flags: ''
             depends: DEFAULT_DEPENDS
-            experimental: false
           - os: ubuntu-latest
             python-version: 3.8
             install: archive
             check: test
             pip-flags: ''
             depends: DEFAULT_DEPENDS
-            experimental: false
-          # Check pre-releases if available
-          - os: ubuntu-latest
-            python-version: 3.8
-            install: setup
-            check: test
-            pip-flags: PRE_PIP_FLAGS
-            depends: DEFAULT_DEPENDS
-            experimental: true
-          - os: ubuntu-latest
-            python-version: 3.9
-            install: setup
-            check: test
-            pip-flags: PRE_PIP_FLAGS
-            depends: DEFAULT_DEPENDS
-            experimental: true
-          - os: macos-latest
-            python-version: 3.8
-            install: setup
-            check: test
-            pip-flags: PRE_PIP_FLAGS
-            depends: DEFAULT_DEPENDS
-            experimental: true
-          - os: windows-latest
-            python-version: 3.8
-            install: setup
-            check: test
-            pip-flags: PRE_PIP_FLAGS
-            depends: DEFAULT_DEPENDS
-            experimental: true
-          # Style check
-          - os: ubuntu-latest
-            python-version: 3.8
-            install: setup
-            check: style
-            experimental: false
-          # Documentation doctests
-          - os: ubuntu-latest
-            python-version: 3.8
-            install: setup
-            check: doc
-            experimental: false
         exclude:
           - os: ubuntu-latest
             architecture: x86
