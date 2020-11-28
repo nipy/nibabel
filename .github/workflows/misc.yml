@@ -18,22 +18,10 @@ jobs:
         install: ['setup']
         check: ['style', 'doc']
         pip-flags: ['']
-        depends: ['DEFAULT_DEPENDS']
+        depends: ['REQUIREMENTS']
     env:
-      # Options
-      SETUP_REQUIRES: 'pip setuptools>=30.3.0 wheel'
-      # Dependencies that should always be installable
-      DEFAULT_DEPENDS: 'numpy scipy matplotlib pillow pydicom'
-      REQUIREMENTS: '-r requirements.txt'
-      # Full advertised range
-      MIN_REQUIREMENTS: '-r min-requirements.txt'
-      MIN_REQUIREMENTS_PLUS: '-r min-requirements.txt matplotlib==1.5.3 pydicom==0.9.9 pillow==2.6'
-      PYDICOM_MASTER: 'numpy git+https://github.com/pydicom/pydicom.git@master'
-      # Might not find wheels for these
-      OPTIONAL_DEPENDS: 'h5py indexed_gzip'
-      PRE_PIP_FLAGS: '--pre --extra-index-url https://pypi.anaconda.org/scipy-wheels-nightly/simple'
-      # Selection
       DEPENDS: ${{ matrix.depends }}
+      OPTIONAL_DEPENDS: ${{ matrix.optional-depends }}
       INSTALL_TYPE: ${{ matrix.install }}
       CHECK_TYPE: ${{ matrix.check }}
       EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
@@ -51,7 +39,7 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Create virtual environment
-        run: tools/ci/create_env.sh
+        run: tools/ci/create_venv.sh
       - name: Build archive
         run: |
           source tools/ci/build_archive.sh

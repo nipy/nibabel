@@ -3,6 +3,7 @@
 echo Installing nibabel
 
 source tools/ci/activate.sh
+source tools/ci/env.sh
 
 set -eu
 

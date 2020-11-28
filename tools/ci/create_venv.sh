@@ -2,6 +2,8 @@
 
 echo Creating isolated virtual environment
 
+source tools/ci/env.sh
+
 set -eu
 
 # Required variables
