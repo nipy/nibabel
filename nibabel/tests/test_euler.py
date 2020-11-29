@@ -18,7 +18,7 @@ from .. import quaternions as nq
 import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-FLOAT_EPS = np.finfo(np.float).eps
+FLOAT_EPS = np.finfo(np.float64).eps
 
 # Example rotations """
 eg_rots = []

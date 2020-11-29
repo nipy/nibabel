@@ -46,7 +46,7 @@ SLICEOBJS = [
     ('?', '?', '?', ':'),
 ]
 
-KEEP_OPENS = [False, True, 'auto']
+KEEP_OPENS = [False, True]
 
 if HAVE_INDEXED_GZIP:
     HAVE_IGZIP = [False, True]

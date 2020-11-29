@@ -219,7 +219,7 @@ class netcdf_file(object):
 
         >>> data = time[:]
         >>> data.base.base  # doctest: +ELLIPSIS
-        <mmap.mmap object at 0x...>
+        <mmap.mmap ...>
 
     If the data is to be processed after the file is closed, it needs
     to be copied to main memory:

@@ -16,10 +16,8 @@ env:
         - DEPENDS="numpy scipy matplotlib h5py pillow pydicom indexed_gzip"
         - INSTALL_TYPE="setup"
         - CHECK_TYPE="test"
-        - EXTRA_WHEELS="https://3f23b170c54c2533c070-1c8a9b3114517dc5fe17b7c3f8c63a43.ssl.cf2.rackcdn.com"
         - NIGHTLY_WHEELS="https://pypi.anaconda.org/scipy-wheels-nightly/simple"
-        - EXTRA_PIP_FLAGS="--find-links=$EXTRA_WHEELS"
-        - PRE_PIP_FLAGS="--pre $EXTRA_PIP_FLAGS --extra-index-url $NIGHTLY_WHEELS"
+        - PRE_PIP_FLAGS="--pre --extra-index-url $NIGHTLY_WHEELS"
 
 python:
     - 3.7
@@ -30,7 +28,7 @@ jobs:
     - arch: arm64
       python: 3.6
       env:
-        - DEPENDS="numpy"
+        - DEPENDS="numpy scipy pillow pydicom"
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # Basic dependencies only
     - python: 3.6
@@ -61,6 +59,11 @@ jobs:
     # test 3.8 against pre-release builds of everything
     - python: 3.8
       env:
+        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
+    # test 3.9 against pre-release builds of dependencies that support it
+    - python: 3.9
+      env:
+        - DEPENDS="numpy scipy h5py pillow pydicom"
         - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
     # OSX Python support is basically accidental. Take whatever version we can
     # get and test with full dependencies...

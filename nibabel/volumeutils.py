@@ -601,8 +601,8 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     --------
     >>> from io import BytesIO
     >>> sio = BytesIO()
-    >>> data = np.arange(10, dtype=np.float)
-    >>> array_to_file(data, sio, np.float)
+    >>> data = np.arange(10, dtype=np.float64)
+    >>> array_to_file(data, sio, np.float64)
     >>> sio.getvalue() == data.tobytes('F')
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)  # outputs 0
@@ -610,11 +610,11 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     >>> sio.getvalue() == data.astype(np.int16).tobytes()
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)
-    >>> array_to_file(data.byteswap(), sio, np.float)
+    >>> array_to_file(data.byteswap(), sio, np.float64)
     >>> sio.getvalue() == data.byteswap().tobytes('F')
     True
     >>> _ = sio.truncate(0); _ = sio.seek(0)
-    >>> array_to_file(data, sio, np.float, order='C')
+    >>> array_to_file(data, sio, np.float64, order='C')
     >>> sio.getvalue() == data.tobytes('C')
     True
     """
@@ -1082,9 +1082,9 @@ def scale_min_max(mn, mx, out_type, allow_intercept):
 
     Returns
     -------
-    scalefactor : numpy scalar, dtype=np.maximum_sctype(np.float)
+    scalefactor : numpy scalar, dtype=np.maximum_sctype(np.float64)
        scalefactor by which to divide data after subtracting intercept
-    intercept : numpy scalar, dtype=np.maximum_sctype(np.float)
+    intercept : numpy scalar, dtype=np.maximum_sctype(np.float64)
        value to subtract from data before dividing by scalefactor
 
     Examples
@@ -1386,7 +1386,7 @@ def finite_range(arr, check_nan=False):
     >>> a = np.array([[np.nan],[np.nan]])
     >>> finite_range(a) == (np.inf, -np.inf)
     True
-    >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=np.int)
+    >>> a = np.array([[-3, 0, 1],[2,-1,4]], dtype=int)
     >>> finite_range(a)
     (-3, 4)
     >>> a = np.array([[1, 0, 1],[2,3,4]], dtype=np.uint)
