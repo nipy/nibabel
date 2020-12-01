@@ -5,155 +5,40 @@
 # can't be any leading "-"s - All newlines will be removed, so use ";"s
 
 os: linux
-arch: amd64
+arch: arm64
 dist: xenial
 language: python
 cache: pip
 
 env:
     global:
-        - SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
-        - DEPENDS="numpy scipy matplotlib h5py pillow pydicom indexed_gzip"
+        # Note that DEPENDS, OPTIONAL_DEPENDS and EXTRA_PIP_FLAGS are
+        # indirect and (when non-empty) refer to variables in tools/ci/env.sh
+        - DEPENDS="REQUIREMENTS"
+        - OPTIONAL_DEPENDS="DEFAULT_OPT_DEPENDS"
         - INSTALL_TYPE="setup"
         - CHECK_TYPE="test"
-        - NIGHTLY_WHEELS="https://pypi.anaconda.org/scipy-wheels-nightly/simple"
-        - PRE_PIP_FLAGS="--pre --extra-index-url $NIGHTLY_WHEELS"
+        - EXTRA_PIP_FLAGS="PRE_PIP_FLAGS"
 
 python:
+    - 3.6
     - 3.7
     - 3.8
 
-jobs:
-  include:
-    - arch: arm64
-      python: 3.6
-      env:
-        - DEPENDS="numpy scipy pillow pydicom"
-        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # Basic dependencies only
-    - python: 3.6
-      env:
-        - DEPENDS="-r requirements.txt"
-    # Clean install
-    - python: 3.6
-      env:
-        - DEPENDS=""
-        - CHECK_TYPE=skiptests
-    # Absolute minimum dependencies
-    - python: 3.6
-      env:
-        - SETUP_REQUIRES="setuptools==30.3.0"
-        - DEPENDS="-r min-requirements.txt"
-    # Absolute minimum dependencies plus oldest MPL
-    - python: 3.6
-      env:
-        - DEPENDS="-r min-requirements.txt matplotlib==1.5.3"
-    # Minimum pydicom dependency
-    - python: 3.6
-      env:
-        - DEPENDS="-r min-requirements.txt pydicom==0.9.9 pillow==2.6"
-    # pydicom master branch
-    - python: 3.6
-      env:
-        - DEPENDS="numpy git+https://github.com/pydicom/pydicom.git@master"
-    # test 3.8 against pre-release builds of everything
-    - python: 3.8
-      env:
-        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # test 3.9 against pre-release builds of dependencies that support it
-    - python: 3.9
-      env:
-        - DEPENDS="numpy scipy h5py pillow pydicom"
-        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # OSX Python support is basically accidental. Take whatever version we can
-    # get and test with full dependencies...
-    - os: osx
-      language: minimal
-    # and pre-releases. No min-requirements.txt because we can't assume a wheel that old.
-    - os: osx
-      language: minimal
-      env:
-        - EXTRA_PIP_FLAGS="$PRE_PIP_FLAGS"
-    # Test that PyPI installs from source pass
-    - python: 3.6
-      env:
-        - INSTALL_TYPE=sdist
-    # Wheels (binary distributions)
-    - python: 3.6
-      env:
-        - INSTALL_TYPE=wheel
-    # Install from git archive (e.g., https://github.com/nipy/nibabel/archive/master.zip)
-    - python: 3.6
-      env:
-        - INSTALL_TYPE=archive
-    # Run flake8... Might not be needed now we have pep8speaks
-    - python: 3.6
-      env:
-        - CHECK_TYPE="style"
-    # Documentation doctests
-    - python: 3.6
-      env:
-        - CHECK_TYPE="doc"
-
 # Set up virtual environment, build package, build from depends
 before_install:
-    - travis_retry python3 -m pip install --upgrade pip virtualenv
-    - virtualenv --python=python3 venv
-    - source venv/bin/activate
-    - python3 --version # just to check
-    - travis_retry python3 -m pip install -U $SETUP_REQUIRES
-    - which python3
-    - which pip
-    - |
-      if [ "$INSTALL_TYPE" == "sdist" ]; then
-        python3 setup.py egg_info  # check egg_info while we're here
-        python3 setup.py sdist
-        export ARCHIVE=$( ls dist/*.tar.gz )
-      elif [ "$INSTALL_TYPE" == "wheel" ]; then
-        python3 setup.py bdist_wheel
-        export ARCHIVE=$( ls dist/*.whl )
-      elif [ "$INSTALL_TYPE" == "archive" ]; then
-        export ARCHIVE="package.tar.gz"
-        git archive -o $ARCHIVE HEAD
-      fi
-    - if [ -n "$DEPENDS" ]; then pip install $EXTRA_PIP_FLAGS $DEPENDS; fi
+    - travis_retry tools/ci/create_env.sh
+    - source tools/ci/build_archive.sh
+    - travis_retry tools/ci/install_dependencies.sh
 
 # command to install dependencies
 install:
-    - |
-      if [ "$INSTALL_TYPE" == "setup" ]; then
-          python3 setup.py install
-      else
-          pip install $EXTRA_PIP_FLAGS $ARCHIVE
-      fi
-    # Basic import check
-    - python3 -c 'import nibabel; print(nibabel.__version__)'
+    - tools/ci/install.sh
     - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
-
-before_script:
-    # Point to nibabel data directory
-    - export NIBABEL_DATA_DIR="$PWD/nibabel-data"
-    # Because nibabel is already installed, will just look up the extra
-    - python3 -m pip install $EXTRA_PIP_FLAGS "nibabel[$CHECK_TYPE]"
 
 # command to run tests, e.g. python setup.py test
 script:
-    - |
-      if [ "${CHECK_TYPE}" == "style" ]; then
-          # Run styles only on core nibabel code.
-          flake8 nibabel
-      elif [ "${CHECK_TYPE}" == "doc" ]; then
-          cd doc
-          make html && make doctest
-      elif [ "${CHECK_TYPE}" == "test" ]; then
-          # Change into an innocuous directory and find tests from installation
-          mkdir for_testing
-          cd for_testing
-          cp ../.coveragerc .
-          pytest --doctest-modules --doctest-plus --cov nibabel -v --pyargs nibabel
-      else
-          false
-      fi
+    - tools/ci/check.sh
 
 after_script:
     - travis_retry python3 -m pip install codecov
