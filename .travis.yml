@@ -16,18 +16,19 @@ env:
         # indirect and (when non-empty) refer to variables in tools/ci/env.sh
         - DEPENDS="REQUIREMENTS"
         - OPTIONAL_DEPENDS="DEFAULT_OPT_DEPENDS"
+        - EXTRA_PIP_FLAGS=""
         - INSTALL_TYPE="setup"
         - CHECK_TYPE="test"
-        - EXTRA_PIP_FLAGS="PRE_PIP_FLAGS"
 
 python:
     - 3.6
     - 3.7
     - 3.8
+    - 3.9
 
 # Set up virtual environment, build package, build from depends
 before_install:
-    - travis_retry tools/ci/create_env.sh
+    - travis_retry tools/ci/create_venv.sh
     - source tools/ci/build_archive.sh
     - travis_retry tools/ci/install_dependencies.sh
 
