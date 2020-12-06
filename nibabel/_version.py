@@ -44,6 +44,7 @@ def get_config():
     cfg.tag_prefix = ""
     cfg.parentdir_prefix = ""
     cfg.versionfile_source = "nibabel/_version.py"
+    cfg.fallback_version = "3.2.2.dev0"
     cfg.verbose = False
     return cfg
 
@@ -483,6 +484,37 @@ def render(pieces, style):
             "date": pieces.get("date")}
 
 
+def override_fallback_or_fail(versions, cfg, verbose=False):
+    """ Finalize versions dictionary with override or fallback, if applicable
+
+    If ``VERSIONEER_OVERRIDE`` is defined in the environment, any version
+    string is overridden.
+
+    If the calling method was unable to provide a valid version, and
+    ``fallback_version`` is defined in the configuration file, then the fallback
+    version will be used.
+
+    If neither case applies and no version was found, resort to ``0+unknown``.
+
+    Modifies dictionary in-place and returns it.
+    """
+    # If override environment variable is set, set version,
+    # and ignore errors or dirty repositories
+    override = os.getenv("VERSIONEER_OVERRIDE")
+    if override:
+        if verbose:
+            print(f"got version from environment variable (VERSIONEER_OVERRIDE={override})")
+        versions.update({"version": override, "dirty": False, "error": None})
+
+    # If no version information can be found, apply fallback version
+    if versions.get("version") in (None, "0+unknown"):
+        if cfg.fallback_version:
+            if verbose:
+                print(f"Falling back to version {cfg.fallback_version}")
+            versions.update({"version": cfg.fallback_version, "error": None})
+
+    return versions
+
 def get_versions():
     """Get version information or return default if unable to do so."""
     # I am in _version.py, which lives at ROOT/VERSIONFILE_SOURCE. If we have
@@ -494,8 +526,9 @@ def get_versions():
     verbose = cfg.verbose
 
     try:
-        return git_versions_from_keywords(get_keywords(), cfg.tag_prefix,
-                                          verbose)
+        return override_fallback_or_fail(
+            git_versions_from_keywords(get_keywords(), cfg.tag_prefix, verbose),
+            cfg=cfg, verbose=verbose)
     except NotThisMethod:
         pass
 
@@ -507,23 +540,33 @@ def get_versions():
         for i in cfg.versionfile_source.split('/'):
             root = os.path.dirname(root)
     except NameError:
-        return {"version": "0+unknown", "full-revisionid": None,
-                "dirty": None,
-                "error": "unable to find root of source tree",
-                "date": None}
+        return override_fallback_or_fail(
+            {"version": "0+unknown", "full-revisionid": None,
+             "dirty": None,
+             "error": "unable to find root of source tree",
+             "date": None},
+            cfg=cfg, verbose=verbose)
 
     try:
         pieces = git_pieces_from_vcs(cfg.tag_prefix, root, verbose)
-        return render(pieces, cfg.style)
+        return override_fallback_or_fail(
+            render(pieces, cfg.style),
+            cfg=cfg, verbose=verbose)
     except NotThisMethod:
         pass
 
     try:
         if cfg.parentdir_prefix:
-            return versions_from_parentdir(cfg.parentdir_prefix, root, verbose)
+            return override_fallback_or_fail(
+                versions_from_parentdir(cfg.parentdir_prefix, root, verbose),
+                cfg=cfg, verbose=verbose)
     except NotThisMethod:
         pass
 
-    return {"version": "0+unknown", "full-revisionid": None,
-            "dirty": None,
-            "error": "unable to compute version", "date": None}
+    return override_fallback_or_fail(
+        {"version": "0+unknown",
+         "full-revisionid": None,
+         "error": "unable to compute version",
+         "dirty": None,
+         "date": None},
+        cfg=cfg, verbose=verbose)
