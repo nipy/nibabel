@@ -2,7 +2,7 @@ name: Miscellaneous checks
 
 # This file runs doctests on the documentation and style checks
 
-on: [push]
+on: [push, pull_request]
 
 defaults:
   run:

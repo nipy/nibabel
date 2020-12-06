@@ -6,7 +6,7 @@ name: Stable tests
 # * Dependencies: minimum requirements, optional requirements
 # * Installation methods: setup.py, sdist, wheel, archive
 
-on: [push]
+on: [push, pull_request]
 
 defaults:
   run:
