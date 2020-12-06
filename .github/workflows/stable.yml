@@ -21,7 +21,7 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         python-version: [3.6, 3.7, 3.8, 3.9]
         architecture: ['x64', 'x86']
-        install: ['setup']
+        install: ['pip']
         check: ['test']
         pip-flags: ['']
         depends: ['REQUIREMENTS']
@@ -54,7 +54,7 @@ jobs:
           # Clean install imports only with package-declared dependencies
           - os: ubuntu-latest
             python-version: 3.6
-            install: setup
+            install: pip
             check: skiptests
             pip-flags: ''
             depends: ''
