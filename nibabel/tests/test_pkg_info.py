@@ -5,7 +5,6 @@ from packaging.version import Version
 
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
-from ..info import VERSION
 
 import pytest
 
@@ -24,22 +23,6 @@ def test_pkg_info():
 def test_version():
     # Test info version is the same as our own version
     assert nib.pkg_info.__version__ == nib.__version__
-
-
-def test_fallback_version():
-    """Test fallback version is up-to-date
-
-    This should only fail if we fail to bump nibabel.info.VERSION immediately
-    after release
-    """
-    ver = Version(nib.__version__)
-    fallback = Version(VERSION)
-    assert (
-        # Releases have no local information, archive matches versioneer
-        ver.local is None or
-        # dev version should be larger than tag+commit-githash
-        fallback >= ver), \
-        "nibabel.info.VERSION does not match latest tag information"
 
 
 def test_cmp_pkg_version_0():
