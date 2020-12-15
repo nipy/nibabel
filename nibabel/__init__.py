@@ -55,7 +55,6 @@ from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .cifti2 import Cifti2Header, Cifti2Image
 from .gifti import GiftiImage
-from .minc1 import MincImage
 from .freesurfer import MGHImage
 from .funcs import (squeeze_image, concat_images, four_to_three,
                     as_closest_canonical)

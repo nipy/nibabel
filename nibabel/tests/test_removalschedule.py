@@ -14,6 +14,8 @@ MODULE_SCHEDULE = [
 OBJECT_SCHEDULE = [
     ("5.0.0", [("nibabel.pydicom_compat", "dicom_test"),
                ("nibabel.onetime", "setattr_on_read")]),
+    ("4.0.0", [("nibabel.minc1", "MincFile"),
+               ("nibabel.minc1", "MincImage")]),
     ("3.0.0", [("nibabel.testing", "catch_warn_reset")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj"), ("nibabel.nifti1", "nosuchobj")]),
