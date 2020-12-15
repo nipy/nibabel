@@ -63,8 +63,6 @@ from .orientations import (io_orientation, orientation_affine,
                            flip_axis, OrientationError,
                            apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map, all_image_classes
-from .deprecated import ModuleProxy as _ModuleProxy
-trackvis = _ModuleProxy('nibabel.trackvis')
 from . import mriutils
 from . import streamlines
 from . import viewers

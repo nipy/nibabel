@@ -3,8 +3,6 @@ import pytest
 # Pre-load deprecated modules to avoid cluttering warnings
 with pytest.deprecated_call():
     import nibabel.keywordonly
-with pytest.deprecated_call():
-    import nibabel.trackvis
 with pytest.warns(FutureWarning):
     import nibabel.py3k
 
