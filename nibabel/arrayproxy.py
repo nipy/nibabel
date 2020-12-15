@@ -30,7 +30,6 @@ from threading import RLock
 
 import numpy as np
 
-from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice, canonical_slicers
 from . import openers
@@ -90,7 +89,6 @@ class ArrayProxy(object):
     """
     # Assume Fortran array memory layout
     order = 'F'
-    _header = None
 
     def __init__(self, file_like, spec, *, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
@@ -146,8 +144,6 @@ class ArrayProxy(object):
                    spec.get_data_offset(),
                    1. if slope is None else slope,
                    0. if inter is None else inter)
-            # Reference to original header; we will remove this soon
-            self._header = spec.copy()
         elif 2 <= len(spec) <= 5:
             optional = (0, 1., 0.)
             par = spec + optional[len(spec) - 2:]
@@ -268,11 +264,6 @@ class ArrayProxy(object):
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener
-
-    @property
-    @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
-    def header(self):
-        return self._header
 
     @property
     def shape(self):

@@ -323,11 +323,6 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             with pytest.raises(AttributeError):
                 setattr(prox, attr_name, expected)
 
-    def validate_deprecated_header(self, pmaker, params):
-        prox, fio, hdr = pmaker()
-        with pytest.raises(ExpiredDeprecationError):
-            prox.header
-
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):
     # SPM-type analyze has slope scaling but not intercept
