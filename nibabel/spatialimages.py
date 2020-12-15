@@ -28,7 +28,6 @@ methods:
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
      associated.
-   * .get_shape() (deprecated)
 
 properties:
 

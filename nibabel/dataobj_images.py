@@ -404,15 +404,6 @@ class DataobjImage(FileBasedImage):
     def ndim(self):
         return self._dataobj.ndim
 
-    @deprecate_with_version('get_shape method is deprecated.\n'
-                            'Please use the ``img.shape`` property '
-                            'instead.',
-                            '1.2', '3.0')
-    def get_shape(self):
-        """ Return shape for image
-        """
-        return self.shape
-
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """ Class method to create image from mapping in ``file_map``

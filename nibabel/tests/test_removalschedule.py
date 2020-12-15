@@ -21,6 +21,7 @@ OBJECT_SCHEDULE = [
 
 ATTRIBUTE_SCHEDULE = [
     ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data")]),
+    ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj", "anyattr"),
                ("nibabel.nifti1", "nosuchobj", "anyattr"),

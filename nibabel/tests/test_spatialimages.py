@@ -301,15 +301,6 @@ class TestSpatialImage(TestCase):
         img = img_klass(np.zeros((2, 3, 4), dtype=np.int16), np.eye(4))
         assert len(str(img)) > 0
 
-    def test_get_shape(self):
-        # Check that get_shape raises an ExpiredDeprecationError
-        img_klass = self.image_class
-        # Assumes all possible images support int16
-        # See https://github.com/nipy/nibabel/issues/58
-        img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_shape()
-
     def test_get_fdata(self):
         # Test array image and proxy image interface for floating point data
         img_klass = self.image_class
