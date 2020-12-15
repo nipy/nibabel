@@ -23,7 +23,11 @@ OBJECT_SCHEDULE = [
 
 ATTRIBUTE_SCHEDULE = [
     ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data")]),
-    ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape")]),
+    ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape"),
+               ("nibabel.filebasedimages", "FileBasedImage", "filespec_to_files"),
+               ("nibabel.filebasedimages", "FileBasedImage", "to_filespec"),
+               ("nibabel.filebasedimages", "FileBasedImage", "to_files"),
+               ("nibabel.filebasedimages", "FileBasedImage", "from_files")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj", "anyattr"),
                ("nibabel.nifti1", "nosuchobj", "anyattr"),
