@@ -2,7 +2,7 @@ name: Pre-release checks
 
 # This file tests against pre-release wheels for dependencies
 
-on: [push]
+on: [push, pull_request]
 
 defaults:
   run:

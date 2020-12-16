@@ -21,6 +21,8 @@ elif [ "$INSTALL_TYPE" == "wheel" ]; then
 elif [ "$INSTALL_TYPE" == "archive" ]; then
     export ARCHIVE="package.tar.gz"
     git archive -o $ARCHIVE HEAD
+elif [ "$INSTALL_TYPE" == "pip" ]; then
+    export ARCHIVE="."
 fi
 
 set +eux
