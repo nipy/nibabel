@@ -122,7 +122,7 @@ def concat_images(images, check_affines=True, axis=None):
     if axis is None:
         # collect images in output array for efficiency
         out_shape = (n_imgs, ) + shape0
-        out_data = np.empty(out_shape)
+        out_data = np.empty(out_shape, dtype=img0.header.get_data_dtype())
     else:
         # collect images in list for use with np.concatenate
         out_data = [None] * n_imgs

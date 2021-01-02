@@ -13,7 +13,7 @@ import numpy as np
 from ..funcs import concat_images, as_closest_canonical, OrientationError
 from ..analyze import AnalyzeImage
 from ..nifti1 import Nifti1Image
-from ..loadsave import save
+from ..loadsave import save, load
 
 from ..tmpdirs import InTemporaryDirectory
 
@@ -104,6 +104,14 @@ def test_concat():
                             try:
                                 all_imgs = concat_images([img0, img1],
                                                          **concat_imgs_kwargs)
+
+                                all_imgs_fname = "all_imgs.nii"
+                                save(all_imgs, all_imgs_fname)
+                                from_disk = load(all_imgs_fname)
+
+                                assert_array_equal(all_imgs.get_fdata(),
+                                                   from_disk.get_fdata())
+
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
