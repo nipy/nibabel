@@ -1551,7 +1551,7 @@ class BinOpener(Opener):
     __doc__ = Opener.__doc__
 
     @deprecate_with_version('BinOpener class deprecated. '
-                            "Please use Opener class instead."
+                            "Please use Opener class instead.",
                             '2.1', '4.0')
     def __init__(self, *args, **kwargs):
         return super(BinOpener, self).__init__(*args, **kwargs)

@@ -43,7 +43,7 @@ class GiftiMetaData(xml.XmlSerializable):
 
     @deprecate_with_version(
         'get_metadata method deprecated. '
-        "Use the metadata property instead."
+        "Use the metadata property instead.",
         '2.1', '4.0')
     def get_metadata(self):
         return self.metadata
@@ -155,7 +155,7 @@ class GiftiLabel(xml.XmlSerializable):
 
     @deprecate_with_version(
         'get_rgba method deprecated. '
-        "Use the rgba property instead."
+        "Use the rgba property instead.",
         '2.1', '4.0')
     def get_rgba(self):
         return self.rgba
@@ -523,7 +523,7 @@ class GiftiDataArray(xml.XmlSerializable):
 
     @deprecate_with_version(
         'get_metadata method deprecated. '
-        "Use the metadata property instead."
+        "Use the metadata property instead.",
         '2.1', '4.0')
     def get_metadata(self):
         return self.meta.metadata
