@@ -144,16 +144,12 @@ def test_Opener_gzip_type():
         tests = [
             (False, {'mode' : 'rb', 'keep_open' : True},   GzipFile),
             (False, {'mode' : 'rb', 'keep_open' : False},  GzipFile),
-            (False, {'mode' : 'rb', 'keep_open' : 'auto'}, GzipFile),
             (False, {'mode' : 'wb', 'keep_open' : True},   GzipFile),
             (False, {'mode' : 'wb', 'keep_open' : False},  GzipFile),
-            (False, {'mode' : 'wb', 'keep_open' : 'auto'}, GzipFile),
             (True,  {'mode' : 'rb', 'keep_open' : True},   MockIndexedGzipFile),
             (True,  {'mode' : 'rb', 'keep_open' : False},  MockIndexedGzipFile),
-            (True,  {'mode' : 'rb', 'keep_open' : 'auto'}, MockIndexedGzipFile),
             (True,  {'mode' : 'wb', 'keep_open' : True},   GzipFile),
             (True,  {'mode' : 'wb', 'keep_open' : False},  GzipFile),
-            (True,  {'mode' : 'wb', 'keep_open' : 'auto'}, GzipFile),
         ]
 
         for test in tests:

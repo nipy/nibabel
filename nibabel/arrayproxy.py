@@ -49,10 +49,6 @@ If this flag is set to ``True``, a single file handle is created and used. If
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
-
-.. warning:: Setting this flag to a value of ``'auto'`` became deprecated
-             behaviour in version 2.4.1. Support for ``'auto'`` was removed
-             in version 3.0.0.
 """
 KEEP_FILE_OPEN_DEFAULT = False
 
@@ -92,10 +88,6 @@ class ArrayProxy(object):
 
     def __init__(self, file_like, spec, *, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -227,10 +219,6 @@ class ArrayProxy(object):
            is set to ``True``, and ``_keep_file_open`` is set to ``False``.
            In this case, file handle management is delegated to the
            ``indexed_gzip`` library.
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
