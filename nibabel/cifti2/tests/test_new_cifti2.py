@@ -7,12 +7,11 @@ These functions are used in the tests to generate most CIFTI file types from
 scratch.
 """
 import numpy as np
-
 import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
-
 import pytest
+
 from ...testing import (
     clear_and_catch_warnings, error_warnings, suppress_warnings, assert_array_equal)
 
@@ -237,7 +236,6 @@ def test_dtseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.dtseries.nii')
@@ -281,7 +279,6 @@ def test_dlabel():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.dlabel.nii')
@@ -301,7 +298,6 @@ def test_dconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(10, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.dconn.nii')
@@ -323,7 +319,6 @@ def test_ptseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.ptseries.nii')
@@ -345,7 +340,6 @@ def test_pscalar():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pscalar.nii')
@@ -367,7 +361,6 @@ def test_pdconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(10, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pdconn.nii')
@@ -389,7 +382,6 @@ def test_dpconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 10)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.dpconn.nii')
@@ -413,7 +405,7 @@ def test_plabel():
     img = ci.Cifti2Image(data, hdr)
 
     with InTemporaryDirectory():
-        ci.save(img, 'test.plabel.nii')
+        ci.save(img, 'test.plabel.nii', validate=False)
         img2 = ci.load('test.plabel.nii')
         assert img.nifti_header.get_intent()[0] == 'ConnUnknown'
         assert isinstance(img2, ci.Cifti2Image)
@@ -430,7 +422,6 @@ def test_pconn():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconn.nii')
@@ -453,8 +444,6 @@ def test_pconnseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 13)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
-                                'PARCELLATED_SERIES')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnseries.nii')
@@ -478,8 +467,6 @@ def test_pconnscalar():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 2)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
-                                'PARCELLATED_SCALAR')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnscalar.nii')
@@ -517,7 +504,45 @@ def test_wrong_shape():
                     ci.Cifti2Image(data, hdr)
         with suppress_warnings():
             img = ci.Cifti2Image(data, hdr)
-        
+
         with pytest.raises(ValueError):
             img.to_file_map()
 
+
+def test_cifti_validation():
+    # flip label / brain_model index maps
+    geometry_map = create_geometry_map((0, ))
+    label_map = create_label_map((1, ))
+    matrix = ci.Cifti2Matrix()
+    matrix.append(geometry_map)
+    matrix.append(label_map)
+    hdr = ci.Cifti2Header(matrix)
+    data = np.random.randn(10, 2)
+    img = ci.Cifti2Image(data, hdr)
+    # flipped index maps will warn
+    with InTemporaryDirectory(), pytest.warns(UserWarning):
+        ci.save(img, 'test.dlabel.nii')
+
+    label_map = create_label_map((0, ))
+    geometry_map = create_geometry_map((1, ))
+    matrix = ci.Cifti2Matrix()
+    matrix.append(label_map)
+    matrix.append(geometry_map)
+    hdr = ci.Cifti2Header(matrix)
+    data = np.random.randn(2, 10)
+    img = ci.Cifti2Image(data, hdr)
+
+    with InTemporaryDirectory():
+        ci.save(img, 'test.validate.nii', validate=False)
+        ci.save(img, 'test.dlabel.nii')
+
+        img2 = nib.load('test.dlabel.nii')
+        img3 = nib.load('test.validate.nii')
+        assert img2.nifti_header.get_intent()[0] == 'ConnDenseLabel'
+        assert img3.nifti_header.get_intent()[0] == 'ConnUnknown'
+        assert isinstance(img2, ci.Cifti2Image)
+        assert isinstance(img3, ci.Cifti2Image)
+        assert_array_equal(img2.get_fdata(), data)
+        check_label_map(img2.header.matrix.get_index_map(0))
+        check_geometry_map(img2.header.matrix.get_index_map(1))
+        del img2, img3

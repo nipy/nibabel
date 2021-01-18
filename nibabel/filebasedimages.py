@@ -315,7 +315,7 @@ class FileBasedImage(object):
     def filespec_to_files(klass, filespec):
         return klass.filespec_to_file_map(filespec)
 
-    def to_filename(self, filename):
+    def to_filename(self, filename, **kwargs):
         """ Write image to files implied by filename string
 
         Parameters
@@ -381,7 +381,7 @@ class FileBasedImage(object):
     load = from_filename
 
     @classmethod
-    def instance_to_filename(klass, img, filename):
+    def instance_to_filename(klass, img, filename, **kwargs):
         """ Save `img` in our own format, to name implied by `filename`
 
         This is a class method
@@ -394,7 +394,7 @@ class FileBasedImage(object):
            Filename, implying name to which to save image.
         """
         img = klass.from_image(img)
-        img.to_filename(filename)
+        img.to_filename(filename, **kwargs)
 
     @classmethod
     def from_image(klass, img):

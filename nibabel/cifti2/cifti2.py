@@ -25,6 +25,7 @@ from ..dataobj_images import DataobjImage
 from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
+from ..volumeutils import Recoder
 from warnings import warn
 
 
@@ -88,6 +89,53 @@ CIFTI_BRAIN_STRUCTURES = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
                           'CIFTI_STRUCTURE_PUTAMEN_RIGHT',
                           'CIFTI_STRUCTURE_THALAMUS_LEFT',
                           'CIFTI_STRUCTURE_THALAMUS_RIGHT')
+
+# "Standard CIFTI Mapping Combinations" within CIFTI-2 spec
+# https://www.nitrc.org/forum/attachment.php?attachid=341&group_id=454&forum_id=1955
+CIFTI_CODES = Recoder((
+    ('.dconn.nii', 'NIFTI_INTENT_CONNECTIVITY_DENSE', (
+        'CIFTI_INDEX_TYPE_BRAIN_MODELS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.dtseries.nii', 'NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES', (
+        'CIFTI_INDEX_TYPE_SERIES', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.pconn.nii', 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED', (
+        'CIFTI_INDEX_TYPE_PARCELS', 'CIFTI_INDEX_TYPE_PARCELS',
+    )),
+    ('.ptseries.nii', 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES', (
+        'CIFTI_INDEX_TYPE_SERIES', 'CIFTI_INDEX_TYPE_PARCELS',
+    )),
+    ('.dscalar.nii', 'NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS', (
+        'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.dlabel.nii', 'NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS', (
+        'CIFTI_INDEX_TYPE_LABELS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.pscalar.nii', 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR', (
+        'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_PARCELS',
+    )),
+    ('.pdconn.nii', 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE', (
+        'CIFTI_INDEX_TYPE_BRAIN_MODELS', 'CIFTI_INDEX_TYPE_PARCELS',
+    )),
+    ('.dpconn.nii', 'NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED', (
+        'CIFTI_INDEX_TYPE_PARCELS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.pconnseries.nii', 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES', (
+        'CIFTI_INDEX_TYPE_PARCELS', 'CIFTI_INDEX_TYPE_PARCELS', 'CIFTI_INDEX_TYPE_SERIES',
+    )),
+    ('.pconnscalar.nii', 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR', (
+        'CIFTI_INDEX_TYPE_PARCELS', 'CIFTI_INDEX_TYPE_PARCELS', 'CIFTI_INDEX_TYPE_SCALARS',
+    )),
+    ('.dfan.nii', 'NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES', (
+        'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.dfibersamp.nii', 'NIFTI_INTENT_CONNECTIVITY_UNKNOWN', (
+        'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+    ('.dfansamp.nii', 'NIFTI_INTENT_CONNECTIVITY_UNKNOWN', (
+        'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+    )),
+), fields=('extension', 'niistring', 'map_types'))
 
 
 def _value_if_klass(val, klass):
@@ -1466,11 +1514,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
             raise ValueError(
                 f"Dataobj shape {self._dataobj.shape} does not match shape "
                 f"expected from CIFTI-2 header {self.header.matrix.get_data_shape()}")
-        # if intent code is not set, default to unknown CIFTI
-        if header.get_intent()[0] == 'none':
-            header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
-        data = reshape_dataobj(self.dataobj,
-                               (1, 1, 1, 1) + self.dataobj.shape)
+        data = reshape_dataobj(self.dataobj, (1, 1, 1, 1) + self.dataobj.shape)
         # If qform not set, reset pixdim values so Nifti2 does not complain
         if header['qform_code'] == 0:
             header['pixdim'][:4] = 1
@@ -1501,13 +1545,58 @@ class Cifti2Image(DataobjImage, SerializableImage):
         >>> img.shape == (2, 3, 4)
         True
         """
-        self._nifti_header.set_data_shape((1, 1, 1, 1) + self._dataobj.shape)
+        header = self._nifti_header
+        header.set_data_shape((1, 1, 1, 1) + self._dataobj.shape)
+        # if intent code is not set, default to unknown
+        if header.get_intent()[0] == 'none':
+            header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
 
     def get_data_dtype(self):
         return self._nifti_header.get_data_dtype()
 
     def set_data_dtype(self, dtype):
         self._nifti_header.set_data_dtype(dtype)
+
+    def to_filename(self, filename, validate=True):
+        """
+        Ensures NIfTI header intent code is set prior to saving.
+
+        Parameters
+        ----------
+        validate : boolean, optional
+            If ``True``, infer and validate CIFTI type based on MatrixIndicesMap values.
+            This includes the setting of the relevant intent code within the NIfTI header.
+            If validation fails, a UserWarning is issued and saving continues.
+        """
+        if validate:
+            # Determine CIFTI type via index maps
+            from .parse_cifti2 import intent_codes
+
+            matrix = self.header.matrix
+            map_types = tuple(
+                matrix.get_index_map(idx).indices_map_to_data_type for idx
+                in sorted(matrix.mapped_indices)
+            )
+            try:
+                expected_intent = CIFTI_CODES.niistring[map_types]
+                expected_ext = CIFTI_CODES.extension[map_types]
+            except KeyError:  # unknown
+                expected_intent = "NIFTI_INTENT_CONNECTIVITY_UNKNOWN"
+                expected_ext = None
+                warn(
+                    "No information found for matrix containing the following index maps:"
+                    f"{map_types}, defaulting to unknown."
+                )
+
+            orig_intent = self._nifti_header.get_intent()[0]
+            if expected_intent != intent_codes.niistring[orig_intent]:
+                warn(
+                    f"Expected NIfTI intent: {expected_intent} has been automatically set."
+                )
+                self._nifti_header.set_intent(expected_intent)
+            if expected_ext is not None and not filename.endswith(expected_ext):
+                warn(f"Filename does not end with expected extension: {expected_ext}")
+        super().to_filename(filename)
 
 
 load = Cifti2Image.from_filename

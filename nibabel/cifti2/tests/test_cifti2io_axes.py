@@ -91,7 +91,7 @@ def check_rewrite(arr, axes, extension='.nii'):
         custom extension to use
     """
     (fd, name) = tempfile.mkstemp(extension)
-    cifti2.Cifti2Image(arr, header=axes).to_filename(name)
+    cifti2.Cifti2Image(arr, header=axes).to_filename(name, validate=False)
     img = nib.load(name)
     arr2 = img.get_fdata()
     assert np.allclose(arr, arr2)
