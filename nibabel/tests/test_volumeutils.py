@@ -30,9 +30,6 @@ from ..volumeutils import (array_from_file,
                            array_to_file,
                            allopen,  # for backwards compatibility
                            fname_ext_ul_case,
-                           calculate_scale,  # Deprecated
-                           can_cast,  # Deprecated
-                           scale_min_max,  # Deprecated
                            write_zeros,
                            seek_tell,
                            apply_read_scaling,
@@ -66,15 +63,6 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 INT_TYPES = np.sctypes['int']
 IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
-
-
-def test_deprecated_functions():
-    with pytest.raises(ExpiredDeprecationError):
-        scale_min_max(0, 1, np.uint8, True)
-    with pytest.raises(ExpiredDeprecationError):
-        calculate_scale(np.array([-2, -1], dtype=np.int8), np.uint8, True)
-    with pytest.raises(ExpiredDeprecationError):
-        can_cast(np.float32, np.float32)
 
 
 def test__is_compressed_fobj():

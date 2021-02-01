@@ -404,22 +404,9 @@ class DataobjImage(FileBasedImage):
     def ndim(self):
         return self._dataobj.ndim
 
-    @deprecate_with_version('get_shape method is deprecated.\n'
-                            'Please use the ``img.shape`` property '
-                            'instead.',
-                            '1.2', '3.0')
-    def get_shape(self):
-        """ Return shape for image
-        """
-        return self.shape
-
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """ Class method to create image from mapping in ``file_map``
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -453,10 +440,6 @@ class DataobjImage(FileBasedImage):
     @classmethod
     def from_filename(klass, filename, *, mmap=True, keep_file_open=None):
         """Class method to create image from filename `filename`
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------

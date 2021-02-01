@@ -159,9 +159,9 @@ class FileBasedImage(object):
     itself back to the files pointed to in ``file_map``.  When a file holder
     holds active file-like objects, then these may be affected by the
     initial file read; in this case, the contains file-like objects need to
-    carry the position at which a write (with ``to_files``) should place the
+    carry the position at which a write (with ``to_file_map``) should place the
     data.  The ``file_map`` contents should therefore be such, that this will
-    work:
+    work.
     """
     header_class = FileBasedHeader
     _meta_sniff_len = 0
@@ -264,14 +264,6 @@ class FileBasedImage(object):
         raise NotImplementedError
 
     @classmethod
-    @deprecate_with_version('from_files class method is deprecated.\n'
-                            'Please use the ``from_file_map`` class method '
-                            'instead.',
-                            '1.0', '3.0')
-    def from_files(klass, file_map):
-        return klass.from_file_map(file_map)
-
-    @classmethod
     def filespec_to_file_map(klass, filespec):
         """ Make `file_map` for this class from filename `filespec`
 
@@ -307,14 +299,6 @@ class FileBasedImage(object):
             file_map[key] = FileHolder(filename=fname)
         return file_map
 
-    @classmethod
-    @deprecate_with_version('filespec_to_files class method is deprecated.\n'
-                            'Please use the "filespec_to_file_map" class '
-                            'method instead.',
-                            '1.0', '3.0')
-    def filespec_to_files(klass, filespec):
-        return klass.filespec_to_file_map(filespec)
-
     def to_filename(self, filename):
         """ Write image to files implied by filename string
 
@@ -332,20 +316,8 @@ class FileBasedImage(object):
         self.file_map = self.filespec_to_file_map(filename)
         self.to_file_map()
 
-    @deprecate_with_version('to_filespec method is deprecated.\n'
-                            'Please use the "to_filename" method instead.',
-                            '1.0', '3.0')
-    def to_filespec(self, filename):
-        self.to_filename(filename)
-
     def to_file_map(self, file_map=None):
         raise NotImplementedError
-
-    @deprecate_with_version('to_files method is deprecated.\n'
-                            'Please use the "to_file_map" method instead.',
-                            '1.0', '3.0')
-    def to_files(self, file_map=None):
-        self.to_file_map(file_map)
 
     @classmethod
     def make_file_map(klass, mapping=None):

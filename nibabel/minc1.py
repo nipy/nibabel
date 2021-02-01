@@ -17,8 +17,6 @@ from .externals.netcdf import netcdf_file
 from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
 
-from .deprecated import deprecate_with_version
-
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
     ('b', 'signed__'): np.int8,
@@ -342,16 +340,3 @@ class Minc1Image(SpatialImage):
 
 
 load = Minc1Image.load
-
-
-# Backwards compatibility
-@deprecate_with_version('MincFile is deprecated; please use Minc1File instead',
-                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
-class MincFile(Minc1File):
-    pass
-
-
-@deprecate_with_version('MincImage is deprecated; please use Minc1Image instead',
-                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
-class MincImage(Minc1Image):
-    pass

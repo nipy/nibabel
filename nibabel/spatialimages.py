@@ -28,7 +28,6 @@ methods:
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
      associated.
-   * .get_shape() (deprecated)
 
 properties:
 
@@ -109,7 +108,7 @@ contain enough information so that an existing image instance can save
 itself back to the files pointed to in ``file_map``.  When a file holder
 holds active file-like objects, then these may be affected by the
 initial file read; in this case, the contains file-like objects need to
-carry the position at which a write (with ``to_files``) should place the
+carry the position at which a write (with ``to_file_map``) should place the
 data.  The ``file_map`` contents should therefore be such, that this will
 work:
 

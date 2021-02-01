@@ -48,7 +48,6 @@ from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns,
 from nibabel.testing import (bytesio_round_trip, bytesio_filemap, assert_data_similar,
                              clear_and_catch_warnings, nullcontext)
 from ..tmpdirs import InTemporaryDirectory
-from ..deprecator import ExpiredDeprecationError
 
 from .test_api_validators import ValidateAPI
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
@@ -449,12 +448,6 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Read only
         with pytest.raises(AttributeError):
             img.ndim = 5
-
-    def validate_shape_deprecated(self, imaker, params):
-        # Check deprecated get_shape API
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_shape()
 
     def validate_mmap_parameter(self, imaker, params):
         img = imaker()

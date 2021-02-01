@@ -14,6 +14,8 @@ MODULE_SCHEDULE = [
 OBJECT_SCHEDULE = [
     ("5.0.0", [("nibabel.pydicom_compat", "dicom_test"),
                ("nibabel.onetime", "setattr_on_read")]),
+    ("4.0.0", [("nibabel.minc1", "MincFile"),
+               ("nibabel.minc1", "MincImage")]),
     ("3.0.0", [("nibabel.testing", "catch_warn_reset")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj"), ("nibabel.nifti1", "nosuchobj")]),
@@ -21,6 +23,12 @@ OBJECT_SCHEDULE = [
 
 ATTRIBUTE_SCHEDULE = [
     ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data")]),
+    ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape"),
+               ("nibabel.filebasedimages", "FileBasedImage", "filespec_to_files"),
+               ("nibabel.filebasedimages", "FileBasedImage", "to_filespec"),
+               ("nibabel.filebasedimages", "FileBasedImage", "to_files"),
+               ("nibabel.filebasedimages", "FileBasedImage", "from_files"),
+               ("nibabel.arrayproxy", "ArrayProxy", "header")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj", "anyattr"),
                ("nibabel.nifti1", "nosuchobj", "anyattr"),

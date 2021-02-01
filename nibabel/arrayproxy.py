@@ -30,7 +30,6 @@ from threading import RLock
 
 import numpy as np
 
-from .deprecated import deprecate_with_version
 from .volumeutils import array_from_file, apply_read_scaling
 from .fileslice import fileslice, canonical_slicers
 from . import openers
@@ -50,10 +49,6 @@ If this flag is set to ``True``, a single file handle is created and used. If
 If this is set to any other value, attempts to create an ``ArrayProxy`` without
 specifying the ``keep_file_open`` flag will result in a ``ValueError`` being
 raised.
-
-.. warning:: Setting this flag to a value of ``'auto'`` became deprecated
-             behaviour in version 2.4.1. Support for ``'auto'`` was removed
-             in version 3.0.0.
 """
 KEEP_FILE_OPEN_DEFAULT = False
 
@@ -90,14 +85,9 @@ class ArrayProxy(object):
     """
     # Assume Fortran array memory layout
     order = 'F'
-    _header = None
 
     def __init__(self, file_like, spec, *, mmap=True, keep_file_open=None):
         """Initialize array proxy instance
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -146,8 +136,6 @@ class ArrayProxy(object):
                    spec.get_data_offset(),
                    1. if slope is None else slope,
                    0. if inter is None else inter)
-            # Reference to original header; we will remove this soon
-            self._header = spec.copy()
         elif 2 <= len(spec) <= 5:
             optional = (0, 1., 0.)
             par = spec + optional[len(spec) - 2:]
@@ -232,10 +220,6 @@ class ArrayProxy(object):
            In this case, file handle management is delegated to the
            ``indexed_gzip`` library.
 
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
-
         Parameters
         ----------
 
@@ -268,11 +252,6 @@ class ArrayProxy(object):
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener
-
-    @property
-    @deprecate_with_version('ArrayProxy.header deprecated', '2.2', '3.0')
-    def header(self):
-        return self._header
 
     @property
     def shape(self):

@@ -221,10 +221,6 @@ class AFNIArrayProxy(ArrayProxy):
         """
         Initialize AFNI array proxy
 
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
-
         Parameters
         ----------
         file_like : file-like object
@@ -503,10 +499,6 @@ class AFNIImage(SpatialImage):
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """
         Creates an AFNIImage instance from `file_map`
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
