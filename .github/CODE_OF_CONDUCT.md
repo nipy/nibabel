@@ -30,7 +30,7 @@ implementation of methods, on finding technical solutions, establishing best pra
 otherwise. We are accepting of all who wish to take part in our activities, fostering an
 environment where anyone can participate and everyone can make a difference.
 
-#### Be collaborative!
+#### Collaborative
 
 Our work will be used by other people, and in turn we will depend on the work of others. When we
 make something for the benefit of others, we are willing to explain to others how it works, so that
@@ -38,7 +38,7 @@ they can build on the work to make it even better. We are willing to provide con
 on the work of others and accept criticism of our own work, as the experiences and skill sets of
 other members contribute to the whole of our efforts.
 
-#### Be inquisitive!
+#### Inquisitive
 
 Nobody knows everything! Asking questions early avoids many problems later, so questions are
 encouraged, though they may be directed to the appropriate forum. Those who are asked should be
@@ -51,7 +51,7 @@ efforts of others, keeping in mind that often-times the labor was completed simp
 the community. We are attentive in our communications, whether in person or online, and we are
 tactful when approaching differing views.
 
-#### Be careful in the words that you choose:
+#### Careful in the words we choose
 
 We value courtesy, kindness and inclusiveness in all our interactions. Therefore, we take
 responsibility for our own speech. In particular, we avoid:
@@ -66,7 +66,7 @@ responsibility for our own speech. In particular, we avoid:
  * Repeated harassment of others. In general, if someone asks you to stop, then stop.
  * Advocating for, or encouraging, any of the above behaviour.
 
-#### Try to be concise in communication
+#### Concise
 
 Keep in mind that what you write once will be read by many others. Writing a short email means
 people can understand the conversation as efficiently as possible. Even short emails should always
