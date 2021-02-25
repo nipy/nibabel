@@ -11,6 +11,7 @@ import base64
 import sys
 import warnings
 import zlib
+import os.path as op
 from io import StringIO
 from xml.parsers.expat import ExpatError
 
@@ -30,16 +31,27 @@ class GiftiParseError(ExpatError):
     """ Gifti-specific parsing error """
 
 
-def read_data_block(encoding,
-                    endian,
-                    ordering,
-                    datatype,
-                    shape,
-                    data,
-                    darray):
-    """ Tries to unzip, decode, parse the funny string data """
-    enclabel = gifti_encoding_codes.label[encoding]
-    dtype = data_type_codes.type[datatype]
+def read_data_block(darray, fname, data):
+    """Parses data from a <Data> element, or loads from an external file.
+
+    Parameters
+    ----------
+    darray : GiftiDataArray
+         GiftiDataArray object representing the parent <DataArray> of this
+         <Data> element
+
+    fname : str or None
+         Name of GIFTI file being loaded, or None if in-memory
+
+    data : str or None
+         Data to parse, or None if data is in an external file
+
+    Returns
+    -------
+    numpy.ndarray containing the parsed data
+    """
+    enclabel = gifti_encoding_codes.label[darray.encoding]
+    dtype = data_type_codes.type[darray.datatype]
 
     if enclabel == 'ASCII':
         # GIFTI_ENCODING_ASCII
@@ -54,9 +66,15 @@ def read_data_block(encoding,
     # the data type/endianness/ordering specified by the other DataArray
     # attributes
     if enclabel == 'External':
-        with open(darray.ext_fname, 'rb') as f:
+        if fname is None:
+            raise GiftiParseError('ExternalFileBinary is not supported '
+                                  'when loading from in-memory XML')
+        ext_fname = op.join(op.dirname(fname), darray.ext_fname)
+        if not op.exists(ext_fname):
+            raise GiftiParseError('Cannot locate external file ' + ext_fname)
+        with open(ext_fname, 'rb') as f:
             f.seek(darray.ext_offset)
-            nbytes = np.prod(shape) * dtype().itemsize
+            nbytes = np.prod(darray.dims) * dtype().itemsize
             buff = f.read(nbytes)
 
     # Numpy arrays created from bytes objects are read-only.
@@ -75,13 +93,14 @@ def read_data_block(encoding,
             buff = bytearray(zlib.decompress(dec))
         del dec
 
-    sh = tuple(shape)
+    sh = tuple(darray.dims)
     newarr = np.frombuffer(buff, dtype=dtype)
     if len(newarr.shape) != len(sh):
-        newarr = newarr.reshape(sh, order=array_index_order_codes.npcode[ordering])
+        newarr = newarr.reshape(
+            sh, order=array_index_order_codes.npcode[darray.ind_ord])
 
     # check if we need to byteswap
-    required_byteorder = gifti_endian_codes.byteorder[endian]
+    required_byteorder = gifti_endian_codes.byteorder[darray.endian]
     if (required_byteorder in ('big', 'little') and
             required_byteorder != sys.byteorder):
         newarr = newarr.byteswap()
@@ -339,10 +358,7 @@ class GiftiImageParser(XmlParser):
             c.close()
 
         elif self.write_to == 'Data':
-            da_tmp = self.img.darrays[-1]
-            da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian,
-                                          da_tmp.ind_ord, da_tmp.datatype,
-                                          da_tmp.dims, data, self.da)
+            self.da.data = read_data_block(self.da, self.fname, data)
             # update the endianness according to the
             # current machine setting
             self.endian = gifti_endian_codes.code[sys.byteorder]
