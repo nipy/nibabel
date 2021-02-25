@@ -65,6 +65,7 @@ class XmlParser(object):
         self.encoding = encoding
         self.buffer_size = buffer_size
         self.verbose = verbose
+        self.fname = None  # set on calls to parse
 
     def _create_parser(self):
         """Internal function that allows subclasses to mess
@@ -97,6 +98,8 @@ class XmlParser(object):
         elif fname is not None:
             fptr = open(fname, 'r')
 
+        # store the name of the xml file in case it is needed during parsing
+        self.fname = getattr(fptr, 'name', None)
         parser = self._create_parser()
         for name in self.HANDLER_NAMES:
             setattr(parser, name, getattr(self, name))
