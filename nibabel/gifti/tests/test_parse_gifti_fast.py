@@ -38,9 +38,10 @@ DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
 # wb_command -gifti-convert ASCII base64bin.gii test.gii
 DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
+DATA_FILE7 = pjoin(IO_DATA_PATH, 'external.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
-numDA = [2, 1, 1, 1, 2, 1]
+datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6, DATA_FILE7]
+numDA = [2, 1, 1, 1, 2, 1, 2]
 
 DATA_FILE1_darr1 = np.array(
     [[-16.07201, -66.187515, 21.266994],
@@ -95,6 +96,28 @@ DATA_FILE5_darr2 = np.array([[6402, 17923, 25602],
                              [25604, 12168, 17922]], dtype=np.int32)
 
 DATA_FILE6_darr1 = np.array([9182740, 9182740, 9182740], dtype=np.float32)
+
+DATA_FILE7_darr1 = np.array([[-1., -1., -1.],
+                             [-1., -1.,  1.],
+                             [-1.,  1., -1.],
+                             [-1.,  1.,  1.],
+                             [ 1., -1., -1.],
+                             [ 1., -1.,  1.],
+                             [ 1.,  1., -1.],
+                             [ 1.,  1.,  1.]], dtype=np.float32)
+
+DATA_FILE7_darr2 = np.array([[0, 6, 4],
+                             [0, 2, 6],
+                             [1, 5, 3],
+                             [3, 5, 7],
+                             [0, 4, 1],
+                             [1, 4, 5],
+                             [2, 7, 6],
+                             [2, 3, 7],
+                             [0, 1, 2],
+                             [1, 3, 2],
+                             [4, 7, 5],
+                             [4, 6, 7]], dtype=np.int32)
 
 
 def assert_default_types(loaded):
@@ -382,3 +405,9 @@ def test_parse_with_buffersize():
     for buff_sz in [None, 1, 2**12]:
         img2 = load(DATA_FILE2, buffer_size=buff_sz)
         assert img2.darrays[0].data.shape == (143479, 1)
+
+
+def test_dataarray7():
+    img7 = load(DATA_FILE7)
+    assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)
