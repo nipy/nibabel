@@ -30,22 +30,34 @@ class GiftiParseError(ExpatError):
     """ Gifti-specific parsing error """
 
 
-def read_data_block(encoding, endian, ordering, datatype, shape, data):
+def read_data_block(encoding,
+                    endian,
+                    ordering,
+                    datatype,
+                    shape,
+                    data,
+                    darray):
     """ Tries to unzip, decode, parse the funny string data """
     enclabel = gifti_encoding_codes.label[encoding]
     dtype = data_type_codes.type[datatype]
+
     if enclabel == 'ASCII':
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c, dtype=dtype)
         return da  # independent of the endianness
-
-    elif enclabel == 'External':
-        # GIFTI_ENCODING_EXTBIN
-        raise NotImplementedError("In what format are the external files?")
-
-    elif enclabel not in ('B64BIN', 'B64GZ'):
+    elif enclabel not in ('B64BIN', 'B64GZ', 'External'):
         return 0
+
+    # GIFTI_ENCODING_EXTBIN
+    # We assume that the external data file is raw uncompressed binary, with
+    # the data type/endianness/ordering specified by the other DataArray
+    # attributes
+    if enclabel == 'External':
+        with open(darray.ext_fname, 'rb') as f:
+            f.seek(darray.ext_offset)
+            nbytes = np.prod(shape) * dtype().itemsize
+            buff = f.read(nbytes)
 
     # Numpy arrays created from bytes objects are read-only.
     # Neither b64decode nor decompress will return bytearrays, and there
@@ -53,14 +65,15 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     # there is not a simple way to avoid making copies.
     # If this becomes a problem, we should write a decoding interface with
     # a tunable chunk size.
-    dec = base64.b64decode(data.encode('ascii'))
-    if enclabel == 'B64BIN':
-        # GIFTI_ENCODING_B64BIN
-        buff = bytearray(dec)
     else:
-        # GIFTI_ENCODING_B64GZ
-        buff = bytearray(zlib.decompress(dec))
-    del dec
+        dec = base64.b64decode(data.encode('ascii'))
+        if enclabel == 'B64BIN':
+            # GIFTI_ENCODING_B64BIN
+            buff = bytearray(dec)
+        else:
+            # GIFTI_ENCODING_B64GZ
+            buff = bytearray(zlib.decompress(dec))
+        del dec
 
     sh = tuple(shape)
     newarr = np.frombuffer(buff, dtype=dtype)
@@ -288,12 +301,17 @@ class GiftiImageParser(XmlParser):
 
     def flush_chardata(self):
         """ Collate and process collected character data"""
-        if self._char_blocks is None:
+        # Nothing to do for empty elements, except for Data elements which
+        # are within a DataArray with an external file
+        if self.write_to != 'Data' and self._char_blocks is None:
             return
         # Just join the strings to get the data.  Maybe there are some memory
         # optimizations we could do by passing the list of strings to the
         # read_data_block function.
-        data = ''.join(self._char_blocks)
+        if self._char_blocks is not None:
+            data = ''.join(self._char_blocks)
+        else:
+            data = None
         # Reset the char collector
         self._char_blocks = None
 
@@ -324,7 +342,7 @@ class GiftiImageParser(XmlParser):
             da_tmp = self.img.darrays[-1]
             da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian,
                                           da_tmp.ind_ord, da_tmp.datatype,
-                                          da_tmp.dims, data)
+                                          da_tmp.dims, data, self.da)
             # update the endianness according to the
             # current machine setting
             self.endian = gifti_endian_codes.code[sys.byteorder]
