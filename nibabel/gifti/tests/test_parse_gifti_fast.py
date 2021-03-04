@@ -7,15 +7,18 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from os.path import join as pjoin, dirname
+from os.path import join as pjoin, dirname, basename
 import sys
 import warnings
+import shutil
+from unittest import mock
 
 import numpy as np
 
 from .. import gifti as gi
 from ..util import gifti_endian_codes
-from ..parse_gifti_fast import Outputter, parse_gifti_file
+from ..parse_gifti_fast import (Outputter, parse_gifti_file, GiftiParseError,
+                                GiftiImageParser)
 from ...loadsave import load, save
 from ...nifti1 import xform_codes
 from ...tmpdirs import InTemporaryDirectory
@@ -417,15 +420,45 @@ def test_parse_with_memmmap():
     img1 = load(DATA_FILE7)
     img2 = load(DATA_FILE7, mmap=True)
     img3 = load(DATA_FILE7, mmap=False)
-    expect = [DATA_FILE7_darr1, DATA_FILE7_darr2]
-    assert len(img1.darrays) == len(img2.darrays) == len(expect)
-    for da1, da2, da3, exp in zip(img1.darrays,
-                                  img2.darrays,
-                                  img3.darrays,
-                                  expect):
-        assert isinstance(da1.data, np.memmap)
-        assert isinstance(da2.data, np.memmap)
-        assert not isinstance(da3.data, np.memmap)
-        assert_array_almost_equal(da1.data, exp)
-        assert_array_almost_equal(da2.data, exp)
-        assert_array_almost_equal(da3.data, exp)
+    assert len(img1.darrays) == len(img2.darrays) == 2
+    assert isinstance(img1.darrays[0].data, np.memmap)
+    assert isinstance(img1.darrays[1].data, np.memmap)
+    assert isinstance(img2.darrays[0].data, np.memmap)
+    assert isinstance(img2.darrays[1].data, np.memmap)
+    assert not isinstance(img3.darrays[0].data, np.memmap)
+    assert not isinstance(img3.darrays[1].data, np.memmap)
+    assert_array_almost_equal(img1.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img1.darrays[1].data, DATA_FILE7_darr2)
+    assert_array_almost_equal(img2.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img2.darrays[1].data, DATA_FILE7_darr2)
+    assert_array_almost_equal(img3.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img3.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_parse_with_memmap_fallback():
+    img1 = load(DATA_FILE7, mmap=True)
+    with mock.patch('numpy.memmap', side_effect=ValueError):
+        img2 = load(DATA_FILE7, mmap=True)
+    assert isinstance(img1.darrays[0].data, np.memmap)
+    assert isinstance(img1.darrays[1].data, np.memmap)
+    assert not isinstance(img2.darrays[0].data, np.memmap)
+    assert not isinstance(img2.darrays[1].data, np.memmap)
+    assert_array_almost_equal(img1.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img1.darrays[1].data, DATA_FILE7_darr2)
+    assert_array_almost_equal(img2.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img2.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_external_file_failure_cases():
+    # external file cannot be found
+    with InTemporaryDirectory() as tmpdir:
+        shutil.copy(DATA_FILE7, '.')
+        filename = pjoin(tmpdir, basename(DATA_FILE7))
+        with pytest.raises(GiftiParseError):
+            img = load(filename)
+    # load from in-memory xml string (parser requires it as bytes)
+    with open(DATA_FILE7, 'rb') as f:
+        xmldata = f.read()
+    parser = GiftiImageParser()
+    with pytest.raises(GiftiParseError):
+        img = parser.parse(xmldata)
