@@ -31,7 +31,7 @@ class GiftiParseError(ExpatError):
     """ Gifti-specific parsing error """
 
 
-def read_data_block(darray, fname, data):
+def read_data_block(darray, fname, data, mmap):
     """Parses data from a <Data> element, or loads from an external file.
 
     Parameters
@@ -46,10 +46,25 @@ def read_data_block(darray, fname, data):
     data : str or None
          Data to parse, or None if data is in an external file
 
+    mmap : {True, False, 'c', 'r', 'r+'}
+        Controls the use of numpy memory mapping for reading data.  Only has
+        an effect when loading GIFTI images with data stored in external files
+        (``DataArray`` elements with an ``Encoding`` equal to
+        ``ExternalFileBinary``).  If ``False``, do not try numpy ``memmap``
+        for data array.  If one of ``{'c', 'r', 'r+'}``, try numpy ``memmap``
+        with ``mode=mmap``.  A `mmap` value of ``True`` gives the same
+        behavior as ``mmap='c'``.  If the file cannot be memory-mapped, ignore
+        `mmap` value and read array from file.
+
     Returns
     -------
     numpy.ndarray containing the parsed data
     """
+    if mmap not in (True, False, 'c', 'r', 'r+'):
+        raise ValueError("mmap value should be one of True, False, 'c', "
+                         "'r', 'r+'")
+    if mmap is True:
+        mmap = 'c'
     enclabel = gifti_encoding_codes.label[darray.encoding]
     dtype = data_type_codes.type[darray.datatype]
 
@@ -114,12 +129,16 @@ def _str2int(in_str):
 
 class GiftiImageParser(XmlParser):
 
-    def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
+    def __init__(self, encoding=None, buffer_size=35000000, verbose=0,
+                 mmap=True):
         super(GiftiImageParser, self).__init__(encoding=encoding,
                                                buffer_size=buffer_size,
                                                verbose=verbose)
         # output
         self.img = None
+
+        # Queried when loading data from <Data> elements - see read_data_block
+        self.mmap = mmap
 
         # finite state machine stack
         self.fsm_state = []
@@ -358,7 +377,8 @@ class GiftiImageParser(XmlParser):
             c.close()
 
         elif self.write_to == 'Data':
-            self.da.data = read_data_block(self.da, self.fname, data)
+            self.da.data = read_data_block(self.da, self.fname, data,
+                                           self.mmap)
             # update the endianness according to the
             # current machine setting
             self.endian = gifti_endian_codes.code[sys.byteorder]
