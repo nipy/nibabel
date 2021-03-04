@@ -87,13 +87,21 @@ def read_data_block(darray, fname, data, mmap):
         ext_fname = op.join(op.dirname(fname), darray.ext_fname)
         if not op.exists(ext_fname):
             raise GiftiParseError('Cannot locate external file ' + ext_fname)
+        # We either create a memmap, or load into memory
+        newarr = None
         if mmap:
-            newarr = np.memmap(ext_fname,
-                               dtype=dtype,
-                               mode=mmap,
-                               offset=darray.ext_offset,
-                               shape=tuple(darray.dims))
-        else:
+            try:
+                newarr = np.memmap(ext_fname,
+                                   dtype=dtype,
+                                   mode=mmap,
+                                   offset=darray.ext_offset,
+                                   shape=tuple(darray.dims))
+            # If the memmap fails, we ignore the error and load the data into
+            # memory below
+            except (AttributeError, TypeError, ValueError):
+                pass
+        # mmap=False or np.memmap failed
+        if newarr is None:
             # We can replace this with a call to np.fromfile in numpy>=1.17,
             # as an "offset" paramter was added in that version.
             with open(ext_fname, 'rb') as f:
