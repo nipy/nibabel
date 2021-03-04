@@ -81,8 +81,8 @@ class XmlParser(object):
         """
         Parameters
         ----------
-        string : str
-            string containing xml document
+        string : bytes
+            string (as a bytes object) containing xml document
 
         fname : str
             file name of an xml document.
