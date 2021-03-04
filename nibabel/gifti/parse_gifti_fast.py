@@ -58,7 +58,7 @@ def read_data_block(darray, fname, data, mmap):
 
     Returns
     -------
-    numpy.ndarray containing the parsed data
+    ``numpy.ndarray`` or ``numpy.memmap`` containing the parsed data
     """
     if mmap not in (True, False, 'c', 'r', 'r+'):
         raise ValueError("mmap value should be one of True, False, 'c', "
@@ -87,10 +87,20 @@ def read_data_block(darray, fname, data, mmap):
         ext_fname = op.join(op.dirname(fname), darray.ext_fname)
         if not op.exists(ext_fname):
             raise GiftiParseError('Cannot locate external file ' + ext_fname)
-        with open(ext_fname, 'rb') as f:
-            f.seek(darray.ext_offset)
-            nbytes = np.prod(darray.dims) * dtype().itemsize
-            buff = f.read(nbytes)
+        if mmap:
+            newarr = np.memmap(ext_fname,
+                               dtype=dtype,
+                               mode=mmap,
+                               offset=darray.ext_offset,
+                               shape=tuple(darray.dims))
+        else:
+            # We can replace this with a call to np.fromfile in numpy>=1.17,
+            # as an "offset" paramter was added in that version.
+            with open(ext_fname, 'rb') as f:
+                f.seek(darray.ext_offset)
+                nbytes = np.prod(darray.dims) * dtype().itemsize
+                buff = f.read(nbytes)
+                newarr = np.frombuffer(buff, dtype=dtype)
 
     # Numpy arrays created from bytes objects are read-only.
     # Neither b64decode nor decompress will return bytearrays, and there
@@ -107,9 +117,9 @@ def read_data_block(darray, fname, data, mmap):
             # GIFTI_ENCODING_B64GZ
             buff = bytearray(zlib.decompress(dec))
         del dec
+        newarr = np.frombuffer(buff, dtype=dtype)
 
     sh = tuple(darray.dims)
-    newarr = np.frombuffer(buff, dtype=dtype)
     if len(newarr.shape) != len(sh):
         newarr = newarr.reshape(
             sh, order=array_index_order_codes.npcode[darray.ind_ord])
