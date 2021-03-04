@@ -411,3 +411,21 @@ def test_dataarray7():
     img7 = load(DATA_FILE7)
     assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
     assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_parse_with_memmmap():
+    img1 = load(DATA_FILE7)
+    img2 = load(DATA_FILE7, mmap=True)
+    img3 = load(DATA_FILE7, mmap=False)
+    expect = [DATA_FILE7_darr1, DATA_FILE7_darr2]
+    assert len(img1.darrays) == len(img2.darrays) == len(expect)
+    for da1, da2, da3, exp in zip(img1.darrays,
+                                  img2.darrays,
+                                  img3.darrays,
+                                  expect):
+        assert isinstance(da1.data, np.memmap)
+        assert isinstance(da2.data, np.memmap)
+        assert not isinstance(da3.data, np.memmap)
+        assert_array_almost_equal(da1.data, exp)
+        assert_array_almost_equal(da2.data, exp)
+        assert_array_almost_equal(da3.data, exp)
