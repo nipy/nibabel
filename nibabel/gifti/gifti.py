@@ -881,8 +881,8 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         f.write(self.to_xml())
 
     @classmethod
-    def from_file_map(klass, file_map, buffer_size=35000000):
-        """ Load a Gifti image from a file_map
+    def from_file_map(klass, file_map, buffer_size=35000000, mmap=True):
+        """Load a Gifti image from a file_map
 
         Parameters
         ----------
@@ -890,18 +890,32 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             Dictionary with single key ``image`` with associated value which is
             a :class:`FileHolder` instance pointing to the image file.
 
+        buffer_size: None or int, optional
+            size of read buffer. None uses default buffer_size
+            from xml.parsers.expat.
+
+        mmap : {True, False, 'c', 'r', 'r+'}
+            Controls the use of numpy memory mapping for reading data.  Only
+            has an effect when loading GIFTI images with data stored in
+            external files (``DataArray`` elements with an ``Encoding`` equal
+            to ``ExternalFileBinary``).  If ``False``, do not try numpy
+            ``memmap`` for data array.  If one of ``{'c', 'r', 'r+'}``, try
+            numpy ``memmap`` with ``mode=mmap``.  A `mmap` value of ``True``
+            gives the same behavior as ``mmap='c'``.  If the file cannot be
+            memory-mapped, ignore `mmap` value and read array from file.
+
         Returns
         -------
         img : GiftiImage
         """
-        parser = klass.parser(buffer_size=buffer_size)
+        parser = klass.parser(buffer_size=buffer_size, mmap=mmap)
         parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
         return parser.img
 
     @classmethod
-    def from_filename(klass, filename, buffer_size=35000000):
+    def from_filename(klass, filename, buffer_size=35000000, mmap=True):
         file_map = klass.filespec_to_file_map(filename)
-        img = klass.from_file_map(file_map, buffer_size=buffer_size)
+        img = klass.from_file_map(file_map, buffer_size=buffer_size, mmap=mmap)
         return img
 
 
