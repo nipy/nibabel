@@ -39,6 +39,11 @@ except ImportError:
     IndexedGzipFile = gzip.GzipFile
     HAVE_INDEXED_GZIP = False
 
+# Enable .zst support if pyzstd installed.
+try:
+    from pyzstd import ZstdFile
+except ImportError:
+    pass
 
 def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
@@ -77,13 +82,19 @@ class Opener(object):
     """
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
+    zstd_def = (ZstdFile, ('mode', 'level_or_option'))
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
+        '.zst': zstd_def,
         None: (open, ('mode', 'buffering'))  # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
+    #: default option for zst files
+    default_zst_compresslevel = 3
+    default_level_or_option = {"rb": None, "r": None,
+        "wb": default_zst_compresslevel, "w": default_zst_compresslevel}
     #: whether to ignore case looking for compression extensions
     compress_ext_icase = True
 
@@ -100,10 +111,15 @@ class Opener(object):
         full_kwargs.update(dict(zip(arg_names[:n_args], args)))
         # Set default mode
         if 'mode' not in full_kwargs:
-            kwargs['mode'] = 'rb'
+            mode = 'rb'
+            kwargs['mode'] = mode
+        else:
+            mode = full_kwargs['mode']
         # Default compression level
         if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
+        if 'level_or_option' in arg_names and 'level_or_option' not in kwargs:
+            kwargs['level_or_option'] = self.default_level_or_option[mode]
         # Default keep_open hint
         if 'keep_open' in arg_names:
             kwargs.setdefault('keep_open', False)

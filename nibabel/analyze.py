@@ -907,6 +907,11 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image', '.img'), ('header', '.hdr'))
     valid_exts = ('.img', '.hdr')
     _compressed_suffixes = ('.gz', '.bz2')
+    try: # If pyzstd installed., add .zst suffix
+        import pyzstd
+        _compressed_suffixes = (*_compressed_suffixes, '.zst')
+    except ImportError:
+        pass
 
     makeable = True
     rw = True

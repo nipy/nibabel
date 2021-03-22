@@ -40,6 +40,12 @@ default_compresslevel = 1
 #: file-like classes known to hold compressed data
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File, IndexedGzipFile)
 
+# Enable .zst support if pyzstd installed.
+try:
+    from pyzstd import ZstdFile
+    COMPRESSED_FILE_LIKES = (*COMPRESSED_FILE_LIKES, ZstdFile)
+except ImportError:
+    pass
 
 class Recoder(object):
     """ class to return canonical code(s) from code or aliases
