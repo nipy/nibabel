@@ -494,6 +494,11 @@ class AFNIImage(SpatialImage):
     makeable = False
     rw = False
     ImageArrayProxy = AFNIArrayProxy
+    try: # If pyzstd installed., add .zst suffix
+        import pyzstd
+        _compressed_suffixes = (*_compressed_suffixes, '.zst')
+    except ImportError:
+        pass
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):

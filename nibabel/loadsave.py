@@ -19,6 +19,12 @@ from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
+_compressed_suffixes = ('.gz', '.bz2')
+try: # If pyzstd installed., add .zst suffix
+    import pyzstd
+    _compressed_suffixes = (*_compressed_suffixes, '.zst')
+except ImportError:
+    pass
 
 def load(filename, **kwargs):
     r""" Load file given filename, guessing at file type
@@ -103,7 +109,7 @@ def save(img, filename):
         return
 
     # Be nice to users by making common implicit conversions
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+    froot, ext, trailing = splitext_addext(filename, _compressed_suffixes)
     lext = ext.lower()
 
     # Special-case Nifti singles and Pairs

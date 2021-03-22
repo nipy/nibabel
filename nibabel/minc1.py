@@ -317,6 +317,11 @@ class Minc1Image(SpatialImage):
     valid_exts = ('.mnc',)
     files_types = (('image', '.mnc'),)
     _compressed_suffixes = ('.gz', '.bz2')
+    try: # If pyzstd installed., add .zst suffix
+        import pyzstd
+        _compressed_suffixes = (*_compressed_suffixes, '.zst')
+    except ImportError:
+        pass
 
     makeable = True
     rw = False
