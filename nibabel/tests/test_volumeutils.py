@@ -45,7 +45,7 @@ from ..volumeutils import (array_from_file,
                            _write_data,
                            _ftype4scaled_finite,
                            )
-from ..openers import Opener, BZ2File
+from ..openers import Opener, BZ2File, HAVE_ZSTD
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from ..deprecator import ExpiredDeprecationError
@@ -55,6 +55,10 @@ from numpy.testing import (assert_array_almost_equal,
 import pytest
 
 from nibabel.testing import nullcontext, assert_dt_equal, assert_allclose_safely, suppress_warnings
+
+# only import ZstdFile, if installed
+if HAVE_ZSTD:
+    from ..openers import ZstdFile
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -68,9 +72,12 @@ NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 def test__is_compressed_fobj():
     # _is_compressed helper function
     with InTemporaryDirectory():
-        for ext, opener, compressed in (('', open, False),
-                                        ('.gz', gzip.open, True),
-                                        ('.bz2', BZ2File, True)):
+        file_openers = [('', open, False),
+                        ('.gz', gzip.open, True),
+                        ('.bz2', BZ2File, True)]
+        if HAVE_ZSTD:
+            file_openers += [('.zst', ZstdFile, True)]
+        for ext, opener, compressed in file_openers:
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
                 fobj = opener(fname, mode)
@@ -88,12 +95,15 @@ def test_fobj_string_assumptions():
         arr.flags.writeable = True
         return arr
 
-    # Check whether file, gzip file, bz2 file reread memory from cache
+    # Check whether file, gzip file, bz2, zst file reread memory from cache
     fname = 'test.bin'
     with InTemporaryDirectory():
+        openers = [open, gzip.open, BZ2File]
+        if HAVE_ZSTD:
+            openers += [ZstdFile]
         for n, opener in itertools.product(
                 (256, 1024, 2560, 25600),
-                (open, gzip.open, BZ2File)):
+                openers):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
@@ -230,7 +240,10 @@ def test_array_from_file_openers():
     dtype = np.dtype(np.float32)
     in_arr = np.arange(24, dtype=dtype).reshape(shape)
     with InTemporaryDirectory():
-        for ext, offset in itertools.product(('', '.gz', '.bz2'),
+        extensions = ['', '.gz', '.bz2']
+        if HAVE_ZSTD:
+            extensions += ['.zst']
+        for ext, offset in itertools.product(extensions,
                                              (0, 5, 10)):
             fname = 'test.bin' + ext
             with Opener(fname, 'wb') as out_buf:
@@ -251,9 +264,12 @@ def test_array_from_file_reread():
     offset = 9
     fname = 'test.bin'
     with InTemporaryDirectory():
+        openers = [open, gzip.open, bz2.BZ2File, BytesIO]
+        if HAVE_ZSTD:
+            openers += [ZstdFile]
         for shape, opener, dtt, order in itertools.product(
                 ((64,), (64, 65), (64, 65, 66)),
-                (open, gzip.open, bz2.BZ2File, BytesIO),
+                openers,
                 (np.int16, np.float32),
                 ('F', 'C')):
             n_els = np.prod(shape)
@@ -901,7 +917,9 @@ def test_write_zeros():
 def test_seek_tell():
     # Test seek tell routine
     bio = BytesIO()
-    in_files = bio, 'test.bin', 'test.gz', 'test.bz2'
+    in_files = [bio, 'test.bin', 'test.gz', 'test.bz2']
+    if HAVE_ZSTD:
+        in_files += ['test.zst']
     start = 10
     end = 100
     diff = end - start
@@ -920,9 +938,12 @@ def test_seek_tell():
                 fobj.write(b'\x01' * start)
                 assert fobj.tell() == start
                 # Files other than BZ2Files can seek forward on write, leaving
-                # zeros in their wake.  BZ2Files can't seek when writing, unless
-                # we enable the write0 flag to seek_tell
-                if not write0 and in_file == 'test.bz2':  # Can't seek write in bz2
+                # zeros in their wake.  BZ2Files can't seek when writing,
+                # unless we enable the write0 flag to seek_tell
+                # ZstdFiles also does not support seek forward on write
+                if (not write0 and
+                    (in_file == 'test.bz2' or
+                     in_file == 'test.zst')):  # Can't seek write in bz2, zst
                     # write the zeros by hand for the read test below
                     fobj.write(b'\x00' * diff)
                 else:
@@ -946,7 +967,10 @@ def test_seek_tell():
             # Check we have the expected written output
             with ImageOpener(in_file, 'rb') as fobj:
                 assert fobj.read() == b'\x01' * start + b'\x00' * diff + b'\x02' * tail
-        for in_file in ('test2.gz', 'test2.bz2'):
+        input_files = ['test2.gz', 'test2.bz2']
+        if HAVE_ZSTD:
+            input_files += ['test2.zst']
+        for in_file in input_files:
             # Check failure of write seek backwards
             with ImageOpener(in_file, 'wb') as fobj:
                 fobj.write(b'g' * 10)
