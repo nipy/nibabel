@@ -13,18 +13,15 @@ import os
 import numpy as np
 
 from .filename_parser import splitext_addext, _stringify_path
-from .openers import ImageOpener
+from .openers import ImageOpener, HAVE_ZSTD
 from .filebasedimages import ImageFileError
 from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
 _compressed_suffixes = ('.gz', '.bz2')
-try: # If pyzstd installed., add .zst suffix
-    import pyzstd
+if HAVE_ZSTD:  # If pyzstd installed., add .zst suffix
     _compressed_suffixes = (*_compressed_suffixes, '.zst')
-except ImportError:
-    pass
 
 def load(filename, **kwargs):
     r""" Load file given filename, guessing at file type

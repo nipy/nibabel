@@ -95,6 +95,7 @@ from .spatialimages import (HeaderDataError, HeaderTypeError,
 from .fileholders import copy_file_map
 from .batteryrunners import Report
 from .arrayproxy import ArrayProxy
+from .openers import HAVE_ZSTD
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -907,11 +908,8 @@ class AnalyzeImage(SpatialImage):
     files_types = (('image', '.img'), ('header', '.hdr'))
     valid_exts = ('.img', '.hdr')
     _compressed_suffixes = ('.gz', '.bz2')
-    try: # If pyzstd installed., add .zst suffix
-        import pyzstd
+    if HAVE_ZSTD:  # If pyzstd installed., add .zst suffix
         _compressed_suffixes = (*_compressed_suffixes, '.zst')
-    except ImportError:
-        pass
 
     makeable = True
     rw = True

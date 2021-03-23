@@ -42,8 +42,9 @@ except ImportError:
 # Enable .zst support if pyzstd installed.
 try:
     from pyzstd import ZstdFile
+    HAVE_ZSTD = True
 except ImportError:
-    pass
+    HAVE_ZSTD = False
 
 def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
@@ -82,19 +83,21 @@ class Opener(object):
     """
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
-    zstd_def = (ZstdFile, ('mode', 'level_or_option'))
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
-        '.zst': zstd_def,
         None: (open, ('mode', 'buffering'))  # default
     }
+    if HAVE_ZSTD:  # add zst to ext map, if library exists
+        zstd_def = (ZstdFile, ('mode', 'level_or_option'))
+        compress_ext_map['.zst'] = zstd_def
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
     #: default option for zst files
     default_zst_compresslevel = 3
     default_level_or_option = {"rb": None, "r": None,
-        "wb": default_zst_compresslevel, "w": default_zst_compresslevel}
+                               "wb": default_zst_compresslevel,
+                               "w": default_zst_compresslevel}
     #: whether to ignore case looking for compression extensions
     compress_ext_icase = True
 

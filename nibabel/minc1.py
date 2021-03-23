@@ -16,6 +16,7 @@ from .externals.netcdf import netcdf_file
 
 from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
+from .openers import HAVE_ZSTD
 
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
@@ -317,11 +318,8 @@ class Minc1Image(SpatialImage):
     valid_exts = ('.mnc',)
     files_types = (('image', '.mnc'),)
     _compressed_suffixes = ('.gz', '.bz2')
-    try: # If pyzstd installed., add .zst suffix
-        import pyzstd
+    if HAVE_ZSTD:  # If pyzstd installed., add .zst suffix
         _compressed_suffixes = (*_compressed_suffixes, '.zst')
-    except ImportError:
-        pass
 
     makeable = True
     rw = False
