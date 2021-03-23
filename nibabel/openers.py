@@ -46,6 +46,7 @@ try:
 except ImportError:
     HAVE_ZSTD = False
 
+
 def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==

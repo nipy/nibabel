@@ -23,6 +23,7 @@ _compressed_suffixes = ('.gz', '.bz2')
 if HAVE_ZSTD:  # If pyzstd installed., add .zst suffix
     _compressed_suffixes = (*_compressed_suffixes, '.zst')
 
+
 def load(filename, **kwargs):
     r""" Load file given filename, guessing at file type
 

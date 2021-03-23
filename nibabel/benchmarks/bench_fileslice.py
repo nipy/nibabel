@@ -109,6 +109,6 @@ def bench_fileslice(bytes=True,
             with InTemporaryDirectory():
                 zst_times, zst_base = run_slices('data.zst', repeat)
             my_table('zst slice - raw (ratio)',
-                    np.dstack((zst_times, zst_times / zst_base)),
-                    zst_base)
+                     np.dstack((zst_times, zst_times / zst_base)),
+                     zst_base)
     sys.stdout.flush()

@@ -19,7 +19,7 @@ from functools import reduce
 import numpy as np
 
 from .casting import shared_range, OK_FLOATS
-from .openers import Opener, BZ2File, IndexedGzipFile
+from .openers import Opener, BZ2File, IndexedGzipFile, HAVE_ZSTD
 from .deprecated import deprecate_with_version
 from .externals.oset import OrderedSet
 
@@ -41,11 +41,10 @@ default_compresslevel = 1
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File, IndexedGzipFile)
 
 # Enable .zst support if pyzstd installed.
-try:
-    from pyzstd import ZstdFile
+if HAVE_ZSTD:
+    from .openers import ZstdFile
     COMPRESSED_FILE_LIKES = (*COMPRESSED_FILE_LIKES, ZstdFile)
-except ImportError:
-    pass
+
 
 class Recoder(object):
     """ class to return canonical code(s) from code or aliases
