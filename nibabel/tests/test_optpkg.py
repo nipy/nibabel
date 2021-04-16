@@ -39,14 +39,14 @@ def test_basic():
     # We never have package _not_a_package
     assert_bad('_not_a_package')
 
-    # setup_module imports unittest, so make sure we don't disrupt that
+    # Only disrupt imports for "nottriedbefore" package
     orig_import = builtins.__import__
     def raise_Exception(*args, **kwargs):
-        if args[0] == 'unittest':
-            return orig_import(*args, **kwargs)
-        raise Exception(
-            "non ImportError could be thrown by some malfunctioning module "
-            "upon import, and optional_package should catch it too")
+        if args[0] == 'nottriedbefore':
+            raise Exception(
+                "non ImportError could be thrown by some malfunctioning module "
+                "upon import, and optional_package should catch it too")
+        return orig_import(*args, **kwargs)
     with mock.patch.object(builtins, '__import__', side_effect=raise_Exception):
         assert_bad('nottriedbefore')
 
