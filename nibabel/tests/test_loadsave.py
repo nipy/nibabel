@@ -76,6 +76,21 @@ def test_load_empty_image():
     assert str(err.value).startswith('Empty file: ')
 
 
+@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+def test_load_bad_compressed_extension(tmp_path, extension):
+    file_path = tmp_path.joinpath(f"img.nii{extension}")
+    file_path.write_bytes(b"bad")
+    with pytest.raises(ImageFileError, match=".*is not a .* file"):
+        load(file_path)
+
+
+def test_load_file_that_cannot_be_read(tmp_path):
+    subdir = tmp_path.joinpath("img.nii.gz")
+    subdir.mkdir()
+    with pytest.raises(ImageFileError, match="Could not read"):
+        load(subdir)
+
+
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)

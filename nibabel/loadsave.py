@@ -20,6 +20,47 @@ from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
 
+def _signature_matches_extension(filename):
+    """Check if signature aka magic number matches filename extension.
+
+    Parameters
+    ----------
+    filename : str or os.PathLike
+        Path to the file to check
+
+    Returns
+    -------
+    matches : bool
+       - `True` if the filename extension is not recognized (not .gz nor .bz2)
+       - `True` if the magic number was successfully read and corresponds to
+         the format indicated by the extension.
+       - `False` otherwise.
+    error_message : str
+       An error message if opening the file failed or a mismatch is detected;
+       the empty string otherwise.
+
+    """
+    signatures = {
+        ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
+        ".bz2": {"signature": b"\x42\x5a\x68", "format_name": "bzip2"}
+    }
+    filename = _stringify_path(filename)
+    *_, ext = splitext_addext(filename)
+    ext = ext.lower()
+    if ext not in signatures:
+        return True, ""
+    expected_signature = signatures[ext]["signature"]
+    try:
+        with open(filename, "rb") as fh:
+            found_signature = fh.read(len(expected_signature))
+    except Exception:
+        return False, f"Could not read file: {filename}"
+    if found_signature == expected_signature:
+        return True, ""
+    format_name = signatures[ext]["format_name"]
+    return False, f"File {filename} is not a {format_name} file"
+
+
 def load(filename, **kwargs):
     r""" Load file given filename, guessing at file type
 
@@ -44,6 +85,9 @@ def load(filename, **kwargs):
         raise FileNotFoundError(f"No such file or no access: '{filename}'")
     if stat_result.st_size <= 0:
         raise ImageFileError(f"Empty file: '{filename}'")
+    matches, msg = _signature_matches_extension(filename)
+    if not matches:
+        raise ImageFileError(msg)
 
     sniff = None
     for image_klass in all_image_classes:
