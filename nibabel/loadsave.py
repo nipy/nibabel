@@ -46,7 +46,7 @@ def _signature_matches_extension(filename, sniff):
     """
     signatures = {
         ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
-        ".bz2": {"signature": b"\x42\x5a\x68", "format_name": "bzip2"}
+        ".bz2": {"signature": b"BZh", "format_name": "bzip2"}
     }
     filename = _stringify_path(filename)
     *_, ext = splitext_addext(filename)
@@ -54,15 +54,13 @@ def _signature_matches_extension(filename, sniff):
     if ext not in signatures:
         return True, ""
     expected_signature = signatures[ext]["signature"]
-    if sniff is not None and len(sniff) >= len(expected_signature):
-        found_signature = sniff[:len(expected_signature)]
-    else:
+    if sniff is None or len(sniff) < len(expected_signature):
         try:
             with open(filename, "rb") as fh:
-                found_signature = fh.read(len(expected_signature))
+                sniff = fh.read(len(expected_signature))
         except OSError:
             return False, f"Could not read file: {filename}"
-    if found_signature == expected_signature:
+    if not sniff.startswith(expected_signature):
         return True, ""
     format_name = signatures[ext]["format_name"]
     return False, f"File {filename} is not a {format_name} file"
