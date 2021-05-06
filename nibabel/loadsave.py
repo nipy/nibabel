@@ -53,7 +53,7 @@ def _signature_matches_extension(filename):
     try:
         with open(filename, "rb") as fh:
             found_signature = fh.read(len(expected_signature))
-    except Exception:
+    except OSError:
         return False, f"Could not read file: {filename}"
     if found_signature == expected_signature:
         return True, ""
