@@ -10,7 +10,7 @@ import numpy as np
 from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image,
                 Nifti2Pair, Nifti2Image)
-from ..loadsave import load, read_img_data
+from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
@@ -84,11 +84,35 @@ def test_load_bad_compressed_extension(tmp_path, extension):
         load(file_path)
 
 
-def test_load_file_that_cannot_be_read(tmp_path):
-    subdir = tmp_path / "img.nii.gz"
-    subdir.mkdir()
-    with pytest.raises(ImageFileError, match="Could not read"):
-        load(subdir)
+def test_signature_matches_extension(tmp_path):
+    gz_signature = b"\x1f\x8b"
+    good_file = tmp_path / "good.gz"
+    good_file.write_bytes(gz_signature)
+    bad_file = tmp_path / "bad.gz"
+    bad_file.write_bytes(b"bad")
+    matches, msg = _signature_matches_extension(
+        tmp_path / "uncompressed.nii", None)
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(tmp_path / "missing.gz", None)
+    assert not matches
+    assert msg.startswith("Could not read")
+    matches, msg = _signature_matches_extension(bad_file, None)
+    assert not matches
+    assert "is not a" in msg
+    matches, msg = _signature_matches_extension(bad_file, gz_signature + b"abc")
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(
+        good_file, gz_signature + b"abc")
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(good_file, gz_signature[:1])
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(good_file, None)
+    assert matches
+    assert msg == ""
 
 
 def test_read_img_data_nifti():

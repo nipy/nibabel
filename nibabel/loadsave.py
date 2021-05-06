@@ -20,13 +20,17 @@ from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
 
-def _signature_matches_extension(filename):
+def _signature_matches_extension(filename, sniff):
     """Check if signature aka magic number matches filename extension.
 
     Parameters
     ----------
     filename : str or os.PathLike
         Path to the file to check
+
+    sniff : bytes or None
+        First bytes of the file. If not `None` and long enough to contain the
+        signature, avoids having to read the start of the file.
 
     Returns
     -------
@@ -50,11 +54,14 @@ def _signature_matches_extension(filename):
     if ext not in signatures:
         return True, ""
     expected_signature = signatures[ext]["signature"]
-    try:
-        with open(filename, "rb") as fh:
-            found_signature = fh.read(len(expected_signature))
-    except OSError:
-        return False, f"Could not read file: {filename}"
+    if sniff is not None and len(sniff) >= len(expected_signature):
+        found_signature = sniff[:len(expected_signature)]
+    else:
+        try:
+            with open(filename, "rb") as fh:
+                found_signature = fh.read(len(expected_signature))
+        except OSError:
+            return False, f"Could not read file: {filename}"
     if found_signature == expected_signature:
         return True, ""
     format_name = signatures[ext]["format_name"]
@@ -85,9 +92,6 @@ def load(filename, **kwargs):
         raise FileNotFoundError(f"No such file or no access: '{filename}'")
     if stat_result.st_size <= 0:
         raise ImageFileError(f"Empty file: '{filename}'")
-    matches, msg = _signature_matches_extension(filename)
-    if not matches:
-        raise ImageFileError(msg)
 
     sniff = None
     for image_klass in all_image_classes:
@@ -95,6 +99,10 @@ def load(filename, **kwargs):
         if is_valid:
             img = image_klass.from_filename(filename, **kwargs)
             return img
+
+    matches, msg = _signature_matches_extension(filename, sniff)
+    if not matches:
+        raise ImageFileError(msg)
 
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
