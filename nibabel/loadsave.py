@@ -60,7 +60,7 @@ def _signature_matches_extension(filename, sniff):
                 sniff = fh.read(len(expected_signature))
         except OSError:
             return False, f"Could not read file: {filename}"
-    if not sniff.startswith(expected_signature):
+    if sniff.startswith(expected_signature):
         return True, ""
     format_name = signatures[ext]["format_name"]
     return False, f"File {filename} is not a {format_name} file"
