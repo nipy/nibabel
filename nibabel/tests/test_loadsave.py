@@ -10,7 +10,7 @@ import numpy as np
 from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image,
                 Nifti2Pair, Nifti2Image)
-from ..loadsave import load, read_img_data
+from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
@@ -74,6 +74,45 @@ def test_load_empty_image():
         with pytest.raises(ImageFileError) as err:
             load('empty.nii')
     assert str(err.value).startswith('Empty file: ')
+
+
+@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+def test_load_bad_compressed_extension(tmp_path, extension):
+    file_path = tmp_path / f"img.nii{extension}"
+    file_path.write_bytes(b"bad")
+    with pytest.raises(ImageFileError, match=".*is not a .* file"):
+        load(file_path)
+
+
+def test_signature_matches_extension(tmp_path):
+    gz_signature = b"\x1f\x8b"
+    good_file = tmp_path / "good.gz"
+    good_file.write_bytes(gz_signature)
+    bad_file = tmp_path / "bad.gz"
+    bad_file.write_bytes(b"bad")
+    matches, msg = _signature_matches_extension(
+        tmp_path / "uncompressed.nii", None)
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(tmp_path / "missing.gz", None)
+    assert not matches
+    assert msg.startswith("Could not read")
+    matches, msg = _signature_matches_extension(bad_file, None)
+    assert not matches
+    assert "is not a" in msg
+    matches, msg = _signature_matches_extension(bad_file, gz_signature + b"abc")
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(
+        good_file, gz_signature + b"abc")
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(good_file, gz_signature[:1])
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(good_file, None)
+    assert matches
+    assert msg == ""
 
 
 def test_read_img_data_nifti():
