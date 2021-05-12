@@ -113,13 +113,13 @@ are made according to the following rules:
   of a sentence (but no change of the Nibabel landing page or the “about”
   page), require approval by a core developer *and* no disagreement or
   requested changes by a core developer on the issue or pull request page (lazy
-  consensus). Core developers are expected to give “reasonable time” to others
-  to give their opinion on the pull request if they’re not confident others
-  would agree.
+  consensus). We expect core developers to give “reasonable time” to others to
+  give their opinion on the pull request if they’re not confident others would
+  agree.
 
-- **Code changes and major documentation changes** require agreement by *two*
-  core developers *and* no disagreement or requested changes by a core
-  developer on the issue or pull-request page (lazy consensus).
+- **Code changes and major documentation changes** require agreement by *one*
+  core developer *and* no disagreement or requested changes by a core developer
+  on the issue or pull-request page (lazy consensus).
 
 - **Changes to the API principles** require a :ref:`biap` and follow the
   decision-making process outlined above.
