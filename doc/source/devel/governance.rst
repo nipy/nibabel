@@ -138,7 +138,7 @@ Enhancement Proposals (BIAPs)
 =============================
 
 Any proposals for enhancements of Nibabel should be written as a formal BIAP
-following the template :doc:`biap-template`. The BIAP must be made public and
+following the template :doc:`biap_template`. The BIAP must be made public and
 discussed before any vote is taken. The discussion must be summarized by a key
 advocate of the proposal in the appropriate section of the BIAP. Once this
 summary is made public and after sufficient time to allow the core team to
