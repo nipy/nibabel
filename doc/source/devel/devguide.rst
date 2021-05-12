@@ -108,3 +108,16 @@ the algorithms with implications to the performance or validity of results.
 
 It may list references to 3rd party bugtrackers, in case the reported bugs
 match the criteria listed above.
+
+.. _mission_and_values:
+
+.. _community_guidelines:
+
+.. _code_of_conduct:
+
+Community guidelines
+====================
+
+Please see `our community guidelines
+<https://github.com/nipy/nibabel/blob/master/.github/CODE_OF_CONDUCT.md>`_.
+Other projects call these guidelines the "code of conduct".

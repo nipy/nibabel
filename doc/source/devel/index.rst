@@ -10,6 +10,8 @@ Developer documentation page
     :maxdepth: 2
 
     devguide
+    governance
+    roadmap
     add_test_data
     add_image_format
     devdiscuss
