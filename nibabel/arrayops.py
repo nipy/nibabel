@@ -1,7 +1,9 @@
-import numpy as np
 import operator
-from functools import partial
+
+import numpy as np
+
 from .orientations import aff2axcodes
+
 
 support_np_type = (
     np.int8,
@@ -16,7 +18,10 @@ class OperableImage:
     def _op(self, other, op):
         """Apply operator to Nifti1Image.
 
-        This is a draft and experiment.
+        Arithmetic and logical operation on Nifti image.
+        Currently support: +, -, *, /, //, &, |
+        The nifit image should contain the same header information and affine.
+        Images should be the same shape.
 
         Parameters
         ----------
@@ -39,7 +44,7 @@ class OperableImage:
         dtypes = [img.get_data_dtype().type for img in (self, other)]
         # check allowed dtype based on the operator
         if set(support_np_type).union(dtypes) == 0:
-            raise ValueError("Image contains illegal datatype for arithmatic.")
+            raise ValueError("Image contains illegal datatype for Nifti1Image.")
 
         if op.__name__ in ["add", "sub", "mul", "truediv", "floordiv"]:
             dataobj = op(np.asanyarray(self.dataobj), np.asanyarray(other.dataobj))
