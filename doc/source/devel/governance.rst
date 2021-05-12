@@ -68,12 +68,12 @@ objections.
 
 Steering Council
 ----------------
-The Steering Council (SC) members are core developers who have additional
-responsibilities to ensure the smooth running of the project. SC members are
-expected to participate in strategic planning, approve changes to the
-governance model, and make decisions about funding granted to the project
-itself. (Funding to community members is theirs to pursue and manage.) The
-purpose of the SC is to ensure smooth progress from the big-picture
+The Steering Council (SC) members are current or former core developers who
+have additional responsibilities to ensure the smooth running of the project.
+SC members are expected to participate in strategic planning, approve changes
+to the governance model, and make decisions about funding granted to the
+project itself. (Funding to community members is theirs to pursue and manage.)
+The purpose of the SC is to ensure smooth progress from the big-picture
 perspective. Changes that impact the full project require analysis informed by
 long experience with both the project and the larger ecosystem. When the core
 developer community (including the SC members) fails to reach such a consensus

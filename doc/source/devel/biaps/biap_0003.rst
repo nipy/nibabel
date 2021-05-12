@@ -1,0 +1,99 @@
+#####################################
+BIAP3 - a JSON nifti header extension
+#####################################
+
+******
+Status
+******
+
+Ongoing
+
+**********
+Background
+**********
+
+DICOM files in particular have a lot of information in them that we might want
+to carry with the image.  There are other image file types like Minc_ or Nrrd_
+that have information we'd like to support but can't with standard nifti.
+
+One obvious place to store this information is in a `nifti header extension`_.
+
+Nifti extension types
+=====================
+
+From `adding nifti extensions`_:
+
+* 0 = NIFTI_ECODE_IGNORE = unknown private format (not recommended!)
+* 2 = NIFTI_ECODE_DICOM = DICOM format (i.e., attribute tags and values):
+  http://medical.nema.org/
+* 4 = NIFTI_ECODE_AFNI = AFNI header attributes: The format of the AFNI
+  extension in the NIfTI-1.1 format is described at
+  http://nifti.nimh.nih.gov/nifti-1/AFNIextension1/
+* 6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no  
+  additional structure implied
+* 8 = NIFTI_ECODE_XCEDE = XCEDE metadata:
+  http://www.nbirn.net/Resources/Users/Applications/xcede/index.htm
+* 10 = NIFTI_ECODE_JIMDIMINFO = Dimensional information for the JIM software
+  (XML format); contact info is Dr Mark A Horsfield: mah5*AT*leicester.ac.uk.
+* 12 = NIFTI_ECODE_WORKFLOW_FWDS = Fiswidget XML pipeline descriptions;
+  documented at
+  http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html
+  ; contact info is Kate Fissell: fissell+*AT*pitt.edu.
+
+Options for us
+==============
+
+Summary: we need probably need our own extension format
+
+There is a DICOM type extension - code 2.  This might be OK for DICOM but:
+
+#. We probably don't want to have to dump the entire DICOM header for every
+   DICOM image.  If we don't that means we have to edit the DICOM header, and
+#. The DICOM format is awful to work with, so it is not a pleasant prospect
+   making a new DICOM header for images (like Minc) that aren't DICOM to start
+   with.
+#. I (MB) can't find any evidence that it's being used in the wild.
+#. It's not completely clear what format the data should be in. See `this
+   nifti thread
+   <http://nifti.nimh.nih.gov/board/read.php?f=1&i=2077&t=2069>`_.
+
+The AFNI extension format looks as if it is specific to AFNI.
+
+The XCEDE format looks rather heavy.  I'm (MB) trying to work out where the
+most current schema is.  Candidates are `bxh-xcede-tools`_ and the `xcede
+website`_. We'd need to validate the XML with the schema. It appears the
+python standard library doesn't support that so we'd need extra XML tools as a
+dependency.
+
+JIM_ is closed source.
+
+fiswidgets seems to have been quiet recently.  The link for code 12 is dead, I
+had to go back to the http://www.archive.org to get `an old copy
+<http://replay.waybackmachine.org/20060514073534/http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html>`_
+and that didn't have the DTD or example links that we need to understand the
+format.
+
+Learning from NRRDs
+===================
+
+Gordon Kindlmann's NRRD_ format has gone through a few versions and has
+considerable use particularly by the `3D slicer`_ team.  I've tried to
+summarize the NRRD innovations not properly covered by nifti in
+[[nifti-nrrd]].
+
+********
+Proposal
+********
+
+See [[json-header-extension]].
+
+.. _minc: http://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
+.. _nrrd: http://teem.sourceforge.net/nrrd/descformat.html
+.. _nifti header extension: http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html
+.. _adding nifti extensions: http://nifti.nimh.nih.gov/nifti-1/documentation/faq#Q19
+.. _bxh-xcede-tools: http://www.nitrc.org/projects/bxh_xcede_tools/
+.. _xcede website: http://www.xcede.org/XCEDE.html
+.. _JIM: http://www.xinapse.com/Manual/index.html
+.. _3D slicer: http://www.slicer.org
+
+.. vim: ft=rst
