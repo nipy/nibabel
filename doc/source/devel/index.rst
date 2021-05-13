@@ -12,6 +12,7 @@ Developer documentation page
     devguide
     governance
     roadmap
+    biaps/index
     add_test_data
     add_image_format
     devdiscuss
