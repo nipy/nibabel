@@ -1,3 +1,5 @@
+.. _`biap_template`:
+
 ==================================
 BIAP X — Template and Instructions
 ==================================
