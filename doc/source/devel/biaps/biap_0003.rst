@@ -1,7 +1,7 @@
 .. _biap3:
 
 #####################################
-BIAP3 - a JSON nifti header extension
+BIAP3 - A JSON nifti header extension
 #####################################
 
 :Author: Matthew Brett, Bob Dougherty

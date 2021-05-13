@@ -1,7 +1,7 @@
 .. _biap7:
 
 ###############################
-BIAP7 - loading multiple images
+BIAP7 - Loading multiple images
 ###############################
 
 :Author: Matthew Brett

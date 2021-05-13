@@ -1,7 +1,7 @@
 .. _biap8:
 
 ################################################
-BIAP8 - always load image data as floating point
+BIAP8 - Always load image data as floating point
 ################################################
 
 :Author: Matthew Brett

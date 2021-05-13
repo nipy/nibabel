@@ -1,7 +1,7 @@
 .. _biap6:
 
 ##############################
-BIAP6 - identifying image axes
+BIAP6 - Identifying image axes
 ##############################
 
 :Author: Matthew Brett

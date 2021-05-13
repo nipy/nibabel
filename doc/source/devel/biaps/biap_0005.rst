@@ -1,7 +1,7 @@
 .. _biap5:
 
 ###############################
-BIAP5 - a streamlines converter
+BIAP5 - A streamlines converter
 ###############################
 
 :Author: Marc-Alexandre Côté
