@@ -2,9 +2,10 @@
 BIAP8 - always load image data as floating point
 ################################################
 
-******
-Status
-******
+:Author: Matthew Brett
+:Status: Accepted
+:Type: Standards
+:Created: 2018-04-18
 
 ``get_fdata`` shipped as of nibabel 2.2.0.
 
@@ -29,7 +30,9 @@ the image data after loading into memory.
 In detail
 =========
 
-At the moment, if you do this::
+At the moment, if you do this:
+
+.. code:: python
 
     img = nib.load('my_image.nii')
     data = img.get_data()
@@ -43,7 +46,9 @@ data type - here ``np.int16``.
 This is very efficient in terms of memory, but it can be a real trap unless
 you are careful.
 
-For example, let's say you had a pipeline where you did this::
+For example, let's say you had a pipeline where you did this:
+
+.. code:: python
 
     sum = img.get_data().sum()
 
@@ -57,7 +62,9 @@ image arrays to floating point to get sensible answers.
 Current implementation
 ======================
 
-``get_data`` has the following implementation, at time of writing::
+``get_data`` has the following implementation, at time of writing:
+
+.. code:: python
 
     def get_data(self):
         """ Return image data from image with any necessary scalng applied
@@ -90,7 +97,9 @@ The future default behavior of nibabel should be to do the thing least likely
 to trip you up by accident.  But - we do not want the result of ``get_data``
 to change silently between nibabel versions.
 
-* step 1: now - add ``get_fdata`` method::
+* step 1: now - add ``get_fdata`` method:
+
+.. code:: python
 
     def get_fdata(self, dtype=np.float64):
         """ Return floating point image data with necessary scalng applied.

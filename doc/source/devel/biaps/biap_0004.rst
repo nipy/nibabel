@@ -2,6 +2,11 @@
 BIAP4 - merging nibabel and dcmstack
 ####################################
 
+:Author: Brendan Moloney, Matthew Brett
+:Status: Draft
+:Type: Standards
+:Created: 2012-11-21
+
 In which we set out what dcmstack_ does and how it might integrate with the
 nibabel objects and functions.
 
@@ -14,10 +19,11 @@ Nifti, before doing any image processing. The Nifti format is significantly
 easier to work with and has wide spread compatibility. However, the vast 
 amount of meta data stored in the source DICOM files will be lost.
 
-After implementing this proposal, users will be able to preserve all of the meta 
-data from the DICOM files during conversion, including meta data from private 
-elements. The meta data will then be easily accessible through the `SpatialImage`
-API::
+After implementing this proposal, users will be able to preserve all of the
+meta data from the DICOM files during conversion, including meta data from
+private elements. The meta data will then be easily accessible through the
+`SpatialImage` API::
+
     >>> nii = nb.load('input.nii')
     >>> data = nii.get_data()
     >>> print data.shape

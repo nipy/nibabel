@@ -2,11 +2,10 @@
 BIAP6 - identifying image axes
 ##############################
 
-******
-Status
-******
-
-Ongoing
+:Author: Matthew Brett
+:Status: Draft
+:Type: Standards
+:Created: 2015-07-11
 
 **********
 Background
@@ -16,13 +15,17 @@ Image axes can have meaningful labels.
 
 For example in a typical 4D NIfTI file, as we move along the 4th dimension in
 the image array, we are also moving in time.  For example, this would be the
-first volume (in time)::
+first volume (in time):
+
+.. code:: python
 
     img = nibabel.load('my_4d.nii')
     data = img.get_data()
     vol0 = data[..., 0]
 
-and this would be second volume in time::
+and this would be second volume in time:
+
+.. code:: python
 
     vol1 = data[..., 1]
 
@@ -36,7 +39,9 @@ dimension.
 
 It is common to acquire MRI images one slice at a time.  In a 3D or 4D NIfTI,
 the 3rd axis often contains these slices.  So this these would be the first
-and second slices of data collected by the scanner::
+and second slices of data collected by the scanner:
+
+.. code:: python
 
     slice0 = vol0[:, :, 0]
     slice1 = vol0[:, :, 1]
@@ -84,7 +89,9 @@ length > 1.  Quoting from the standard::
 
 This arrangement happens in practice.  For example, SPM deformation fields
 have three values for each voxel (x, y, z displacement), and have shape (I, J,
-K, 1, 3)::
+K, 1, 3):
+
+.. code:: python
 
     In [7]: img = nib.load('y_highres001.nii')
     In [8]: img.shape

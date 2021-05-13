@@ -2,6 +2,11 @@
 BIAP5 - a streamlines converter
 ###############################
 
+:Author: Marc-Alexandre Côté
+:Status: Draft
+:Type: Standards
+:Created: 2013-09-03
+
 The first objective of this proposal is to add support to other streamlines
 format. The second objective is to be able to easily convert from one file
 format to another.

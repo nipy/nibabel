@@ -2,11 +2,10 @@
 BIAP7 - loading multiple images
 ###############################
 
-******
-Status
-******
-
-In discussion
+:Author: Matthew Brett
+:Status: Draft
+:Type: Standards
+:Created: 2015-07-18
 
 **********
 Background

@@ -2,11 +2,17 @@
 BIAP3 - a JSON nifti header extension
 #####################################
 
-******
-Status
-******
+:Author: Matthew Brett, Bob Dougherty
+:Status: Draft
+:Type: Standards
+:Created: 2011-03-26
 
-Ongoing
+The following Wiki documents should be merged with this one:
+
+* `JSON header extension
+  <https://github.com/nipy/nibabel/wiki/json-header-extension>`_.
+* `NIfTI metadata extension
+  <https://github.com/nipy/nibabel/wiki/NIfTI-metadata-extension>`_
 
 **********
 Background
