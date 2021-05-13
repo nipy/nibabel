@@ -83,7 +83,7 @@ in a reasonable timeframe, the SC is the entity that resolves the issue.
 Steering Council members appear as team members on the `Nibabel Steering
 Council Team page
 <https://github.com/orgs/nipy/teams/nibabel-steering-council/members>`_ and
-can be messaged ``@nipy/nibabel-steering-council``. Core
+can be messaged ``@nipy/nibabel-steering-council``.
 
 Decision Making Process
 =======================
