@@ -154,7 +154,7 @@ How a BIAP becomes Accepted
 A BIAP is ``Accepted`` by consensus of all interested contributors. We
 need a concrete way to tell whether consensus has been reached. When
 you think a BIAP is ready to accept, send an email to the
-networkx-discussion mailing list with a subject like:
+Nibabel discussion mailing list with a subject like:
 
   Proposal to accept BIAP #<number>: <title>
 
@@ -168,8 +168,6 @@ In the body of your email, you should:
 * include a sentence like: "If there are no substantive objections
   within 7 days from this email, then the BIAP will be accepted; see
   BIAP 0 for more details."
-
-For an example, see: https://mail.python.org/pipermail/networkx-discussion/2018-June/078345.html
 
 After you send the email, you should make sure to link to the email
 thread from the ``Discussion`` section of the BIAP, so that people can
