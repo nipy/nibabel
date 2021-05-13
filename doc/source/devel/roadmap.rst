@@ -41,7 +41,7 @@ store it, so it is easy to lose metadata and make analysis errors; see
 
 We plan to expand Nibabel's API to encode axis and tick labels by integrating
 the `Xarray package <http://xarray.pydata.org>`_.  Xarray simplifies HDF5
-serialization, and visualization; see https://napari.org.
+serialization, and visualization.
 
 An API for labels is not useful if we cannot read labels from the scanner
 data, or save them with the image.  We plan to:
