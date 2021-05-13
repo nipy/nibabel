@@ -12,6 +12,8 @@
 NiBabel Developer Guidelines
 ****************************
 
+Also see :ref:`devindex`
+
 NiBabel source code
 ===================
 
@@ -26,7 +28,7 @@ Documentation
 Code Documentation
 ------------------
 
-All documentation should be written using Numpy documentation conventions:
+Please write documentation using Numpy documentation conventions:
 
   https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard
 

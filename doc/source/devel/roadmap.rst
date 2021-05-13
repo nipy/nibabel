@@ -33,11 +33,11 @@ Axis and tick labels
 --------------------
 
 Brain images typically have three or four axes, whose meanings depend on the
-way the image was acquired.  Axes have natural labels, expressing meaning, such
-as "time" or "slice", and they may have tick labels such as acquisition time.
-The scanner captures this information, but typical image formats cannot store
-it, so it is easy to lose metadata and make analysis errors; see
-`https://github.com/nipy/nibabel/wiki/BIAP6`_
+way the image was acquired.  Axes have natural labels, expressing meaning,
+such as "time" or "slice", and they may have tick labels such as acquisition
+time. The scanner captures this information, but typical image formats cannot
+store it, so it is easy to lose metadata and make analysis errors; see
+:doc:`biap_0006`.
 
 We plan to expand Nibabel's API to encode axis and tick labels by integrating
 the Xarray package: `http://xarray.pydata.org`_.  Xarray simplifies HDF5

@@ -68,12 +68,13 @@ objections.
 
 Steering Council
 ----------------
-The Steering Council (SC) members are core developers who have additional
-responsibilities to ensure the smooth running of the project. SC members are
-expected to participate in strategic planning, approve changes to the
-governance model, and make decisions about funding granted to the project
-itself. (Funding to community members is theirs to pursue and manage.) The
-purpose of the SC is to ensure smooth progress from the big-picture
+
+The Steering Council (SC) members are current or former core developers who
+have additional responsibilities to ensure the smooth running of the project.
+SC members are expected to participate in strategic planning, approve changes
+to the governance model, and make decisions about funding granted to the
+project itself. (Funding to community members is theirs to pursue and manage.)
+The purpose of the SC is to ensure smooth progress from the big-picture
 perspective. Changes that impact the full project require analysis informed by
 long experience with both the project and the larger ecosystem. When the core
 developer community (including the SC members) fails to reach such a consensus
@@ -138,7 +139,7 @@ Enhancement Proposals (BIAPs)
 =============================
 
 Any proposals for enhancements of Nibabel should be written as a formal BIAP
-following the template :doc:`biap-template`. The BIAP must be made public and
+following the template :doc:`biap_template`. The BIAP must be made public and
 discussed before any vote is taken. The discussion must be summarized by a key
 advocate of the proposal in the appropriate section of the BIAP. Once this
 summary is made public and after sufficient time to allow the core team to
