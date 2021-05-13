@@ -68,6 +68,7 @@ objections.
 
 Steering Council
 ----------------
+
 The Steering Council (SC) members are current or former core developers who
 have additional responsibilities to ensure the smooth running of the project.
 SC members are expected to participate in strategic planning, approve changes
