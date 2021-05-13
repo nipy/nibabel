@@ -37,7 +37,7 @@ way the image was acquired.  Axes have natural labels, expressing meaning,
 such as "time" or "slice", and they may have tick labels such as acquisition
 time. The scanner captures this information, but typical image formats cannot
 store it, so it is easy to lose metadata and make analysis errors; see
-:doc:`biap_0006`.
+:ref:`biap6`.
 
 We plan to expand Nibabel's API to encode axis and tick labels by integrating
 the Xarray package: `http://xarray.pydata.org`_.  Xarray simplifies HDF5
@@ -49,12 +49,12 @@ data, or save them with the image.  We plan to:
 * Develop HDF5 equivalents of standard image formats, for serialization of
   data with labels.
 * Expand the current standard image format, NIfTI, to store labels in a JSON
-  addition to image metadata: `https://github.com/nipy/nibabel/wiki/BIAP3`_.
+  addition to image metadata: :ref:`biap3`.
 * Read image metadata from DICOM, the standard scanner format.
 
-Reading and attaching DICOM data will start with code integrated from Dcmstack,
-by Brendan Moloney: `https://github.com/moloney/dcmstack`_; see:
-`https://github.com/nipy/nibabel/wiki/BIAP4`_.
+Reading and attaching DICOM data will start with code integrated from
+`Dcmstack <https://github.com/moloney/dcmstack>`_, by Brendan Moloney; see:
+:ref:`biap4`.
 
 DICOM metadata is often hidden inside "private" DICOM elements that need
 specialized parsers. We want to expand these parsers to preserve full metadata
