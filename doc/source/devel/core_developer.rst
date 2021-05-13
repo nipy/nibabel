@@ -14,13 +14,13 @@ Reviewing
 How to Conduct A Good Review
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Always* be kind to contributors. Nearly all of NetworkX is
+*Always* be kind to contributors. Nearly all of Nibabel is
 volunteer work, for which we are tremendously grateful. Provide
 constructive criticism on ideas and implementations, and remind
 yourself of how it felt when your own work was being evaluated as a
 novice.
 
-NetworkX strongly values mentorship in code review.  New users
+Nibabel strongly values mentorship in code review.  New users
 often need more handholding, having little to no git
 experience. Repeat yourself liberally, and, if you don’t recognize a
 contributor, point them to our development guide, or other GitHub
@@ -33,12 +33,10 @@ an abandoned pull request.
 When reviewing, focus on the following:
 
 1. **API:** The API is what users see when they first use
-   NetworkX. APIs are difficult to change once released, so
-   should be simple, `functional
-   <https://en.wikipedia.org/wiki/Functional_programming>`__ (i.e. not
-   carry state), consistent with other parts of the library, and
-   should avoid modifying input variables.  Please familiarize
-   yourself with the project's :ref:`deprecation_policy`.
+   Nibabel. APIs are difficult to change once released, so
+   should be simple, consistent with other parts of the library, and
+   should avoid side-effects such as changing global state or modifying
+   input variables.
 
 2. **Documentation:** Any new feature should have a gallery
    example that not only illustrates but explains it.
