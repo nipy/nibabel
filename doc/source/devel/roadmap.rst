@@ -8,7 +8,7 @@ continue to be tracked on our issue tracker.
 
 The scope of these improvements means that these changes may be controversial,
 are likely to involve significant discussion among the core development team,
-and may require the creation of one or more NIAPs (Nibabel Increased
+and may require the creation of one or more BIAPs (niBabel Increased
 Awesomeness Proposals).
 
 ==========
