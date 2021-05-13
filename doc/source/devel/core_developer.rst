@@ -4,7 +4,7 @@ Core Developer Guide
 ====================
 
 As a core developer, you should continue making pull requests
-in accordance with the :ref:`devguide`.
+in accordance with the :ref:`chap_devguide`.
 You are responsible for shepherding other contributors through the review process.
 You also have the ability to merge or approve other contributors' pull requests.
 
@@ -38,7 +38,7 @@ When reviewing, focus on the following:
    should avoid side-effects such as changing global state or modifying
    input variables.
 
-2. **Documentation:** Any new feature should have a gallery
+2. **Documentation:** Any new feature should have a tutorial
    example that not only illustrates but explains it.
 
 3. **The algorithm:** You should understand the code being modified or
@@ -63,7 +63,7 @@ or using GitHub’s `suggestion
 whether to accept the changes.)
 
 Our default merge policy is to squash all PR commits into a single
-commit. Users who wish to bring the latest changes from ``main``
+commit. Users who wish to bring the latest changes from ``master``
 into their branch should be advised to merge, not to rebase.  Even
 when merge conflicts arise, don’t ask for a rebase unless you know
 that a contributor is experienced with git. Instead, rebase the branch
@@ -108,7 +108,7 @@ for a number of reasons:
 - fixing the issue is difficult, and it is deemed too niche a use case to
   devote sustained effort or prioritize over other issues; or
 - the use case or feature request is something that core developers feel
-  does not belong in NetworkX,
+  does not belong in Nibabel,
 
 among others. Similarly, pull requests sometimes need to be closed without
 merging, because:
@@ -116,7 +116,7 @@ merging, because:
 - the pull request implements a niche feature that we consider not worth the
   added maintenance burden;
 - the pull request implements a useful feature, but requires significant
-  effort to bring up to NetworkX's standards, and the original
+  effort to bring up to Nibabel's standards, and the original
   contributor has moved on, and no other developer can be found to make the
   necessary changes; or
 - the pull request makes changes that do not align with our values, such as
@@ -145,7 +145,7 @@ Further resources
 As a core member, you should be familiar with community and developer
 resources such as:
 
--  Our :ref:`contributor_guide`
+-  Our :ref:`chap_devguide`
 -  Our :ref:`code_of_conduct`
 -  `PEP8 <https://www.python.org/dev/peps/pep-0008/>`__ for Python style
 -  `PEP257 <https://www.python.org/dev/peps/pep-0257/>`__ and the `NumPy
@@ -153,9 +153,14 @@ resources such as:
    guide <https://numpy.org/doc/stable/docs/howto_document.html>`__
    for docstrings. (NumPy docstrings are a superset of PEP257. You
    should read both.)
--  The NetworkX `tag on
-   StackOverflow <https://stackoverflow.com/questions/tagged/networkx>`__
+-  The Nibabel `tag on NeuroStars <https://neurostars.org/tag/nibabel>`__
 -  Our `mailing
-   list <http://groups.google.com/group/networkx-discuss/>`__
+   list <https://mail.python.org/mailman/listinfo/neuroimaging>`__
 
 You are not required to monitor all of the social resources.
+
+Acknowledgments
+===============
+
+This document is based on the `NetworkX Core Developer guide
+<https://networkx.org/documentation/latest/developer/core_developer.html>`_.
