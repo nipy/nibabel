@@ -4,16 +4,9 @@ Core Developer Guide
 ====================
 
 As a core developer, you should continue making pull requests
-in accordance with the :ref:`contributor_guide`.
+in accordance with the :ref:`devguide`.
 You are responsible for shepherding other contributors through the review process.
-You should be familiar with our :ref:`mission_and_values`.
 You also have the ability to merge or approve other contributors' pull requests.
-Much like nuclear launch keys, it is a shared power: you must merge *only after*
-another core developer has approved the pull request, *and* after you yourself have carefully
-reviewed it.  (See `Reviewing`_ and especially `Merge Only Changes You
-Understand`_ below.) To ensure a clean git history, use GitHub's
-`Squash and Merge <https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/merging-a-pull-request#merging-a-pull-request-on-github>`__
-feature to merge, unless you have a good reason not to do so.
 
 Reviewing
 ---------
