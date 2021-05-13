@@ -40,8 +40,8 @@ store it, so it is easy to lose metadata and make analysis errors; see
 :ref:`biap6`.
 
 We plan to expand Nibabel's API to encode axis and tick labels by integrating
-the Xarray package: `http://xarray.pydata.org`_.  Xarray simplifies HDF5
-serialization, and visualization; see `https://napari.org`_.
+the `Xarray package <http://xarray.pydata.org>`_.  Xarray simplifies HDF5
+serialization, and visualization; see https://napari.org.
 
 An API for labels is not useful if we cannot read labels from the scanner
 data, or save them with the image.  We plan to:
@@ -67,10 +67,12 @@ API for surface data
 Neuroimaging data often refers to locations on the brain surface.  There are
 three common formats for such data: GIFTI, CIFTI and Freesurfer.  Nibabel can
 read these formats, but lacks a standard API for reading and storing surface
-data with metadata; see `https://github.com/nipy/nibabel/issues/936`_,
-`https://github.com/nilearn/nilearn/issues/2171`_.  We plan to develop
-a standard API, apply it to the standard formats, and design an efficient
-general HDF5 storage container for serializing surface data and metadata.
+data with metadata; see
+`nipy/nibabel#936 <https://github.com/nipy/nibabel/issues/936>`_,
+`nilearn/nilearn#2171 <https://github.com/nilearn/nilearn/issues/2171>`_.
+We plan to develop a standard API, apply it to the standard formats,
+and design an efficient general HDF5 storage container for serializing surface
+data and metadata.
 
 Range
 =====
