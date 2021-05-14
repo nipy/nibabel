@@ -17,7 +17,7 @@ The Neuroimaging in Python (NIPY) community is made up of members with a diverse
 personalities, background, and experiences. We welcome these differences because they are the
 source of diverse ideas, solutions and decisions about our work. Decisions we make affect users,
 colleagues, and through scientific results, the general public. We take these consequences
-seriously when making decisions. When you are working with members of the community, we encourage
+seriously when making decisions. When you are working with members of the community, we ask
 you to follow these guidelines, which help steer our interactions and help keep NIPY a positive,
 successful, and growing community.
 
