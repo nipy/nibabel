@@ -62,20 +62,6 @@ or using GitHub’s `suggestion
 (The latter is preferred because it gives the contributor a choice in
 whether to accept the changes.)
 
-Our default merge policy is to squash all PR commits into a single
-commit. Users who wish to bring the latest changes from ``master``
-into their branch should be advised to merge, not to rebase.  Even
-when merge conflicts arise, don’t ask for a rebase unless you know
-that a contributor is experienced with git. Instead, rebase the branch
-yourself, force-push to their branch, and advise the contributor on
-how to force-pull.  If the contributor is no longer active, you may
-take over their branch by submitting a new pull request and closing
-the original. In doing so, ensure you communicate that you are not
-throwing the contributor's work away!  You should use GitHub's
-``Co-authored-by:`` keyword for commit messages to credit the
-original contributor.
-
-
 Please add a note to a pull request after you push new changes; GitHub
 may not send out notifications for these.
 
