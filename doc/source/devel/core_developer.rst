@@ -48,7 +48,7 @@ When reviewing, focus on the following:
 
 4. **Tests:** All contributions to the library *must* be tested, and
    each added line of code should be covered by at least one test. Good
-   tests not only execute the code, but explores corner cases.  It is tempting
+   tests not only execute the code, but explore corner cases.  It is tempting
    not to review tests, but please do so.
 
 Other changes may be *nitpicky*: spelling mistakes, formatting,
@@ -119,7 +119,7 @@ merging, because:
   effort to bring up to Nibabel's standards, and the original
   contributor has moved on, and no other developer can be found to make the
   necessary changes; or
-- the pull request makes changes that do not align with our values, such as
+- the pull request makes changes that make maintenance harder, such as
   increasing the code complexity of a function significantly to implement a
   marginal speedup,
 
@@ -157,7 +157,7 @@ resources such as:
 -  Our `mailing
    list <https://mail.python.org/mailman/listinfo/neuroimaging>`__
 
-You are not required to monitor all of the social resources.
+Please do monitor any of the resources above that you find helpful.
 
 Acknowledgments
 ===============
