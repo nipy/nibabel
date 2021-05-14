@@ -40,7 +40,7 @@ project in concrete ways, such as:
 among other possibilities. By contributing to the project, community members
 can directly help to shape its future.
 
-Contributors should read the :ref:`chap_devguide` and our :ref:`code_of_conduct`.
+Contributors should read the :ref:`chap_devguide` and our :ref:`community_guidelines`.
 
 Core Developers
 ---------------

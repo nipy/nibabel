@@ -146,7 +146,7 @@ As a core member, you should be familiar with community and developer
 resources such as:
 
 -  Our :ref:`chap_devguide`
--  Our :ref:`code_of_conduct`
+-  Our :ref:`community_guidelines`
 -  `PEP8 <https://www.python.org/dev/peps/pep-0008/>`__ for Python style
 -  `PEP257 <https://www.python.org/dev/peps/pep-0257/>`__ and the `NumPy
    documentation
