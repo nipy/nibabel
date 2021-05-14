@@ -101,33 +101,33 @@ to change silently between nibabel versions.
 
 * step 1: now - add ``get_fdata`` method:
 
-.. code:: python
+  .. code:: python
 
-    def get_fdata(self, dtype=np.float64):
-        """ Return floating point image data with necessary scalng applied.
+      def get_fdata(self, dtype=np.float64):
+          """ Return floating point image data with necessary scalng applied.
 
-        If the image data is an array proxy (data not yet read from disk) then
-        read the data from file, and retain the result in an internal cache.
-        Future calls to ``get_fdata`` on the same image instance will return
-        the cached copy.
+          If the image data is an array proxy (data not yet read from disk) then
+          read the data from file, and retain the result in an internal cache.
+          Future calls to ``get_fdata`` on the same image instance will return
+          the cached copy.
 
-        Parameters
-        ----------
-        dtype : numpy dtype specifier
-            A numpy dtype specifier specifying a floating point type.  Data is
-            returned as this floating point type.  Default is ``np.float64``.
+          Parameters
+          ----------
+          dtype : numpy dtype specifier
+              A numpy dtype specifier specifying a floating point type.  Data is
+              returned as this floating point type.  Default is ``np.float64``.
 
-        Returns
-        -------
-        fdata : array
-            Array of image data of data type `dtype`.
-        """
-        dtype = np.dtype(dtype)
-        if not issubclass(dtype, np.inexact):
-            raise ValueError('{} should be floating point type'.format(dtype))
-        if self._fdata_cache is None:
-            self._fdata_cache = np.asanyarray(self._dataobj).astype(dtype)
-        return self._fdata_cache
+          Returns
+          -------
+          fdata : array
+              Array of image data of data type `dtype`.
+          """
+          dtype = np.dtype(dtype)
+          if not issubclass(dtype, np.inexact):
+              raise ValueError('{} should be floating point type'.format(dtype))
+          if self._fdata_cache is None:
+              self._fdata_cache = np.asanyarray(self._dataobj).astype(dtype)
+          return self._fdata_cache
 
   Change all instances of ``get_data`` in documentation to ``get_fdata``.
 
