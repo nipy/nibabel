@@ -1,5 +1,7 @@
+.. _biap4:
+
 ####################################
-BIAP4 - merging nibabel and dcmstack
+BIAP4 - Merging nibabel and dcmstack
 ####################################
 
 :Author: Brendan Moloney, Matthew Brett

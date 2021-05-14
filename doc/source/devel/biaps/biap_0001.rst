@@ -1,5 +1,7 @@
+.. _biap1:
+
 ################################
-BIAP1 - towards immutable images
+BIAP1 - Towards immutable images
 ################################
 
 :Author: Matthew Brett

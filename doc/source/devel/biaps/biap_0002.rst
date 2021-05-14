@@ -1,5 +1,7 @@
+.. _biap2:
+
 #################
-BIAP2 : Slicecopy
+BIAP2 - Slicecopy
 #################
 
 :Author: Matthew Brett

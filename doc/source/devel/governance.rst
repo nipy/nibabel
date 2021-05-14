@@ -40,7 +40,7 @@ project in concrete ways, such as:
 among other possibilities. By contributing to the project, community members
 can directly help to shape its future.
 
-Contributors should read the :ref:`contributor_guide` and our :ref:`code_of_conduct`.
+Contributors should read the :ref:`chap_devguide` and our :ref:`community_guidelines`.
 
 Core Developers
 ---------------
@@ -83,7 +83,7 @@ in a reasonable timeframe, the SC is the entity that resolves the issue.
 Steering Council members appear as team members on the `Nibabel Steering
 Council Team page
 <https://github.com/orgs/nipy/teams/nibabel-steering-council/members>`_ and
-can be messaged ``@nipy/nibabel-steering-council``. Core
+can be messaged ``@nipy/nibabel-steering-council``.
 
 Decision Making Process
 =======================
@@ -139,7 +139,7 @@ Enhancement Proposals (BIAPs)
 =============================
 
 Any proposals for enhancements of Nibabel should be written as a formal BIAP
-following the template :doc:`biap_template`. The BIAP must be made public and
+following the template :ref:`biap_template`. The BIAP must be made public and
 discussed before any vote is taken. The discussion must be summarized by a key
 advocate of the proposal in the appropriate section of the BIAP. Once this
 summary is made public and after sufficient time to allow the core team to
