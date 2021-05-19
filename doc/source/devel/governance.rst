@@ -51,9 +51,21 @@ have shown they can be trusted to maintain Nibabel with care. Becoming a
 core developer allows contributors to merge approved pull requests, cast votes
 for and against merging a pull request, and be involved in deciding major
 changes to the API, and thereby more easily carry on with their project related
-activities. Core developers appear as team members on the `Nibabel Core Team
-page <https://github.com/orgs/nipy/teams/nibabel-core-developers/members>`_ and
-can be messaged ``@nipy/nibabel-core-developers``. We expect core developers to
+activities.
+
+Core developers:
+
+======              ===========
+Name                Github user
+======              ===========
+Chris Markiewicz    effigies
+Matthew Brett       matthew-brett
+Oscar Esteban       oesteban
+======              ===========
+
+Core developers also appear as team members on the `Nibabel Core Team page
+<https://github.com/orgs/nipy/teams/nibabel-core-developers/members>`_ and can
+be messaged ``@nipy/nibabel-core-developers``. We expect core developers to
 review code contributions while adhering to the :ref:`core_dev`.
 
 New core developers can be nominated by any existing core developer. Discussion
@@ -80,7 +92,18 @@ long experience with both the project and the larger ecosystem. When the core
 developer community (including the SC members) fails to reach such a consensus
 in a reasonable timeframe, the SC is the entity that resolves the issue.
 
-Steering Council members appear as team members on the `Nibabel Steering
+The steering council is:
+
+======              ===========
+Name                Github user
+======              ===========
+Chris Markiewicz    effigies
+Matthew Brett       matthew-brett
+Michael Hanke       mih
+Yaroslav Halchenko  yarikoptic
+======              ===========
+
+Steering Council members also appear as team members on the `Nibabel Steering
 Council Team page
 <https://github.com/orgs/nipy/teams/nibabel-steering-council/members>`_ and
 can be messaged ``@nipy/nibabel-steering-council``.
