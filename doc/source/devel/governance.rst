@@ -56,7 +56,7 @@ activities.
 Core developers:
 
 ======              ===========
-Name                Github user
+Name                GitHub user
 ======              ===========
 Chris Markiewicz    effigies
 Matthew Brett       matthew-brett
