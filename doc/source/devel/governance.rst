@@ -95,7 +95,7 @@ in a reasonable timeframe, the SC is the entity that resolves the issue.
 The steering council is:
 
 ======              ===========
-Name                Github user
+Name                GitHub user
 ======              ===========
 Chris Markiewicz    effigies
 Matthew Brett       matthew-brett
