@@ -1,7 +1,7 @@
 # Community Guidelines
 
 Nibabel is a [NIPY](https://nipy.org) project, and we strive to adhere to the
-[NIPY Community Code](https://nipy.org/conduct.html), reproduced below.
+[NIPY code of conduct](https://nipy.org/conduct.html), reproduced below.
 
 The NIPY community is a community of practice devoted to the use of the Python programming language
 in the analysis of neuroimaging data. The following code of conduct is a guideline for our behavior
@@ -17,7 +17,7 @@ The Neuroimaging in Python (NIPY) community is made up of members with a diverse
 personalities, background, and experiences. We welcome these differences because they are the
 source of diverse ideas, solutions and decisions about our work. Decisions we make affect users,
 colleagues, and through scientific results, the general public. We take these consequences
-seriously when making decisions. When you are working with members of the community, we encourage
+seriously when making decisions. When you are working with members of the community, we ask
 you to follow these guidelines, which help steer our interactions and help keep NIPY a positive,
 successful, and growing community.
 
