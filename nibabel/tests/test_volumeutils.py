@@ -45,10 +45,11 @@ from ..volumeutils import (array_from_file,
                            _write_data,
                            _ftype4scaled_finite,
                            )
-from ..openers import Opener, BZ2File, HAVE_ZSTD
+from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from ..deprecator import ExpiredDeprecationError
+from ..optpkg import optional_package
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
@@ -56,9 +57,7 @@ import pytest
 
 from nibabel.testing import nullcontext, assert_dt_equal, assert_allclose_safely, suppress_warnings
 
-# only import ZstdFile, if installed
-if HAVE_ZSTD:
-    from ..openers import ZstdFile
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -76,7 +75,7 @@ def test__is_compressed_fobj():
                         ('.gz', gzip.open, True),
                         ('.bz2', BZ2File, True)]
         if HAVE_ZSTD:
-            file_openers += [('.zst', ZstdFile, True)]
+            file_openers += [('.zst', pyzstd.ZstdFile, True)]
         for ext, opener, compressed in file_openers:
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
@@ -100,7 +99,7 @@ def test_fobj_string_assumptions():
     with InTemporaryDirectory():
         openers = [open, gzip.open, BZ2File]
         if HAVE_ZSTD:
-            openers += [ZstdFile]
+            openers += [pyzstd.ZstdFile]
         for n, opener in itertools.product(
                 (256, 1024, 2560, 25600),
                 openers):
@@ -266,7 +265,7 @@ def test_array_from_file_reread():
     with InTemporaryDirectory():
         openers = [open, gzip.open, bz2.BZ2File, BytesIO]
         if HAVE_ZSTD:
-            openers += [ZstdFile]
+            openers += [pyzstd.ZstdFile]
         for shape, opener, dtt, order in itertools.product(
                 ((64,), (64, 65), (64, 65, 66)),
                 openers,

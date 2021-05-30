@@ -22,7 +22,7 @@ from ..externals.netcdf import netcdf_file
 from ..deprecated import ModuleProxy
 from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
-from ..openers import HAVE_ZSTD
+from ..optpkg import optional_package
 
 from ..tmpdirs import InTemporaryDirectory
 from ..deprecator import ExpiredDeprecationError
@@ -33,9 +33,7 @@ import pytest
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
 
-# only import ZstdFile, if installed
-if HAVE_ZSTD:
-    from ..openers import ZstdFile
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -178,7 +176,7 @@ class TestMinc1File(_TestMincFile):
             openers_exts = [(gzip.open, '.gz'),
                             (bz2.BZ2File, '.bz2')]
             if HAVE_ZSTD:  # add .zst to test if installed
-                openers_exts += [(ZstdFile, '.zst')]
+                openers_exts += [(pyzstd.ZstdFile, '.zst')]
             with InTemporaryDirectory():
                 for opener, ext in openers_exts:
                     fname = 'test.mnc' + ext

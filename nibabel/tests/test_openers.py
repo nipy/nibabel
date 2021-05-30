@@ -18,17 +18,17 @@ from ..openers import (Opener,
                        ImageOpener,
                        HAVE_INDEXED_GZIP,
                        BZ2File,
-                       HAVE_ZSTD)
+                       )
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
+from ..optpkg import optional_package
 
 import unittest
 from unittest import mock
 import pytest
 from ..testing import error_warnings
 
-if HAVE_ZSTD:
-    from ..openers import ZstdFile
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 
 class Lunk(object):
@@ -277,7 +277,7 @@ def test_compressed_ext_case():
                     IndexedGzipFile = GzipFile
                 assert isinstance(fobj.fobj, (GzipFile, IndexedGzipFile))
             elif lext == 'zst':
-                assert isinstance(fobj.fobj, ZstdFile)
+                assert isinstance(fobj.fobj, pyzstd.ZstdFile)
             else:
                 assert isinstance(fobj.fobj, BZ2File)
 
