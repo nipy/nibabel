@@ -99,7 +99,7 @@ Review and Resolution
 BIAPs are discussed on the mailing list.  The possible paths of the
 status of BIAPs are as follows:
 
-.. image:: _static/biap_flowchart.png
+.. image:: biap_flowchart.png
 
 All BIAPs should be created with the ``Draft`` status.
 
@@ -189,9 +189,9 @@ opportunities to compromise.
 If the final comment period passes without any substantive objections,
 then the BIAP can officially be marked ``Accepted``. You should send a
 followup email notifying the list (celebratory emoji optional but
-encouraged 🎉✨), and then update the BIAP by setting its ``:Status:``
-to ``Accepted``, and its ``:Resolution:`` header to a link to your
-followup email.
+encouraged), and then update the BIAP by setting its ``:Status:`` to
+``Accepted``, and its ``:Resolution:`` header to a link to your followup
+email.
 
 If there *are* substantive objections, then the BIAP remains in
 ``Draft`` state, discussion continues as normal, and it can be
