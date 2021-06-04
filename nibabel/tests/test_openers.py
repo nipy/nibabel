@@ -415,6 +415,29 @@ def test_DeterministicGzipFile():
         assert md5sum("filenameA.gz") == anon_chksum
 
 
+def test_DeterministicGzipFile_fileobj():
+    with InTemporaryDirectory():
+        msg = b"Hello, I'd like to have an argument."
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb", fileobj=fobj, mtime=0) as gzobj:
+                gzobj.write(msg)
+        ref_chksum = md5sum("ref.gz")
+
+        with open("test.gz", "wb") as fobj:
+            with DeterministicGzipFile(filename="", mode="wb", fileobj=fobj) as gzobj:
+                gzobj.write(msg)
+        md5sum("test.gz") == ref_chksum
+
+        with open("test.gz", "wb") as fobj:
+            with DeterministicGzipFile(fileobj=fobj, mode="wb") as gzobj:
+                gzobj.write(msg)
+        md5sum("test.gz") == ref_chksum
+
+        with open("test.gz", "wb") as fobj:
+            with DeterministicGzipFile(filename="test.gz", mode="wb", fileobj=fobj) as gzobj:
+                gzobj.write(msg)
+        md5sum("test.gz") == ref_chksum
+
 
 def test_bitwise_determinism():
     with InTemporaryDirectory():
