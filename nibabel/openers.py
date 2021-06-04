@@ -55,7 +55,7 @@ class DeterministicGzipFile(gzip.GzipFile):
                                 fileobj=fileobj, mtime=mtime)
 
 
-def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
+def _gzip_open(filename, mode='rb', compresslevel=9, mtime=0, keep_open=False):
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==
     # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
@@ -65,7 +65,7 @@ def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
     # Fall-back to built-in GzipFile
     else:
-        gzip_file = gzip.GzipFile(filename, mode, compresslevel)
+        gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
     return gzip_file
 
@@ -90,7 +90,7 @@ class Opener(object):
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
-    gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
+    gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     compress_ext_map = {
         '.gz': gz_def,
