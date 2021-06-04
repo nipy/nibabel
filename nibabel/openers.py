@@ -40,6 +40,21 @@ except ImportError:
     HAVE_INDEXED_GZIP = False
 
 
+class DeterministicGzipFile(gzip.GzipFile):
+    """ Deterministic variant of GzipFile
+
+    This writer does not add filename information to the header, and defaults
+    to a modification time (``mtime``) of 0 seconds.
+    """
+    def __init__(self, filename=None, mode=None, compresslevel=9, fileobj=None, mtime=0):
+        if mode and 'b' not in mode:
+            mode += 'b'
+        if filename:
+            fileobj = self.myfileobj = open(filename, mode or 'rb')
+        return super().__init__(filename="", mode=mode, compresslevel=compresslevel,
+                                fileobj=fileobj, mtime=mtime)
+
+
 def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==

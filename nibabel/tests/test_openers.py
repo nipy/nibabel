@@ -16,7 +16,7 @@ import hashlib
 import time
 
 from numpy.compat.py3k import asstr, asbytes
-from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File
+from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
 
@@ -354,6 +354,66 @@ virginia
 def md5sum(fname):
     with open(fname, "rb") as fobj:
         return hashlib.md5(fobj.read()).hexdigest()
+
+
+def test_DeterministicGzipFile():
+    with InTemporaryDirectory():
+        msg = b"Hello, I'd like to have an argument."
+
+        # No filename, no mtime
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb", fileobj=fobj, mtime=0) as gzobj:
+                gzobj.write(msg)
+        anon_chksum = md5sum("ref.gz")
+
+        with DeterministicGzipFile("default.gz", "wb") as fobj:
+            internal_fobj = fobj.myfileobj
+            fobj.write(msg)
+        # Check that myfileobj is being closed by GzipFile.close()
+        # This is in case GzipFile changes its internal implementation
+        assert internal_fobj.closed
+
+        assert md5sum("default.gz") == anon_chksum
+
+        # No filename, current mtime
+        now = time.time()
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb", fileobj=fobj, mtime=now) as gzobj:
+                gzobj.write(msg)
+        now_chksum = md5sum("ref.gz")
+
+        with DeterministicGzipFile("now.gz", "wb", mtime=now) as fobj:
+            fobj.write(msg)
+
+        assert md5sum("now.gz") == now_chksum
+
+        # Change in default behavior
+        with mock.patch("time.time") as t:
+            t.return_value = now
+
+            # GzipFile will use time.time()
+            with open("ref.gz", "wb") as fobj:
+                with GzipFile(filename="", mode="wb", fileobj=fobj) as gzobj:
+                    gzobj.write(msg)
+            assert md5sum("ref.gz") == now_chksum
+
+            # DeterministicGzipFile will use 0
+            with DeterministicGzipFile("now.gz", "wb") as fobj:
+                fobj.write(msg)
+            assert md5sum("now.gz") == anon_chksum
+
+        # GzipFile is filename dependent, DeterministicGzipFile is independent
+        with GzipFile("filenameA.gz", mode="wb", mtime=0) as gzobj:
+            gzobj.write(msg)
+        fnameA_chksum = md5sum("filenameA.gz")
+        assert fnameA_chksum != anon_chksum
+
+        with DeterministicGzipFile("filenameA.gz", "wb") as fobj:
+            fobj.write(msg)
+
+        # But the contents are the same with different filenames
+        assert md5sum("filenameA.gz") == anon_chksum
+
 
 
 def test_bitwise_determinism():
