@@ -440,3 +440,12 @@ def test_bitwise_determinism():
 
         assert md5sum("a.gz") == anon_chksum
         assert md5sum("b.gz") == anon_chksum
+
+        # Users can still set mtime, but filenames will not be embedded
+        with Opener("filenameA.gz", "wb", mtime=0xCAFE10C0) as fobj:
+            fobj.write(msg)
+        with Opener("filenameB.gz", "wb", mtime=0xCAFE10C0) as fobj:
+            fobj.write(msg)
+        fnameA_chksum = md5sum("filenameA.gz")
+        fnameB_chksum = md5sum("filenameB.gz")
+        assert fnameA_chksum == fnameB_chksum != anon_chksum
