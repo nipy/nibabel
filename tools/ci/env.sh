@@ -5,7 +5,7 @@ REQUIREMENTS="-r requirements.txt"
 # Minimum versions of minimum requirements
 MIN_REQUIREMENTS="-r min-requirements.txt"
 
-DEFAULT_OPT_DEPENDS="scipy matplotlib pillow pydicom h5py indexed_gzip"
+DEFAULT_OPT_DEPENDS="scipy matplotlib pillow pydicom h5py indexed_gzip pyzstd"
 # pydicom has skipped some important pre-releases, so enable a check against master
 PYDICOM_MASTER="git+https://github.com/pydicom/pydicom.git@master"
 # Minimum versions of optional requirements

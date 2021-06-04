@@ -43,7 +43,6 @@ from .spatialimages import (
     ImageDataError
 )
 from .volumeutils import Recoder
-from .openers import HAVE_ZSTD
 
 # used for doc-tests
 filepath = os.path.dirname(os.path.realpath(__file__))
@@ -491,9 +490,7 @@ class AFNIImage(SpatialImage):
     header_class = AFNIHeader
     valid_exts = ('.brik', '.head')
     files_types = (('image', '.brik'), ('header', '.head'))
-    _compressed_suffixes = ('.gz', '.bz2', '.Z')
-    if HAVE_ZSTD:  # If pyzstd installed., add .zst suffix
-        _compressed_suffixes = (*_compressed_suffixes, '.zst')
+    _compressed_suffixes = ('.gz', '.bz2', '.Z', '.zst')
     makeable = False
     rw = False
     ImageArrayProxy = AFNIArrayProxy

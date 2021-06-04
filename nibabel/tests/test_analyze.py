@@ -30,7 +30,7 @@ from .. import imageglobals
 from ..casting import as_int
 from ..tmpdirs import InTemporaryDirectory
 from ..arraywriters import WriterError
-from ..openers import HAVE_ZSTD
+from ..optpkg import optional_package
 
 import pytest
 from numpy.testing import (assert_array_equal, assert_array_almost_equal)
@@ -40,6 +40,8 @@ from ..testing import (data_path, suppress_warnings, assert_dt_equal,
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
+
+HAVE_ZSTD = optional_package("pyzstd")[1]
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 
