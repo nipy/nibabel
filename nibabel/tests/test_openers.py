@@ -12,6 +12,8 @@ import contextlib
 from gzip import GzipFile
 from io import BytesIO, UnsupportedOperation
 from distutils.version import StrictVersion
+import hashlib
+import time
 
 from numpy.compat.py3k import asstr, asbytes
 from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File
@@ -347,3 +349,34 @@ virginia
         lobj = Opener(Lunk(''))
         with pytest.raises(TypeError):
             list(lobj)
+
+
+def md5sum(fname):
+    with open(fname, "rb") as fobj:
+        return hashlib.md5(fobj.read()).hexdigest()
+
+
+def test_bitwise_determinism():
+    with InTemporaryDirectory():
+        msg = b"Hello, I'd like to have an argument."
+        # Canonical reference: No filename, no mtime
+        # Use default compresslevel
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb",
+                          compresslevel=1, fileobj=fobj,
+                          mtime=0) as gzobj:
+                gzobj.write(msg)
+        anon_chksum = md5sum("ref.gz")
+
+        # Different times, different filenames
+        now = time.time()
+        with mock.patch("time.time") as t:
+            t.return_value = now
+            with Opener("a.gz", "wb") as fobj:
+                fobj.write(msg)
+            t.return_value = now + 1
+            with Opener("b.gz", "wb") as fobj:
+                fobj.write(msg)
+
+        assert md5sum("a.gz") == anon_chksum
+        assert md5sum("b.gz") == anon_chksum
