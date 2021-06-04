@@ -158,10 +158,7 @@ class Opener(object):
         self._name will be None if object was created with a fileobj, otherwise
         it will be the filename.
         """
-        try:
-            return self.fobj.name
-        except AttributeError:
-            return self._name
+        return self._name
 
     @property
     def mode(self):
