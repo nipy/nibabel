@@ -47,9 +47,11 @@ class DeterministicGzipFile(gzip.GzipFile):
     to a modification time (``mtime``) of 0 seconds.
     """
     def __init__(self, filename=None, mode=None, compresslevel=9, fileobj=None, mtime=0):
+        # These two guards are copied from
+        # https://github.com/python/cpython/blob/6ab65c6/Lib/gzip.py#L171-L174
         if mode and 'b' not in mode:
             mode += 'b'
-        if filename:
+        if fileobj is None:
             fileobj = self.myfileobj = open(filename, mode or 'rb')
         return super().__init__(filename="", mode=mode, compresslevel=compresslevel,
                                 fileobj=fileobj, mtime=mtime)
