@@ -22,6 +22,9 @@ from .casting import shared_range, OK_FLOATS
 from .openers import Opener, BZ2File, IndexedGzipFile
 from .deprecated import deprecate_with_version
 from .externals.oset import OrderedSet
+from .optpkg import optional_package
+
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -39,6 +42,10 @@ default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
 COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File, IndexedGzipFile)
+
+# Enable .zst support if pyzstd installed.
+if HAVE_ZSTD:
+    COMPRESSED_FILE_LIKES = (*COMPRESSED_FILE_LIKES, pyzstd.ZstdFile)
 
 
 class Recoder(object):

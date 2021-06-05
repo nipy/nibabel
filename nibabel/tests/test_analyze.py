@@ -30,6 +30,7 @@ from .. import imageglobals
 from ..casting import as_int
 from ..tmpdirs import InTemporaryDirectory
 from ..arraywriters import WriterError
+from ..optpkg import optional_package
 
 import pytest
 from numpy.testing import (assert_array_equal, assert_array_almost_equal)
@@ -39,6 +40,8 @@ from ..testing import (data_path, suppress_warnings, assert_dt_equal,
 
 from .test_wrapstruct import _TestLabeledWrapStruct
 from . import test_spatialimages as tsi
+
+HAVE_ZSTD = optional_package("pyzstd")[1]
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 
@@ -788,6 +791,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         aff = np.eye(4)
         img_ext = img_klass.files_types[0][1]
         compressed_exts = ['', '.gz', '.bz2']
+        if HAVE_ZSTD:
+            compressed_exts += ['.zst']
         with InTemporaryDirectory():
             for offset in (0, 2048):
                 # Set offset in in-memory image

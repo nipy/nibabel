@@ -19,6 +19,8 @@ from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
+_compressed_suffixes = ('.gz', '.bz2', '.zst')
+
 
 def _signature_matches_extension(filename, sniff):
     """Check if signature aka magic number matches filename extension.
@@ -153,7 +155,7 @@ def save(img, filename):
         return
 
     # Be nice to users by making common implicit conversions
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+    froot, ext, trailing = splitext_addext(filename, _compressed_suffixes)
     lext = ext.lower()
 
     # Special-case Nifti singles and Pairs
