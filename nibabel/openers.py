@@ -15,6 +15,8 @@ import warnings
 from os.path import splitext
 from distutils.version import StrictVersion
 
+from nibabel.optpkg import optional_package
+
 # is indexed_gzip present and modern?
 try:
     import indexed_gzip as igzip
@@ -72,6 +74,12 @@ def _gzip_open(filename, mode='rb', compresslevel=9, mtime=0, keep_open=False):
     return gzip_file
 
 
+def _zstd_open(filename, mode="r", *, level_or_option=None, zstd_dict=None):
+    pyzstd = optional_package("pyzstd")[0]
+    return pyzstd.ZstdFile(filename, mode,
+                           level_or_option=level_or_option, zstd_dict=zstd_dict)
+
+
 class Opener(object):
     r""" Class to accept, maybe open, and context-manage file-likes / filenames
 
@@ -94,13 +102,20 @@ class Opener(object):
     """
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
+    zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
     compress_ext_map = {
         '.gz': gz_def,
         '.bz2': bz2_def,
+        '.zst': zstd_def,
         None: (open, ('mode', 'buffering'))  # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
+    #: default option for zst files
+    default_zst_compresslevel = 3
+    default_level_or_option = {"rb": None, "r": None,
+                               "wb": default_zst_compresslevel,
+                               "w": default_zst_compresslevel}
     #: whether to ignore case looking for compression extensions
     compress_ext_icase = True
 
@@ -117,10 +132,15 @@ class Opener(object):
         full_kwargs.update(dict(zip(arg_names[:n_args], args)))
         # Set default mode
         if 'mode' not in full_kwargs:
-            kwargs['mode'] = 'rb'
+            mode = 'rb'
+            kwargs['mode'] = mode
+        else:
+            mode = full_kwargs['mode']
         # Default compression level
         if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
+        if 'level_or_option' in arg_names and 'level_or_option' not in kwargs:
+            kwargs['level_or_option'] = self.default_level_or_option[mode]
         # Default keep_open hint
         if 'keep_open' in arg_names:
             kwargs.setdefault('keep_open', False)

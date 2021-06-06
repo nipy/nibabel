@@ -16,14 +16,22 @@ import hashlib
 import time
 
 from numpy.compat.py3k import asstr, asbytes
-from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile
+from ..openers import (Opener,
+                       ImageOpener,
+                       HAVE_INDEXED_GZIP,
+                       BZ2File,
+                       DeterministicGzipFile,
+                       )
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
+from ..optpkg import optional_package
 
 import unittest
 from unittest import mock
 import pytest
 from ..testing import error_warnings
+
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 
 class Lunk(object):
@@ -73,10 +81,13 @@ def test_Opener_various():
         import indexed_gzip as igzip
     with InTemporaryDirectory():
         sobj = BytesIO()
-        for input in ('test.txt',
-                      'test.txt.gz',
-                      'test.txt.bz2',
-                      sobj):
+        files_to_test = ['test.txt',
+                         'test.txt.gz',
+                         'test.txt.bz2',
+                         sobj]
+        if HAVE_ZSTD:
+            files_to_test += ['test.txt.zst']
+        for input in files_to_test:
             with Opener(input, 'wb') as fobj:
                 fobj.write(message)
                 assert fobj.tell() == len(message)
@@ -242,6 +253,8 @@ def test_compressed_ext_case():
     class StrictOpener(Opener):
         compress_ext_icase = False
     exts = ('gz', 'bz2', 'GZ', 'gZ', 'BZ2', 'Bz2')
+    if HAVE_ZSTD:
+        exts += ('zst', 'ZST', 'Zst')
     with InTemporaryDirectory():
         # Make a basic file to check type later
         with open(__file__, 'rb') as a_file:
@@ -266,6 +279,8 @@ def test_compressed_ext_case():
                 except ImportError:
                     IndexedGzipFile = GzipFile
                 assert isinstance(fobj.fobj, (GzipFile, IndexedGzipFile))
+            elif lext == 'zst':
+                assert isinstance(fobj.fobj, pyzstd.ZstdFile)
             else:
                 assert isinstance(fobj.fobj, BZ2File)
 
@@ -275,11 +290,14 @@ def test_name():
     sobj = BytesIO()
     lunk = Lunk('in ART')
     with InTemporaryDirectory():
-        for input in ('test.txt',
-                      'test.txt.gz',
-                      'test.txt.bz2',
-                      sobj,
-                      lunk):
+        files_to_test = ['test.txt',
+                         'test.txt.gz',
+                         'test.txt.bz2',
+                         sobj,
+                         lunk]
+        if HAVE_ZSTD:
+            files_to_test += ['test.txt.zst']
+        for input in files_to_test:
             exp_name = input if type(input) == type('') else None
             with Opener(input, 'wb') as fobj:
                 assert fobj.name == exp_name
@@ -331,10 +349,13 @@ virginia
 """.split('\n')
     with InTemporaryDirectory():
         sobj = BytesIO()
-        for input, does_t in (('test.txt', True),
-                              ('test.txt.gz', False),
-                              ('test.txt.bz2', False),
-                              (sobj, True)):
+        files_to_test = [('test.txt', True),
+                         ('test.txt.gz', False),
+                         ('test.txt.bz2', False),
+                         (sobj, True)]
+        if HAVE_ZSTD:
+            files_to_test += [('test.txt.zst', False)]
+        for input, does_t in files_to_test:
             with Opener(input, 'wb') as fobj:
                 for line in lines:
                     fobj.write(asbytes(line + os.linesep))

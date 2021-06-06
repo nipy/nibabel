@@ -906,7 +906,7 @@ class AnalyzeImage(SpatialImage):
     _meta_sniff_len = header_class.sizeof_hdr
     files_types = (('image', '.img'), ('header', '.hdr'))
     valid_exts = ('.img', '.hdr')
-    _compressed_suffixes = ('.gz', '.bz2')
+    _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
     makeable = True
     rw = True
