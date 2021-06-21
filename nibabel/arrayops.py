@@ -28,15 +28,17 @@ class OperableImage:
         op :
             Python operator.
         """
-        val = _input_validation(self, val)
+        affine, header = self.affine, self.header
+        self_, val_ = _input_validation(self, val)
         # numerical operator should work work
+
         if op.__name__ in ["add", "sub", "mul", "truediv", "floordiv"]:
-            dataobj = op(np.asanyarray(self.dataobj), val)
+            dataobj = op(self_, val_)
         if op.__name__ in ["and_", "or_"]:
-            self_ = self.dataobj.astype(bool)
-            other_ = val.astype(bool)
-            dataobj = op(self_, other_).astype(int)
-        return self.__class__(dataobj, self.affine, self.header)
+            self_ = self_.astype(bool)
+            val_ = val_.astype(bool)
+            dataobj = op(self_, val_).astype(int)
+        return self.__class__(dataobj, affine, header)
 
 
     def _unop(self, *, op):
@@ -87,7 +89,8 @@ class OperableImage:
 def _input_validation(self, val):
     """Check images orientation, affine, and shape muti-images operation."""
     _type_check(self)
-    if type(val) not in [float, int]:
+    if isinstance(val, self.__class__):
+        _type_check(val)
         # Check orientations are the same
         if aff2axcodes(self.affine) != aff2axcodes(val.affine):
             raise ValueError("Two images should have the same orientation")
@@ -99,9 +102,27 @@ def _input_validation(self, val):
             raise ValueError("Two images should have the same shape except"
                                 "the time dimension.")
 
-        _type_check(val)
-        val = np.asanyarray(val.dataobj)
-    return val
+        # if 4th dim exist in a image,
+        # reshape the 3d image to ensure valid projection
+        ndims = (len(self.shape), len(val.shape))
+        if 4 not in ndims:
+            self_ = np.asanyarray(self.dataobj)
+            val_ = np.asanyarray(val.dataobj)
+            return self_, val_
+
+        reference = None
+        imgs = []
+        for ndim, img in zip(ndims, (self, val)):
+            img_ = np.asanyarray(img.dataobj)
+            if ndim == 3:
+                reference = tuple(list(img.shape) + [1])
+                img_ = np.reshape(img_, reference)
+            imgs.append(img_)
+        return imgs
+    else:
+        self_ = np.asanyarray(self.dataobj)
+        val_ = val
+        return self_, val_
 
 def _type_check(*args):
     """Ensure image contains correct nifti data type."""
