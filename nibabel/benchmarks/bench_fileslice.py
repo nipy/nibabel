@@ -18,6 +18,7 @@ from ..openers import ImageOpener
 from ..fileslice import fileslice
 from ..rstutils import rst_table
 from ..tmpdirs import InTemporaryDirectory
+from ..optpkg import optional_package
 
 SHAPE = (64, 64, 32, 100)
 ROW_NAMES = [f'axis {i}, len {dim}' for i, dim in enumerate(SHAPE)]
@@ -25,6 +26,7 @@ COL_NAMES = ['mid int',
              'step 1',
              'half step 1',
              'step mid int']
+HAVE_ZSTD = optional_package("pyzstd")[1]
 
 
 def _slices_for_len(L):
@@ -70,7 +72,8 @@ def run_slices(file_like, repeat=3, offset=0, order='F'):
 def bench_fileslice(bytes=True,
                     file_=True,
                     gz=True,
-                    bz2=False):
+                    bz2=False,
+                    zst=True):
     sys.stdout.flush()
     repeat = 2
 
@@ -103,4 +106,10 @@ def bench_fileslice(bytes=True,
         my_table('bz2 slice - raw (ratio)',
                  np.dstack((bz2_times, bz2_times / bz2_base)),
                  bz2_base)
+    if zst and HAVE_ZSTD:
+        with InTemporaryDirectory():
+            zst_times, zst_base = run_slices('data.zst', repeat)
+        my_table('zst slice - raw (ratio)',
+                 np.dstack((zst_times, zst_times / zst_base)),
+                 zst_base)
     sys.stdout.flush()

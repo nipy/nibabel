@@ -19,6 +19,54 @@ from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
 
+_compressed_suffixes = ('.gz', '.bz2', '.zst')
+
+
+def _signature_matches_extension(filename, sniff):
+    """Check if signature aka magic number matches filename extension.
+
+    Parameters
+    ----------
+    filename : str or os.PathLike
+        Path to the file to check
+
+    sniff : bytes or None
+        First bytes of the file. If not `None` and long enough to contain the
+        signature, avoids having to read the start of the file.
+
+    Returns
+    -------
+    matches : bool
+       - `True` if the filename extension is not recognized (not .gz nor .bz2)
+       - `True` if the magic number was successfully read and corresponds to
+         the format indicated by the extension.
+       - `False` otherwise.
+    error_message : str
+       An error message if opening the file failed or a mismatch is detected;
+       the empty string otherwise.
+
+    """
+    signatures = {
+        ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
+        ".bz2": {"signature": b"BZh", "format_name": "bzip2"}
+    }
+    filename = _stringify_path(filename)
+    *_, ext = splitext_addext(filename)
+    ext = ext.lower()
+    if ext not in signatures:
+        return True, ""
+    expected_signature = signatures[ext]["signature"]
+    if sniff is None or len(sniff) < len(expected_signature):
+        try:
+            with open(filename, "rb") as fh:
+                sniff = fh.read(len(expected_signature))
+        except OSError:
+            return False, f"Could not read file: {filename}"
+    if sniff.startswith(expected_signature):
+        return True, ""
+    format_name = signatures[ext]["format_name"]
+    return False, f"File {filename} is not a {format_name} file"
+
 
 def load(filename, **kwargs):
     r""" Load file given filename, guessing at file type
@@ -51,6 +99,10 @@ def load(filename, **kwargs):
         if is_valid:
             img = image_klass.from_filename(filename, **kwargs)
             return img
+
+    matches, msg = _signature_matches_extension(filename, sniff)
+    if not matches:
+        raise ImageFileError(msg)
 
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
@@ -103,7 +155,7 @@ def save(img, filename):
         return
 
     # Be nice to users by making common implicit conversions
-    froot, ext, trailing = splitext_addext(filename, ('.gz', '.bz2'))
+    froot, ext, trailing = splitext_addext(filename, _compressed_suffixes)
     lext = ext.lower()
 
     # Special-case Nifti singles and Pairs

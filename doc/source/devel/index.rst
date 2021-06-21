@@ -10,6 +10,10 @@ Developer documentation page
     :maxdepth: 2
 
     devguide
+    core_developer
+    governance
+    roadmap
+    biaps/index
     add_test_data
     add_image_format
     devdiscuss
