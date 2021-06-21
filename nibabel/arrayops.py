@@ -3,15 +3,13 @@ import operator
 import numpy as np
 
 from .orientations import aff2axcodes
-
-
-support_np_type = (
-    np.int8,
-    np.int64,
-    np.float16,
-    np.float32,
-    np.float64,
-    np.complex128)
+# support_np_type = (
+#     np.int8,
+#     np.int64,
+#     np.float16,
+#     np.float32,
+#     np.float64,
+#     np.complex128)
 
 
 class OperableImage:
@@ -47,7 +45,7 @@ class OperableImage:
         op :
             Python operator.
         """
-        _type_check(self)
+        # _type_check(self)
         if op.__name__ in ["pos", "neg", "abs"]:
             dataobj = op(np.asanyarray(self.dataobj))
         return self.__class__(dataobj, self.affine, self.header)
@@ -85,18 +83,19 @@ class OperableImage:
 
 def _input_validation(self, val):
     """Check images orientation, affine, and shape muti-images operation."""
-    _type_check(self)
+    # _type_check(self)
     if isinstance(val, self.__class__):
-        _type_check(val)
+        # _type_check(val)
         # Check orientations are the same
         if aff2axcodes(self.affine) != aff2axcodes(val.affine):
             raise ValueError("Two images should have the same orientation")
         # Check affine
-        if (self.affine != val.affine).all():
+        if (self.affine != val.affine).any():
             raise ValueError("Two images should have the same affine.")
+
         # Check shape.
         if self.shape[:3] != val.shape[:3]:
-            raise ValueError("Two images should have the same shape except"
+            raise ValueError("Two images should have the same shape except "
                              "the time dimension.")
 
         # if 4th dim exist in a image,
@@ -122,10 +121,10 @@ def _input_validation(self, val):
         return self_, val_
 
 
-def _type_check(*args):
-    """Ensure image contains correct nifti data type."""
-    # Check types
-    dtypes = [img.get_data_dtype().type for img in args]
-    # check allowed dtype based on the operator
-    if set(support_np_type).union(dtypes) == 0:
-        raise ValueError("Image contains illegal datatype for Nifti1Image.")
+# def _type_check(*args):
+#     """Ensure image contains correct nifti data type."""
+#     # Check types
+#     dtypes = [img.get_data_dtype().type for img in args]
+#     # check allowed dtype based on the operator
+#     if set(support_np_type).union(dtypes) == 0:
+#         raise ValueError("Image contains illegal datatype for Nifti1Image.")
