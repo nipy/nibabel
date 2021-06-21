@@ -40,7 +40,6 @@ class OperableImage:
             dataobj = op(self_, val_).astype(int)
         return self.__class__(dataobj, affine, header)
 
-
     def _unop(self, *, op):
         """
         Parameters
@@ -52,7 +51,6 @@ class OperableImage:
         if op.__name__ in ["pos", "neg", "abs"]:
             dataobj = op(np.asanyarray(self.dataobj))
         return self.__class__(dataobj, self.affine, self.header)
-
 
     def __add__(self, other):
         return self._binop(other, op=operator.__add__)
@@ -85,7 +83,6 @@ class OperableImage:
         return self._unop(op=operator.__abs__)
 
 
-
 def _input_validation(self, val):
     """Check images orientation, affine, and shape muti-images operation."""
     _type_check(self)
@@ -100,7 +97,7 @@ def _input_validation(self, val):
         # Check shape.
         if self.shape[:3] != val.shape[:3]:
             raise ValueError("Two images should have the same shape except"
-                                "the time dimension.")
+                             "the time dimension.")
 
         # if 4th dim exist in a image,
         # reshape the 3d image to ensure valid projection
@@ -123,6 +120,7 @@ def _input_validation(self, val):
         self_ = np.asanyarray(self.dataobj)
         val_ = val
         return self_, val_
+
 
 def _type_check(*args):
     """Ensure image contains correct nifti data type."""
