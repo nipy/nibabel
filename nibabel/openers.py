@@ -42,7 +42,24 @@ except ImportError:
     HAVE_INDEXED_GZIP = False
 
 
-def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
+class DeterministicGzipFile(gzip.GzipFile):
+    """ Deterministic variant of GzipFile
+
+    This writer does not add filename information to the header, and defaults
+    to a modification time (``mtime``) of 0 seconds.
+    """
+    def __init__(self, filename=None, mode=None, compresslevel=9, fileobj=None, mtime=0):
+        # These two guards are copied from
+        # https://github.com/python/cpython/blob/6ab65c6/Lib/gzip.py#L171-L174
+        if mode and 'b' not in mode:
+            mode += 'b'
+        if fileobj is None:
+            fileobj = self.myfileobj = open(filename, mode or 'rb')
+        return super().__init__(filename="", mode=mode, compresslevel=compresslevel,
+                                fileobj=fileobj, mtime=mtime)
+
+
+def _gzip_open(filename, mode='rb', compresslevel=9, mtime=0, keep_open=False):
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==
     # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
@@ -52,7 +69,7 @@ def _gzip_open(filename, mode='rb', compresslevel=9, keep_open=False):
 
     # Fall-back to built-in GzipFile
     else:
-        gzip_file = gzip.GzipFile(filename, mode, compresslevel)
+        gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
     return gzip_file
 
@@ -83,7 +100,7 @@ class Opener(object):
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
-    gz_def = (_gzip_open, ('mode', 'compresslevel', 'keep_open'))
+    gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
     compress_ext_map = {
@@ -163,10 +180,7 @@ class Opener(object):
         self._name will be None if object was created with a fileobj, otherwise
         it will be the filename.
         """
-        try:
-            return self.fobj.name
-        except AttributeError:
-            return self._name
+        return self._name
 
     @property
     def mode(self):
