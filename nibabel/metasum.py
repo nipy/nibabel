@@ -165,7 +165,15 @@ class ValueIndices:
 
     def to_list(self):
         '''Convert back to a list of values'''
-        return [self.get_value(i) for i in range(self.n_input)]
+        if self._const_val is not _NoValue:
+            return [self._const_val] * self._n_input
+        res = [_NoValue] * self._n_input
+        for val, idx in self._unique_vals.items():
+            res[idx] = val
+        for val, ba in self._val_bitarrs.items():
+            for idx in self._extract_indices(ba):
+                res[idx] = val
+        return res
 
     def extend(self, values):
         '''Add more values to the end of any existing ones'''
