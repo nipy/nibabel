@@ -13,9 +13,16 @@ vidx_test_patterns = ([0] * 8,
 
 
 @pytest.mark.parametrize("in_list", vidx_test_patterns)
-def test_value_indices_rt(in_list):
+def test_value_indices_basics(in_list):
     '''Test we can roundtrip list -> ValueIndices -> list'''
     vidx = ValueIndices(in_list)
+    assert vidx.n_input == len(in_list)
+    assert len(vidx) == len(set(in_list))
+    assert sorted(vidx.values()) == sorted(list(set(in_list)))
+    for val in vidx.values():
+        assert vidx.count(val) == in_list.count(val)
+        for in_idx in vidx[val]:
+            assert in_list[in_idx] == val
     out_list = vidx.to_list()
     assert in_list == out_list
 
@@ -40,22 +47,32 @@ def test_value_indices_append_extend(in_list):
         assert vidx.to_list() == in_list + in_list
 
 
-metasum_test_dicts = (({'key1': 0, 'key2': 'a', 'key3': 3.0},
-                       {'key1': 2, 'key2': 'c', 'key3': 1.0},
-                       {'key1': 1, 'key2': 'b', 'key3': 2.0},
+metasum_test_dicts = (({'u1': 0, 'u2': 'a', 'u3': 3.0, 'c1': True, 'r1': 5},
+                       {'u1': 2, 'u2': 'c', 'u3': 1.0, 'c1': True, 'r1': 5},
+                       {'u1': 1, 'u2': 'b', 'u3': 2.0, 'c1': True, 'r1': 7},
                        ),
-                      ({'key1': 0, 'key2': 'a', 'key3': 3.0},
-                       {'key1': 2, 'key2': 'c'},
-                       {'key1': 1, 'key2': 'b', 'key3': 2.0},
+                      ({'u1': 0, 'u2': 'a', 'u3': 3.0, 'c1': True, 'r1': 5},
+                       {'u1': 2, 'u2': 'c', 'c1': True, 'r1': 5},
+                       {'u1': 1, 'u2': 'b', 'u3': 2.0, 'c1': True},
                        ),
                       )
 
 
 @pytest.mark.parametrize("in_dicts", metasum_test_dicts)
-def test_meta_summary_rt(in_dicts):
+def test_meta_summary_basics(in_dicts):
     msum = MetaSummary()
+    all_keys = set()
     for in_dict in in_dicts:
         msum.append(in_dict)
+        for key in in_dict.keys():
+            all_keys.add(key)
+    assert all_keys == set(msum.keys())
+    for key in msum.const_keys():
+        assert key.startswith('c')
+    for key in msum.unique_keys():
+        assert key.startswith('u')
+    for key in msum.repeating_keys():
+        assert key.startswith('r')
     for in_idx in range(len(in_dicts)):
         out_dict = msum.get_meta(in_idx)
         assert out_dict == in_dicts[in_idx]

@@ -125,7 +125,7 @@ class ValueIndices:
             return res
         return self._val_bitarrs[value].copy()
 
-    def num_indices(self, value, mask=None):
+    def count(self, value, mask=None):
         '''Number of indices for the given `value`'''
         if mask is not None:
             if len(mask) != self.n_input:
@@ -136,7 +136,7 @@ class ValueIndices:
             if mask is None:
                 return self._n_input
             return mask.count()
-        unique_idx = self._unique_vals.get(_NoValue)
+        unique_idx = self._unique_vals.get(value, _NoValue)
         if unique_idx is not _NoValue:
             if mask is not None:
                 if mask[unique_idx]:
@@ -144,7 +144,7 @@ class ValueIndices:
                 return 0
             return 1
         if mask is not None:
-            return (self._val_bitarrs[value] & mask).count
+            return (self._val_bitarrs[value] & mask).count()
         return self._val_bitarrs[value].count()
 
     def get_value(self, idx):
@@ -169,14 +169,14 @@ class ValueIndices:
 
     def extend(self, values):
         '''Add more values to the end of any existing ones'''
-        curr_size = self._n_input
+        init_size = self._n_input
         if isinstance(values, ValueIndices):
             other_is_vi = True
             other_size = values._n_input
         else:
             other_is_vi = False
             other_size = len(values)
-        final_size = curr_size + other_size
+        final_size = init_size + other_size
         for ba in self._val_bitarrs.values():
             ba.extend(zeros(other_size))
         if other_is_vi:
@@ -185,7 +185,7 @@ class ValueIndices:
                     self._extend_const(values)
                     return
                 else:
-                    self._rm_const()
+                    self._rm_const(final_size)
             elif values._const_val is not _NoValue:
                 cval = values._const_val
                 other_unique = {}
@@ -199,29 +199,30 @@ class ValueIndices:
                 other_unique = values._unique_vals
                 other_bitarrs = values._val_bitarrs
             for val, other_idx in other_unique.items():
-                self._ingest_single(val, final_size, curr_size, other_idx)
+                self._ingest_single(val, final_size, init_size, other_idx)
             for val, other_ba in other_bitarrs.items():
                 curr_ba = self._val_bitarrs.get(val)
                 if curr_ba is None:
                     curr_idx = self._unique_vals.get(val)
                     if curr_idx is None:
-                        if curr_size == 0:
+                        if init_size == 0:
                             new_ba = other_ba.copy()
                         else:
-                            new_ba = zeros(curr_size)
+                            new_ba = zeros(init_size)
                             new_ba.extend(other_ba)
                     else:
-                        new_ba = zeros(curr_size)
+                        new_ba = zeros(init_size)
                         new_ba[curr_idx] = True
                         new_ba.extend(other_ba)
                         del self._unique_vals[val]
                     self._val_bitarrs[val] = new_ba
                 else:
-                    curr_ba[curr_size:] |= other_ba
+                    curr_ba[init_size:] |= other_ba
+                self._n_input += other_ba.count()
         else:
             for other_idx, val in enumerate(values):
-                self._ingest_single(val, final_size, curr_size, other_idx)
-        self._n_input = final_size
+                self._ingest_single(val, final_size, init_size, other_idx)
+        assert self._n_input == final_size
 
     def append(self, value):
         '''Append another value as input'''
@@ -229,10 +230,18 @@ class ValueIndices:
             self._n_input += 1
             return
         elif self._const_val is not _NoValue:
-            self._rm_const()
+            self._rm_const(self._n_input + 1)
+            self._unique_vals[value] = self._n_input
+            self._n_input += 1
+            return
+        if self._n_input == 0:
+            self._const_val = value
+            self._n_input += 1
+            return
         curr_size = self._n_input
         found = False
         for val, bitarr in self._val_bitarrs.items():
+            assert len(bitarr) == self._n_input
             if val == value:
                 found = True
                 bitarr.append(True)
@@ -318,7 +327,7 @@ class ValueIndices:
         if rem != 0:
             return None
         for val in self.values():
-            if self.num_indices(val) != block_size:
+            if self.count(val) != block_size:
                 return None
         return block_size
 
@@ -335,32 +344,43 @@ class ValueIndices:
             except ValueError:
                 return
             yield curr_idx
-            start = curr_idx
+            start = curr_idx + 1
 
-    def _ingest_single(self, val, final_size, curr_size, other_idx):
+    def _ingest_single(self, val, final_size, init_size, other_idx):
         '''Helper to ingest single value from another collection'''
+        if val == self._const_val:
+            self._n_input += 1
+            return
+        elif self._const_val is not _NoValue:
+            self._rm_const(final_size)
+        if self._n_input == 0:
+            self._const_val = val
+            self._n_input += 1
+            return
+
         curr_ba = self._val_bitarrs.get(val)
         if curr_ba is None:
             curr_idx = self._unique_vals.get(val)
             if curr_idx is None:
-                self._unique_vals[val] = curr_size + other_idx
+                self._unique_vals[val] = init_size + other_idx
             else:
                 new_ba = zeros(final_size)
                 new_ba[curr_idx] = True
-                new_ba[curr_size + other_idx] = True
+                new_ba[init_size + other_idx] = True
                 self._val_bitarrs[val] = new_ba
                 del self._unique_vals[val]
         else:
-            curr_ba[curr_size + other_idx] = True
+            curr_ba[init_size + other_idx] = True
+        self._n_input += 1
 
-    def _rm_const(self):
+    def _rm_const(self, final_size):
         assert self._const_val is not _NoValue
         if self._n_input == 1:
             self._unique_vals[self._const_val] = 0
         else:
-            self._val_bitarrs[self._const_val] = bitarray(self._n_input)
-            self._val_bitarrs[self._const_val].setall(1)
-        self._const_val == _NoValue
+            self._val_bitarrs[self._const_val] = zeros(final_size)
+            self._val_bitarrs[self._const_val][:self._n_input] = True
+        self._const_val = _NoValue
 
     def _extend_const(self, other):
         if self._const_val != other._const_val:
