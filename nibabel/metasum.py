@@ -6,14 +6,18 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-'''Aggregate information for mutliple images
+'''Memory efficient tracking of meta data dicts with repeating elements
 '''
+from dataclasses import dataclass
+from enum import IntEnum
+
 from bitarray import bitarray, frozenbitarray
-from bitarry.utils import zeroes
+from bitarray.util import zeros
 
 
-class FloatCanon(object):
+class FloatCanon:
     '''Look up a canonical float that we compare equal to'''
+
     def __init__(self, n_digits=6):
         self._n_digits = n_digits
         self._offset = 0.5 * (10 ** -n_digits)
@@ -39,7 +43,9 @@ _NoValue = object()
 
 # TODO: Integrate some value canonicalization filtering? Or just require the
 #       user to do that themselves?
-class ValueIndices(object):
+
+
+class ValueIndices:
     """Track indices of values in sequence.
 
     If values repeat frequently then memory usage can be dramatically improved.
@@ -114,19 +120,31 @@ class ValueIndices(object):
             return res
         idx = self._unique_vals.get(value)
         if idx is not None:
-            res = zeroes(self._n_inpuf)
+            res = zeros(self._n_inpuf)
             res[idx] = 1
             return res
         return self._val_bitarrs[value].copy()
 
-    def num_indices(self, value):
+    def num_indices(self, value, mask=None):
         '''Number of indices for the given `value`'''
+        if mask is not None:
+            if len(mask) != self.n_input:
+                raise ValueError("Mask length must match input length")
         if self._const_val is not _NoValue:
             if self._const_val != value:
                 raise KeyError()
-            return self._n_input
-        if value in self._unique_vals:
+            if mask is None:
+                return self._n_input
+            return mask.count()
+        unique_idx = self._unique_vals.get(_NoValue)
+        if unique_idx is not _NoValue:
+            if mask is not None:
+                if mask[unique_idx]:
+                    return 1
+                return 0
             return 1
+        if mask is not None:
+            return (self._val_bitarrs[value] & mask).count
         return self._val_bitarrs[value].count()
 
     def get_value(self, idx):
@@ -138,12 +156,16 @@ class ValueIndices(object):
         for val, vidx in self._unique_vals.items():
             if vidx == idx:
                 return val
-        bit_idx = zeroes(self._n_input)
+        bit_idx = zeros(self._n_input)
         bit_idx[idx] = 1
         for val, ba in self._val_bitarrs.items():
-            if (ba | bit_idx).any():
+            if (ba & bit_idx).any():
                 return val
         assert False
+
+    def to_list(self):
+        '''Convert back to a list of values'''
+        return [self.get_value(i) for i in range(self.n_input)]
 
     def extend(self, values):
         '''Add more values to the end of any existing ones'''
@@ -156,7 +178,7 @@ class ValueIndices(object):
             other_size = len(values)
         final_size = curr_size + other_size
         for ba in self._val_bitarrs.values():
-            ba.extend(zeroes(other_size))
+            ba.extend(zeros(other_size))
         if other_is_vi:
             if self._const_val is not _NoValue:
                 if values._const_val is not _NoValue:
@@ -186,10 +208,10 @@ class ValueIndices(object):
                         if curr_size == 0:
                             new_ba = other_ba.copy()
                         else:
-                            new_ba = zeroes(curr_size)
+                            new_ba = zeros(curr_size)
                             new_ba.extend(other_ba)
                     else:
-                        new_ba = zeroes(curr_size)
+                        new_ba = zeros(curr_size)
                         new_ba[curr_idx] = True
                         new_ba.extend(other_ba)
                         del self._unique_vals[val]
@@ -221,12 +243,19 @@ class ValueIndices(object):
             if curr_idx is None:
                 self._unique_vals[value] = curr_size
             else:
-                new_ba = zeroes(curr_size + 1)
+                new_ba = zeros(curr_size + 1)
                 new_ba[curr_idx] = True
                 new_ba[curr_size] = True
                 self._val_bitarrs[value] = new_ba
                 del self._unique_vals[value]
         self._n_input += 1
+
+    def reverse(self):
+        '''Reverse the indices in place'''
+        for val, idx in self._unique_vals.items():
+            self._unique_vals[val] = self._n_input - idx - 1
+        for val, bitarr in self._val_bitarrs.items():
+            bitarr.reverse()
 
     def argsort(self, reverse=False):
         '''Return array of indices in order that sorts the values'''
@@ -248,6 +277,18 @@ class ValueIndices(object):
                 res_idx += 1
         return res
 
+    def reorder(self, order):
+        '''Reorder the indices in place'''
+        if len(order) != self._n_input:
+            raise ValueError("The 'order' has the incorrect length")
+        for val, idx in self._unique_vals.items():
+            self._unique_vals[val] = order.index(idx)
+        for val, bitarr in self._val_bitarrs.items():
+            new_ba = zeros(self._n_input)
+            for idx in self._extract_indices(bitarr):
+                new_ba[order.index(idx)] = True
+            self._val_bitarrs[val] = new_ba
+
     def is_covariant(self, other):
         '''True if `other` has values that vary the same way ours do
 
@@ -267,27 +308,22 @@ class ValueIndices(object):
             return False
         return True
 
-    def is_blocked(self, block_factor=None):
-        '''True if each value has the same number of indices
+    def get_block_size(self):
+        '''Return size of even blocks of values, or None if values aren't "blocked"
 
-        If `block_factor` is not None we also test that it evenly divides the
-        block size.
+        The number of values must evenly divide the number of inputs into the block size,
+        with each value appearing that same number of times.
         '''
         block_size, rem = divmod(self._n_input, len(self))
         if rem != 0:
-            return False
-        if block_factor is not None and block_size % block_factor != 0:
-            return False
+            return None
         for val in self.values():
             if self.num_indices(val) != block_size:
-                return False
-        return True
+                return None
+        return block_size
 
     def is_subpartition(self, other):
-        '''True if we have more values and they nest within values from other
-
-
-        '''
+        ''''''
 
     def _extract_indices(self, ba):
         '''Generate integer indices from bitarray representation'''
@@ -295,7 +331,7 @@ class ValueIndices(object):
         while True:
             try:
                 # TODO: Is this the most efficient approach?
-                curr_idx = ba.index(True, start=start)
+                curr_idx = ba.index(True, start)
             except ValueError:
                 return
             yield curr_idx
@@ -309,10 +345,10 @@ class ValueIndices(object):
             if curr_idx is None:
                 self._unique_vals[val] = curr_size + other_idx
             else:
-                new_ba = zeroes(final_size)
+                new_ba = zeros(final_size)
                 new_ba[curr_idx] = True
                 new_ba[curr_size + other_idx] = True
-                self._val_bitarrs = new_ba
+                self._val_bitarrs[val] = new_ba
                 del self._unique_vals[val]
         else:
             curr_ba[curr_size + other_idx] = True
@@ -351,6 +387,25 @@ class ValueIndices(object):
 _MissingKey = object()
 
 
+class DimTypes(IntEnum):
+    '''Enmerate the three types of nD dimensions'''
+    SLICE = 1
+    TIME = 2
+    PARAM = 3
+
+
+@dataclass
+class DimIndex:
+    '''Specify an nD index'''
+    dim_type: DimTypes
+
+    key: str
+
+
+class NdSortError(Exception):
+    '''Raised when the data cannot be sorted into an nD array as specified'''
+
+
 class MetaSummary:
     '''Summarize a sequence of dicts, tracking how individual keys vary
 
@@ -358,6 +413,7 @@ class MetaSummary:
     least repeated, and thus we can reduce memory consumption by only storing
     the value once along with the indices it appears at.
     '''
+
     def __init__(self):
         self._v_idxs = {}
         self._n_input = 0
@@ -379,9 +435,6 @@ class MetaSummary:
             v_idx.append(val)
             self._v_idxs[key] = v_idx
         self._n_input += 1
-
-    def extend(self, metas):
-        pass # TODO
 
     def keys(self):
         '''Generate all known keys'''
@@ -412,20 +465,26 @@ class MetaSummary:
             if 1 < len(v_idx) < n_input:
                 yield key
 
-    def repeating_groups(self, block_only=False, block_factor=None):
-        '''Generate groups of repeating keys that vary with the same pattern
+    def covariant_groups(self, keys=None, block_only=False):
+        '''Generate groups of keys that vary with the same pattern
         '''
-        n_input = self._n_input
-        if n_input <= 1:
-            # If there is only one element, consider all keys as const
-            return
-        # TODO: Can we sort so grouped v_idxs are sequential?
-        #         - Sort by num values isn't sufficient
-        curr_group = []
-        for key, v_idx in self._v_idxs.items():
-            if 1 < len(v_idx) < n_input:
-                if v_idx.is_even(block_factor):
-                pass # TODO
+        if keys is None:
+            keys = self.keys()
+        groups = []
+        for key in keys:
+            v_idx = self._v_idxs[key]
+            if len(groups) == 0:
+                groups.append((key, v_idx))
+                continue
+            for group in groups:
+                if group[0][1].is_covariant(v_idx):
+                    group.append(key)
+                    break
+            else:
+                groups.append((key, v_idx))
+        for group in groups:
+            group[0] = group[0][0]
+        return groups
 
     def get_meta(self, idx):
         '''Get the full dict at the given index'''
@@ -439,26 +498,86 @@ class MetaSummary:
 
     def get_val(self, idx, key, default=None):
         '''Get the value at `idx` for the `key`, or return `default``'''
-        res = self._v_idxs[key].get_value(key)
+        res = self._v_idxs[key].get_value(idx)
         if res is _MissingKey:
             return default
         return res
 
-    def nd_sort(self, dim_keys=None):
-        '''Produce indices ordered so as to fill an n-D array'''
+    def reorder(self, order):
+        '''Reorder indices in place'''
+        for v_idx in self._v_idxs.values():
+            v_idx.reorder(order)
 
-class SummaryTree:
-    '''Groups incoming meta data and creates hierarchy of related groups
+    def nd_sort(self, dims):
+        '''Produce linear indices to fill nD array as specified by `dims`
 
-    Each leaf node in the tree is a `MetaSummary`
-    '''
-    def __init__(self, group_keys):
-        self._group_keys = group_keys
-        self._group_summaries= {}
+        Assumes each input corresponds to a 2D or 3D array, and the combined
+        array is 3D+
+        '''
+        # Make sure dims aren't completely invalid
+        if len(dims) == 0:
+            raise ValueError("At least one dimension must be specified")
+        last_dim = None
+        for dim in dims:
+            if last_dim is not None:
+                if last_dim.dim_type > dim.dim_type:
+                    # TODO: This only allows PARAM dimensions at the end, which I guess is reasonable?
+                    raise ValueError("Invalid dimension order")
+                elif last_dim.dim_type == dim.dim_type and dim.dim_type != DimTypes.PARAM:
+                    raise ValueError("There can be at most one each of SLICE and TIME dimensions")
+            last_dim = dim
 
-    def add(self, meta):
-        pass
+        # Pull out info about different types of dims
+        n_slices = None
+        n_vol = None
+        time_dim = None
+        param_dims = []
+        n_params = []
+        total_params = 1
+        shape = []
+        curr_size = 1
+        for dim in dims:
+            dim_vidx = self._v_idxs[dim.key]
+            dim_type = dim.dim_type
+            if dim_type is DimTypes.SLICE:
+                n_slices = len(dim_vidx)
+                n_vol = dim_vidx.get_block_size()
+                if n_vol is None:
+                    raise NdSortError("There are missing or extra slices")
+                shape.append(n_slices)
+                curr_size *= n_slices
+            elif dim_type is DimTypes.TIME:
+                time_dim = dim
+            elif dim_type is DimTypes.PARAM:
+                if dim_vidx.get_block_size() is None:
+                    raise NdSortError(f"The parameter {dim.key} doesn't evenly divide inputs")
+                param_dims.append(dim)
+                n_param = len(dim_vidx)
+                n_params.append(n_param)
+                total_params *= n_param
+        if n_vol is None:
+            n_vol = self._n_input
 
-    def groups(self):
-        '''Generate the groups and their meta summaries'''
+        # Size of the time dimension must be infered from the size of the other dims
+        n_time = 1
+        if time_dim is not None:
+            n_time, rem = divmod(n_vol, total_params)
+            if rem != 0:
+                raise NdSortError(f"The combined parameters don't evenly divide inputs")
+            shape.append(n_time)
+            curr_size *= n_time
 
+        # Complete the "shape", and do a more detailed check that our param dims make sense
+        for dim, n_param in zip(param_dims, n_params):
+            dim_vidx = self._v_idxs[dim.key]
+            if dim_vidx.get_block_size() != curr_size:
+                raise NdSortError(f"The parameter {dim.key} doesn't evenly divide inputs")
+            shape.append(n_param)
+            curr_size *= n_param
+
+        # Extract dim keys for each input and do the actual sort
+        sort_keys = [(idx, tuple(self.get_val(idx, dim.key) for dim in reversed(dims)))
+                     for idx in range(self._n_input)]
+        sort_keys.sort(key=lambda x: x[1])
+
+        # TODO: Finish this
