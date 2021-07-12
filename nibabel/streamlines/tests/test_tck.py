@@ -4,7 +4,6 @@ import numpy as np
 from os.path import join as pjoin
 
 from io import BytesIO
-from nibabel.py3k import asbytes
 
 from ..array_sequence import ArraySequence
 from ..tractogram import Tractogram
@@ -16,7 +15,7 @@ from ..tck import TckFile
 
 import pytest
 from numpy.testing import assert_array_equal
-from ...testing import data_path, clear_and_catch_warnings
+from ...testing import data_path
 from .test_tractogram import assert_tractogram_equal
 
 DATA = {}
@@ -48,12 +47,14 @@ class TestTCK(unittest.TestCase):
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['empty_tck_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(tck.tractogram, DATA['empty_tractogram'])
+            with pytest.warns(Warning if lazy_load else None):
+                assert_tractogram_equal(tck.tractogram, DATA['empty_tractogram'])
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['simple_tck_fname'], lazy_load=lazy_load)
-            assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
+            with pytest.warns(Warning if lazy_load else None):
+                assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
 
         # Force TCK loading to use buffering.
         buffer_size = 1. / 1024**2  # 1 bytes
@@ -87,22 +88,21 @@ class TestTCK(unittest.TestCase):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['simple_tck_big_endian_fname'],
                                lazy_load=lazy_load)
-            assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
+            with pytest.warns(Warning if lazy_load else None):
+                assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
             assert tck.header['datatype'] == 'Float32BE'
 
     def test_load_file_with_wrong_information(self):
         tck_file = open(DATA['simple_tck_fname'], 'rb').read()
 
         # Simulate a TCK file where `datatype` has not the right endianness.
-        new_tck_file = tck_file.replace(asbytes("Float32LE"),
-                                        asbytes("Float32BE"))
+        new_tck_file = tck_file.replace(b"Float32LE", b"Float32BE")
         
         with pytest.raises(DataError):
             TckFile.load(BytesIO(new_tck_file))
 
         # Simulate a TCK file with unsupported `datatype`.
-        new_tck_file = tck_file.replace(asbytes("Float32LE"),
-                                        asbytes("int32"))
+        new_tck_file = tck_file.replace(b"Float32LE", b"int32")
         with pytest.raises(HeaderError):
             TckFile.load(BytesIO(new_tck_file))
 
@@ -110,21 +110,15 @@ class TestTCK(unittest.TestCase):
         new_tck_file = tck_file.replace(b"datatype: Float32LE\n", b"")
         # Need to adjust data offset.
         new_tck_file = new_tck_file.replace(b"file: . 67\n", b"file: . 47\n")
-        with clear_and_catch_warnings(record=True, modules=[tck_module]) as w:
+        with pytest.warns(HeaderWarning, match="Missing 'datatype'"):
             tck = TckFile.load(BytesIO(new_tck_file))
-            assert len(w) == 1
-            assert issubclass(w[0].category, HeaderWarning)
-            assert "Missing 'datatype'" in str(w[0].message)
-            assert_array_equal(tck.header['datatype'], "Float32LE")
+        assert_array_equal(tck.header['datatype'], "Float32LE")
 
         # Simulate a TCK file with no `file` field.
         new_tck_file = tck_file.replace(b"\nfile: . 67", b"")
-        with clear_and_catch_warnings(record=True, modules=[tck_module]) as w:
+        with pytest.warns(HeaderWarning, match="Missing 'file'") as w:
             tck = TckFile.load(BytesIO(new_tck_file))
-            assert len(w) == 1
-            assert issubclass(w[0].category, HeaderWarning)
-            assert "Missing 'file'" in str(w[0].message)
-            assert_array_equal(tck.header['file'], ". 56")
+        assert_array_equal(tck.header['file'], ". 56")
 
         # Simulate a TCK file with `file` field pointing to another file.
         new_tck_file = tck_file.replace(b"file: . 67\n",
@@ -133,8 +127,8 @@ class TestTCK(unittest.TestCase):
             TckFile.load(BytesIO(new_tck_file))
 
         # Simulate a TCK file which is missing a streamline delimiter.
-        eos = TckFile.FIBER_DELIMITER.tostring()
-        eof = TckFile.EOF_DELIMITER.tostring()
+        eos = TckFile.FIBER_DELIMITER.tobytes()
+        eof = TckFile.EOF_DELIMITER.tobytes()
         new_tck_file = tck_file[:-(len(eos) + len(eof))] + tck_file[-len(eof):]
 
         # Force TCK loading to use buffering.

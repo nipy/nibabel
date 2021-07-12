@@ -67,7 +67,7 @@ array([[ -2.  ,   0.  ,   0.  , 117.86],
        [  0.  ,   0.32,   2.17,  -7.25],
        [  0.  ,   0.  ,   0.  ,   1.  ]])
 
-``header`` contains the metadata for this inage.  In this case it is
+``header`` contains the metadata for this image.  In this case it is
 specifically NIfTI metadata:
 
 >>> img.header

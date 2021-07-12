@@ -115,22 +115,20 @@ def _unpack_var(var):
     """
 
     err_msg = ('Please check HEAD file to ensure it is AFNI compliant. '
-               'Offending attribute:\n%s' % var)
+               f'Offending attribute:\n{var}')
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
-        raise AFNIHeaderError('Invalid attribute type entry in HEAD file. '
-                              '%s' % err_msg)
+        raise AFNIHeaderError(f'Invalid attribute type entry in HEAD file. {err_msg}')
     if len(aname) != 1:
-        raise AFNIHeaderError('Invalid attribute name entry in HEAD file. '
-                              '%s' % err_msg)
+        raise AFNIHeaderError(f'Invalid attribute name entry in HEAD file. {err_msg}')
     atype = _attr_dic.get(atype[0], str)
     attr = ' '.join(var.strip().splitlines()[3:])
     if atype is not str:
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
-            raise AFNIHeaderError('Failed to read variable from HEAD file due '
-                                  'to improper type casting. %s' % err_msg)
+            raise AFNIHeaderError('Failed to read variable from HEAD file '
+                                  f'due to improper type casting. {err_msg}')
     else:
         # AFNI string attributes will always start with open single quote and
         # end with a tilde (NUL). These attributes CANNOT contain tildes (so
@@ -222,10 +220,6 @@ class AFNIArrayProxy(ArrayProxy):
     def __init__(self, file_like, header, *, mmap=True, keep_file_open=None):
         """
         Initialize AFNI array proxy
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------
@@ -421,7 +415,7 @@ class AFNIHeader(SpatialHeader):
         >>> fname = os.path.join(datadir, 'scaled+tlrc.HEAD')
         >>> header = AFNIHeader(parse_AFNI_header(fname))
         >>> header.get_data_scaling()
-        array([  3.88336300e-08])
+        array([3.883363e-08])
         """
         # BRICK_FLOAT_FACS has one value per sub-brick, such that the scaled
         # values for sub-brick array [n] are the values read from disk *
@@ -496,7 +490,7 @@ class AFNIImage(SpatialImage):
     header_class = AFNIHeader
     valid_exts = ('.brik', '.head')
     files_types = (('image', '.brik'), ('header', '.head'))
-    _compressed_suffixes = ('.gz', '.bz2', '.Z')
+    _compressed_suffixes = ('.gz', '.bz2', '.Z', '.zst')
     makeable = False
     rw = False
     ImageArrayProxy = AFNIArrayProxy
@@ -505,10 +499,6 @@ class AFNIImage(SpatialImage):
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         """
         Creates an AFNIImage instance from `file_map`
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
 
         Parameters
         ----------

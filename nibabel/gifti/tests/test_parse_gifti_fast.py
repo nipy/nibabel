@@ -7,15 +7,18 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from os.path import join as pjoin, dirname
+from os.path import join as pjoin, dirname, basename
 import sys
 import warnings
+import shutil
+from unittest import mock
 
 import numpy as np
 
 from .. import gifti as gi
 from ..util import gifti_endian_codes
-from ..parse_gifti_fast import Outputter, parse_gifti_file
+from ..parse_gifti_fast import (Outputter, parse_gifti_file, GiftiParseError,
+                                GiftiImageParser)
 from ...loadsave import load, save
 from ...nifti1 import xform_codes
 from ...tmpdirs import InTemporaryDirectory
@@ -38,9 +41,10 @@ DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
 # wb_command -gifti-convert ASCII base64bin.gii test.gii
 DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
+DATA_FILE7 = pjoin(IO_DATA_PATH, 'external.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
-numDA = [2, 1, 1, 1, 2, 1]
+datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6, DATA_FILE7]
+numDA = [2, 1, 1, 1, 2, 1, 2]
 
 DATA_FILE1_darr1 = np.array(
     [[-16.07201, -66.187515, 21.266994],
@@ -96,6 +100,28 @@ DATA_FILE5_darr2 = np.array([[6402, 17923, 25602],
 
 DATA_FILE6_darr1 = np.array([9182740, 9182740, 9182740], dtype=np.float32)
 
+DATA_FILE7_darr1 = np.array([[-1., -1., -1.],
+                             [-1., -1.,  1.],
+                             [-1.,  1., -1.],
+                             [-1.,  1.,  1.],
+                             [ 1., -1., -1.],
+                             [ 1., -1.,  1.],
+                             [ 1.,  1., -1.],
+                             [ 1.,  1.,  1.]], dtype=np.float32)
+
+DATA_FILE7_darr2 = np.array([[0, 6, 4],
+                             [0, 2, 6],
+                             [1, 5, 3],
+                             [3, 5, 7],
+                             [0, 4, 1],
+                             [1, 4, 5],
+                             [2, 7, 6],
+                             [2, 3, 7],
+                             [0, 1, 2],
+                             [1, 3, 2],
+                             [4, 7, 5],
+                             [4, 6, 7]], dtype=np.int32)
+
 
 def assert_default_types(loaded):
     default = loaded.__class__()
@@ -106,8 +132,7 @@ def assert_default_types(loaded):
             continue
         loadedtype = type(getattr(loaded, attr))
         assert loadedtype == defaulttype, (
-            "Type mismatch for attribute: {} ({!s} != {!s})".format(
-                attr, loadedtype, defaulttype))
+            f"Type mismatch for attribute: {attr} ({loadedtype} != {defaulttype})")
 
 
 def test_default_types():
@@ -383,3 +408,57 @@ def test_parse_with_buffersize():
     for buff_sz in [None, 1, 2**12]:
         img2 = load(DATA_FILE2, buffer_size=buff_sz)
         assert img2.darrays[0].data.shape == (143479, 1)
+
+
+def test_dataarray7():
+    img7 = load(DATA_FILE7)
+    assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_parse_with_memmmap():
+    img1 = load(DATA_FILE7)
+    img2 = load(DATA_FILE7, mmap=True)
+    img3 = load(DATA_FILE7, mmap=False)
+    assert len(img1.darrays) == len(img2.darrays) == 2
+    assert isinstance(img1.darrays[0].data, np.memmap)
+    assert isinstance(img1.darrays[1].data, np.memmap)
+    assert isinstance(img2.darrays[0].data, np.memmap)
+    assert isinstance(img2.darrays[1].data, np.memmap)
+    assert not isinstance(img3.darrays[0].data, np.memmap)
+    assert not isinstance(img3.darrays[1].data, np.memmap)
+    assert_array_almost_equal(img1.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img1.darrays[1].data, DATA_FILE7_darr2)
+    assert_array_almost_equal(img2.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img2.darrays[1].data, DATA_FILE7_darr2)
+    assert_array_almost_equal(img3.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img3.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_parse_with_memmap_fallback():
+    img1 = load(DATA_FILE7, mmap=True)
+    with mock.patch('numpy.memmap', side_effect=ValueError):
+        img2 = load(DATA_FILE7, mmap=True)
+    assert isinstance(img1.darrays[0].data, np.memmap)
+    assert isinstance(img1.darrays[1].data, np.memmap)
+    assert not isinstance(img2.darrays[0].data, np.memmap)
+    assert not isinstance(img2.darrays[1].data, np.memmap)
+    assert_array_almost_equal(img1.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img1.darrays[1].data, DATA_FILE7_darr2)
+    assert_array_almost_equal(img2.darrays[0].data, DATA_FILE7_darr1)
+    assert_array_almost_equal(img2.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_external_file_failure_cases():
+    # external file cannot be found
+    with InTemporaryDirectory() as tmpdir:
+        shutil.copy(DATA_FILE7, '.')
+        filename = pjoin(tmpdir, basename(DATA_FILE7))
+        with pytest.raises(GiftiParseError):
+            img = load(filename)
+    # load from in-memory xml string (parser requires it as bytes)
+    with open(DATA_FILE7, 'rb') as f:
+        xmldata = f.read()
+    parser = GiftiImageParser()
+    with pytest.raises(GiftiParseError):
+        img = parser.parse(xmldata)

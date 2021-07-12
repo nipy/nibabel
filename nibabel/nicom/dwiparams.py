@@ -1,4 +1,4 @@
-''' Process diffusion imaging parameters
+""" Process diffusion imaging parameters
 
 * ``q`` is a vector in Q space
 * ``b`` is a b value
@@ -18,13 +18,13 @@ The B matrix ``B`` is a symmetric positive semi-definite matrix.  If
 
    B ~ (q_est . q_est.T) / norm(q_est)
 
-'''
+"""
 import numpy as np
 import numpy.linalg as npl
 
 
 def B2q(B, tol=None):
-    ''' Estimate q vector from input B matrix `B`
+    """ Estimate q vector from input B matrix `B`
 
     We require that the input `B` is symmetric positive definite.
 
@@ -47,7 +47,7 @@ def B2q(B, tol=None):
     -------
     q : (3,) vector
        Estimated q vector from B matrix `B`
-    '''
+    """
     B = np.asarray(B)
     if not np.allclose(B - B.T, 0):
         raise ValueError('B matrix is not symmetric enough')
@@ -68,7 +68,7 @@ def B2q(B, tol=None):
 
 
 def nearest_pos_semi_def(B):
-    ''' Least squares positive semi-definite tensor estimation
+    """ Least squares positive semi-definite tensor estimation
 
     Reference: Niethammer M, San Jose Estepar R, Bouix S, Shenton M,
     Westin CF.  On diffusion tensor estimation. Conf Proc IEEE Eng Med
@@ -89,10 +89,10 @@ def nearest_pos_semi_def(B):
     --------
     >>> B = np.diag([1, 1, -1])
     >>> nearest_pos_semi_def(B)
-    array([[ 0.75,  0.  ,  0.  ],
-           [ 0.  ,  0.75,  0.  ],
-           [ 0.  ,  0.  ,  0.  ]])
-    '''
+    array([[0.75, 0.  , 0.  ],
+           [0.  , 0.75, 0.  ],
+           [0.  , 0.  , 0.  ]])
+    """
     B = np.asarray(B)
     vals, vecs = npl.eigh(B)
     # indices of eigenvalues in descending order
@@ -146,11 +146,11 @@ def q2bg(q_vector, tol=1e-5):
     Examples
     --------
     >>> q2bg([1, 0, 0])
-    (1.0, array([ 1.,  0.,  0.]))
+    (1.0, array([1., 0., 0.]))
     >>> q2bg([0, 10, 0])
-    (10.0, array([ 0.,  1.,  0.]))
+    (10.0, array([0., 1., 0.]))
     >>> q2bg([0, 0, 0])
-    (0.0, array([ 0.,  0.,  0.]))
+    (0.0, array([0., 0., 0.]))
     """
     q_vec = np.asarray(q_vector)
     norm = np.sqrt(np.sum(q_vec * q_vec))

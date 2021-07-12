@@ -18,7 +18,7 @@ import numpy as np
 import nibabel as nib
 from ..tmpdirs import InTemporaryDirectory
 from ..loadsave import load
-from ..orientations import flip_axis, aff2axcodes, inv_ornt_aff
+from ..orientations import aff2axcodes, inv_ornt_aff
 
 import unittest
 import pytest
@@ -65,9 +65,8 @@ def load_small_file():
 def check_nib_ls_example4d(opts=[], hdrs_str="", other_str=""):
     # test nib-ls script
     fname = pjoin(DATA_PATH, 'example4d.nii.gz')
-    expected_re = (" (int16|[<>]i2) \[128,  96,  24,   2\] "
-                   "2.00x2.00x2.20x2000.00  #exts: 2%s sform%s$"
-                   % (hdrs_str, other_str))
+    expected_re = (" (int16|[<>]i2) \\[128,  96,  24,   2\\] 2.00x2.00x2.20x2000.00  "
+                   f"#exts: 2{hdrs_str} sform{other_str}$")
     cmd = ['nib-ls'] + opts + [fname]
     code, stdout, stderr = run_command(cmd)
     assert fname == stdout[:len(fname)]
@@ -108,13 +107,13 @@ def check_nib_diff_examples():
 
 @pytest.mark.parametrize("args", [
     [],
-    [['-H', 'dim,bitpix'], " \[  4 128  96  24   2   1   1   1\] 16"],
+    [['-H', 'dim,bitpix'], r" \[  4 128  96  24   2   1   1   1\] 16"],
     [['-c'], "", " !1030 uniques. Use --all-counts"],
     [['-c', '--all-counts'], "", " 2:3 3:2 4:1 5:1.*"],
     # both stats and counts
-    [['-c', '-s', '--all-counts'], "", " \[229725\] \[2, 1.2e\+03\] 2:3 3:2 4:1 5:1.*"],
+    [['-c', '-s', '--all-counts'], "", r" \[229725\] \[2, 1.2e\+03\] 2:3 3:2 4:1 5:1.*"],
     # and must not error out if we allow for zeros
-    [['-c', '-s', '-z', '--all-counts'], "", " \[589824\] \[0, 1.2e\+03\] 0:360099 2:3 3:2 4:1 5:1.*"],
+    [['-c', '-s', '-z', '--all-counts'], "", r" \[589824\] \[0, 1.2e\+03\] 0:360099 2:3 3:2 4:1 5:1.*"],
 ])
 @script_test
 def test_nib_ls(args):
@@ -137,8 +136,8 @@ def test_nib_ls_multiple():
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
     i_str = ' i' if sys.byteorder == 'little' else ' <i'
-    assert ([l[ln:ln + len(i_str)] for l in stdout_lines] == [i_str] * 4, "Type sub-string didn't start with '%s'. "
-              "Full output was: %s" % (i_str, stdout_lines))
+    assert [l[ln:ln + len(i_str)] for l in stdout_lines] == [i_str] * 4, \
+            f"Type sub-string didn't start with '{i_str}'. Full output was: {stdout_lines}"
     # and if disregard type indicator which might vary
     assert (
         [l[l.index('['):] for l in stdout_lines] ==
@@ -175,7 +174,7 @@ def test_help():
                 continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])
         assert code == 0
-        assert_re_in(".*%s" % cmd, stdout)
+        assert_re_in(f".*{cmd}", stdout)
         assert_re_in(".*Usage", stdout)
         # Some third party modules might like to announce some Deprecation
         # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
@@ -194,15 +193,15 @@ def test_nib_nifti_dx():
     clean_hdr = pjoin(DATA_PATH, 'nifti1.hdr')
     cmd = ['nib-nifti-dx', clean_hdr]
     code, stdout, stderr = run_command(cmd)
-    assert stdout.strip() == 'Header for "%s" is clean' % clean_hdr
+    assert stdout.strip() == f'Header for "{clean_hdr}" is clean'
     dirty_hdr = pjoin(DATA_PATH, 'analyze.hdr')
     cmd = ['nib-nifti-dx', dirty_hdr]
     code, stdout, stderr = run_command(cmd)
-    expected = """Picky header check output for "%s"
+    expected = f"""Picky header check output for "{dirty_hdr}"
 
 pixdim[0] (qfac) should be 1 (default) or -1
 magic string "" is not valid
-sform_code 11776 not valid""" % (dirty_hdr,)
+sform_code 11776 not valid"""
     # Split strings to remove line endings
     assert stdout == expected
 
@@ -273,7 +272,7 @@ def test_parrec2nii():
             assert code == 1
             # Default scaling is dv
             pr_img = load(fname)
-            flipped_data = flip_axis(pr_img.get_fdata(), 1)
+            flipped_data = np.flip(pr_img.get_fdata(), 1)
             base_cmd = ['parrec2nii', '--overwrite', fname]
             check_conversion(base_cmd, flipped_data, out_froot)
             check_conversion(base_cmd + ['--scaling=dv'],
@@ -281,12 +280,12 @@ def test_parrec2nii():
                              out_froot)
             # fp
             pr_img = load(fname, scaling='fp')
-            flipped_data = flip_axis(pr_img.get_fdata(), 1)
+            flipped_data = np.flip(pr_img.get_fdata(), 1)
             check_conversion(base_cmd + ['--scaling=fp'],
                              flipped_data,
                              out_froot)
             # no scaling
-            unscaled_flipped = flip_axis(pr_img.dataobj.get_unscaled(), 1)
+            unscaled_flipped = np.flip(pr_img.dataobj.get_unscaled(), 1)
             check_conversion(base_cmd + ['--scaling=off'],
                              unscaled_flipped,
                              out_froot)
@@ -335,7 +334,7 @@ def test_parrec2nii_with_data():
                 assert np.all(np.abs(aff_off / vox_sizes) <= 0.501)
                 # The data is very close, unless it's the fieldmap
                 if par_root != 'fieldmap':
-                    conved_data_lps = flip_axis(conved_img.dataobj, 1)
+                    conved_data_lps = np.flip(conved_img.dataobj, 1)
                     assert np.allclose(conved_data_lps, philips_img.dataobj)
     with InTemporaryDirectory():
         # Test some options
@@ -437,7 +436,7 @@ def test_nib_trk2tck():
         assert os.path.isfile(simple_tck)
         trk = nib.streamlines.load(simple_trk)
         tck = nib.streamlines.load(simple_tck)
-        assert (tck.streamlines.data == trk.streamlines.data).all()
+        assert (tck.streamlines.get_data() == trk.streamlines.get_data()).all()
         assert isinstance(tck, nib.streamlines.TckFile)
 
         # Skip non TRK files.
@@ -456,7 +455,7 @@ def test_nib_trk2tck():
         assert len(stdout) == 0
         trk = nib.streamlines.load(standard_trk)
         tck = nib.streamlines.load(standard_tck)
-        assert (tck.streamlines.data == trk.streamlines.data).all()
+        assert (tck.streamlines.get_data() == trk.streamlines.get_data()).all()
 
 
 @script_test
@@ -483,7 +482,7 @@ def test_nib_tck2trk():
         assert os.path.isfile(standard_trk)
         tck = nib.streamlines.load(standard_tck)
         trk = nib.streamlines.load(standard_trk)
-        assert (trk.streamlines.data == tck.streamlines.data).all()
+        assert (trk.streamlines.get_data() == tck.streamlines.get_data()).all()
         assert isinstance(trk, nib.streamlines.TrkFile)
 
         # Skip non TCK files.
@@ -502,4 +501,4 @@ def test_nib_tck2trk():
         assert len(stdout) == 0
         tck = nib.streamlines.load(standard_tck)
         trk = nib.streamlines.load(standard_trk)
-        assert (tck.streamlines.data == trk.streamlines.data).all()
+        assert (tck.streamlines.get_data() == trk.streamlines.get_data()).all()

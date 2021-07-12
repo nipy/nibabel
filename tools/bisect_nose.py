@@ -54,6 +54,7 @@ UNTESTABLE = 125
 GOOD = 0
 BAD = 1
 
+
 def call_or_untestable(cmd):
     try:
         caller(cmd)
@@ -65,7 +66,7 @@ def main():
     parser = ArgumentParser(description=DESCRIP,
                             epilog=EPILOG,
                             formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('test_path',  type=str,
+    parser.add_argument('test_path', type=str,
                         help='Path to test')
     parser.add_argument('--error-txt', type=str,
                         help='regular expression for error of interest')
@@ -77,16 +78,16 @@ def main():
     args = parser.parse_args()
     path = os.path.abspath(args.test_path)
     if args.clean:
-        print "Cleaning"
+        print("Cleaning")
         call_or_untestable('git clean -fxd')
     if args.build:
-        print "Building"
+        print("Building")
         call_or_untestable('python setup.py build_ext -i')
     cwd = os.getcwd()
     tmpdir = tempfile.mkdtemp()
     try:
         os.chdir(tmpdir)
-        print "Testing"
+        print("Testing")
         proc = popener('nosetests ' + path)
         stdout, stderr = proc.communicate()
     finally:

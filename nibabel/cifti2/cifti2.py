@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to CIFTI-2 image format
+""" Read / write access to CIFTI-2 image format
 
 Format of the NIFTI2 container format described here:
 
@@ -15,13 +15,14 @@ Format of the NIFTI2 container format described here:
 Definition of the CIFTI-2 header format and file extensions can be found at:
 
     http://www.nitrc.org/projects/cifti
-'''
+"""
 import re
 from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
 from .. import xmlutils as xml
-from ..filebasedimages import FileBasedHeader
+from ..filebasedimages import FileBasedHeader, SerializableImage
 from ..dataobj_images import DataobjImage
+from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from warnings import warn
@@ -92,7 +93,7 @@ CIFTI_BRAIN_STRUCTURES = ('CIFTI_STRUCTURE_ACCUMBENS_LEFT',
 def _value_if_klass(val, klass):
     if val is None or isinstance(val, klass):
         return val
-    raise ValueError('Not a valid %s instance.' % klass.__name__)
+    raise ValueError(f'Not a valid {klass.__name__} instance.')
 
 
 def _underscore(string):
@@ -171,7 +172,7 @@ class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
 
 
 class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
-    """ CIFTI-2 label table: a sequence of ``Cifti2Label``\s
+    r""" CIFTI-2 label table: a sequence of ``Cifti2Label``\s
 
     * Description - Used by NamedMap when IndicesMapToDataType is
       "CIFTI_INDEX_TYPE_LABELS" in order to associate names and display colors
@@ -291,8 +292,7 @@ class Cifti2Label(xml.XmlSerializable):
                 v = _float_01(getattr(self, c_))
             except ValueError:
                 raise Cifti2HeaderError(
-                    'Label invalid %s needs to be a float between 0 and 1. '
-                    'and it is %s' % (c_, v)
+                    f'Label invalid {c_} needs to be a float between 0 and 1. and it is {v}'
                 )
 
         lab = xml.Element('Label')
@@ -786,7 +786,7 @@ class Cifti2VertexIndices(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2BrainModel(xml.XmlSerializable):
-    ''' Element representing a mapping of the dimension to vertex or voxels.
+    """ Element representing a mapping of the dimension to vertex or voxels.
 
     Mapping to vertices of voxels must be specified.
 
@@ -840,7 +840,7 @@ class Cifti2BrainModel(xml.XmlSerializable):
         Indices on the image towards where the array indices are mapped
     vertex_indices : Cifti2VertexIndices, optional
         Indices of the vertices towards where the array indices are mapped
-    '''
+    """
 
     def __init__(self, index_offset=None, index_count=None, model_type=None,
                  brain_structure=None, n_surface_vertices=None,
@@ -1126,9 +1126,9 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
 
     @property
     def mapped_indices(self):
-        '''
+        """
         List of matrix indices that are mapped
-        '''
+        """
         mapped_indices = []
         for v in self:
             a2md = self._get_indices_from_mim(v)
@@ -1136,7 +1136,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         return mapped_indices
 
     def get_index_map(self, index):
-        '''
+        """
         Cifti2 Mapping class for a given index
 
         Parameters
@@ -1150,7 +1150,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         cifti2_map : Cifti2MatrixIndicesMap
             Returns the Cifti2MatrixIndicesMap corresponding to
             the given index.
-        '''
+        """
 
         for v in self:
             a2md = self._get_indices_from_mim(v)
@@ -1205,7 +1205,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         return mat
 
     def get_axis(self, index):
-        '''
+        """
         Generates the Cifti2 axis for a given dimension
 
         Parameters
@@ -1216,7 +1216,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         Returns
         -------
         axis : :class:`.cifti2_axes.Axis`
-        '''
+        """
         from . import cifti2_axes
         return cifti2_axes.from_index_mapping(self.get_index_map(index))
 
@@ -1238,7 +1238,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
 
 
 class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
-    ''' Class for CIFTI-2 header extension '''
+    """ Class for CIFTI-2 header extension """
 
     def __init__(self, matrix=None, version="2.0"):
         FileBasedHeader.__init__(self)
@@ -1256,6 +1256,9 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
             cifti.append(mat_xml)
         return cifti
 
+    def __eq__(self, other):
+        return self.to_xml() == other.to_xml()
+
     @classmethod
     def may_contain_header(klass, binaryblock):
         from .parse_cifti2 import _Cifti2AsNiftiHeader
@@ -1263,20 +1266,20 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
 
     @property
     def number_of_mapped_indices(self):
-        '''
+        """
         Number of mapped indices
-        '''
+        """
         return len(self.matrix)
 
     @property
     def mapped_indices(self):
-        '''
+        """
         List of matrix indices that are mapped
-        '''
+        """
         return self.matrix.mapped_indices
 
     def get_index_map(self, index):
-        '''
+        """
         Cifti2 Mapping class for a given index
 
         Parameters
@@ -1290,11 +1293,11 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         cifti2_map : Cifti2MatrixIndicesMap
             Returns the Cifti2MatrixIndicesMap corresponding to
             the given index.
-        '''
+        """
         return self.matrix.get_index_map(index)
 
     def get_axis(self, index):
-        '''
+        """
         Generates the Cifti2 axis for a given dimension
 
         Parameters
@@ -1305,12 +1308,12 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         Returns
         -------
         axis : :class:`.cifti2_axes.Axis`
-        '''
+        """
         return self.matrix.get_axis(index)
 
     @classmethod
     def from_axes(cls, axes):
-        '''
+        """
         Creates a new Cifti2 header based on the Cifti2 axes
 
         Parameters
@@ -1322,12 +1325,12 @@ class Cifti2Header(FileBasedHeader, xml.XmlSerializable):
         -------
         header : Cifti2Header
             new header describing the rows/columns in a format consistent with Cifti2
-        '''
+        """
         from . import cifti2_axes
         return cifti2_axes.to_header(axes)
 
 
-class Cifti2Image(DataobjImage):
+class Cifti2Image(DataobjImage, SerializableImage):
     """ Class for single file CIFTI-2 format image
     """
     header_class = Cifti2Header
@@ -1342,7 +1345,7 @@ class Cifti2Image(DataobjImage):
                  nifti_header=None,
                  extra=None,
                  file_map=None):
-        ''' Initialize image
+        """ Initialize image
 
         The image is a combination of (dataobj, header), with optional metadata
         in `nifti_header` (a NIfTI2 header).  There may be more metadata in the
@@ -1365,7 +1368,7 @@ class Cifti2Image(DataobjImage):
             Extra metadata not captured by `header` or `nifti_header`.
         file_map : mapping, optional
             Mapping giving file information for this image format.
-        '''
+        """
         if not isinstance(header, Cifti2Header) and header:
             header = Cifti2Header.from_axes(header)
         super(Cifti2Image, self).__init__(dataobj, header=header,
@@ -1379,9 +1382,8 @@ class Cifti2Image(DataobjImage):
         self.update_headers()
 
         if self._dataobj.shape != self.header.matrix.get_data_shape():
-            warn("Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
-                self._dataobj.shape, self.header.matrix.get_data_shape()
-            ))
+            warn(f"Dataobj shape {self._dataobj.shape} does not match shape "
+                 f"expected from CIFTI-2 header {self.header.matrix.get_data_shape()}")
 
     @property
     def nifti_header(self):
@@ -1423,7 +1425,7 @@ class Cifti2Image(DataobjImage):
 
     @classmethod
     def from_image(klass, img):
-        ''' Class method to create new instance of own class from `img`
+        """ Class method to create new instance of own class from `img`
 
         Parameters
         ----------
@@ -1434,7 +1436,7 @@ class Cifti2Image(DataobjImage):
         -------
         cimg : instance
             Image, of our own class
-        '''
+        """
         if isinstance(img, klass):
             return img
         raise NotImplementedError
@@ -1456,12 +1458,14 @@ class Cifti2Image(DataobjImage):
         self.update_headers()
         header = self._nifti_header
         extension = Cifti2Extension(content=self.header.to_xml())
+        header.extensions = Nifti1Extensions(
+            ext for ext in header.extensions if not isinstance(ext, Cifti2Extension)
+        )
         header.extensions.append(extension)
         if self._dataobj.shape != self.header.matrix.get_data_shape():
             raise ValueError(
-                "Dataobj shape {} does not match shape expected from CIFTI-2 header {}".format(
-                    self._dataobj.shape, self.header.matrix.get_data_shape()
-                ))
+                f"Dataobj shape {self._dataobj.shape} does not match shape "
+                f"expected from CIFTI-2 header {self.header.matrix.get_data_shape()}")
         # if intent code is not set, default to unknown CIFTI
         if header.get_intent()[0] == 'none':
             header.set_intent('NIFTI_INTENT_CONNECTIVITY_UNKNOWN')
@@ -1474,18 +1478,30 @@ class Cifti2Image(DataobjImage):
         img.to_file_map(file_map or self.file_map)
 
     def update_headers(self):
-        ''' Harmonize NIfTI headers with image data
+        """ Harmonize NIfTI headers with image data
+
+        Ensures that the NIfTI-2 header records the data shape in the last three
+        ``dim`` fields. Per the spec:
+
+            Because the first four dimensions in NIfTI are reserved for space and time, the CIFTI
+            dimensions are stored in the NIfTI header in dim[5] and up, where dim[5] is the length
+            of the first CIFTI dimension (number of values in a row), dim[6] is the length of the
+            second CIFTI dimension, and dim[7] is the length of the third CIFTI dimension, if
+            applicable. The fields dim[1] through dim[4] will be 1; dim[0] will be 6 or 7,
+            depending on whether a third matrix dimension exists.
 
         >>> import numpy as np
         >>> data = np.zeros((2,3,4))
-        >>> img = Cifti2Image(data)
+        >>> img = Cifti2Image(data)  # doctest: +IGNORE_WARNINGS
         >>> img.shape == (2, 3, 4)
         True
         >>> img.update_headers()
-        >>> img.nifti_header.get_data_shape() == (2, 3, 4)
+        >>> img.nifti_header.get_data_shape() == (1, 1, 1, 1, 2, 3, 4)
         True
-        '''
-        self._nifti_header.set_data_shape(self._dataobj.shape)
+        >>> img.shape == (2, 3, 4)
+        True
+        """
+        self._nifti_header.set_data_shape((1, 1, 1, 1) + self._dataobj.shape)
 
     def get_data_dtype(self):
         return self._nifti_header.get_data_dtype()

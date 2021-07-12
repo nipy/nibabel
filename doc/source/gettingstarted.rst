@@ -86,8 +86,8 @@ e.g.
 Corresponding "setter" methods allow modifying a header, while ensuring its
 compliance with the file format specifications.
 
-In some situations we need even more flexibility, and for with great courage,
-NiBabel also offers access to the raw header information
+In some situations we need even more flexibility and, for those with great
+courage, NiBabel also offers access to the raw header information
 
 >>> raw = hdr.structarr
 >>> raw['xyzt_units']
@@ -111,14 +111,9 @@ In this case, we used the identity matrix as the affine transformation. The
 image header is initialized from the provided data array (i.e. shape, dtype)
 and all other values are set to resonable defaults.
 
-Saving this new image to a file is trivial.  We won't do it here, but it looks
-like::
+Saving this new image to a file is trivial:
 
-    img.to_filename(os.path.join('build','test4d.nii.gz'))
-
-or::
-
-    nib.save(img, os.path.join('build','test4d.nii.gz'))
+>>> nib.save(img, os.path.join('build', 'test4d.nii.gz'))  # doctest: +SKIP
 
 This short introduction only gave a quick overview of NiBabel's capabilities.
 Please have a look at the :ref:`api` for more details about supported file

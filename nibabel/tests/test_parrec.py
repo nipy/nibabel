@@ -9,7 +9,7 @@ import numpy as np
 from numpy import array as npa
 
 from .. import load as top_load
-from ..nifti1 import Nifti1Image, Nifti1Extension
+from ..nifti1 import Nifti1Image, Nifti1Extension, Nifti1Header
 from .. import parrec
 from ..parrec import (parse_PAR_header, PARRECHeader, PARRECError, vol_numbers,
                       vol_is_full, PARRECImage, PARRECArrayProxy, exts2pars)
@@ -549,6 +549,18 @@ def test_epi_params():
         assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
 
 
+def test_xyzt_unit_conversion():
+    # Check conversion to NIfTI-like has sensible units
+    for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
+        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        with open(epi_par, 'rt') as fobj:
+            epi_hdr = PARRECHeader.from_fileobj(fobj)
+        nifti_hdr = Nifti1Header.from_header(epi_hdr)
+        assert len(nifti_hdr.get_data_shape()) == 4
+        assert_almost_equal(nifti_hdr.get_zooms()[-1], 2.0)
+        assert nifti_hdr.get_xyzt_units() == ('mm', 'sec')
+
+
 def test_truncations():
     # Test tests for truncation
     par = pjoin(DATA_PATH, 'T2_.PAR')
@@ -658,9 +670,13 @@ def test_header_copy():
         with pytest.raises(PARRECError):
             PARRECHeader.from_fileobj(fobj)
     with open(TRUNC_PAR, 'rt') as fobj:
-        trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
+        # Parse but warn on inconsistent header
+        with pytest.warns(UserWarning, match="Header inconsistency"):
+            trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
     assert trunc_hdr.permit_truncated
-    trunc_hdr2 = trunc_hdr.copy()
+    # Warn on inconsistent header when copying
+    with pytest.warns(UserWarning, match="Header inconsistency"):
+        trunc_hdr2 = trunc_hdr.copy()
     assert_copy_ok(trunc_hdr, trunc_hdr2)
 
 
@@ -700,11 +716,14 @@ def test_image_creation():
             func(trunc_param)
         with pytest.raises(PARRECError):
             func(trunc_param, permit_truncated=False)
-        img = func(trunc_param, permit_truncated=True)
+        with pytest.warns(UserWarning, match="Header inconsistency"):
+            img = func(trunc_param, permit_truncated=True)
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, permit_truncated=True, scaling='dv')
+        with pytest.warns(UserWarning, match="Header inconsistency"):
+            img = func(trunc_param, permit_truncated=True, scaling='dv')
         assert_array_equal(img.dataobj, arr_prox_dv)
-        img = func(trunc_param, permit_truncated=True, scaling='fp')
+        with pytest.warns(UserWarning, match="Header inconsistency"):
+            img = func(trunc_param, permit_truncated=True, scaling='fp')
         assert_array_equal(img.dataobj, arr_prox_fp)
 
 

@@ -468,7 +468,7 @@ def test_io_scaling():
 
 def test_input_ranges():
     # Test we get good precision for a range of input data
-    arr = np.arange(-500, 501, 10, dtype=np.float)
+    arr = np.arange(-500, 501, 10, dtype=np.float64)
     bio = BytesIO()
     working_type = np.float32
     work_eps = np.finfo(working_type).eps
@@ -542,7 +542,7 @@ def test_nan2zero():
 def test_byte_orders():
     arr = np.arange(10, dtype=np.int32)
     # Test endian read/write of types not requiring scaling
-    for tp in (np.uint64, np.float, np.complex):
+    for tp in (np.uint64, np.float64, np.complex128):
         dt = np.dtype(tp)
         for code in '<>':
             ndt = dt.newbyteorder(code)
@@ -554,7 +554,7 @@ def test_byte_orders():
 
 
 def test_writers_roundtrip():
-    ndt = np.dtype(np.float)
+    ndt = np.dtype(np.float64)
     arr = np.arange(3, dtype=ndt)
     # intercept
     aw = SlopeInterArrayWriter(arr, ndt, calc_scale=False)
@@ -655,7 +655,7 @@ def test_float_int_min_max():
         arr = np.array([finf['min'], finf['max']], dtype=in_dt)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(arr)):
-            print('Hit PPC max -> inf bug; skip in_type %s' % in_dt)
+            print(f'Hit PPC max -> inf bug; skip in_type {in_dt}')
             continue
         for out_dt in IUINT_TYPES:
             try:
@@ -831,7 +831,7 @@ def test_finite_range_nan():
         ([np.inf, 1], (1, 1)),  # only look at finite values
         ([-np.inf, 1], (1, 1)),
         ([[], []], (np.inf, -np.inf)),  # empty array
-        (np.array([[-3, 0, 1], [2, -1, 4]], dtype=np.int), (-3, 4)),
+        (np.array([[-3, 0, 1], [2, -1, 4]], dtype=int), (-3, 4)),
         (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
         ([0., 1, 2, 3], (0, 3)),
         # Complex comparison works as if they are floats
@@ -859,7 +859,7 @@ def test_finite_range_nan():
                 # Check float types work as complex
                 in_arr = np.array(in_arr)
                 if in_arr.dtype.kind == 'f':
-                    c_arr = in_arr.astype(np.complex)
+                    c_arr = in_arr.astype(np.complex128)
                     try:
                         aw = awt(c_arr, out_type, **kwargs)
                     except WriterError:

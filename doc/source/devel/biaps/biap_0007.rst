@@ -1,0 +1,116 @@
+.. _biap7:
+
+###############################
+BIAP7 - Loading multiple images
+###############################
+
+:Author: Matthew Brett
+:Status: Draft
+:Type: Standards
+:Created: 2015-07-18
+
+**********
+Background
+**********
+
+Some formats store images with different shapes in the same file
+================================================================
+
+The ECAT file format can contain more than one type of image in a single image
+file.
+
+ECAT can store many *frames* in a single image file.  Each frame has its own
+*subheader*.   The subheader specifies the 3D image size; each frame can
+therefore have a different image size.
+
+We currently raise an error if you try and load an ECAT file where the frames
+do not have the same 3D dimensions.
+
+It would be better if we could allow loading multiple images with different
+image dimensions, from a single ECAT file.
+
+`Vista data format`_ and `Lipsia format`_ are other formats that allow saving
+multiple images with different image dimensions in the same file.  We don't
+currently support Lipsia or Vista formats and it is not clear how we would do
+that with the current ``load`` API.
+
+We have had some discussion about saving multiple images into a
+single HDF5 file - see https://github.com/nipy/nibabel/pull/215#issuecomment-122357444
+
+It can be useful to load 4D images as multiple 3D images
+========================================================
+
+We sometimes want to load a 4D image as multiple 3D images.
+
+When we are doing motion correction, we often want to split up a 4D image into
+separate 3D images.
+
+Motion estimation results in different affines for each volume in the 4D time
+series.  At the moment we have no API for returning these affines with a 4D
+image.  One way of doing that is to load the 4D image and affines as a
+sequence of 3D images, each with their own affine.
+
+We currently have a proposal open for a JSON header extension that can store
+these 4D affines for a 4D NIfTI file.
+
+SPM saves the affines in an associated ``.mat`` file, with one affine per
+volume in the 4D image.
+
+*******
+Options
+*******
+
+************************************************************
+Return an image sequence from ``load`` for some file formats
+************************************************************
+
+We don't currently load ECAT files from the top-level ``nibabel.load``
+function.
+
+We do have ``nibabel.ecat.load``, which raises an error for an ECAT file
+having frames with different image dimensions.
+
+We could therefore choose to return a sequence of images from ``nibabel.load``
+on an ECAT file, with one element per frame in the ECAT file.
+
+Most ECAT images are 4D images, in the sense that the frames in the file do
+all have the same image dimensions and data type, so this might be cumbersome
+as a default.
+
+We would have to work out how to deal with ``nibabel.ecat.load``.
+
+The same principles apply to the Lipsia / Vista formats, except we have no
+backward-compatibility problems, and it seems to be more common for these
+formats to mix image types in a single file.
+
+***************************************
+Add a ``load_multi`` top-level function
+***************************************
+
+``nibabel.load_multi`` always returns an image sequence.
+
+``nibabel.load`` always returns a single image.
+
+``nibabel.load`` on ECAT (etc) files could first do ``load_multi``, then check
+the resulting image dimensions, raising an error if incompatible,
+concatenating otherwise.
+
+``load_multi`` on current formats like NIfTI could return one image per
+volume, where each volume might have its own affine, as loaded from the JSON
+header extension or the SPM ``.mat`` file.
+
+.. _Lipsia format: http://static.cbs.mpg.de/lipsia/START/index3.html
+.. _Vista data format: http://www.cs.ubc.ca/labs/lci/vista/file.html
+
+.. vim:ft=rst
+
+
+***************************************
+Next steps:
+***************************************
+
+
+* Make sure there are use-cases where you could wish to call `load` vs. `load_multi` on the same image (perhaps a Nifti image with different affines for each volume)
+* Investigate AFNI file formats as a use-case for this.
+* Check the `nilearn` codebase, see if `iter_img` and `slice_img` functions might offer a post-`load` alternative. Also check if those functions could be deprecated in favor of slicing / iterating on `dataobj`
+* Create a new issue to implement getting an iterator on `dataobj`?

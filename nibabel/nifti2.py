@@ -6,12 +6,12 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to NIfTI2 image format
+""" Read / write access to NIfTI2 image format
 
 Format described here:
 
     https://www.nitrc.org/forum/message.php?msg_id=3738
-'''
+"""
 
 import numpy as np
 
@@ -141,7 +141,7 @@ class Nifti2Header(Nifti1Header):
     quaternion_threshold = -np.finfo(np.float64).eps * 3
 
     def get_data_shape(self):
-        ''' Get shape of data
+        """ Get shape of data
 
         Examples
         --------
@@ -161,11 +161,11 @@ class Nifti2Header(Nifti1Header):
         -----
         Does not use Nifti1 freesurfer hack for large vectors described in
         :meth:`Nifti1Header.set_data_shape`
-        '''
+        """
         return AnalyzeHeader.get_data_shape(self)
 
     def set_data_shape(self, shape):
-        ''' Set shape of data
+        """ Set shape of data
 
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
@@ -179,17 +179,17 @@ class Nifti2Header(Nifti1Header):
         -----
         Does not apply nifti1 Freesurfer hack for long vectors (see
         :meth:`Nifti1Header.set_data_shape`)
-        '''
+        """
         AnalyzeHeader.set_data_shape(self, shape)
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        ''' Create empty header binary block with given endianness '''
+        """ Create empty header binary block with given endianness """
         hdr_data = super(Nifti2Header, klass).default_structarr(endianness)
         hdr_data['eol_check'] = (13, 10, 26, 10)
         return hdr_data
 
-    ''' Checks only below here '''
+    """ Checks only below here """
 
     @classmethod
     def _get_checks(klass):
@@ -229,7 +229,7 @@ class Nifti2Header(Nifti1Header):
 
 
 class Nifti2PairHeader(Nifti2Header):
-    ''' Class for NIfTI2 pair header '''
+    """ Class for NIfTI2 pair header """
     # Signal whether this is single (header + data) file
     is_single = False
 

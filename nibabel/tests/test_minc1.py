@@ -22,6 +22,7 @@ from ..externals.netcdf import netcdf_file
 from ..deprecated import ModuleProxy
 from .. import minc1
 from ..minc1 import Minc1File, Minc1Image, MincHeader
+from ..optpkg import optional_package
 
 from ..tmpdirs import InTemporaryDirectory
 from ..deprecator import ExpiredDeprecationError
@@ -31,6 +32,8 @@ import pytest
 
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
+
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -100,23 +103,6 @@ EXAMPLE_IMAGES = [
 ]
 
 
-def test_old_namespace():
-    # Check old names are defined in minc1 module and top level
-    # Check warnings raised
-    arr = np.arange(24).reshape((2, 3, 4))
-    aff = np.diag([2, 3, 4, 1])
-
-    from .. import Minc1Image, MincImage
-    assert Minc1Image is not MincImage
-    with pytest.raises(ExpiredDeprecationError):
-        MincImage(arr, aff)
-    # Another old name
-    from ..minc1 import MincFile, Minc1File
-    assert MincFile is not Minc1File
-    with pytest.raises(ExpiredDeprecationError):
-        mf = MincFile(netcdf_file(EG_FNAME))
-
-
 class _TestMincFile(object):
     module = minc1
     file_class = Minc1File
@@ -134,6 +120,8 @@ class _TestMincFile(object):
             assert_array_equal(mnc.get_affine(), tp['affine'])
             data = mnc.get_scaled_data()
             assert data.shape == tp['shape']
+            # Can't close mmapped NetCDF with live mmap arrays
+            del mnc, data
 
     def test_mincfile_slicing(self):
         # Test slicing and scaling of mincfile data
@@ -151,6 +139,8 @@ class _TestMincFile(object):
                              ):
                 sliced_data = mnc.get_scaled_data(slicedef)
                 assert_array_equal(sliced_data, data[slicedef])
+            # Can't close mmapped NetCDF with live mmap arrays
+            del mnc, data
 
     def test_load(self):
         # Check highest level load of minc works
@@ -183,7 +173,10 @@ class TestMinc1File(_TestMincFile):
         # Not so for MINC2; hence this small sub-class
         for tp in self.test_files:
             content = open(tp['fname'], 'rb').read()
-            openers_exts = ((gzip.open, '.gz'), (bz2.BZ2File, '.bz2'))
+            openers_exts = [(gzip.open, '.gz'),
+                            (bz2.BZ2File, '.bz2')]
+            if HAVE_ZSTD:  # add .zst to test if installed
+                openers_exts += [(pyzstd.ZstdFile, '.zst')]
             with InTemporaryDirectory():
                 for opener, ext in openers_exts:
                     fname = 'test.mnc' + ext

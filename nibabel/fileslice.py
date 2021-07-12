@@ -48,7 +48,7 @@ def is_fancy(sliceobj):
     if not isinstance(sliceobj, tuple):
         sliceobj = (sliceobj,)
     for slicer in sliceobj:
-        if hasattr(slicer, 'dtype'):  # ndarray always fancy
+        if getattr(slicer, 'ndim', 0) > 0:  # ndarray always fancy, but scalars are safe
             return True
         # slice or Ellipsis or None OK for  basic
         if isinstance(slicer, slice) or slicer in (None, Ellipsis):
@@ -426,7 +426,7 @@ def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride,
         action = heuristic(slicer, dim_len, stride)
         # Check return values (we may be using a custom function)
         if action not in ('full', 'contiguous', None):
-            raise ValueError('Unexpected return %s from heuristic' % action)
+            raise ValueError(f'Unexpected return {action} from heuristic')
         if is_int and action == 'contiguous':
             raise ValueError("int index cannot be contiguous")
         # If this is the slowest changing dimension, never upgrade None or

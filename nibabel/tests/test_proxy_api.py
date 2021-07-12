@@ -66,7 +66,7 @@ from .test_parrec import EG_REC, VARY_REC
 
 def _some_slicers(shape):
     ndim = len(shape)
-    slicers = np.eye(ndim).astype(np.int).astype(object)
+    slicers = np.eye(ndim).astype(int).astype(object)
     slicers[slicers == 0] = slice(None)
     for i in range(ndim):
         if i % 2:
@@ -248,7 +248,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             n_els = np.prod(shape)
             dtype = np.dtype(dtype).newbyteorder(self.data_endian)
             arr = np.arange(n_els, dtype=dtype).reshape(shape)
-            data = arr.tostring(order=self.array_order)
+            data = arr.tobytes(order=self.array_order)
             hdr = self.header_class()
             hdr.set_data_dtype(dtype)
             hdr.set_data_shape(shape)
@@ -322,11 +322,6 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             # Read only
             with pytest.raises(AttributeError):
                 setattr(prox, attr_name, expected)
-
-    def validate_deprecated_header(self, pmaker, params):
-        prox, fio, hdr = pmaker()
-        with pytest.raises(ExpiredDeprecationError):
-            prox.header
 
 
 class TestSpm99AnalyzeProxyAPI(TestAnalyzeProxyAPI):

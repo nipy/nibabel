@@ -29,6 +29,11 @@
       "name": "McCarthy, Paul"
     },
     {
+      "affiliation": "MIT",
+      "name": "Jarecka, Dorota",
+      "orcid": "0000-0001-8282-2988"
+    },
+    {
       "affiliation": "Center for Open Neuroscience, Dartmouth College",
       "name": "Cheng, Christopher P.",
       "orcid": "0000-0001-9112-9464"
@@ -44,14 +49,14 @@
       "orcid": "0000-0003-4679-7724"
     },
     {
-      "affiliation": "MIT, HMS",
-      "name": "Ghosh, Satrajit",
-      "orcid": "0000-0002-5312-6729"
-    },
-    {
       "affiliation": "University of Washington: Seattle, WA, United States",
       "name": "Larson, Eric",
       "orcid": "0000-0003-4782-5360"
+    },
+    {
+      "affiliation": "MIT, HMS",
+      "name": "Ghosh, Satrajit",
+      "orcid": "0000-0002-5312-6729"
     },
     {
       "affiliation": "Athena EPI, Inria Sophia-Antipolis",
@@ -78,6 +83,22 @@
       "orcid": "0000-0001-7221-9042"
     },
     {
+      "affiliation": "MIT",
+      "name": "Kaczmarzyk, Jakub",
+      "orcid": "0000-0002-5544-7577"
+    },
+    {
+      "affiliation": "Department of Computer Science, Aalto University, Espoo, Finland and Department of Neuroscience, Imaging and Clinical Sciences, University G. D'Annunzio, Chieti, Italy",
+      "name": "Guidotti, Roberto",
+      "orcid": "0000-0002-0807-6005"
+    },
+    {
+      "name": "Duek, Or"
+    },
+    {
+      "name": "Daniel, Jonathan"
+    },
+    {
       "affiliation": "The University of Washington eScience Institute",
       "name": "Rokem, Ariel",
       "orcid": "0000-0003-0679-1985"
@@ -86,15 +107,20 @@
       "name": "Madison, Cindee"
     },
     {
-      "name": "Morency, F\u00e9lix C."
+      "name": "Moloney, Brendan"
     },
     {
-      "name": "Moloney, Brendan"
+      "name": "Morency, F\u00e9lix C."
     },
     {
       "affiliation": "MIT",
       "name": "Goncalves, Mathias",
       "orcid": "0000-0002-7252-7771"
+    },
+    {
+      "affiliation": "Montreal Neurological Institute and Hospital",
+      "name": "Markello, Ross",
+      "orcid": "0000-0003-1057-1336"
     },
     {
       "affiliation": "Department of Psychology, University of California Davis, CA, USA",
@@ -118,9 +144,7 @@
       "name": "Lepp\u00e4kangas, Jaakko"
     },
     {
-      "affiliation": "Montreal Neurological Institute and Hospital",
-      "name": "Markello, Ross",
-      "orcid": "0000-0003-1057-1336"
+      "name": "S\u00f3lon, Anibal"
     },
     {
       "name": "van den Bosch, Jasper J.F."
@@ -137,11 +161,6 @@
       "name": "Subramaniam, Krish"
     },
     {
-      "affiliation": "MIT",
-      "name": "Jarecka, Dorota",
-      "orcid": "0000-0001-8282-2988"
-    },
-    {
       "affiliation": "Google",
       "name": "Gorgolewski, Krzysztof J.",
       "orcid": "0000-0003-3321-7583"
@@ -150,6 +169,11 @@
       "affiliation": "Rotman Research Institute, Baycrest Health Sciences, Toronto, ON, Canada",
       "name": "Raamana, Pradeep Reddy",
       "orcid": "0000-0003-4662-0558"
+    },
+    {
+      "affiliation": "University of Geneva, Switzerland",
+      "name": "Klug, Julian",
+      "orcid": "0000-0002-4849-9811"
     },
     {
       "affiliation": "SRI International",
@@ -178,6 +202,11 @@
     },
     {
       "name": "Koudoro, Serge"
+    },
+    {
+      "affiliation": "University College London",
+      "name": "P\u00e9rez-Garc\u00eda, Fernando",
+      "orcid": "0000-0001-9090-3024"
     },
     {
       "name": "Oosterhof, Nikolaas N."
@@ -210,11 +239,6 @@
       "affiliation": "INRIA",
       "name": "Varoquaux, Gael",
       "orcid": "0000-0003-1076-5122"
-    },
-    {
-      "affiliation": "MIT",
-      "name": "Kaczmarzyk, Jakub",
-      "orcid": "0000-0002-5544-7577"
     },
     {
       "affiliation": "Universit\u00e9 de Sherbrooke",
@@ -260,6 +284,9 @@
       "name": "Schwartz, Yannick"
     },
     {
+      "name": "Baratz, Zvi"
+    },
+    {
       "affiliation": "Hospital for Sick Children",
       "name": "Darwin, Benjamin C"
     },
@@ -269,14 +296,12 @@
       "orcid": "0000-0001-5018-7895"
     },
     {
+      "name": "Gauthier, Carl"
+    },
+    {
       "affiliation": "CEA",
       "name": "Papadopoulos Orfanos, Dimitri",
       "orcid": "0000-0002-1242-8990"
-    },
-    {
-      "affiliation": "University College London",
-      "name": "P\u00e9rez-Garc\u00eda, Fernando",
-      "orcid": "0000-0001-9090-3024"
     },
     {
       "name": "Solovey, Igor"
@@ -302,6 +327,9 @@
       "name": "Raktivan, Konstantinos"
     },
     {
+      "name": "Cal\u00e1bkov\u00e1, Mark\u00e9ta"
+    },
+    {
       "affiliation": "Friedrich-Alexander-Universit\u00e4t Erlangen-N\u00fcrnberg, Erlangen, Germany",
       "name": "Fischer, Peter",
       "orcid": "0000-0003-3242-9867"
@@ -322,9 +350,6 @@
       "affiliation": "National Institute of Mental Health and Neuro-Sciences, India",
       "name": "Reddam, Venkateswara Reddy",
       "orcid": "0000-0001-6817-2966"
-    },
-    {
-      "name": "Baratz, Zvi"
     },
     {
       "name": "freec84"

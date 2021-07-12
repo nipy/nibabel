@@ -242,8 +242,8 @@ Where:
 
 For later convenience we also define values useful for 3D volumes:
 
-* $s$ : slice index to the slice plane. The first slice index is zero.
-* $\Delta{s}$ - spacing in mm between slices. 
+* $s$ : Slice index to the slice plane. The first slice index is zero.
+* $\Delta{s}$ - Spacing in mm between slices.
 
 .. _dicom-3d-affines:
 
@@ -307,13 +307,13 @@ first voxel in the last (slice index = $N-1$) slice to mm space.  So:
 
 .. math:: 
 
-   \left(\begin{smallmatrix}T^N\\1\end{smallmatrix}\right) = A \left(\begin{smallmatrix}0\\0\\-1 + N\\1\end{smallmatrix}\right)
+   \left(\begin{smallmatrix}T^N\\1\end{smallmatrix}\right) = A \left(\begin{smallmatrix}0\\0\\N - 1\\1\end{smallmatrix}\right)
 
 From this it follows that:
 
 .. math::
 
-   \begin{Bmatrix}k_{{1}} : \frac{T^{1}_{{1}} - T^{N}_{{1}}}{1 - N}, & k_{{2}} : \frac{T^{1}_{{2}} - T^{N}_{{2}}}{1 - N}, & k_{{3}} : \frac{T^{1}_{{3}} - T^{N}_{{3}}}{1 - N}\end{Bmatrix}
+   \begin{Bmatrix}k_{{1}} : \frac{T^{N}_{{1}} - T^{1}_{{1}}}{N - 1}, & k_{{2}} : \frac{T^{N}_{{2}} - T^{1}_{{2}}}{N - 1}, & k_{{3}} : \frac{T^{N}_{{3}} - T^{1}_{{3}}}{N - 1}\end{Bmatrix}
 
 and therefore:
 
@@ -324,12 +324,16 @@ and therefore:
 
 .. math::
 
-   A_{multi} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} & F_{{12}} \Delta{c} & \frac{T^{1}_{{1}} - T^{N}_{{1}}}{1 - N} & T^{1}_{{1}}\\F_{{21}} \Delta{r} & F_{{22}} \Delta{c} & \frac{T^{1}_{{2}} - T^{N}_{{2}}}{1 - N} & T^{1}_{{2}}\\F_{{31}} \Delta{r} & F_{{32}} \Delta{c} & \frac{T^{1}_{{3}} - T^{N}_{{3}}}{1 - N} & T^{1}_{{3}}\\0 & 0 & 0 & 1\end{smallmatrix}\right)
+   A_{multi} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} & F_{{12}} \Delta{c} & \frac{T^{N}_{{1}} - T^{1}_{{1}}}{N - 1} & T^{1}_{{1}}\\F_{{21}} \Delta{r} & F_{{22}} \Delta{c} & \frac{T^{N}_{{2}} - T^{1}_{{2}}}{N - 1} & T^{1}_{{2}}\\F_{{31}} \Delta{r} & F_{{32}} \Delta{c} & \frac{T^{N}_{{3}} - T^{1}_{{3}}}{N - 1} & T^{1}_{{3}}\\0 & 0 & 0 & 1\end{smallmatrix}\right)
    
    A_{single} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} & F_{{12}} \Delta{c} & \Delta{s} n_{{1}} & T^{1}_{{1}}\\F_{{21}} \Delta{r} & F_{{22}} \Delta{c} & \Delta{s} n_{{2}} & T^{1}_{{2}}\\F_{{31}} \Delta{r} & F_{{32}} \Delta{c} & \Delta{s} n_{{3}} & T^{1}_{{3}}\\0 & 0 & 0 & 1\end{smallmatrix}\right)
 
 See :download:`derivations/spm_dicom_orient.py` for the derivations and
 some explanations.
+
+For a single slice $N=1$ the affine matrix is $A_{single}$. In this
+case, the slice spacing $\Delta{s}$ may be obtained by the Spacing
+Between Slices (0018,0088) attribute in units of mm, if it exists.
 
 .. _dicom-z-from-slice:
 

@@ -1,23 +1,16 @@
-''' Distutils / setuptools helpers '''
+""" Distutils / setuptools helpers """
 
 import os
 from os.path import join as pjoin, split as psplit, splitext
-import sys
-PY3 = sys.version_info[0] >= 3
-if PY3:
-    string_types = str,
-else:
-    string_types = basestring,
-try:
-    from ConfigParser import ConfigParser
-except ImportError:
-    from configparser import ConfigParser
+
+from configparser import ConfigParser
 
 from distutils.version import LooseVersion
 from distutils.command.build_py import build_py
 from distutils.command.install_scripts import install_scripts
 
 from distutils import log
+
 
 def get_comrec_build(pkg_dir, build_cmd=build_py):
     """ Return extended build command class for recording commit
@@ -55,7 +48,7 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
     package for an example.
     """
     class MyBuildPy(build_cmd):
-        ''' Subclass to write commit data into installation tree '''
+        """ Subclass to write commit data into installation tree """
         def run(self):
             build_cmd.run(self)
             import subprocess
@@ -82,7 +75,7 @@ def _add_append_key(in_dict, key, value):
     # Append value to in_dict[key] list
     if key not in in_dict:
         in_dict[key] = []
-    elif isinstance(in_dict[key], string_types):
+    elif isinstance(in_dict[key], str):
         in_dict[key] = [in_dict[key]]
     in_dict[key].append(value)
 
@@ -95,7 +88,7 @@ def package_check(pkg_name, version=None,
                   messages=None,
                   setuptools_args=None
                   ):
-    ''' Check if package `pkg_name` is present and has good enough version
+    """ Check if package `pkg_name` is present and has good enough version
 
     Has two modes of operation.  If `setuptools_args` is None (the default),
     raise an error for missing non-optional dependencies and log warnings for
@@ -137,7 +130,7 @@ def package_check(pkg_name, version=None,
        If None, raise errors / warnings for missing non-optional / optional
        dependencies.  If dict fill key values ``install_requires`` and
        ``extras_require`` for non-optional and optional dependencies.
-    '''
+    """
     setuptools_mode = not setuptools_args is None
     optional_tf = bool(optional)
     if version_getter is None:
@@ -149,7 +142,7 @@ def package_check(pkg_name, version=None,
     msgs = {
          'missing': 'Cannot import package "%s" - is it installed?',
          'missing opt': 'Missing optional package "%s"',
-         'opt suffix' : '; you may get run-time errors',
+         'opt suffix': '; you may get run-time errors',
          'version too old': 'You have version %s of package "%s"'
                             ' but we need version >= %s', }
     msgs.update(messages)
@@ -167,7 +160,7 @@ def package_check(pkg_name, version=None,
                      msgs['opt suffix'])
             return
         elif status == 'no-version':
-            raise RuntimeError('Cannot find version for %s' % pkg_name)
+            raise RuntimeError(f'Cannot find version for {pkg_name}')
         assert status == 'low-version'
         if not optional_tf:
             raise RuntimeError(msgs['version too old'] % (have_version,
@@ -179,7 +172,7 @@ def package_check(pkg_name, version=None,
                     + msgs['opt suffix'])
         return
     # setuptools mode
-    if optional_tf and not isinstance(optional, string_types):
+    if optional_tf and not isinstance(optional, str):
         raise RuntimeError('Not-False optional arg should be string')
     dependency = pkg_name
     if version:
@@ -260,7 +253,7 @@ class install_scripts_bat(install_scripts):
             froot, ext = splitext(fname)
             bat_file = pjoin(pth, froot + '.bat')
             bat_contents = BAT_TEMPLATE.replace('{FNAME}', fname)
-            log.info("Making %s wrapper for %s" % (bat_file, filepath))
+            log.info(f"Making {bat_file} wrapper for {filepath}")
             if self.dry_run:
                 continue
             with open(bat_file, 'wt') as fobj:

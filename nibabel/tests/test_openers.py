@@ -6,22 +6,32 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for openers module '''
+""" Test for openers module """
 import os
 import contextlib
 from gzip import GzipFile
 from io import BytesIO, UnsupportedOperation
 from distutils.version import StrictVersion
+import hashlib
+import time
 
 from numpy.compat.py3k import asstr, asbytes
-from ..openers import Opener, ImageOpener, HAVE_INDEXED_GZIP, BZ2File
+from ..openers import (Opener,
+                       ImageOpener,
+                       HAVE_INDEXED_GZIP,
+                       BZ2File,
+                       DeterministicGzipFile,
+                       )
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import BinOpener
+from ..optpkg import optional_package
 
 import unittest
 from unittest import mock
 import pytest
 from ..testing import error_warnings
+
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 
 class Lunk(object):
@@ -71,10 +81,13 @@ def test_Opener_various():
         import indexed_gzip as igzip
     with InTemporaryDirectory():
         sobj = BytesIO()
-        for input in ('test.txt',
-                      'test.txt.gz',
-                      'test.txt.bz2',
-                      sobj):
+        files_to_test = ['test.txt',
+                         'test.txt.gz',
+                         'test.txt.bz2',
+                         sobj]
+        if HAVE_ZSTD:
+            files_to_test += ['test.txt.zst']
+        for input in files_to_test:
             with Opener(input, 'wb') as fobj:
                 fobj.write(message)
                 assert fobj.tell() == len(message)
@@ -144,16 +157,12 @@ def test_Opener_gzip_type():
         tests = [
             (False, {'mode' : 'rb', 'keep_open' : True},   GzipFile),
             (False, {'mode' : 'rb', 'keep_open' : False},  GzipFile),
-            (False, {'mode' : 'rb', 'keep_open' : 'auto'}, GzipFile),
             (False, {'mode' : 'wb', 'keep_open' : True},   GzipFile),
             (False, {'mode' : 'wb', 'keep_open' : False},  GzipFile),
-            (False, {'mode' : 'wb', 'keep_open' : 'auto'}, GzipFile),
             (True,  {'mode' : 'rb', 'keep_open' : True},   MockIndexedGzipFile),
             (True,  {'mode' : 'rb', 'keep_open' : False},  MockIndexedGzipFile),
-            (True,  {'mode' : 'rb', 'keep_open' : 'auto'}, MockIndexedGzipFile),
             (True,  {'mode' : 'wb', 'keep_open' : True},   GzipFile),
             (True,  {'mode' : 'wb', 'keep_open' : False},  GzipFile),
-            (True,  {'mode' : 'wb', 'keep_open' : 'auto'}, GzipFile),
         ]
 
         for test in tests:
@@ -244,6 +253,8 @@ def test_compressed_ext_case():
     class StrictOpener(Opener):
         compress_ext_icase = False
     exts = ('gz', 'bz2', 'GZ', 'gZ', 'BZ2', 'Bz2')
+    if HAVE_ZSTD:
+        exts += ('zst', 'ZST', 'Zst')
     with InTemporaryDirectory():
         # Make a basic file to check type later
         with open(__file__, 'rb') as a_file:
@@ -268,6 +279,8 @@ def test_compressed_ext_case():
                 except ImportError:
                     IndexedGzipFile = GzipFile
                 assert isinstance(fobj.fobj, (GzipFile, IndexedGzipFile))
+            elif lext == 'zst':
+                assert isinstance(fobj.fobj, pyzstd.ZstdFile)
             else:
                 assert isinstance(fobj.fobj, BZ2File)
 
@@ -277,11 +290,14 @@ def test_name():
     sobj = BytesIO()
     lunk = Lunk('in ART')
     with InTemporaryDirectory():
-        for input in ('test.txt',
-                      'test.txt.gz',
-                      'test.txt.bz2',
-                      sobj,
-                      lunk):
+        files_to_test = ['test.txt',
+                         'test.txt.gz',
+                         'test.txt.bz2',
+                         sobj,
+                         lunk]
+        if HAVE_ZSTD:
+            files_to_test += ['test.txt.zst']
+        for input in files_to_test:
             exp_name = input if type(input) == type('') else None
             with Opener(input, 'wb') as fobj:
                 assert fobj.name == exp_name
@@ -333,10 +349,13 @@ virginia
 """.split('\n')
     with InTemporaryDirectory():
         sobj = BytesIO()
-        for input, does_t in (('test.txt', True),
-                              ('test.txt.gz', False),
-                              ('test.txt.bz2', False),
-                              (sobj, True)):
+        files_to_test = [('test.txt', True),
+                         ('test.txt.gz', False),
+                         ('test.txt.bz2', False),
+                         (sobj, True)]
+        if HAVE_ZSTD:
+            files_to_test += [('test.txt.zst', False)]
+        for input, does_t in files_to_test:
             with Opener(input, 'wb') as fobj:
                 for line in lines:
                     fobj.write(asbytes(line + os.linesep))
@@ -351,3 +370,126 @@ virginia
         lobj = Opener(Lunk(''))
         with pytest.raises(TypeError):
             list(lobj)
+
+
+def md5sum(fname):
+    with open(fname, "rb") as fobj:
+        return hashlib.md5(fobj.read()).hexdigest()
+
+
+def test_DeterministicGzipFile():
+    with InTemporaryDirectory():
+        msg = b"Hello, I'd like to have an argument."
+
+        # No filename, no mtime
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb", fileobj=fobj, mtime=0) as gzobj:
+                gzobj.write(msg)
+        anon_chksum = md5sum("ref.gz")
+
+        with DeterministicGzipFile("default.gz", "wb") as fobj:
+            internal_fobj = fobj.myfileobj
+            fobj.write(msg)
+        # Check that myfileobj is being closed by GzipFile.close()
+        # This is in case GzipFile changes its internal implementation
+        assert internal_fobj.closed
+
+        assert md5sum("default.gz") == anon_chksum
+
+        # No filename, current mtime
+        now = time.time()
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb", fileobj=fobj, mtime=now) as gzobj:
+                gzobj.write(msg)
+        now_chksum = md5sum("ref.gz")
+
+        with DeterministicGzipFile("now.gz", "wb", mtime=now) as fobj:
+            fobj.write(msg)
+
+        assert md5sum("now.gz") == now_chksum
+
+        # Change in default behavior
+        with mock.patch("time.time") as t:
+            t.return_value = now
+
+            # GzipFile will use time.time()
+            with open("ref.gz", "wb") as fobj:
+                with GzipFile(filename="", mode="wb", fileobj=fobj) as gzobj:
+                    gzobj.write(msg)
+            assert md5sum("ref.gz") == now_chksum
+
+            # DeterministicGzipFile will use 0
+            with DeterministicGzipFile("now.gz", "wb") as fobj:
+                fobj.write(msg)
+            assert md5sum("now.gz") == anon_chksum
+
+        # GzipFile is filename dependent, DeterministicGzipFile is independent
+        with GzipFile("filenameA.gz", mode="wb", mtime=0) as gzobj:
+            gzobj.write(msg)
+        fnameA_chksum = md5sum("filenameA.gz")
+        assert fnameA_chksum != anon_chksum
+
+        with DeterministicGzipFile("filenameA.gz", "wb") as fobj:
+            fobj.write(msg)
+
+        # But the contents are the same with different filenames
+        assert md5sum("filenameA.gz") == anon_chksum
+
+
+def test_DeterministicGzipFile_fileobj():
+    with InTemporaryDirectory():
+        msg = b"Hello, I'd like to have an argument."
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb", fileobj=fobj, mtime=0) as gzobj:
+                gzobj.write(msg)
+        ref_chksum = md5sum("ref.gz")
+
+        with open("test.gz", "wb") as fobj:
+            with DeterministicGzipFile(filename="", mode="wb", fileobj=fobj) as gzobj:
+                gzobj.write(msg)
+        md5sum("test.gz") == ref_chksum
+
+        with open("test.gz", "wb") as fobj:
+            with DeterministicGzipFile(fileobj=fobj, mode="wb") as gzobj:
+                gzobj.write(msg)
+        md5sum("test.gz") == ref_chksum
+
+        with open("test.gz", "wb") as fobj:
+            with DeterministicGzipFile(filename="test.gz", mode="wb", fileobj=fobj) as gzobj:
+                gzobj.write(msg)
+        md5sum("test.gz") == ref_chksum
+
+
+def test_bitwise_determinism():
+    with InTemporaryDirectory():
+        msg = b"Hello, I'd like to have an argument."
+        # Canonical reference: No filename, no mtime
+        # Use default compresslevel
+        with open("ref.gz", "wb") as fobj:
+            with GzipFile(filename="", mode="wb",
+                          compresslevel=1, fileobj=fobj,
+                          mtime=0) as gzobj:
+                gzobj.write(msg)
+        anon_chksum = md5sum("ref.gz")
+
+        # Different times, different filenames
+        now = time.time()
+        with mock.patch("time.time") as t:
+            t.return_value = now
+            with Opener("a.gz", "wb") as fobj:
+                fobj.write(msg)
+            t.return_value = now + 1
+            with Opener("b.gz", "wb") as fobj:
+                fobj.write(msg)
+
+        assert md5sum("a.gz") == anon_chksum
+        assert md5sum("b.gz") == anon_chksum
+
+        # Users can still set mtime, but filenames will not be embedded
+        with Opener("filenameA.gz", "wb", mtime=0xCAFE10C0) as fobj:
+            fobj.write(msg)
+        with Opener("filenameB.gz", "wb", mtime=0xCAFE10C0) as fobj:
+            fobj.write(msg)
+        fnameA_chksum = md5sum("filenameA.gz")
+        fnameB_chksum = md5sum("filenameB.gz")
+        assert fnameA_chksum == fnameB_chksum != anon_chksum

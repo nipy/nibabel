@@ -10,7 +10,7 @@ import numpy as np
 from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
                 Nifti1Pair, Nifti1Image,
                 Nifti2Pair, Nifti2Image)
-from ..loadsave import load, read_img_data
+from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
@@ -42,13 +42,15 @@ def test_read_img_data():
             fpath = pathlib.Path(fpath)
         img = load(fpath)
         data = img.get_fdata()
-        data2 = read_img_data(img)
+        with pytest.deprecated_call():
+            data2 = read_img_data(img)
         assert_array_equal(data, data2)
         # These examples have null scaling - assert prefer=unscaled is the same
         dao = img.dataobj
         if hasattr(dao, 'slope') and hasattr(img.header, 'raw_data_from_fileobj'):
             assert (dao.slope, dao.inter) == (1, 0)
-            assert_array_equal(read_img_data(img, prefer='unscaled'), data)
+            with pytest.deprecated_call():
+                assert_array_equal(read_img_data(img, prefer='unscaled'), data)
         # Assert all caps filename works as well
         with TemporaryDirectory() as tmpdir:
             up_fpath = pjoin(tmpdir, str(fname).upper())
@@ -74,6 +76,45 @@ def test_load_empty_image():
     assert str(err.value).startswith('Empty file: ')
 
 
+@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+def test_load_bad_compressed_extension(tmp_path, extension):
+    file_path = tmp_path / f"img.nii{extension}"
+    file_path.write_bytes(b"bad")
+    with pytest.raises(ImageFileError, match=".*is not a .* file"):
+        load(file_path)
+
+
+def test_signature_matches_extension(tmp_path):
+    gz_signature = b"\x1f\x8b"
+    good_file = tmp_path / "good.gz"
+    good_file.write_bytes(gz_signature)
+    bad_file = tmp_path / "bad.gz"
+    bad_file.write_bytes(b"bad")
+    matches, msg = _signature_matches_extension(
+        tmp_path / "uncompressed.nii", None)
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(tmp_path / "missing.gz", None)
+    assert not matches
+    assert msg.startswith("Could not read")
+    matches, msg = _signature_matches_extension(bad_file, None)
+    assert not matches
+    assert "is not a" in msg
+    matches, msg = _signature_matches_extension(bad_file, gz_signature + b"abc")
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(
+        good_file, gz_signature + b"abc")
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(good_file, gz_signature[:1])
+    assert matches
+    assert msg == ""
+    matches, msg = _signature_matches_extension(good_file, None)
+    assert matches
+    assert msg == ""
+
+
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)
@@ -86,21 +127,22 @@ def test_read_img_data_nifti():
             img = img_class(data, np.eye(4))
             img.set_data_dtype(out_dtype)
             # No filemap => error
-            with pytest.raises(ImageFileError):
+            with pytest.deprecated_call(), pytest.raises(ImageFileError):
                 read_img_data(img)
             # Make a filemap
-            froot = 'an_image_{0}'.format(i)
+            froot = f'an_image_{i}'
             img.file_map = img.filespec_to_file_map(froot)
             # Trying to read from this filemap will generate an error because
             # we are going to read from files that do not exist
-            with pytest.raises(IOError):
+            with pytest.deprecated_call(), pytest.raises(IOError):
                 read_img_data(img)
             img.to_file_map()
             # Load - now the scaling and offset correctly applied
             img_fname = img.file_map['image'].filename
             img_back = load(img_fname)
             data_back = img_back.get_fdata()
-            assert_array_equal(data_back, read_img_data(img_back))
+            with pytest.deprecated_call():
+                assert_array_equal(data_back, read_img_data(img_back))
             # This is the same as if we loaded the image and header separately
             hdr_fname = (img.file_map['header'].filename
                          if 'header' in img.file_map else img_fname)
@@ -112,15 +154,17 @@ def test_read_img_data_nifti():
             # Unscaled is the same as returned from raw_data_from_fileobj
             with open(img_fname, 'rb') as fobj:
                 unscaled_back = hdr_back.raw_data_from_fileobj(fobj)
-            assert_array_equal(unscaled_back,
-                               read_img_data(img_back, prefer='unscaled'))
+            with pytest.deprecated_call():
+                assert_array_equal(unscaled_back, read_img_data(img_back, prefer='unscaled'))
             # If we futz with the scaling in the header, the result changes
-            assert_array_equal(data_back, read_img_data(img_back))
+            with pytest.deprecated_call():
+                assert_array_equal(data_back, read_img_data(img_back))
             has_inter = hdr_back.has_data_intercept
             old_slope = hdr_back['scl_slope']
             old_inter = hdr_back['scl_inter'] if has_inter else 0
             est_unscaled = (data_back - old_inter) / old_slope
-            actual_unscaled = read_img_data(img_back, prefer='unscaled')
+            with pytest.deprecated_call():
+                actual_unscaled = read_img_data(img_back, prefer='unscaled')
             assert_almost_equal(est_unscaled, actual_unscaled)
             img_back.header['scl_slope'] = 2.1
             if has_inter:
@@ -129,11 +173,13 @@ def test_read_img_data_nifti():
             else:
                 new_inter = 0
             # scaled scaling comes from new parameters in header
-            assert np.allclose(actual_unscaled * 2.1 + new_inter,
-                                    read_img_data(img_back))
+            with pytest.deprecated_call():
+                assert np.allclose(actual_unscaled * 2.1 + new_inter,
+                                   read_img_data(img_back))
             # Unscaled array didn't change
-            assert_array_equal(actual_unscaled,
-                               read_img_data(img_back, prefer='unscaled'))
+            with pytest.deprecated_call():
+                assert_array_equal(actual_unscaled,
+                                   read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
             # Delete arrays still pointing to file, so Windows can re-use
@@ -144,12 +190,14 @@ def test_read_img_data_nifti():
                 fobj.write(b'\x00\x00')
             img_back = load(img_fname)
             data_back = img_back.get_fdata()
-            assert_array_equal(data_back, read_img_data(img_back))
+            with pytest.deprecated_call():
+                assert_array_equal(data_back, read_img_data(img_back))
             img_back.header.set_data_offset(1026)
             # Check we pick up new offset
             exp_offset = np.zeros((data.size,), data.dtype) + old_inter
             exp_offset[:-1] = np.ravel(data_back, order='F')[1:]
             exp_offset = np.reshape(exp_offset, shape, order='F')
-            assert_array_equal(exp_offset, read_img_data(img_back))
+            with pytest.deprecated_call():
+                assert_array_equal(exp_offset, read_img_data(img_back))
             # Delete stuff that might hold onto file references
             del img, img_back, data_back

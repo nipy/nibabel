@@ -10,16 +10,13 @@ relative imports.
 # This is a fall-back for versioneer when installing from a git archive.
 # This should be set to the intended next version + dev to indicate a
 # development (pre-release) version.
-_version_major = 3
-_version_minor = 1
+_version_major = 4
+_version_minor = 0
 _version_micro = 0
 _version_extra = 'dev'
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-VERSION = "%s.%s.%s%s" % (_version_major,
-                          _version_minor,
-                          _version_micro,
-                          _version_extra)
+VERSION = f"{_version_major}.{_version_minor}.{_version_micro}{_version_extra}"
 
 
 # Note: this long_description is the canonical place to edit this text.

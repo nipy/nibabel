@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for Euler angles '''
+""" Tests for Euler angles """
 
 import math
 import numpy as np
@@ -18,9 +18,9 @@ from .. import quaternions as nq
 import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-FLOAT_EPS = np.finfo(np.float).eps
+FLOAT_EPS = np.finfo(np.float64).eps
 
-# Example rotations '''
+# Example rotations """
 eg_rots = []
 params = np.arange(-pi * 2, pi * 2.5, pi / 2)
 for x in params:
@@ -135,7 +135,7 @@ def sympy_euler2quat(z=0, y=0, x=0):
 
 
 def crude_mat2euler(M):
-    ''' The simplest possible - ignoring atan2 instability '''
+    """ The simplest possible - ignoring atan2 instability """
     r11, r12, r13, r21, r22, r23, r31, r32, r33 = M.flat
     return math.atan2(-r12, r11), math.asin(r13), math.atan2(-r23, r33)
 

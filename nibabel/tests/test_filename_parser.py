@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for filename container '''
+""" Tests for filename container """
 
 from ..filename_parser import (types_filenames, TypesFilenamesError,
                                parse_filename, splitext_addext)

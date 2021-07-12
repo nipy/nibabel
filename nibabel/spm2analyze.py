@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to SPM2 version of analyze image format '''
+""" Read / write access to SPM2 version of analyze image format """
 import numpy as np
 
 from . import spm99analyze as spm99  # module import
@@ -23,20 +23,20 @@ header_dtype = np.dtype(spm99.header_key_dtd +
 
 
 class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
-    ''' Class for SPM2 variant of basic Analyze header
+    """ Class for SPM2 variant of basic Analyze header
 
     SPM2 variant adds the following to basic Analyze format:
 
     * voxel origin;
     * slope scaling of data;
     * reading - but not writing - intercept of data.
-    '''
+    """
 
     # Copies of module level definitions
     template_dtype = header_dtype
 
     def get_slope_inter(self):
-        ''' Get data scaling (slope) and intercept from header data
+        """ Get data scaling (slope) and intercept from header data
 
         Uses the algorithm from SPM2 spm_vol_ana.m by John Ashburner
 
@@ -95,7 +95,7 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
         >>> hdr['glmin'] = 10
         >>> np.allclose(hdr.get_slope_inter(), [0.6/100, 0.2-0.6/100*10])
         True
-        '''
+        """
         # get scaling factor from 'scl_slope' (funused1)
         slope = float(self['scl_slope'])
         if np.isfinite(slope) and slope:

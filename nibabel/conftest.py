@@ -1,15 +1,11 @@
 import pytest
 
+# Pre-load deprecated modules to avoid cluttering warnings
+with pytest.deprecated_call():
+    import nibabel.keywordonly
+with pytest.warns(FutureWarning):
+    import nibabel.py3k
 
-@pytest.fixture(autouse=True, scope="session")
-def set_printopts():
-    import numpy as np
-    from distutils.version import LooseVersion
-
-    if LooseVersion(np.__version__) >= LooseVersion("1.14"):
-        legacy_printopt = np.get_printoptions().get("legacy")
-        np.set_printoptions(legacy="1.13")
-        yield
-        np.set_printoptions(legacy=legacy_printopt)
-    else:
-        yield
+# Ignore warning requesting help with nicom
+with pytest.warns(UserWarning):
+    import nibabel.nicom

@@ -12,7 +12,10 @@ MODULE_SCHEDULE = [
 ]
 
 OBJECT_SCHEDULE = [
-    ("5.0.0", [("nibabel.pydicom_compat", "dicom_test")]),
+    ("5.0.0", [("nibabel.pydicom_compat", "dicom_test"),
+               ("nibabel.onetime", "setattr_on_read")]),
+    ("4.0.0", [("nibabel.minc1", "MincFile"),
+               ("nibabel.minc1", "MincImage")]),
     ("3.0.0", [("nibabel.testing", "catch_warn_reset")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj"), ("nibabel.nifti1", "nosuchobj")]),
@@ -20,6 +23,12 @@ OBJECT_SCHEDULE = [
 
 ATTRIBUTE_SCHEDULE = [
     ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data")]),
+    ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape"),
+               ("nibabel.filebasedimages", "FileBasedImage", "filespec_to_files"),
+               ("nibabel.filebasedimages", "FileBasedImage", "to_filespec"),
+               ("nibabel.filebasedimages", "FileBasedImage", "to_files"),
+               ("nibabel.filebasedimages", "FileBasedImage", "from_files"),
+               ("nibabel.arrayproxy", "ArrayProxy", "header")]),
     # Verify that the test will be quiet if the schedule outlives the modules
     ("1.0.0", [("nibabel.nosuchmod", "anyobj", "anyattr"),
                ("nibabel.nifti1", "nosuchobj", "anyattr"),
@@ -35,7 +44,7 @@ def test_module_removal():
     for module in _filter(MODULE_SCHEDULE):
         with pytest.raises(ImportError):
             __import__(module)
-            assert False, "Time to remove %s" % module
+            assert False, f"Time to remove {module}"
 
 
 def test_object_removal():
@@ -44,7 +53,7 @@ def test_object_removal():
             module = __import__(module_name)
         except ImportError:
             continue
-        assert not hasattr(module, obj), "Time to remove %s.%s" % (module_name, obj,)
+        assert not hasattr(module, obj), f"Time to remove {module_name}.{obj}"
 
 
 def test_attribute_removal():
@@ -57,7 +66,7 @@ def test_attribute_removal():
             klass = getattr(module, cls)
         except AttributeError:
             continue
-        assert not hasattr(klass, attr), "Time to remove %s.%s.%s" % (module_name, cls, attr,)
+        assert not hasattr(klass, attr), f"Time to remove {module_name}.{cls}.{attr}"
 
 
 #
