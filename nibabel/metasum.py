@@ -100,6 +100,15 @@ class ValueIndices:
         ba = self._val_bitarrs[value]
         return list(self._extract_indices(ba))
 
+    def first(self, value):
+        '''Return the first index where this value appears'''
+        if self._const_val == value:
+            return 0
+        idx = self._unique_vals.get(value)
+        if idx is not None:
+            return idx
+        return self._val_bitarrs[value].index(True)
+
     def values(self):
         '''Generate each unique value that has been seen'''
         if self._const_val is not _NoValue:
@@ -339,8 +348,15 @@ class ValueIndices:
                 return None
         return block_size
 
-    def is_subpartition(self, other):
-        ''''''
+    def is_orthogonal(self, other, size=1):
+        '''Check our value's indices overlaps each from `other` exactly `size` times
+        '''
+        other_bas = {v: other.get_mask(v) for v in other.values()}
+        for val in self.values():
+            for other_val, other_ba in other_bas.items():
+                if self.count(val, mask=other_ba) != size:
+                    return False
+        return True
 
     def _extract_indices(self, ba):
         '''Generate integer indices from bitarray representation'''
@@ -416,7 +432,7 @@ _MissingKey = object()
 
 
 class DimTypes(IntEnum):
-    '''Enmerate the three types of nD dimensions'''
+    '''Enumerate the three types of nD dimensions'''
     SLICE = 1
     TIME = 2
     PARAM = 3
@@ -556,8 +572,9 @@ class MetaSummary:
             last_dim = dim
 
         # Pull out info about different types of dims
-        n_slices = None
-        n_vol = None
+        n_input = self._n_input
+        total_vol = None
+        slice_dim = None
         time_dim = None
         param_dims = []
         n_params = []
@@ -568,9 +585,10 @@ class MetaSummary:
             dim_vidx = self._v_idxs[dim.key]
             dim_type = dim.dim_type
             if dim_type is DimTypes.SLICE:
+                slice_dim = dim
                 n_slices = len(dim_vidx)
-                n_vol = dim_vidx.get_block_size()
-                if n_vol is None:
+                total_vol = dim_vidx.get_block_size()
+                if total_vol is None:
                     raise NdSortError("There are missing or extra slices")
                 shape.append(n_slices)
                 curr_size *= n_slices
@@ -583,29 +601,39 @@ class MetaSummary:
                 n_param = len(dim_vidx)
                 n_params.append(n_param)
                 total_params *= n_param
-        if n_vol is None:
-            n_vol = self._n_input
+        if total_vol is None:
+            total_vol = n_input
 
-        # Size of the time dimension must be infered from the size of the other dims
+        # Size of the time dimension must be inferred from the size of the other dims
         n_time = 1
+        prev_dim = slice_dim
         if time_dim is not None:
-            n_time, rem = divmod(n_vol, total_params)
+            n_time, rem = divmod(total_vol, total_params)
             if rem != 0:
-                raise NdSortError(f"The combined parameters don't evenly divide inputs")
+                raise NdSortError("The combined parameters don't evenly divide inputs")
             shape.append(n_time)
             curr_size *= n_time
+            prev_dim = time_dim
 
-        # Complete the "shape", and do a more detailed check that our param dims make sense
+        # Complete the "shape", and do a more detailed check that our dims make sense
         for dim, n_param in zip(param_dims, n_params):
             dim_vidx = self._v_idxs[dim.key]
-            if dim_vidx.get_block_size() != curr_size:
+            if dim_vidx.get_block_size() != n_input // n_param:
                 raise NdSortError(f"The parameter {dim.key} doesn't evenly divide inputs")
+            if prev_dim is not None and prev_dim.dim_type != DimTypes.TIME:
+                count_per = (curr_size // shape[-1]) * (n_input // (curr_size * n_param))
+                if not self._v_idxs[prev_dim.key].is_orthogonal(dim_vidx,  count_per):
+                    raise NdSortError("The dimensions are not orthogonal")
             shape.append(n_param)
             curr_size *= n_param
+            prev_dim = dim
 
         # Extract dim keys for each input and do the actual sort
         sort_keys = [(idx, tuple(self.get_val(idx, dim.key) for dim in reversed(dims)))
-                     for idx in range(self._n_input)]
+                     for idx in range(n_input)]
         sort_keys.sort(key=lambda x: x[1])
 
-        # TODO: Finish this
+        # TODO: If we have non-singular time dimension we need to do some additional
+        #       validation checks here after sorting.
+
+        return tuple(shape), [x[0] for x in sort_keys]

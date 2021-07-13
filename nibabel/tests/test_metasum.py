@@ -1,6 +1,9 @@
-from ..metasum import MetaSummary, ValueIndices
+import random
 
 import pytest
+import numpy as np
+
+from ..metasum import DimIndex, DimTypes, MetaSummary, ValueIndices
 
 
 vidx_test_patterns = ([0] * 8,
@@ -14,7 +17,7 @@ vidx_test_patterns = ([0] * 8,
 
 @pytest.mark.parametrize("in_list", vidx_test_patterns)
 def test_value_indices_basics(in_list):
-    '''Test we can roundtrip list -> ValueIndices -> list'''
+    '''Test basic ValueIndices behavior'''
     vidx = ValueIndices(in_list)
     assert vidx.n_input == len(in_list)
     assert len(vidx) == len(set(in_list))
@@ -22,7 +25,7 @@ def test_value_indices_basics(in_list):
     for val in vidx.values():
         assert vidx.count(val) == in_list.count(val)
         for in_idx in vidx[val]:
-            assert in_list[in_idx] == val
+            assert in_list[in_idx] == val == vidx.get_value(in_idx)
     out_list = vidx.to_list()
     assert in_list == out_list
 
@@ -78,3 +81,73 @@ def test_meta_summary_basics(in_dicts):
         assert out_dict == in_dicts[in_idx]
         for key, in_val in in_dicts[in_idx].items():
             assert in_val == msum.get_val(in_idx, key)
+
+
+def _make_nd_meta(shape, dim_info, const_meta=None):
+    if const_meta is None:
+        const_meta = {'series_number': '5'}
+    meta_seq = []
+    for nd_idx in np.ndindex(*shape):
+        curr_meta = {}
+        curr_meta.update(const_meta)
+        for dim, dim_idx in zip(dim_info, nd_idx):
+            curr_meta[dim.key] = dim_idx
+        meta_seq.append(curr_meta)
+    return meta_seq
+
+
+ndsort_test_args = (((3,),
+                     (DimIndex(DimTypes.SLICE, 'slice_location'),),
+                     None),
+                    ((3, 5),
+                     (DimIndex(DimTypes.SLICE, 'slice_location'),
+                      DimIndex(DimTypes.TIME, 'acq_time')),
+                     None),
+                    ((3, 5),
+                     (DimIndex(DimTypes.SLICE, 'slice_location'),
+                      DimIndex(DimTypes.PARAM, 'inversion_time')),
+                     None),
+                    ((3, 5, 7),
+                     (DimIndex(DimTypes.SLICE, 'slice_location'),
+                      DimIndex(DimTypes.TIME, 'acq_time'),
+                      DimIndex(DimTypes.PARAM, 'echo_time')),
+                     None),
+                    ((3, 5, 7),
+                     (DimIndex(DimTypes.SLICE, 'slice_location'),
+                      DimIndex(DimTypes.PARAM, 'inversion_time'),
+                      DimIndex(DimTypes.PARAM, 'echo_time')),
+                     None),
+                    ((5, 3),
+                     (DimIndex(DimTypes.TIME, 'acq_time'),
+                      DimIndex(DimTypes.PARAM, 'echo_time')),
+                     None),
+                    ((3, 5, 7),
+                     (DimIndex(DimTypes.TIME, 'acq_time'),
+                      DimIndex(DimTypes.PARAM, 'inversion_time'),
+                      DimIndex(DimTypes.PARAM, 'echo_time')),
+                     None),
+                    ((5, 7),
+                     (DimIndex(DimTypes.PARAM, 'inversion_time'),
+                      DimIndex(DimTypes.PARAM, 'echo_time')),
+                     None),
+                    ((5, 7, 3),
+                     (DimIndex(DimTypes.PARAM, 'inversion_time'),
+                      DimIndex(DimTypes.PARAM, 'echo_time'),
+                      DimIndex(DimTypes.PARAM, 'repetition_time')),
+                     None),
+                    )
+
+
+@pytest.mark.parametrize("shape,dim_info,const_meta", ndsort_test_args)
+def test_ndsort(shape, dim_info, const_meta):
+    meta_seq = _make_nd_meta(shape, dim_info, const_meta)
+    rand_idx_seq = [(i, m) for i, m in enumerate(meta_seq)]
+    # TODO: Use some pytest plugin to manage randomness?  Just use fixed seed?
+    random.shuffle(rand_idx_seq)
+    rand_idx = [x[0] for x in rand_idx_seq]
+    rand_seq = [x[1] for x in rand_idx_seq]
+    msum = MetaSummary()
+    for meta in rand_seq:
+        msum.append(meta)
+    out_shape, out_idxs = msum.nd_sort(dim_info)
+    assert shape == out_shape
