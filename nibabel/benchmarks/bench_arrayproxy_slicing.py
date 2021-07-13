@@ -46,7 +46,7 @@ SLICEOBJS = [
     ('?', '?', '?', ':'),
 ]
 
-KEEP_OPENS = [False, True, 'auto']
+KEEP_OPENS = [False, True]
 
 if HAVE_INDEXED_GZIP:
     HAVE_IGZIP = [False, True]
@@ -96,12 +96,11 @@ def bench_arrayproxy_slicing():
                 slcstr.append(s)
             else:
                 slcstr.append(str(int(s * SHAPE[i])))
-        return '[{}]'.format(', '.join(slcstr))
+        return f"[{', '.join(slcstr)}]"
 
     with InTemporaryDirectory():
 
-        print('Generating test data... ({} MB)'.format(
-            int(round(np.prod(SHAPE) * 4 / 1048576.))))
+        print(f'Generating test data... ({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')
 
         data = np.array(np.random.random(SHAPE), dtype=np.float32)
 
@@ -133,8 +132,7 @@ def bench_arrayproxy_slicing():
             have_igzip, keep_open, sliceobj = test
             seed = seeds[SLICEOBJS.index(sliceobj)]
 
-            print('Running test {} of {} ({})...'.format(
-                ti + 1, len(tests), label))
+            print(f'Running test {ti + 1} of {len(tests)} ({label})...')
 
             # load uncompressed and compressed versions of the image
             img = nib.load(testfile, keep_file_open=keep_open)
@@ -181,8 +179,7 @@ def bench_arrayproxy_slicing():
         data[:, 2] = np.nan
     data[:, 3] = [r[5] - r[6] for r in results]
 
-    rowlbls = ['Type {}, keep_open {}, slice {}'.format(
-        r[0], r[1], fmt_sliceobj(r[2])) for r in results]
+    rowlbls = [f'Type {r[0]}, keep_open {r[1]}, slice {fmt_sliceobj(r[2])}' for r in results]
     collbls = ['Time', 'Baseline time', 'Time ratio', 'Memory deviation']
 
     print(rst_table(data, rowlbls, collbls))

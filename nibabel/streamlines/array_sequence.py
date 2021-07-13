@@ -74,7 +74,7 @@ def _define_operators(cls):
                "__floordiv__", "__truediv__", "__lshift__", "__rshift__",
                "__or__", "__and__", "__xor__"]:
         _wrap(cls, op=op, inplace=False)
-        _wrap(cls, op="__i{}__".format(op.strip("_")), inplace=True)
+        _wrap(cls, op=f"__i{op.strip('_')}__", inplace=True)
 
     for op in ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
         _wrap(cls, op)
@@ -173,16 +173,16 @@ class ArraySequence(object):
         """ Check whether this array sequence is compatible with another. """
         msg = "cannot perform operation - array sequences have different"
         if len(self._lengths) != len(arrseq._lengths):
-            msg += " lengths: {} vs. {}."
-            raise ValueError(msg.format(len(self._lengths), len(arrseq._lengths)))
+            msg += f" lengths: {len(self._lengths)} vs. {len(arrseq._lengths)}."
+            raise ValueError(msg)
 
         if self.total_nb_rows != arrseq.total_nb_rows:
-            msg += " amount of data: {} vs. {}."
-            raise ValueError(msg.format(self.total_nb_rows, arrseq.total_nb_rows))
+            msg += f" amount of data: {self.total_nb_rows} vs. {arrseq.total_nb_rows}."
+            raise ValueError(msg)
 
         if self.common_shape != arrseq.common_shape:
-            msg += " common shape: {} vs. {}."
-            raise ValueError(msg.format(self.common_shape, arrseq.common_shape))
+            msg += f" common shape: {self.common_shape} vs. {arrseq.common_shape}."
+            raise ValueError(msg)
 
         return True
 
@@ -438,12 +438,12 @@ class ArraySequence(object):
 
         if is_array_sequence(elements):
             if len(lengths) != len(elements):
-                msg = "Trying to set {} sequences with {} sequences."
-                raise ValueError(msg.format(len(lengths), len(elements)))
+                msg = f"Trying to set {len(lengths)} sequences with {len(elements)} sequences."
+                raise ValueError(msg)
 
             if sum(lengths) != elements.total_nb_rows:
-                msg = "Trying to set {} points with {} points."
-                raise ValueError(msg.format(sum(lengths), elements.total_nb_rows))
+                msg = f"Trying to set {sum(lengths)} points with {elements.total_nb_rows} points."
+                raise ValueError(msg)
 
             for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
                 data[o1:o1 + l1] = elements._data[o2:o2 + l2]
@@ -526,8 +526,7 @@ class ArraySequence(object):
         else:
             data = str(list(self))
 
-        return "{name}({data})".format(name=self.__class__.__name__,
-                                       data=data)
+        return f"{self.__class__.__name__}({data})"
 
     def save(self, filename):
         """ Saves this :class:`ArraySequence` object to a .npz file. """

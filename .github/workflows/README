@@ -1,0 +1,5 @@
+These files implement NiBabel CI for GitHub actions.
+The testing logic is implemented in tools/ci/*.sh, and these files adapt
+the generic logic to the details of GH.
+
+Each file should differ only by strategy, and env and steps should be identical.

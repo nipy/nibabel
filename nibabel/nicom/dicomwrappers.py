@@ -20,7 +20,7 @@ import numpy as np
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
-from ..onetime import setattr_on_read as one_time
+from ..onetime import auto_attr as one_time
 from ..pydicom_compat import tag_for_keyword, Sequence
 from ..deprecated import deprecate_with_version
 
@@ -34,7 +34,7 @@ class WrapperPrecisionError(WrapperError):
 
 
 def wrapper_from_file(file_like, *args, **kwargs):
-    """ Create DICOM wrapper from `file_like` object
+    r""" Create DICOM wrapper from `file_like` object
 
     Parameters
     ----------
@@ -286,7 +286,7 @@ class Wrapper(object):
     def __getitem__(self, key):
         """ Return values from DICOM object"""
         if key not in self.dcm_data:
-            raise KeyError('"%s" not in self.dcm_data' % key)
+            raise KeyError(f'"{key}" not in self.dcm_data')
         return self.dcm_data.get(key)
 
     def get(self, key, default=None):
@@ -600,7 +600,7 @@ class MultiframeWrapper(Wrapper):
 
     @one_time
     def voxel_sizes(self):
-        ''' Get i, j, k voxel sizes '''
+        """ Get i, j, k voxel sizes """
         try:
             pix_measures = self.shared.PixelMeasuresSequence[0]
         except AttributeError:

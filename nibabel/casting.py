@@ -4,6 +4,7 @@ Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
 """
 
+import warnings
 from numbers import Integral
 from platform import processor, machine
 
@@ -268,7 +269,7 @@ def type_info(np_type):
     # and then give up. At this stage we're expecting exotic longdouble or
     # their complex equivalent.
     if np_type not in (np.longdouble, np.longcomplex) or width not in (16, 32):
-        raise FloatingError('We had not expected type %s' % np_type)
+        raise FloatingError(f'We had not expected type {np_type}')
     if (vals == (1, 1, 16) and on_powerpc() and
             _check_maxexp(np.longdouble, 1024)):
         # double pair on PPC.  The _check_nmant routine does not work for this
@@ -296,8 +297,7 @@ def type_info(np_type):
                    maxexp=16384,
                    width=width)
     else:  # don't recognize the type
-        raise FloatingError('We had not expected long double type %s '
-                            'with info %s' % (np_type, info))
+        raise FloatingError(f'We had not expected long double type {np_type} with info {info}')
     return ret
 
 
@@ -350,8 +350,9 @@ def _check_maxexp(np_type, maxexp):
     dt = np.dtype(np_type)
     np_type = dt.type
     two = np_type(2).reshape((1,))  # to avoid upcasting
-    return (np.isfinite(two ** (maxexp - 1)) and
-            not np.isfinite(two ** maxexp))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # Expected overflow warning
+        return np.isfinite(two ** (maxexp - 1)) and not np.isfinite(two ** maxexp)
 
 
 def as_int(x, check=True):
@@ -402,7 +403,7 @@ def as_int(x, check=True):
         return ix
     fx = np.floor(x)
     if check and fx != x:
-        raise FloatingError('Not an integer: %s' % x)
+        raise FloatingError(f'Not an integer: {x}')
     if not fx.dtype.type == np.longdouble:
         return int(x)
     # Subtract float64 chunks until we have all of the number. If the int is
@@ -585,7 +586,7 @@ def int_abs(arr):
     >>> int_abs(np.array([-128, 127], dtype=np.int8))
     array([128, 127], dtype=uint8)
     >>> int_abs(np.array([-128, 127], dtype=np.float32))
-    array([ 128.,  127.], dtype=float32)
+    array([128., 127.], dtype=float32)
     """
     arr = np.array(arr, copy=False)
     dt = arr.dtype

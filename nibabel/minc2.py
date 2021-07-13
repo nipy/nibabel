@@ -40,12 +40,12 @@ class Hdf5Bunch(object):
 
 
 class Minc2File(Minc1File):
-    ''' Class to wrap MINC2 format file
+    """ Class to wrap MINC2 format file
 
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC2 file, to pull out useful header
     information, and for the method of reading the data out
-    '''
+    """
 
     def __init__(self, mincfile):
         self._mincfile = mincfile
@@ -86,11 +86,11 @@ class Minc2File(Minc1File):
         return self._image.shape
 
     def _get_valid_range(self):
-        ''' Return valid range for image data
+        """ Return valid range for image data
 
         The valid range can come from the image 'valid_range' or
         failing that, from the data type range
-        '''
+        """
         ddt = self.get_data_dtype()
         info = np.iinfo(ddt.type)
         try:
@@ -101,7 +101,7 @@ class Minc2File(Minc1File):
             if valid_range[0] < info.min or valid_range[1] > info.max:
                 raise ValueError('Valid range outside input '
                                  'data type range')
-        return np.asarray(valid_range, dtype=np.float)
+        return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
         """ Get scalar value from HDF5 scalar """
@@ -144,12 +144,12 @@ class Minc2Header(MincHeader):
 
 
 class Minc2Image(Minc1Image):
-    ''' Class for MINC2 images
+    """ Class for MINC2 images
 
     The MINC2 image class uses the default header type, rather than a
     specific MINC header type - and reads the relevant information from
     the MINC file on load.
-    '''
+    """
     # MINC2 does not do compressed whole files
     _compressed_suffixes = ()
     header_class = Minc2Header

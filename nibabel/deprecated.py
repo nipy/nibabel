@@ -36,7 +36,7 @@ class ModuleProxy(object):
         return getattr(mod, key)
 
     def __repr__(self):
-        return "<module proxy for {0}>".format(self._module_name)
+        return f"<module proxy for {self._module_name}>"
 
 
 class FutureWarningMixin(object):

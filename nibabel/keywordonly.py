@@ -4,7 +4,7 @@
 from functools import wraps
 import warnings
 
-warnings.warn("We will remove this module from nibabel 5.0. "
+warnings.warn("We will remove the 'keywordonly' module from nibabel 5.0. "
               "Please use the built-in Python `*` argument to ensure "
               "keyword-only parameters (see PEP 3102).",
               DeprecationWarning,
@@ -19,8 +19,7 @@ def kw_only_func(n):
         def wrapper(*args, **kwargs):
             if len(args) > n:
                 raise TypeError(
-                    '{0} takes at most {1} positional argument{2}'.format(
-                        func.__name__, n, 's' if n > 1 else ''))
+                    f"{func.__name__} takes at most {n} positional argument{'s' if n > 1 else ''}")
             return func(*args, **kwargs)
         return wrapper
     return decorator

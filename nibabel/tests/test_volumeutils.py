@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for volumeutils module '''
+""" Test for volumeutils module """
 
 import os
 from os.path import exists
@@ -30,9 +30,6 @@ from ..volumeutils import (array_from_file,
                            array_to_file,
                            allopen,  # for backwards compatibility
                            fname_ext_ul_case,
-                           calculate_scale,  # Deprecated
-                           can_cast,  # Deprecated
-                           scale_min_max,  # Deprecated
                            write_zeros,
                            seek_tell,
                            apply_read_scaling,
@@ -52,12 +49,15 @@ from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
 from ..deprecator import ExpiredDeprecationError
+from ..optpkg import optional_package
 
 from numpy.testing import (assert_array_almost_equal,
                            assert_array_equal)
 import pytest
 
-from ..testing import assert_dt_equal, assert_allclose_safely, suppress_warnings
+from nibabel.testing import nullcontext, assert_dt_equal, assert_allclose_safely, suppress_warnings
+
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 #: convenience variables for numpy types
 FLOAT_TYPES = np.sctypes['float']
@@ -68,21 +68,15 @@ IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-def test_deprecated_functions():
-    with pytest.raises(ExpiredDeprecationError):
-        scale_min_max(0, 1, np.uint8, True)
-    with pytest.raises(ExpiredDeprecationError):
-        calculate_scale(np.array([-2, -1], dtype=np.int8), np.uint8, True)
-    with pytest.raises(ExpiredDeprecationError):
-        can_cast(np.float32, np.float32)
-
-
 def test__is_compressed_fobj():
     # _is_compressed helper function
     with InTemporaryDirectory():
-        for ext, opener, compressed in (('', open, False),
-                                        ('.gz', gzip.open, True),
-                                        ('.bz2', BZ2File, True)):
+        file_openers = [('', open, False),
+                        ('.gz', gzip.open, True),
+                        ('.bz2', BZ2File, True)]
+        if HAVE_ZSTD:
+            file_openers += [('.zst', pyzstd.ZstdFile, True)]
+        for ext, opener, compressed in file_openers:
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
                 fobj = opener(fname, mode)
@@ -100,16 +94,19 @@ def test_fobj_string_assumptions():
         arr.flags.writeable = True
         return arr
 
-    # Check whether file, gzip file, bz2 file reread memory from cache
+    # Check whether file, gzip file, bz2, zst file reread memory from cache
     fname = 'test.bin'
     with InTemporaryDirectory():
+        openers = [open, gzip.open, BZ2File]
+        if HAVE_ZSTD:
+            openers += [pyzstd.ZstdFile]
         for n, opener in itertools.product(
                 (256, 1024, 2560, 25600),
-                (open, gzip.open, BZ2File)):
+                openers):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
-            fobj_w.write(in_arr.tostring())
+            fobj_w.write(in_arr.tobytes())
             fobj_w.close()
             # Read back from file
             fobj_r = opener(fname, 'rb')
@@ -182,10 +179,10 @@ def test_array_from_file_mmap():
     # Test memory mapping
     shape = (2, 21)
     with InTemporaryDirectory():
-        for dt in (np.int16, np.float):
+        for dt in (np.int16, np.float64):
             arr = np.arange(np.prod(shape), dtype=dt).reshape(shape)
             with open('test.bin', 'wb') as fobj:
-                fobj.write(arr.tostring(order='F'))
+                fobj.write(arr.tobytes(order='F'))
             with open('test.bin', 'rb') as fobj:
                 res = array_from_file(shape, dt, fobj)
                 assert_array_equal(res, arr)
@@ -221,8 +218,8 @@ def test_array_from_file_mmap():
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
-    ''' Write contents of in_arr into fileobj, read back, check same '''
-    instr = b' ' * offset + in_arr.tostring(order='F')
+    """ Write contents of in_arr into fileobj, read back, check same """
+    instr = b' ' * offset + in_arr.tobytes(order='F')
     out_buf.write(instr)
     out_buf.flush()
     if in_buf is None:  # we're using in_buf from out_buf
@@ -242,13 +239,16 @@ def test_array_from_file_openers():
     dtype = np.dtype(np.float32)
     in_arr = np.arange(24, dtype=dtype).reshape(shape)
     with InTemporaryDirectory():
-        for ext, offset in itertools.product(('', '.gz', '.bz2'),
+        extensions = ['', '.gz', '.bz2']
+        if HAVE_ZSTD:
+            extensions += ['.zst']
+        for ext, offset in itertools.product(extensions,
                                              (0, 5, 10)):
             fname = 'test.bin' + ext
             with Opener(fname, 'wb') as out_buf:
                 if offset != 0:  # avoid https://bugs.python.org/issue16828
                     out_buf.write(b' ' * offset)
-                out_buf.write(in_arr.tostring(order='F'))
+                out_buf.write(in_arr.tobytes(order='F'))
             with Opener(fname, 'rb') as in_buf:
                 out_arr = array_from_file(shape, dtype, in_buf, offset)
                 assert_array_almost_equal(in_arr, out_arr)
@@ -263,9 +263,12 @@ def test_array_from_file_reread():
     offset = 9
     fname = 'test.bin'
     with InTemporaryDirectory():
+        openers = [open, gzip.open, bz2.BZ2File, BytesIO]
+        if HAVE_ZSTD:
+            openers += [pyzstd.ZstdFile]
         for shape, opener, dtt, order in itertools.product(
                 ((64,), (64, 65), (64, 65, 66)),
-                (open, gzip.open, bz2.BZ2File, BytesIO),
+                openers,
                 (np.int16, np.float32),
                 ('F', 'C')):
             n_els = np.prod(shape)
@@ -274,7 +277,7 @@ def test_array_from_file_reread():
             # Write array to file
             fobj_w = opener() if is_bio else opener(fname, 'wb')
             fobj_w.write(b' ' * offset)
-            fobj_w.write(in_arr.tostring(order=order))
+            fobj_w.write(in_arr.tobytes(order=order))
             if is_bio:
                 fobj_r = fobj_w
             else:
@@ -299,7 +302,7 @@ def test_array_from_file_reread():
 def test_array_to_file():
     arr = np.arange(10).reshape(5, 2)
     str_io = BytesIO()
-    for tp in (np.uint64, np.float, np.complex):
+    for tp in (np.uint64, np.float64, np.complex128):
         dt = np.dtype(tp)
         for code in '<>':
             ndt = dt.newbyteorder(code)
@@ -365,10 +368,10 @@ def test_a2f_min_max():
             assert_array_equal(data_back, [1, 1, 2, 2])
     # Check that works OK with scaling and intercept
     arr = np.arange(4, dtype=np.float32)
-    data_back = write_return(arr, str_io, np.int, 0, -1, 0.5, 1, 2)
+    data_back = write_return(arr, str_io, int, 0, -1, 0.5, 1, 2)
     assert_array_equal(data_back * 0.5 - 1, [1, 1, 2, 2])
     # Even when scaling is negative
-    data_back = write_return(arr, str_io, np.int, 0, 1, -0.5, 1, 2)
+    data_back = write_return(arr, str_io, int, 0, 1, -0.5, 1, 2)
     assert_array_equal(data_back * -0.5 + 1, [1, 1, 2, 2])
     # Check complex numbers
     arr = np.arange(4, dtype=np.complex64) + 100j
@@ -378,7 +381,7 @@ def test_a2f_min_max():
 
 
 def test_a2f_order():
-    ndt = np.dtype(np.float)
+    ndt = np.dtype(np.float64)
     arr = np.array([0.0, 1.0, 2.0])
     str_io = BytesIO()
     # order makes no difference in 1D case
@@ -393,7 +396,7 @@ def test_a2f_order():
 
 
 def test_a2f_nan2zero():
-    ndt = np.dtype(np.float)
+    ndt = np.dtype(np.float64)
     str_io = BytesIO()
     # nans set to 0 for integer output case, not float
     arr = np.array([[np.nan, 0], [0, np.nan]])
@@ -448,15 +451,15 @@ def test_a2f_offset():
     arr = np.array([[0.0, 1.0], [2.0, 3.0]])
     str_io = BytesIO()
     str_io.write(b'a' * 42)
-    array_to_file(arr, str_io, np.float, 42)
-    data_back = array_from_file(arr.shape, np.float, str_io, 42)
-    assert_array_equal(data_back, arr.astype(np.float))
+    array_to_file(arr, str_io, np.float64, 42)
+    data_back = array_from_file(arr.shape, np.float64, str_io, 42)
+    assert_array_equal(data_back, arr.astype(np.float64))
     # And that offset=None respected
     str_io.truncate(22)
     str_io.seek(22)
-    array_to_file(arr, str_io, np.float, None)
-    data_back = array_from_file(arr.shape, np.float, str_io, 22)
-    assert_array_equal(data_back, arr.astype(np.float))
+    array_to_file(arr, str_io, np.float64, None)
+    data_back = array_from_file(arr.shape, np.float64, str_io, 22)
+    assert_array_equal(data_back, arr.astype(np.float64))
 
 
 def test_a2f_dtype_default():
@@ -620,11 +623,16 @@ def test_a2f_bad_scaling():
             (0, np.nan, -np.inf, np.inf)):
         arr = np.ones((2,), dtype=in_type)
         fobj = BytesIO()
+        cm = nullcontext()
+        if (np.issubdtype(in_type, np.complexfloating) and
+                not np.issubdtype(out_type, np.complexfloating)):
+            cm = pytest.warns(np.ComplexWarning)
         if (slope, inter) == (1, 0):
-            assert_array_equal(arr,
-                               write_return(arr, fobj, out_type,
-                                            intercept=inter,
-                                            divslope=slope))
+            with cm:
+                assert_array_equal(arr,
+                                   write_return(arr, fobj, out_type,
+                                                intercept=inter,
+                                                divslope=slope))
         elif (slope, inter) == (None, 0):
             assert_array_equal(0,
                                write_return(arr, fobj, out_type,
@@ -663,34 +671,42 @@ def test_a2f_nan2zero_range():
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
         # Error occurs for arrays without nans too
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
+        warn_type = np.ComplexWarning if np.issubdtype(dt, np.complexfloating) else None
         # No errors from explicit thresholding
         # mn thresholding excluding zero
-        assert_array_equal([1, 1, 1, 0],
-                           write_return(arr, fobj, np.int8, mn=1))
+        with pytest.warns(warn_type):
+            assert_array_equal([1, 1, 1, 0],
+                               write_return(arr, fobj, np.int8, mn=1))
         # mx thresholding excluding zero
-        assert_array_equal([-1, -1, -1, 0],
-                           write_return(arr, fobj, np.int8, mx=-1))
+        with pytest.warns(warn_type):
+            assert_array_equal([-1, -1, -1, 0],
+                               write_return(arr, fobj, np.int8, mx=-1))
         # Errors from datatype threshold after scaling
-        back_arr = write_return(arr, fobj, np.int8, intercept=128)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8, intercept=128)
         assert_array_equal([-128, -128, -127, -128], back_arr)
         with pytest.raises(ValueError):
             write_return(arr, fobj, np.int8, intercept=129)
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=129)
         # OK with nan2zero false, but we get whatever nan casts to
-        nan_cast = np.array(np.nan).astype(np.int8)
-        back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
+        with pytest.warns(warn_type):
+            nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
-        back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
         assert_array_equal([-128, -128, -128, -128], back_arr)
         with pytest.raises(ValueError):
             write_return(arr, fobj, np.int8, intercept=257.1, divslope=2)
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2)
         # OK with nan2zero false
-        back_arr = write_return(arr, fobj, np.int8,
-                                intercept=257.1, divslope=2, nan2zero=False)
+        with pytest.warns(warn_type):
+            back_arr = write_return(arr, fobj, np.int8,
+                                    intercept=257.1, divslope=2, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
 
 
@@ -900,7 +916,9 @@ def test_write_zeros():
 def test_seek_tell():
     # Test seek tell routine
     bio = BytesIO()
-    in_files = bio, 'test.bin', 'test.gz', 'test.bz2'
+    in_files = [bio, 'test.bin', 'test.gz', 'test.bz2']
+    if HAVE_ZSTD:
+        in_files += ['test.zst']
     start = 10
     end = 100
     diff = end - start
@@ -919,9 +937,12 @@ def test_seek_tell():
                 fobj.write(b'\x01' * start)
                 assert fobj.tell() == start
                 # Files other than BZ2Files can seek forward on write, leaving
-                # zeros in their wake.  BZ2Files can't seek when writing, unless
-                # we enable the write0 flag to seek_tell
-                if not write0 and in_file == 'test.bz2':  # Can't seek write in bz2
+                # zeros in their wake.  BZ2Files can't seek when writing,
+                # unless we enable the write0 flag to seek_tell
+                # ZstdFiles also does not support seek forward on write
+                if (not write0 and
+                    (in_file == 'test.bz2' or
+                     in_file == 'test.zst')):  # Can't seek write in bz2, zst
                     # write the zeros by hand for the read test below
                     fobj.write(b'\x00' * diff)
                 else:
@@ -945,7 +966,10 @@ def test_seek_tell():
             # Check we have the expected written output
             with ImageOpener(in_file, 'rb') as fobj:
                 assert fobj.read() == b'\x01' * start + b'\x00' * diff + b'\x02' * tail
-        for in_file in ('test2.gz', 'test2.bz2'):
+        input_files = ['test2.gz', 'test2.bz2']
+        if HAVE_ZSTD:
+            input_files += ['test2.zst']
+        for in_file in input_files:
             # Check failure of write seek backwards
             with ImageOpener(in_file, 'wb') as fobj:
                 fobj.write(b'g' * 10)
@@ -1125,7 +1149,7 @@ def test_dtypes():
     dtr = make_dt_codes(dt_defs)
     assert dtr[np.dtype('f4').newbyteorder('S')] == 16
     assert dtr.value_set() == set((16,))
-    assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype', 
+    assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype',
                           'sw_dtype')
     assert dtr.niistring[16] == 'ASTRING'
     # And that unequal elements raises error
@@ -1224,9 +1248,8 @@ def test_array_from_file_overflow():
         array_from_file(shape, np.int8, NoStringIO())
     except IOError as err:
         message = str(err)
-    assert message == 'Expected {0} bytes, got {1} bytes from {2}\n' \
-                      ' - could the file be damaged?'.format(
-                      11390625000000000000, 0, 'object')
+    assert message == ("Expected 11390625000000000000 bytes, got 0 "
+                       "bytes from object\n - could the file be damaged?")
 
 
 def test__ftype4scaled_finite_warningfilters():
@@ -1279,7 +1302,7 @@ def test__ftype4scaled_finite_warningfilters():
 
 
 def _calculate_scale(data, out_dtype, allow_intercept):
-    ''' Calculate scaling and optional intercept for data
+    """ Calculate scaling and optional intercept for data
 
     Copy of the deprecated volumeutils.calculate_scale, to preserve tests
 
@@ -1303,7 +1326,7 @@ def _calculate_scale(data, out_dtype, allow_intercept):
     mx : None or float
        minimum of finite value in data, or None if this will not
        be used to threshold data
-    '''
+    """
     # Code here is a compatibility shell around arraywriters refactor
     in_dtype = data.dtype
     out_dtype = np.dtype(out_dtype)

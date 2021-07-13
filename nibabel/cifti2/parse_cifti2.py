@@ -76,7 +76,7 @@ intent_codes.add_codes((
 
 
 class _Cifti2AsNiftiHeader(Nifti2Header):
-    ''' Class for Cifti2 header extension '''
+    """ Class for Cifti2 header extension """
 
     @classmethod
     def _valid_intent_code(klass, intent_code):
@@ -126,7 +126,7 @@ class _Cifti2AsNiftiImage(Nifti2Image):
 
 
 class Cifti2Parser(xml.XmlParser):
-    '''Class to parse an XML string into a CIFTI-2 header object'''
+    """Class to parse an XML string into a CIFTI-2 header object"""
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
         super(Cifti2Parser, self).__init__(encoding=encoding,
                                            buffer_size=buffer_size,
@@ -517,28 +517,28 @@ class Cifti2Parser(xml.XmlParser):
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             vertices = self.struct_state[-1]
-            vertices.extend(np.loadtxt(c, dtype=np.int, ndmin=1))
+            vertices.extend(np.loadtxt(c, dtype=int, ndmin=1))
             c.close()
 
         elif self.write_to == 'VoxelIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             parent = self.struct_state[-1]
-            parent.voxel_indices_ijk.extend(np.loadtxt(c, dtype=np.int).reshape(-1, 3))
+            parent.voxel_indices_ijk.extend(np.loadtxt(c, dtype=int).reshape(-1, 3))
             c.close()
 
         elif self.write_to == 'VertexIndices':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             index = self.struct_state[-1]
-            index.extend(np.loadtxt(c, dtype=np.int, ndmin=1))
+            index.extend(np.loadtxt(c, dtype=int, ndmin=1))
             c.close()
 
         elif self.write_to == 'TransformMatrix':
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             transform = self.struct_state[-1]
-            transform.matrix = np.loadtxt(c, dtype=np.float)
+            transform.matrix = np.loadtxt(c, dtype=np.float64)
             c.close()
 
         elif self.write_to == 'Label':

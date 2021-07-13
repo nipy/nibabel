@@ -6,9 +6,10 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Test for scaling / rounding in volumeutils module '''
+""" Test for scaling / rounding in volumeutils module """
 
 import numpy as np
+import warnings
 
 from io import BytesIO
 from ..volumeutils import finite_range, apply_read_scaling, array_to_file, array_from_file
@@ -42,7 +43,7 @@ DEBUG = True
     ([np.inf, 1], (1, 1)),  # only look at finite values
     ([-np.inf, 1], (1, 1)),
     ([[], []], (np.inf, -np.inf)),  # empty array
-    (np.array([[-3, 0, 1], [2, -1, 4]], dtype=np.int), (-3, 4)),
+    (np.array([[-3, 0, 1], [2, -1, 4]], dtype=int), (-3, 4)),
     (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
     ([0., 1, 2, 3], (0, 3)),
     # Complex comparison works as if they are floats
@@ -63,7 +64,7 @@ def test_finite_range(in_arr, res):
     assert finite_range(flat_arr, True) == res + (has_nan,)
     # Check float types work as complex
     if in_arr.dtype.kind == 'f':
-        c_arr = in_arr.astype(np.complex)
+        c_arr = in_arr.astype(np.complex128)
         assert finite_range(c_arr) == res
         assert finite_range(c_arr, True) == res + (has_nan,)
 
@@ -180,7 +181,7 @@ def test_scaling_in_abstract(category0, category1, overflow):
 
 def check_int_a2f(in_type, out_type):
     # Check that array to / from file returns roughly the same as input
-    big_floater = np.maximum_sctype(np.float)
+    big_floater = np.maximum_sctype(np.float64)
     info = type_info(in_type)
     this_min, this_max = info['min'], info['max']
     if not in_type in np.sctypes['complex']:
@@ -188,7 +189,7 @@ def check_int_a2f(in_type, out_type):
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(data)):
             if DEBUG:
-                print('Hit PPC max -> inf bug; skip in_type %s' % in_type)
+                print(f'Hit PPC max -> inf bug; skip in_type {in_type}')
             return
     else:  # Funny behavior with complex256
         data = np.zeros((2,), in_type)
@@ -199,7 +200,7 @@ def check_int_a2f(in_type, out_type):
         scale, inter, mn, mx = _calculate_scale(data, out_type, True)
     except ValueError as e:
         if DEBUG:
-            print(in_type, out_type, e)
+            warnings.warn(str((in_type, out_type, e)))
         return
     array_to_file(data, str_io, out_type, 0, inter, scale, mn, mx)
     data_back = array_from_file(data.shape, out_type, str_io)

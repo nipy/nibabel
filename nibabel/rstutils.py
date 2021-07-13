@@ -51,8 +51,7 @@ def rst_table(cell_values,
     cross = format_chars.pop('cross', '+')
     title_heading = format_chars.pop('title_heading', '*')
     if len(format_chars) != 0:
-        raise ValueError('Unexpected ``format_char`` keys {0}'.format(
-            ', '.join(format_chars)))
+        raise ValueError(f"Unexpected ``format_char`` keys {', '.join(format_chars)}")
     down_joiner = ' ' + down + ' '
     down_starter = down + ' '
     down_ender = ' ' + down
@@ -66,11 +65,11 @@ def rst_table(cell_values,
     cell_values = np.asarray(cell_values)
     R, C = cell_values.shape[:2]
     if row_names is None:
-        row_names = ['row[{0}]'.format(r) for r in range(R)]
+        row_names = [f'row[{r}]' for r in range(R)]
     elif len(row_names) != R:
         raise ValueError('len(row_names) != number of rows')
     if col_names is None:
-        col_names = ['col[{0}]'.format(c) for c in range(C)]
+        col_names = [f'col[{c}]' for c in range(C)]
     elif len(col_names) != C:
         raise ValueError('len(col_names) != number of columns')
     row_len = max(len(name) for name in row_names)

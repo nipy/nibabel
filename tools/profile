@@ -11,16 +11,14 @@
 
 __docformat__ = 'restructuredtext'
 
-import sys, os
-
-from optparse import OptionParser
-from os import environ, path
+import os
+import sys
+from os import path
 
 if __name__ == "__main__":
 
     usage = """Usage: %s [options] <python module> ...
     """ % sys.argv[0]
-
 
     # default options
     convert2kcache = True
@@ -35,8 +33,8 @@ if __name__ == "__main__":
     removed = sys.argv.pop(0)
 
     if not len(sys.argv):
-            print usage
-            sys.exit(1)
+        print(usage)
+        sys.exit(1)
 
     while sys.argv[0].startswith('-'):
         if sys.argv[0] in ["-l", "--level"]:
@@ -60,7 +58,7 @@ if __name__ == "__main__":
             convert2kcache = False
             displaykcachegrinder = False
         else:
-            print usage
+            print(usage)
             sys.exit(1)
         sys.argv.pop(0)
 
@@ -80,11 +78,10 @@ if __name__ == "__main__":
         pfilename = cmdname + ".prof"
 
     if run:
-        exec "import %s as runnable" % root
+        exec(f"import {root} as runnable")
 
         if not 'main' in runnable.__dict__:
-            print "OOPS: file/module %s has no function main defined" \
-                       % cmdname
+            print(f"OOPS: file/module {cmdname} has no function main defined")
             sys.exit(1)
 
         prof = hotshot.Profile(pfilename, lineevents=profilelines)
@@ -96,13 +93,12 @@ if __name__ == "__main__":
         except SystemExit:
             pass
 
-        print "Saving profile data into %s" % pfilename
+        print(f"Saving profile data into {pfilename}")
         prof.close()
-
 
     if printstats or pstatsfilename:
         import hotshot.stats
-        print "Loading profile file to print statistics"
+        print("Loading profile file to print statistics")
         stats = hotshot.stats.load(pfilename)
         if printstats:
             stats.strip_dirs()
@@ -115,13 +111,13 @@ if __name__ == "__main__":
     if convert2kcache:
         cmd = "hotshot2calltree -o %s %s" % (kfilename, pfilename)
         if os.system(cmd):
-            print "!!! Make sure to install kcachegrind-converters ;-)"
+            print("!!! Make sure to install kcachegrind-converters ;-)")
             sys.exit(1)
 
     if displaykcachegrinder:
         if os.system('kcachegrind %s' % kfilename):
-            print "!!! Make sure to install kcachegrind ;-)"
+            print("!!! Make sure to install kcachegrind ;-)")
             sys.exit(1)
 
 else:
-    print "Go away -- nothing to look here for as a module"
+    print("Go away -- nothing to look here for as a module")

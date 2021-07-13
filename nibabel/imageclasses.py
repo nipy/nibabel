@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Define supported image classes and names '''
+""" Define supported image classes and names """
 
 from .analyze import AnalyzeImage
 from .brikhead import AFNIImage

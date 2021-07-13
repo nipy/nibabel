@@ -1,4 +1,4 @@
-''' Tests for netcdf '''
+""" Tests for netcdf """
 
 import os
 from os.path import join as pjoin, dirname

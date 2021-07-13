@@ -7,6 +7,26 @@ import re
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
 
+TESTSETUP = """
+
+.. testsetup::
+
+    >>> import pytest
+    >>> import warnings
+    >>> _suppress_warnings = pytest.deprecated_call()
+    >>> _ = _suppress_warnings.__enter__()
+
+"""
+
+TESTCLEANUP = """
+
+.. testcleanup::
+
+    >>> warnings.warn("Avoid error if no doctests to run...", DeprecationWarning)
+    >>> _ = _suppress_warnings.__exit__(None, None, None)
+
+"""
+
 
 class ExpiredDeprecationError(RuntimeError):
     """ Error for expired deprecation
@@ -25,7 +45,7 @@ def _ensure_cr(text):
     return text.rstrip() + '\n'
 
 
-def _add_dep_doc(old_doc, dep_doc):
+def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
     """ Add deprecation message `dep_doc` to docstring in `old_doc`
 
     Parameters
@@ -56,8 +76,11 @@ def _add_dep_doc(old_doc, dep_doc):
         # nothing following first paragraph, just append message
         return old_doc + '\n' + dep_doc
     indent = _LEADING_WHITE.match(old_lines[next_line]).group()
+    setup_lines = [indent + L for L in setup.splitlines()]
     dep_lines = [indent + L for L in [''] + dep_doc.splitlines() + ['']]
-    return '\n'.join(new_lines + dep_lines + old_lines[next_line:]) + '\n'
+    cleanup_lines = [indent + L for L in cleanup.splitlines()]
+    return '\n'.join(new_lines + dep_lines + setup_lines +
+                     old_lines[next_line:] + cleanup_lines + [''])
 
 
 class Deprecator(object):
@@ -146,10 +169,8 @@ class Deprecator(object):
         if since:
             messages.append('* deprecated from version: ' + since)
         if until:
-            messages.append('* {0} {1} as of version: {2}'.format(
-                "Raises" if self.is_bad_version(until) else "Will raise",
-                error_class,
-                until))
+            messages.append(f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
+                            f"{error_class} as of version: {until}")
         message = '\n'.join(messages)
 
         def deprecator(func):
@@ -162,7 +183,7 @@ class Deprecator(object):
                 return func(*args, **kwargs)
 
             deprecated_func.__doc__ = _add_dep_doc(deprecated_func.__doc__,
-                                                   message)
+                                                   message, TESTSETUP, TESTCLEANUP)
             return deprecated_func
 
         return deprecator

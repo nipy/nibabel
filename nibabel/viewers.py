@@ -119,7 +119,7 @@ class OrthoSlicer3D(object):
                 fig.delaxes(self._axes[3])
                 self._axes.pop(-1)
             if self._title is not None:
-                fig.canvas.set_window_title(str(title))
+                fig.canvas.manager.set_window_title(str(title))
         else:
             self._axes = [axes[0], axes[1], axes[2]]
             if len(axes) > 3:
@@ -184,7 +184,7 @@ class OrthoSlicer3D(object):
                                                 5).astype(int)))
             ax.set_xlim(x[0], x[-1])
             yl = [self._data.min(), self._data.max()]
-            yl = [l + s * np.diff(lims)[0] for l, s in zip(yl, [-1.01, 1.01])]
+            yl = [lim + s * np.diff(lims)[0] for lim, s in zip(yl, [-1.01, 1.01])]
             patch = mpl_patch.Rectangle([-0.5, yl[0]], 1., np.diff(yl)[0],
                                         fill=True, facecolor=(0, 1, 0),
                                         edgecolor=(0, 1, 0), alpha=0.25)
@@ -213,11 +213,10 @@ class OrthoSlicer3D(object):
         self._draw()
 
     def __repr__(self):
-        title = '' if self._title is None else ('%s ' % self._title)
-        vol = '' if self.n_volumes <= 1 else (', %s' % self.n_volumes)
-        r = ('<%s: %s(%s, %s, %s%s)>'
-             % (self.__class__.__name__, title, self._sizes[0], self._sizes[1],
-                self._sizes[2], vol))
+        title = '' if self._title is None else f'{self._title} '
+        vol = '' if self.n_volumes <= 1 else f', {self.n_volumes}'
+        r = (f'<{self.__class__.__name__}: {title}({self._sizes[0]}, '
+             f'{self._sizes[1]}, {self._sizes[2]}{vol})>')
         return r
 
     # User-level functions ###################################################
@@ -295,8 +294,8 @@ class OrthoSlicer3D(object):
             Other viewer to use to link movements.
         """
         if not isinstance(other, self.__class__):
-            raise TypeError('other must be an instance of %s, not %s'
-                            % (self.__class__.__name__, type(other)))
+            raise TypeError('other must be an instance of '
+                            f'{self.__class__.__name__}, not {type(other)}')
         self._link(other, is_primary=True)
 
     def _link(self, other, is_primary):

@@ -55,7 +55,6 @@ from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .cifti2 import Cifti2Header, Cifti2Image
 from .gifti import GiftiImage
-from .minc1 import MincImage
 from .freesurfer import MGHImage
 from .funcs import (squeeze_image, concat_images, four_to_three,
                     as_closest_canonical)
@@ -63,8 +62,6 @@ from .orientations import (io_orientation, orientation_affine,
                            flip_axis, OrientationError,
                            apply_orientation, aff2axcodes)
 from .imageclasses import class_map, ext_map, all_image_classes
-from .deprecated import ModuleProxy as _ModuleProxy
-trackvis = _ModuleProxy('nibabel.trackvis')
 from . import mriutils
 from . import streamlines
 from . import viewers

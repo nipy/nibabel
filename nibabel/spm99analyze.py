@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Read / write access to SPM99 version of analyze image format '''
+""" Read / write access to SPM99 version of analyze image format """
 import warnings
 import numpy as np
 
@@ -19,7 +19,7 @@ from . import analyze  # module import
 from .optpkg import optional_package
 have_scipy = optional_package('scipy')[1]
 
-''' Support subtle variations of SPM version of Analyze '''
+""" Support subtle variations of SPM version of Analyze """
 header_key_dtd = analyze.header_key_dtd
 # funused1 in dime subfield is scalefactor
 image_dimension_dtd = analyze.image_dimension_dtd[:]
@@ -39,7 +39,7 @@ header_dtype = np.dtype(header_key_dtd +
 
 
 class SpmAnalyzeHeader(analyze.AnalyzeHeader):
-    ''' Basic scaling Spm Analyze header '''
+    """ Basic scaling Spm Analyze header """
     # Copies of module level definitions
     template_dtype = header_dtype
 
@@ -49,17 +49,17 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        ''' Create empty header binary block with given endianness '''
+        """ Create empty header binary block with given endianness """
         hdr_data = super(SpmAnalyzeHeader, klass).default_structarr(endianness)
         hdr_data['scl_slope'] = 1
         return hdr_data
 
     def get_slope_inter(self):
-        ''' Get scalefactor and intercept
+        """ Get scalefactor and intercept
 
         If scalefactor is 0.0 return None to indicate no scalefactor.
         Intercept is always None because SPM99 analyze cannot store intercepts.
-        '''
+        """
         slope = self._structarr['scl_slope']
         # Return invalid slopes as None
         if np.isnan(slope) or slope in (0, -np.inf, np.inf):
@@ -67,7 +67,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         return slope, None
 
     def set_slope_inter(self, slope, inter=None):
-        ''' Set slope and / or intercept into header
+        """ Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
         data is ``arr``, then the scaled image data will be ``(arr *
@@ -85,7 +85,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         inter : None or float, optional
            intercept. Must be None, NaN or 0, because SPM99 cannot store
            intercepts.
-        '''
+        """
         if slope is None:
             slope = np.nan
         if slope in (0, -np.inf, np.inf):
@@ -98,16 +98,16 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
-    ''' Class for SPM99 variant of basic Analyze header
+    """ Class for SPM99 variant of basic Analyze header
 
     SPM99 variant adds the following to basic Analyze format:
 
     * voxel origin;
     * slope scaling of data.
-    '''
+    """
 
     def get_origin_affine(self):
-        ''' Get affine from header, using SPM origin field if sensible
+        """ Get affine from header, using SPM origin field if sensible
 
         The default translations are got from the ``origin``
         field, if set, or from the center of the image otherwise.
@@ -137,7 +137,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  2.,  0., -4.],
                [ 0.,  0.,  1., -3.],
                [ 0.,  0.,  0.,  1.]])
-        '''
+        """
         hdr = self._structarr
         zooms = hdr['pixdim'][1:4].copy()
         if self.default_x_flip:
@@ -159,7 +159,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
     get_best_affine = get_origin_affine
 
     def set_origin_from_affine(self, affine):
-        ''' Set SPM origin to header from affine matrix.
+        """ Set SPM origin to header from affine matrix.
 
         The ``origin`` field was read but not written by SPM99 and 2.  It was
         used for storing a central voxel coordinate, that could be used in
@@ -201,7 +201,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
                [ 0.,  2.,  0., -6.],
                [ 0.,  0.,  1., -4.],
                [ 0.,  0.,  0.,  1.]])
-        '''
+        """
         if affine.shape != (4, 4):
             raise ValueError('Need 4x4 affine to set')
         hdr = self._structarr
@@ -244,11 +244,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
-        ''' Class method to create image from mapping in ``file_map``
-
-        .. deprecated:: 2.4.1
-            ``keep_file_open='auto'`` is redundant with `False` and has
-            been deprecated. It raises an error as of nibabel 3.0.
+        """ Class method to create image from mapping in ``file_map``
 
         Parameters
         ----------
@@ -277,7 +273,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         -------
         img : Spm99AnalyzeImage instance
 
-        '''
+        """
         ret = super(Spm99AnalyzeImage, klass).from_file_map(
             file_map, mmap=mmap, keep_file_open=keep_file_open)
         try:
@@ -313,7 +309,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         return ret
 
     def to_file_map(self, file_map=None):
-        ''' Write image to `file_map` or contained ``self.file_map``
+        """ Write image to `file_map` or contained ``self.file_map``
 
         Extends Analyze ``to_file_map`` method by writing ``mat`` file
 
@@ -322,7 +318,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         file_map : None or mapping, optional
            files mapping.  If None (default) use object's ``file_map``
            attribute instead
-        '''
+        """
         if file_map is None:
             file_map = self.file_map
         super(Spm99AnalyzeImage, self).to_file_map(file_map)

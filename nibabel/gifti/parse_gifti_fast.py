@@ -11,6 +11,7 @@ import base64
 import sys
 import warnings
 import zlib
+import os.path as op
 from io import StringIO
 from xml.parsers.expat import ExpatError
 
@@ -30,22 +31,84 @@ class GiftiParseError(ExpatError):
     """ Gifti-specific parsing error """
 
 
-def read_data_block(encoding, endian, ordering, datatype, shape, data):
-    """ Tries to unzip, decode, parse the funny string data """
-    enclabel = gifti_encoding_codes.label[encoding]
-    dtype = data_type_codes.type[datatype]
+def read_data_block(darray, fname, data, mmap):
+    """Parses data from a <Data> element, or loads from an external file.
+
+    Parameters
+    ----------
+    darray : GiftiDataArray
+         GiftiDataArray object representing the parent <DataArray> of this
+         <Data> element
+
+    fname : str or None
+         Name of GIFTI file being loaded, or None if in-memory
+
+    data : str or None
+         Data to parse, or None if data is in an external file
+
+    mmap : {True, False, 'c', 'r', 'r+'}
+        Controls the use of numpy memory mapping for reading data.  Only has
+        an effect when loading GIFTI images with data stored in external files
+        (``DataArray`` elements with an ``Encoding`` equal to
+        ``ExternalFileBinary``).  If ``False``, do not try numpy ``memmap``
+        for data array.  If one of ``{'c', 'r', 'r+'}``, try numpy ``memmap``
+        with ``mode=mmap``.  A `mmap` value of ``True`` gives the same
+        behavior as ``mmap='c'``.  If the file cannot be memory-mapped, ignore
+        `mmap` value and read array from file.
+
+    Returns
+    -------
+    ``numpy.ndarray`` or ``numpy.memmap`` containing the parsed data
+    """
+    if mmap not in (True, False, 'c', 'r', 'r+'):
+        raise ValueError("mmap value should be one of True, False, 'c', "
+                         "'r', 'r+'")
+    if mmap is True:
+        mmap = 'c'
+    enclabel = gifti_encoding_codes.label[darray.encoding]
+    dtype = data_type_codes.type[darray.datatype]
+
     if enclabel == 'ASCII':
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c, dtype=dtype)
         return da  # independent of the endianness
-
-    elif enclabel == 'External':
-        # GIFTI_ENCODING_EXTBIN
-        raise NotImplementedError("In what format are the external files?")
-
-    elif enclabel not in ('B64BIN', 'B64GZ'):
+    elif enclabel not in ('B64BIN', 'B64GZ', 'External'):
         return 0
+
+    # GIFTI_ENCODING_EXTBIN
+    # We assume that the external data file is raw uncompressed binary, with
+    # the data type/endianness/ordering specified by the other DataArray
+    # attributes
+    if enclabel == 'External':
+        if fname is None:
+            raise GiftiParseError('ExternalFileBinary is not supported '
+                                  'when loading from in-memory XML')
+        ext_fname = op.join(op.dirname(fname), darray.ext_fname)
+        if not op.exists(ext_fname):
+            raise GiftiParseError('Cannot locate external file ' + ext_fname)
+        # We either create a memmap, or load into memory
+        newarr = None
+        if mmap:
+            try:
+                newarr = np.memmap(ext_fname,
+                                   dtype=dtype,
+                                   mode=mmap,
+                                   offset=darray.ext_offset,
+                                   shape=tuple(darray.dims))
+            # If the memmap fails, we ignore the error and load the data into
+            # memory below
+            except (AttributeError, TypeError, ValueError):
+                pass
+        # mmap=False or np.memmap failed
+        if newarr is None:
+            # We can replace this with a call to np.fromfile in numpy>=1.17,
+            # as an "offset" paramter was added in that version.
+            with open(ext_fname, 'rb') as f:
+                f.seek(darray.ext_offset)
+                nbytes = np.prod(darray.dims) * dtype().itemsize
+                buff = f.read(nbytes)
+                newarr = np.frombuffer(buff, dtype=dtype)
 
     # Numpy arrays created from bytes objects are read-only.
     # Neither b64decode nor decompress will return bytearrays, and there
@@ -53,22 +116,24 @@ def read_data_block(encoding, endian, ordering, datatype, shape, data):
     # there is not a simple way to avoid making copies.
     # If this becomes a problem, we should write a decoding interface with
     # a tunable chunk size.
-    dec = base64.b64decode(data.encode('ascii'))
-    if enclabel == 'B64BIN':
-        # GIFTI_ENCODING_B64BIN
-        buff = bytearray(dec)
     else:
-        # GIFTI_ENCODING_B64GZ
-        buff = bytearray(zlib.decompress(dec))
-    del dec
+        dec = base64.b64decode(data.encode('ascii'))
+        if enclabel == 'B64BIN':
+            # GIFTI_ENCODING_B64BIN
+            buff = bytearray(dec)
+        else:
+            # GIFTI_ENCODING_B64GZ
+            buff = bytearray(zlib.decompress(dec))
+        del dec
+        newarr = np.frombuffer(buff, dtype=dtype)
 
-    sh = tuple(shape)
-    newarr = np.frombuffer(buff, dtype=dtype)
+    sh = tuple(darray.dims)
     if len(newarr.shape) != len(sh):
-        newarr = newarr.reshape(sh, order=array_index_order_codes.npcode[ordering])
+        newarr = newarr.reshape(
+            sh, order=array_index_order_codes.npcode[darray.ind_ord])
 
     # check if we need to byteswap
-    required_byteorder = gifti_endian_codes.byteorder[endian]
+    required_byteorder = gifti_endian_codes.byteorder[darray.endian]
     if (required_byteorder in ('big', 'little') and
             required_byteorder != sys.byteorder):
         newarr = newarr.byteswap()
@@ -82,12 +147,16 @@ def _str2int(in_str):
 
 class GiftiImageParser(XmlParser):
 
-    def __init__(self, encoding=None, buffer_size=35000000, verbose=0):
+    def __init__(self, encoding=None, buffer_size=35000000, verbose=0,
+                 mmap=True):
         super(GiftiImageParser, self).__init__(encoding=encoding,
                                                buffer_size=buffer_size,
                                                verbose=verbose)
         # output
         self.img = None
+
+        # Queried when loading data from <Data> elements - see read_data_block
+        self.mmap = mmap
 
         # finite state machine stack
         self.fsm_state = []
@@ -177,7 +246,7 @@ class GiftiImageParser(XmlParser):
                     attrs["ArrayIndexingOrder"]]
             num_dim = int(attrs.get("Dimensionality", 0))
             for i in range(num_dim):
-                di = "Dim%s" % str(i)
+                di = f"Dim{i}"
                 if di in attrs:
                     self.da.dims.append(int(attrs[di]))
             # dimensionality has to correspond to the number of DimX given
@@ -288,12 +357,17 @@ class GiftiImageParser(XmlParser):
 
     def flush_chardata(self):
         """ Collate and process collected character data"""
-        if self._char_blocks is None:
+        # Nothing to do for empty elements, except for Data elements which
+        # are within a DataArray with an external file
+        if self.write_to != 'Data' and self._char_blocks is None:
             return
         # Just join the strings to get the data.  Maybe there are some memory
         # optimizations we could do by passing the list of strings to the
         # read_data_block function.
-        data = ''.join(self._char_blocks)
+        if self._char_blocks is not None:
+            data = ''.join(self._char_blocks)
+        else:
+            data = None
         # Reset the char collector
         self._char_blocks = None
 
@@ -321,10 +395,8 @@ class GiftiImageParser(XmlParser):
             c.close()
 
         elif self.write_to == 'Data':
-            da_tmp = self.img.darrays[-1]
-            da_tmp.data = read_data_block(da_tmp.encoding, da_tmp.endian,
-                                          da_tmp.ind_ord, da_tmp.datatype,
-                                          da_tmp.dims, data)
+            self.da.data = read_data_block(self.da, self.fname, data,
+                                           self.mmap)
             # update the endianness according to the
             # current machine setting
             self.endian = gifti_endian_codes.code[sys.byteorder]

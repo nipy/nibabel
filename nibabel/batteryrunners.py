@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Battery runner classes and Report classes
+""" Battery runner classes and Report classes
 
 These classes / objects are for generic checking / fixing batteries
 
@@ -105,14 +105,14 @@ or the pixdims::
             rep.fix_msg = 'setting to abs of pixdim values'
         return hdr, rep
 
-'''
+"""
 
 
 class BatteryRunner(object):
-    ''' Class to run set of checks '''
+    """ Class to run set of checks """
 
     def __init__(self, checks):
-        ''' Initialize instance from sequence of `checks`
+        """ Initialize instance from sequence of `checks`
 
         Parameters
         ----------
@@ -126,11 +126,11 @@ class BatteryRunner(object):
         >>> def chk(obj, fix=False): # minimal check
         ...     return obj, Report()
         >>> btrun = BatteryRunner((chk,))
-        '''
+        """
         self._checks = checks
 
     def check_only(self, obj):
-        ''' Run checks on `obj` returning reports
+        """ Run checks on `obj` returning reports
 
         Parameters
         ----------
@@ -142,7 +142,7 @@ class BatteryRunner(object):
         reports : sequence
            sequence of report objects reporting on result of running
            checks (without fixes) on `obj`
-        '''
+        """
         reports = []
         for check in self._checks:
             obj, rep = check(obj, False)
@@ -150,7 +150,7 @@ class BatteryRunner(object):
         return reports
 
     def check_fix(self, obj):
-        ''' Run checks, with fixes, on `obj` returning `obj`, reports
+        """ Run checks, with fixes, on `obj` returning `obj`, reports
 
         Parameters
         ----------
@@ -163,7 +163,7 @@ class BatteryRunner(object):
            possibly modified or replaced `obj`, after fixes
         reports : sequence
            sequence of reports on checks, fixes
-        '''
+        """
         reports = []
         for check in self._checks:
             obj, report = check(obj, True)
@@ -181,7 +181,7 @@ class Report(object):
                  problem_level=0,
                  problem_msg='',
                  fix_msg=''):
-        ''' Initialize report with values
+        """ Initialize report with values
 
         Parameters
         ----------
@@ -207,7 +207,7 @@ class Report(object):
         >>> rep = Report(TypeError, 10)
         >>> rep.problem_level
         10
-        '''
+        """
         self.error = error
         self.problem_level = problem_level
         self.problem_msg = problem_msg
@@ -223,7 +223,7 @@ class Report(object):
         return self.error, self.problem_level, self.problem_msg, self.fix_msg
 
     def __eq__(self, other):
-        ''' are two BatteryRunner-like objects equal?
+        """ are two BatteryRunner-like objects equal?
 
         Parameters
         ----------
@@ -239,7 +239,7 @@ class Report(object):
         >>> rep3 = Report(problem_level=20)
         >>> rep == rep3
         False
-        '''
+        """
         return self.__getstate__() == other.__getstate__()
 
     def __ne__(self, other):
@@ -250,19 +250,19 @@ class Report(object):
         return not self == other
 
     def __str__(self):
-        ''' Printable string for object '''
+        """ Printable string for object """
         return self.__dict__.__str__()
 
     @property
     def message(self):
-        ''' formatted message string, including fix message if present
-        '''
+        """ formatted message string, including fix message if present
+        """
         if self.fix_msg:
             return '; '.join((self.problem_msg, self.fix_msg))
         return self.problem_msg
 
     def log_raise(self, logger, error_level=40):
-        ''' Log problem, raise error if problem >= `error_level`
+        """ Log problem, raise error if problem >= `error_level`
 
         Parameters
         ----------
@@ -270,14 +270,14 @@ class Report(object):
            log object, implementing ``log`` method
         error_level : int, optional
            If ``self.problem_level`` >= `error_level`, raise error
-        '''
+        """
         logger.log(self.problem_level, self.message)
         if self.problem_level and self.problem_level >= error_level:
             if self.error:
                 raise self.error(self.problem_msg)
 
     def write_raise(self, stream, error_level=40, log_level=30):
-        ''' Write report to `stream`
+        """ Write report to `stream`
 
         Parameters
         ----------
@@ -289,10 +289,9 @@ class Report(object):
         log_level : int, optional
            Such that if `log_level` is >= ``self.problem_level`` we
            write the report to `stream`, otherwise we write nothing.
-        '''
+        """
         if self.problem_level >= log_level:
-            stream.write('Level %s: %s\n' %
-                         (self.problem_level, self.message))
+            stream.write(f'Level {self.problem_level}: {self.message}\n')
         if self.problem_level and self.problem_level >= error_level:
             if self.error:
                 raise self.error(self.problem_msg)

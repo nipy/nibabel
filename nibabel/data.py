@@ -32,10 +32,10 @@ class BomberError(DataError, AttributeError):
 
 
 class Datasource(object):
-    ''' Simple class to add base path to relative path '''
+    """ Simple class to add base path to relative path """
 
     def __init__(self, base_path):
-        ''' Initialize datasource
+        """ Initialize datasource
 
         Parameters
         ----------
@@ -49,11 +49,11 @@ class Datasource(object):
         >>> fname = repo.get_filename('somedir', 'afile.txt')
         >>> fname == pjoin('a', 'path', 'somedir', 'afile.txt')
         True
-        '''
+        """
         self.base_path = base_path
 
     def get_filename(self, *path_parts):
-        ''' Prepend base path to `*path_parts`
+        """ Prepend base path to `*path_parts`
 
         We make no check whether the returned path exists.
 
@@ -67,11 +67,11 @@ class Datasource(object):
            result of ``os.path.join(*path_parts), with
            ``self.base_path`` prepended
 
-        '''
+        """
         return pjoin(self.base_path, *path_parts)
 
     def list_files(self, relative=True):
-        ''' Recursively list the files in the data source directory.
+        """ Recursively list the files in the data source directory.
 
             Parameters
             ----------
@@ -84,7 +84,7 @@ class Datasource(object):
             file_list: list of strings
                 List of the paths of all the files in the data source.
 
-        '''
+        """
         out_list = list()
         for base, dirs, files in os.walk(self.base_path):
             if relative:
@@ -95,12 +95,12 @@ class Datasource(object):
 
 
 class VersionedDatasource(Datasource):
-    ''' Datasource with version information in config file
+    """ Datasource with version information in config file
 
-    '''
+    """
 
     def __init__(self, base_path, config_filename=None):
-        ''' Initialize versioned datasource
+        """ Initialize versioned datasource
 
         We assume that there is a configuration file with version
         information in datasource directory tree.
@@ -120,19 +120,19 @@ class VersionedDatasource(Datasource):
         config_filaname : None or str
            relative path to configuration file containing version
 
-        '''
+        """
         Datasource.__init__(self, base_path)
         if config_filename is None:
             config_filename = 'config.ini'
-        self.config = configparser.SafeConfigParser()
+        self.config = configparser.ConfigParser()
         cfg_file = self.get_filename(config_filename)
         readfiles = self.config.read(cfg_file)
         if not readfiles:
-            raise DataError('Could not read config file %s' % cfg_file)
+            raise DataError(f'Could not read config file {cfg_file}')
         try:
             self.version = self.config.get('DEFAULT', 'version')
         except configparser.Error:
-            raise DataError('Could not get version from %s' % cfg_file)
+            raise DataError(f'Could not get version from {cfg_file}')
         version_parts = self.version.split('.')
         self.major_version = int(version_parts[0])
         self.minor_version = int(version_parts[1])
@@ -153,7 +153,7 @@ def _cfg_value(fname, section='DATA', value='path'):
 
 
 def get_data_path():
-    ''' Return specified or guessed locations of NIPY data files
+    """ Return specified or guessed locations of NIPY data files
 
     The algorithm is to return paths, extracted from strings, where
     strings are found in the following order:
@@ -193,7 +193,7 @@ def get_data_path():
 
     * https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html#s-distutils
     * https://www.mail-archive.com/debian-python@lists.debian.org/msg05084.html
-    '''
+    """
     paths = []
     try:
         var = os.environ['NIPY_DATA_PATH']
@@ -217,7 +217,7 @@ def get_data_path():
 
 
 def find_data_dir(root_dirs, *names):
-    ''' Find relative path given path prefixes to search
+    """ Find relative path given path prefixes to search
 
     We raise a DataError if we can't find the relative path
 
@@ -234,19 +234,18 @@ def find_data_dir(root_dirs, *names):
     data_dir : str
        full path (root path added to `*names` above)
 
-    '''
+    """
     ds_relative = pjoin(*names)
     for path in root_dirs:
         pth = pjoin(path, ds_relative)
         if os.path.isdir(pth):
             return pth
-    raise DataError('Could not find datasource "%s" in data path "%s"' %
-                    (ds_relative,
-                     os.path.pathsep.join(root_dirs)))
+    raise DataError(f'Could not find datasource "{ds_relative}" in '
+                    f'data path "{os.path.pathsep.join(root_dirs)}"')
 
 
 def make_datasource(pkg_def, **kwargs):
-    ''' Return datasource defined by `pkg_def` as found in `data_path`
+    """ Return datasource defined by `pkg_def` as found in `data_path`
 
     `data_path` is the only allowed keyword argument.
 
@@ -280,7 +279,7 @@ def make_datasource(pkg_def, **kwargs):
     -------
     datasource : ``VersionedDatasource``
        An initialized ``VersionedDatasource`` instance
-    '''
+    """
     if any(key for key in kwargs if key != 'data_path'):
         raise ValueError('Unexpected keyword argument(s)')
     data_path = kwargs.get('data_path')
@@ -294,33 +293,31 @@ def make_datasource(pkg_def, **kwargs):
         pth = [pjoin(this_data_path, *names)
                for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-        msg = ('%s; Is it possible you have not installed a data package?' %
-               e)
+        msg = f'{e}; Is it possible you have not installed a data package?'
         if 'name' in pkg_def:
-            msg += '\n\nYou may need the package "%s"' % pkg_def['name']
+            msg += f"\n\nYou may need the package \"{pkg_def['name']}\""
         if pkg_hint is not None:
-            msg += '\n\n%s' % pkg_hint
+            msg += f'\n\n{pkg_hint}'
         raise DataError(msg)
     return VersionedDatasource(pth)
 
 
 class Bomber(object):
-    ''' Class to raise an informative error when used '''
+    """ Class to raise an informative error when used """
 
     def __init__(self, name, msg):
         self.name = name
         self.msg = msg
 
     def __getattr__(self, attr_name):
-        ''' Raise informative error accessing not-found attributes '''
+        """ Raise informative error accessing not-found attributes """
         raise BomberError(
-            'Trying to access attribute "%s" '
-            'of non-existent data "%s"\n\n%s\n' %
-            (attr_name, self.name, self.msg))
+            f'Trying to access attribute "{attr_name}" of '
+            f'non-existent data "{self.name}"\n\n{self.msg}\n')
 
 
 def datasource_or_bomber(pkg_def, **options):
-    ''' Return a viable datasource or a Bomber
+    """ Return a viable datasource or a Bomber
 
     This is to allow module level creation of datasource objects.  We
     create the objects, so that, if the data exist, and are the correct
@@ -341,7 +338,7 @@ def datasource_or_bomber(pkg_def, **options):
     Returns
     -------
     ds : datasource or ``Bomber`` instance
-    '''
+    """
     unix_relpath = pkg_def['relpath']
     version = pkg_def.get('min version')
     pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
@@ -359,10 +356,5 @@ def datasource_or_bomber(pkg_def, **options):
         pkg_name = pkg_def['name']
     else:
         pkg_name = 'data at ' + unix_relpath
-    msg = ('%(name)s is version %(pkg_version)s but we need '
-           'version >= %(req_version)s\n\n%(pkg_hint)s' %
-           dict(name=pkg_name,
-                pkg_version=ds.version,
-                req_version=version,
-                pkg_hint=pkg_hint))
+    msg = f"{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}"
     return Bomber(sys_relpath, DataError(msg))

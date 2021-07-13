@@ -21,9 +21,10 @@ import numpy.linalg as npl
 from .optpkg import optional_package
 spnd, _, _ = optional_package('scipy.ndimage')
 
-from .affines import AffineError, to_matvec, from_matvec, append_diag
+from .affines import AffineError, to_matvec, from_matvec, append_diag, rescale_affine
 from .spaces import vox2out_vox
 from .nifti1 import Nifti1Image
+from .orientations import axcodes2ornt, io_orientation, ornt_transform
 from .imageclasses import spatial_axes_first
 
 SIGMA2FWHM = np.sqrt(8 * np.log(2))
@@ -299,7 +300,7 @@ def smooth_image(img,
         fwhm = np.zeros((n_dim,))
         fwhm[:3] = fwhm_scalar
     # Voxel sizes
-    RZS = img.affine[:-1, :n_dim]
+    RZS = img.affine[:, :n_dim]
     vox = np.sqrt(np.sum(RZS ** 2, 0))
     # Smoothing in terms of voxels
     vox_fwhm = fwhm / vox
@@ -310,3 +311,80 @@ def smooth_image(img,
                                    mode=mode,
                                    cval=cval)
     return out_class(sm_data, img.affine, img.header)
+
+
+def conform(from_img,
+            out_shape=(256, 256, 256),
+            voxel_size=(1.0, 1.0, 1.0),
+            order=3,
+            cval=0.0,
+            orientation='RAS',
+            out_class=None):
+    """ Resample image to ``out_shape`` with voxels of size ``voxel_size``.
+
+    Using the default arguments, this function is meant to replicate most parts
+    of FreeSurfer's ``mri_convert --conform`` command. Specifically, this
+    function:
+        - Resamples data to ``output_shape``
+        - Resamples voxel sizes to ``voxel_size``
+        - Reorients to RAS (``mri_convert --conform`` reorients to LIA)
+
+    Unlike ``mri_convert --conform``, this command does not:
+        - Transform data to range [0, 255]
+        - Cast to unsigned eight-bit integer
+
+    Parameters
+    ----------
+    from_img : object
+        Object having attributes ``dataobj``, ``affine``, ``header`` and
+        ``shape``. If `out_class` is not None, ``img.__class__`` should be able
+        to construct an image from data, affine and header.
+    out_shape : sequence, optional
+        The shape of the output volume. Default is (256, 256, 256).
+    voxel_size : sequence, optional
+        The size in millimeters of the voxels in the resampled output. Default
+        is 1mm isotropic.
+    order : int, optional
+        The order of the spline interpolation, default is 3.  The order has to
+        be in the range 0-5 (see ``scipy.ndimage.affine_transform``)
+    cval : scalar, optional
+        Value used for points outside the boundaries of the input if
+        ``mode='constant'``. Default is 0.0 (see
+        ``scipy.ndimage.affine_transform``)
+    orientation : str, optional
+        Orientation of output image. Default is "RAS".
+    out_class : None or SpatialImage class, optional
+        Class of output image.  If None, use ``from_img.__class__``.
+
+    Returns
+    -------
+    out_img : object
+        Image of instance specified by `out_class`, containing data output from
+        resampling `from_img` into axes aligned to the output space of
+        ``from_img.affine``
+    """
+    # Only support 3D images. This can be made more general in the future, once tests
+    # are written.
+    required_ndim = 3
+    if from_img.ndim != required_ndim:
+        raise ValueError("Only 3D images are supported.")
+    elif len(out_shape) != required_ndim:
+        raise ValueError(f"`out_shape` must have {required_ndim} values")
+    elif len(voxel_size) != required_ndim:
+        raise ValueError(f"`voxel_size` must have {required_ndim} values")
+
+    start_ornt = io_orientation(from_img.affine)
+    end_ornt = axcodes2ornt(orientation)
+    transform = ornt_transform(start_ornt, end_ornt)
+
+    # Reorient first to ensure shape matches expectations
+    reoriented = from_img.as_reoriented(transform)
+
+    out_aff = rescale_affine(reoriented.affine, reoriented.shape, voxel_size, out_shape)
+
+    # Resample input image.
+    out_img = resample_from_to(
+        from_img=from_img, to_vox_map=(out_shape, out_aff), order=order, mode="constant",
+        cval=cval, out_class=out_class)
+
+    return out_img

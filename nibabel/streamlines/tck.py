@@ -205,32 +205,32 @@ class TckFile(TractogramFile):
                 self._finalize_header(f, header, offset=beginning)
 
                 # Add the EOF_DELIMITER.
-                f.write(asbytes(self.EOF_DELIMITER.tostring()))
+                f.write(self.EOF_DELIMITER.tobytes())
                 return
 
             data_for_streamline = first_item.data_for_streamline
             if len(data_for_streamline) > 0:
                 keys = ", ".join(data_for_streamline.keys())
-                msg = ("TCK format does not support saving additional data"
-                       " alongside streamlines. Dropping: {}".format(keys))
+                msg = ("TCK format does not support saving additional "
+                       f"data alongside streamlines. Dropping: {keys}")
                 warnings.warn(msg, DataWarning)
 
             data_for_points = first_item.data_for_points
             if len(data_for_points) > 0:
                 keys = ", ".join(data_for_points.keys())
-                msg = ("TCK format does not support saving additional data"
-                       " alongside points. Dropping: {}".format(keys))
+                msg = ("TCK format does not support saving additional "
+                       f"data alongside points. Dropping: {keys}")
                 warnings.warn(msg, DataWarning)
 
             for t in tractogram:
                 data = np.r_[t.streamline, self.FIBER_DELIMITER]
-                f.write(data.astype(dtype).tostring())
+                f.write(data.astype(dtype).tobytes())
                 nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
 
             # Add the EOF_DELIMITER.
-            f.write(asbytes(self.EOF_DELIMITER.tostring()))
+            f.write(asbytes(self.EOF_DELIMITER.tobytes()))
             self._finalize_header(f, header, offset=beginning)
 
     @staticmethod
@@ -252,9 +252,9 @@ class TckFile(TractogramFile):
 
         lines = []
         lines.append(asstr(header[Field.MAGIC_NUMBER]))
-        lines.append("count: {0:010}".format(header[Field.NB_STREAMLINES]))
+        lines.append(f"count: {header[Field.NB_STREAMLINES]:010}")
         lines.append("datatype: Float32LE")  # Always Float32LE.
-        lines.extend(["{0}: {1}".format(k, v)
+        lines.extend([f"{k}: {v}"
                       for k, v in header.items()
                       if k not in exclude and not k.startswith("_")])
         lines.append("file: . ")  # Manually add this last field.
@@ -262,12 +262,12 @@ class TckFile(TractogramFile):
 
         # Check the header is well formatted.
         if out.count("\n") > len(lines) - 1:  # \n only allowed between lines.
-            msg = "Key-value pairs cannot contain '\\n':\n{}".format(out)
+            msg = f"Key-value pairs cannot contain '\\n':\n{out}"
             raise HeaderError(msg)
 
         if out.count(":") > len(lines) - 1:
             # : only one per line (except the last one which contains END).
-            msg = "Key-value pairs cannot contain ':':\n{}".format(out)
+            msg = f"Key-value pairs cannot contain ':':\n{out}"
             raise HeaderError(msg)
 
         # Write header to file.
@@ -330,20 +330,18 @@ class TckFile(TractogramFile):
             hdr['datatype'] = "Float32LE"
 
         if not hdr['datatype'].startswith('Float32'):
-            msg = ("TCK only supports float32 dtype but 'datatype: {}' was"
-                   " specified in the header.").format(hdr['datatype'])
+            msg = ("TCK only supports float32 dtype but 'datatype: "
+                   f"{hdr['datatype']}' was specified in the header.")
             raise HeaderError(msg)
 
         if 'file' not in hdr:
-            msg = ("Missing 'file' attribute in TCK header."
-                   " Will try to guess it.")
+            msg = "Missing 'file' attribute in TCK header. Will try to guess it."
             warnings.warn(msg, HeaderWarning)
-            hdr['file'] = '. {}'.format(offset_data)
+            hdr['file'] = f'. {offset_data}'
 
         if hdr['file'].split()[0] != '.':
-            msg = ("TCK only supports single-file - in other words the"
-                   " filename part must be specified as '.' but '{}' was"
-                   " specified.").format(hdr['file'].split()[0])
+            msg = ("TCK only supports single-file - in other words the filename part must be "
+                   f"specified as '.' but '{hdr['file'].split()[0]}' was specified.")
             raise HeaderError("Missing 'file' attribute in TCK header.")
 
         # Set endianness and _dtype attributes in the header.
@@ -452,8 +450,7 @@ class TckFile(TractogramFile):
         hdr = self.header
 
         info = ""
-        info += "\nMAGIC NUMBER: {0}".format(hdr[Field.MAGIC_NUMBER])
+        info += f"\nMAGIC NUMBER: {hdr[Field.MAGIC_NUMBER]}"
         info += "\n"
-        info += "\n".join(["{}: {}".format(k, v)
-                           for k, v in hdr.items() if not k.startswith('_')])
+        info += "\n".join(f"{k}: {v}" for k, v in hdr.items() if not k.startswith('_'))
         return info

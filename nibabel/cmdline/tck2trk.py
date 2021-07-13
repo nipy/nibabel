@@ -35,14 +35,13 @@ def main():
     for tractogram in args.tractograms:
         tractogram_format = nib.streamlines.detect_format(tractogram)
         if tractogram_format is not nib.streamlines.TckFile:
-            print("Skipping non TCK file: '{}'".format(tractogram))
+            print(f"Skipping non TCK file: '{tractogram}'")
             continue
 
         filename, _ = os.path.splitext(tractogram)
         output_filename = filename + '.trk'
         if os.path.isfile(output_filename) and not args.force:
-            msg = "Skipping existing file: '{}'. Use -f to overwrite."
-            print(msg.format(output_filename))
+            print(f"Skipping existing file: '{output_filename}'. Use -f to overwrite.")
             continue
 
         # Build header using infos from the anatomical image.

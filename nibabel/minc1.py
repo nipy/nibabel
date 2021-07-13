@@ -17,8 +17,6 @@ from .externals.netcdf import netcdf_file
 from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
 
-from .deprecated import deprecate_with_version
-
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
     ('b', 'signed__'): np.int8,
@@ -42,12 +40,12 @@ class MincError(Exception):
 
 
 class Minc1File(object):
-    ''' Class to wrap MINC1 format opened netcdf object
+    """ Class to wrap MINC1 format opened netcdf object
 
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC file, to pull out useful header
     information, and for the method of reading the data out
-    '''
+    """
 
     def __init__(self, mincfile):
         self._mincfile = mincfile
@@ -118,12 +116,12 @@ class Minc1File(object):
         return aff
 
     def _get_valid_range(self):
-        ''' Return valid range for image data
+        """ Return valid range for image data
 
         The valid range can come from the image 'valid_range' or
         image 'valid_min' and 'valid_max', or, failing that, from the
         data type range
-        '''
+        """
         ddt = self.get_data_dtype()
         info = np.iinfo(ddt.type)
         try:
@@ -137,7 +135,7 @@ class Minc1File(object):
         if valid_range[0] < info.min or valid_range[1] > info.max:
             raise ValueError('Valid range outside input '
                              'data type range')
-        return np.asarray(valid_range, dtype=np.float)
+        return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
         """ Get scalar value from NetCDF scalar """
@@ -238,11 +236,11 @@ class Minc1File(object):
 
 
 class MincImageArrayProxy(object):
-    ''' MINC implementation of array proxy protocol
+    """ MINC implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
-    '''
+    """
 
     def __init__(self, minc_file):
         self.minc_file = minc_file
@@ -308,17 +306,17 @@ class Minc1Header(MincHeader):
 
 
 class Minc1Image(SpatialImage):
-    ''' Class for MINC1 format images
+    """ Class for MINC1 format images
 
     The MINC1 image class uses the default header type, rather than a specific
     MINC header type - and reads the relevant information from the MINC file on
     load.
-    '''
+    """
     header_class = Minc1Header
     _meta_sniff_len = 4
     valid_exts = ('.mnc',)
     files_types = (('image', '.mnc'),)
-    _compressed_suffixes = ('.gz', '.bz2')
+    _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
     makeable = True
     rw = False
@@ -342,16 +340,3 @@ class Minc1Image(SpatialImage):
 
 
 load = Minc1Image.load
-
-
-# Backwards compatibility
-@deprecate_with_version('MincFile is deprecated; please use Minc1File instead',
-                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
-class MincFile(Minc1File):
-    pass
-
-
-@deprecate_with_version('MincImage is deprecated; please use Minc1Image instead',
-                        since='2.0.0', until='3.0.0', warn_class=FutureWarning)
-class MincImage(Minc1Image):
-    pass

@@ -7,7 +7,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Processor functions for images '''
+""" Processor functions for images """
 import numpy as np
 
 from .orientations import io_orientation, OrientationError
@@ -15,7 +15,7 @@ from .loadsave import load
 
 
 def squeeze_image(img):
-    ''' Return image, remove axes length 1 at end of image shape
+    """ Return image, remove axes length 1 at end of image shape
 
     For example, an image may have shape (10,20,30,1,1).  In this case
     squeeze will result in an image with shape (10,20,30).  See doctests
@@ -65,7 +65,7 @@ def squeeze_image(img):
     >>> img2 = squeeze_image(img)
     >>> img2.shape == (1, 1, 5, 1, 2)
     True
-    '''
+    """
     klass = img.__class__
     shape = img.shape
     slen = len(shape)
@@ -87,7 +87,7 @@ def squeeze_image(img):
 
 
 def concat_images(images, check_affines=True, axis=None):
-    r''' Concatenate images in list to single image, along specified dimension
+    r""" Concatenate images in list to single image, along specified dimension
 
     Parameters
     ----------
@@ -107,7 +107,7 @@ def concat_images(images, check_affines=True, axis=None):
     concat_img : ``SpatialImage``
        New image resulting from concatenating `images` across last
        dimension
-    '''
+    """
     images = [load(img) if not hasattr(img, 'get_data')
               else img for img in images]
     n_imgs = len(images)
@@ -133,16 +133,12 @@ def concat_images(images, check_affines=True, axis=None):
     masked_shape = np.array(shape0)[idx_mask]
     for i, img in enumerate(images):
         if len(img.shape) != n_dim:
-            raise ValueError(
-                'Image {0} has {1} dimensions, image 0 has {2}'.format(
-                    i, len(img.shape), n_dim))
+            raise ValueError(f'Image {i} has {len(img.shape)} dimensions, image 0 has {n_dim}')
         if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
-            raise ValueError('shape {0} for image {1} not compatible with '
-                             'first image shape {2} with axis == {0}'.format(
-                                 img.shape, i, shape0, axis))
+            raise ValueError(f'shape {img.shape} for image {i} not compatible with '
+                             f'first image shape {shape0} with axis == {axis}')
         if check_affines and not np.all(img.affine == affine):
-            raise ValueError('Affine for image {0} does not match affine '
-                             'for first image'.format(i))
+            raise ValueError(f'Affine for image {i} does not match affine for first image')
         # Do not fill cache in image if it is empty
         out_data[i] = np.asanyarray(img.dataobj)
 
@@ -155,7 +151,7 @@ def concat_images(images, check_affines=True, axis=None):
 
 
 def four_to_three(img):
-    ''' Create 3D images from 4D image by slicing over last axis
+    """ Create 3D images from 4D image by slicing over last axis
 
     Parameters
     ----------
@@ -168,7 +164,7 @@ def four_to_three(img):
     -------
     imgs : list
        list of 3D images
-    '''
+    """
     arr = np.asanyarray(img.dataobj)
     header = img.header
     affine = img.affine
@@ -184,7 +180,7 @@ def four_to_three(img):
 
 
 def as_closest_canonical(img, enforce_diag=False):
-    ''' Return `img` with data reordered to be closest to canonical
+    """ Return `img` with data reordered to be closest to canonical
 
     Canonical order is the ordering of the output axes.
 
@@ -204,7 +200,7 @@ def as_closest_canonical(img, enforce_diag=False):
        orientation.  We modify the affine accordingly.  If `img` is
        already has the correct data ordering, we just return `img`
        unmodified.
-    '''
+    """
     # Get the image class to transform the data for us
     img = img.as_reoriented(io_orientation(img.affine))
 
@@ -216,6 +212,6 @@ def as_closest_canonical(img, enforce_diag=False):
 
 
 def _aff_is_diag(aff):
-    ''' Utility function returning True if affine is nearly diagonal '''
+    """ Utility function returning True if affine is nearly diagonal """
     rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))

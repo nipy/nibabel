@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Fileholder class '''
+""" Fileholder class """
 
 from copy import copy
 
@@ -18,14 +18,14 @@ class FileHolderError(Exception):
 
 
 class FileHolder(object):
-    ''' class to contain filename, fileobj and file position
-    '''
+    """ class to contain filename, fileobj and file position
+    """
 
     def __init__(self,
                  filename=None,
                  fileobj=None,
                  pos=0):
-        ''' Initialize FileHolder instance
+        """ Initialize FileHolder instance
 
         Parameters
         ----------
@@ -37,13 +37,13 @@ class FileHolder(object):
         pos : int, optional
            position in filename or fileobject at which to start reading
            or writing data; defaults to 0
-        '''
+        """
         self.filename = filename
         self.fileobj = fileobj
         self.pos = pos
 
     def get_prepare_fileobj(self, *args, **kwargs):
-        ''' Return fileobj if present, or return fileobj from filename
+        """ Return fileobj if present, or return fileobj from filename
 
         Set position to that given in self.pos
 
@@ -62,7 +62,7 @@ class FileHolder(object):
         fileobj : file-like object
            object has position set (via ``fileobj.seek()``) to
            ``self.pos``
-        '''
+        """
         if self.fileobj is not None:
             obj = ImageOpener(self.fileobj)  # for context manager
             obj.seek(self.pos)
@@ -99,7 +99,7 @@ class FileHolder(object):
 
 
 def copy_file_map(file_map):
-    r''' Copy mapping of fileholders given by `file_map`
+    r""" Copy mapping of fileholders given by `file_map`
 
     Parameters
     ----------
@@ -111,7 +111,7 @@ def copy_file_map(file_map):
     fm_copy : dict
        Copy of `file_map`, using shallow copy of ``FileHolder``\s
 
-    '''
+    """
     fm_copy = {}
     for key, fh in file_map.items():
         fm_copy[key] = copy(fh)

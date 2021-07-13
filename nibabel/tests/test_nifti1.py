@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Tests for nifti reading package '''
+""" Tests for nifti reading package """
 import os
 import warnings
 import struct
@@ -42,6 +42,8 @@ from ..testing import (
     bytesio_filemap,
     bytesio_round_trip
 )
+
+import unittest
 import pytest
 
 from . import test_analyze as tana
@@ -50,8 +52,8 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-from ..pydicom_compat import pydicom
-from ..nicom.tests import dicom_test
+from ..pydicom_compat import pydicom, have_dicom
+dicom_test = unittest.skipUnless(have_dicom, "Could not import dicom or pydicom")
 
 
 # Example transformation matrix
@@ -265,9 +267,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             fhdr, message, raiser = self.log_chk(hdr, 30)
             assert fhdr['vox_offset'] == bad_spm
             assert (message ==
-                    'vox offset (={0:g}) not divisible by 16, '
-                    'not SPM compatible; leaving at current '
-                    'value'.format(bad_spm))
+                    f'vox offset (={bad_spm:g}) not divisible by 16, '
+                    'not SPM compatible; leaving at current value')
         # Check minimum offset (if offset set)
         hdr['magic'] = hdr.single_magic
         hdr['vox_offset'] = 10
@@ -592,14 +593,15 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr2.set_dim_info(slice=2)
         hdr2.set_slice_duration(0.1)
         hdr2.set_data_shape((1, 1, 2))
-        with clear_and_catch_warnings() as w:
-            warnings.simplefilter("always")
+        with pytest.warns(UserWarning) as w:
             hdr2.set_slice_times([0.1, 0])
             assert len(w) == 1
         # but always must be choosing sequential one first
         assert hdr2.get_value_label('slice_code') == 'sequential decreasing'
         # and the other direction
-        hdr2.set_slice_times([0, 0.1])
+        with pytest.warns(UserWarning) as w:
+            hdr2.set_slice_times([0, 0.1])
+            assert len(w) == 1
         assert hdr2.get_value_label('slice_code') == 'sequential increasing'
 
 
@@ -1187,7 +1189,7 @@ def test_extension_io():
     start = np.zeros((1,), dtype=exp_dtype)
     start['esize'] = 24
     start['ecode'] = 6
-    bio.write(start.tostring())
+    bio.write(start.tobytes())
     bio.seek(24)
     ext2.write_to(bio, False)
     # Result should still be OK, but with a warning

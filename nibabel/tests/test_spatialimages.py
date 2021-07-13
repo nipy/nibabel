@@ -35,23 +35,23 @@ from .. import load as top_load
 
 def test_header_init():
     # test the basic header
-    hdr = Header()
+    hdr = SpatialHeader()
     assert hdr.get_data_dtype() == np.dtype(np.float32)
     assert hdr.get_data_shape() == (0,)
     assert hdr.get_zooms() == (1.0,)
-    hdr = Header(np.float64)
+    hdr = SpatialHeader(np.float64)
     assert hdr.get_data_dtype() == np.dtype(np.float64)
     assert hdr.get_data_shape() == (0,)
     assert hdr.get_zooms() == (1.0,)
-    hdr = Header(np.float64, shape=(1, 2, 3))
+    hdr = SpatialHeader(np.float64, shape=(1, 2, 3))
     assert hdr.get_data_dtype() == np.dtype(np.float64)
     assert hdr.get_data_shape() == (1, 2, 3)
     assert hdr.get_zooms() == (1.0, 1.0, 1.0)
-    hdr = Header(np.float64, shape=(1, 2, 3), zooms=None)
+    hdr = SpatialHeader(np.float64, shape=(1, 2, 3), zooms=None)
     assert hdr.get_data_dtype() == np.dtype(np.float64)
     assert hdr.get_data_shape() == (1, 2, 3)
     assert hdr.get_zooms() == (1.0, 1.0, 1.0)
-    hdr = Header(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
+    hdr = SpatialHeader(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
     assert hdr.get_data_dtype() == np.dtype(np.float64)
     assert hdr.get_data_shape() == (1, 2, 3)
     assert hdr.get_zooms() == (3.0, 2.0, 1.0)
@@ -60,12 +60,12 @@ def test_header_init():
 def test_from_header():
     # check from header class method.  Note equality checks below,
     # equality methods used here too.
-    empty = Header.from_header()
-    assert Header() == empty
-    empty = Header.from_header(None)
-    assert Header() == empty
-    hdr = Header(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
-    copy = Header.from_header(hdr)
+    empty = SpatialHeader.from_header()
+    assert SpatialHeader() == empty
+    empty = SpatialHeader.from_header(None)
+    assert SpatialHeader() == empty
+    hdr = SpatialHeader(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
+    copy = SpatialHeader.from_header(hdr)
     assert hdr == copy
     assert hdr is not copy
 
@@ -76,31 +76,31 @@ def test_from_header():
         def get_data_shape(self): return (5, 4, 3)
 
         def get_zooms(self): return (10.0, 9.0, 8.0)
-    converted = Header.from_header(C())
-    assert isinstance(converted, Header)
+    converted = SpatialHeader.from_header(C())
+    assert isinstance(converted, SpatialHeader)
     assert converted.get_data_dtype() == np.dtype('u2')
     assert converted.get_data_shape() == (5, 4, 3)
     assert converted.get_zooms() == (10.0, 9.0, 8.0)
 
 
 def test_eq():
-    hdr = Header()
-    other = Header()
+    hdr = SpatialHeader()
+    other = SpatialHeader()
     assert hdr == other
-    other = Header('u2')
+    other = SpatialHeader('u2')
     assert hdr != other
-    other = Header(shape=(1, 2, 3))
+    other = SpatialHeader(shape=(1, 2, 3))
     assert hdr != other
-    hdr = Header(shape=(1, 2))
-    other = Header(shape=(1, 2))
+    hdr = SpatialHeader(shape=(1, 2))
+    other = SpatialHeader(shape=(1, 2))
     assert hdr == other
-    other = Header(shape=(1, 2), zooms=(2.0, 3.0))
+    other = SpatialHeader(shape=(1, 2), zooms=(2.0, 3.0))
     assert hdr != other
 
 
 def test_copy():
     # test that copy makes independent copy
-    hdr = Header(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
+    hdr = SpatialHeader(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
     hdr_copy = hdr.copy()
     hdr.set_data_shape((4, 5, 6))
     assert hdr.get_data_shape() == (4, 5, 6)
@@ -114,7 +114,7 @@ def test_copy():
 
 
 def test_shape_zooms():
-    hdr = Header()
+    hdr = SpatialHeader()
     hdr.set_data_shape((1, 2, 3))
     assert hdr.get_data_shape() == (1, 2, 3)
     assert hdr.get_zooms() == (1.0, 1.0, 1.0)
@@ -141,7 +141,7 @@ def test_shape_zooms():
 
 
 def test_data_dtype():
-    hdr = Header()
+    hdr = SpatialHeader()
     assert hdr.get_data_dtype() == np.dtype(np.float32)
     hdr.set_data_dtype(np.float64)
     assert hdr.get_data_dtype() == np.dtype(np.float64)
@@ -150,7 +150,7 @@ def test_data_dtype():
 
 
 def test_affine():
-    hdr = Header(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
+    hdr = SpatialHeader(np.float64, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
     assert_array_almost_equal(hdr.get_best_affine(),
                               [[-3.0, 0, 0, 0],
                                [0, 2, 0, -1],
@@ -173,15 +173,15 @@ def test_read_data():
         fobj = BytesIO()
         data = np.arange(6).reshape((1, 2, 3))
         hdr.data_to_fileobj(data, fobj)
-        assert fobj.getvalue() == data.astype(np.int32).tostring(order=order)
+        assert fobj.getvalue() == data.astype(np.int32).tobytes(order=order)
         # data_to_fileobj accepts kwarg 'rescale', but no effect in this case
         fobj.seek(0)
         hdr.data_to_fileobj(data, fobj, rescale=True)
-        assert fobj.getvalue() == data.astype(np.int32).tostring(order=order)
+        assert fobj.getvalue() == data.astype(np.int32).tobytes(order=order)
         # data_to_fileobj can be a list
         fobj.seek(0)
         hdr.data_to_fileobj(data.tolist(), fobj, rescale=True)
-        assert fobj.getvalue() == data.astype(np.int32).tostring(order=order)
+        assert fobj.getvalue() == data.astype(np.int32).tobytes(order=order)
         # Read data back again
         fobj.seek(0)
         data2 = hdr.data_from_fileobj(fobj)
@@ -300,15 +300,6 @@ class TestSpatialImage(TestCase):
         assert np.prod(img.shape) == 5
         img = img_klass(np.zeros((2, 3, 4), dtype=np.int16), np.eye(4))
         assert len(str(img)) > 0
-
-    def test_get_shape(self):
-        # Check that get_shape raises an ExpiredDeprecationError
-        img_klass = self.image_class
-        # Assumes all possible images support int16
-        # See https://github.com/nipy/nibabel/issues/58
-        img = img_klass(np.arange(1, dtype=np.int16), np.eye(4))
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_shape()
 
     def test_get_fdata(self):
         # Test array image and proxy image interface for floating point data
@@ -517,12 +508,11 @@ class TestSpatialImage(TestCase):
                 img.slicer[[0], [-1]]
 
             # Check data is consistent with slicing numpy arrays
-            slice_elems = (None, Ellipsis, 0, 1, -1, [0], [1], [-1],
-                           slice(None), slice(1), slice(-1), slice(1, -1))
+            slice_elems = np.array((None, Ellipsis, 0, 1, -1, [0], [1], [-1],
+                                    slice(None), slice(1), slice(-1), slice(1, -1)), dtype=object)
             for n_elems in range(6):
                 for _ in range(1 if n_elems == 0 else 10):
-                    sliceobj = tuple(
-                        np.random.choice(slice_elems, n_elems).tolist())
+                    sliceobj = tuple(np.random.choice(slice_elems, n_elems))
                     try:
                         sliced_img = img.slicer[sliceobj]
                     except (IndexError, ValueError):
@@ -538,35 +528,6 @@ class TestSpatialImage(TestCase):
                         with pytest.deprecated_call():
                             assert (sliced_data == img.get_data()[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
-
-    def test_api_deprecations(self):
-
-        class FakeImage(self.image_class):
-
-            files_types = (('image', '.foo'),)
-
-            @classmethod
-            def to_file_map(self, file_map=None):
-                pass
-
-            @classmethod
-            def from_file_map(self, file_map=None):
-                pass
-
-        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
-        aff = np.eye(4)
-        img = FakeImage(arr, aff)
-        bio = BytesIO()
-        file_map = FakeImage.make_file_map({'image': bio})
-
-        with pytest.raises(ExpiredDeprecationError):
-            img.to_files(file_map)
-        with pytest.raises(ExpiredDeprecationError):
-            img.to_filespec('an_image')
-        with pytest.raises(ExpiredDeprecationError):
-            FakeImage.from_files(file_map)
-        with pytest.raises(ExpiredDeprecationError):
-            FakeImage.filespec_to_files('an_image')
 
 
 class MmapImageMixin(object):
@@ -630,9 +591,9 @@ class MmapImageMixin(object):
                     back_img = func(param1, **kwargs)
                     back_data = np.asanyarray(back_img.dataobj)
                     if expected_mode is None:
-                        assert not isinstance(back_data, np.memmap), 'Should not be a %s' % img_klass.__name__
+                        assert not isinstance(back_data, np.memmap), f'Should not be a {img_klass.__name__}'
                     else:
-                        assert isinstance(back_data, np.memmap), 'Not a %s' % img_klass.__name__
+                        assert isinstance(back_data, np.memmap), f'Not a {img_klass.__name__}'
                         if self.check_mmap_mode:
                             assert back_data.mode == expected_mode
                     del back_img, back_data

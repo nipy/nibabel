@@ -6,8 +6,8 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Contexts for *with* statement providing temporary directories
-'''
+""" Contexts for *with* statement providing temporary directories
+"""
 import os
 import shutil
 from tempfile import template, mkdtemp
@@ -49,7 +49,7 @@ class TemporaryDirectory(object):
 
 
 class InTemporaryDirectory(TemporaryDirectory):
-    ''' Create, return, and change directory to a temporary directory
+    """ Create, return, and change directory to a temporary directory
 
     Examples
     --------
@@ -63,7 +63,7 @@ class InTemporaryDirectory(TemporaryDirectory):
     False
     >>> os.getcwd() == my_cwd
     True
-    '''
+    """
 
     def __enter__(self):
         self._pwd = os.getcwd()

@@ -144,8 +144,7 @@ class _Series(object):
             max = data.max()
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
-        im = frombytes('L', (self.rows, self.columns),
-                       data.tostring())
+        im = frombytes('L', (self.rows, self.columns), data.tobytes())
 
         s = BytesIO()
         im.save(s, 'PNG')
@@ -213,7 +212,7 @@ class _Series(object):
         s = BytesIO()
         hdr.write_to(s)
 
-        return s.getvalue() + data.tostring()
+        return s.getvalue() + data.tobytes()
 
     def nifti_size(self):
         return 352 + 2 * len(self.storage_instances) * self.columns * self.rows
@@ -280,7 +279,7 @@ def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=followlinks):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
-            raise CachingError('link cycle detected under %s' % base_dir)
+            raise CachingError(f'link cycle detected under {base_dir}')
         dirs.append(abs_dir)
         if files_dict is not None:
             files_dict[abs_dir] = filenames
@@ -307,7 +306,7 @@ def update_cache(base_dir, followlinks=False):
         for dir in sorted(mtimes.keys()):
             if dir in db_mtimes and mtimes[dir] <= db_mtimes[dir]:
                 continue
-            logger.debug('updating %s' % dir)
+            logger.debug(f'updating {dir}')
             _update_dir(c, dir, files_by_dir[dir], studies, series,
                         storage_instances)
             if dir in db_mtimes:
@@ -354,20 +353,20 @@ def get_studies(base_dir=None, followlinks=False):
 
 
 def _update_dir(c, dir, files, studies, series, storage_instances):
-    logger.debug('Updating directory %s' % dir)
+    logger.debug(f'Updating directory {dir}')
     c.execute("SELECT name, mtime FROM file WHERE directory = ?", (dir, ))
     db_mtimes = dict(c)
     for fname in db_mtimes:
         if fname not in files:
-            logger.debug('    remove %s' % fname)
+            logger.debug(f'    remove {fname}')
             c.execute("DELETE FROM file WHERE directory = ? AND name = ?",
                       (dir, fname))
     for fname in files:
-        mtime = os.lstat('%s/%s' % (dir, fname)).st_mtime
+        mtime = os.lstat(f'{dir}/{fname}').st_mtime
         if fname in db_mtimes and mtime <= db_mtimes[fname]:
-            logger.debug('    okay %s' % fname)
+            logger.debug(f'    okay {fname}')
         else:
-            logger.debug('    update %s' % fname)
+            logger.debug(f'    update {fname}')
             si_uid = _update_file(c, dir, fname, studies, series,
                                   storage_instances)
             if fname not in db_mtimes:
@@ -387,7 +386,7 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = read_file('%s/%s' % (path, fname))
+        do = read_file(f'{path}/{fname}')
     except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None
@@ -396,7 +395,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
     except AttributeError:
         study_comments = ''
     try:
-        logger.debug('        storage instance %s' % str(do.SOPInstanceUID))
+        logger.debug(f'        storage instance {do.SOPInstanceUID}')
         if str(do.StudyInstanceUID) not in studies:
             query = """INSERT INTO study (uid,
                                           date,
@@ -445,7 +444,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
     except AttributeError as data:
-        logger.debug('        %s' % str(data))
+        logger.debug(f'        {data}')
         return None
     return str(do.SOPInstanceUID)
 
@@ -487,7 +486,7 @@ CREATE_QUERIES = (
                           mtime INTEGER NOT NULL,
                           storage_instance TEXT DEFAULT NULL REFERENCES storage_instance,
                           PRIMARY KEY (directory, name))""")
-DB_FNAME = pjoin(tempfile.gettempdir(), 'dft.%s.sqlite' % getpass.getuser())
+DB_FNAME = pjoin(tempfile.gettempdir(), f'dft.{getpass.getuser()}.sqlite')
 DB = None
 
 

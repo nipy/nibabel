@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-''' Utilities for testing '''
+""" Utilities for testing """
 
 import re
 import os
@@ -24,6 +24,14 @@ from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
 
 from itertools import zip_longest
 
+try:
+    from contextlib import nullcontext
+except ImportError:  # PY36
+    from contextlib import contextmanager
+    @contextmanager
+    def nullcontext():
+        yield
+
 
 def test_data(subdir=None, fname=None):
     if subdir is None:
@@ -31,7 +39,7 @@ def test_data(subdir=None, fname=None):
     elif subdir in ('gifti', 'nicom', 'externals'):
         resource = os.path.join(subdir, 'tests', 'data')
     else:
-        raise ValueError("Unknown test data directory: %s" % subdir)
+        raise ValueError(f"Unknown test data directory: {subdir}")
 
     if fname is not None:
         resource = os.path.join(resource, fname)
@@ -89,7 +97,7 @@ def assert_re_in(regex, c, flags=0):
     for e in c:
         if re.match(regex, e, flags=flags):
             return
-    raise AssertionError("Not a single entry matched %r in %r" % (regex, c))
+    raise AssertionError(f"Not a single entry matched {regex!r} in {c!r}")
 
 
 def get_fresh_mod(mod_name=__name__):
@@ -199,7 +207,7 @@ EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
 
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return unittest.skipUnless(test_str in EXTRA_SET, "Skip {0} tests.".format(test_str))
+    return unittest.skipUnless(test_str in EXTRA_SET, f"Skip {test_str} tests.")
 
 
 def assert_arr_dict_equal(dict1, dict2):

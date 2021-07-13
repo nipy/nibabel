@@ -125,7 +125,7 @@ def create_parcel_map(applies_to_matrix_dimension):
                 volume = ci.Cifti2VoxelIndicesIJK(element)
         mapping.append(ci.Cifti2Parcel(name, volume, surfaces))
 
-    mapping.extend([ci.Cifti2Surface('CIFTI_STRUCTURE_CORTEX_%s' % orientation,
+    mapping.extend([ci.Cifti2Surface(f'CIFTI_STRUCTURE_CORTEX_{orientation}',
                     number_of_vertices) for orientation in ['LEFT', 'RIGHT']])
     mapping.volume = ci.Cifti2Volume(dimensions,
                  ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
@@ -148,7 +148,7 @@ def check_parcel_map(mapping):
                 assert parcel.voxel_indices_ijk._indices == element
 
     for surface, orientation in zip(mapping.surfaces, ('LEFT', 'RIGHT')):
-        assert surface.brain_structure == 'CIFTI_STRUCTURE_CORTEX_%s' % orientation
+        assert surface.brain_structure == f'CIFTI_STRUCTURE_CORTEX_{orientation}'
         assert surface.surface_number_of_vertices == number_of_vertices
 
     assert mapping.volume.volume_dimensions == dimensions

@@ -3,6 +3,8 @@ import unittest
 import tempfile
 import numpy as np
 
+import pytest
+
 from os.path import join as pjoin
 
 import nibabel as nib
@@ -10,7 +12,7 @@ from io import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
 from numpy.compat.py3k import asbytes
 
-from nibabel.testing import data_path, clear_and_catch_warnings
+from nibabel.testing import data_path
 
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
@@ -140,8 +142,9 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert type(tfile.tractogram), LazyTractogram
 
-                assert_tractogram_equal(tfile.tractogram,
-                                        DATA['empty_tractogram'])
+                with pytest.warns(Warning if lazy_load else None):
+                    assert_tractogram_equal(tfile.tractogram,
+                                            DATA['empty_tractogram'])
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
@@ -155,8 +158,9 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert type(tfile.tractogram), LazyTractogram
 
-                assert_tractogram_equal(tfile.tractogram,
-                                        DATA['simple_tractogram'])
+                with pytest.warns(Warning if lazy_load else None):
+                    assert_tractogram_equal(tfile.tractogram,
+                                            DATA['simple_tractogram'])
 
     def test_load_complex_file(self):
         for lazy_load in [False, True]:
@@ -180,8 +184,9 @@ class TestLoadSave(unittest.TestCase):
                     data = DATA['data_per_streamline']
                     tractogram.data_per_streamline = data
 
-                assert_tractogram_equal(tfile.tractogram,
-                                        tractogram)
+                with pytest.warns(Warning if lazy_load else None):
+                    assert_tractogram_equal(tfile.tractogram,
+                                            tractogram)
 
     def test_save_tractogram_file(self):
         tractogram = Tractogram(DATA['streamlines'],
@@ -193,15 +198,10 @@ class TestLoadSave(unittest.TestCase):
             nib.streamlines.save(trk_file, "dummy.trk", header={})
 
         # Wrong extension.
-        with clear_and_catch_warnings(record=True,
-                                      modules=[nib.streamlines]) as w:
+        with pytest.warns(ExtensionWarning, match="extension"):
             trk_file = trk.TrkFile(tractogram)
             with self.assertRaises(ValueError):
                 nib.streamlines.save(trk_file, "dummy.tck", header={})
-
-            assert len(w) == 1
-            assert issubclass(w[0].category, ExtensionWarning)
-            assert "extension" in str(w[0].message)
 
         with InTemporaryDirectory():
             nib.streamlines.save(trk_file, "dummy.trk")
@@ -237,33 +237,29 @@ class TestLoadSave(unittest.TestCase):
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
 
-                with clear_and_catch_warnings(record=True,
-                                              modules=[trk]) as w:
+                # If streamlines format does not support saving data
+                # per point or data per streamline, warning messages
+                # should be issued.
+                nb_expected_warnings = \
+                    ((not cls.SUPPORTS_DATA_PER_POINT) +
+                     (not cls.SUPPORTS_DATA_PER_STREAMLINE))
+
+                with pytest.warns(Warning if nb_expected_warnings else None) as w:
                     nib.streamlines.save(complex_tractogram, filename)
+                assert len(w) == nb_expected_warnings
 
-                    # If streamlines format does not support saving data
-                    # per point or data per streamline, warning messages
-                    # should be issued.
-                    nb_expected_warnings = \
-                        ((not cls.SUPPORTS_DATA_PER_POINT) +
-                         (not cls.SUPPORTS_DATA_PER_STREAMLINE))
+                tractogram = Tractogram(DATA['streamlines'],
+                                        affine_to_rasmm=np.eye(4))
 
-                    assert len(w) == nb_expected_warnings
-                    for i in range(nb_expected_warnings):
-                        assert issubclass(w[i].category, Warning)
+                if cls.SUPPORTS_DATA_PER_POINT:
+                    tractogram.data_per_point = DATA['data_per_point']
 
-                    tractogram = Tractogram(DATA['streamlines'],
-                                            affine_to_rasmm=np.eye(4))
+                if cls.SUPPORTS_DATA_PER_STREAMLINE:
+                    data = DATA['data_per_streamline']
+                    tractogram.data_per_streamline = data
 
-                    if cls.SUPPORTS_DATA_PER_POINT:
-                        tractogram.data_per_point = DATA['data_per_point']
-
-                    if cls.SUPPORTS_DATA_PER_STREAMLINE:
-                        data = DATA['data_per_streamline']
-                        tractogram.data_per_streamline = data
-
-                    tfile = nib.streamlines.load(filename, lazy_load=False)
-                    assert_tractogram_equal(tfile.tractogram, tractogram)
+                tfile = nib.streamlines.load(filename, lazy_load=False)
+                assert_tractogram_equal(tfile.tractogram, tractogram)
 
     def test_save_sliced_tractogram(self):
         tractogram = Tractogram(DATA['streamlines'],
