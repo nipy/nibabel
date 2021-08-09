@@ -6,6 +6,8 @@ from io import BytesIO
 
 import numpy as np
 
+from nibabel.tmpdirs import InTemporaryDirectory
+
 from ... import load
 from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
                 GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
@@ -40,7 +42,7 @@ def test_agg_data():
 
     assert_array_equal(surf_gii_img.agg_data('pointset'), point_data)
     assert_array_equal(surf_gii_img.agg_data('triangle'), triangle_data)
-    assert_array_equal(func_gii_img.agg_data('time series'), func_data) 
+    assert_array_equal(func_gii_img.agg_data('time series'), func_data)
     assert_array_equal(shape_gii_img.agg_data('shape'), shape_data)
 
     assert surf_gii_img.agg_data('time series') == ()
@@ -443,3 +445,11 @@ def test_darray_dtype_coercion_failures():
         da_copy = gii_copy.darrays[0]
         assert np.dtype(da_copy.data.dtype) == np.dtype(darray_dtype)
         assert_array_equal(da_copy.data, da.data)
+
+
+def test_gifti_file_close():
+    gii = load(test_data('gifti', 'ascii.gii'))
+    with pytest.WarningsRecorder() as record:
+        with InTemporaryDirectory():
+            gii.to_filename('test.gii')
+    assert not any(isinstance(r.message, ResourceWarning) for r in record.list)
