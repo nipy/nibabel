@@ -103,7 +103,7 @@ def read_data_block(darray, fname, data, mmap):
         # mmap=False or np.memmap failed
         if newarr is None:
             # We can replace this with a call to np.fromfile in numpy>=1.17,
-            # as an "offset" paramter was added in that version.
+            # as an "offset" parameter was added in that version.
             with open(ext_fname, 'rb') as f:
                 f.seek(darray.ext_offset)
                 nbytes = np.prod(darray.dims) * dtype().itemsize
