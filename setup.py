@@ -10,7 +10,6 @@
 """Build helper."""
 
 import sys
-import os
 
 from setuptools import setup
 import versioneer
