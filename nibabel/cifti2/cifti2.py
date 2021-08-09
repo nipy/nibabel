@@ -1156,8 +1156,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
             a2md = self._get_indices_from_mim(v)
             if index in a2md:
                 return v
-        else:
-            raise Cifti2HeaderError("Index not mapped")
+        raise Cifti2HeaderError("Index not mapped")
 
     def _validate_new_mim(self, value):
         if value.applies_to_matrix_dimension is None:
