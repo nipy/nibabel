@@ -73,7 +73,7 @@ def test_diff_values_array():
     assert are_values_different(array([0, inf]), array([inf, 0]))
 
     # we will allow for types to be of different endianness but the
-    # same in "instnatiation" type and value
+    # same in "instantiation" type and value
     assert not are_values_different(np.array(1, dtype='<i4'), np.array(1, dtype='>i4'))
     # but do report difference if instantiation type is different:
     assert are_values_different(np.array(1, dtype='<i4'), np.array(1, dtype='<i2'))

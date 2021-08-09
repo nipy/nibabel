@@ -105,7 +105,7 @@ wrapping the `DcmMeta` in the Extension API?
 Status
 ------
 
-Resolved. We now have a seperate `DcmMeta` object which inherits from 
+Resolved. We now have a separate `DcmMeta` object which inherits from 
 `OrderedDict` and contains all of the functionality previously in 
 `DcmMetaExtension` except those related to acting as a Nifti1Extension. 
 The `DcmMetaExtension` now provides just the functionality for being 

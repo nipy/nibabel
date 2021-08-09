@@ -276,7 +276,7 @@ which ends up being similar to the `time_axis_index` option above.
 .. _BV file format overview: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/382-developer-guide-26-file-formats-overview.html
 .. _vmr format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html
 .. _STC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/384-developer-guide-26-the-format-of-stc-files.html
-.. _VTC format defintion: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html.
+.. _VTC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html.
 .. _NR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/377-users-guide-23-the-format-of-nr-vmp-files.html;
 .. _AR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/376-users-guide-23-the-format-of-ar-vmp-files.html
 .. _SMP format definition: : http://support.brainvoyager.com/automation-aamp-development/23-file-formats/476-the-format-of-smp-files.html.

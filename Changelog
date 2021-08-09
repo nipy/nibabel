@@ -122,7 +122,7 @@ New features
 
 Bug fixes
 ---------
-* Delay import of h5py until neded (pr/889) (YOH, reviewed by CM)
+* Delay import of h5py until needed (pr/889) (YOH, reviewed by CM)
 
 Maintenance
 -----------
@@ -168,7 +168,7 @@ Maintenance
 Bug fixes
 ---------
 * Attempt to find versioneer version when building docs (pr/894) (CM)
-* Delay import of h5py until neded (backport of pr/889) (YOH, reviewed by CM)
+* Delay import of h5py until needed (backport of pr/889) (YOH, reviewed by CM)
 
 Maintenance
 -----------
@@ -252,7 +252,7 @@ API changes and deprecations
 ----------------------------
 * Fully remove deprecated ``checkwarns`` and ``minc`` modules. (pr/852) (CM)
 * The ``keep_file_open`` argument to file load operations and ``ArrayProxy``\s
-  no longer acccepts the value ``"auto"``, raising a ``ValueError``. (pr/852)
+  no longer accepts the value ``"auto"``, raising a ``ValueError``. (pr/852)
   (CM)
 * Deprecate ``ArraySequence.data`` in favor of ``ArraySequence.get_data()``,
   which will return a copy. ``ArraySequence.data`` now returns a read-only
