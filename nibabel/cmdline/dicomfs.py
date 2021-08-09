@@ -71,7 +71,7 @@ class DICOMFS(fuse.Fuse):
         for study in dft.get_studies(self.dicom_path, self.followlinks):
             pd = paths.setdefault(study.patient_name_or_uid(), {})
             patient_info = 'patient information\n'
-            patient_info = f'name: {study.patient_name}\n'
+            patient_info += f'name: {study.patient_name}\n'
             patient_info += f'ID: {study.patient_id}\n'
             patient_info += f'birth date: {study.patient_birth_date}\n'
             patient_info += f'sex: {study.patient_sex}\n'

@@ -4,8 +4,6 @@
 
 import commands
 import os
-import sys
-import shutil
 
 from  toollib import *
 
