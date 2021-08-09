@@ -30,7 +30,7 @@ def main():
     try:
         nii = nib.load(args.anatomy)
     except Exception:
-        parser.error("Expecting anatomical image as first agument.")
+        parser.error("Expecting anatomical image as first argument.")
 
     for tractogram in args.tractograms:
         tractogram_format = nib.streamlines.detect_format(tractogram)

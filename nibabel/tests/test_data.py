@@ -166,7 +166,7 @@ def test_find_data_dir():
     under_here, subhere = os.path.split(here)
     # under_here == '<rootpath>/nipy/utils'
     # subhere = 'tests'
-    # fails with non-existant path
+    # fails with non-existent path
     with pytest.raises(DataError):
         find_data_dir([here], 'implausible', 'directory')
     # fails with file, when directory expected

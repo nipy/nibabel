@@ -530,7 +530,7 @@ then the image affine matrix $A$ is:
 
 Why the extra row of $[0, 0, 0, 1]$?  We need this row because we have
 rephrased the combination of rotations / zooms and translations as a
-transformation in *homogenous coordinates* (see `wikipedia homogenous
+transformation in *homogeneous coordinates* (see `wikipedia homogeneous
 coordinates`_).  This is a trick that allows us to put the translation part
 into the same matrix as the rotations / zooms, so that both translations and
 rotations / zooms can be applied by matrix multiplication.  In order to make

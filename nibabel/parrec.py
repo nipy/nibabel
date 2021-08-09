@@ -868,7 +868,7 @@ class PARRECHeader(SpatialHeader):
         props = self.image_defs[name]
         if np.any(np.diff(props, axis=0)):
             raise PARRECError(f'Varying {name} in image sequence '
-                              f'({props}). This is not suppported.')
+                              f'({props}). This is not supported.')
         return props[0]
 
     @deprecate_with_version('get_voxel_size deprecated. '

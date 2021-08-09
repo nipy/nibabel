@@ -439,7 +439,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_qform(nice_aff, 1)
         # Check sform unchanged by setting qform
         assert hdr.get_sform(coded=True) == (None, 0)
-        # Setting does change the sform ouput
+        # Setting does change the sform output
         hdr.set_sform(nasty_aff, 1)
         aff, code = hdr.get_sform(coded=True)
         assert_array_equal(aff, nasty_aff)

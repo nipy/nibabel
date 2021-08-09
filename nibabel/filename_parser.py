@@ -275,7 +275,7 @@ def splitext_addext(filename,
        Extension, where extension is not in `addexts` - e.g. ``.ext`` in
        example above
     addext : str
-       Any suffixes appearing in `addext` occuring at end of filename
+       Any suffixes appearing in `addext` occurring at end of filename
 
     Examples
     --------

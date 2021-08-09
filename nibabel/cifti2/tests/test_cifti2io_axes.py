@@ -79,7 +79,7 @@ def check_Conte69(brain_model):
 
 def check_rewrite(arr, axes, extension='.nii'):
     """
-    Checks wheter writing the Cifti2 array to disc and reading it back in gives the same object
+    Checks whether writing the Cifti2 array to disc and reading it back in gives the same object
 
     Parameters
     ----------

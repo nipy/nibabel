@@ -12,7 +12,7 @@ Affines as orientation
 ----------------------
 
 Orientations are expressed by 4 by 4 affine arrays.  4x4 affine arrays
-give, in homogenous coordinates, the relationship between the
+give, in homogeneous coordinates, the relationship between the
 coordinates in the voxel array, and millimeters.  Let is say that I have
 a simple affine like this:
 
@@ -26,7 +26,7 @@ And I have a voxel coordinate:
 
 then the millimeter coordinate for that voxel is given by:
 
->>> # add extra 1 for homogenous coordinates
+>>> # add extra 1 for homogeneous coordinates
 >>> homogenous_coord = np.concatenate((coord, [1]))
 >>> mm_coord = np.dot(aff, homogenous_coord)[:3]
 >>> mm_coord

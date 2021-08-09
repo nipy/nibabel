@@ -64,7 +64,7 @@ necessary and the branch gets tagged when a package version is released.
 Maintenance (as well as backport) releases or branches off from the respective
 packaging tag.
 
-There might be additonal branches for each developer, prefixed with intials.
+There might be additional branches for each developer, prefixed with initials.
 Alternatively, several GitHub (or elsewhere) clones might be used.
 
 
@@ -99,7 +99,7 @@ Changelog
 =========
 
 The changelog is located in the toplevel directory of the source tree in the
-`Changelog` file. The content of this file should be formated as restructured
+`Changelog` file. The content of this file should be formatted as restructured
 text to make it easy to put it into manual appendix and on the website.
 
 This changelog should neither replicate the VCS commit log nor the

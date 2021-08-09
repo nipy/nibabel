@@ -35,7 +35,7 @@ def test_filenames():
     tfns = types_filenames('test.img.bz2', types_exts)
     assert tfns == {'header': 'test.hdr.bz2', 'image': 'test.img.bz2'}
     # of course, if we don't know about e.g. gz, and enforce_extensions
-    # is on, we get an errror
+    # is on, we get an error
     with pytest.raises(TypesFilenamesError):
         types_filenames('test.img.gz', types_exts, ())
     # if we don't know about .gz extension, and not enforcing, then we

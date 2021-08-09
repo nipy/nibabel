@@ -77,7 +77,7 @@ def test_oblique_loading():
         nimg = top_load(nifti_fname)
         assert_almost_equal(nimg.affine[:3, :3], pimg.affine[:3, :3], 3)
         # The translation part is always off
-        # The ammount differs by rotation
+        # The amount differs by rotation
         aff_off = pimg.affine[:3, 3] - nimg.affine[:3, 3]
         # The difference is max in the order of 0.5 voxel
         vox_sizes = voxel_sizes(nimg.affine)

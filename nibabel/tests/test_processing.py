@@ -142,7 +142,7 @@ def test_resample_from_to(caplog):
     # Test order
     trans_p_25_aff = from_matvec(np.diag([-4, 5, 6]), [1, 0, 0])
     trans_p_25_img = Nifti1Image(data, trans_p_25_aff)
-    # Suprising to me, but all points outside are set to 0, even with NN
+    # Surprising to me, but all points outside are set to 0, even with NN
     out = resample_from_to(img, trans_p_25_img, order=0)
     exp_out = np.zeros_like(data)
     exp_out[1:, :, :] = data[1, :, :]
@@ -182,7 +182,7 @@ def test_resample_from_to(caplog):
     # 3D to 2D, we don't need to invert the fixed matrix
     out = resample_from_to(img, img_2d)
     assert_array_equal(out.dataobj, data[:, :, 0])
-    # Same for tuple as to_img imput
+    # Same for tuple as to_img input
     out = resample_from_to(img, (img_2d.shape, img_2d.affine))
     assert_array_equal(out.dataobj, data[:, :, 0])
     # 4D input and output also OK
@@ -295,7 +295,7 @@ def test_resample_to_output(caplog):
     # Default is Nifti1Image
     with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
         assert resample_to_output(img_ni2).__class__ == Nifti1Image
-    # Can be overriden
+    # Can be overridden
     with caplog.at_level(logging.CRITICAL):
         assert resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input
@@ -351,7 +351,7 @@ def test_smooth_image(caplog):
     # Default is Nifti1Image
     with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
         assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
-    # Can be overriden
+    # Can be overridden
     with caplog.at_level(logging.CRITICAL):
         assert smooth_image(img_ni1, 0, out_class=Nifti2Image).__class__ == Nifti2Image
     # None specifies out_class from input

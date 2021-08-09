@@ -51,7 +51,7 @@ def vox2out_vox(mapped_voxels, voxel_sizes=None):
         affine is a (4, 4) array-like.
     voxel_sizes : None or sequence
         Gives the diagonal entries of `output_affine` (except the trailing 1
-        for the homogenous coordinates) (``output_affine == np.diag(voxel_sizes
+        for the homogeneous coordinates) (``output_affine == np.diag(voxel_sizes
         + [1])``). If None, return identity `output_affine`.
 
     Returns

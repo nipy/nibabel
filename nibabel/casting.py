@@ -1,4 +1,4 @@
-""" Utilties for casting numpy values in various ways
+""" Utilities for casting numpy values in various ways
 
 Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
@@ -132,7 +132,7 @@ def shared_range(flt_type, int_type):
     Returns
     -------
     mn : object
-        Number of type `flt_type` that is the minumum value in the range of
+        Number of type `flt_type` that is the minimum value in the range of
         `int_type`, such that ``mn.astype(int_type)`` >= min of `int_type`
     mx : object
         Number of type `flt_type` that is the maximum value in the range of

@@ -73,7 +73,7 @@ def get_opt_parser():
 def are_values_different(*values):
     """Generically compare values, return True if different
 
-    Note that comparison is targetting reporting of comparison of the headers
+    Note that comparison is targeting reporting of comparison of the headers
     so has following specifics:
     - even a difference in data types is considered a difference, i.e. 1 != 1.0
     - nans are considered to be the "same", although generally nan != nan
@@ -94,7 +94,7 @@ def are_values_different(*values):
         except TypeError as exc:
             str_exc = str(exc)
             # Not implemented in numpy 1.7.1
-            if "not supported" in str_exc or "ot implemented" in str_exc:
+            if "not supported" in str_exc or "not implemented" in str_exc:
                 value0_nans = None
             else:
                 raise

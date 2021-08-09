@@ -195,7 +195,7 @@ def _third_pass(wrappers):
             vol_list.append(dw)
             these_zs.append(z)
             continue
-        # new volumne
+        # new volume
         vol_list.sort(_slice_sorter)
         vol_list = [dw]
         these_zs = [z]

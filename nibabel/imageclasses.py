@@ -125,7 +125,7 @@ KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
 
 
 def spatial_axes_first(img):
-    """ True if spatial image axes for `img` always preceed other axes
+    """ True if spatial image axes for `img` always precede other axes
 
     Parameters
     ----------
@@ -136,7 +136,7 @@ def spatial_axes_first(img):
     -------
     spatial_axes_first : bool
         True if image only has spatial axes (number of axes < 4) or image type
-        known to have spatial axes preceeding other axes.
+        known to have spatial axes preceding other axes.
     """
     if len(img.shape) < 4:
         return True

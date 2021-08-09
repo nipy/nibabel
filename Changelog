@@ -342,7 +342,7 @@ Bug fixes
   reviewed by PM)
 * Safer warning registry manipulation when checking for overflows (pr/753)
   (CM, reviewed by MB)
-* Correctly write .annot files with duplicate lables (pr/763) (Richard Nemec
+* Correctly write .annot files with duplicate labels (pr/763) (Richard Nemec
   with CM)
 
 Maintenance
@@ -997,7 +997,7 @@ visiting the URL::
 * Bugfix: Removed left-over print statement in extension code.
 * Bugfix: Prevent saving of bogus 'None.nii' images when the filename
   was previously assign, before calling NiftiImage.save() (Closes: #517920).
-* Bugfix: Extension length was to short for all `edata` whos length matches
+* Bugfix: Extension length was to short for all `edata` whose length matches
   n*16-8, for all integer n.
 
 0.20090205.1 (Thu, 5 Feb 2009)
@@ -1017,7 +1017,7 @@ visiting the URL::
   automatically dumped into this extension.
   Embedded meta data is not loaded automatically, since this has security
   implications, because code from the file header is actually executed.
-  The documentation explicitely mentions this risk.
+  The documentation explicitly mentions this risk.
 * Added :class:`~nifti.extensions.NiftiExtensions`. This is a container-like
   handler to access and manipulate NIfTI1 header extensions.
 * Exposed :class:`~nifti.image.MemMappedNiftiImage` in the root module.
@@ -1223,7 +1223,7 @@ visiting the URL::
 * Does not depend on libfslio anymore.
 * Up to seven-dimensional dataset are supported (as much as NIfTI can do).
 * The complete NIfTI header dataset is modifiable.
-* Most image properties are accessable via class attributes and accessor
+* Most image properties are accessible via class attributes and accessor
   methods.
 * Improved documentation (but still a long way to go).
 

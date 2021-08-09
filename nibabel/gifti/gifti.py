@@ -331,7 +331,7 @@ class GiftiDataArray(xml.XmlSerializable):
         The Endianness to store the data array.  Should correspond to the
         machine endianness.  Default is system byteorder.
     coordsys : :class:`GiftiCoordSystem` instance
-        Input and output coordinate system with tranformation matrix between
+        Input and output coordinate system with transformation matrix between
         the two.
     ind_ord : int
         The ordering of the array. see util.array_index_order_codes.  Default

@@ -37,7 +37,7 @@ is an integer, giving the level of problem, from 0 (no problem) to 50
 (very bad problem).  The levels follow the log levels from the logging
 module (e.g 40 equivalent to "error" level, 50 to "critical").  The
 ``error`` can be one of ``None`` if no error to suggest, or an Exception
-class that the user might consider raising for this sitation.  The
+class that the user might consider raising for this situation.  The
 ``problem_msg`` and ``fix_msg`` are human readable strings that should
 explain what happened.
 

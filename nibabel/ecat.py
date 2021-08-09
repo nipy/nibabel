@@ -661,7 +661,7 @@ class EcatSubHeader(object):
 
 
 class EcatImageArrayProxy(object):
-    """ Ecat implemention of array proxy protocol
+    """ Ecat implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
@@ -989,7 +989,7 @@ class EcatImage(SpatialImage):
             # Write frame images
             self._write_data(image, imgf, pos + 2, endianness='>')
 
-            # Move to dictionnary offset and write dictionnary entry
+            # Move to dictionary offset and write dictionary entry
             self._write_data(mlist[index], imgf, entry_pos, endianness='>')
 
             entry_pos = entry_pos + 16

@@ -473,7 +473,7 @@ def test_nib_tck2trk():
         cmd = ["nib-tck2trk", standard_tck, anat]
         code, stdout, stderr = run_command(cmd, check_code=False)
         assert code == 2  # Parser error.
-        assert "Expecting anatomical image as first agument" in stderr
+        assert "Expecting anatomical image as first argument" in stderr
 
         # Convert one file.
         cmd = ["nib-tck2trk", anat, standard_tck]

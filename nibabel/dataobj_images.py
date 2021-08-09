@@ -27,9 +27,9 @@ class DataobjImage(FileBasedImage):
         Parameters
         ----------
         dataobj : object
-           Object containg image data.  It should be some object that retuns an
-           array from ``np.asanyarray``.  It should have ``shape`` and ``ndim``
-           attributes or properties
+           Object containing image data.  It should be some object that returns
+           an array from ``np.asanyarray``.  It should have ``shape`` and
+           ``ndim`` attributes or properties
         header : None or mapping or header instance, optional
            metadata for this image format
         extra : None or mapping, optional

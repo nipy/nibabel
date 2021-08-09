@@ -416,7 +416,7 @@ def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride,
         # full, but reversed
         if slicer == slice(dim_len - 1, None, -1):
             return slice(None), slice(None, None, -1)
-        # Not full, mabye continuous
+        # Not full, maybe continuous
         is_int = False
     else:  # int
         if slicer < 0:  # make negative offsets positive

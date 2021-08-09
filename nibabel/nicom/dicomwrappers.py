@@ -494,7 +494,7 @@ class MultiframeWrapper(Wrapper):
 
         What each axis in the frame indices refers to is given by the
         corresponding entry in the *DimensionIndexSequence* DICOM attribute.
-        **WARNING**: Any axis refering to the *StackID* DICOM attribute will
+        **WARNING**: Any axis referring to the *StackID* DICOM attribute will
         have been removed from the frame indices in determining the shape. This
         is because only a file containing a single stack is currently allowed by
         this wrapper.
