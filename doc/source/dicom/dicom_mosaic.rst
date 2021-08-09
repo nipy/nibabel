@@ -124,7 +124,7 @@ Data scaling
 SPM gets the DICOM scaling, offset for the image ('RescaleSlope',
 'RescaleIntercept').  It writes these scalings into the nifti_ header.
 Then it writes the raw image data (unscaled) to disk.  Obviously these
-will have the corrent scalings applied when the nifti image is read again.
+will have the current scalings applied when the nifti image is read again.
 
 A comment in the code here says that the data are not scaled by the
 maximum amount.  I assume by this they mean that the DICOM scaling may

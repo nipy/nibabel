@@ -252,7 +252,7 @@ def nt_str(s):
     Returns
     -------
     sdash : str
-       s stripped to first occurence of null (0)
+       s stripped to first occurrence of null (0)
     """
     zero_pos = s.find(b'\x00')
     if zero_pos == -1:

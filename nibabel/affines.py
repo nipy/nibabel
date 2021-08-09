@@ -34,7 +34,7 @@ def apply_affine(aff, pts):
     Parameters
     ----------
     aff : (N, N) array-like
-        Homogenous affine, for 3D points, will be 4 by 4. Contrary to first
+        Homogeneous affine, for 3D points, will be 4 by 4. Contrary to first
         appearance, the affine will be applied on the left of `pts`.
     pts : (..., N-1) array-like
         Points, where the last dimension contains the coordinates of each
@@ -87,7 +87,7 @@ def apply_affine(aff, pts):
 def to_matvec(transform):
     """Split a transform into its matrix and vector components.
 
-    The tranformation must be represented in homogeneous coordinates and is
+    The transformation must be represented in homogeneous coordinates and is
     split into its rotation matrix and translation vector components.
 
     Parameters
@@ -104,7 +104,7 @@ def to_matvec(transform):
     matrix : (N-1, M-1) array
         Matrix component of `transform`
     vector : (M-1,) array
-        Vector compoent of `transform`
+        Vector component of `transform`
 
     See Also
     --------
@@ -145,7 +145,7 @@ def from_matvec(matrix, vector=None):
     Returns
     -------
     xform : array
-        An (N+1, M+1) homogenous transform matrix.
+        An (N+1, M+1) homogeneous transform matrix.
 
     See Also
     --------
@@ -269,7 +269,7 @@ def voxel_sizes(affine):
     1)[:3]``.  The world coordinate vector of voxel vector (1, 0, 0) is
     ``v1_ax1 = affine.dot((1, 0, 0, 1))[:3]``.  The final 1 in the voxel
     vectors and the ``[:3]`` at the end are because the affine works on
-    homogenous coodinates.  The translations part of the affine is ``trans =
+    homogeneous coordinates.  The translations part of the affine is ``trans =
     affine[:3, 3]``, and the rotations, zooms and shearing part of the affine
     is ``rzs = affine[:3, :3]``. Because of the final 1 in the input voxel
     vector, ``v0 == rzs.dot((0, 0, 0)) + trans``, and ``v1_ax1 == rzs.dot((1,

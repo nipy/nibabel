@@ -197,7 +197,7 @@ def resample_to_output(in_img,
         an image from data, affine and header.
     voxel_sizes : None or sequence
         Gives the diagonal entries of ``out_img.affine` (except the trailing 1
-        for the homogenous coordinates) (``out_img.affine ==
+        for the homogeneous coordinates) (``out_img.affine ==
         np.diag(voxel_sizes + [1])``). If None, return identity
         `out_img.affine`.  If scalar, interpret as vector ``[voxel_sizes] *
         len(in_img.shape)``.

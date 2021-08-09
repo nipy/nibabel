@@ -234,7 +234,7 @@ def test_scaling_needed():
 
 
 def test_special_rt():
-    # Test that zeros; none finite - round trip to zeros for scaleable types
+    # Test that zeros; none finite - round trip to zeros for scalable types
     # For ArrayWriter, these error for default creation, when forced to create
     # the writer, they round trip to out_dtype max
     arr = np.array([np.inf, np.nan, -np.inf])
@@ -790,7 +790,7 @@ def test_nan2zero_scaling():
         # Use fixed-up type information to avoid bugs, especially on PPC
         in_info = type_info(in_dt)
         out_info = type_info(out_dt)
-        # Skip inpossible combinations
+        # Skip impossible combinations
         if in_info['min'] == 0 and sign == -1:
             continue
         mx = min(in_info['max'], out_info['max'] * 2., 2**32)

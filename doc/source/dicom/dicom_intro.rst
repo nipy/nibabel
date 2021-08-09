@@ -686,7 +686,7 @@ For example, there is a DIMSE service called "C-ECHO" that requests confirmation
 from the responding application that the echo message arrived.
 
 The definition of the DIMSE services specifies, for a particular DIMSE service,
-whether the DIMSE commend set should be followed by a data set.
+whether the DIMSE command set should be followed by a data set.
 
 In particular, the data set will be a full Information Object Definition's worth
 of data.

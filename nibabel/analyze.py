@@ -385,7 +385,7 @@ class AnalyzeHeader(LabeledWrapStruct):
                     # safely discard fields with names not known to this header
                     # type on the basis they are from the wrong Analyze dialect
                     pass
-            # set any fields etc that are specific to this format (overriden by
+            # set any fields etc that are specific to this format (overridden by
             # sub-classes)
             obj._clean_after_mapping()
         # Fallback basic conversion always done.

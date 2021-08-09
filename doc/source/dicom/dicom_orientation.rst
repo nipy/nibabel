@@ -350,7 +350,7 @@ constant, to the voxel coordinate for the slice (the value for the slice
 index).
 
 Our DICOM might have the 'SliceLocation' field (0020,1041).
-'SliceLocation' seems to be proportianal to slice location, at least for
+'SliceLocation' seems to be proportional to slice location, at least for
 some GE and Philips DICOMs I was looking at.  But, there is a more
 reliable way (that doesn't depend on this field), and uses only the very
 standard 'ImageOrientationPatient' and 'ImagePositionPatient' fields.
@@ -385,7 +385,7 @@ unit change in the slice voxel coordinate.  So, the
 addition of two vectors $T^j = \mathbf{a} + \mathbf{b}$, where
 $\mathbf{a}$ is the position of the first voxel in some slice (here
 slice 1, therefore $\mathbf{a} = T^1$) and $\mathbf{b}$ is $d$ times the
-third colum of $A$.  Obviously $d$ can be negative or positive. This
+third column of $A$.  Obviously $d$ can be negative or positive. This
 leads to various ways of recovering something that is proportional to
 $d$ plus a constant.  The algorithm suggested in this `ITK post on
 ordering slices`_ - and the one used by SPM - is to take the inner

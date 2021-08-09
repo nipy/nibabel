@@ -217,7 +217,7 @@
 .. _`wikipedia affine transform`: https://en.wikipedia.org/wiki/Affine_transformation
 .. _`wikipedia linear transform`: https://en.wikipedia.org/wiki/Linear_transformation
 .. _`wikipedia rotation matrix`: https://en.wikipedia.org/wiki/Rotation_matrix
-.. _`wikipedia homogenous coordinates`: https://en.wikipedia.org/wiki/Homogeneous_coordinates
+.. _`wikipedia homogeneous coordinates`: https://en.wikipedia.org/wiki/Homogeneous_coordinates
 .. _`wikipedia axis angle`: https://en.wikipedia.org/wiki/Axis_angle
 .. _`wikipedia Euler angles`: https://en.wikipedia.org/wiki/Euler_angles
 .. _`Mathworld Euler angles`: http://mathworld.wolfram.com/EulerAngles.html

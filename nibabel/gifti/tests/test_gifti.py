@@ -146,7 +146,7 @@ def test_dataarray_init():
     pytest.raises(KeyError, gda, datatype='not_datatype')
     # Float32 datatype comes from array if datatype not set
     assert gda(arr).datatype == 16
-    # Can be overriden by init
+    # Can be overridden by init
     assert gda(arr, datatype='uint8').datatype == 2
     # Encoding
     assert gda(encoding=1).encoding == 1

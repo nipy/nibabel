@@ -83,7 +83,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # an empty header has shape (0,) - like an empty array
         # (np.array([]))
         assert hdr.get_data_shape() == (0,)
-        # The affine is always homogenous 3D regardless of shape. The
+        # The affine is always homogeneous 3D regardless of shape. The
         # default affine will have -1 as the X zoom iff default_x_flip
         # is True (which it is by default). We have to be careful of the
         # translations though - these arise from SPM's use of the origin

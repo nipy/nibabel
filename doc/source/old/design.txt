@@ -71,7 +71,7 @@ We think of an image as being the association of:
 
    For simplicity, we want the transformation (above) to be spatial.
    Because the images are always at least 3D, and the transform is
-   spatial, this means that the tranformation is always exactly 3D.  We
+   spatial, this means that the transformation is always exactly 3D.  We
    have to know which of the N image dimensions are spatial. For
    example, if we have a 4D (space and time) image, we need to know
    which of the 4 dimensions are spatial.  We could ask the image to

@@ -369,7 +369,7 @@ Discovery
 
     Revsion ids could for example be hashes of the package instantiation
     (package contents), so they could be globally unique to the contents,
-    whereever the contents was when the identifier was made.  However, *tags*
+    wherever the contents was when the identifier was made.  However, *tags*
     are just names that someone has attached to a particular revsion id.  If
     there is more than one person providing versions of a particular package,
     there may not be agreement on the revsion that a particular tag is attached

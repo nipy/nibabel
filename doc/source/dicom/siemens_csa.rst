@@ -124,7 +124,7 @@ Each item
 
 Now there's a different length check from CSA1.  ``item_len`` is given
 just by ``xx[1]``.  If ``item_len`` > ``csa_max_pos - csa_position``
-(the remaining bytes in the header), then we just read the remaning
+(the remaining bytes in the header), then we just read the remaining
 bytes in the header (as above) into ``value`` below, as uint8, move the
 filepointer to the next 4 byte boundary, and give up reading. 
 

@@ -529,7 +529,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         casting; this depends on the underlying C library and is undefined. In
         practice `nan2zero` == False might be a good choice when you completely
         sure there will be no NaNs in the data. This value ignored for float
-        outut types.  NaNs are treated as zero *before* applying `intercept`
+        output types.  NaNs are treated as zero *before* applying `intercept`
         and `divslope` - so an array ``[np.nan]`` with an `intercept` of 10
         becomes ``[-10]`` after conversion to integer `out_dtype` with
         `nan2zero` set.  That is because you will likely apply `divslope` and
@@ -616,7 +616,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
             pre_clips = max(mn, mn_out), min(mx, mx_out)
             return _write_data(data, fileobj, out_dtype, order,
                                pre_clips=pre_clips)
-        # In any case, we do not want to check for nans beause we've already
+        # In any case, we do not want to check for nans because we've already
         # disallowed scaling that generates nans
         nan2zero = False
     # We are either scaling into c/floats or starting with c/floats, then we're
@@ -723,7 +723,7 @@ def _write_data(data,
     order : {'F', 'C'}
         memory layout of array in fileobj after writing
     in_cast : None or numpy type, optional
-        If not None, inital cast to do on `data` slices before further
+        If not None, initial cast to do on `data` slices before further
         processing
     pre_clips : None or 2-sequence, optional
         If not None, minimum and maximum of input values at which to clip.
@@ -1261,7 +1261,7 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
     Returns
     -------
     aff : (4,4) array
-       affine giving correspondance of voxel coordinates to mm
+       affine giving correspondence of voxel coordinates to mm
        coordinates, taking the center of the image as origin
 
     Examples

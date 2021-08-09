@@ -243,7 +243,7 @@ def read_img_data(img, prefer='scaled'):
     array is given by the raw data on disk, multiplied by a scalefactor
     and maybe with the addition of a constant.  This function, with
     ``unscaled`` returns the data on the disk, without these
-    format-specific scalings applied.  Please use this funciton only if
+    format-specific scalings applied.  Please use this function only if
     you absolutely need the unscaled data, and the magnitude of the
     data, as given by the scalefactor, is not relevant to your
     application.  The Analyze-type formats have a single scalefactor +/-

@@ -450,7 +450,7 @@ class TrkFile(TractogramFile):
             affine_to_trackvis = get_affine_rasmm_to_trackvis(header)
             tractogram = tractogram.apply_affine(affine_to_trackvis, lazy=True)
 
-            # Create the iterator we'll be using for the rest of the funciton.
+            # Create the iterator we'll be using for the rest of the function.
             tractogram = iter(tractogram)
 
             try:
@@ -599,7 +599,7 @@ class TrkFile(TractogramFile):
                 raise HeaderError('NiBabel only supports versions 1 and 2 of '
                                   'the Trackvis file format')
 
-            # Convert the first record of `header_rec` into a dictionnary
+            # Convert the first record of `header_rec` into a dictionary
             header = dict(zip(header_rec.dtype.names, header_rec[0]))
             header[Field.ENDIANNESS] = endianness
 
