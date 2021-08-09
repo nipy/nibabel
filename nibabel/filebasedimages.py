@@ -202,7 +202,7 @@ class FileBasedImage(object):
     def header(self):
         return self._header
 
-    def __getitem__(self):
+    def __getitem__(self, key):
         """ No slicing or dictionary interface for images
         """
         raise TypeError("Cannot slice image objects.")
