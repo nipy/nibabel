@@ -411,7 +411,7 @@ class WrapStruct(object):
         >>> wstr1.structarr = None
         Traceback (most recent call last):
            ...
-        AttributeError: can't set attribute
+        AttributeError: can't set attribute...
         """
         return self._structarr
 
