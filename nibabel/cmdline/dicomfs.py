@@ -172,9 +172,9 @@ class DICOMFS(fuse.Fuse):
                 elif isinstance(matched_path, tuple):
                     self.fhs[i] = matched_path[1]()
                 else:
-                    raise -errno.EFTYPE
+                    return -errno.EFTYPE
                 return FileHandle(i)
-        raise -errno.ENFILE
+        return -errno.ENFILE
 
     # not done
     def read(self, path, size, offset, fh):
