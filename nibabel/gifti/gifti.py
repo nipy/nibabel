@@ -380,20 +380,20 @@ class GiftiDataArray(xml.XmlSerializable):
         return len(self.dims)
 
     # Setter for backwards compatibility with pymvpa
-    @num_dim.setter
     @deprecate_with_version(
         "num_dim will be read-only in future versions of nibabel",
         '2.1', '4.0')
+    @num_dim.setter
     def num_dim(self, value):
         if value != len(self.dims):
             raise ValueError(f'num_dim value {value} != number of '
                              f'dimensions len(self.dims) {len(self.dims)}')
 
-    @classmethod
     @deprecate_with_version(
         'from_array method is deprecated. '
         'Please use GiftiDataArray constructor instead.',
         '2.1', '4.0')
+    @classmethod
     def from_array(klass,
                    darray,
                    intent="NIFTI_INTENT_NONE",
