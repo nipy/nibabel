@@ -24,8 +24,9 @@ import numpy
 from io import BytesIO
 
 from .nifti1 import Nifti1Header
+from nibabel.optpkg import optional_package
 
-from .pydicom_compat import pydicom, read_file
+pydicom = optional_package("pydicom")[0]
 
 logger = logging.getLogger('nibabel.dft')
 
@@ -241,7 +242,7 @@ class _StorageInstance(object):
         return val
 
     def dicom(self):
-        return read_file(self.files[0])
+        return pydicom.read_file(self.files[0])
 
 
 class _db_nochange:
@@ -386,7 +387,7 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = read_file(f'{path}/{fname}')
+        do = pydicom.read_file(f'{path}/{fname}')
     except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None

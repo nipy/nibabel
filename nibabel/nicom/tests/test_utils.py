@@ -2,14 +2,13 @@
 """
 import re
 
+from nibabel.optpkg import optional_package
+from .test_dicomwrappers import DATA, DATA_PHILIPS
 from ..utils import find_private_section
 
-from . import dicom_test
-from ...pydicom_compat import pydicom
-from .test_dicomwrappers import DATA, DATA_PHILIPS
+pydicom, _, setup_module = optional_package("pydicom")
 
 
-@dicom_test
 def test_find_private_section_real():
     # Find section containing named private creator information
     # On real data first

@@ -17,12 +17,14 @@ import warnings
 
 import numpy as np
 
+from nibabel.optpkg import optional_package
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import auto_attr as one_time
-from ..pydicom_compat import tag_for_keyword, Sequence
 from ..deprecated import deprecate_with_version
+
+pydicom = optional_package("pydicom")[0]
 
 
 class WrapperError(Exception):
@@ -52,10 +54,8 @@ def wrapper_from_file(file_like, *args, **kwargs):
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
        DICOM wrapper corresponding to DICOM data type
     """
-    from ..pydicom_compat import read_file
-
     with ImageOpener(file_like) as fobj:
-        dcm_data = read_file(fobj, *args, **kwargs)
+        dcm_data = pydicom.read_file(fobj, *args, **kwargs)
     return wrapper_from_data(dcm_data)
 
 
@@ -520,7 +520,7 @@ class MultiframeWrapper(Wrapper):
         if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
             # DWI image may include derived isotropic, ADC or trace volume
             try:
-                self.frames = Sequence(
+                self.frames = pydicom.Sequence(
                     frame for frame in self.frames if
                     frame.MRDiffusionSequence[0].DiffusionDirectionality
                     != 'ISOTROPIC'
@@ -550,7 +550,7 @@ class MultiframeWrapper(Wrapper):
         # Determine if one of the dimension indices refers to the stack id
         dim_seq = [dim.DimensionIndexPointer
                    for dim in self.get('DimensionIndexSequence')]
-        stackid_tag = tag_for_keyword('StackID')
+        stackid_tag = pydicom.datadict.tag_for_keyword('StackID')
         # remove the stack id axis if present
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)
@@ -558,7 +558,7 @@ class MultiframeWrapper(Wrapper):
             dim_seq.pop(stackid_dim_idx)
         if has_derived:
             # derived volume is included
-            derived_tag = tag_for_keyword("DiffusionBValue")
+            derived_tag = pydicom.datadict.tag_for_keyword("DiffusionBValue")
             if derived_tag not in dim_seq:
                 raise WrapperError("Missing information, cannot remove indices "
                                    "with confidence.")

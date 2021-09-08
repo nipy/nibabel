@@ -6,18 +6,16 @@ from os.path import join as pjoin
 
 import numpy as np
 
+from nibabel.optpkg import optional_package
 from .. import dicomreaders as didr
-from ...pydicom_compat import pydicom
-
-import pytest
-from . import dicom_test
-
 from .test_dicomwrappers import EXPECTED_AFFINE, EXPECTED_PARAMS, IO_DATA_PATH, DATA
 
+import pytest
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
+pydicom, _, setup_module = optional_package("pydicom")
 
-@dicom_test
+
 def test_read_dwi():
     img = didr.mosaic_to_nii(DATA)
     arr = img.get_fdata()
@@ -25,7 +23,6 @@ def test_read_dwi():
     assert_array_almost_equal(img.affine, EXPECTED_AFFINE)
 
 
-@dicom_test
 def test_read_dwis():
     data, aff, bs, gs = didr.read_mosaic_dwi_dir(IO_DATA_PATH,
                                                  'siemens_dwi_*.dcm.gz')
@@ -37,7 +34,6 @@ def test_read_dwis():
         didr.read_mosaic_dwi_dir('improbable')
 
 
-@dicom_test
 def test_passing_kwds():
     # Check that we correctly pass keywords to dicom
     dwi_glob = 'siemens_dwi_*.dcm.gz'
@@ -61,7 +57,7 @@ def test_passing_kwds():
         with pytest.raises(didr.DicomReadError):
             func(IO_DATA_PATH, csa_glob, dicom_kwargs=dict(force=True))
 
-@dicom_test
+
 def test_slices_to_series():
     dicom_files = (pjoin(IO_DATA_PATH, "%d.dcm" % i) for i in range(2))
     wrappers = [didr.wrapper_from_file(f) for f in dicom_files]

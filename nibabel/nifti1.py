@@ -17,6 +17,7 @@ import numpy as np
 import numpy.linalg as npl
 from numpy.compat.py3k import asstr
 
+from .optpkg import optional_package
 from .filebasedimages import SerializableImage
 from .volumeutils import Recoder, make_dt_codes, endian_codes
 from .spatialimages import HeaderDataError, ImageFileError
@@ -25,7 +26,8 @@ from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze  # module import
 from .spm99analyze import SpmAnalyzeHeader
 from .casting import have_binary128
-from .pydicom_compat import have_dicom, pydicom as pdcm
+
+pdcm, have_dicom, _ = optional_package("pydicom")
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes

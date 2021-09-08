@@ -7,12 +7,11 @@ import gzip
 
 import numpy as np
 
-from ...pydicom_compat import pydicom
 from .. import csareader as csa
 from .. import dwiparams as dwp
 
 import pytest
-from . import dicom_test
+from . import pydicom, dicom_test
 from .test_dicomwrappers import IO_DATA_PATH, DATA
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
