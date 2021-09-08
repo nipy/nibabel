@@ -60,10 +60,22 @@ def _define_operators(cls):
     def _wrap(cls, op, inplace=False, unary=False):
 
         def fn_unary_op(self):
-            return self._op(op)
+            try:
+                return self._op(op)
+            except SystemError as e:
+                message = ("Numpy returned an uninformative error. It possibly should be "
+                           "'Integers to negative integer powers are not allowed.' "
+                           "See https://github.com/numpy/numpy/issues/19634 for details.")
+                raise ValueError(message) from e
 
         def fn_binary_op(self, value):
-            return self._op(op, value, inplace=inplace)
+            try:
+                return self._op(op, value, inplace=inplace)
+            except SystemError as e:
+                message = ("Numpy returned an uninformative error. It possibly should be "
+                           "'Integers to negative integer powers are not allowed.' "
+                           "See https://github.com/numpy/numpy/issues/19634 for details.")
+                raise ValueError(message) from e
 
         setattr(cls, op, fn_unary_op if unary else fn_binary_op)
         fn = getattr(cls, op)
