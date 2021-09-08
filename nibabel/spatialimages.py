@@ -466,7 +466,6 @@ class SpatialImage(DataobjImage):
                 self._header.set_data_dtype(dataobj.dtype)
         # make header correspond with image and affine
         self.update_header()
-        self._data_cache = None
 
     @property
     def affine(self):

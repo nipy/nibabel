@@ -802,25 +802,10 @@ class EcatImage(SpatialImage):
         >>> data4d.shape == (10, 10, 3, 1)
         True
         """
+        super(EcatImage, self).__init__(dataobj, affine, header=header,
+                                        extra=extra, file_map=file_map)
         self._subheader = subheader
         self._mlist = mlist
-        self._dataobj = dataobj
-        if affine is not None:
-            # Check that affine is array-like 4,4.  Maybe this is too strict at
-            # this abstract level, but so far I think all image formats we know
-            # do need 4,4.
-            affine = np.array(affine, dtype=np.float64, copy=True)
-            if not affine.shape == (4, 4):
-                raise ValueError('Affine should be shape 4,4')
-        self._affine = affine
-        if extra is None:
-            extra = {}
-        self.extra = extra
-        self._header = header
-        if file_map is None:
-            file_map = self.__class__.make_file_map()
-        self.file_map = file_map
-        self._data_cache = None
         self._fdata_cache = None
 
     @property
