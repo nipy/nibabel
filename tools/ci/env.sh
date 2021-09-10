@@ -9,7 +9,7 @@ DEFAULT_OPT_DEPENDS="scipy matplotlib pillow pydicom h5py indexed_gzip"
 # pydicom has skipped some important pre-releases, so enable a check against master
 PYDICOM_MASTER="git+https://github.com/pydicom/pydicom.git@master"
 # Minimum versions of optional requirements
-MIN_OPT_DEPENDS="matplotlib==1.5.3 pydicom==0.9.9 pillow==2.6"
+MIN_OPT_DEPENDS="matplotlib==1.5.3 pydicom==1.0.1 pillow==2.6"
 
 # Numpy and scipy upload nightly/weekly/intermittent wheels
 NIGHTLY_WHEELS="https://pypi.anaconda.org/scipy-wheels-nightly/simple"

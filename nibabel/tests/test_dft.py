@@ -16,8 +16,7 @@ import pytest
 # Shield optional package imports
 from ..optpkg import optional_package
 
-from nibabel.pydicom_compat import have_dicom
-
+have_dicom = optional_package('pydicom')[1]
 PImage, have_pil, _ = optional_package('PIL.Image')
 
 data_dir = pjoin(dirname(__file__), 'data')

@@ -24,6 +24,7 @@ from nibabel.nifti1 import (load, Nifti1Header, Nifti1PairHeader, Nifti1Image,
                             slice_order_codes)
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
+from nibabel.optpkg import optional_package
 from ..freesurfer import load as mghload
 from ..orientations import aff2axcodes
 
@@ -52,8 +53,8 @@ from . import test_spm99analyze as tspm
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')
 
-from ..pydicom_compat import pydicom, have_dicom
-dicom_test = unittest.skipUnless(have_dicom, "Could not import dicom or pydicom")
+pydicom, have_dicom, _ = optional_package("pydicom")
+dicom_test = unittest.skipUnless(have_dicom, "Could not import pydicom")
 
 
 # Example transformation matrix
