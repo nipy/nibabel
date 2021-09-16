@@ -34,7 +34,7 @@ def read(filename):
 
 
 @deprecate_with_version('giftiio.write function deprecated. '
-                        "Use nibabel.load() instead.",
+                        "Use nibabel.save() instead.",
                         '2.1', '4.0')
 def write(image, filename):
     """ Save the current image to a new file
