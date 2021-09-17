@@ -19,6 +19,7 @@ proposals.
    biap_0006
    biap_0007
    biap_0008
+   biap_0009
 
 .. toctree::
    :hidden:
