@@ -43,7 +43,7 @@ For the purposes of this BIAP, the following terms are used:
   typically in the form of a list of triangles
 * Geometry - topology + a specific set of coordinates for a surface
 * Patch - a connected subset of vertices (can be the full topology)
-* Data array - an n-dimensional array with one axis corresponding to the the
+* Data array - an n-dimensional array with one axis corresponding to the
   vertices (typical) OR faces (more rare) in a patch
 
 
@@ -67,6 +67,7 @@ Currently supported surface formats
    * Pure data array, with image header containing flexible axes
    * Geometry referred to by an associated ``wb.spec`` file
      (no current implementation in NiBabel)
+   * Possible to have one with no geometric information, e.g., parcels x time
 
 
 *********************************
@@ -114,21 +115,26 @@ Proposal
 
     class SurfaceHeader:
         @property
-        def ncoords(self):
+        def n_coords(self):
             """ Number of coordinates """
 
         @property
-        def nfaces(self):
+        def n_triangles(self):
             """ Number of faces """
 
         def get_coords(self, name=None):
             """ Nx3 array of coordinates in RAS+ space """
 
-        def get_faces(self, name=None):
+        def get_triangles(self, name=None):
             """ Mx3 array of indices into coordinate table """
 
         def get_mesh(self, name=None):
-            return self.get_coords(name=name), self.get_faces(name=name)
+            return self.get_coords(name=name), self.get_triangles(name=name)
+
+        def get_names(self):
+            """ List of surface names that can be passed to
+            ``get_{coords,triangles,mesh}``
+            """
 
         def decimate(self, *, ncoords=None, ratio=None):
             """ Return a SurfaceHeader with a smaller number of vertices that
