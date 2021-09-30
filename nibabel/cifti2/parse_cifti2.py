@@ -538,7 +538,8 @@ class Cifti2Parser(xml.XmlParser):
             # conversion to numpy array
             c = BytesIO(data.strip().encode('utf-8'))
             transform = self.struct_state[-1]
-            transform.matrix = np.loadtxt(c, dtype=np.float64)
+            matrix = np.loadtxt(c, dtype=np.float64)
+            transform.matrix = matrix.reshape(4, 4)
             c.close()
 
         elif self.write_to == 'Label':
