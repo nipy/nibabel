@@ -116,6 +116,8 @@ make sense for NiBabel to provide methods.
 Proposal
 ********
 
+The basic API is as follows:
+
 .. code-block:: python
 
     class SurfaceHeader:
@@ -168,3 +170,57 @@ Proposal
 
         def load_header(self, pathlike):
             """ Specify a header to a data-only image """
+
+
+Here we present common use cases:
+
+
+Modeling
+--------
+
+.. code-block:: python
+
+    from nilearn.glm.first_level import make_first_level_design_matrix, run_glm
+
+    bold = SurfaceImage.from_filename("/data/func/hemi-L_bold.func.gii")
+    dm = make_first_level_design_matrix(...)
+    labels, results = run_glm(bold.get_data(), dm)
+    betas = bold.__class__(results["betas"], bold.header)
+    betas.to_filename("/data/stats/hemi-L_betas.mgz")
+
+Data images have their own metadata apart from geometry that needs handling in a header:
+
+* Axis labels (time series, labels, tensors)
+* Data dtype
+
+
+Plotting
+--------
+
+Nilearn currently provides a
+`plot_surf <https://nilearn.github.io/modules/generated/nilearn.plotting.plot_surf.html>`_ function.
+With the proposed API, we could interface as follows:
+
+.. code-block:: python
+
+    def plot_surf_img(img, surface="inflated"):
+        from nilearn.plotting import plot_surf
+        coords, triangles = img.header.get_mesh(name=surface)
+
+        data = tstats.get_data()
+
+        return plot_surf((triangles, coords), data)
+
+    tstats = SurfaceImage.from_filename("/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz")
+    tstats.load_header("/data/subjects/fsaverage5")
+    plot_surf_img(tstats)
+
+This assumes that ``load_header()`` will be able to identify a FreeSurfer subject directory.
+
+******************
+* Open questions *
+******************
+
+1) Can/should image and header objects be promiscuous? If I load a GIFTI header,
+   should ``header.load_vertex_data()`` accept a FreeSurfer curvature file, or
+   should there be a bit more ecosystem-local logic?
