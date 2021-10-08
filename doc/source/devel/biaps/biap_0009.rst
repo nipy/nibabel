@@ -141,15 +141,15 @@ Proposal
             ``get_{coords,triangles,mesh}``
             """
 
-        def decimate(self, *, ncoords=None, ratio=None):
+        def decimate(self, *, n_coords=None, ratio=None):
             """ Return a SurfaceHeader with a smaller number of vertices that
             preserves the geometry of the original """
             # To be overridden when a format provides optimization opportunities
 
-        def load_vertex_data(self):
+        def load_vertex_data(self, filename):
             """ Return a SurfaceImage with data corresponding to each vertex """
 
-        def load_face_data(self):
+        def load_face_data(self, filename):
             """ Return a SurfaceImage with data corresponding to each face """
 
 
