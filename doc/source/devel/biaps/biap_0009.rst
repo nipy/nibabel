@@ -94,6 +94,10 @@ The following are provisional guiding principles
 Prominent use cases
 ===================
 
+We consider the following use cases for working with surface data.
+A good API will make retrieving the components needed for each use case
+straightforward, as well as storing the results in new images.
+
 * Arithmetic/modeling - per-vertex mathematical operations
 * Smoothing - topology/geometry-respecting smoothing
 * Plotting - paint the data array as a texture on a surface
@@ -104,8 +108,9 @@ Prominent use cases
   * Inter-subject resampling by using ``?h.sphere.reg``
 * Interpolation of per-vertex and per-face data arrays
 
-These are not necessarily operations that NiBabel must provide, but the
-components needed for each should be readily retrieved.
+When possible, we prefer to expose NumPy ``ndarray``\s and
+allow use of numpy, scipy, scikit-learn. In some cases, it may
+make sense for NiBabel to provide methods.
 
 ********
 Proposal
