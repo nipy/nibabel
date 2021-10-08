@@ -120,7 +120,7 @@ The basic API is as follows:
 
 .. code-block:: python
 
-    class SurfaceHeader:
+    class SurfaceGeometry:
         @property
         def n_coords(self):
             """ Number of coordinates """
@@ -155,10 +155,18 @@ The basic API is as follows:
             """ Return a SurfaceImage with data corresponding to each face """
 
 
-    class SurfaceImage:
+    class SurfaceHeader(FileBaseeHeader):
+        ...
+
+
+    class SurfaceImage(FileBasedImage):
         @property
         def header(self):
-            """ A SurfaceHeader or None """
+            """ A SurfaceHeader """
+
+        @property
+        def geometry(self):
+            """ A SurfaceGeometry or None """
 
         @property
         def dataobj(self):
@@ -168,8 +176,8 @@ The basic API is as follows:
             2) self.dataobj.shape[0] == self.header.nfaces
             """
 
-        def load_header(self, pathlike):
-            """ Specify a header to a data-only image """
+        def load_geometry(self, pathlike):
+            """ Specify a geometry for a data-only image """
 
 
 Here we present common use cases:
@@ -205,22 +213,22 @@ With the proposed API, we could interface as follows:
 
     def plot_surf_img(img, surface="inflated"):
         from nilearn.plotting import plot_surf
-        coords, triangles = img.header.get_mesh(name=surface)
+        coords, triangles = img.geometry.get_mesh(name=surface)
 
         data = tstats.get_data()
 
         return plot_surf((triangles, coords), data)
 
     tstats = SurfaceImage.from_filename("/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz")
-    tstats.load_header("/data/subjects/fsaverage5")
+    tstats.load_geometry("/data/subjects/fsaverage5")
     plot_surf_img(tstats)
 
-This assumes that ``load_header()`` will be able to identify a FreeSurfer subject directory.
+This assumes that ``load_geometry()`` will be able to identify a FreeSurfer subject directory.
 
 ******************
 * Open questions *
 ******************
 
-1) Can/should image and header objects be promiscuous? If I load a GIFTI header,
-   should ``header.load_vertex_data()`` accept a FreeSurfer curvature file, or
+1) Can/should image and geometry objects be promiscuous? If I load a GIFTI geometry,
+   should ``geometry.load_vertex_data()`` accept a FreeSurfer curvature file, or
    should there be a bit more ecosystem-local logic?
