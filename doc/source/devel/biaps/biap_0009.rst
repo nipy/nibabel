@@ -155,7 +155,7 @@ The basic API is as follows:
             """ Return a SurfaceImage with data corresponding to each face """
 
 
-    class SurfaceHeader(FileBaseeHeader):
+    class SurfaceHeader(FileBasedHeader):
         ...
 
 
@@ -200,6 +200,21 @@ Data images have their own metadata apart from geometry that needs handling in a
 
 * Axis labels (time series, labels, tensors)
 * Data dtype
+
+
+Smoothing
+---------
+
+.. code-block:: python
+
+    bold = SurfaceImage.from_filename("/data/func/hemi-L_bold.func.gii")
+    bold.load_geometry("/data/anat/hemi-L_midthickness.surf.gii")
+    # Not implementing networkx weighted graph here, so assume we have a method
+    graph = bold.geometry.get_graph()
+    distances = distance_matrix(graph)  # n_coords x n_coords matrix
+    weights = normalize(gaussian(distances, sigma))
+    smoothed = bold.__class__(bold.get_fdata() @ weights, bold.header)
+    smoothed.to_filename(f"/data/func/hemi-L_smooth-{sigma}_bold.func.gii")
 
 
 Plotting
