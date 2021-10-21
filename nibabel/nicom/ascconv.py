@@ -12,6 +12,8 @@ ASCCONV_RE = re.compile(
     r'### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
     flags=re.M | re.S)
 
+ATTRIBUTE_RE = re.compile(r'__attribute__\.size\s*=\s*')
+
 
 class AscconvParseError(Exception):
     """ Error parsing ascconv file """
@@ -205,10 +207,12 @@ def parse_ascconv(ascconv_str, str_delim='"'):
     AsconvParseError
         A line of the ASCCONV section could not be parsed.
     '''
-    attrs, content = ASCCONV_RE.match(ascconv_str).groups()
+    attrs, content = ASCCONV_RE.search(ascconv_str).groups()
     attrs = OrderedDict((tuple(x.split('=')) for x in attrs.split()))
     # Normalize string start / end markers to something Python understands
     content = content.replace(str_delim, '"""').replace("\\", "\\\\")
+    # Strip out lines with "__attribute__.size = " because ast tries to make a dict instead of a list
+    content = "\n".join([line for line in content.splitlines() if ATTRIBUTE_RE.search(line) is None])
     # Use Python's own parser to parse modified ASCCONV assignments
     tree = ast.parse(content)
 

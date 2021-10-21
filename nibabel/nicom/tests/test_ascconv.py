@@ -61,3 +61,14 @@ def test_ascconv_w_attrs():
     assert attrs['version'] == '41340006'
     assert attrs['converter'] == '%MEASCONST%/ConverterList/Prot_Converter.txt'
     assert ascconv_dict['test'] == 'hello'
+
+
+def test_asconv_from_csa():
+    class SiemensMock:
+        csa_header = r"      <ParamBool.""save_orig"">  { ""true""  }\n    }\n  }\n}\n### ASCCONV BEGIN object=MrProtDataImpl@MrProtocolData version=51130001 converter=%MEASCONST%/ConverterList/Prot_Converter.txt ###\nsGRADSPEC.asGPAData.__attribute__.size\t = \t1\nsGRADSPEC.asGPAData[0].bEddyCompensationValid\t = \t1\n### ASCCONV END ### \n      }"
+    siemens = SiemensMock()
+    ascconv_dict, attrs = ascconv.parse_ascconv(siemens.csa_header, '""')
+    assert attrs['object'] == 'MrProtDataImpl@MrProtocolData'
+    assert attrs['version'] == '51130001'
+    assert attrs['converter'] == '%MEASCONST%/ConverterList/Prot_Converter.txt'
+    assert ascconv_dict['sGRADSPEC']['asGPAData'][0]['bEddyCompensationValid'] == 1
