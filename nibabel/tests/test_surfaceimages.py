@@ -1,4 +1,6 @@
-from nibabel.surfaceimages import SurfaceGeometry, SurfaceHeader, SurfaceImage
+import os
+from nibabel.surfaceimages import *
+from nibabel.arrayproxy import ArrayProxy
 from nibabel.optpkg import optional_package
 
 from nibabel.tests.test_filebasedimages import FBNumpyImage
@@ -108,3 +110,103 @@ class NPSurfaceImage(SurfaceImage):
 
     def set_data_dtype(self, dtype):
         self.dataobj = self.dataobj.astype(dtype)
+
+
+class FSGeometryProxy:
+    def __init__(self, pathlike):
+        self._file_like = str(Path(pathlike))
+        self._offset = None
+        self._vnum = None
+        self._fnum = None
+
+    def _peek(self):
+        from nibabel.freesurfer.io import _fread3
+        with open(self._file_like, "rb") as fobj:
+            magic = _fread3(fobj)
+            if magic != 16777214:
+                raise NotImplementedError("Triangle files only!")
+            fobj.readline()
+            fobj.readline()
+            self._vnum = np.fromfile(fobj, ">i4", 1)[0]
+            self._fnum = np.fromfile(fobj, ">i4", 1)[0]
+            self._offset = fobj.tell()
+
+    @property
+    def vnum(self):
+        if self._vnum is None:
+            self._peek()
+        return self._vnum
+
+    @property
+    def fnum(self):
+        if self._fnum is None:
+            self._peek()
+        return self._fnum
+
+    @property
+    def offset(self):
+        if self._offset is None:
+            self._peek()
+        return self._offset
+
+    @property
+    def coords(self):
+        ap = ArrayProxy(self._file_like, ((self.vnum, 3), ">f4", self.offset))
+        ap.order = 'C'
+        return ap
+
+    @property
+    def triangles(self):
+        offset = self.offset + 12 * self.vnum
+        ap = ArrayProxy(self._file_like, ((self.fnum, 3), ">i4", offset))
+        ap.order = 'C'
+        return ap
+
+
+class FreeSurferHemisphere(SurfaceGeometry):
+    @classmethod
+    def from_filename(klass, pathlike):
+        path = Path(pathlike)
+        hemi, default = path.name.split(".")
+        mesh_names = ('orig', 'white', 'smoothwm',
+                      'pial', 'inflated', 'sphere',
+                      'midthickness', 'graymid')  # Often created
+        if default not in mesh_names:
+            mesh_names.append(default)
+        meshes = {}
+        for mesh in mesh_names:
+            fpath = path.parent / f"{hemi}.{mesh}"
+            if fpath.exists():
+                meshes[mesh] = FSGeometryProxy(fpath)
+        hemi = klass(meshes)
+        hemi._default = default
+        return hemi
+
+    def get_coords(self, name=None):
+        if name is None:
+            name = self._default
+        return self._meshes[name].coords
+
+    def get_triangles(self, name=None):
+        if name is None:
+            name = self._default
+        return self._meshes[name].triangles
+
+    @property
+    def n_coords(self):
+        return self.meshes[self._default].vnum
+
+    @property
+    def n_triangles(self):
+        return self.meshes[self._default].fnum
+
+
+class FreeSurferSubject(Geometry):
+    def __init__(self, pathlike):
+        self._subject_dir = Path(pathlike)
+        surfs = self._subject_dir / "surf"
+        self._structures = {
+            "lh": FreeSurferHemisphere.from_filename(surfs / "lh.white"),
+            "rh": FreeSurferHemisphere.from_filename(surfs / "rh.white"),
+            }
+        super().__init__()
