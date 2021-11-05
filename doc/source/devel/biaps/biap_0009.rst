@@ -200,7 +200,7 @@ Here we present common use cases:
 
 
 Modeling
---------
+========
 
 .. code-block:: python
 
@@ -219,7 +219,7 @@ Data images have their own metadata apart from geometry that needs handling in a
 
 
 Smoothing
----------
+=========
 
 .. code-block:: python
 
@@ -234,7 +234,7 @@ Smoothing
 
 
 Plotting
---------
+========
 
 Nilearn currently provides a
 `plot_surf <https://nilearn.github.io/modules/generated/nilearn.plotting.plot_surf.html>`_ function.
@@ -256,9 +256,10 @@ With the proposed API, we could interface as follows:
 
 This assumes that ``load_geometry()`` will be able to identify a FreeSurfer subject directory.
 
-******************
-* Open questions *
-******************
+
+**************
+Open questions
+**************
 
 1) Can/should image and geometry objects be promiscuous? If I load a GIFTI geometry,
    should ``geometry.load_vertex_data()`` accept a FreeSurfer curvature file, or
