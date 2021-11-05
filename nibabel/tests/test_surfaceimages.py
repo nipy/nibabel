@@ -201,8 +201,17 @@ class FreeSurferHemisphere(SurfaceGeometry):
         return self.meshes[self._default].fnum
 
 
-class FreeSurferSubject(Geometry):
-    def __init__(self, pathlike):
+class FreeSurferSubject(GeometryCollection):
+    @classmethod
+    def from_subject(klass, subject_id, subjects_dir=None):
+        """ Load a FreeSurfer subject by ID """
+        if subjects_dir is None:
+            subjects_dir = os.environ["SUBJECTS_DIR"]
+        return klass.from_directory(Path(subjects_dir) / subject_id)
+
+    @classmethod
+    def from_spec(klass, pathlike):
+        """ Load a FreeSurfer subject from its directory structure """
         self._subject_dir = Path(pathlike)
         surfs = self._subject_dir / "surf"
         self._structures = {
