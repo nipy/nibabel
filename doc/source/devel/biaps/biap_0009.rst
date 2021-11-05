@@ -180,6 +180,22 @@ The basic API is as follows:
             """ Specify a geometry for a data-only image """
 
 
+To enable a similar interface to raveled voxel data:
+
+.. code-block:: python
+
+    class VolumeGeometry:
+        _affine  # Or _affines, if we want multiple, e.g. qform, sform
+        _shape
+        _ijk_coords
+
+        def n_coords(self):
+            """ Number of coordinates """
+
+        def get_coords(self):
+            """ Nx3 array of coordinates in RAS+ space """
+
+
 Here we present common use cases:
 
 
