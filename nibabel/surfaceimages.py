@@ -1,3 +1,4 @@
+from nibabel.affines import apply_affine
 from nibabel.filebasedimages import FileBasedHeader
 from nibabel.dataobj_images import DataobjImage
 
@@ -98,6 +99,29 @@ class SurfaceImage(DataobjImage):
 
     def load_geometry(self, pathlike):
         """ Specify a header to a data-only image """
+
+
+class VolumeGeometry(Geometry):
+    def __init__(self, affines, *, indices=None):
+        try:
+            self._affines = dict(affines)
+        except TypeError:
+            self._affines = {"affine": np.array(affines)}
+        self._default = next(iter(self._affines))
+
+        self._indices = indices
+
+    def get_coords(self, name=None):
+        if name is None:
+            name = self._default
+        return apply_affine(self._affines[name], self._indices)
+
+    @property
+    def n_coords(self):
+        return self._indices.shape[0]
+
+    def get_indices(self):
+        return self._indices
 
 
 class GeometryCollection:
