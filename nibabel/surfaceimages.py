@@ -2,7 +2,13 @@ from nibabel.filebasedimages import FileBasedHeader
 from nibabel.dataobj_images import DataobjImage
 
 
-class SurfaceGeometry:
+class Geometry:
+    def get_coords(self, name=None):
+        """ Nx3 array of coordinates in RAS+ space """
+        raise NotImplementedError
+
+
+class SurfaceGeometry(Geometry):
     def __init__(self, meshes=None):
         """ Surface header objects have access to an internal
         ``_meshes`` dictionary that has keys that are mesh names.
@@ -12,7 +18,7 @@ class SurfaceGeometry:
         if meshes is None:
             meshes = {}
         self._meshes = meshes
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
     @property
     def n_coords(self):
@@ -92,3 +98,47 @@ class SurfaceImage(DataobjImage):
 
     def load_geometry(self, pathlike):
         """ Specify a header to a data-only image """
+
+
+class GeometryCollection:
+    def __init__(self, structures=()):
+        self._structures = dict(structures)
+
+    def get_structure(self, name):
+        return self._structures[name]
+
+    @property
+    def names(self):
+        return list(self._structures)
+
+    @classmethod
+    def from_spec(klass, pathlike):
+        """ Load a collection of geometries from a specification, broadly construed. """
+        raise NotImplementedError
+
+
+class GeometrySequence(GeometryCollection, Geometry):
+    def __init__(self, structures=()):
+        super().__init__(structures)
+        self._indices = {}
+        next_index = 0
+        for name, struct in self._structures.items():
+            end = next_index + struct.n_coords
+            self._indices[name] = slice(next_index, end)
+            next_index = end + 1
+
+    def get_indices(self, *names):
+        if len(names) == 1:
+            return self._indices[name]
+        return [self._indices[name] for name in names]
+
+    # def get_structures(self, *, names=None, indices=None):
+    #     """ We probably want some way to get a subset of structures """
+
+    def get_coords(self, name=None):
+        return np.vstack([struct.get_coords(name=name)
+                          for struct in self._structures.values()])
+
+    @property
+    def n_coords(self):
+        return sum(struct.n_coords for struct in self._structures.values())
