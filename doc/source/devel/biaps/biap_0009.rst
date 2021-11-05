@@ -120,17 +120,19 @@ The basic API is as follows:
 
 .. code-block:: python
 
-    class SurfaceGeometry:
+    class Geometry:
         @property
         def n_coords(self):
             """ Number of coordinates """
 
+        def get_coords(self, name=None):
+            """ Nx3 array of coordinates in RAS+ space """
+
+
+    class SurfaceGeometry(Geometry):
         @property
         def n_triangles(self):
             """ Number of faces """
-
-        def get_coords(self, name=None):
-            """ Nx3 array of coordinates in RAS+ space """
 
         def get_triangles(self, name=None):
             """ Mx3 array of indices into coordinate table """
@@ -184,7 +186,7 @@ To enable a similar interface to raveled voxel data:
 
 .. code-block:: python
 
-    class VolumeGeometry:
+    class VolumeGeometry(Geometry):
         _affine  # Or _affines, if we want multiple, e.g. qform, sform
         _shape
         _ijk_coords
@@ -264,3 +266,44 @@ Open questions
 1) Can/should image and geometry objects be promiscuous? If I load a GIFTI geometry,
    should ``geometry.load_vertex_data()`` accept a FreeSurfer curvature file, or
    should there be a bit more ecosystem-local logic?
+
+
+********************************
+Concatenable structures proposal
+********************************
+
+A brain is typically described with multiple structures,
+such as left and right hemispheres and a volumetric subcortical region.
+We will consider two reference cases:
+
+1) FreeSurfer, in which a subject directory can be used to retrieve
+   multiple surfaces or volumetric regions. Data arrays are specific to a
+   single structure.
+2) CIFTI-2, which permits an axis to have type ``CIFTI_INDEX_TYPE_BRAIN_MODELS``,
+   indicating that each index along an axis corresponds to a vertex or voxel in
+   an associated surface or volume.
+   The data array thus may span multiple structures.
+
+In the former case, the structures may be considered an unordered collection;
+in the latter, the sequence of structures directly corresponds to segments of
+the data array.
+
+.. code-block:: python
+
+    class GeometryCollection:
+        def get_geometry(self, name):
+            """ Return a geometry by name """
+
+        @property
+        def names(self):
+            """ A set of structure names """
+
+        @classmethod
+        def from_spec(klass, pathlike):
+        """ Load a collection of geometries from a specification, broadly construed. """
+
+
+    class GeometrySequence(GeometryCollection, Geometry):
+        # Inherit and override get_coords, n_coords from Geometry
+        def get_indices(self, name):
+            """ Return indices for data array corresponding to a named geometry """
