@@ -3,13 +3,42 @@ from nibabel.filebasedimages import FileBasedHeader
 from nibabel.dataobj_images import DataobjImage
 
 
-class Geometry:
+class Pointset:
+    """ A collection of related sets of coordinates in 3D space.
+
+    Coordinates are in RAS+ orientation, i.e., $(x, y, z)$ refers to
+    a point $x\mathrm{mm}$ right, $y\mathrm{mm}$ anterior and $z\mathrm{mm}$
+    superior of the origin.
+
+    The order of coordinates should be assumed to be significant.
+    """
+
     def get_coords(self, name=None):
-        """ Nx3 array of coordinates in RAS+ space """
+        """ Get coordinate data in RAS+ space
+
+        Parameters
+        ----------
+        name : str
+            Name of one of a family of related coordinates.
+            For example, ``"white"`` and ``"pial"`` surfaces
+
+        Returns
+        -------
+        coords : (N, 3) array-like
+            Coordinates in RAS+ space
+        """
         raise NotImplementedError
 
+    @property
+    def n_coords(self):
+        """ Number of coordinates
 
-class SurfaceGeometry(Geometry):
+        The default implementation loads coordinates. Subclasses may
+        override with more efficient implementations.
+        """
+        return self.get_coords().shape[0]
+
+class SurfaceGeometry(Pointset):
     def __init__(self, meshes=None):
         """ Surface header objects have access to an internal
         ``_meshes`` dictionary that has keys that are mesh names.
@@ -22,15 +51,6 @@ class SurfaceGeometry(Geometry):
         super().__init__()
 
     @property
-    def n_coords(self):
-        """ Number of coordinates (vertices)
-
-        The default implementation loads coordinates. Subclasses may
-        override with more efficient implementations.
-        """
-        return self.get_coords().shape[0]
-
-    @property
     def n_triangles(self):
         """ Number of triangles (faces)
 
@@ -38,10 +58,6 @@ class SurfaceGeometry(Geometry):
         override with more efficient implementations.
         """
         return self.get_triangles().shape[0]
-
-    def get_coords(self, name=None):
-        """ Nx3 array of coordinates in RAS+ space """
-        raise NotImplementedError
 
     def get_triangles(self, name=None):
         """ Mx3 array of indices into coordinate table """
@@ -101,7 +117,7 @@ class SurfaceImage(DataobjImage):
         """ Specify a header to a data-only image """
 
 
-class VolumeGeometry(Geometry):
+class VolumeGeometry(Pointset):
     def __init__(self, affines, *, indices=None):
         try:
             self._affines = dict(affines)
@@ -141,7 +157,7 @@ class GeometryCollection:
         raise NotImplementedError
 
 
-class GeometrySequence(GeometryCollection, Geometry):
+class GeometrySequence(GeometryCollection, Pointset):
     def __init__(self, structures=()):
         super().__init__(structures)
         self._indices = {}
