@@ -38,9 +38,12 @@ class Pointset:
         """
         return self.get_coords().shape[0]
 
-class SurfaceGeometry(Pointset):
+
+class TriangularMesh(Pointset):
+    """ A triangular mesh is a description of a surface tesselated into triangles """
+
     def __init__(self, meshes=None):
-        """ Surface header objects have access to an internal
+        """ Triangular mesh objects have access to an internal
         ``_meshes`` dictionary that has keys that are mesh names.
         The values may be any structure that permits the class to
         provide coordinates and triangles on request.
@@ -73,7 +76,7 @@ class SurfaceGeometry(Pointset):
         return list(self._meshes.keys())
 
     def decimate(self, *, ncoords=None, ratio=None):
-        """ Return a SurfaceHeader with a smaller number of vertices that
+        """ Return a TriangularMesh with a smaller number of vertices that
         preserves the geometry of the original.
 
         Please contribute a generic decimation algorithm at
@@ -93,7 +96,7 @@ class SurfaceGeometry(Pointset):
 class SurfaceHeader(FileBasedHeader):
     """ Template class to implement SurfaceHeader protocol """
     def get_geometry(self):
-        """ Generate ``SurfaceGeometry`` object from header object
+        """ Generate ``TriangularMesh`` object from header object
 
         If no default geometry can be provided, returns ``None``.
         """
@@ -157,7 +160,7 @@ class GeometryCollection:
         raise NotImplementedError
 
 
-class GeometrySequence(GeometryCollection, Pointset):
+class PointsetSequence(GeometryCollection, Pointset):
     def __init__(self, structures=()):
         super().__init__(structures)
         self._indices = {}

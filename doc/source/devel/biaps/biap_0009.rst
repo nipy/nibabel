@@ -129,7 +129,7 @@ The basic API is as follows:
             """ Nx3 array of coordinates in RAS+ space """
 
 
-    class SurfaceGeometry(Geometry):
+    class TriangularMesh(Geometry):
         @property
         def n_triangles(self):
             """ Number of faces """
@@ -146,7 +146,7 @@ The basic API is as follows:
             """
 
         def decimate(self, *, n_coords=None, ratio=None):
-            """ Return a SurfaceHeader with a smaller number of vertices that
+            """ Return a TriangularMesh with a smaller number of vertices that
             preserves the geometry of the original """
             # To be overridden when a format provides optimization opportunities
 

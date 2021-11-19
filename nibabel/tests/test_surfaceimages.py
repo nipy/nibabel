@@ -45,7 +45,7 @@ class H5ArrayProxy:
             return h5f[self.dataset_name][slicer]
 
 
-class H5Geometry(SurfaceGeometry):
+class H5Geometry(TriangularMesh):
     """Simple Geometry file structure that combines a single topology
     with one or more coordinate sets
     """
@@ -57,7 +57,6 @@ class H5Geometry(SurfaceGeometry):
             for name, coords in h5f['coordinates'].items():
                 meshes[name] = (coords, triangles)
         return klass(meshes)
-
     
     def to_filename(self, pathlike):
         topology = None
@@ -75,13 +74,11 @@ class H5Geometry(SurfaceGeometry):
             for name, coord in coordinates.items():
                 h5f.create_dataset(f"/coordinates/{name}", coord)
 
-
     def get_coords(self, name=None):
         if name is None:
             name = next(iter(self._meshes))
         coords, _ = self._meshes[name]
         return coords
-
 
     def get_triangles(self, name=None):
         if name is None:
@@ -163,7 +160,7 @@ class FSGeometryProxy:
         return ap
 
 
-class FreeSurferHemisphere(SurfaceGeometry):
+class FreeSurferHemisphere(TriangularMesh):
     @classmethod
     def from_filename(klass, pathlike):
         path = Path(pathlike)
