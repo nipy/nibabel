@@ -86,7 +86,8 @@ class ArrayProxy(object):
     # Assume Fortran array memory layout
     order = 'F'
 
-    def __init__(self, file_like, spec, *, mmap=True, keep_file_open=None):
+    def __init__(self, file_like, spec, *,
+                 mmap=True, keep_file_open=None, compression=None):
         """Initialize array proxy instance
 
         Parameters
@@ -125,6 +126,7 @@ class ArrayProxy(object):
             If ``file_like`` is an open file handle, this setting has no
             effect. The default value (``None``) will result in the value of
             ``KEEP_FILE_OPEN_DEFAULT`` being used.
+        compression : { None, "gz", "bz2", "zst" }, optional, keyworld only
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
@@ -147,10 +149,11 @@ class ArrayProxy(object):
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
+        self._compression = compression
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
         self._keep_file_open, self._persist_opener = \
-            self._should_keep_file_open(file_like, keep_file_open)
+            self._should_keep_file_open(file_like, keep_file_open, compression)
         self._lock = RLock()
 
     def __del__(self):
@@ -172,7 +175,7 @@ class ArrayProxy(object):
         self.__dict__.update(state)
         self._lock = RLock()
 
-    def _should_keep_file_open(self, file_like, keep_file_open):
+    def _should_keep_file_open(self, file_like, keep_file_open, compression):
         """Called by ``__init__``.
 
         This method determines how to manage ``ImageOpener`` instances,
@@ -248,7 +251,8 @@ class ArrayProxy(object):
         if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
             return False, False
         # if the file is a gzip file, and we have_indexed_gzip,
-        have_igzip = openers.HAVE_INDEXED_GZIP and file_like.endswith('.gz')
+        have_igzip = openers.HAVE_INDEXED_GZIP and (compression in ("gz", ".gz") or
+                                                    file_like.endswith('.gz'))
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener
@@ -297,11 +301,15 @@ class ArrayProxy(object):
         if self._persist_opener:
             if not hasattr(self, '_opener'):
                 self._opener = openers.ImageOpener(
-                    self.file_like, keep_open=self._keep_file_open)
+                    self.file_like,
+                    keep_open=self._keep_file_open,
+                    compression=self._compression)
             yield self._opener
         else:
             with openers.ImageOpener(
-                    self.file_like, keep_open=False) as opener:
+                    self.file_like,
+                    keep_open=False,
+                    compression=self._compression) as opener:
                 yield opener
 
     def _get_unscaled(self, slicer):
