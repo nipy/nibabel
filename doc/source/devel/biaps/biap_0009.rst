@@ -158,7 +158,8 @@ The basic API is as follows:
 
 
     class SurfaceHeader(FileBasedHeader):
-        ...
+        def get_geometry(self):
+            """ Construct a geometry from the header if possible, or return None """
 
 
     class SurfaceImage(FileBasedImage):
