@@ -204,15 +204,17 @@ class FreeSurferSubject(GeometryCollection):
         """ Load a FreeSurfer subject by ID """
         if subjects_dir is None:
             subjects_dir = os.environ["SUBJECTS_DIR"]
-        return klass.from_directory(Path(subjects_dir) / subject_id)
+        return klass.from_spec(Path(subjects_dir) / subject_id)
 
     @classmethod
     def from_spec(klass, pathlike):
         """ Load a FreeSurfer subject from its directory structure """
-        self._subject_dir = Path(pathlike)
-        surfs = self._subject_dir / "surf"
-        self._structures = {
+        subject_dir = Path(pathlike)
+        surfs = subject_dir / "surf"
+        structures = {
             "lh": FreeSurferHemisphere.from_filename(surfs / "lh.white"),
             "rh": FreeSurferHemisphere.from_filename(surfs / "rh.white"),
             }
-        super().__init__()
+        subject = super().__init__(structures)
+        subject._subject_dir = subject_dir
+        return subject
