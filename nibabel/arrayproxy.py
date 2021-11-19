@@ -126,7 +126,7 @@ class ArrayProxy(object):
             If ``file_like`` is an open file handle, this setting has no
             effect. The default value (``None``) will result in the value of
             ``KEEP_FILE_OPEN_DEFAULT`` being used.
-        compression : { None, "gz", "bz2", "zst" }, optional, keyworld only
+        compression : { None, "gz", "bz2", "zst" }, optional, keyword only
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
