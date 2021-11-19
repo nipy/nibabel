@@ -121,14 +121,38 @@ class SurfaceImage(DataobjImage):
 
 
 class VolumeGeometry(Pointset):
-    def __init__(self, affines, *, indices=None):
+    """
+
+    .. testsetup:
+
+        >>> from nibabel.tests.nibabel_data import needs_nibabel_data
+        >>> needs_nibabel_data('nitest-cifti2')()
+
+    >>> import nibabel as nb
+    >>> from nibabel.tests.nibabel_data import get_nibabel_data
+    >>> from pathlib import Path
+    >>> dscalar = nb.load(Path(get_nibabel_data()) / 'nitest-cifti2' / "ones.dscalar.nii")
+    >>> brainmodel_axis = dscalar.header.get_axis(1)
+    >>> volgeom = VolumeGeometry(
+    ...     brainmodel_axis.affine,
+    ...     brainmodel_axis.voxel[brainmodel_axis.volume_mask],
+    ...     brainmodel_axis.volume_shape)
+    """
+
+    def __init__(self, affines, indices, shape=None):
         try:
             self._affines = dict(affines)
         except TypeError:
             self._affines = {"affine": np.array(affines)}
         self._default = next(iter(self._affines))
 
-        self._indices = indices
+        self._indices = np.array(indices)
+        if self._indices.ndim != 2 or self._indices.shape[1] != 3:
+            raise ValueError("Indices must be an Nx3 matrix")
+
+        if shape is None:
+            shape = self._indices.max(axis=0)
+        self._shape = shape
 
     def get_coords(self, name=None):
         if name is None:
@@ -141,6 +165,21 @@ class VolumeGeometry(Pointset):
 
     def get_indices(self):
         return self._indices
+
+    def to_mask(self, name=None, shape=None):
+        if name is None:
+            name = self._default
+        if shape is None:
+            shape = self._shape
+        dataobj = np.zeros(shape, dtype=np.bool_)
+        dataobj[self._indices] = True
+        return SpatialImage(dataobj, self._affines[name])
+
+    @classmethod
+    def from_mask(klass, img):
+        affine = img.affine
+        indices = np.vstack(np.where(img.dataobj)).T
+        return klass(affine, indices=indices)
 
 
 class GeometryCollection:
