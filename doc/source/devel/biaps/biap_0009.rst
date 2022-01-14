@@ -120,7 +120,7 @@ The basic API is as follows:
 
 .. code-block:: python
 
-    class Geometry:
+    class Pointset:
         @property
         def n_coords(self):
             """ Number of coordinates """
@@ -129,7 +129,7 @@ The basic API is as follows:
             """ Nx3 array of coordinates in RAS+ space """
 
 
-    class TriangularMesh(Geometry):
+    class TriangularMesh(Pointset):
         @property
         def n_triangles(self):
             """ Number of faces """
@@ -169,7 +169,7 @@ The basic API is as follows:
 
         @property
         def geometry(self):
-            """ A SurfaceGeometry or None """
+            """ A Pointset or None """
 
         @property
         def dataobj(self):
@@ -187,7 +187,7 @@ To enable a similar interface to raveled voxel data:
 
 .. code-block:: python
 
-    class VolumeGeometry(Geometry):
+    class VolumeGeometry(Pointset):
         _affine  # Or _affines, if we want multiple, e.g. qform, sform
         _shape
         _ijk_coords
@@ -304,7 +304,7 @@ the data array.
         """ Load a collection of geometries from a specification, broadly construed. """
 
 
-    class GeometrySequence(GeometryCollection, Geometry):
-        # Inherit and override get_coords, n_coords from Geometry
+    class PointsetSequence(GeometryCollection, Pointset):
+        # Inherit and override get_coords, n_coords from Pointset
         def get_indices(self, name):
             """ Return indices for data array corresponding to a named geometry """
