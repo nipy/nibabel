@@ -7,10 +7,10 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from distutils.version import LooseVersion
-
 import numpy as np
 from io import BytesIO
+
+from packaging.version import Version, parse
 
 from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Label,
                      Cifti2LabelTable, Cifti2VertexIndices,
@@ -151,9 +151,9 @@ class Cifti2Parser(xml.XmlParser):
         if name == 'CIFTI':
             # create cifti2 image
             self.header = Cifti2Header()
-            self.header.version = attrs['Version']
-            if LooseVersion(self.header.version) < LooseVersion('2'):
-                raise ValueError('Only CIFTI-2 files are supported')
+            self.header.version = ver = attrs['Version']
+            if parse(ver) < Version("2"):
+                raise ValueError(f'Only CIFTI-2 files are supported; found version {ver}')
             self.fsm_state.append('CIFTI')
             self.struct_state.append(self.header)
 

@@ -1,14 +1,14 @@
 """ Routines to support optional packages """
-from distutils.version import LooseVersion
+from packaging.version import Version
 from .tripwire import TripWire
 
 
 def _check_pkg_version(pkg, min_version):
     # Default version checking function
     if isinstance(min_version, str):
-        min_version = LooseVersion(min_version)
+        min_version = Version(min_version)
     try:
-        return min_version <= pkg.__version__
+        return min_version <= Version(pkg.__version__)
     except AttributeError:
         return False
 
@@ -24,9 +24,9 @@ def optional_package(name, trip_msg=None, min_version=None):
         message to give when someone tries to use the return package, but we
         could not import it at an acceptable version, and have returned a
         TripWire object instead. Default message if None.
-    min_version : None or str or LooseVersion or callable
+    min_version : None or str or Version or callable
         If None, do not specify a minimum version.  If str, convert to a
-        `distutils.version.LooseVersion`.  If str or LooseVersion` compare to
+        ``packaging.version.Version``.  If str or ``Version`` compare to
         version of package `name` with ``min_version <= pkg.__version__``.   If
         callable, accepts imported ``pkg`` as argument, and returns value of
         callable is True for acceptable package versions, False otherwise.

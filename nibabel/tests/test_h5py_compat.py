@@ -5,7 +5,7 @@ well-defined cases
 """
 import sys
 import os
-from distutils.version import LooseVersion
+from packaging.version import Version
 import numpy as np
 
 from ..optpkg import optional_package
@@ -25,7 +25,7 @@ def test_optpkg_equivalence():
     if not have_h5py:
         assert not compat.have_h5py
     # Available when version is high enough
-    elif LooseVersion(h5py.__version__) >= '2.10':
+    elif Version(h5py.__version__) >= Version('2.10'):
         assert compat.have_h5py
 
 
@@ -35,11 +35,11 @@ def test_disabled_h5py_cases():
         # Recapitulate min_h5py conditions from _h5py_compat
         assert os.name == 'nt'
         assert (3,) <= sys.version_info < (3, 6)
-        assert LooseVersion(h5py.__version__) < '2.10'
+        assert Version(h5py.__version__) < Version('2.10')
         # Verify that the root cause is present
         # If any tests fail, they will likely be these, so they may be
         # ill-advised...
-        if LooseVersion(np.__version__) < '1.18':
+        if Version(np.__version__) < Version('1.18'):
             assert str(np.longdouble) == str(np.float64)
         else:
             assert str(np.longdouble) != str(np.float64)
