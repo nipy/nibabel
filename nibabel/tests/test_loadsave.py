@@ -36,8 +36,7 @@ def test_read_img_data():
     ]
     fnames_test += [pathlib.Path(p) for p in fnames_test]
     for fname in fnames_test:
-        # os.path.join doesn't work between str / os.PathLike in py3.5
-        fpath = pjoin(data_path, str(fname))
+        fpath = pjoin(data_path, fname)
         if isinstance(fname, pathlib.Path):
             fpath = pathlib.Path(fpath)
         img = load(fpath)
@@ -56,8 +55,7 @@ def test_read_img_data():
             up_fpath = pjoin(tmpdir, str(fname).upper())
             if isinstance(fname, pathlib.Path):
                 up_fpath = pathlib.Path(up_fpath)
-            # shutil doesn't work with os.PathLike in py3.5
-            shutil.copyfile(str(fpath), str(up_fpath))
+            shutil.copyfile(fpath, up_fpath)
             img = load(up_fpath)
             assert_array_equal(img.dataobj, data)
             del img
