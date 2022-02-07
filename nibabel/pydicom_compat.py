@@ -23,7 +23,6 @@ A deprecated copy is available here for backward compatibility.
 # Module has (apparently) unused imports; stop flake8 complaining
 # flake8: noqa
 
-import numpy as np
 from .deprecated import deprecate_with_version
 
 have_dicom = True

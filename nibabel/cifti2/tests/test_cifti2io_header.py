@@ -41,6 +41,11 @@ DATA_FILE6 = pjoin(CIFTI2_DATA, 'ones.dscalar.nii')
 datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
+def test_space_separated_affine():
+    img = ci.Cifti2Image.from_filename(
+        pjoin(NIBABEL_TEST_DATA, "row_major.dconn.nii"))
+
+
 def test_read_nifti2():
     # Error trying to read a CIFTI-2 image from a NIfTI2-only image.
     filemap = ci.Cifti2Image.make_file_map()

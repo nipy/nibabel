@@ -71,7 +71,7 @@ class DICOMFS(fuse.Fuse):
         for study in dft.get_studies(self.dicom_path, self.followlinks):
             pd = paths.setdefault(study.patient_name_or_uid(), {})
             patient_info = 'patient information\n'
-            patient_info = f'name: {study.patient_name}\n'
+            patient_info += f'name: {study.patient_name}\n'
             patient_info += f'ID: {study.patient_id}\n'
             patient_info += f'birth date: {study.patient_birth_date}\n'
             patient_info += f'sex: {study.patient_sex}\n'
@@ -172,9 +172,9 @@ class DICOMFS(fuse.Fuse):
                 elif isinstance(matched_path, tuple):
                     self.fhs[i] = matched_path[1]()
                 else:
-                    raise -errno.EFTYPE
+                    return -errno.EFTYPE
                 return FileHandle(i)
-        raise -errno.ENFILE
+        return -errno.ENFILE
 
     # not done
     def read(self, path, size, offset, fh):

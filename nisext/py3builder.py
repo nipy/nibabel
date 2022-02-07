@@ -1,9 +1,6 @@
 """ distutils utilities for porting to python 3 within 2-compatible tree """
 
 
-import sys
-import re
-
 try:
     from distutils.command.build_py import build_py_2to3
 except ImportError:

@@ -16,8 +16,6 @@ bdist_mpkg packge.
 __docformat__ = 'restructuredtext'
 
 import sys
-import setuptools
-import bdist_mpkg
 
 def main():
     del sys.argv[0]
