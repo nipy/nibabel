@@ -910,7 +910,8 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         img : GiftiImage
         """
         parser = klass.parser(buffer_size=buffer_size, mmap=mmap)
-        parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
+        with file_map['image'].get_prepare_fileobj('rb') as fptr:
+            parser.parse(fptr=fptr)
         return parser.img
 
     @classmethod
