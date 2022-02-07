@@ -9,7 +9,7 @@ from os.path import join as pjoin
 import glob
 import sys
 import configparser
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 from .environment import get_nipy_user_dir, get_nipy_system_dir
 
@@ -330,7 +330,7 @@ def datasource_or_bomber(pkg_def, **options):
     Parameters
     ----------
     pkg_def : dict
-       dict containing at least key 'relpath'. Can optioanlly have keys 'name'
+       dict containing at least key 'relpath'. Can optionally have keys 'name'
        (package name),  'install hint' (for helpful error messages) and 'min
        version' giving the minimum necessary version string for the package.
     data_path : sequence of strings or None, optional
@@ -349,8 +349,7 @@ def datasource_or_bomber(pkg_def, **options):
     except DataError as e:
         return Bomber(sys_relpath, str(e))
     # check version
-    if (version is None or
-            LooseVersion(ds.version) >= LooseVersion(version)):
+    if version is None or Version(ds.version) >= Version(version):
         return ds
     if 'name' in pkg_def:
         pkg_name = pkg_def['name']

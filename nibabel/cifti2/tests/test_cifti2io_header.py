@@ -10,7 +10,7 @@
 from os.path import join as pjoin, dirname
 import io
 
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import nibabel as nib
 from nibabel import cifti2 as ci
@@ -80,7 +80,7 @@ def test_read_and_proxies():
 def test_version():
     for i, dat in enumerate(datafiles):
         img = nib.load(dat)
-        assert LooseVersion(img.header.version) == LooseVersion('2')
+        assert Version(img.header.version) == Version('2')
 
 
 @needs_nibabel_data('nitest-cifti2')

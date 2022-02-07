@@ -5,7 +5,7 @@ from unittest import mock
 import types
 import sys
 import builtins
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 from unittest import SkipTest
 import pytest
@@ -67,10 +67,10 @@ def test_versions():
         # Now add a version
         fake_pkg.__version__ = '2.0'
         # We have fake_pkg > 1.0
-        for min_ver in (None, '1.0', LooseVersion('1.0'), lambda pkg: True):
+        for min_ver in (None, '1.0', Version('1.0'), lambda pkg: True):
             assert_good(fake_name, min_ver)
         # We never have fake_pkg > 100.0
-        for min_ver in ('100.0', LooseVersion('100.0'), lambda pkg: False):
+        for min_ver in ('100.0', Version('100.0'), lambda pkg: False):
             assert_bad(fake_name, min_ver)
         # Check error string for bad version
         pkg, _, _ = optional_package(fake_name, min_version='3.0')

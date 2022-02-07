@@ -13,7 +13,7 @@ from bz2 import BZ2File
 import gzip
 import warnings
 from os.path import splitext
-from distutils.version import StrictVersion
+from packaging.version import Version
 
 from nibabel.optpkg import optional_package
 
@@ -25,11 +25,11 @@ try:
     HAVE_INDEXED_GZIP = True
 
     # < 0.7 - no good
-    if StrictVersion(version) < StrictVersion('0.7.0'):
+    if Version(version) < Version('0.7.0'):
         warnings.warn(f'indexed_gzip is present, but too old (>= 0.7.0 required): {version})')
         HAVE_INDEXED_GZIP = False
     # >= 0.8 SafeIndexedGzipFile renamed to IndexedGzipFile
-    elif StrictVersion(version) < StrictVersion('0.8.0'):
+    elif Version(version) < Version('0.8.0'):
         IndexedGzipFile = igzip.SafeIndexedGzipFile
     else:
         IndexedGzipFile = igzip.IndexedGzipFile

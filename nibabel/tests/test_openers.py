@@ -11,7 +11,7 @@ import os
 import contextlib
 from gzip import GzipFile
 from io import BytesIO, UnsupportedOperation
-from distutils.version import StrictVersion
+from packaging.version import Version
 import hashlib
 import time
 
@@ -106,7 +106,7 @@ def test_Opener_various():
                 # indexed gzip is used by default, and drops file
                 # handles by default, so we don't have a fileno.
                 elif input.endswith('gz') and HAVE_INDEXED_GZIP and \
-                     StrictVersion(igzip.__version__) >= StrictVersion('0.7.0'):
+                     Version(igzip.__version__) >= Version('0.7.0'):
                     with pytest.raises(igzip.NoHandleError):
                         fobj.fileno()
                 else:
