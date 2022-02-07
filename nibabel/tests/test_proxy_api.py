@@ -44,7 +44,6 @@ from ..freesurfer.mghformat import MGHHeader
 from .. import minc1
 from ..externals.netcdf import netcdf_file
 from .. import minc2
-from .._h5py_compat import h5py, have_h5py
 from .. import ecat
 from .. import parrec
 from ..casting import have_binary128
@@ -57,11 +56,14 @@ from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclo
 
 from ..testing import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
 from ..deprecator import ExpiredDeprecationError
+from ..optpkg import optional_package
 
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
 from .test_parrec import EG_REC, VARY_REC
+
+h5py, have_h5py, _ = optional_package('h5py')
 
 
 def _some_slicers(shape):

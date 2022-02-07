@@ -6,7 +6,7 @@
 
 os: linux
 arch: arm64
-dist: xenial
+dist: focal
 language: python
 cache: pip
 
@@ -21,10 +21,10 @@ env:
         - CHECK_TYPE="test"
 
 python:
-    - 3.6
     - 3.7
     - 3.8
     - 3.9
+    - "3.10"
 
 # Set up virtual environment, build package, build from depends
 before_install:

@@ -158,7 +158,7 @@ class Minc2Image(Minc1Image):
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         # Import of h5py might take awhile for MPI-enabled builds
         # So we are importing it here "on demand"
-        from ._h5py_compat import h5py
+        import h5py
         holder = file_map['image']
         if holder.filename is None:
             raise MincError('MINC2 needs filename for load')

@@ -14,12 +14,13 @@ from os.path import join as pjoin
 
 import numpy as np
 
-from .._h5py_compat import h5py, have_h5py, setup_module
-
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from .. import load as top_load, Nifti1Image
+from ..optpkg import optional_package
 
 from numpy.testing import (assert_array_equal, assert_almost_equal)
+
+h5py, have_h5py, setup_module = optional_package('h5py')
 
 MINC2_PATH = pjoin(get_nibabel_data(), 'nitest-minc2')
 

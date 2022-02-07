@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: ["3.8", "3.9", "3.10.0-rc.1"]
+        python-version: ["3.9", "3.10"]
         architecture: ['x64', 'x86']
         install: ['setup']
         check: ['test']
@@ -36,7 +36,7 @@ jobs:
         include:
           # Pydicom master
           - os: ubuntu-latest
-            python-version: 3.8
+            python-version: "3.10"
             install: setup
             check: test
             pip-flags: ''
@@ -47,10 +47,6 @@ jobs:
             architecture: x86
           - os: macos-latest
             architecture: x86
-          - os: windows-latest
-            python-version: "3.10.0-rc.1"
-          - os: macos-latest
-            python-version: "3.10.0-rc.1"
 
     env:
       DEPENDS: ${{ matrix.depends }}

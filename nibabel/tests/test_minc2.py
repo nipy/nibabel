@@ -13,11 +13,13 @@ import numpy as np
 
 from .. import minc2
 from ..minc2 import Minc2File, Minc2Image
-from .._h5py_compat import h5py, have_h5py, setup_module
 
+from ..optpkg import optional_package
 from ..testing import data_path
 
 from . import test_minc1 as tm2
+
+h5py, have_h5py, setup_module = optional_package('h5py')
 
 # Example images in format expected for ``test_image_api``, adding ``zooms``
 # item.
