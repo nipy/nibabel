@@ -447,9 +447,8 @@ def test_darray_dtype_coercion_failures():
         assert_array_equal(da_copy.data, da.data)
 
 
-def test_gifti_file_close():
+def test_gifti_file_close(recwarn):
     gii = load(test_data('gifti', 'ascii.gii'))
-    with pytest.WarningsRecorder() as record:
-        with InTemporaryDirectory():
-            gii.to_filename('test.gii')
-    assert not any(isinstance(r.message, ResourceWarning) for r in record.list)
+    with InTemporaryDirectory():
+        gii.to_filename('test.gii')
+    assert not any(isinstance(r.message, ResourceWarning) for r in recwarn)
