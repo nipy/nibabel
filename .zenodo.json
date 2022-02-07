@@ -141,10 +141,10 @@
       "orcid": "0000-0001-9791-4404"
     },
     {
-      "name": "Lepp\u00e4kangas, Jaakko"
+      "name": "S\u00f3lon, Anibal"
     },
     {
-      "name": "S\u00f3lon, Anibal"
+      "name": "Lepp\u00e4kangas, Jaakko"
     },
     {
       "name": "van den Bosch, Jasper J.F."
@@ -229,6 +229,11 @@
       "name": "St-Jean, Samuel"
     },
     {
+      "affiliation": "CEA",
+      "name": "Papadopoulos Orfanos, Dimitri",
+      "orcid": "0000-0002-1242-8990"
+    },
+    {
       "name": "Panfilov, Egor",
       "orcid": "0000-0002-2500-6375"
     },
@@ -287,6 +292,9 @@
       "name": "Baratz, Zvi"
     },
     {
+      "name": "Van, Andrew"
+    },
+    {
       "affiliation": "Hospital for Sick Children",
       "name": "Darwin, Benjamin C"
     },
@@ -297,11 +305,6 @@
     },
     {
       "name": "Gauthier, Carl"
-    },
-    {
-      "affiliation": "CEA",
-      "name": "Papadopoulos Orfanos, Dimitri",
-      "orcid": "0000-0002-1242-8990"
     },
     {
       "name": "Solovey, Igor"
@@ -327,6 +330,11 @@
       "name": "Raktivan, Konstantinos"
     },
     {
+      "affiliation": "Charite Universitatsmedizin Berlin, Germany",
+      "name": "Waller, Lea",
+      "orcid": "0000-0002-3239-6957"
+    },
+    {
       "name": "Cal\u00e1bkov\u00e1, Mark\u00e9ta"
     },
     {
@@ -345,6 +353,9 @@
     },
     {
       "name": "Roos, Thomas"
+    },
+    {
+      "name": "Hrn\u010diar, Tom\u00e1\u0161"
     },
     {
       "affiliation": "National Institute of Mental Health and Neuro-Sciences, India",
