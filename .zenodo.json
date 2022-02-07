@@ -93,10 +93,10 @@
       "orcid": "0000-0002-0807-6005"
     },
     {
-      "name": "Duek, Or"
+      "name": "Daniel, Jonathan"
     },
     {
-      "name": "Daniel, Jonathan"
+      "name": "Duek, Or"
     },
     {
       "affiliation": "The University of Washington eScience Institute",
@@ -128,6 +128,9 @@
       "orcid": "0000-0001-8950-0375"
     },
     {
+      "name": "S\u00f3lon, Anibal"
+    },
+    {
       "name": "Burns, Christopher"
     },
     {
@@ -139,9 +142,6 @@
       "affiliation": "CNRS LTCI, Telecom ParisTech, Universit\u00e9 Paris-Saclay",
       "name": "Gramfort, Alexandre",
       "orcid": "0000-0001-9791-4404"
-    },
-    {
-      "name": "S\u00f3lon, Anibal"
     },
     {
       "name": "Lepp\u00e4kangas, Jaakko"
@@ -159,6 +159,14 @@
     },
     {
       "name": "Subramaniam, Krish"
+    },
+    {
+      "affiliation": "CEA",
+      "name": "Papadopoulos Orfanos, Dimitri",
+      "orcid": "0000-0002-1242-8990"
+    },
+    {
+      "name": "Van, Andrew"
     },
     {
       "affiliation": "Google",
@@ -209,6 +217,9 @@
       "orcid": "0000-0001-9090-3024"
     },
     {
+      "name": "Dock\u00e8s, J\u00e9r\u00f4me"
+    },
+    {
       "name": "Oosterhof, Nikolaas N."
     },
     {
@@ -227,11 +238,6 @@
     },
     {
       "name": "St-Jean, Samuel"
-    },
-    {
-      "affiliation": "CEA",
-      "name": "Papadopoulos Orfanos, Dimitri",
-      "orcid": "0000-0002-1242-8990"
     },
     {
       "name": "Panfilov, Egor",
@@ -254,10 +260,18 @@
       "name": "Hahn, Kevin S."
     },
     {
+      "affiliation": "Charite Universitatsmedizin Berlin, Germany",
+      "name": "Waller, Lea",
+      "orcid": "0000-0002-3239-6957"
+    },
+    {
       "name": "Hinds, Oliver P."
     },
     {
       "name": "Fauber, Bennet"
+    },
+    {
+      "name": "Roberts, Jacob"
     },
     {
       "affiliation": "McGill University",
@@ -283,6 +297,9 @@
       "name": "Moreno, Miguel Estevan"
     },
     {
+      "name": "Hrn\u010diar, Tom\u00e1\u0161"
+    },
+    {
       "name": "Haenel, Valentin"
     },
     {
@@ -290,9 +307,6 @@
     },
     {
       "name": "Baratz, Zvi"
-    },
-    {
-      "name": "Van, Andrew"
     },
     {
       "affiliation": "Hospital for Sick Children",
@@ -330,11 +344,6 @@
       "name": "Raktivan, Konstantinos"
     },
     {
-      "affiliation": "Charite Universitatsmedizin Berlin, Germany",
-      "name": "Waller, Lea",
-      "orcid": "0000-0002-3239-6957"
-    },
-    {
       "name": "Cal\u00e1bkov\u00e1, Mark\u00e9ta"
     },
     {
@@ -353,9 +362,6 @@
     },
     {
       "name": "Roos, Thomas"
-    },
-    {
-      "name": "Hrn\u010diar, Tom\u00e1\u0161"
     },
     {
       "affiliation": "National Institute of Mental Health and Neuro-Sciences, India",
