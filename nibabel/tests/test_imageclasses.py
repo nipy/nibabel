@@ -10,14 +10,15 @@ import nibabel as nib
 from nibabel.analyze import AnalyzeImage
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
-from .._h5py_compat import have_h5py
 
 from nibabel import imageclasses
 from nibabel.imageclasses import spatial_axes_first, class_map, ext_map
 
-
+from nibabel.optpkg import optional_package
 from nibabel.testing import clear_and_catch_warnings
 
+
+have_h5py = optional_package('h5py')[1]
 
 DATA_DIR = pjoin(dirname(__file__), 'data')
 
