@@ -29,30 +29,17 @@ have_dicom = True
 pydicom = read_file = tag_for_keyword = Sequence = None
 
 try:
-    import dicom as pydicom
+    import pydicom
 except ImportError:
-    try:
-        import pydicom
-    except ImportError:
-        have_dicom = False
-    else:  # pydicom module available
-        from pydicom.dicomio import read_file
-        from pydicom.sequence import Sequence
-        # Values not imported by default
-        import pydicom.values
-else:  # dicom module available
+    have_dicom = False
+else:  # pydicom module available
+    from pydicom.dicomio import read_file
+    from pydicom.sequence import Sequence
     # Values not imported by default
-    import dicom.values
-    from dicom.sequence import Sequence
-    read_file = pydicom.read_file
+    import pydicom.values
 
 if have_dicom:
-    try:
-        # Versions >= 1.0
-        tag_for_keyword = pydicom.datadict.tag_for_keyword
-    except AttributeError:
-        # Versions < 1.0 - also has more search options.
-        tag_for_keyword = pydicom.datadict.tag_for_name
+    tag_for_keyword = pydicom.datadict.tag_for_keyword
 
 
 @deprecate_with_version("dicom_test has been moved to nibabel.nicom.tests",

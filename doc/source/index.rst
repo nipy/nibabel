@@ -114,6 +114,9 @@ contributed code and discussion (in rough order of appearance):
 * Markéta Calábková
 * Carl Gauthier
 * Julian Klug
+* Lea Waller
+* Tomáš Hrnčiar
+* Andrew Van
 
 License reprise
 ===============

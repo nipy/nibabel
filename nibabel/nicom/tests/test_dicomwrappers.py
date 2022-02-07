@@ -9,15 +9,13 @@ from copy import copy
 
 import numpy as np
 
-from nibabel.pydicom_compat import have_dicom, pydicom, read_file, tag_for_keyword
-
+from . import pydicom, have_dicom, dicom_test
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
 from ...volumeutils import endian_codes
 
 import pytest
 from unittest import TestCase
-from . import dicom_test
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
@@ -26,8 +24,8 @@ IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
 DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, 'philips_mprage.dcm.gz')
 if have_dicom:
-    DATA = read_file(gzip.open(DATA_FILE))
-    DATA_PHILIPS = read_file(gzip.open(DATA_FILE_PHILIPS))
+    DATA = pydicom.read_file(gzip.open(DATA_FILE))
+    DATA_PHILIPS = pydicom.read_file(gzip.open(DATA_FILE_PHILIPS))
 else:
     DATA = None
     DATA_PHILIPS = None
@@ -434,8 +432,8 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
     dim_idx_seq = [DimIdxSeqElem()] * num_of_frames
     # add an entry for StackID into the DimensionIndexSequence
     if sid_dim is not None:
-        sid_tag = tag_for_keyword('StackID')
-        fcs_tag = tag_for_keyword('FrameContentSequence')
+        sid_tag = pydicom.datadict.tag_for_keyword('StackID')
+        fcs_tag = pydicom.datadict.tag_for_keyword('FrameContentSequence')
         dim_idx_seq[sid_dim] = DimIdxSeqElem(sid_tag, fcs_tag)
     # create the PerFrameFunctionalGroupsSequence
     frames = [PerFrmFuncGrpSeqElem(div, sid)
