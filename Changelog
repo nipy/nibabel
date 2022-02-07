@@ -25,6 +25,36 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+3.2.2 (Monday 7 February 2022)
+=================================
+
+Bug fix release in the 3.2.x series.
+
+Bug fixes
+---------
+* Reshape CIFTI-2 affines to 4x4 when encoded as row-major sequence (pr/1059)
+  (Andrew Van, reviewed by CM)
+* Suggest nibabel.save() on calls to deprecated giftiio.write() (pr/1055)
+  (Anibal Solon, reviewed by CM)
+* Various bugs and style issues detected by LGTM (pr/1043, pr/1048)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Resolve unclosed file warning in GiftiImage (pr/1038) (Lea Waller, reviewed by CM)
+* Fix typos preventing deprecation warnings from being raised (pr/991)
+  (Jonathan Daniel, reviewed by MB)
+* Work around numpy SystemError to maintain expected error types (pr/1051) (CM)
+* Use more constrained mock when testing optpkg (pr/983) (CM, reviewed by YOH)
+
+Maintenance
+-----------
+* Add setuptools requirement to match usage (pr/1009)
+  (Tomáš Hrnčiar, reviewed by CM)
+* Fix grammar of headings in CoC (pr/996) (MB, reviewed by CM, Ariel Rokem)
+* Set minimum pydicom to 1.0.0 (pr/1050) (CM)
+* Submit coverage to codecov via pinned PyPI package (pr/1008) (CM)
+* Upgrade versioneer to 0.19 (pr/967) (CM)
+* Migrate to GitHub actions (pr/972) (CM, reviewed by Serge Koudoro)
+
+
 3.2.1 (Saturday 28 November 2020)
 =================================
 
