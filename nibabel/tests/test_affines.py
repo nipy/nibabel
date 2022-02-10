@@ -55,6 +55,12 @@ def test_apply_affine():
     pts = pts.reshape((2, 2, 3))
     exp_res = exp_res.reshape((2, 2, 3))
     assert_array_equal(apply_affine(aff, pts), exp_res)
+
+    # Check inplace modification.
+    res = apply_affine(aff, pts, inplace=True)
+    assert_array_equal(res, exp_res)
+    assert np.shares_memory(res, pts)
+
     # That ND also works
     for N in range(2, 6):
         aff = np.eye(N)
@@ -203,7 +209,7 @@ def test_rescale_affine():
     orig_zooms = voxel_sizes(orig_aff)
     orig_axcodes = aff2axcodes(orig_aff)
     orig_centroid = apply_affine(orig_aff, (orig_shape - 1) // 2)
-    
+
     for new_shape in (None, tuple(orig_shape), (256, 256, 256), (64, 64, 40)):
         for new_zooms in ((1, 1, 1), (2, 2, 3), (0.5, 0.5, 0.5)):
             new_aff = rescale_affine(orig_aff, orig_shape, new_zooms, new_shape)

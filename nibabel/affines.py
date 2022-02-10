@@ -14,7 +14,7 @@ class AffineError(ValueError):
     pass
 
 
-def apply_affine(aff, pts):
+def apply_affine(aff, pts, inplace=False):
     """ Apply affine matrix `aff` to points `pts`
 
     Returns result of application of `aff` to the *right* of `pts`.  The
@@ -39,6 +39,10 @@ def apply_affine(aff, pts):
     pts : (..., N-1) array-like
         Points, where the last dimension contains the coordinates of each
         point.  For 3D, the last dimension will be length 3.
+    inplace : bool, optional
+        If True, attempt to apply the affine directly to ``pts``.
+        If False, or in-place application fails, a freshly allocated
+        array will be returned.
 
     Returns
     -------
@@ -80,8 +84,18 @@ def apply_affine(aff, pts):
     # rzs == rotations, zooms, shears
     rzs = aff[:-1, :-1]
     trans = aff[:-1, -1]
-    res = np.dot(pts, rzs.T) + trans[None, :]
-    return res.reshape(shape)
+
+    if inplace:
+        try:
+            np.dot(pts, rzs.T, out=pts)
+        except ValueError:
+            inplace = False
+        else:
+            pts += trans[None, :]
+    if not inplace:
+        pts = pts @ rzs.T + trans[None, :]
+
+    return pts.reshape(shape)
 
 
 def to_matvec(transform):

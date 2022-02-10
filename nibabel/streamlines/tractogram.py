@@ -429,8 +429,12 @@ class Tractogram(object):
         if np.all(affine == np.eye(4)):
             return self  # No transformation.
 
-        for i in range(len(self.streamlines)):
-            self.streamlines[i] = apply_affine(affine, self.streamlines[i])
+        if self.streamlines.is_sliced_view:
+            # Apply affine only on the selected streamlines.
+            for i in range(len(self.streamlines)):
+                self.streamlines[i] = apply_affine(affine, self.streamlines[i])
+        else:
+            self.streamlines._data = apply_affine(affine, self.streamlines._data, inplace=True)
 
         if self.affine_to_rasmm is not None:
             # Update the affine that brings back the streamlines to RASmm.
