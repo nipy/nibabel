@@ -40,8 +40,9 @@ def apply_affine(aff, pts, inplace=False):
         Points, where the last dimension contains the coordinates of each
         point.  For 3D, the last dimension will be length 3.
     inplace : bool, optional
-        If False, the affine operation is done on a copy of `pts`.
-        Otherwise, `pts` gets modified directly.
+        If True, attempt to apply the affine directly to ``pts``.
+        If False, or in-place application fails, a freshly allocated
+        array will be returned.
 
     Returns
     -------
