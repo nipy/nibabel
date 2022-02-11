@@ -1754,12 +1754,20 @@ class Nifti1Pair(analyze.AnalyzeImage):
     rw = True
 
     def __init__(self, dataobj, affine, header=None,
-                 extra=None, file_map=None):
+                 extra=None, file_map=None, dtype=None):
+        danger_dts = (np.dtype("int64"), np.dtype("uint64"))
+        if header is None and dtype is None and dataobj.dtype in danger_dts:
+            msg = (f"Image data has type {dataobj.dtype}, which may cause "
+                   "incompatibilities with other tools. This will error in "
+                   "NiBabel 5.0. This warning can be silenced "
+                   f"by passing the dtype argument to {self.__class__.__name__}().")
+            warnings.warn(msg, FutureWarning, stacklevel=2)
         super(Nifti1Pair, self).__init__(dataobj,
                                          affine,
                                          header,
                                          extra,
-                                         file_map)
+                                         file_map,
+                                         dtype)
         # Force set of s/q form when header is None unless affine is also None
         if header is None and affine is not None:
             self._affine2header()
