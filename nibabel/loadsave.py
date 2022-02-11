@@ -130,8 +130,8 @@ def guessed_image_type(filename):
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
-def save(img, filename):
-    """ Save an image to file adapting format to `filename`
+def save(img, filename, **kwargs):
+    r""" Save an image to file adapting format to `filename`
 
     Parameters
     ----------
@@ -139,6 +139,8 @@ def save(img, filename):
        image to save
     filename : str or os.PathLike
        filename (often implying filenames) to which to save `img`.
+    \*\*kwargs : keyword arguments
+        Keyword arguments to format-specific save
 
     Returns
     -------
@@ -148,7 +150,7 @@ def save(img, filename):
 
     # Save the type as expected
     try:
-        img.to_filename(filename)
+        img.to_filename(filename, **kwargs)
     except ImageFileError:
         pass
     else:
@@ -196,7 +198,7 @@ def save(img, filename):
     # Here, we either have a klass or a converted image.
     if converted is None:
         converted = klass.from_image(img)
-    converted.to_filename(filename)
+    converted.to_filename(filename, **kwargs)
 
 
 @deprecate_with_version('read_img_data deprecated. '
