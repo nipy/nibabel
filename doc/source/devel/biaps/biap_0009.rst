@@ -1,8 +1,8 @@
 .. _biap9:
 
-#############################
-BIAP9 - The Surface Image API
-#############################
+################################
+BIAP9 - The Coordinate Image API
+################################
 
 :Author: Chris Markiewicz
 :Status: Draft
@@ -18,7 +18,7 @@ Surface data is generally kept separate from geometric metadata
 
 In contrast to volumetric data, whose geometry can be fully encoded in the
 shape of a data array and a 4x4 affine matrix, data sampled to a surface
-requires the location of each sample to be explicitly represented by a
+require the location of each sample to be explicitly represented by a
 coordinate. In practice, the most common approach is to have a geometry file
 and a data file.
 
@@ -42,10 +42,12 @@ For the purposes of this BIAP, the following terms are used:
 * Topology - vertex adjacency data, independent of vertex coordinates,
   typically in the form of a list of triangles
 * Geometry - topology + a specific set of coordinates for a surface
-* Patch - a connected subset of vertices (can be the full topology)
+* Parcel - a subset of vertices; can be the full topology. Special cases include:
+  * Patch - a connected subspace
+  * Decimated mesh - a subspace that has a desired density of vertices
+* Subspace sequence - an ordered set of subspaces
 * Data array - an n-dimensional array with one axis corresponding to the
-  vertices (typical) OR faces (more rare) in a patch
-
+  vertices (typical) OR faces (more rare) in a patch sequence
 
 Currently supported surface formats
 ===================================
@@ -65,14 +67,29 @@ Currently supported surface formats
      coordinates, topology, or data (further subdivided by type and intent)
 * CIFTI-2: :py:class:`~nibabel.cifti2.cifti2.Cifti2Image`
    * Pure data array, with image header containing flexible axes
+   * The ``BrainModelAxis`` is a subspace sequence including patches for
+     each hemisphere (cortex without the medial wall) and subcortical
+     structures defined by indices into three-dimensional array and an
+     affine matrix
    * Geometry referred to by an associated ``wb.spec`` file
      (no current implementation in NiBabel)
    * Possible to have one with no geometric information, e.g., parcels x time
 
+Other relevant formats
+======================
 
-*********************************
-Desiderata for a SurfaceImage API
-*********************************
+* MNE's STC (source time course) format. Contains:
+   * Subject name (resolvable with a FreeSurfer ``SUBJECTS_DIR``)
+   * Index arrays into left and right hemisphere surfaces (subspace sequence)
+   * Data, one of:
+     * ndarray of shape ``(n_verts, n_times)``
+     * tuple of ndarrays of shapes ``(n_verts, n_sensors)`` and ``(n_sensors, n_times)``
+   * Time start
+   * Time step
+
+*****************************************
+Desiderata for an API supporting surfaces
+*****************************************
 
 The following are provisional guiding principles 
 
@@ -116,7 +133,55 @@ make sense for NiBabel to provide methods.
 Proposal
 ********
 
-The basic API is as follows:
+A ``CoordinateImage`` is an N-dimensional array, where one axis corresponds
+to a sequence of points in one or more parcels.
+
+.. code-block:: python
+
+    class CoordinateImage:
+        """
+        Attributes
+        ----------
+        header : a file-specific header
+        coordaxis : ``CoordinateAxis``
+        dataobj : array-like
+        """
+
+    class CoordinateAxis:
+        """
+        Attributes
+        ----------
+        parcels : list of ``Parcel`` objects
+        """
+
+        def load_structures(self, mapping):
+            """
+            Associate parcels to ``Pointset`` structures
+            """
+
+        def __getitem__(self, slicer):
+            """
+            Return a sub-sampled CoordinateAxis containing structures
+            matching the indices provided.
+            """
+
+        def get_indices(self, parcel, indices=None):
+            """
+            Return the indices in the full axis that correspond to the
+            requested parcel. If indices are provided, further subsample
+            the requested parcel.
+            """
+
+    class Parcel:
+        """
+        Attributes
+        ----------
+        name : str
+        structure : ``Pointset``
+        indices : object that selects a subset of coordinates in structure
+        """
+
+To describe coordinate geometry, the following structures are proposed:
 
 .. code-block:: python
 
@@ -150,54 +215,40 @@ The basic API is as follows:
             preserves the geometry of the original """
             # To be overridden when a format provides optimization opportunities
 
-        def load_vertex_data(self, filename):
-            """ Return a SurfaceImage with data corresponding to each vertex """
 
-        def load_face_data(self, filename):
-            """ Return a SurfaceImage with data corresponding to each face """
-
-
-    class SurfaceHeader(FileBasedHeader):
-        def get_geometry(self):
-            """ Construct a geometry from the header if possible, or return None """
-
-
-    class SurfaceImage(FileBasedImage):
-        @property
-        def header(self):
-            """ A SurfaceHeader """
-
-        @property
-        def geometry(self):
-            """ A Pointset or None """
-
-        @property
-        def dataobj(self):
-            """ An ndarray or ArrayProxy with one of the following properties:
-            
-            1) self.dataobj.shape[0] == self.header.ncoords
-            2) self.dataobj.shape[0] == self.header.nfaces
-            """
-
-        def load_geometry(self, pathlike):
-            """ Specify a geometry for a data-only image """
+    class NdGrid(Pointset):
+        """
+        Attributes
+        ----------
+        shape : 3-tuple
+            number of coordinates in each dimension of grid
+        """
+        def get_affine(self, name=None):
+            """ 4x4 array """
 
 
-To enable a similar interface to raveled voxel data:
+The ``NdGrid`` class allows raveled volumetric data to be treated the same as
+triangular mesh or other coordinate data.
+
+Finally, a structure for containing a collection of related geometric files is
+defined:
 
 .. code-block:: python
 
-    class VolumeGeometry(Pointset):
-        _affine  # Or _affines, if we want multiple, e.g. qform, sform
-        _shape
-        _ijk_coords
+    class GeometryCollection:
+        """
+        Attributes
+        ----------
+        structures : dict
+            Mapping from structure names to ``Pointset``
+        """
 
-        def n_coords(self):
-            """ Number of coordinates """
+        @classmethod
+        def from_spec(klass, pathlike):
+            """ Load a collection of geometries from a specification. """
 
-        def get_coords(self):
-            """ Nx3 array of coordinates in RAS+ space """
-
+The canonical example of a geometry collection is a left hemisphere mesh,
+right hemisphere mesh.
 
 Here we present common use cases:
 
@@ -209,30 +260,35 @@ Modeling
 
     from nilearn.glm.first_level import make_first_level_design_matrix, run_glm
 
-    bold = SurfaceImage.from_filename("/data/func/hemi-L_bold.func.gii")
+    bold = CoordinateImage.from_filename("/data/func/hemi-L_bold.func.gii")
     dm = make_first_level_design_matrix(...)
-    labels, results = run_glm(bold.get_data(), dm)
-    betas = bold.__class__(results["betas"], bold.header)
+    labels, results = run_glm(bold.get_fdata(), dm)
+    betas = CoordinateImage(results["betas"], bold.coordaxis, bold.header)
     betas.to_filename("/data/stats/hemi-L_betas.mgz")
 
-Data images have their own metadata apart from geometry that needs handling in a header:
+In this case, no reference to the surface structure is needed, as the operations
+occur on a per-vertex basis.
+The coordinate axis and header are preserved to ensure that any metadata is
+not lost.
 
-* Axis labels (time series, labels, tensors)
-* Data dtype
-
+Here we assume that ``CoordinateImage`` is able to make the appropriate
+translations between formats (GIFTI, MGH). This is not guaranteed in the final
+API.
 
 Smoothing
 =========
 
 .. code-block:: python
 
-    bold = SurfaceImage.from_filename("/data/func/hemi-L_bold.func.gii")
-    bold.load_geometry("/data/anat/hemi-L_midthickness.surf.gii")
-    # Not implementing networkx weighted graph here, so assume we have a method
-    graph = bold.geometry.get_graph()
-    distances = distance_matrix(graph)  # n_coords x n_coords matrix
+    bold = CoordinateImage.from_filename("/data/func/hemi-L_bold.func.gii")
+    bold.coordaxis.load_structures({"lh": "/data/anat/hemi-L_midthickness.surf.gii"})
+    # Not implementing networkx weighted graph here, so assume we have a function
+    # that retrieves a graph for each structure
+    graphs = get_graphs(bold.coordaxis)
+    distances = distance_matrix(graphs['lh'])  # n_coords x n_coords matrix
     weights = normalize(gaussian(distances, sigma))
-    smoothed = bold.__class__(bold.get_fdata() @ weights, bold.header)
+    # Wildly inefficient smoothing algorithm
+    smoothed = CoordinateImage(weights @ bold.get_fdata(), bold.coordaxis, bold.header)
     smoothed.to_filename(f"/data/func/hemi-L_smooth-{sigma}_bold.func.gii")
 
 
@@ -247,64 +303,33 @@ With the proposed API, we could interface as follows:
 
     def plot_surf_img(img, surface="inflated"):
         from nilearn.plotting import plot_surf
-        coords, triangles = img.geometry.get_mesh(name=surface)
+        coords, triangles = img.coordaxis.parcels[0].get_mesh(name=surface)
 
-        data = tstats.get_data()
+        data = img.get_fdata()
 
         return plot_surf((triangles, coords), data)
 
-    tstats = SurfaceImage.from_filename("/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz")
-    tstats.load_geometry("/data/subjects/fsaverage5")
+    tstats = CoordinateImage.from_filename("/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz")
+    # Assume a GeometryCollection that reads a FreeSurfer subject directory
+    fs_subject = FreeSurferSubject.from_spec("/data/subjects/fsaverage5")
+    tstats.coordaxis.load_structures(fs_subject.get_structure("lh"))
     plot_surf_img(tstats)
 
-This assumes that ``load_geometry()`` will be able to identify a FreeSurfer subject directory.
-
-
-**************
-Open questions
-**************
-
-1) Can/should image and geometry objects be promiscuous? If I load a GIFTI geometry,
-   should ``geometry.load_vertex_data()`` accept a FreeSurfer curvature file, or
-   should there be a bit more ecosystem-local logic?
-
-
-********************************
-Concatenable structures proposal
-********************************
-
-A brain is typically described with multiple structures,
-such as left and right hemispheres and a volumetric subcortical region.
-We will consider two reference cases:
-
-1) FreeSurfer, in which a subject directory can be used to retrieve
-   multiple surfaces or volumetric regions. Data arrays are specific to a
-   single structure.
-2) CIFTI-2, which permits an axis to have type ``CIFTI_INDEX_TYPE_BRAIN_MODELS``,
-   indicating that each index along an axis corresponds to a vertex or voxel in
-   an associated surface or volume.
-   The data array thus may span multiple structures.
-
-In the former case, the structures may be considered an unordered collection;
-in the latter, the sequence of structures directly corresponds to segments of
-the data array.
+Subsampling CIFTI-2
+===================
 
 .. code-block:: python
 
-    class GeometryCollection:
-        def get_geometry(self, name):
-            """ Return a geometry by name """
+    img = nb.load("sub-01_task-rest_bold.dtseries.nii")  # Assume CIFTI CoordinateImage
+    parcel = nb.load("sub-fsLR_hemi-L_label-DLPFC_mask.label.gii") # GiftiImage
+    structure = parcel.meta.metadata['AnatomicalStructurePrimary'] # "CortexLeft"
+    vtx_idcs = np.where(parcel.agg_data())[0]
+    dlpfc_idcs = img.coordaxis.get_indices(parcel=structure, indices=vtx_idcs)
 
-        @property
-        def names(self):
-            """ A set of structure names """
+    # Subsampled coordinate axes will override any duplicate information from header
+    dlpfc_img = CoordinateImage(img.dataobj[dlpfc_idcs], img.coordaxis[dlpfc_idcs], img.header)
 
-        @classmethod
-        def from_spec(klass, pathlike):
-        """ Load a collection of geometries from a specification, broadly construed. """
-
-
-    class PointsetSequence(GeometryCollection, Pointset):
-        # Inherit and override get_coords, n_coords from Pointset
-        def get_indices(self, name):
-            """ Return indices for data array corresponding to a named geometry """
+    # Now load geometry so we can plot
+    wbspec = CaretSpec("fsLR.wb.spec")
+    dlpfc_img.coordaxis.load_structures(wbspec)
+    ...
