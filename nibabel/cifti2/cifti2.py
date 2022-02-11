@@ -1460,7 +1460,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
             return img
         raise NotImplementedError
 
-    def to_file_map(self, file_map=None):
+    def to_file_map(self, file_map=None, dtype=None):
         """ Write image to `file_map` or contained ``self.file_map``
 
         Parameters
@@ -1493,7 +1493,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
         # If qform not set, reset pixdim values so Nifti2 does not complain
         if header['qform_code'] == 0:
             header['pixdim'][:4] = 1
-        img = Nifti2Image(data, None, header)
+        img = Nifti2Image(data, None, header, dtype=dtype)
         img.to_file_map(file_map or self.file_map)
 
     def update_headers(self):
