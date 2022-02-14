@@ -1,0 +1,335 @@
+.. _biap9:
+
+################################
+BIAP9 - The Coordinate Image API
+################################
+
+:Author: Chris Markiewicz
+:Status: Draft
+:Type: Standards
+:Created: 2021-09-16
+
+**********
+Background
+**********
+
+Surface data is generally kept separate from geometric metadata
+===============================================================
+
+In contrast to volumetric data, whose geometry can be fully encoded in the
+shape of a data array and a 4x4 affine matrix, data sampled to a surface
+require the location of each sample to be explicitly represented by a
+coordinate. In practice, the most common approach is to have a geometry file
+and a data file.
+
+A geometry file consists of a vertex coordinate array and a triangle array
+describing the adjacency of vertices, while a data file is an n-dimensional
+array with one axis corresponding to vertex.
+
+Keeping these files separate is a pragmatic optimization to avoid costly
+reproductions of geometric data, but presents an administrative burden to
+direct consumers of the data.
+
+Terminology
+===========
+
+For the purposes of this BIAP, the following terms are used:
+
+* Coordinate - a triplet of floating point values in RAS+ space
+* Vertex - an index into a table of coordinates
+* Triangle (or face) - a triplet of adjacent vertices (A-B-C);
+  the normal vector for the face is ($\overline{AB}\times\overline{AC}$)
+* Topology - vertex adjacency data, independent of vertex coordinates,
+  typically in the form of a list of triangles
+* Geometry - topology + a specific set of coordinates for a surface
+* Parcel - a subset of vertices; can be the full topology. Special cases include:
+  * Patch - a connected parcel
+  * Decimated mesh - a parcel that has a desired density of vertices
+* Parcel sequence - an ordered set of parcels
+* Data array - an n-dimensional array with one axis corresponding to the
+  vertices (typical) OR faces (more rare) in a patch sequence
+
+Currently supported surface formats
+===================================
+
+* FreeSurfer
+   * Geometry (e.g. ``lh.pial``):
+     :py:func:`~nibabel.freesurfer.io.read_geometry` /
+     :py:func:`~nibabel.freesurfer.io.write_geometry`
+   * Data
+      * Morphometry:
+        :py:func:`~nibabel.freesurfer.io.read_morph_data` /
+        :py:func:`~nibabel.freesurfer.io.write_morph_data`
+      * Labels: :py:func:`~nibabel.freesurfer.io.read_label`
+      * MGH: :py:class:`~nibabel.freesurfer.mghformat.MGHImage`
+* GIFTI: :py:class:`~nibabel.gifti.gifti.GiftiImage`
+   * Every image contains a collection of data arrays, which may be
+     coordinates, topology, or data (further subdivided by type and intent)
+* CIFTI-2: :py:class:`~nibabel.cifti2.cifti2.Cifti2Image`
+   * Pure data array, with image header containing flexible axes
+   * The ``BrainModelAxis`` is a subspace sequence including patches for
+     each hemisphere (cortex without the medial wall) and subcortical
+     structures defined by indices into three-dimensional array and an
+     affine matrix
+   * Geometry referred to by an associated ``wb.spec`` file
+     (no current implementation in NiBabel)
+   * Possible to have one with no geometric information, e.g., parcels x time
+
+Other relevant formats
+======================
+
+* MNE's STC (source time course) format. Contains:
+   * Subject name (resolvable with a FreeSurfer ``SUBJECTS_DIR``)
+   * Index arrays into left and right hemisphere surfaces (subspace sequence)
+   * Data, one of:
+     * ndarray of shape ``(n_verts, n_times)``
+     * tuple of ndarrays of shapes ``(n_verts, n_sensors)`` and ``(n_sensors, n_times)``
+   * Time start
+   * Time step
+
+*****************************************
+Desiderata for an API supporting surfaces
+*****************************************
+
+The following are provisional guiding principles:
+
+1. A surface image (data array) should carry a reference to geometric metadata
+   that is easily transferred to a new image.
+2. Partial images (data only or geometry only) should be possible. Absence of
+   components should have a well-defined signature, such as a property that is
+   ``None`` or a specific ``Exception`` is raised.
+3. All arrays (coordinates, triangles, data arrays) should be proxied to
+   avoid excess memory consumption
+4. Selecting among coordinates (e.g., gray/white boundary, inflated surface)
+   for a single topology should be possible.
+5. Combining multiple brain structures (canonically, left and right hemispheres)
+   in memory should be easy; serializing to file may be format-specific.
+6. Splitting a data array into independent patches that can be separately
+   operated on and serialized should be possible.
+
+
+Prominent use cases
+===================
+
+We consider the following use cases for working with surface data.
+A good API will make retrieving the components needed for each use case
+straightforward, as well as storing the results in new images.
+
+* Arithmetic/modeling - per-vertex mathematical operations
+* Smoothing - topology/geometry-respecting smoothing
+* Plotting - paint the data array as a texture on a surface
+* Decimation - subsampling a topology (possibly a subset, possibly with
+  interpolated vertex locations)
+* Resampling to a geometrically-aligned surface
+  * Downsampling by decimating, smoothing, resampling
+  * Inter-subject resampling by using ``?h.sphere.reg``
+* Interpolation of per-vertex and per-face data arrays
+
+When possible, we prefer to expose NumPy ``ndarray``\s and
+allow use of numpy, scipy, scikit-learn. In some cases, it may
+make sense for NiBabel to provide methods.
+
+********
+Proposal
+********
+
+A ``CoordinateImage`` is an N-dimensional array, where one axis corresponds
+to a sequence of points in one or more parcels.
+
+.. code-block:: python
+
+    class CoordinateImage:
+        """
+        Attributes
+        ----------
+        header : a file-specific header
+        coordaxis : ``CoordinateAxis``
+        dataobj : array-like
+        """
+
+    class CoordinateAxis:
+        """
+        Attributes
+        ----------
+        parcels : list of ``Parcel`` objects
+        """
+
+        def load_structures(self, mapping):
+            """
+            Associate parcels to ``Pointset`` structures
+            """
+
+        def __getitem__(self, slicer):
+            """
+            Return a sub-sampled CoordinateAxis containing structures
+            matching the indices provided.
+            """
+
+        def get_indices(self, parcel, indices=None):
+            """
+            Return the indices in the full axis that correspond to the
+            requested parcel. If indices are provided, further subsample
+            the requested parcel.
+            """
+
+    class Parcel:
+        """
+        Attributes
+        ----------
+        name : str
+        structure : ``Pointset``
+        indices : object that selects a subset of coordinates in structure
+        """
+
+To describe coordinate geometry, the following structures are proposed:
+
+.. code-block:: python
+
+    class Pointset:
+        @property
+        def n_coords(self):
+            """ Number of coordinates """
+
+        def get_coords(self, name=None):
+            """ Nx3 array of coordinates in RAS+ space """
+
+
+    class TriangularMesh(Pointset):
+        @property
+        def n_triangles(self):
+            """ Number of faces """
+
+        def get_triangles(self, name=None):
+            """ Mx3 array of indices into coordinate table """
+
+        def get_mesh(self, name=None):
+            return self.get_coords(name=name), self.get_triangles(name=name)
+
+        def get_names(self):
+            """ List of surface names that can be passed to
+            ``get_{coords,triangles,mesh}``
+            """
+
+        def decimate(self, *, n_coords=None, ratio=None):
+            """ Return a TriangularMesh with a smaller number of vertices that
+            preserves the geometry of the original """
+            # To be overridden when a format provides optimization opportunities
+
+
+    class NdGrid(Pointset):
+        """
+        Attributes
+        ----------
+        shape : 3-tuple
+            number of coordinates in each dimension of grid
+        """
+        def get_affine(self, name=None):
+            """ 4x4 array """
+
+
+The ``NdGrid`` class allows raveled volumetric data to be treated the same as
+triangular mesh or other coordinate data.
+
+Finally, a structure for containing a collection of related geometric files is
+defined:
+
+.. code-block:: python
+
+    class GeometryCollection:
+        """
+        Attributes
+        ----------
+        structures : dict
+            Mapping from structure names to ``Pointset``
+        """
+
+        @classmethod
+        def from_spec(klass, pathlike):
+            """ Load a collection of geometries from a specification. """
+
+The canonical example of a geometry collection is a left hemisphere mesh,
+right hemisphere mesh.
+
+Here we present common use cases:
+
+
+Modeling
+========
+
+.. code-block:: python
+
+    from nilearn.glm.first_level import make_first_level_design_matrix, run_glm
+
+    bold = CoordinateImage.from_filename("/data/func/hemi-L_bold.func.gii")
+    dm = make_first_level_design_matrix(...)
+    labels, results = run_glm(bold.get_fdata(), dm)
+    betas = CoordinateImage(results["betas"], bold.coordaxis, bold.header)
+    betas.to_filename("/data/stats/hemi-L_betas.mgz")
+
+In this case, no reference to the surface structure is needed, as the operations
+occur on a per-vertex basis.
+The coordinate axis and header are preserved to ensure that any metadata is
+not lost.
+
+Here we assume that ``CoordinateImage`` is able to make the appropriate
+translations between formats (GIFTI, MGH). This is not guaranteed in the final
+API.
+
+Smoothing
+=========
+
+.. code-block:: python
+
+    bold = CoordinateImage.from_filename("/data/func/hemi-L_bold.func.gii")
+    bold.coordaxis.load_structures({"lh": "/data/anat/hemi-L_midthickness.surf.gii"})
+    # Not implementing networkx weighted graph here, so assume we have a function
+    # that retrieves a graph for each structure
+    graphs = get_graphs(bold.coordaxis)
+    distances = distance_matrix(graphs['lh'])  # n_coords x n_coords matrix
+    weights = normalize(gaussian(distances, sigma))
+    # Wildly inefficient smoothing algorithm
+    smoothed = CoordinateImage(weights @ bold.get_fdata(), bold.coordaxis, bold.header)
+    smoothed.to_filename(f"/data/func/hemi-L_smooth-{sigma}_bold.func.gii")
+
+
+Plotting
+========
+
+Nilearn currently provides a
+`plot_surf <https://nilearn.github.io/modules/generated/nilearn.plotting.plot_surf.html>`_ function.
+With the proposed API, we could interface as follows:
+
+.. code-block:: python
+
+    def plot_surf_img(img, surface="inflated"):
+        from nilearn.plotting import plot_surf
+        coords, triangles = img.coordaxis.parcels[0].get_mesh(name=surface)
+
+        data = img.get_fdata()
+
+        return plot_surf((triangles, coords), data)
+
+    tstats = CoordinateImage.from_filename("/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz")
+    # Assume a GeometryCollection that reads a FreeSurfer subject directory
+    fs_subject = FreeSurferSubject.from_spec("/data/subjects/fsaverage5")
+    tstats.coordaxis.load_structures(fs_subject.get_structure("lh"))
+    plot_surf_img(tstats)
+
+Subsampling CIFTI-2
+===================
+
+.. code-block:: python
+
+    img = nb.load("sub-01_task-rest_bold.dtseries.nii")  # Assume CIFTI CoordinateImage
+    parcel = nb.load("sub-fsLR_hemi-L_label-DLPFC_mask.label.gii") # GiftiImage
+    structure = parcel.meta.metadata['AnatomicalStructurePrimary'] # "CortexLeft"
+    vtx_idcs = np.where(parcel.agg_data())[0]
+    dlpfc_idcs = img.coordaxis.get_indices(parcel=structure, indices=vtx_idcs)
+
+    # Subsampled coordinate axes will override any duplicate information from header
+    dlpfc_img = CoordinateImage(img.dataobj[dlpfc_idcs], img.coordaxis[dlpfc_idcs], img.header)
+
+    # Now load geometry so we can plot
+    wbspec = CaretSpec("fsLR.wb.spec")
+    dlpfc_img.coordaxis.load_structures(wbspec)
+    ...
