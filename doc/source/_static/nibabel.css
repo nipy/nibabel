@@ -4,6 +4,10 @@ body {
     background-color: #E5E2E2;
 }
 
+div.sphinxsidebar {
+    position: relative;
+}
+
 div.sphinxsidebar h4, div.sphinxsidebar h3 {
     background-color: #2F83C8;
 }
