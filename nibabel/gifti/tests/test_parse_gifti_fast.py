@@ -462,3 +462,11 @@ def test_external_file_failure_cases():
     parser = GiftiImageParser()
     with pytest.raises(GiftiParseError):
         img = parser.parse(xmldata)
+
+
+def test_load_compressed():
+    for ext in ('', '.gz', '.bz2'):
+        fn = pjoin(IO_DATA_PATH, 'external.gii' + ext)
+        img7 = load(fn)
+        assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
+        assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)

@@ -565,6 +565,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     """
     valid_exts = ('.gii',)
     files_types = (('image', '.gii'),)
+    _compressed_suffixes = ('.gz', '.bz2')
 
     # The parser will in due course be a GiftiImageParser, but we can't set
     # that now, because it would result in a circular import.  We set it after
@@ -909,7 +910,8 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         img : GiftiImage
         """
         parser = klass.parser(buffer_size=buffer_size, mmap=mmap)
-        parser.parse(fptr=file_map['image'].get_prepare_fileobj('rb'))
+        with file_map['image'].get_prepare_fileobj('rb') as fptr:
+            parser.parse(fptr=fptr)
         return parser.img
 
     @classmethod
