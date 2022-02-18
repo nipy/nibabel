@@ -881,6 +881,51 @@ class Nifti1Header(SpmAnalyzeHeader):
             shape = (-1, 1, 1) + shape[3:]
         super(Nifti1Header, self).set_data_shape(shape)
 
+    def set_data_dtype(self, datatype):
+        """ Set numpy dtype for data from code or dtype or type
+
+        Using :py:class:`int` or ``"int"`` is disallowed, as these types
+        will be interpreted as ``np.int64``, which is almost never desired.
+        ``np.int64`` is permitted for those intent on making poor choices.
+
+        Examples
+        --------
+        >>> hdr = Nifti1Header()
+        >>> hdr.set_data_dtype(np.uint8)
+        >>> hdr.get_data_dtype()
+        dtype('uint8')
+        >>> hdr.set_data_dtype(np.dtype(np.uint8))
+        >>> hdr.get_data_dtype()
+        dtype('uint8')
+        >>> hdr.set_data_dtype('implausible') #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        HeaderDataError: data dtype "implausible" not recognized
+        >>> hdr.set_data_dtype('none') #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        HeaderDataError: data dtype "none" known but not supported
+        >>> hdr.set_data_dtype(np.void) #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
+        >>> hdr.set_data_dtype('int')
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
+        >>> hdr.set_data_dtype(int)
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
+        >>> hdr.set_data_dtype('int64')
+        >>> hdr.get_data_dtype()
+        dtype('int64')
+        """
+        if not isinstance(datatype, np.dtype) and datatype in (int, "int"):
+            raise ValueError(f"Invalid data type {datatype!r}. Specify a sized integer, "
+                             "e.g., 'uint8' or numpy.int16.")
+        super().set_data_dtype(datatype)
+
     def get_qform_quaternion(self):
         """ Compute quaternion from b, c, d of quaternion
 
@@ -1755,6 +1800,13 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
     def __init__(self, dataobj, affine, header=None,
                  extra=None, file_map=None, dtype=None):
+        # Special carve-out for 64 bit integers
+        # See GitHub issues
+        #  * https://github.com/nipy/nibabel/issues/1046
+        #  * https://github.com/nipy/nibabel/issues/1089
+        # This only applies to NIfTI because the parent Analyze formats did
+        # not support 64-bit integer data, so `set_data_dtype(int64)` would
+        # already fail.
         danger_dts = (np.dtype("int64"), np.dtype("uint64"))
         if header is None and dtype is None and dataobj.dtype in danger_dts:
             msg = (f"Image data has type {dataobj.dtype}, which may cause "
