@@ -17,6 +17,7 @@ import numpy as np
 import numpy.linalg as npl
 from numpy.compat.py3k import asstr
 
+from .arrayproxy import get_obj_dtype
 from .optpkg import optional_package
 from .filebasedimages import SerializableImage
 from .volumeutils import Recoder, make_dt_codes, endian_codes
@@ -1808,7 +1809,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # not support 64-bit integer data, so `set_data_dtype(int64)` would
         # already fail.
         danger_dts = (np.dtype("int64"), np.dtype("uint64"))
-        if header is None and dtype is None and dataobj.dtype in danger_dts:
+        if header is None and dtype is None and get_obj_dtype(dataobj) in danger_dts:
             msg = (f"Image data has type {dataobj.dtype}, which may cause "
                    "incompatibilities with other tools. This will error in "
                    "NiBabel 5.0. This warning can be silenced "

@@ -412,3 +412,17 @@ def reshape_dataobj(obj, shape):
     """
     return (obj.reshape(shape) if hasattr(obj, 'reshape')
             else np.reshape(obj, shape))
+
+
+def get_obj_dtype(obj):
+    """ Get the effective dtype of an array-like object """
+    if is_proxy(obj):
+        # Read and potentially apply scaling to one value
+        idx = (0,) * len(obj.shape)
+        return obj[idx].dtype
+    elif hasattr(obj, "dtype"):
+        # Trust the dtype (probably an ndarray)
+        return obj.dtype
+    else:
+        # Coerce; this could be expensive but we don't know what we can do with it
+        return np.asanyarray(obj).dtype
