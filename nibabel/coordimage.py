@@ -1,3 +1,6 @@
+from nibabel.fileslice import fill_slicer
+
+
 class CoordinateImage:
     """
     Attributes
@@ -7,6 +10,11 @@ class CoordinateImage:
     dataobj : array-like
     """
 
+    def __init__(self, data, coordaxis, header=None):
+        self.data = data
+        self.coordaxis = coordaxis
+        self.header = header
+
 
 class CoordinateAxis:
     """
@@ -14,6 +22,9 @@ class CoordinateAxis:
     ----------
     parcels : list of ``Parcel`` objects
     """
+
+    def __init__(self, parcels):
+        self.parcels = parcels
 
     def load_structures(self, mapping):
         """
@@ -26,7 +37,31 @@ class CoordinateAxis:
         Return a sub-sampled CoordinateAxis containing structures
         matching the indices provided.
         """
-        raise NotImplementedError
+        if slicer is Ellipsis or slicer == slice(None):
+            return self
+        elif isinstance(slicer, slice):
+            slicer = fill_slicer(slicer, len(self))
+            print(slicer)
+            start, stop, step = slicer.start, slicer.stop, slicer.step
+        else:
+            raise TypeError(f'Indexing type not supported: {type(slicer)}')
+
+        subparcels = []
+        pstop = 0
+        for parcel in self.parcels:
+            pstart, pstop = pstop, pstop + len(parcel)
+            print(pstart, pstop)
+            if pstop < start:
+                continue
+            if pstart >= stop:
+                break
+            if start < pstart:
+                substart = (start - pstart) % step
+            else:
+                substart = start - pstart
+            print(slice(substart, stop - pstart, step))
+            subparcels.append(parcel[substart : stop - pstop : step])
+        return CoordinateAxis(subparcels)
 
     def get_indices(self, parcel, indices=None):
         """
@@ -35,6 +70,9 @@ class CoordinateAxis:
         the requested parcel.
         """
         raise NotImplementedError
+
+    def __len__(self):
+        return sum(len(parcel) for parcel in self.parcels)
 
 
 class Parcel:
@@ -45,6 +83,20 @@ class Parcel:
     structure : ``Pointset``
     indices : object that selects a subset of coordinates in structure
     """
+
+    def __init__(self, name, structure, indices):
+        self.name = name
+        self.structure = structure
+        self.indices = indices
+
+    def __repr__(self):
+        return f'<Parcel {self.name}({len(self.indices)})>'
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, slicer):
+        return self.__class__(self.name, self.structure, self.indices[slicer])
 
 
 class GeometryCollection:
