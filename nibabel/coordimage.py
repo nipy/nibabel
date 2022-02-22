@@ -107,6 +107,9 @@ class GeometryCollection:
         Mapping from structure names to ``Pointset``
     """
 
+    def __init__(self, structures):
+        self.structures = structures
+
     @classmethod
     def from_spec(klass, pathlike):
         """Load a collection of geometries from a specification."""

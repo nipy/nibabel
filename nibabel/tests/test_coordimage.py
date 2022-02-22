@@ -28,9 +28,25 @@ class FreeSurferSubject(ci.GeometryCollection):
             'lh': FreeSurferHemisphere.from_filename(surfs / 'lh.white'),
             'rh': FreeSurferHemisphere.from_filename(surfs / 'rh.white'),
         }
-        subject = super().__init__(structures)
+        subject = klass(structures)
         subject._subject_dir = subject_dir
         return subject
+
+
+class CaretSpec(ci.GeometryCollection):
+    @classmethod
+    def from_spec(klass, pathlike):
+        from nibabel.cifti2.caretspec import CaretSpecFile
+
+        csf = CaretSpecFile.from_filename(pathlike)
+        structures = {
+            df.structure: df.uri
+            for df in csf.data_files
+            if df.selected  # Use selected to avoid overloading for now
+        }
+        wbspec = klass(structures)
+        wbspec._specfile = csf
+        return wbspec
 
 
 def test_Cifti2Image_as_CoordImage():
