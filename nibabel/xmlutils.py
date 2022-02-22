@@ -21,11 +21,11 @@ class XmlSerializable:
         """Output should be a xml.etree.ElementTree.Element"""
         raise NotImplementedError()
 
-    def to_xml(self, enc='utf-8'):
+    def to_xml(self, enc='utf-8', **kwargs):
         """Output should be an xml string with the given encoding.
         (default: utf-8)"""
         ele = self._to_xml_element()
-        return '' if ele is None else tostring(ele, enc)
+        return '' if ele is None else tostring(ele, enc, **kwargs)
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):

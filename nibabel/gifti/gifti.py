@@ -852,7 +852,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             GIFTI.append(dar._to_xml_element())
         return GIFTI
 
-    def to_xml(self, enc='utf-8', *, mode='strict') -> bytes:
+    def to_xml(self, enc='utf-8', *, mode='strict', **kwargs) -> bytes:
         """Return XML corresponding to image content"""
         if mode == 'strict':
             if any(arr.datatype not in GIFTI_DTYPES for arr in self.darrays):
@@ -882,7 +882,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         header = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """
-        return header + super().to_xml(enc)
+        return header + super().to_xml(enc, **kwargs)
 
     # Avoid the indirection of going through to_file_map
     def to_bytes(self, enc='utf-8', *, mode='strict'):
