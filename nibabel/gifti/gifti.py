@@ -15,62 +15,75 @@ from http://www.nitrc.org/projects/gifti/
 import sys
 import numpy as np
 import base64
+import warnings
 
 from .. import xmlutils as xml
 from ..filebasedimages import SerializableImage
 from ..nifti1 import data_type_codes, xform_codes, intent_codes
+from ..caret import CaretMetaData
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes, KIND2FMT)
 from ..deprecated import deprecate_with_version
 
 
-class GiftiMetaData(xml.XmlSerializable):
+class GiftiMetaData(CaretMetaData):
     """ A sequence of GiftiNVPairs containing metadata for a gifti data array
     """
 
-    def __init__(self, nvpair=None):
-        self.data = []
-        if nvpair is not None:
-            self.data.append(nvpair)
+    def __init__(self, *args, **kwargs):
+        dep_init = False
+        # Positional arg
+        dep_init |= not kwargs and len(args) == 1 and isinstance(args[0], GiftiNVPairs)
+        # Keyword arg
+        dep_init |= not args and list(kwargs) == ["nvpair"]
+        if dep_init:
+            warnings.warn(
+                "GiftiMetaData now has a dict-like interface. "
+                "See ``pydoc dict`` for initialization options. "
+                "Passing ``GiftiNVPairs()`` or using the ``nvpair`` "
+                "keyword will fail or behave unexpectedly in NiBabel 6.0.",
+                FutureWarning, stacklevel=2)
+            super().__init__()
+            pair = args[0] if args else kwargs.get("nvpair")
+            self[pair.name] = pair.value
+        else:
+            super().__init__(*args, **kwargs)
+
+    @property
+    def data(self):
+        warnings.warn(
+            "GiftiMetaData.data will be a dict in NiBabel 6.0.",
+            FutureWarning, stacklevel=2)
+        return [GiftiNVPairs(k, v) for k, v in self._data.items()]
 
     @classmethod
+    @deprecate_with_version(
+        'from_dict class method deprecated. Use GiftiMetaData directly.',
+        '4.0', '6.0')
     def from_dict(klass, data_dict):
-        meda = klass()
-        for k, v in data_dict.items():
-            nv = GiftiNVPairs(k, v)
-            meda.data.append(nv)
-        return meda
+        return klass(data_dict)
 
     @deprecate_with_version(
         'get_metadata method deprecated. '
         "Use the metadata property instead.",
         '2.1', '4.0')
     def get_metadata(self):
-        return self.metadata
+        return dict(self)
 
     @property
+    @deprecate_with_version(
+        'metadata property deprecated. Use GiftiMetadata object '
+        'as dict or pass to dict() for a standard dictionary.',
+        '4.0', '6.0')
     def metadata(self):
         """ Returns metadata as dictionary """
-        self.data_as_dict = {}
-        for ele in self.data:
-            self.data_as_dict[ele.name] = ele.value
-        return self.data_as_dict
-
-    def _to_xml_element(self):
-        metadata = xml.Element('MetaData')
-        for ele in self.data:
-            md = xml.SubElement(metadata, 'MD')
-            name = xml.SubElement(md, 'Name')
-            value = xml.SubElement(md, 'Value')
-            name.text = ele.name
-            value.text = ele.value
-        return metadata
+        return dict(self)
 
     def print_summary(self):
-        print(self.metadata)
+        print(dict(self))
 
 
-class GiftiNVPairs(object):
+class GiftiNVPairs:
     """ Gifti name / value pairs
 
     Attributes
@@ -385,7 +398,7 @@ class GiftiDataArray(xml.XmlSerializable):
         self.ind_ord = array_index_order_codes.code[ordering]
         self.meta = (GiftiMetaData() if meta is None else
                      meta if isinstance(meta, GiftiMetaData) else
-                     GiftiMetaData.from_dict(meta))
+                     GiftiMetaData(meta))
         self.ext_fname = ext_fname
         self.ext_offset = ext_offset
         self.dims = [] if self.data is None else list(self.data.shape)
@@ -544,12 +557,12 @@ class GiftiDataArray(xml.XmlSerializable):
         "Use the metadata property instead.",
         '2.1', '4.0')
     def get_metadata(self):
-        return self.meta.metadata
+        return dict(self.meta)
 
     @property
     def metadata(self):
         """ Returns metadata as dictionary """
-        return self.meta.metadata
+        return dict(self.meta)
 
 
 class GiftiImage(xml.XmlSerializable, SerializableImage):
