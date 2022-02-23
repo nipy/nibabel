@@ -57,7 +57,7 @@ def test_gifti_image():
     # arguments.
     gi = GiftiImage()
     assert gi.darrays == []
-    assert gi.meta.metadata == {}
+    assert gi.meta == {}
     assert gi.labeltable.labels == []
     arr = np.zeros((2, 3))
     gi.darrays.append(arr)
@@ -125,7 +125,7 @@ def test_dataarray_empty():
     assert null_da.coordsys.xformspace == 0
     assert_array_equal(null_da.coordsys.xform, np.eye(4))
     assert null_da.ind_ord == 1
-    assert null_da.meta.metadata == {}
+    assert null_da.meta == {}
     assert null_da.ext_fname == ''
     assert null_da.ext_offset == 0
 
@@ -174,9 +174,9 @@ def test_dataarray_init():
     pytest.raises(KeyError, gda, ordering='not an ordering')
     # metadata
     meta_dict=dict(one=1, two=2)
-    assert gda(meta=GiftiMetaData.from_dict(meta_dict)).meta.metadata == meta_dict
-    assert gda(meta=meta_dict).meta.metadata == meta_dict
-    assert gda(meta=None).meta.metadata == {}
+    assert gda(meta=GiftiMetaData(meta_dict)).meta == meta_dict
+    assert gda(meta=meta_dict).meta == meta_dict
+    assert gda(meta=None).meta == {}
     # ext_fname and ext_offset
     assert gda(ext_fname='foo').ext_fname == 'foo'
     assert gda(ext_offset=12).ext_offset == 12
@@ -246,17 +246,29 @@ def test_labeltable():
 
 
 def test_metadata():
+    md = GiftiMetaData(key='value')
+    # Old initialization methods
     nvpair = GiftiNVPairs('key', 'value')
-    md = GiftiMetaData(nvpair=nvpair)
-    assert md.data[0].name == 'key'
-    assert md.data[0].value == 'value'
+    with pytest.warns(FutureWarning) as w:
+        md2 = GiftiMetaData(nvpair=nvpair)
+    assert len(w) == 1
+    with pytest.warns(DeprecationWarning) as w:
+        md3 = GiftiMetaData.from_dict({'key': 'value'})
+    assert md == md2 == md3 == {'key': 'value'}
+    # .data as a list of NVPairs is going away
+    with pytest.warns(FutureWarning) as w:
+        assert md.data[0].name == 'key'
+        assert md.data[0].value == 'value'
+    assert len(w) == 2
     # Test deprecation
     with clear_and_catch_warnings() as w:
         warnings.filterwarnings('always', category=DeprecationWarning)
         assert md.get_metadata() == dict(key='value')
         assert len(w) == 1
-        assert len(GiftiDataArray().get_metadata()) == 0
+        assert md.metadata == dict(key='value')
         assert len(w) == 2
+        assert len(GiftiDataArray().get_metadata()) == 0
+        assert len(w) == 3
 
 
 def test_gifti_label_rgba():
