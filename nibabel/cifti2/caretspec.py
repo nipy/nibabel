@@ -17,9 +17,12 @@ Code can be found here [0], and a DTD was worked out in this email thread [1].
 [1]: https://groups.google.com/a/humanconnectome.org/g/hcp-users/c/EGuwdaTVFuw/m/tg7a_-7mAQAJ
 """
 import xml.etree.ElementTree as et
+from urllib.parse import urlparse
 
-from .. import xmlutils as xml
-from ..caret import CaretMetaData
+import nibabel as nb
+from nibabel import pointset as ps
+from nibabel import xmlutils as xml
+from nibabel.caret import CaretMetaData
 
 
 class CaretSpecDataFile(xml.XmlSerializable):
@@ -56,6 +59,9 @@ class CaretSpecDataFile(xml.XmlSerializable):
         self.selected = selected
         self.uri = uri
 
+        if data_file_type == 'SURFACE':
+            self.__class__ = SurfaceDataFile
+
     def _to_xml_element(self):
         data_file = xml.Element('DataFile')
         data_file.attrib['Structure'] = str(self.structure)
@@ -66,6 +72,35 @@ class CaretSpecDataFile(xml.XmlSerializable):
 
     def __repr__(self):
         return self.to_xml().decode()
+
+
+class SurfaceDataFile(ps.TriangularMesh, CaretSpecDataFile):
+    _gifti = None
+    _coords = None
+    _triangles = None
+
+    def _get_gifti(self):
+        if self._gifti is None:
+            parts = urlparse(self.uri)
+            if parts.scheme == 'file':
+                self._gifti = nb.load(parts.path)
+            elif parts.scheme == '':
+                self._gifti = nb.load(self.uri)
+            else:
+                self._gifti = nb.GiftiImage.from_url(self.uri)
+        return self._gifti
+
+    def get_triangles(self, name=None):
+        if self._triangles is None:
+            gifti = self._get_gifti()
+            self._triangles = gifti.agg_data('triangle')
+        return self._triangles
+
+    def get_coords(self, name=None):
+        if self._coords is None:
+            gifti = self._get_gifti()
+            self._coords = gifti.agg_data('pointset')
+        return self._coords
 
 
 class CaretSpecFile(xml.XmlSerializable):
