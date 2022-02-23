@@ -95,6 +95,9 @@ class GiftiLabelTable(xml.XmlSerializable):
     def __init__(self):
         self.labels = []
 
+    def __repr__(self):
+        return f"<GiftiLabelTable {self.labels!r}>"
+
     def get_labels_as_dict(self):
         self.labels_as_dict = {}
         for ele in self.labels:
@@ -152,6 +155,13 @@ class GiftiLabel(xml.XmlSerializable):
         self.green = green
         self.blue = blue
         self.alpha = alpha
+
+    def __repr__(self):
+        chars = 255 * np.array(
+            [self.red or 0, self.green or 0, self.blue or 0, self.alpha or 0]
+        )
+        r, g, b, a = chars.astype('u1')
+        return f'<GiftiLabel {self.key}="#{r:02x}{g:02x}{b:02x}{a:02x}">'
 
     @deprecate_with_version(
         'get_rgba method deprecated. '
@@ -234,6 +244,11 @@ class GiftiCoordSystem(xml.XmlSerializable):
             self.xform = np.identity(4)
         else:
             self.xform = xform
+
+    def __repr__(self):
+        src = xform_codes.label[self.dataspace]
+        dst = xform_codes.label[self.xformspace]
+        return f"<GiftiCoordSystem {src}-to-{dst}>"
 
     def _to_xml_element(self):
         coord_xform = xml.Element('CoordinateSystemTransformMatrix')
@@ -374,6 +389,9 @@ class GiftiDataArray(xml.XmlSerializable):
         self.ext_fname = ext_fname
         self.ext_offset = ext_offset
         self.dims = [] if self.data is None else list(self.data.shape)
+
+    def __repr__(self):
+        return f"<GiftiDataArray {intent_codes.label[self.intent]}{self.dims}>"
 
     @property
     def num_dim(self):
