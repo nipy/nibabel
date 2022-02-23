@@ -24,16 +24,6 @@ def is_ndarray_of_int_or_bool(obj):
             np.issubdtype(obj.dtype, np.bool_)))
 
 
-def _safe_resize(a, shape):
-    """ Resize an ndarray safely, using minimal memory """
-    try:
-        a.resize(shape)
-    except ValueError:
-        a = a.copy()
-        a.resize(shape, refcheck=False)
-    return a
-
-
 class _BuildCache(object):
     def __init__(self, arr_seq, common_shape, dtype):
         self.offsets = list(arr_seq._offsets)
@@ -287,7 +277,11 @@ class ArraySequence(object):
         if self._data.size == 0:
             self._data = np.empty(new_shape, dtype=build_cache.dtype)
         else:
-            self._data = _safe_resize(self._data, new_shape)
+            try:
+                self._data.resize(new_shape)
+            except ValueError:
+                self._data = self._data.copy()
+                self._data.resize(new_shape, refcheck=False)
 
     def shrink_data(self):
         self._data.resize((self._get_next_offset(),) + self.common_shape,
