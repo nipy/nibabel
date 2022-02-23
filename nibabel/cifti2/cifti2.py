@@ -122,23 +122,51 @@ class Cifti2MetaData(CaretMetaData):
     ----------
     data : list of (name, value) tuples
     """
-    def __init__(self, *args, **kwargs):
+    @staticmethod
+    def _sanitize(args, kwargs):
+        """ Sanitize and warn on deprecated arguments
+
+        Accept metadata positional/keyword argument that can take
+        ``None`` to indicate no initialization.
+
+        >>> import pytest
+        >>> Cifti2MetaData()
+        <Cifti2MetaData {}>
+        >>> Cifti2MetaData([("key", "val")])
+        <Cifti2MetaData {'key': 'val'}>
+        >>> Cifti2MetaData(key="val")
+        <Cifti2MetaData {'key': 'val'}>
+        >>> with pytest.warns(FutureWarning):
+        ...     Cifti2MetaData(None)
+        <Cifti2MetaData {}>
+        >>> with pytest.warns(FutureWarning):
+        ...     Cifti2MetaData(metadata=None)
+        <Cifti2MetaData {}>
+        >>> with pytest.warns(FutureWarning):
+        ...     Cifti2MetaData(metadata={'key': 'val'})
+        <Cifti2MetaData {'key': 'val'}>
+
+        Note that "metadata" could be a valid key:
+
+        >>> Cifti2MetaData(metadata='val')
+        <Cifti2MetaData {'metadata': 'val'}>
+        """
         if not args and list(kwargs) == ["metadata"]:
-            md = kwargs.pop("metadata")
-            if not isinstance(md, str):
-                warn("CaretMetaData now has a dict-like interface and will "
+            if not isinstance(kwargs["metadata"], str):
+                warn("Cifti2MetaData now has a dict-like interface and will "
                      "no longer accept the ``metadata`` keyword argument in "
                      "NiBabel 6.0. See ``pydoc dict`` for initialization options.",
-                     FutureWarning, stacklevel=2)
+                     FutureWarning, stacklevel=3)
+                md = kwargs.pop("metadata")
                 if md is not None:
                     args = (md,)
         if args == (None,):
-            warn("CaretMetaData now has a dict-like interface and will no longer "
+            warn("Cifti2MetaData now has a dict-like interface and will no longer "
                  "accept the positional argument ``None`` in NiBabel 6.0. "
                  "See ``pydoc dict`` for initialization options.",
-                 FutureWarning, stacklevel=2)
+                 FutureWarning, stacklevel=3)
             args = ()
-        super().__init__(*args, **kwargs)
+        return args, kwargs
 
     @property
     def data(self):

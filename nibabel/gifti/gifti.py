@@ -30,24 +30,46 @@ class GiftiMetaData(CaretMetaData):
     """ A sequence of GiftiNVPairs containing metadata for a gifti data array
     """
 
-    def __init__(self, *args, **kwargs):
+    @staticmethod
+    def _sanitize(args, kwargs):
+        """ Sanitize and warn on deprecated arguments
+
+        Accept nvpair positional/keyword argument that is a single
+        ``GiftiNVPairs`` object.
+
+        >>> import pytest
+        >>> GiftiMetaData()
+        <GiftiMetaData {}>
+        >>> GiftiMetaData([("key", "val")])
+        <GiftiMetaData {'key': 'val'}>
+        >>> GiftiMetaData(key="val")
+        <GiftiMetaData {'key': 'val'}>
+        >>> GiftiMetaData({"key": "val"})
+        <GiftiMetaData {'key': 'val'}>
+        >>> nvpairs = GiftiNVPairs(name='key', value='val')
+        >>> with pytest.warns(FutureWarning):
+        ...     GiftiMetaData(nvpairs)
+        <GiftiMetaData {'key': 'val'}>
+        >>> with pytest.warns(FutureWarning):
+        ...     GiftiMetaData(nvpair=nvpairs)
+        <GiftiMetaData {'key': 'val'}>
+        """
         dep_init = False
         # Positional arg
         dep_init |= not kwargs and len(args) == 1 and isinstance(args[0], GiftiNVPairs)
         # Keyword arg
         dep_init |= not args and list(kwargs) == ["nvpair"]
-        if dep_init:
-            warnings.warn(
-                "GiftiMetaData now has a dict-like interface. "
-                "See ``pydoc dict`` for initialization options. "
-                "Passing ``GiftiNVPairs()`` or using the ``nvpair`` "
-                "keyword will fail or behave unexpectedly in NiBabel 6.0.",
-                FutureWarning, stacklevel=2)
-            super().__init__()
-            pair = args[0] if args else kwargs.get("nvpair")
-            self[pair.name] = pair.value
-        else:
-            super().__init__(*args, **kwargs)
+        if not dep_init:
+            return args, kwargs
+
+        warnings.warn(
+            "GiftiMetaData now has a dict-like interface. "
+            "See ``pydoc dict`` for initialization options. "
+            "Passing ``GiftiNVPairs()`` or using the ``nvpair`` "
+            "keyword will fail or behave unexpectedly in NiBabel 6.0.",
+            FutureWarning, stacklevel=3)
+        pair = args[0] if args else kwargs.get("nvpair")
+        return (), {pair.name: pair.value}
 
     @property
     def data(self):
