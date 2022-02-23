@@ -281,7 +281,7 @@ class ArraySequence(object):
                 self._data.resize(new_shape)
             except ValueError:
                 self._data = self._data.copy()
-                self._data.resize(new_shape)
+                self._data.resize(new_shape, refcheck=False)
 
     def shrink_data(self):
         self._data.resize((self._get_next_offset(),) + self.common_shape,
