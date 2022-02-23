@@ -45,7 +45,14 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
     b'<MetaData><MD><Name>key</Name><Value>val</Value></MD></MetaData>'
     """
     def __init__(self, *args, **kwargs):
+        args, kwargs = self._sanitize(args, kwargs)
         self._data = dict(*args, **kwargs)
+
+    @staticmethod
+    def _sanitize(args, kwargs):
+        """ Override in subclasses to accept and warn on previous invocations
+        """
+        return args, kwargs
 
     def __getitem__(self, key):
         """ Get metadata entry by name
