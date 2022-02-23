@@ -35,11 +35,19 @@ def test_value_if_klass():
 
 
 def test_cifti2_metadata():
-    md = ci.Cifti2MetaData(metadata={'a': 'aval'})
+    md = ci.Cifti2MetaData({'a': 'aval'})
     assert len(md) == 1
     assert list(iter(md)) == ['a']
     assert md['a'] == 'aval'
     assert md.data == dict([('a', 'aval')])
+
+    with pytest.warns(FutureWarning):
+        md = ci.Cifti2MetaData(metadata={'a': 'aval'})
+    assert md == {'a': 'aval'}
+
+    with pytest.warns(FutureWarning):
+        md = ci.Cifti2MetaData(None)
+    assert md == {}
 
     md = ci.Cifti2MetaData()
     assert len(md) == 0
