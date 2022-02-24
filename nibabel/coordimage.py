@@ -41,7 +41,6 @@ class CoordinateAxis:
             return self
         elif isinstance(slicer, slice):
             slicer = fill_slicer(slicer, len(self))
-            print(slicer)
             start, stop, step = slicer.start, slicer.stop, slicer.step
         else:
             raise TypeError(f'Indexing type not supported: {type(slicer)}')
@@ -50,7 +49,6 @@ class CoordinateAxis:
         pstop = 0
         for parcel in self.parcels:
             pstart, pstop = pstop, pstop + len(parcel)
-            print(pstart, pstop)
             if pstop < start:
                 continue
             if pstart >= stop:
@@ -59,8 +57,7 @@ class CoordinateAxis:
                 substart = (start - pstart) % step
             else:
                 substart = start - pstart
-            print(slice(substart, stop - pstart, step))
-            subparcels.append(parcel[substart : stop - pstop : step])
+            subparcels.append(parcel[substart : stop - pstart : step])
         return CoordinateAxis(subparcels)
 
     def get_indices(self, parcel, indices=None):
