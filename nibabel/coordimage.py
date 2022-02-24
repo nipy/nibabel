@@ -1,3 +1,5 @@
+import numpy as np
+
 from nibabel.fileslice import fill_slicer
 
 
@@ -66,7 +68,19 @@ class CoordinateAxis:
         requested parcel. If indices are provided, further subsample
         the requested parcel.
         """
-        raise NotImplementedError
+        subseqs = []
+        idx = 0
+        for p in self.parcels:
+            if p.name == parcel:
+                subseqs.append(range(idx, idx + len(p)))
+            idx += len(p)
+        if not subseqs:
+            return ()
+        if indices:
+            return np.hstack(subseqs)[indices]
+        if len(subseqs) == 1:
+            return subseqs[0]
+        return np.hstack(subseqs)
 
     def __len__(self):
         return sum(len(parcel) for parcel in self.parcels)
