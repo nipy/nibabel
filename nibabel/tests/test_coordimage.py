@@ -66,3 +66,18 @@ def test_Cifti2Image_as_CoordImage():
     dobj = ones.dataobj.copy()
     dobj.order = 'C'  # Hack for image with BMA as the last axis
     cimg = ci.CoordinateImage(dobj, caxis, ones.header)
+
+    assert caxis[...] is caxis
+    assert caxis[:] is caxis
+
+    subaxis = caxis[:100]
+    assert len(subaxis) == 100
+    assert len(subaxis.parcels) == 1
+    subaxis = caxis[100:]
+    assert len(subaxis) == len(caxis) - 100
+    assert len(subaxis.parcels) == len(caxis.parcels)
+    subaxis = caxis[100:-100]
+    assert len(subaxis) == len(caxis) - 200
+    assert len(subaxis.parcels) == len(caxis.parcels)
+
+    caxis.get_indices('CIFTI_STRUCTURE_CORTEX_LEFT')
