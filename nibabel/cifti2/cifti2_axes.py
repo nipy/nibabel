@@ -1075,7 +1075,6 @@ class ScalarAxis(Axis):
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_SCALARS')
         for name, meta in zip(self.name, self.meta):
-            meta = None if len(meta) == 0 else meta
             named_map = cifti2.Cifti2NamedMap(name, cifti2.Cifti2MetaData(meta))
             mim.append(named_map)
         return mim
@@ -1213,8 +1212,6 @@ class LabelAxis(Axis):
             label_table = cifti2.Cifti2LabelTable()
             for key, value in label.items():
                 label_table[key] = (value[0],) + tuple(value[1])
-            if len(meta) == 0:
-                meta = None
             named_map = cifti2.Cifti2NamedMap(name, cifti2.Cifti2MetaData(meta),
                                               label_table)
             mim.append(named_map)

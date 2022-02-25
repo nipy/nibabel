@@ -25,6 +25,7 @@ from ..dataobj_images import DataobjImage
 from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
+from ..caret import CaretMetaData
 from warnings import warn
 
 
@@ -102,7 +103,7 @@ def _underscore(string):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
 
 
-class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
+class Cifti2MetaData(CaretMetaData):
     """ A list of name-value pairs
 
     * Description - Provides a simple method for user-supplied metadata that
@@ -121,25 +122,55 @@ class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
     ----------
     data : list of (name, value) tuples
     """
-    def __init__(self, metadata=None):
-        self.data = OrderedDict()
-        if metadata is not None:
-            self.update(metadata)
+    @staticmethod
+    def _sanitize(args, kwargs):
+        """ Sanitize and warn on deprecated arguments
 
-    def __getitem__(self, key):
-        return self.data[key]
+        Accept metadata positional/keyword argument that can take
+        ``None`` to indicate no initialization.
 
-    def __setitem__(self, key, value):
-        self.data[key] = value
+        >>> import pytest
+        >>> Cifti2MetaData()
+        <Cifti2MetaData {}>
+        >>> Cifti2MetaData([("key", "val")])
+        <Cifti2MetaData {'key': 'val'}>
+        >>> Cifti2MetaData(key="val")
+        <Cifti2MetaData {'key': 'val'}>
+        >>> with pytest.warns(FutureWarning):
+        ...     Cifti2MetaData(None)
+        <Cifti2MetaData {}>
+        >>> with pytest.warns(FutureWarning):
+        ...     Cifti2MetaData(metadata=None)
+        <Cifti2MetaData {}>
+        >>> with pytest.warns(FutureWarning):
+        ...     Cifti2MetaData(metadata={'key': 'val'})
+        <Cifti2MetaData {'key': 'val'}>
 
-    def __delitem__(self, key):
-        del self.data[key]
+        Note that "metadata" could be a valid key:
 
-    def __len__(self):
-        return len(self.data)
+        >>> Cifti2MetaData(metadata='val')
+        <Cifti2MetaData {'metadata': 'val'}>
+        """
+        if not args and list(kwargs) == ["metadata"]:
+            if not isinstance(kwargs["metadata"], str):
+                warn("Cifti2MetaData now has a dict-like interface and will "
+                     "no longer accept the ``metadata`` keyword argument in "
+                     "NiBabel 6.0. See ``pydoc dict`` for initialization options.",
+                     FutureWarning, stacklevel=3)
+                md = kwargs.pop("metadata")
+                if md is not None:
+                    args = (md,)
+        if args == (None,):
+            warn("Cifti2MetaData now has a dict-like interface and will no longer "
+                 "accept the positional argument ``None`` in NiBabel 6.0. "
+                 "See ``pydoc dict`` for initialization options.",
+                 FutureWarning, stacklevel=3)
+            args = ()
+        return args, kwargs
 
-    def __iter__(self):
-        return iter(self.data)
+    @property
+    def data(self):
+        return self._data
 
     def difference_update(self, metadata):
         """Remove metadata key-value pairs
@@ -158,17 +189,6 @@ class Cifti2MetaData(xml.XmlSerializable, MutableMapping):
         pairs = dict(metadata)
         for k in pairs:
             del self.data[k]
-
-    def _to_xml_element(self):
-        metadata = xml.Element('MetaData')
-
-        for name_text, value_text in self.data.items():
-            md = xml.SubElement(metadata, 'MD')
-            name = xml.SubElement(md, 'Name')
-            name.text = str(name_text)
-            value = xml.SubElement(md, 'Value')
-            value.text = str(value_text)
-        return metadata
 
 
 class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):

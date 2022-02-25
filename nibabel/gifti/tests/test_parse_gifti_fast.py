@@ -26,7 +26,7 @@ from ...tmpdirs import InTemporaryDirectory
 from numpy.testing import assert_array_almost_equal
 
 import pytest
-from ...testing import clear_and_catch_warnings
+from ...testing import clear_and_catch_warnings, suppress_warnings
 
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
@@ -126,11 +126,13 @@ DATA_FILE7_darr2 = np.array([[0, 6, 4],
 def assert_default_types(loaded):
     default = loaded.__class__()
     for attr in dir(default):
-        defaulttype = type(getattr(default, attr))
+        with suppress_warnings():
+            defaulttype = type(getattr(default, attr))
         # Optional elements may have default of None
         if defaulttype is type(None):
             continue
-        loadedtype = type(getattr(loaded, attr))
+        with suppress_warnings():
+            loadedtype = type(getattr(loaded, attr))
         assert loadedtype == defaulttype, (
             f"Type mismatch for attribute: {attr} ({loadedtype} != {defaulttype})")
 
@@ -143,9 +145,10 @@ def test_default_types():
         assert_default_types(img)
         # GiftiMetaData
         assert_default_types(img.meta)
-        # GiftiNVPairs
-        for nvpair in img.meta.data:
-            assert_default_types(nvpair)
+        # GiftiNVPairs - Remove in NIB6
+        with pytest.warns(FutureWarning):
+            for nvpair in img.meta.data:
+                assert_default_types(nvpair)
         # GiftiLabelTable
         assert_default_types(img.labeltable)
         # GiftiLabel elements can be None or float; skip
@@ -156,9 +159,10 @@ def test_default_types():
             assert_default_types(darray.coordsys)
             # GiftiMetaData
             assert_default_types(darray.meta)
-            # GiftiNVPairs
-            for nvpair in darray.meta.data:
-                assert_default_types(nvpair)
+            # GiftiNVPairs - Remove in NIB6
+            with pytest.warns(FutureWarning):
+                for nvpair in darray.meta.data:
+                    assert_default_types(nvpair)
 
 
 def test_read_ordering():
@@ -204,7 +208,7 @@ def test_load_dataarray1():
     for img in (img1, bimg):
         assert_array_almost_equal(img.darrays[0].data, DATA_FILE1_darr1)
         assert_array_almost_equal(img.darrays[1].data, DATA_FILE1_darr2)
-        me = img.darrays[0].meta.metadata
+        me = img.darrays[0].meta
         assert 'AnatomicalStructurePrimary' in me
         assert 'AnatomicalStructureSecondary' in me
         me['AnatomicalStructurePrimary'] == 'CortexLeft'
@@ -301,14 +305,13 @@ def test_modify_darray():
 
 def test_write_newmetadata():
     img = gi.GiftiImage()
-    attr = gi.GiftiNVPairs(name='mykey', value='val1')
-    newmeta = gi.GiftiMetaData(attr)
+    newmeta = gi.GiftiMetaData(mykey='val1')
     img.meta = newmeta
-    myme = img.meta.metadata
+    myme = img.meta
     assert 'mykey' in myme
-    newmeta = gi.GiftiMetaData.from_dict({'mykey1': 'val2'})
+    newmeta = gi.GiftiMetaData({'mykey1': 'val2'})
     img.meta = newmeta
-    myme = img.meta.metadata
+    myme = img.meta
     assert 'mykey1' in myme
     assert 'mykey' not in myme
 

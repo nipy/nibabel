@@ -18,7 +18,7 @@ from xml.parsers.expat import ExpatError
 import numpy as np
 
 from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel,
-                    GiftiLabelTable, GiftiNVPairs, GiftiDataArray,
+                    GiftiLabelTable, GiftiDataArray,
                     GiftiCoordSystem)
 from .util import (array_index_order_codes, gifti_encoding_codes,
                    gifti_endian_codes)
@@ -202,7 +202,7 @@ class GiftiImageParser(XmlParser):
                 self.meta_da = GiftiMetaData()
 
         elif name == 'MD':
-            self.nvpair = GiftiNVPairs()
+            self.nvpair = ['', '']
             self.fsm_state.append('MD')
 
         elif name == 'Name':
@@ -313,10 +313,11 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'MD':
             self.fsm_state.pop()
+            key, val = self.nvpair
             if self.meta_global is not None and self.meta_da is None:
-                self.meta_global.data.append(self.nvpair)
+                self.meta_global[key] = val
             elif self.meta_da is not None and self.meta_global is None:
-                self.meta_da.data.append(self.nvpair)
+                self.meta_da[key] = val
             # remove reference
             self.nvpair = None
 
@@ -374,11 +375,11 @@ class GiftiImageParser(XmlParser):
         # Process data
         if self.write_to == 'Name':
             data = data.strip()
-            self.nvpair.name = data
+            self.nvpair[0] = data
 
         elif self.write_to == 'Value':
             data = data.strip()
-            self.nvpair.value = data
+            self.nvpair[1] = data
 
         elif self.write_to == 'DataSpace':
             data = data.strip()
