@@ -269,7 +269,7 @@ def dot_reduce(*args):
     return reduce(lambda x, y: np.dot(y, x), args[::-1])
 
 
-def voxel_sizes(affine):
+def voxel_sizes(affine, decimals=6):
     r""" Return voxel size for each input axis given `affine`
 
     The `affine` is the mapping between array (voxel) coordinates and mm
@@ -300,6 +300,8 @@ def voxel_sizes(affine):
     affine : 2D array-like
         Affine transformation array.  Usually shape (4, 4), but can be any 2D
         array.
+    decimals : :obj:`int`
+        Round the result to the given number of decimals (default: 6)
 
     Returns
     -------
@@ -308,7 +310,7 @@ def voxel_sizes(affine):
         but in general has length (N-1) where input `affine` is shape (M, N).
     """
     top_left = affine[:-1, :-1]
-    return np.sqrt(np.sum(top_left ** 2, axis=0))
+    return np.round(np.sqrt(np.sum(top_left ** 2, axis=0)), decimals=decimals)
 
 
 def obliquity(affine):
