@@ -146,7 +146,6 @@ class CaretSpecFile(xml.XmlSerializable):
 class CaretSpecParser(xml.XmlParser):
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
         super().__init__(encoding=encoding, buffer_size=buffer_size, verbose=verbose)
-        self.fsm_state = []
         self.struct_state = []
 
         self.caret_spec = None
@@ -164,8 +163,7 @@ class CaretSpecParser(xml.XmlParser):
         elif name == 'MetaData':
             self.caret_spec.metadata = CaretMetaData()
         elif name == 'MD':
-            self.fsm_state.append('MD')
-            self.struct_state.append(['', ''])
+            self.struct_state.append({})
         elif name in ('Name', 'Value'):
             self.write_to = name
         elif name == 'DataFile':
@@ -181,13 +179,9 @@ class CaretSpecParser(xml.XmlParser):
 
     def EndElementHandler(self, name):
         self.flush_chardata()
-        if name == 'CaretSpecFile':
-            ...
-        elif name == 'MetaData':
-            ...
-        elif name == 'MD':
-            key, value = self.struct_state.pop()
-            self.caret_spec.metadata[key] = value
+        if name == 'MD':
+            MD = self.struct_state.pop()
+            self.caret_spec.metadata[MD['Name']] = MD['Value']
         elif name in ('Name', 'Value'):
             self.write_to = None
         elif name == 'DataFile':
@@ -212,23 +206,12 @@ class CaretSpecParser(xml.XmlParser):
         if self._char_blocks is None:
             return
 
-        # Just join the strings to get the data.  Maybe there are some memory
-        # optimizations we could do by passing the list of strings to the
-        # read_data_block function.
-        data = ''.join(self._char_blocks)
+        data = ''.join(self._char_blocks).strip()
         # Reset the char collector
         self._char_blocks = None
         # Process data
-        if self.write_to == 'Name':
-            data = data.strip()  # .decode('utf-8')
-            pair = self.struct_state[-1]
-            pair[0] = data
-
-        elif self.write_to == 'Value':
-            data = data.strip()  # .decode('utf-8')
-            pair = self.struct_state[-1]
-            pair[1] = data
+        if self.write_to in ('Name', 'Value'):
+            self.struct_state[-1][self.write_to] = data
 
         elif self.write_to == 'DataFile':
-            data = data.strip()
             self.struct_state[-1].uri = data
