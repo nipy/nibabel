@@ -40,7 +40,7 @@ jobs:
           # Basic dependencies only
           - os: ubuntu-latest
             python-version: 3.7
-            install: setup
+            install: pip
             check: test
             pip-flags: ''
             depends: REQUIREMENTS
@@ -48,7 +48,7 @@ jobs:
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: 3.7
-            install: setup
+            install: pip
             check: test
             pip-flags: ''
             depends: MIN_REQUIREMENTS
@@ -56,7 +56,7 @@ jobs:
           # Absolute minimum dependencies plus old MPL, Pydicom, Pillow
           - os: ubuntu-latest
             python-version: 3.7
-            install: setup
+            install: pip
             check: test
             pip-flags: ''
             depends: MIN_REQUIREMENTS
