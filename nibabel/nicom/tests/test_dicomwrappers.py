@@ -361,10 +361,10 @@ def test_assert_parallel():
 
 @dicom_test
 def test_decimal_rescale():
-    # Test that we don't get back a data array with dtype np.object when our
+    # Test that we don't get back a data array with dtype object when our
     # rescale slope is a decimal
     dw = didw.wrapper_from_file(DATA_FILE_DEC_RSCL)
-    assert dw.get_data().dtype != np.object
+    assert dw.get_data().dtype != np.dtype(object)
 
 
 def fake_frames(seq_name, field_name, value_seq):

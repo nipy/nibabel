@@ -8,7 +8,7 @@ from os.path import join as pjoin
 from io import BytesIO
 
 import pytest
-from ...testing import data_path, clear_and_catch_warnings, assert_arr_dict_equal
+from ...testing import data_path, clear_and_catch_warnings, assert_arr_dict_equal, error_warnings
 from numpy.testing import assert_array_equal
 
 from .test_tractogram import assert_tractogram_equal
@@ -87,19 +87,19 @@ class TestTRK(unittest.TestCase):
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['empty_trk_fname'], lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(trk.tractogram, DATA['empty_tractogram'])
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['simple_trk_fname'], lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(trk.tractogram, DATA['simple_tractogram'])
 
     def test_load_complex_file(self):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['complex_trk_fname'], lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
 
     def trk_with_bytes(self, trk_key='simple_trk_fname', endian='<'):
@@ -199,7 +199,7 @@ class TestTRK(unittest.TestCase):
         for lazy_load in [False, True]:
             trk = TrkFile.load(DATA['complex_trk_big_endian_fname'],
                                lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(trk.tractogram, DATA['complex_tractogram'])
 
     def test_tractogram_file_properties(self):

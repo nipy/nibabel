@@ -15,7 +15,7 @@ from ..tck import TckFile
 
 import pytest
 from numpy.testing import assert_array_equal
-from ...testing import data_path
+from ...testing import data_path, error_warnings
 from .test_tractogram import assert_tractogram_equal
 
 DATA = {}
@@ -47,13 +47,13 @@ class TestTCK(unittest.TestCase):
     def test_load_empty_file(self):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['empty_tck_fname'], lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(tck.tractogram, DATA['empty_tractogram'])
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['simple_tck_fname'], lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
 
         # Force TCK loading to use buffering.
@@ -88,7 +88,7 @@ class TestTCK(unittest.TestCase):
         for lazy_load in [False, True]:
             tck = TckFile.load(DATA['simple_tck_big_endian_fname'],
                                lazy_load=lazy_load)
-            with pytest.warns(Warning if lazy_load else None):
+            with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(tck.tractogram, DATA['simple_tractogram'])
             assert tck.header['datatype'] == 'Float32BE'
 
