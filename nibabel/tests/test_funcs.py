@@ -51,12 +51,12 @@ def test_concat():
         #   second position.
         for data0_shape in all_shapes:
             data0_numel = np.asarray(data0_shape).prod()
-            data0 = np.arange(data0_numel).reshape(data0_shape)
+            data0 = np.arange(data0_numel, dtype='int32').reshape(data0_shape)
             img0_mem = Nifti1Image(data0, affine)
 
             for data1_shape in all_shapes:
                 data1_numel = np.asarray(data1_shape).prod()
-                data1 = np.arange(data1_numel).reshape(data1_shape)
+                data1 = np.arange(data1_numel, dtype='int32').reshape(data1_shape)
                 img1_mem = Nifti1Image(data1, affine)
                 img2_mem = Nifti1Image(data1, affine + 1)  # bad affine
 
