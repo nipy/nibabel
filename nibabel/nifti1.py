@@ -910,17 +910,17 @@ class Nifti1Header(SpmAnalyzeHeader):
         Traceback (most recent call last):
            ...
         HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
-        >>> hdr.set_data_dtype('int')
+        >>> hdr.set_data_dtype('int') #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
-        >>> hdr.set_data_dtype(int)
+        >>> hdr.set_data_dtype(int) #doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
            ...
         ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
         >>> hdr.set_data_dtype('int64')
-        >>> hdr.get_data_dtype()
-        dtype('int64')
+        >>> hdr.get_data_dtype() == np.dtype('int64')
+        True
         """
         if not isinstance(datatype, np.dtype) and datatype in (int, "int"):
             raise ValueError(f"Invalid data type {datatype!r}. Specify a sized integer, "
@@ -1926,7 +1926,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         Examples
         --------
-        >>> data = np.arange(24).reshape((2,3,4))
+        >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
         >>> aff = np.diag([2, 3, 4, 1])
         >>> img = Nifti1Pair(data, aff)
         >>> img.get_qform()
@@ -2009,7 +2009,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         Examples
         --------
-        >>> data = np.arange(24).reshape((2,3,4))
+        >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
         >>> aff = np.diag([2, 3, 4, 1])
         >>> img = Nifti1Pair(data, aff)
         >>> img.get_sform()

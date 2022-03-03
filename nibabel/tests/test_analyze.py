@@ -290,7 +290,12 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # Test aliases to Python types
         assert_set_dtype(float, np.float64)  # float64 always supported
         np_sys_int = np.dtype(int).type  # int could be 32 or 64 bit
-        if np_sys_int in self.supported_np_types:  # no int64 for Analyze
+        if issubclass(self.header_class, Nifti1Header):
+            # We don't allow int aliases in Nifti
+            with pytest.raises(ValueError):
+                hdr = self.header_class()
+                hdr.set_data_dtype(int)
+        elif np_sys_int in self.supported_np_types:  # no int64 for Analyze
             assert_set_dtype(int, np_sys_int)
         hdr = self.header_class()
         for inp in all_unsupported_types:
