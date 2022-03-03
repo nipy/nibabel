@@ -13,12 +13,12 @@
 Installation
 ************
 
-NiBabel is a pure Python package at the moment, and it should be easy to get
-NiBabel running on any system. For the most popular platforms and operating
-systems there should be packages in the respective native packaging format
-(DEB, RPM or installers). On other systems you can install NiBabel using
-pip_ or by downloading the source package and running the usual ``python
-setup.py install``.
+NiBabel is a pure Python package,
+and it should be easy to get NiBabel running on any system.
+For the most popular platforms and operating systems
+there should be packages in the respective native packaging format
+(DEB, RPM or installers).
+On other systems you can install NiBabel using pip_.
 
 .. This remark below is not yet true; comment to avoid confusion
    To run all of the tests, you may need some extra data packages - see
@@ -121,14 +121,15 @@ Validating your install
 For a basic test of your installation, fire up Python and try importing the
 module to see if everything is fine.  It should look something like this::
 
-    Python 2.7.8 (v2.7.8:ee879c0ffa11, Jun 29 2014, 21:07:35)
-    [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
+    Python 3.8.5 (default, Sep  4 2020, 07:30:14)
+    [GCC 7.3.0] :: Anaconda, Inc. on linux
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import nibabel
     >>>
 
 
-To run the nibabel test suite, from the terminal run ``pytest nibabel`` or
+To run the nibabel test suite, from the terminal run
+``pytest --pyargs nibabel`` or
 ``python -c "import nibabel; nibabel.test()``.
 
 To run an extended test suite that validates ``nibabel`` for long-running and
