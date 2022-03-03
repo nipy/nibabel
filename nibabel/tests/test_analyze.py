@@ -764,6 +764,20 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         with pytest.raises(ValueError):
             IC(data, np.diag([2, 3, 4]))
 
+    def test_dtype_init_arg(self):
+        # data_dtype can be set by argument in absence of header
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        for dtype in self.supported_np_types:
+            img = img_klass(arr, aff, dtype=dtype)
+            assert img.get_data_dtype() == dtype
+        # It can also override the header dtype
+        hdr = img.header
+        for dtype in self.supported_np_types:
+            img = img_klass(arr, aff, hdr, dtype=dtype)
+            assert img.get_data_dtype() == dtype
+
     def test_offset_to_zero(self):
         # Check offset is always set to zero when creating images
         img_klass = self.image_class
@@ -877,6 +891,21 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         img.to_file_map(fm)
         img_back = self.image_class.from_file_map(fm)
         assert_array_equal(img_back.dataobj, 0)
+
+    def test_dtype_to_filename_arg(self):
+        # data_dtype can be set by argument in absence of header
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+        fname = 'test' + img_klass.files_types[0][1]
+        with InTemporaryDirectory():
+            for dtype in self.supported_np_types:
+                img.to_filename(fname, dtype=dtype)
+                new_img = img_klass.from_filename(fname)
+                assert new_img.get_data_dtype() == dtype
+                # data_type is reset after write
+                assert img.get_data_dtype() == np.int16
 
 
 def test_unsupported():
