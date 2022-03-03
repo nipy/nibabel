@@ -765,6 +765,23 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     image_class = Nifti1Pair
     supported_np_types = TestNifti1PairHeader.supported_np_types
 
+    def test_int64_warning(self):
+        # Verify that initializing with (u)int64 data and no
+        # header/dtype info produces a warning
+        img_klass = self.image_class
+        hdr_klass = img_klass.header_class
+        for dtype in (np.int64, np.uint64):
+            data = np.arange(24, dtype=dtype).reshape((2, 3, 4))
+            with pytest.warns(FutureWarning):
+                img_klass(data, np.eye(4))
+            # No warnings if we're explicit, though
+            with clear_and_catch_warnings():
+                warnings.simplefilter("error")
+                img_klass(data, np.eye(4), dtype=dtype)
+                hdr = hdr_klass()
+                hdr.set_data_dtype(dtype)
+                img_klass(data, np.eye(4), hdr)
+
     def test_none_qsform(self):
         # Check that affine gets set to q/sform if header is None
         img_klass = self.image_class
