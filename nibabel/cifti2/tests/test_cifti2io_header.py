@@ -18,7 +18,7 @@ from nibabel.cifti2.parse_cifti2 import _Cifti2AsNiftiHeader
 
 from nibabel.tmpdirs import InTemporaryDirectory
 from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
-from nibabel.tests.test_nifti2 import TestNifti2SingleHeader
+from nibabel.tests import test_nifti2 as tn2
 
 from numpy.testing import assert_array_almost_equal
 import pytest
@@ -405,7 +405,7 @@ def test_read_labels():
             assert named_map.label_table[index].rgba == rgba
 
 
-class TestCifti2SingleHeader(TestNifti2SingleHeader):
+class TestCifti2SingleHeader(tn2.TestNifti2SingleHeader):
     header_class = _Cifti2AsNiftiHeader
     _pixdim_message = 'pixdim[1,2,3] should be zero or positive'
 

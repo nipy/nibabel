@@ -31,7 +31,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_
 from ...testing import data_path
 
 from ...tests import test_spatialimages as tsi
-from ...tests.test_wrapstruct import _TestLabeledWrapStruct
+from ...tests import test_wrapstruct as tws
 
 MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
@@ -395,7 +395,7 @@ class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert expected.newbyteorder('>') == actual
 
 
-class TestMGHHeader(_TestLabeledWrapStruct):
+class TestMGHHeader(tws._TestLabeledWrapStruct):
     header_class = MGHHeader
 
     def _set_something_into_hdr(self, hdr):

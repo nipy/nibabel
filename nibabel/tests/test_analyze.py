@@ -38,7 +38,7 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 from ..testing import (data_path, suppress_warnings, assert_dt_equal,
                        bytesio_filemap, bytesio_round_trip)
 
-from .test_wrapstruct import _TestLabeledWrapStruct
+from . import test_wrapstruct as tws
 from . import test_spatialimages as tsi
 
 HAVE_ZSTD = optional_package("pyzstd")[1]
@@ -56,7 +56,7 @@ def add_intp(supported_np_types):
             supported_np_types.add(np_type)
 
 
-class TestAnalyzeHeader(_TestLabeledWrapStruct):
+class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr

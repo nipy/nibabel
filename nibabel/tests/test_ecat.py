@@ -24,13 +24,13 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
 
-from .test_wrapstruct import _TestWrapStructBase
+from . import test_wrapstruct as tws
 from .test_fileslice import slicer_samples
 
 ecat_file = os.path.join(data_path, 'tinypet.v')
 
 
-class TestEcatHeader(_TestWrapStructBase):
+class TestEcatHeader(tws._TestWrapStructBase):
     header_class = EcatHeader
     example_file = ecat_file
 
