@@ -22,8 +22,8 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        python-version: [3.8]
-        install: ['setup']
+        python-version: ["3.10"]
+        install: ['pip']
         check: ['style', 'doc']
         pip-flags: ['']
         depends: ['REQUIREMENTS']

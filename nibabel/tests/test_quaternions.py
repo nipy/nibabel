@@ -13,7 +13,7 @@ from numpy import pi
 
 import pytest
 
-from numpy.testing import assert_array_almost_equal, assert_array_equal, dec
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from .. import quaternions as nq
 from .. import eulerangles as nea
@@ -122,7 +122,6 @@ def test_norm():
     assert not nq.isunit(qi)
 
 
-@dec.slow
 @pytest.mark.parametrize("M1, q1", eg_pairs[0::4])
 @pytest.mark.parametrize("M2, q2", eg_pairs[1::4])
 def test_mult(M1, q1, M2, q2):

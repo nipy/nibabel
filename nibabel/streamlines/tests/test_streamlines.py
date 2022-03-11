@@ -2,6 +2,7 @@ import os
 import unittest
 import tempfile
 import numpy as np
+import warnings
 
 import pytest
 
@@ -12,7 +13,7 @@ from io import BytesIO
 from nibabel.tmpdirs import InTemporaryDirectory
 from numpy.compat.py3k import asbytes
 
-from nibabel.testing import data_path
+from nibabel.testing import data_path, error_warnings, clear_and_catch_warnings
 
 from .test_tractogram import assert_tractogram_equal
 from ..tractogram import Tractogram, LazyTractogram
@@ -142,7 +143,7 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert type(tfile.tractogram), LazyTractogram
 
-                with pytest.warns(Warning if lazy_load else None):
+                with pytest.warns(Warning) if lazy_load else error_warnings():
                     assert_tractogram_equal(tfile.tractogram,
                                             DATA['empty_tractogram'])
 
@@ -158,7 +159,7 @@ class TestLoadSave(unittest.TestCase):
                 else:
                     assert type(tfile.tractogram), LazyTractogram
 
-                with pytest.warns(Warning if lazy_load else None):
+                with pytest.warns(Warning) if lazy_load else error_warnings():
                     assert_tractogram_equal(tfile.tractogram,
                                             DATA['simple_tractogram'])
 
@@ -184,7 +185,7 @@ class TestLoadSave(unittest.TestCase):
                     data = DATA['data_per_streamline']
                     tractogram.data_per_streamline = data
 
-                with pytest.warns(Warning if lazy_load else None):
+                with pytest.warns(Warning) if lazy_load else error_warnings():
                     assert_tractogram_equal(tfile.tractogram,
                                             tractogram)
 
@@ -244,7 +245,8 @@ class TestLoadSave(unittest.TestCase):
                     ((not cls.SUPPORTS_DATA_PER_POINT) +
                      (not cls.SUPPORTS_DATA_PER_STREAMLINE))
 
-                with pytest.warns(Warning if nb_expected_warnings else None) as w:
+                with clear_and_catch_warnings() as w:
+                    warnings.simplefilter('always')
                     nib.streamlines.save(complex_tractogram, filename)
                 assert len(w) == nb_expected_warnings
 

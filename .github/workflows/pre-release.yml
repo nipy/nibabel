@@ -28,7 +28,7 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         python-version: ["3.9", "3.10"]
         architecture: ['x64', 'x86']
-        install: ['setup']
+        install: ['pip']
         check: ['test']
         pip-flags: ['PRE_PIP_FLAGS']
         depends: ['REQUIREMENTS']
@@ -37,7 +37,7 @@ jobs:
           # Pydicom master
           - os: ubuntu-latest
             python-version: "3.10"
-            install: setup
+            install: pip
             check: test
             pip-flags: ''
             depends: REQUIREMENTS

@@ -1,4 +1,4 @@
-SETUP_REQUIRES="pip setuptools>=30.3.0 wheel"
+SETUP_REQUIRES="pip build"
 
 # Minimum requirements
 REQUIREMENTS="-r requirements.txt"
