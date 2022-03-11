@@ -14,16 +14,16 @@ set -x
 if [ "$INSTALL_TYPE" = "sdist" -o "$INSTALL_TYPE" = "wheel" ]; then
     python -m build
 elif [ "$INSTALL_TYPE" = "archive" ]; then
-    ARCHIVE="package.tar.gz"
+    ARCHIVE="/tmp/package.tar.gz"
     git archive -o $ARCHIVE HEAD
 fi
 
 if [ "$INSTALL_TYPE" = "sdist" ]; then
-    ARCHIVE=$( ls dist/*.tar.gz )
+    ARCHIVE=$( ls $PWD/dist/*.tar.gz )
 elif [ "$INSTALL_TYPE" = "wheel" ]; then
-    ARCHIVE=$( ls dist/*.whl )
+    ARCHIVE=$( ls $PWD/dist/*.whl )
 elif [ "$INSTALL_TYPE" = "pip" ]; then
-    ARCHIVE="."
+    ARCHIVE="$PWD"
 fi
 
 export ARCHIVE
