@@ -1102,6 +1102,28 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
             with np.errstate(invalid='ignore'):
                 self._check_write_scaling(slope, inter, e_slope, e_inter)
 
+    def test_same_affine_before_and_after_write(self):
+        # Ensure affine attribute is the same as the one will be written
+        # It may differ because of float64 to float32 casting
+        IC = self.image_class
+        data = np.ones((5, 5, 5))
+        affine = np.array(
+            [
+                [2.99892688e+00, 1.00872545e-02, 7.95947611e-02,
+                    -1.19315027e+02],
+                [-5.04193734e-03,  2.99400663e+00, -1.89471290e-01,
+                    -1.19174288e+02],
+                [-8.00727755e-02, 1.89269632e-01, 2.99295425e+00,
+                    -2.83687850e+01],
+                [0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                    1.00000000e+00]
+            ]
+        )
+        img = IC(data, affine)
+        img_rt = bytesio_round_trip(img)
+        assert_array_equal(img.affine, img.header.get_best_affine())
+        assert_array_equal(img.affine, img_rt.affine)
+
 
 class TestNifti1Image(TestNifti1Pair):
     # Run analyze-flavor spatialimage tests

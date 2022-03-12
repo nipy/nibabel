@@ -1800,11 +1800,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
     def _affine2header(self):
         """ Unconditionally set affine into the header """
-        hdr = self._header
         # Set affine into sform with default code
-        hdr.set_sform(self._affine, code='aligned')
+        self.set_sform(self._affine, code='aligned', update_affine=True)
         # Make qform 'unknown'
-        hdr.set_qform(self._affine, code='unknown')
+        self.set_qform(self._affine, code='unknown', update_affine=True)
 
     def get_qform(self, coded=False):
         """ Return 4x4 affine matrix from qform parameters in header
