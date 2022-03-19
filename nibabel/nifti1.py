@@ -2292,7 +2292,7 @@ def _get_smallest_dtype(
     >>> _get_smallest_dtype(np.array([1.]))
     dtype('float32')
     >>> _get_smallest_dtype(np.array([2. ** 1000]))
-    >>> _get_smallest_dtype(np.float128(2) ** 2000)
+    >>> _get_smallest_dtype(np.longdouble(2) ** 2000)
     >>> _get_smallest_dtype(np.array([1+0j]))
     """
     arr = np.asanyarray(arr)
