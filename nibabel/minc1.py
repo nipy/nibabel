@@ -11,6 +11,7 @@
 from numbers import Integral
 
 import numpy as np
+from typing import Tuple
 
 from .externals.netcdf import netcdf_file
 
@@ -114,6 +115,9 @@ class Minc1File(object):
         aff[:nspatial, :nspatial] = rot_mat * steps
         aff[:nspatial, nspatial] = origin
         return aff
+
+    def get_units(self) -> Tuple[str, str, str]:
+        return tuple(d.units.decode('utf-8') for d in self._dims)
 
     def _get_valid_range(self):
         """ Return valid range for image data
@@ -289,6 +293,17 @@ class MincHeader(SpatialHeader):
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
 
+    def __init__(self,
+                 data_dtype=np.float32,
+                 shape=(0,),
+                 zooms=None,
+                 units='unknown'):
+        super().__init__(data_dtype, shape, zooms)
+        self._units = units
+
+    def copy(self):
+        return self.__class__(self.get_data_dtype(), self.get_data_shape(), self.get_zooms(), self._units)
+
     def data_to_fileobj(self, data, fileobj, rescale=True):
         """ See Header class for an implementation we can't use """
         raise NotImplementedError
@@ -296,6 +311,9 @@ class MincHeader(SpatialHeader):
     def data_from_fileobj(self, fileobj):
         """ See Header class for an implementation we can't use """
         raise NotImplementedError
+
+    def get_xyzt_units(self) -> Tuple[str, str]:
+        return self._units, 'unknown'
 
 
 class Minc1Header(MincHeader):
@@ -334,7 +352,13 @@ class Minc1Image(SpatialImage):
             data_dtype = minc_file.get_data_dtype()
             shape = minc_file.get_data_shape()
             zooms = minc_file.get_zooms()
-            header = klass.header_class(data_dtype, shape, zooms)
+            unit = 'unknown'
+            units = minc_file.get_units()
+            if units:
+                if any(u != units[0] for u in units[1:]):
+                    raise ValueError(f'Image has different units for different dimensions: {units}')
+                unit = units[0]
+            header = klass.header_class(data_dtype, shape, zooms, unit)
             data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
 

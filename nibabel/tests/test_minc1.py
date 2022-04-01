@@ -215,3 +215,7 @@ class TestMinc1Image(tsi.TestSpatialImage):
                 img.header.data_to_fileobj(arr, bio)
             with pytest.raises(NotImplementedError):
                 img.header.data_from_fileobj(bio)
+
+    def test_xyzt_units(self):
+        img = self.module.load(self.eg_images[0])
+        assert img.header.get_xyzt_units() == ('mm', 'unknown')
