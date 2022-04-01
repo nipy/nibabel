@@ -302,7 +302,8 @@ class MincHeader(SpatialHeader):
         self._units = units
 
     def copy(self):
-        return self.__class__(self.get_data_dtype(), self.get_data_shape(), self.get_zooms(), self._units)
+        return self.__class__(self.get_data_dtype(), self.get_data_shape(), self.get_zooms(),
+                              self._units)
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
         """ See Header class for an implementation we can't use """
