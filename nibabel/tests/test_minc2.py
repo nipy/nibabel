@@ -112,3 +112,7 @@ if have_h5py:
         image_class = Minc2Image
         eg_images = (pjoin(data_path, 'small.mnc'),)
         module = minc2
+
+        def test_xyzt_units(self):
+            img = self.module.load(self.eg_images[0])
+            assert img.header.get_xyzt_units() == ('mm', 'unknown')

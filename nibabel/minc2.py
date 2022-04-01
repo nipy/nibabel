@@ -169,7 +169,13 @@ class Minc2Image(Minc1Image):
         data_dtype = minc_file.get_data_dtype()
         shape = minc_file.get_data_shape()
         zooms = minc_file.get_zooms()
-        header = klass.header_class(data_dtype, shape, zooms)
+        unit = 'unknown'
+        units = minc_file.get_units()
+        if units:
+            if any(u != units[0] for u in units[1:]):
+                raise ValueError(f'Image has different units for different dimensions: {units}')
+            unit = units[0]
+        header = klass.header_class(data_dtype, shape, zooms, unit)
         data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
 
