@@ -24,7 +24,7 @@ def clone_repo(url, branch):
         os.chdir(tmpdir)
         cmd = f'git checkout {branch}'
         call(cmd, shell=True)
-    except:
+    except Exception:
         shutil.rmtree(tmpdir)
         raise
     finally:
@@ -72,7 +72,7 @@ def copy_replace(replace_pairs,
                  out_path,
                  cp_globs=('*',),
                  rep_globs=('*',),
-                 renames = ()):
+                 renames=()):
     out_fnames = cp_files(repo_path, cp_globs, out_path)
     renames = [(re.compile(in_exp), out_exp) for in_exp, out_exp in renames]
     fnames = []
@@ -115,8 +115,8 @@ def make_link_targets(proj_name,
     .. _`proj_name` mailing list: url
     """
     link_contents = open(known_link_fname, 'rt').readlines()
-    have_url = not url is None
-    have_ml_url = not ml_url is None
+    have_url = url is not None
+    have_ml_url = ml_url is not None
     have_gh_url = None
     for line in link_contents:
         if not have_url:
@@ -135,12 +135,12 @@ def make_link_targets(proj_name,
         raise RuntimeError('Need command line or known project '
                            'and / or mailing list URLs')
     lines = []
-    if not url is None:
+    if url is not None:
         lines.append(f'.. _{proj_name}: {url}\n')
     if not have_gh_url:
         gh_url = f'https://github.com/{user_name}/{repo_name}\n'
         lines.append(f'.. _`{proj_name} github`: {gh_url}\n')
-    if not ml_url is None:
+    if ml_url is not None:
         lines.append(f'.. _`{proj_name} mailing list`: {ml_url}\n')
     if len(lines) == 0:
         # Nothing to do
@@ -175,7 +175,7 @@ def main():
                       help="github username for main repo - e.g fperez",
                       metavar="MAIN_GH_USER")
     parser.add_option("--gitwash-url", dest="gitwash_url",
-                      help=f"URL to gitwash repository - default {GITWASH_CENTRAL}", 
+                      help=f"URL to gitwash repository - default {GITWASH_CENTRAL}",
                       default=GITWASH_CENTRAL,
                       metavar="GITWASH_URL")
     parser.add_option("--gitwash-branch", dest="gitwash_branch",

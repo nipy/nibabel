@@ -131,7 +131,7 @@ def package_check(pkg_name, version=None,
        dependencies.  If dict fill key values ``install_requires`` and
        ``extras_require`` for non-optional and optional dependencies.
     """
-    setuptools_mode = not setuptools_args is None
+    setuptools_mode = setuptools_args is not None
     optional_tf = bool(optional)
     if version_getter is None:
         def version_getter(pkg_name):
@@ -169,7 +169,7 @@ def package_check(pkg_name, version=None,
         log.warn(msgs['version too old'] % (have_version,
                                             pkg_name,
                                             version)
-                    + msgs['opt suffix'])
+                 + msgs['opt suffix'])
         return
     # setuptools mode
     if optional_tf and not isinstance(optional, str):
@@ -178,7 +178,7 @@ def package_check(pkg_name, version=None,
     if version:
         dependency += '>=' + version
     if optional_tf:
-        if not 'extras_require' in setuptools_args:
+        if 'extras_require' not in setuptools_args:
             setuptools_args['extras_require'] = {}
         _add_append_key(setuptools_args['extras_require'],
                         optional,
@@ -205,7 +205,7 @@ def _package_status(pkg_name, version, version_getter, checker):
 
 
 BAT_TEMPLATE = \
-r"""@echo off
+r"""@echo off # noqa: E122
 REM wrapper to use shebang first line of {FNAME}
 set mypath=%~dp0
 set pyscript="%mypath%{FNAME}"
@@ -217,6 +217,7 @@ exit /b 1
 set py_exe=%line1:~2%
 call "%py_exe%" %pyscript% %*
 """
+
 
 class install_scripts_bat(install_scripts):
     """ Make scripts executable on Windows
@@ -247,7 +248,7 @@ class install_scripts_bat(install_scripts):
             if not (first_line.startswith('#!') and
                     'python' in first_line.lower()):
                 log.info("No #!python executable found, skipping .bat "
-                            "wrapper")
+                         "wrapper")
                 continue
             pth, fname = psplit(filepath)
             froot, ext = splitext(fname)
