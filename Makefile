@@ -8,7 +8,7 @@ PROJECT=nibabel
 # The Python executable to be used
 #
 PYTHON ?= python
-NOSETESTS = $(PYTHON) $(shell which nosetests)
+TEST_RUNNER ?= pytest
 
 #
 # Determine details on the Python/system
@@ -66,7 +66,6 @@ distclean: clean
 		 -o -iname '#*#' | xargs -L10 rm -f
 	-rm -r dist
 	-rm build-stamp
-	-rm -r .tox
 #	-rm tests/data/*.hdr.* tests/data/*.img.* tests/data/something.nii \
 #		tests/data/noise* tests/data/None.nii
 
@@ -83,22 +82,23 @@ $(WWW_DIR):
 # Tests
 #
 
-test: unittest testmanual
+test: test-style unittest testmanual
 
-
-ut-%: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel/tests/test_$*.py
-
-
-unittest: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel --with-doctest
+unittest: build test-clean
+	export CHECK_TYPE=test; ./tools/ci/check.sh
 
 testmanual: build
-	@cd doc/source && PYTHONPATH=../..:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst . dicom
+	export CHECK_TYPE=doc; ./tools/ci/check.sh
 
+coverage: unittest
 
-coverage: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-coverage --cover-package=nibabel
+.PHONY: test-style
+test-style:
+	export CHECK_TYPE=style; ./tools/ci/check.sh
+
+.PHONY: test-clean
+test-clean:
+	rm -rf for_testing
 
 
 #
@@ -252,11 +252,13 @@ sdist-venv: clean
 	rm -rf dist venv
 	unset PYTHONPATH && $(PYTHON) setup.py sdist --formats=zip
 	virtualenv --system-site-packages --python=$(PYTHON) venv
-	. venv/bin/activate && pip install --ignore-installed nose
+	. venv/bin/activate && pip install -r dev-requirements.txt
 	mkdir venv/tmp
 	cd venv/tmp && unzip ../../dist/*.zip
 	. venv/bin/activate && cd venv/tmp/nibabel* && python setup.py install
-	unset PYTHONPATH && . venv/bin/activate && cd venv && nosetests --with-doctest nibabel nisext
+	unset PYTHONPATH && . \
+		venv/bin/activate && \
+		cd venv && $(TEST_RUNNER) --doctest-modules --doctest-plus nibabel nisext
 
 source-release: distclean
 	$(PYTHON) -m compileall .
@@ -269,17 +271,7 @@ venv-tests:
 	make distclean
 	- rm -rf $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
 	$(PYTHON) setup.py install
-	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
-
-tox-fresh:
-	# tox tests with fresh-installed virtualenvs.  Needs network.  And
-	# pytox, obviously.
-	tox -c tox.ini
-
-tox-stale:
-	# tox tests with MB's already-installed virtualenvs (numpy and nose
-	# installed)
-	tox -e python25,python26,python27,python32,np-1.2.1
+	cd .. && $(TEST_RUNNER) $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
 
 refresh-readme:
 	$(PYTHON) tools/refresh_readme.py

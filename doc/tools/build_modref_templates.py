@@ -71,7 +71,11 @@ if __name__ == '__main__':
     print('***', source_version)
 
     if source_version != installed_version:
-        abort("Installed version does not match source version")
+        abort(
+            "Installed version does not match source version. "
+            "source_version=" +  str(source_version) + 
+            "installed_version=" + str(installed_version)
+        )
 
     docwriter = ApiDocWriter(package, rst_extension='.rst',
                              other_defines=other_defines)
