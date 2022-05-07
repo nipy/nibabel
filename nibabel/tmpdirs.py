@@ -51,6 +51,9 @@ class TemporaryDirectory(object):
 class InTemporaryDirectory(TemporaryDirectory):
     """ Create, return, and change directory to a temporary directory
 
+    NOTE: This implementation is not thread-safe and should be used with
+    caution by external consumers of this library.
+
     Examples
     --------
     >>> import os
