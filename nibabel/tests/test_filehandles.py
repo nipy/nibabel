@@ -26,7 +26,7 @@ def test_multiload():
     # Make a tiny image, save, load many times.  If we are leaking filehandles,
     # this will cause us to run out and generate an error
     N = SOFT_LIMIT + 100
-    arr = np.arange(24).reshape((2, 3, 4))
+    arr = np.arange(24, dtype='int32').reshape((2, 3, 4))
     img = Nifti1Image(arr, np.eye(4))
     imgs = []
     try:

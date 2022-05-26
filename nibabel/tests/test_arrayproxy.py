@@ -19,7 +19,7 @@ from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
-from ..arrayproxy import (ArrayProxy, is_proxy, reshape_dataobj)
+from ..arrayproxy import (ArrayProxy, is_proxy, reshape_dataobj, get_obj_dtype)
 from ..openers import ImageOpener
 from ..nifti1 import Nifti1Header
 
@@ -238,6 +238,28 @@ def test_reshaped_is_proxy():
         prox.reshape((2, 3, 5))
     with pytest.raises(ValueError):
         prox.reshape((2, -1, 5))
+
+
+def test_get_obj_dtype():
+    # Check get_obj_dtype(obj) returns same result as array(obj).dtype
+    bio = BytesIO()
+    shape = (2, 3, 4)
+    hdr = Nifti1Header()
+    arr = np.arange(24, dtype=np.int16).reshape(shape)
+    write_raw_data(arr, hdr, bio)
+    hdr.set_slope_inter(2, 10)
+    prox = ArrayProxy(bio, hdr)
+    assert get_obj_dtype(prox) == np.dtype('float64')
+    assert get_obj_dtype(np.array(prox)) == np.dtype('float64')
+    hdr.set_slope_inter(1, 0)
+    prox = ArrayProxy(bio, hdr)
+    assert get_obj_dtype(prox) == np.dtype('int16')
+    assert get_obj_dtype(np.array(prox)) == np.dtype('int16')
+
+    class ArrGiver:
+        def __array__(self):
+            return arr
+    assert get_obj_dtype(ArrGiver()) == np.dtype('int16')
 
 
 def test_get_unscaled():

@@ -17,6 +17,7 @@ import numpy as np
 import numpy.linalg as npl
 from numpy.compat.py3k import asstr
 
+from .arrayproxy import get_obj_dtype
 from .optpkg import optional_package
 from .filebasedimages import SerializableImage
 from .volumeutils import Recoder, make_dt_codes, endian_codes
@@ -880,6 +881,51 @@ class Nifti1Header(SpmAnalyzeHeader):
                           'not be compatible with SPM or FSL', stacklevel=2)
             shape = (-1, 1, 1) + shape[3:]
         super(Nifti1Header, self).set_data_shape(shape)
+
+    def set_data_dtype(self, datatype):
+        """ Set numpy dtype for data from code or dtype or type
+
+        Using :py:class:`int` or ``"int"`` is disallowed, as these types
+        will be interpreted as ``np.int64``, which is almost never desired.
+        ``np.int64`` is permitted for those intent on making poor choices.
+
+        Examples
+        --------
+        >>> hdr = Nifti1Header()
+        >>> hdr.set_data_dtype(np.uint8)
+        >>> hdr.get_data_dtype()
+        dtype('uint8')
+        >>> hdr.set_data_dtype(np.dtype(np.uint8))
+        >>> hdr.get_data_dtype()
+        dtype('uint8')
+        >>> hdr.set_data_dtype('implausible') #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        HeaderDataError: data dtype "implausible" not recognized
+        >>> hdr.set_data_dtype('none') #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        HeaderDataError: data dtype "none" known but not supported
+        >>> hdr.set_data_dtype(np.void) #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
+        >>> hdr.set_data_dtype('int') #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
+        >>> hdr.set_data_dtype(int) #doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
+        >>> hdr.set_data_dtype('int64')
+        >>> hdr.get_data_dtype() == np.dtype('int64')
+        True
+        """
+        if not isinstance(datatype, np.dtype) and datatype in (int, "int"):
+            raise ValueError(f"Invalid data type {datatype!r}. Specify a sized integer, "
+                             "e.g., 'uint8' or numpy.int16.")
+        super().set_data_dtype(datatype)
 
     def get_qform_quaternion(self):
         """ Compute quaternion from b, c, d of quaternion
@@ -1754,12 +1800,27 @@ class Nifti1Pair(analyze.AnalyzeImage):
     rw = True
 
     def __init__(self, dataobj, affine, header=None,
-                 extra=None, file_map=None):
+                 extra=None, file_map=None, dtype=None):
+        # Special carve-out for 64 bit integers
+        # See GitHub issues
+        #  * https://github.com/nipy/nibabel/issues/1046
+        #  * https://github.com/nipy/nibabel/issues/1089
+        # This only applies to NIfTI because the parent Analyze formats did
+        # not support 64-bit integer data, so `set_data_dtype(int64)` would
+        # already fail.
+        danger_dts = (np.dtype("int64"), np.dtype("uint64"))
+        if header is None and dtype is None and get_obj_dtype(dataobj) in danger_dts:
+            msg = (f"Image data has type {dataobj.dtype}, which may cause "
+                   "incompatibilities with other tools. This will error in "
+                   "NiBabel 5.0. This warning can be silenced "
+                   f"by passing the dtype argument to {self.__class__.__name__}().")
+            warnings.warn(msg, FutureWarning, stacklevel=2)
         super(Nifti1Pair, self).__init__(dataobj,
                                          affine,
                                          header,
                                          extra,
-                                         file_map)
+                                         file_map,
+                                         dtype)
         # Force set of s/q form when header is None unless affine is also None
         if header is None and affine is not None:
             self._affine2header()
@@ -1865,7 +1926,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         Examples
         --------
-        >>> data = np.arange(24).reshape((2,3,4))
+        >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
         >>> aff = np.diag([2, 3, 4, 1])
         >>> img = Nifti1Pair(data, aff)
         >>> img.get_qform()
@@ -1948,7 +2009,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         Examples
         --------
-        >>> data = np.arange(24).reshape((2,3,4))
+        >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
         >>> aff = np.diag([2, 3, 4, 1])
         >>> img = Nifti1Pair(data, aff)
         >>> img.get_sform()

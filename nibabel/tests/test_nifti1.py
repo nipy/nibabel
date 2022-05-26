@@ -765,12 +765,29 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     image_class = Nifti1Pair
     supported_np_types = TestNifti1PairHeader.supported_np_types
 
+    def test_int64_warning(self):
+        # Verify that initializing with (u)int64 data and no
+        # header/dtype info produces a warning
+        img_klass = self.image_class
+        hdr_klass = img_klass.header_class
+        for dtype in (np.int64, np.uint64):
+            data = np.arange(24, dtype=dtype).reshape((2, 3, 4))
+            with pytest.warns(FutureWarning):
+                img_klass(data, np.eye(4))
+            # No warnings if we're explicit, though
+            with clear_and_catch_warnings():
+                warnings.simplefilter("error")
+                img_klass(data, np.eye(4), dtype=dtype)
+                hdr = hdr_klass()
+                hdr.set_data_dtype(dtype)
+                img_klass(data, np.eye(4), hdr)
+
     def test_none_qsform(self):
         # Check that affine gets set to q/sform if header is None
         img_klass = self.image_class
         hdr_klass = img_klass.header_class
         shape = (2, 3, 4)
-        data = np.arange(24).reshape(shape)
+        data = np.arange(24, dtype='f4').reshape((2, 3, 4))
         # With specified affine
         aff = from_matvec(euler2mat(0.1, 0.2, 0.3), [11, 12, 13])
         for hdr in (None, hdr_klass()):
@@ -1040,7 +1057,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # is some thoughts by Mark Jenkinson:
         # http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/qsform_brief_usage
         IC = self.image_class
-        arr = np.arange(24).reshape((2, 3, 4))
+        arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
         aff = np.diag([2, 3, 4, 1])
         # Default is sform set, qform not set
         img = IC(arr, aff)
@@ -1073,7 +1090,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
 
     def test_read_no_extensions(self):
         IC = self.image_class
-        arr = np.arange(24).reshape((2, 3, 4))
+        arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
         img = IC(arr, np.eye(4))
         assert len(img.header.extensions) == 0
         img_rt = bytesio_round_trip(img)
@@ -1110,7 +1127,7 @@ class TestNifti1Image(TestNifti1Pair):
     def test_offset_errors(self):
         # Test that explicit offset too low raises error
         IC = self.image_class
-        arr = np.arange(24).reshape((2, 3, 4))
+        arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
         img = IC(arr, np.eye(4))
         assert img.header.get_data_offset() == 0
         # Saving with zero offset is OK
@@ -1365,7 +1382,7 @@ class TestNifti1General(object):
     def test_load(self):
         # test module level load.  We try to load a nii and an .img and a .hdr
         # and expect to get a nifti back of single or pair type
-        arr = np.arange(24).reshape((2, 3, 4))
+        arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
         aff = np.diag([2, 3, 4, 1])
         simg = self.single_class(arr, aff)
         pimg = self.pair_class(arr, aff)
@@ -1439,7 +1456,7 @@ class TestNifti1General(object):
 
     def test_reoriented_dim_info(self):
         # Check that dim_info is reoriented correctly
-        arr = np.arange(24).reshape((2, 3, 4))
+        arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
         # Start as RAS
         aff = np.diag([2, 3, 4, 1])
         simg = self.single_class(arr, aff)

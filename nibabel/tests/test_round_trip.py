@@ -17,9 +17,8 @@ DEBUG = False
 
 
 def round_trip(arr, out_dtype):
-    img = Nifti1Image(arr, np.eye(4))
+    img = Nifti1Image(arr, np.eye(4), dtype=out_dtype)
     img.file_map['image'].fileobj = BytesIO()
-    img.set_data_dtype(out_dtype)
     img.to_file_map()
     back = Nifti1Image.from_file_map(img.file_map)
     # Recover array and calculated scaling from array proxy object

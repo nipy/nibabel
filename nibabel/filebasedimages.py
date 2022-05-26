@@ -299,8 +299,8 @@ class FileBasedImage(object):
             file_map[key] = FileHolder(filename=fname)
         return file_map
 
-    def to_filename(self, filename):
-        """ Write image to files implied by filename string
+    def to_filename(self, filename, **kwargs):
+        r""" Write image to files implied by filename string
 
         Parameters
         ----------
@@ -308,15 +308,17 @@ class FileBasedImage(object):
            filename to which to save image.  We will parse `filename`
            with ``filespec_to_file_map`` to work out names for image,
            header etc.
+        \*\*kwargs : keyword arguments
+           Keyword arguments to format-specific save
 
         Returns
         -------
         None
         """
         self.file_map = self.filespec_to_file_map(filename)
-        self.to_file_map()
+        self.to_file_map(**kwargs)
 
-    def to_file_map(self, file_map=None):
+    def to_file_map(self, file_map=None, **kwargs):
         raise NotImplementedError
 
     @classmethod
@@ -552,13 +554,14 @@ class SerializableImage(FileBasedImage):
         file_map = klass.make_file_map({'image': bio, 'header': bio})
         return klass.from_file_map(file_map)
 
-    def to_bytes(self):
-        """ Return a ``bytes`` object with the contents of the file that would
+    def to_bytes(self, **kwargs):
+        r""" Return a ``bytes`` object with the contents of the file that would
         be written if the image were saved.
 
         Parameters
         ----------
-        None
+        \*\*kwargs : keyword arguments
+            Keyword arguments that may be passed to ``img.to_file_map()``
 
         Returns
         -------
@@ -569,5 +572,5 @@ class SerializableImage(FileBasedImage):
             raise NotImplementedError("to_bytes() is undefined for multi-file images")
         bio = io.BytesIO()
         file_map = self.make_file_map({'image': bio, 'header': bio})
-        self.to_file_map(file_map)
+        self.to_file_map(file_map, **kwargs)
         return bio.getvalue()

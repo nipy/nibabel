@@ -97,7 +97,7 @@ def test_adapt_affine():
 @needs_scipy
 def test_resample_from_to(caplog):
     # Test resampling from image to image / image space
-    data = np.arange(24).reshape((2, 3, 4))
+    data = np.arange(24, dtype='int32').reshape((2, 3, 4))
     affine = np.diag([-4, 5, 6, 1])
     img = Nifti1Image(data, affine)
     img.header['descrip'] = 'red shirt image'
@@ -186,7 +186,7 @@ def test_resample_from_to(caplog):
     out = resample_from_to(img, (img_2d.shape, img_2d.affine))
     assert_array_equal(out.dataobj, data[:, :, 0])
     # 4D input and output also OK
-    data_4d = np.arange(24 * 5).reshape((2, 3, 4, 5))
+    data_4d = np.arange(24 * 5, dtype='int32').reshape((2, 3, 4, 5))
     img_4d = Nifti1Image(data_4d, affine)
     out = resample_from_to(img_4d, img_4d)
     assert_almost_equal(data_4d, out.dataobj)
@@ -202,7 +202,7 @@ def test_resample_from_to(caplog):
 def test_resample_to_output(caplog):
     # Test routine to sample iamges to output space
     # Image aligned to output axes - no-op
-    data = np.arange(24).reshape((2, 3, 4))
+    data = np.arange(24, dtype='int32').reshape((2, 3, 4))
     img = Nifti1Image(data, np.eye(4))
     # Check default resampling
     img2 = resample_to_output(img)
@@ -305,7 +305,7 @@ def test_resample_to_output(caplog):
 @needs_scipy
 def test_smooth_image(caplog):
     # Test image smoothing
-    data = np.arange(24).reshape((2, 3, 4))
+    data = np.arange(24, dtype='int32').reshape((2, 3, 4))
     aff = np.diag([-4, 5, 6, 1])
     img = Nifti1Image(data, aff)
     # Zero smoothing is no-op
@@ -332,7 +332,7 @@ def test_smooth_image(caplog):
     with pytest.raises(ValueError):
         smooth_image(img_2d, [8, 8, 8])
     # Isotropic in 4D has zero for last dimension in scalar case
-    data_4d = np.arange(24 * 5).reshape((2, 3, 4, 5))
+    data_4d = np.arange(24 * 5, dtype='int32').reshape((2, 3, 4, 5))
     img_4d = Nifti1Image(data_4d, aff)
     exp_out = spnd.gaussian_filter(data_4d, list(sd) + [0], mode='nearest')
     assert_array_equal(smooth_image(img_4d, 8).dataobj, exp_out)
