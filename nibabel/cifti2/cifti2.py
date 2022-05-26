@@ -41,6 +41,22 @@ class Cifti2HeaderError(Exception):
     """
 
 
+_dtdefs = (  # code, label, dtype definition, niistring
+    (2, 'uint8', np.uint8, "NIFTI_TYPE_UINT8"),
+    (4, 'int16', np.int16, "NIFTI_TYPE_INT16"),
+    (8, 'int32', np.int32, "NIFTI_TYPE_INT32"),
+    (16, 'float32', np.float32, "NIFTI_TYPE_FLOAT32"),
+    (64, 'float64', np.float64, "NIFTI_TYPE_FLOAT64"),
+    (256, 'int8', np.int8, "NIFTI_TYPE_INT8"),
+    (512, 'uint16', np.uint16, "NIFTI_TYPE_UINT16"),
+    (768, 'uint32', np.uint32, "NIFTI_TYPE_UINT32"),
+    (1024, 'int64', np.int64, "NIFTI_TYPE_INT64"),
+    (1280, 'uint64', np.uint64, "NIFTI_TYPE_UINT64"),
+)
+
+# Make full code alias bank, including dtype column
+data_type_codes = make_dt_codes(_dtdefs)
+
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
                    'CIFTI_INDEX_TYPE_SERIES',
@@ -101,6 +117,10 @@ def _underscore(string):
     """ Convert a string from CamelCase to underscored """
     string = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', string)
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
+
+
+class LimitedNifti2Header(Nifti2Header):
+    _data_type_codes = data_type_codes
 
 
 class Cifti2MetaData(CaretMetaData):
@@ -1392,7 +1412,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
             header = Cifti2Header.from_axes(header)
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
-        self._nifti_header = Nifti2Header.from_header(nifti_header)
+        self._nifti_header = LimitedNifti2Header.from_header(nifti_header)
 
         # if NIfTI header not specified, get data type from input array
         if nifti_header is None:
