@@ -19,6 +19,10 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 import re
 from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
+from warnings import warn
+
+import numpy as np
+
 from .. import xmlutils as xml
 from ..filebasedimages import FileBasedHeader, SerializableImage
 from ..dataobj_images import DataobjImage
@@ -26,7 +30,7 @@ from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from ..caret import CaretMetaData
-from warnings import warn
+from ..volumeutils import make_dt_codes
 
 
 def _float_01(val):
@@ -1383,7 +1387,8 @@ class Cifti2Image(DataobjImage, SerializableImage):
                  header=None,
                  nifti_header=None,
                  extra=None,
-                 file_map=None):
+                 file_map=None,
+                 dtype=None):
         """ Initialize image
 
         The image is a combination of (dataobj, header), with optional metadata
@@ -1415,9 +1420,10 @@ class Cifti2Image(DataobjImage, SerializableImage):
         self._nifti_header = LimitedNifti2Header.from_header(nifti_header)
 
         # if NIfTI header not specified, get data type from input array
-        if nifti_header is None:
-            if hasattr(dataobj, 'dtype'):
-                self._nifti_header.set_data_dtype(dataobj.dtype)
+        if dtype is not None:
+            self.set_data_dtype(dtype)
+        elif nifti_header is None and hasattr(dataobj, 'dtype'):
+            self.set_data_dtype(dataobj.dtype)
         self.update_headers()
 
         if self._dataobj.shape != self.header.matrix.get_data_shape():
