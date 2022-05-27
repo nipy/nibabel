@@ -55,6 +55,8 @@ from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
 from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 
+from nibabel.arraywriters import WriterError
+
 
 def maybe_deprecated(meth_name):
     return pytest.deprecated_call() if meth_name == 'get_data' else nullcontext()
@@ -181,7 +183,7 @@ class GenericImageAPI(ValidateAPI):
         assert_array_equal(np.asanyarray(img.dataobj), data)
 
 
-class GetSetDtypeMixin(object):
+class GetSetDtypeMixin:
     """ Adds dtype tests
 
     Add this one if your image has ``get_data_dtype`` and ``set_data_dtype``.
@@ -666,6 +668,46 @@ class MakeImageAPI(LoadImageAPI):
             yield make_prox_imaker(arr.copy(), aff, hdr), params
 
 
+class DtypeOverrideMixin(GetSetDtypeMixin):
+    """ Test images that can accept ``dtype`` arguments to ``__init__`` and
+    ``to_file_map``
+    """
+
+    def validate_init_dtype_override(self, imaker, params):
+        img = imaker()
+        klass = img.__class__
+        for dtype in self.storable_dtypes:
+            if hasattr(img, 'affine'):
+                new_img = klass(img.dataobj, img.affine, header=img.header, dtype=dtype)
+            else:  # XXX This is for CIFTI-2, these validators might need refactoring
+                new_img = klass(img.dataobj, header=img.header, dtype=dtype)
+            assert new_img.get_data_dtype() == dtype
+
+            if self.has_scaling and self.can_save:
+                with np.errstate(invalid='ignore'):
+                    rt_img = bytesio_round_trip(new_img)
+                assert rt_img.get_data_dtype() == dtype
+
+    def validate_to_file_dtype_override(self, imaker, params):
+        if not self.can_save:
+            raise unittest.SkipTest
+        img = imaker()
+        orig_dtype = img.get_data_dtype()
+        fname = 'image' + self.standard_extension
+        with InTemporaryDirectory():
+            for dtype in self.storable_dtypes:
+                try:
+                    img.to_filename(fname, dtype=dtype)
+                except WriterError:
+                    # It's possible to try to save to a dtype that requires
+                    # scaling, and images without scale factors will fail.
+                    # We're not testing that here.
+                    continue
+                rt_img = img.__class__.from_filename(fname)
+                assert rt_img.get_data_dtype() == dtype
+                assert img.get_data_dtype() == orig_dtype
+
+
 class ImageHeaderAPI(MakeImageAPI):
     """ When ``self.image_maker`` is an image class, make header from class
     """
@@ -674,7 +716,12 @@ class ImageHeaderAPI(MakeImageAPI):
         return self.image_maker.header_class()
 
 
-class TestAnalyzeAPI(ImageHeaderAPI):
+class TestSpatialImageAPI(ImageHeaderAPI):
+    klass = image_maker = SpatialImage
+    can_save = False
+
+
+class TestAnalyzeAPI(TestSpatialImageAPI, DtypeOverrideMixin):
     """ General image validation API instantiated for Analyze images
     """
     klass = image_maker = AnalyzeImage
@@ -683,11 +730,6 @@ class TestAnalyzeAPI(ImageHeaderAPI):
     standard_extension = '.img'
     # Supported dtypes for storing to disk
     storable_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.float64)
-
-
-class TestSpatialImageAPI(TestAnalyzeAPI):
-    klass = image_maker = SpatialImage
-    can_save = False
 
 
 class TestSpm99AnalyzeAPI(TestAnalyzeAPI):
