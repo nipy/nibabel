@@ -2409,5 +2409,5 @@ def _get_analyze_compat_dtype(arr):
         return np.dtype('float32')
 
     raise ValueError(
-        f"Cannot find analyze-compatible dtype for array with {dtype=!s} (min={mn}, max={mx})"
+        f"Cannot find analyze-compatible dtype for array with dtype={dtype} (min={mn}, max={mx})"
     )
