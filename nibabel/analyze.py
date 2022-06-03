@@ -1020,13 +1020,24 @@ class AnalyzeImage(SpatialImage):
         inter = hdr['scl_inter'].item() if hdr.has_data_intercept else np.nan
         # Check whether to calculate slope / inter
         scale_me = np.all(np.isnan((slope, inter)))
-        if scale_me:
-            arr_writer = make_array_writer(data,
-                                           out_dtype,
-                                           hdr.has_data_slope,
-                                           hdr.has_data_intercept)
-        else:
-            arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
+        try:
+            if scale_me:
+                arr_writer = make_array_writer(data,
+                                               out_dtype,
+                                               hdr.has_data_slope,
+                                               hdr.has_data_intercept)
+            else:
+                arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
+        except WriterError:
+            # Restore any changed consumable values, in case caller catches
+            # Should match cleanup at the end of the method
+            hdr.set_data_offset(offset)
+            hdr.set_data_dtype(data_dtype)
+            if hdr.has_data_slope:
+                hdr['scl_slope'] = slope
+            if hdr.has_data_intercept:
+                hdr['scl_inter'] = inter
+            raise
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
         # analyze images but most often this is because it's a single nifti
