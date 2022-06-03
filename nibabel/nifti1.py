@@ -898,26 +898,28 @@ class Nifti1Header(SpmAnalyzeHeader):
         >>> hdr.set_data_dtype(np.dtype(np.uint8))
         >>> hdr.get_data_dtype()
         dtype('uint8')
-        >>> hdr.set_data_dtype('implausible') #doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> hdr.set_data_dtype('implausible')
         Traceback (most recent call last):
            ...
-        HeaderDataError: data dtype "implausible" not recognized
-        >>> hdr.set_data_dtype('none') #doctest: +IGNORE_EXCEPTION_DETAIL
+        nibabel.spatialimages.HeaderDataError: data dtype "implausible" not recognized
+        >>> hdr.set_data_dtype('none')
         Traceback (most recent call last):
            ...
-        HeaderDataError: data dtype "none" known but not supported
-        >>> hdr.set_data_dtype(np.void) #doctest: +IGNORE_EXCEPTION_DETAIL
+        nibabel.spatialimages.HeaderDataError: data dtype "none" known but not supported
+        >>> hdr.set_data_dtype(np.void)
         Traceback (most recent call last):
            ...
-        HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
-        >>> hdr.set_data_dtype('int') #doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-           ...
-        ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
-        >>> hdr.set_data_dtype(int) #doctest: +IGNORE_EXCEPTION_DETAIL
+        nibabel.spatialimages.HeaderDataError: data dtype "<class 'numpy.void'>" known
+        but not supported
+        >>> hdr.set_data_dtype('int')
         Traceback (most recent call last):
            ...
         ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
+        >>> hdr.set_data_dtype(int)
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid data type <class 'int'>. Specify a sized integer, e.g., 'uint8' or
+        numpy.int16.
         >>> hdr.set_data_dtype('int64')
         >>> hdr.get_data_dtype() == np.dtype('int64')
         True
@@ -2057,7 +2059,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         The following aliases are defined to allow for flexible specification:
 
           * ``'mask'`` - Alias for ``uint8``
-          * ``'compat'`` - The smallest Analyze-compatible datatype
+          * ``'compat'`` - The nearest Analyze-compatible datatype
             (``uint8``, ``int16``, ``int32``, ``float32``)
           * ``'smallest'`` - The smallest Analyze-compatible integer
             (``uint8``, ``int16``, ``int32``)
@@ -2081,9 +2083,9 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> img.get_data_dtype()
         'compat'
         >>> img.get_data_dtype(finalize=True)
-        dtype('uint8')
+        dtype('<i4')
         >>> img.get_data_dtype()
-        dtype('uint8')
+        dtype('<i4')
         >>> img.set_data_dtype('smallest')
         >>> img.get_data_dtype()
         'smallest'
@@ -2095,31 +2097,39 @@ class Nifti1Pair(analyze.AnalyzeImage):
         Note that floating point values will not be coerced to ``int``
 
         >>> floats = np.arange(24, dtype='f4').reshape((2,3,4))
-        >>> img = Nifti1Image(ints, np.eye(4))
+        >>> img = Nifti1Image(floats, np.eye(4))
+        >>> img.set_data_dtype('smallest')
+        >>> img.get_data_dtype(finalize=True)
+        Traceback (most recent call last):
+           ...
+        ValueError: Cannot automatically cast array (of type float32) to an integer
+        type with fewer than 64 bits. Please set_data_dtype() to an explicit data type.
 
         >>> arr = np.arange(1000, 1024, dtype='i4').reshape((2,3,4))
         >>> img = Nifti1Image(arr, np.eye(4))
         >>> img.set_data_dtype('smallest')
-        >>> img.set_data_dtype('implausible') #doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> img.set_data_dtype('implausible')
         Traceback (most recent call last):
            ...
-        HeaderDataError: data dtype "implausible" not recognized
-        >>> img.set_data_dtype('none') #doctest: +IGNORE_EXCEPTION_DETAIL
+        nibabel.spatialimages.HeaderDataError: data dtype "implausible" not recognized
+        >>> img.set_data_dtype('none')
         Traceback (most recent call last):
            ...
-        HeaderDataError: data dtype "none" known but not supported
-        >>> img.set_data_dtype(np.void) #doctest: +IGNORE_EXCEPTION_DETAIL
+        nibabel.spatialimages.HeaderDataError: data dtype "none" known but not supported
+        >>> img.set_data_dtype(np.void)
         Traceback (most recent call last):
            ...
-        HeaderDataError: data dtype "<type 'numpy.void'>" known but not supported
-        >>> img.set_data_dtype('int') #doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-           ...
-        ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
-        >>> img.set_data_dtype(int) #doctest: +IGNORE_EXCEPTION_DETAIL
+        nibabel.spatialimages.HeaderDataError: data dtype "<class 'numpy.void'>" known
+        but not supported
+        >>> img.set_data_dtype('int')
         Traceback (most recent call last):
            ...
         ValueError: Invalid data type 'int'. Specify a sized integer, e.g., 'uint8' or numpy.int16.
+        >>> img.set_data_dtype(int)
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid data type <class 'int'>. Specify a sized integer, e.g., 'uint8' or
+        numpy.int16.
         >>> img.set_data_dtype('int64')
         >>> img.get_data_dtype() == np.dtype('int64')
         True
