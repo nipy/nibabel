@@ -2301,11 +2301,22 @@ def _get_smallest_dtype(
     >>> _get_smallest_dtype(np.array([-65536, 65536]))
     dtype('int32')
     >>> _get_smallest_dtype(np.array([-2147483648, 2147483648]))
+
+    By default floating point types are not searched:
+
     >>> _get_smallest_dtype(np.array([1.]))
-    dtype('float32')
     >>> _get_smallest_dtype(np.array([2. ** 1000]))
     >>> _get_smallest_dtype(np.longdouble(2) ** 2000)
     >>> _get_smallest_dtype(np.array([1+0j]))
+
+    However, this function can be passed "legal" floating point types, and
+    the logic works the same.
+
+    >>> _get_smallest_dtype(np.array([1.]), ftypes=('float32',))
+    dtype('float32')
+    >>> _get_smallest_dtype(np.array([2. ** 1000]), ftypes=('float32',))
+    >>> _get_smallest_dtype(np.longdouble(2) ** 2000, ftypes=('float32',))
+    >>> _get_smallest_dtype(np.array([1+0j]), ftypes=('float32',))
     """
     arr = np.asanyarray(arr)
     if np.issubdtype(arr.dtype, np.floating):
