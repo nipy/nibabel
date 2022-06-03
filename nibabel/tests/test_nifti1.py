@@ -1119,6 +1119,63 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
             with np.errstate(invalid='ignore'):
                 self._check_write_scaling(slope, inter, e_slope, e_inter)
 
+    def test_dynamic_dtype_aliases(self):
+        for in_dt, mn, mx, alias, effective_dt in [
+                (np.uint8, 0, 255, 'compat', np.uint8),
+                (np.int8, 0, 127, 'compat', np.uint8),
+                (np.int8, -128, 127, 'compat', np.int16),
+                (np.int16, -32768, 32767, 'compat', np.int16),
+                (np.uint16, 0, 32767, 'compat', np.int16),
+                (np.uint16, 0, 65535, 'compat', np.int32),
+                (np.int32, -2**31, 2**31-1, 'compat', np.int32),
+                (np.uint32, 0, 2**31-1, 'compat', np.int32),
+                (np.uint32, 0, 2**32-1, 'compat', None),
+                (np.int64, -2**31, 2**31-1, 'compat', np.int32),
+                (np.uint64, 0, 2**31-1, 'compat', np.int32),
+                (np.int64, 0, 2**32-1, 'compat', None),
+                (np.uint64, 0, 2**32-1, 'compat', None),
+                (np.float32, 0, 1e30, 'compat', np.float32),
+                (np.float64, 0, 1e30, 'compat', np.float32),
+                (np.float64, 0, 1e40, 'compat', None),
+                (np.int64, 0, 255, 'smallest', np.uint8),
+                (np.int64, 0, 256, 'smallest', np.int16),
+                (np.int64, -1, 255, 'smallest', np.int16),
+                (np.int64, 0, 32768, 'smallest', np.int32),
+                (np.int64, 0, 4294967296, 'smallest', None),
+                (np.float32, 0, 1, 'smallest', None),
+                (np.float64, 0, 1, 'smallest', None)
+                ]:
+            arr = np.arange(24, dtype=in_dt).reshape((2, 3, 4))
+            arr[0, 0, :2] = [mn, mx]
+            img = self.image_class(arr, np.eye(4), dtype=alias)
+            # Stored as alias
+            assert img.get_data_dtype() == alias
+            if effective_dt is None:
+                with pytest.raises(ValueError):
+                    img.get_data_dtype(finalize=True)
+                continue
+            # Finalizing sets and clears the alias
+            assert img.get_data_dtype(finalize=True) == effective_dt
+            assert img.get_data_dtype() == effective_dt
+            # Re-set to alias
+            img.set_data_dtype(alias)
+            assert img.get_data_dtype() == alias
+            img_rt = bytesio_round_trip(img)
+            assert img_rt.get_data_dtype() == effective_dt
+            # Seralizing does not finalize the source image
+            assert img.get_data_dtype() == alias
+
+    def test_static_dtype_aliases(self):
+        for alias, effective_dt in [
+                ("mask", np.uint8),
+                ]:
+            for orig_dt in ('u1', 'i8', 'f4'):
+                arr = np.arange(24, dtype=orig_dt).reshape((2, 3, 4))
+                img = self.image_class(arr, np.eye(4), dtype=alias)
+                assert img.get_data_dtype() == effective_dt
+                img_rt = bytesio_round_trip(img)
+                assert img_rt.get_data_dtype() == effective_dt
+
 
 class TestNifti1Image(TestNifti1Pair):
     # Run analyze-flavor spatialimage tests
