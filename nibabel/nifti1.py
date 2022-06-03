@@ -2153,10 +2153,10 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         datatype = None
         if self._dtype_alias == 'compat':
-            datatype = _get_smallest_dtype(self._dataobj)
+            datatype = _get_analyze_compat_dtype(self._dataobj)
             descrip = "an Analyze-compatible dtype"
         elif self._dtype_alias == 'smallest':
-            datatype = _get_smallest_dtype(self._dataobj, ftypes=())
+            datatype = _get_smallest_dtype(self._dataobj)
             descrip = "an integer type with fewer than 64 bits"
         else:
             raise ValueError(f"Unknown dtype alias {self._dtype_alias}.")
@@ -2266,7 +2266,7 @@ def save(img, filename):
 def _get_smallest_dtype(
         arr,
         itypes=(np.uint8, np.int16, np.int32),
-        ftypes=(np.float32,),
+        ftypes=(),
         ):
     """ Return the smallest "sensible" dtype that will hold the array data
 
@@ -2310,3 +2310,78 @@ def _get_smallest_dtype(
         dtinfo = info(dt)
         if dtinfo.min <= mn and mx <= dtinfo.max:
             return np.dtype(dt)
+
+
+def _get_analyze_compat_dtype(arr):
+    """ Return an Analyze-compatible dtype that ``arr`` can be safely cast to
+
+    Analyze-compatible types are returned without inspection:
+
+    >>> _get_analyze_compat_dtype(np.uint8([0, 1]))
+    dtype('uint8')
+    >>> _get_analyze_compat_dtype(np.int16([0, 1]))
+    dtype('int16')
+    >>> _get_analyze_compat_dtype(np.int32([0, 1]))
+    dtype('int32')
+    >>> _get_analyze_compat_dtype(np.float32([0, 1]))
+    dtype('float32')
+
+    Signed ``int8`` are cast to ``uint8`` or ``int16`` based on value ranges:
+
+    >>> _get_analyze_compat_dtype(np.int8([0, 1]))
+    dtype('uint8')
+    >>> _get_analyze_compat_dtype(np.int8([-1, 1]))
+    dtype('int16')
+
+    Unsigned ``uint16`` are cast to ``int16`` or ``int32`` based on value ranges:
+
+    >>> _get_analyze_compat_dtype(np.uint16([32767]))
+    dtype('int16')
+    >>> _get_analyze_compat_dtype(np.uint16([65535]))
+    dtype('int32')
+
+    ``int32`` is returned for integer types and ``float32`` for floating point types:
+
+    >>> _get_analyze_compat_dtype(np.array([-1, 1]))
+    dtype('int32')
+    >>> _get_analyze_compat_dtype(np.array([-1., 1.]))
+    dtype('float32')
+
+    If the value ranges exceed 4 bytes or cannot be cast, then a ``ValueError`` is raised:
+
+    >>> _get_analyze_compat_dtype(np.array([0, 4294967295]))
+    Traceback (most recent call last):
+       ...
+    ValueError: Cannot find analyze-compatible dtype for array with dtype=int64 (min=0, max=4294967295)
+
+    >>> _get_analyze_compat_dtype([0., 2.e40])
+    Traceback (most recent call last):
+       ...
+    ValueError: Cannot find analyze-compatible dtype for array with dtype=float64 (min=0.0, max=2e+40)
+
+    Note that real-valued complex arrays cannot be safely cast.
+
+    >>> _get_analyze_compat_dtype(np.array([1+0j]))
+    Traceback (most recent call last):
+       ...
+    ValueError: Cannot find analyze-compatible dtype for array with dtype=complex128 (min=(1+0j), max=(1+0j))
+    """
+    arr = np.asanyarray(arr)
+    dtype = arr.dtype
+    if dtype in (np.uint8, np.int16, np.int32, np.float32):
+        return dtype
+
+    if dtype == np.int8:
+        return np.dtype('uint8' if arr.min() >= 0 else 'int16')
+    elif dtype == np.uint16:
+        return np.dtype('int16' if arr.max() <= np.iinfo(np.int16).max else 'int32')
+
+    mn, mx = arr.min(), arr.max()
+    if np.can_cast(mn, np.int32) and np.can_cast(mx, np.int32):
+        return np.dtype('int32')
+    if np.can_cast(mn, np.float32) and np.can_cast(mx, np.float32):
+        return np.dtype('float32')
+
+    raise ValueError(
+        f"Cannot find analyze-compatible dtype for array with {dtype=!s} (min={mn}, max={mx})"
+    )
