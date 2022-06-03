@@ -2124,7 +2124,9 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> img.get_data_dtype() == np.dtype('int64')
         True
         """
-        # Numpy dtype comparison can fail in odd ways, check for aliases only if str
+        # Comparing dtypes to strings, numpy will attempt to call, e.g., dtype('mask'),
+        # so only check for aliases if the type is a string
+        # See https://github.com/numpy/numpy/issues/7242
         if isinstance(datatype, str):
             # Static aliases
             if datatype == 'mask':
