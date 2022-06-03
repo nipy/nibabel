@@ -2354,19 +2354,22 @@ def _get_analyze_compat_dtype(arr):
     >>> _get_analyze_compat_dtype(np.array([0, 4294967295]))
     Traceback (most recent call last):
        ...
-    ValueError: Cannot find analyze-compatible dtype for array with dtype=int64 (min=0, max=4294967295)
+    ValueError: Cannot find analyze-compatible dtype for array with dtype=int64
+        (min=0, max=4294967295)
 
     >>> _get_analyze_compat_dtype([0., 2.e40])
     Traceback (most recent call last):
        ...
-    ValueError: Cannot find analyze-compatible dtype for array with dtype=float64 (min=0.0, max=2e+40)
+    ValueError: Cannot find analyze-compatible dtype for array with dtype=float64
+        (min=0.0, max=2e+40)
 
     Note that real-valued complex arrays cannot be safely cast.
 
     >>> _get_analyze_compat_dtype(np.array([1+0j]))
     Traceback (most recent call last):
        ...
-    ValueError: Cannot find analyze-compatible dtype for array with dtype=complex128 (min=(1+0j), max=(1+0j))
+    ValueError: Cannot find analyze-compatible dtype for array with dtype=complex128
+        (min=(1+0j), max=(1+0j))
     """
     arr = np.asanyarray(arr)
     dtype = arr.dtype
