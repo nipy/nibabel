@@ -41,7 +41,7 @@ New features
 * Add ``dtype`` arguments to ``Cifti2Image`` (pr/1111) (CM)
 * Allow dtypes to be passed to Analyze-like images at ``__init__()`` and
   ``to_filename()`` to provide better control over output images. (pr/1082)
-   (CM, following discussions with Chris Rorden, Josh Teves, Jerome Dockes, and MB)
+  (CM, following discussions with Chris Rorden, Josh Teves, Jerome Dockes, and MB)
 * Allow compressed GIFTI images (MB, reviewed by CM)
 * Add zstd compression support (pr/1005) (Andrew Van, reviewed by CM)
 * Support ``ExternalFileBinary`` GIFTI data arrays (PM, reviewed by CM)
@@ -92,19 +92,20 @@ API changes and deprecations
 * Drop support for Python 3.6, Numpy < 1.17 (pr/1079) (CM)
 * Fully removed the following APIs, which have raised errors on use
   since 3.0 (pr/980) (CM, reviewed by Jonathan Daniel)
-   * ``nibabel.trackvis``
-   * ``nibabel.volumeutils.calculate_scale``
-   * ``nibabel.volumeutils.can_cast``
-   * ``nibabel.volumeutils.scale_min_max``
-   * ``nibabel.dataobj_images.DataobjImage.get_shape``
-   * ``nibabel.minc1.MincImage`` (use ``Minc1Image``)
-   * ``nibabel.minc1.MincFile`` (use ``Minc1File``)
-   * ``nibabel.filebasedimages.FileBasedImage.from_files``
-   * ``nibabel.filebasedimages.FileBasedImage.filespec_to_files``
-   * ``nibabel.filebasedimages.FileBasedImage.to_filespec``
-   * ``nibabel.filebasedimages.FileBasedImage.to_files``
-   * ``nibabel.arrayproxy.ArrayProxy.header``
-   * ``keep_file_open=="auto"`` parameter to load method (now must be boolean)
+
+    * ``nibabel.trackvis``
+    * ``nibabel.volumeutils.calculate_scale``
+    * ``nibabel.volumeutils.can_cast``
+    * ``nibabel.volumeutils.scale_min_max``
+    * ``nibabel.dataobj_images.DataobjImage.get_shape``
+    * ``nibabel.minc1.MincImage`` (use ``Minc1Image``)
+    * ``nibabel.minc1.MincFile`` (use ``Minc1File``)
+    * ``nibabel.filebasedimages.FileBasedImage.from_files``
+    * ``nibabel.filebasedimages.FileBasedImage.filespec_to_files``
+    * ``nibabel.filebasedimages.FileBasedImage.to_filespec``
+    * ``nibabel.filebasedimages.FileBasedImage.to_files``
+    * ``nibabel.arrayproxy.ArrayProxy.header``
+    * ``keep_file_open=="auto"`` parameter to load method (now must be boolean)
 
 
 3.2.2 (Monday 7 February 2022)

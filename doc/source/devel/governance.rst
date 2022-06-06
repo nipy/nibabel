@@ -55,13 +55,13 @@ activities.
 
 Core developers:
 
-======              ===========
+================    =============
 Name                GitHub user
-======              ===========
+================    =============
 Chris Markiewicz    effigies
 Matthew Brett       matthew-brett
 Oscar Esteban       oesteban
-======              ===========
+================    =============
 
 Core developers also appear as team members on the `Nibabel Core Team page
 <https://github.com/orgs/nipy/teams/nibabel-core-developers/members>`_ and can
@@ -94,14 +94,14 @@ in a reasonable timeframe, the SC is the entity that resolves the issue.
 
 The steering council is:
 
-======              ===========
+=================== =============
 Name                GitHub user
-======              ===========
+=================== =============
 Chris Markiewicz    effigies
 Matthew Brett       matthew-brett
 Michael Hanke       mih
 Yaroslav Halchenko  yarikoptic
-======              ===========
+=================== =============
 
 Steering Council members also appear as team members on the `Nibabel Steering
 Council Team page
