@@ -25,8 +25,90 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+4.0.0 (To be determined)
+========================
+
+New feature release in the 4.0.x series.
+
+New features
+------------
+* Add ``'mask'``, ``'compat'`` and ``'smallest'`` dtype aliases to NIfTI images
+  to allow for dtype specifications that can depend on the contents of the data.
+  ``'mask'`` is a synonym for ``uint8``. ``'compat'`` will find the nearest
+  Analyze-compatible (therefore widely supported) dtype that will not truncate
+  the data. ``'smallest'`` attempts to find the smallest integer dtype that will
+  contain the data. (pr/1096) (CM, reviewed by Chris Rorden and Josh Teves)
+* Add ``dtype`` arguments to ``Cifti2Image`` (pr/1111) (CM)
+* Allow dtypes to be passed to Analyze-like images at ``__init__()`` and
+  ``to_filename()`` to provide better control over output images. (pr/1082)
+   (CM, following discussions with Chris Rorden, Josh Teves, Jerome Dockes, and MB)
+* Allow compressed GIFTI images (MB, reviewed by CM)
+* Add zstd compression support (pr/1005) (Andrew Van, reviewed by CM)
+* Support ``ExternalFileBinary`` GIFTI data arrays (PM, reviewed by CM)
+
+Enhancements
+------------
+* Document ``InTemporaryDirectory`` as non-thread-safe (pr/1103) (Jacob Roberts,
+  reviewed by MB)
+* Unify Caret-XML-style metadata structure (GiftiMetaData, Cifti2MetaData)
+  as dict-like (pr/1091) (CM, reviewed by Josh Teves and Hao-Ting Wang)
+* Add ``__repr__`` methods to GIFTI objects (pr/1092) (CM,
+  reviewed by Josh Teves and Hao-Ting Wang)
+* Create gzip header deterministically by default (pr/1024) (CM, reviewed by YOH)
+* Provide clear error message when files with zip extensions don't match
+  file contents (pr/1013) (Jérôme Dockès, reviewed by CM)
+
+Bug fixes
+---------
+* Re-import externals/netcdf.py from scipy to resolve numpy API change (pr/1110)
+  (CM)
+* Resize ArraySequence.data without helper function to avoid reference increment
+  (pr/1093) (MC, reviewed by CM)
+
+Maintenance
+-----------
+* Update submodule URLs to use https over git protocol (pr/1097) (CM)
+* Published BIAP 9: CoordinateImage API (pr/1084) (CM)
+* Drop uses of deprecated ``distutils`` (pr/1073) (CM, reviewed by MB)
+* Suppress LGTM false alarm "Clear-text logging of sensitive information"
+  (pr/1052) (Dimitri Papadopoulos, reviewed by CM)
+* Test on Python 3.10 (pr/1047) (CM)
+* Fix typos found by codespell (pr/1040, pr/1044)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Run stable tests weekly, pre-release tests nightly (pr/1025) (CM)
+* Documentation updates to establish/clarify governance and decision
+  making (pr/1019, pr/1020, pr/1022, pr/1018, pr/1017, pr/1016) (MB and CM)
+
+API changes and deprecations
+----------------------------
+* Writing NIfTIs with 64-bit integer dtypes is getting harder.
+  Passing ``(u)int64`` arrays to ``Nifti1Image`` and subclasses will warn unless
+  a ``header`` or ``dtype`` option is passed; in the future this will become an
+  error.
+  Additionally, passing ``int`` or ``'int'`` to ``set_data_dtype()`` now raises
+  an error, requiring an explicit numpy dtype to make 64-bit integer images.
+  (pr/1082) (CM, following discussions with Chris Rorden, Josh Teves, Jerome Dockes,
+  and MB)
+* Drop support for Python 3.6, Numpy < 1.17 (pr/1079) (CM)
+* Fully removed the following APIs, which have raised errors on use
+  since 3.0 (pr/980) (CM, reviewed by Jonathan Daniel)
+   * ``nibabel.trackvis``
+   * ``nibabel.volumeutils.calculate_scale``
+   * ``nibabel.volumeutils.can_cast``
+   * ``nibabel.volumeutils.scale_min_max``
+   * ``nibabel.dataobj_images.DataobjImage.get_shape``
+   * ``nibabel.minc1.MincImage`` (use ``Minc1Image``)
+   * ``nibabel.minc1.MincFile`` (use ``Minc1File``)
+   * ``nibabel.filebasedimages.FileBasedImage.from_files``
+   * ``nibabel.filebasedimages.FileBasedImage.filespec_to_files``
+   * ``nibabel.filebasedimages.FileBasedImage.to_filespec``
+   * ``nibabel.filebasedimages.FileBasedImage.to_files``
+   * ``nibabel.arrayproxy.ArrayProxy.header``
+   * ``keep_file_open=="auto"`` parameter to load method (now must be boolean)
+
+
 3.2.2 (Monday 7 February 2022)
-=================================
+==============================
 
 Bug fix release in the 3.2.x series.
 
@@ -557,7 +639,7 @@ Maintenance
 * Use SSH address to use key-based auth (pr/587) (CM, reviewed by MB)
 * Fix doctests for numpy 1.14 array printing (pr/591) (MB, reviewed by CM)
 * Refactor for pydicom 1.0 API changes (pr/599) (MB, reviewed by CM)
-* Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by 
+* Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by
   Yaroslav Halchenko, MB)
 * Move ``nib-ls`` and other programs to a new cmdline module (pr/601, pr/615)
   (Chris Cheng, reviewed by MB, Yaroslav Halchenko)
