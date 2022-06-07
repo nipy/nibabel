@@ -2180,6 +2180,24 @@ class Nifti1Pair(analyze.AnalyzeImage):
         self.set_data_dtype(datatype)  # Clears the alias
         return super().get_data_dtype()
 
+    def to_file_map(self, file_map=None, dtype=None):
+        """ Write image to `file_map` or contained ``self.file_map``
+
+        Parameters
+        ----------
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
+           attribute instead
+        dtype : dtype-like, optional
+           The on-disk data type to coerce the data array.
+        """
+        img_dtype = self.get_data_dtype()
+        self.get_data_dtype(finalize=True)
+        try:
+            super().to_file_map(file_map, dtype)
+        finally:
+            self.set_data_dtype(img_dtype)
+
     def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image
 
