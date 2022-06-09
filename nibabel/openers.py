@@ -96,6 +96,7 @@ class Opener(object):
         specified, is `rb`.  ``compresslevel``, if relevant, and not specified,
         is set from class variable ``default_compresslevel``. ``keep_open``, if
         relevant, and not specified, is ``False``.
+    compression : { None, "gz", "bz2", "zst" }, optional, keyworld only
     \*\*kwargs : keyword arguments
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
@@ -119,13 +120,13 @@ class Opener(object):
     #: whether to ignore case looking for compression extensions
     compress_ext_icase = True
 
-    def __init__(self, fileish, *args, **kwargs):
+    def __init__(self, fileish, *args, compression=None, **kwargs):
         if self._is_fileobj(fileish):
             self.fobj = fileish
             self.me_opened = False
             self._name = None
             return
-        opener, arg_names = self._get_opener_argnames(fileish)
+        opener, arg_names = self._get_opener_argnames(fileish, compression)
         # Get full arguments to check for mode and compresslevel
         full_kwargs = kwargs.copy()
         n_args = len(args)
@@ -151,7 +152,11 @@ class Opener(object):
         self._name = fileish
         self.me_opened = True
 
-    def _get_opener_argnames(self, fileish):
+    def _get_opener_argnames(self, fileish, compression):
+        if compression is not None:
+            if compression[0] != '.':
+                compression = f'.{compression}'
+            return self.compress_ext_map[compression]
         _, ext = splitext(fileish)
         if self.compress_ext_icase:
             ext = ext.lower()
