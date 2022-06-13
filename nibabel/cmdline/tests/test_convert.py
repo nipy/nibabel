@@ -32,11 +32,21 @@ def test_convert_noop(tmp_path):
     assert converted.shape == orig.shape
     assert converted.get_data_dtype() == orig.get_data_dtype()
 
+    infile = test_data(fname='resampled_anat_moved.nii')
+
     with pytest.raises(FileExistsError):
         convert.main([str(infile), str(outfile)])
 
     convert.main([str(infile), str(outfile), '--force'])
     assert outfile.is_file()
+
+    # Verify that we did overwrite
+    converted2 = nib.load(outfile)
+    assert not (
+        converted2.shape == converted.shape
+        and np.allclose(converted2.affine, converted.affine)
+        and np.allclose(converted2.get_fdata(), converted.get_fdata())
+    )
 
 
 @pytest.mark.parametrize('data_dtype', ('u1', 'i2', 'float32', 'float', 'int64'))
