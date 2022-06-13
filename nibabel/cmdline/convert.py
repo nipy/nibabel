@@ -33,7 +33,7 @@ def _get_parser():
                         "a new image like `infile` will be created and converted to a type "
                         "matching the extension of `outfile`.")
     p.add_argument("-f", "--force", action="store_true",
-                   help="Ignore warnings if possible")
+                   help="Overwrite output file if it exists, and ignore warnings if possible")
     p.add_argument("-V", "--version", action="version", version=f"{p.prog} {nib.__version__}")
 
     return p
