@@ -102,3 +102,9 @@ force-exclude = """
 profile = "black"
 line_length = 99
 extend_skip = ["_version.py", "externals"]
+
+[tool.mypy]
+python_version = "3.11"
+exclude = [
+  "/tests",
+]
