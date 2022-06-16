@@ -74,7 +74,6 @@ class FileBasedImage:
 
     properties:
 
-       * shape
        * header
 
     methods:
@@ -118,25 +117,6 @@ class FileBasedImage:
 
        img.to_file_map()
 
-    You can get the data out again with::
-
-        img.get_fdata()
-
-    Less commonly, for some image types that support it, you might want to
-    fetch out the unscaled array via the object containing the data::
-
-        unscaled_data = img.dataoobj.get_unscaled()
-
-    Analyze-type images (including nifti) support this, but others may not
-    (MINC, for example).
-
-    Sometimes you might to avoid any loss of precision by making the
-    data type the same as the input::
-
-        hdr = img.header
-        hdr.set_data_dtype(data.dtype)
-        img.to_filename(fname)
-
     **Files interface**
 
     The image has an attribute ``file_map``.  This is a mapping, that has keys
@@ -158,7 +138,7 @@ class FileBasedImage:
     contain enough information so that an existing image instance can save
     itself back to the files pointed to in ``file_map``.  When a file holder
     holds active file-like objects, then these may be affected by the
-    initial file read; in this case, the contains file-like objects need to
+    initial file read; in this case, the file-like objects need to
     carry the position at which a write (with ``to_file_map``) should place the
     data.  The ``file_map`` contents should therefore be such, that this will
     work.
