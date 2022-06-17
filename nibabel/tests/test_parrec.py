@@ -23,6 +23,7 @@ from numpy.testing import (assert_almost_equal,
 import pytest
 from ..testing import (clear_and_catch_warnings, suppress_warnings,
                        assert_arr_dict_equal)
+from ..deprecator import ExpiredDeprecationError
 
 from .test_arrayproxy import check_mmap
 from . import test_spatialimages as tsi
@@ -263,7 +264,7 @@ def test_affine_regression():
 
 def test_get_voxel_size_deprecated():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
-    with pytest.deprecated_call():
+    with pytest.raises(ExpiredDeprecationError):
         hdr.get_voxel_size()
 
 

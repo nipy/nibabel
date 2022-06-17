@@ -22,6 +22,7 @@ from ...spatialimages import HeaderDataError
 from ...volumeutils import sys_is_le
 from ...wrapstruct import WrapStructError
 from ... import imageglobals
+from ...deprecator import ExpiredDeprecationError
 
 
 import pytest
@@ -344,42 +345,13 @@ def test_deprecated_fields():
     hdr_data = MGHHeader._HeaderData(hdr.structarr)
 
     # mrparams is the only deprecated field at the moment
-    # Accessing hdr_data is equivalent to accessing hdr, so double all checks
-    with pytest.deprecated_call(match="from version: 2.3"):
-        assert_array_equal(hdr['mrparams'], 0)
-    assert_array_equal(hdr_data['mrparams'], 0)
-
-    with pytest.deprecated_call(match="from version: 2.3"):
+    # Accessing hdr_data is equivalent to accessing hdr, so double all checks,
+    # but expect success on hdr_data['mrparams']
+    with pytest.raises(ExpiredDeprecationError):
+        hdr['mrparams']
+    with pytest.raises(ExpiredDeprecationError):
         hdr['mrparams'] = [1, 2, 3, 4]
-    with pytest.deprecated_call(match="from version: 2.3"):
-        assert_array_almost_equal(hdr['mrparams'], [1, 2, 3, 4])
-    assert hdr['tr'] == 1
-    assert hdr['flip_angle'] == 2
-    assert hdr['te'] == 3
-    assert hdr['ti'] == 4
-    assert hdr['fov'] == 0
-    assert_array_almost_equal(hdr_data['mrparams'], [1, 2, 3, 4])
-    assert hdr_data['tr'] == 1
-    assert hdr_data['flip_angle'] == 2
-    assert hdr_data['te'] == 3
-    assert hdr_data['ti'] == 4
-    assert hdr_data['fov'] == 0
-
-    hdr['tr'] = 5
-    hdr['flip_angle'] = 6
-    hdr['te'] = 7
-    hdr['ti'] = 8
-    with pytest.deprecated_call(match="from version: 2.3"):
-        assert_array_almost_equal(hdr['mrparams'], [5, 6, 7, 8])
-    assert_array_almost_equal(hdr_data['mrparams'], [5, 6, 7, 8])
-
-    hdr_data['tr'] = 9
-    hdr_data['flip_angle'] = 10
-    hdr_data['te'] = 11
-    hdr_data['ti'] = 12
-    with pytest.deprecated_call(match="from version: 2.3"):
-        assert_array_almost_equal(hdr['mrparams'], [9, 10, 11, 12])
-    assert_array_almost_equal(hdr_data['mrparams'], [9, 10, 11, 12])
+    assert_array_equal(hdr_data['mrparams'], 0)
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):

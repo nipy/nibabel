@@ -22,6 +22,7 @@ from ..parse_gifti_fast import (Outputter, parse_gifti_file, GiftiParseError,
 from ...loadsave import load, save
 from ...nifti1 import xform_codes
 from ...tmpdirs import InTemporaryDirectory
+from ...deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_almost_equal
 
@@ -48,8 +49,8 @@ numDA = [2, 1, 1, 1, 2, 1, 2]
 
 DATA_FILE1_darr1 = np.array(
     [[-16.07201, -66.187515, 21.266994],
-        [-16.705893, -66.054337, 21.232786],
-        [-17.614349, -65.401642, 21.071466]])
+     [-16.705893, -66.054337, 21.232786],
+     [-17.614349, -65.401642, 21.071466]])
 DATA_FILE1_darr2 = np.array([0, 1, 2])
 
 DATA_FILE2_darr1 = np.array([[0.43635699],
@@ -189,14 +190,11 @@ def test_metadata_deprecations():
     me = img.meta
 
     # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        assert me == img.get_meta()
+    with pytest.raises(ExpiredDeprecationError):
+        img.get_meta()
 
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+    with pytest.raises(ExpiredDeprecationError):
         img.set_metadata(me)
-    assert me == img.meta
 
 
 def test_load_dataarray1():
@@ -321,12 +319,8 @@ def test_load_getbyintent():
     da = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")
     assert len(da) == 1
 
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        da = img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
-        assert len(da) == 1
-        assert len(w) == 1
-        w[0].category == DeprecationWarning
+    with pytest.raises(ExpiredDeprecationError):
+        img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
 
     da = img.get_arrays_from_intent("NIFTI_INTENT_TRIANGLE")
     assert len(da) == 1
@@ -360,16 +354,11 @@ def test_labeltable_deprecations():
     lt = img.labeltable
 
     # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        assert lt == img.get_labeltable()
-        assert len(w) == 1
+    with pytest.raises(ExpiredDeprecationError):
+        img.get_labeltable()
 
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
+    with pytest.raises(ExpiredDeprecationError):
         img.set_labeltable(lt)
-        assert len(w) == 1
-    assert lt == img.labeltable
 
 
 def test_parse_dataarrays():
@@ -395,16 +384,11 @@ def test_parse_dataarrays():
 def test_parse_deprecated():
 
     # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        op = Outputter()
-        assert len(w) == 1
-        op.initialize()  # smoke test--no error.
+    with pytest.raises(ExpiredDeprecationError):
+        Outputter()
 
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        pytest.raises(ValueError, parse_gifti_file)
-        assert len(w) == 1
+    with pytest.raises(ExpiredDeprecationError):
+        parse_gifti_file()
 
 
 def test_parse_with_buffersize():

@@ -29,6 +29,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
+from ..deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
@@ -273,33 +274,9 @@ def test_filename_save():
 def test_analyze_detection():
     # Test detection of Analyze, Nifti1 and Nifti2
     # Algorithm is as described in loadsave:which_analyze_type
-    def wat(hdr):
-        with pytest.deprecated_call():
-            return nils.which_analyze_type(hdr.binaryblock)
-    n1_hdr = Nifti1Header(b'\0' * 348, check=False)
-    assert wat(n1_hdr) is None
-    n1_hdr['sizeof_hdr'] = 540
-    assert wat(n1_hdr) == 'nifti2'
-    assert wat(n1_hdr.as_byteswapped()) == 'nifti2'
-    n1_hdr['sizeof_hdr'] = 348
-    assert wat(n1_hdr) == 'analyze'
-    assert wat(n1_hdr.as_byteswapped()) == 'analyze'
-    n1_hdr['magic'] = b'n+1'
-    assert wat(n1_hdr) == 'nifti1'
-    assert wat(n1_hdr.as_byteswapped()) == 'nifti1'
-    n1_hdr['magic'] = b'ni1'
-    assert wat(n1_hdr) == 'nifti1'
-    assert wat(n1_hdr.as_byteswapped()) == 'nifti1'
-    # Doesn't matter what magic is if it's not a nifti1 magic
-    n1_hdr['magic'] = b'ni2'
-    assert wat(n1_hdr) == 'analyze'
-    n1_hdr['sizeof_hdr'] = 0
-    n1_hdr['magic'] = b''
-    assert wat(n1_hdr) is None
-    n1_hdr['magic'] = 'n+1'
-    assert wat(n1_hdr) == 'nifti1'
-    n1_hdr['magic'] = 'ni1'
-    assert wat(n1_hdr) == 'nifti1'
+    hdr = Nifti1Header(b'\0' * 348, check=False)
+    with pytest.raises(ExpiredDeprecationError):
+        nils.which_analyze_type(hdr.binaryblock)
 
 
 def test_guessed_image_type():

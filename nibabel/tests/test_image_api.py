@@ -40,6 +40,7 @@ from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
                 MGHImage, Minc1Image, Minc2Image, is_proxy)
 from ..spatialimages import SpatialImage
 from .. import minc1, minc2, parrec, brikhead
+from ..deprecator import ExpiredDeprecationError
 
 import unittest
 import pytest
@@ -120,9 +121,8 @@ class GenericImageAPI(ValidateAPI):
     def validate_header_deprecated(self, imaker, params):
         # Check deprecated header API
         img = imaker()
-        with pytest.deprecated_call():
+        with pytest.raises(ExpiredDeprecationError):
             hdr = img.get_header()
-        assert hdr is img.header
 
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface
@@ -420,7 +420,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def validate_data_deprecated(self, imaker, params):
         # Check _data property still exists, but raises warning
         img = imaker()
-        with pytest.deprecated_call():
+        with pytest.raises(ExpiredDeprecationError):
             assert_data_similar(img._data, params)
         # Check setting _data raises error
         fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
@@ -519,12 +519,8 @@ class AffineMixin(object):
     def validate_affine_deprecated(self, imaker, params):
         # Check deprecated affine API
         img = imaker()
-        with pytest.deprecated_call():
-            assert_almost_equal(img.get_affine(), params['affine'], 6)
-            assert img.get_affine().dtype == np.float64
-            aff = img.get_affine()
-            aff[0, 0] = 1.5
-            assert aff is img.get_affine()
+        with pytest.raises(ExpiredDeprecationError):
+            img.get_affine()
 
 
 class SerializeMixin(object):

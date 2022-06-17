@@ -608,10 +608,7 @@ class MmapImageMixin(object):
 
 
 def test_header_deprecated():
-    with pytest.deprecated_call() as w:
-        class MyHeader(Header):
-            pass
-
-        assert len(w) == 0
+    class MyHeader(Header):
+        pass
+    with pytest.raises(ExpiredDeprecationError):
         MyHeader()
-        assert len(w) == 1
