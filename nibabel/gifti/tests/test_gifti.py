@@ -15,10 +15,11 @@ from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
 from ..gifti import data_tag
 from ...nifti1 import data_type_codes
 from ...fileholders import FileHolder
+from ...deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
-from ...testing import clear_and_catch_warnings, test_data
+from ...testing import test_data
 from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
                                     DATA_FILE4, DATA_FILE5, DATA_FILE6)
 import itertools
@@ -183,46 +184,29 @@ def test_dataarray_init():
 
 
 def test_dataarray_from_array():
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        da = GiftiDataArray.from_array(np.ones((3, 4)))
-        assert len(w) == 1
-        for dt_code in data_type_codes.value_set():
-            data_type = data_type_codes.type[dt_code]
-            if data_type is np.void:  # not supported
-                continue
-            arr = np.zeros((10, 3), dtype=data_type)
-            da = GiftiDataArray.from_array(arr, 'triangle')
-            assert da.datatype == data_type_codes[arr.dtype]
-            bs_arr = arr.byteswap().newbyteorder()
-            da = GiftiDataArray.from_array(bs_arr, 'triangle')
-            assert da.datatype == data_type_codes[arr.dtype]
+    with pytest.raises(ExpiredDeprecationError):
+        GiftiDataArray.from_array(np.ones((3, 4)))
 
 
 def test_to_xml_open_close_deprecations():
     # Smoke test on deprecated functions
     da = GiftiDataArray(np.ones((1,)), 'triangle')
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        assert isinstance(da.to_xml_open(), str)
-        assert len(w) == 1
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        assert isinstance(da.to_xml_close(), str)
-        assert len(w) == 1
+    with pytest.raises(ExpiredDeprecationError):
+        da.to_xml_open()
+    with pytest.raises(ExpiredDeprecationError):
+        da.to_xml_close()
 
 
 def test_num_dim_deprecation():
     da = GiftiDataArray(np.ones((2, 3, 4)))
     # num_dim is property, set automatically from len(da.dims)
     assert da.num_dim == 3
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        # OK setting num_dim to correct value, but raises DeprecationWarning
+    # setting num_dim to correct value is deprecated
+    with pytest.raises(ExpiredDeprecationError):
         da.num_dim = 3
-        assert len(w) == 1
-        # Any other value gives a ValueError
-        pytest.raises(ValueError, setattr, da, 'num_dim', 4)
+    # setting num_dim to incorrect value is also deprecated
+    with pytest.raises(ExpiredDeprecationError):
+        da.num_dim = 4
 
 
 def test_labeltable():
@@ -235,14 +219,10 @@ def test_labeltable():
     assert len(img.labeltable.labels) == 2
 
     # Test deprecations
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
+    with pytest.raises(ExpiredDeprecationError):
         newer_table = GiftiLabelTable()
         newer_table.labels += ['test', 'me', 'again']
         img.set_labeltable(newer_table)
-        assert len(w) == 1
-        assert len(img.get_labeltable().labels) == 3
-        assert len(w) == 2
 
 
 def test_metadata():
@@ -261,14 +241,8 @@ def test_metadata():
         assert md.data[0].value == 'value'
     assert len(w) == 2
     # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        assert md.get_metadata() == dict(key='value')
-        assert len(w) == 1
-        assert md.metadata == dict(key='value')
-        assert len(w) == 2
-        assert len(GiftiDataArray().get_metadata()) == 0
-        assert len(w) == 3
+    with pytest.raises(ExpiredDeprecationError):
+        md.get_metadata()
 
 
 def test_gifti_label_rgba():
@@ -295,10 +269,8 @@ def test_gifti_label_rgba():
     pytest.raises(ValueError, assign_rgba, gl3, rgba.tolist() + rgba.tolist())
 
     # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        assert kwargs['red'] == gl3.get_rgba()[0]
-        assert len(w) == 1
+    with pytest.raises(ExpiredDeprecationError):
+        gl3.get_rgba()
 
     # Test default value
     gl4 = GiftiLabel()
@@ -325,10 +297,8 @@ def test_gifti_coord():
 
 
 def test_data_tag_deprecated():
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
+    with pytest.raises(ExpiredDeprecationError):
         data_tag(np.array([]), 'ASCII', '%i', 1)
-        assert len(w) == 1
 
 
 def test_gifti_round_trip():

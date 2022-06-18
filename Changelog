@@ -25,6 +25,21 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+4.0.1 (Saturday 18 June 2022)
+=============================
+
+Bug-fix release in the 4.0.x series.
+
+Bug fixes
+---------
+* Finalize 4.0 deprecations, converting tests expecting ``DeprecationWarning`` to
+  expected ``ExpiredDeprecationError`` (pr/1117) (CM)
+
+Maintenance
+-----------
+* Suppress new numpy warning on nan-to-int cast (pr/1118) (CM, reviewed by MB)
+
+
 4.0.0 (Saturday 18 June 2022)
 =============================
 
@@ -32,6 +47,8 @@ New feature release in the 4.0.x series.
 
 New features
 ------------
+* ``nib-convert`` CLI tool to make image type and data dtype conversion accessible
+  via the command line. (pr/1113) (CM, reviewed by Ariel Rokem)
 * Add ``'mask'``, ``'compat'`` and ``'smallest'`` dtype aliases to NIfTI images
   to allow for dtype specifications that can depend on the contents of the data.
   ``'mask'`` is a synonym for ``uint8``. ``'compat'`` will find the nearest

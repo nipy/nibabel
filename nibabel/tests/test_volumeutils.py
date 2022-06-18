@@ -20,6 +20,7 @@ import gzip
 import bz2
 import threading
 import time
+from packaging.version import Version
 
 import numpy as np
 
@@ -67,6 +68,8 @@ CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 INT_TYPES = np.sctypes['int']
 IUINT_TYPES = INT_TYPES + np.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
+
+FP_RUNTIME_WARN = Version(np.__version__) >= Version('1.24.0.dev0+239')
 
 
 def test__is_compressed_fobj():
@@ -413,7 +416,7 @@ def test_a2f_nan2zero():
     # How weird?  Look at arr.astype(np.int64)
     with np.errstate(invalid='ignore'):
         data_back = write_return(arr, str_io, np.int64, nan2zero=False)
-    assert_array_equal(data_back, arr.astype(np.int64))
+        assert_array_equal(data_back, arr.astype(np.int64))
 
 
 def test_a2f_nan2zero_scaling():
@@ -672,18 +675,21 @@ def test_a2f_nan2zero_range():
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
         # Error occurs for arrays without nans too
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
-        warn_type = np.ComplexWarning if np.issubdtype(dt, np.complexfloating) else None
+        complex_warn = (np.ComplexWarning,) if np.issubdtype(dt, np.complexfloating) else ()
+        # Casting nan to int will produce a RuntimeWarning in numpy 1.24
+        nan_warn = (RuntimeWarning,) if FP_RUNTIME_WARN else ()
+        c_and_n_warn = complex_warn + nan_warn
         # No errors from explicit thresholding
         # mn thresholding excluding zero
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
             assert_array_equal([1, 1, 1, 0],
                                write_return(arr, fobj, np.int8, mn=1))
         # mx thresholding excluding zero
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
             assert_array_equal([-1, -1, -1, 0],
                                write_return(arr, fobj, np.int8, mx=-1))
         # Errors from datatype threshold after scaling
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8, intercept=128)
         assert_array_equal([-128, -128, -127, -128], back_arr)
         with pytest.raises(ValueError):
@@ -691,13 +697,13 @@ def test_a2f_nan2zero_range():
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=129)
         # OK with nan2zero false, but we get whatever nan casts to
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(c_and_n_warn) if c_and_n_warn else error_warnings():
             nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(c_and_n_warn) if c_and_n_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
         assert_array_equal([-128, -128, -128, -128], back_arr)
         with pytest.raises(ValueError):
@@ -705,7 +711,7 @@ def test_a2f_nan2zero_range():
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2)
         # OK with nan2zero false
-        with pytest.warns(warn_type) if warn_type else error_warnings():
+        with pytest.warns(c_and_n_warn) if c_and_n_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8,
                                     intercept=257.1, divslope=2, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
@@ -1040,58 +1046,11 @@ def test_fname_ext_ul_case():
         assert fname_ext_ul_case('afile.TxT') == 'afile.TxT'
 
 
-def test_allopen():
+def test_allopen_deprecated():
     # This import into volumeutils is for compatibility.  The code is the
     # ``openers`` module.
-    with pytest.deprecated_call() as w:
-        # Test default mode is 'rb'
+    with pytest.raises(ExpiredDeprecationError):
         fobj = allopen(__file__)
-        # Check we got the deprecation warning
-        assert len(w) == 1
-        assert fobj.mode == 'rb'
-        # That we can set it
-        fobj = allopen(__file__, 'r')
-        assert fobj.mode == 'r'
-        # with keyword arguments
-        fobj = allopen(__file__, mode='r')
-        assert fobj.mode == 'r'
-        # fileobj returns fileobj
-        msg = b'tiddle pom'
-        sobj = BytesIO(msg)
-        fobj = allopen(sobj)
-        assert fobj.read() == msg
-        # mode is gently ignored
-        fobj = allopen(sobj, mode='r')
-
-
-def test_allopen_compresslevel():
-    # We can set the default compression level with the module global
-    # Get some data to compress
-    with open(__file__, 'rb') as fobj:
-        my_self = fobj.read()
-    # Prepare loop
-    fname = 'test.gz'
-    sizes = {}
-    # Stash module global
-    from .. import volumeutils as vu
-    original_compress_level = vu.default_compresslevel
-    assert original_compress_level == 1
-    try:
-        with InTemporaryDirectory():
-            for compresslevel in ('default', 1, 9):
-                if compresslevel != 'default':
-                    vu.default_compresslevel = compresslevel
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    with allopen(fname, 'wb') as fobj:
-                        fobj.write(my_self)
-                with open(fname, 'rb') as fobj:
-                    my_selves_smaller = fobj.read()
-                sizes[compresslevel] = len(my_selves_smaller)
-            assert sizes['default'] == sizes[1]
-            assert sizes[1] > sizes[9]
-    finally:
-        vu.default_compresslevel = original_compress_level
 
 
 def test_shape_zoom_affine():

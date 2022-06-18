@@ -29,7 +29,7 @@ from ..optpkg import optional_package
 import unittest
 from unittest import mock
 import pytest
-from ..testing import error_warnings
+from ..deprecator import ExpiredDeprecationError
 
 pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
@@ -115,9 +115,8 @@ def test_Opener_various():
 
 
 def test_BinOpener():
-    with error_warnings():
-        with pytest.raises(DeprecationWarning):
-            BinOpener('test.txt', 'r')
+    with pytest.raises(ExpiredDeprecationError):
+        BinOpener('test.txt', 'r')
 
 
 class MockIndexedGzipFile(GzipFile):

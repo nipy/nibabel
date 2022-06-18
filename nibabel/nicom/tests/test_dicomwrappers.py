@@ -13,6 +13,7 @@ from . import pydicom, have_dicom, dicom_test
 from .. import dicomwrappers as didw
 from .. import dicomreaders as didr
 from ...volumeutils import endian_codes
+from ...deprecator import ExpiredDeprecationError
 
 import pytest
 from unittest import TestCase
@@ -631,8 +632,8 @@ class TestMultiFrameWrapper(TestCase):
         # Make sure we find orientation/position/spacing info
         dw = didw.wrapper_from_file(DATA_FILE_4D)
         aff = dw.affine
-        with pytest.deprecated_call():
-            assert np.array_equal(dw.get_affine(), aff)
+        with pytest.raises(ExpiredDeprecationError):
+            dw.get_affine()
 
     @dicom_test
     def test_data_real(self):
