@@ -413,7 +413,7 @@ def test_a2f_nan2zero():
     # How weird?  Look at arr.astype(np.int64)
     with np.errstate(invalid='ignore'):
         data_back = write_return(arr, str_io, np.int64, nan2zero=False)
-    assert_array_equal(data_back, arr.astype(np.int64))
+        assert_array_equal(data_back, arr.astype(np.int64))
 
 
 def test_a2f_nan2zero_scaling():
@@ -692,9 +692,15 @@ def test_a2f_nan2zero_range():
             write_return(arr_no_nan, fobj, np.int8, intercept=129)
         # OK with nan2zero false, but we get whatever nan casts to
         with pytest.warns(warn_type) if warn_type else error_warnings():
-            nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
+            # XXX NP1.24
+            # Casting nan to int will produce a RuntimeWarning in numpy 1.24
+            # Change to expecting this warning when this becomes our minimum
+            with np.errstate(invalid='ignore'):
+                nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
         with pytest.warns(warn_type) if warn_type else error_warnings():
-            back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
+            # XXX NP1.24 - expect RuntimeWarning
+            with np.errstate(invalid='ignore'):
+                back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
         with pytest.warns(warn_type) if warn_type else error_warnings():
@@ -706,8 +712,10 @@ def test_a2f_nan2zero_range():
             write_return(arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2)
         # OK with nan2zero false
         with pytest.warns(warn_type) if warn_type else error_warnings():
-            back_arr = write_return(arr, fobj, np.int8,
-                                    intercept=257.1, divslope=2, nan2zero=False)
+            # XXX NP1.24 - expect RuntimeWarning
+            with np.errstate(invalid='ignore'):
+                back_arr = write_return(arr, fobj, np.int8,
+                                        intercept=257.1, divslope=2, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
 
 
