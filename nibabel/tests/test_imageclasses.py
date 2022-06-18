@@ -6,6 +6,8 @@ import warnings
 
 import numpy as np
 
+import pytest
+
 import nibabel as nib
 from nibabel.analyze import AnalyzeImage
 from nibabel.nifti1 import Nifti1Image
@@ -15,8 +17,7 @@ from nibabel import imageclasses
 from nibabel.imageclasses import spatial_axes_first, class_map, ext_map
 
 from nibabel.optpkg import optional_package
-from nibabel.testing import clear_and_catch_warnings
-
+from nibabel.deprecator import ExpiredDeprecationError
 
 have_h5py = optional_package('h5py')[1]
 
@@ -51,12 +52,8 @@ def test_spatial_axes_first():
 
 
 def test_deprecations():
-    with clear_and_catch_warnings(modules=[imageclasses]) as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        nifti_single = class_map['nifti_single']
-        assert nifti_single['class'] == Nifti1Image
-        assert len(w) == 1
+    with pytest.raises(ExpiredDeprecationError):
+        class_map['nifti_single']
+    with pytest.raises(ExpiredDeprecationError):
         nifti_ext = ext_map['.nii']
-        assert nifti_ext == 'nifti_single'
-        assert len(w) == 2
 

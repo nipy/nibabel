@@ -10,6 +10,7 @@ from ...testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
 
 from ..array_sequence import ArraySequence, is_array_sequence, concatenate
+from ...deprecator import ExpiredDeprecationError
 
 
 SEQ_DATA = {}
@@ -96,7 +97,7 @@ class TestArraySequence(unittest.TestCase):
 
     def test_deprecated_data_attribute(self):
         seq = ArraySequence(SEQ_DATA['data'])
-        with pytest.deprecated_call(match="from version: 3.0"):
+        with pytest.raises(ExpiredDeprecationError):
             seq.data
 
     def test_creating_arraysequence_from_generator(self):

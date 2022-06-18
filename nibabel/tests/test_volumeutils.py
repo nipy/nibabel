@@ -1040,58 +1040,11 @@ def test_fname_ext_ul_case():
         assert fname_ext_ul_case('afile.TxT') == 'afile.TxT'
 
 
-def test_allopen():
+def test_allopen_deprecated():
     # This import into volumeutils is for compatibility.  The code is the
     # ``openers`` module.
-    with pytest.deprecated_call() as w:
-        # Test default mode is 'rb'
+    with pytest.raises(ExpiredDeprecationError):
         fobj = allopen(__file__)
-        # Check we got the deprecation warning
-        assert len(w) == 1
-        assert fobj.mode == 'rb'
-        # That we can set it
-        fobj = allopen(__file__, 'r')
-        assert fobj.mode == 'r'
-        # with keyword arguments
-        fobj = allopen(__file__, mode='r')
-        assert fobj.mode == 'r'
-        # fileobj returns fileobj
-        msg = b'tiddle pom'
-        sobj = BytesIO(msg)
-        fobj = allopen(sobj)
-        assert fobj.read() == msg
-        # mode is gently ignored
-        fobj = allopen(sobj, mode='r')
-
-
-def test_allopen_compresslevel():
-    # We can set the default compression level with the module global
-    # Get some data to compress
-    with open(__file__, 'rb') as fobj:
-        my_self = fobj.read()
-    # Prepare loop
-    fname = 'test.gz'
-    sizes = {}
-    # Stash module global
-    from .. import volumeutils as vu
-    original_compress_level = vu.default_compresslevel
-    assert original_compress_level == 1
-    try:
-        with InTemporaryDirectory():
-            for compresslevel in ('default', 1, 9):
-                if compresslevel != 'default':
-                    vu.default_compresslevel = compresslevel
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    with allopen(fname, 'wb') as fobj:
-                        fobj.write(my_self)
-                with open(fname, 'rb') as fobj:
-                    my_selves_smaller = fobj.read()
-                sizes[compresslevel] = len(my_selves_smaller)
-            assert sizes['default'] == sizes[1]
-            assert sizes[1] > sizes[9]
-    finally:
-        vu.default_compresslevel = original_compress_level
 
 
 def test_shape_zoom_affine():

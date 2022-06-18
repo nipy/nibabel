@@ -7,16 +7,19 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+from ..gifti import GiftiImage
 from ..giftiio import read, write
 from .test_parse_gifti_fast import DATA_FILE1
+from ...deprecator import ExpiredDeprecationError
 
 import pytest
 
 
 def test_read_deprecated(tmp_path):
-    with pytest.deprecated_call():
-        img = read(DATA_FILE1)
+    with pytest.raises(ExpiredDeprecationError):
+        read(DATA_FILE1)
 
+    img = GiftiImage.from_filename(DATA_FILE1)
     fname = tmp_path / 'test.gii'
-    with pytest.deprecated_call():
+    with pytest.raises(ExpiredDeprecationError):
         write(img, fname)

@@ -23,6 +23,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
+from ..deprecator import ExpiredDeprecationError
 
 from . import test_wrapstruct as tws
 from .test_fileslice import slicer_samples
@@ -240,9 +241,8 @@ class TestEcatImage(TestCase):
         assert not np.all(img.affine == aff)
 
     def test_get_affine_deprecated(self):
-        with pytest.deprecated_call(match="from version: 2.1"):
-            aff = self.img.get_affine()
-        assert np.array_equal(aff, self.img.affine)
+        with pytest.raises(ExpiredDeprecationError):
+            self.img.get_affine()
 
     def test_float_affine(self):
         # Check affines get converted to float
@@ -275,12 +275,5 @@ class TestEcatImage(TestCase):
 
 
 def test_from_filespec_deprecation():
-    # Check from_filespec raises Deprecation
-    with pytest.deprecated_call() as w:
-        # No warning for standard load
-        img_loaded = EcatImage.load(ecat_file)
-        assert len(w) == 0
-        # Warning for from_filespec
-        img_speced = EcatImage.from_filespec(ecat_file)
-        assert len(w) == 1
-        assert_array_equal(img_loaded.get_fdata(), img_speced.get_fdata())
+    with pytest.raises(ExpiredDeprecationError):
+        EcatImage.from_filespec(ecat_file)
