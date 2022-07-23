@@ -524,9 +524,6 @@ class Nifti1Extensions(list):
     def __repr__(self):
         return "Nifti1Extensions(%s)" % ', '.join(str(e) for e in self)
 
-    def __cmp__(self, other):
-        return cmp(list(self), list(other))
-
     def write_to(self, fileobj, byteswap):
         """ Write header extensions to fileobj
 
