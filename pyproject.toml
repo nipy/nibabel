@@ -65,3 +65,8 @@ extend-exclude = '''
   | nibabel/externals/
 )
 '''
+
+[tool.isort]
+profile = "black"
+line_length = 99
+extend_skip = ["_version.py", "externals"]
