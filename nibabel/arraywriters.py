@@ -29,13 +29,12 @@ something else to make sense of conversions between float and int, or between
 larger ints and smaller.
 """
 
-import warnings
-
 import numpy as np
 
 from .casting import (int_to_float, as_int, int_abs, type_info, floor_exact,
                       best_float, shared_range)
 from .volumeutils import finite_range, array_to_file
+from .deprecator import ExpiredDeprecationError
 
 
 class WriterError(Exception):
@@ -192,11 +191,12 @@ class ArrayWriter(object):
         if nan2zero != self._nan2zero:
             raise WriterError('Deprecated `nan2zero` argument to `to_fileobj` '
                               'must be same as class value set in __init__')
-        warnings.warn('Please remove `nan2zero` from call to ' '`to_fileobj` '
-                      'and use in instance __init__ instead.\n'
-                      '* deprecated in version: 2.0\n'
-                      '* will raise error in version: 4.0\n',
-                      DeprecationWarning, stacklevel=3)
+        raise ExpiredDeprecationError(
+            'Please remove `nan2zero` from call to `to_fileobj` '
+            'and use in instance __init__ instead.\n'
+            '* deprecated in version: 2.0\n'
+            '* Raises ExpiredDeprecationError as of version: 4.0\n'
+        )
 
     def _needs_nan2zero(self):
         """ True if nan2zero check needed for writing array """

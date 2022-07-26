@@ -62,6 +62,7 @@ ATTRIBUTE_SCHEDULE = [
                ("nibabel.ecat", "EcatImage", "from_filespec"),
                ("nibabel.filebasedimages", "FileBasedImage", "get_header"),
                ("nibabel.spatialimages", "SpatialImage", "get_affine"),
+               ("nibabel.arraywriters", "ArrayWriter", "_check_nan2zero"),
     ]),
     ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape"),
                ("nibabel.filebasedimages", "FileBasedImage", "filespec_to_files"),
