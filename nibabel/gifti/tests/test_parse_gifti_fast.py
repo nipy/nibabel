@@ -147,7 +147,7 @@ def test_default_types():
         # GiftiMetaData
         assert_default_types(img.meta)
         # GiftiNVPairs - Remove in NIB6
-        with pytest.warns(FutureWarning):
+        with pytest.warns(DeprecationWarning):
             for nvpair in img.meta.data:
                 assert_default_types(nvpair)
         # GiftiLabelTable
@@ -161,7 +161,7 @@ def test_default_types():
             # GiftiMetaData
             assert_default_types(darray.meta)
             # GiftiNVPairs - Remove in NIB6
-            with pytest.warns(FutureWarning):
+            with pytest.warns(DeprecationWarning):
                 for nvpair in darray.meta.data:
                     assert_default_types(nvpair)
 
