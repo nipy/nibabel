@@ -13,11 +13,11 @@ from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
                             make_array_writer, get_slope_inter)
 from ..casting import int_abs, type_info, shared_range, on_powerpc
 from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
+from ..deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
-from ..testing import (assert_allclose_safely, suppress_warnings,
-                       error_warnings)
+from ..testing import assert_allclose_safely, suppress_warnings
 
 
 FLOAT_TYPES = np.sctypes['float']
@@ -506,12 +506,11 @@ def test_nan2zero():
         aw = awt(arr, np.float32, **kwargs)
         data_back = round_trip(aw)
         assert_array_equal(np.isnan(data_back), [True, False])
-        # Deprecation warning for nan2zero as argument to `to_fileobj`
-        with error_warnings():
-            with pytest.deprecated_call():
-                aw.to_fileobj(BytesIO(), 'F', True)
-            with pytest.deprecated_call():
-                aw.to_fileobj(BytesIO(), 'F', nan2zero=True)
+        # Expired deprecation error for nan2zero as argument to `to_fileobj`
+        with pytest.raises(ExpiredDeprecationError):
+            aw.to_fileobj(BytesIO(), 'F', True)
+        with pytest.raises(ExpiredDeprecationError):
+            aw.to_fileobj(BytesIO(), 'F', nan2zero=True)
         # Error if nan2zero is not the value set at initialization
         with pytest.raises(WriterError):
             aw.to_fileobj(BytesIO(), 'F', False)
@@ -528,12 +527,11 @@ def test_nan2zero():
         data_back = round_trip(aw)
         astype_res = np.array(np.nan).astype(np.int32)
         assert_array_equal(data_back, [astype_res, 99])
-        # Deprecation warning for nan2zero as argument to `to_fileobj`
-        with error_warnings():
-            with pytest.deprecated_call():
-                aw.to_fileobj(BytesIO(), 'F', False)
-            with pytest.deprecated_call():
-                aw.to_fileobj(BytesIO(), 'F', nan2zero=False)
+        # Expired deprecation error for nan2zero as argument to `to_fileobj`
+        with pytest.raises(ExpiredDeprecationError):
+            aw.to_fileobj(BytesIO(), 'F', False)
+        with pytest.raises(ExpiredDeprecationError):
+            aw.to_fileobj(BytesIO(), 'F', nan2zero=False)
         # Error if nan2zero is not the value set at initialization
         with pytest.raises(WriterError):
             aw.to_fileobj(BytesIO(), 'F', True)
