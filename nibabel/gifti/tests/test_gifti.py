@@ -245,6 +245,81 @@ def test_metadata():
         md.get_metadata()
 
 
+def test_metadata_list_interface():
+    md = GiftiMetaData(key='value')
+    with pytest.warns(FutureWarning):
+        mdlist = md.data
+    assert len(mdlist) == 1
+    assert mdlist[0].name == 'key'
+    assert mdlist[0].value == 'value'
+
+    # Modify elements in-place
+    mdlist[0].name = 'foo'
+    assert mdlist[0].name == 'foo'
+    assert 'foo' in md
+    assert 'key' not in md
+    assert md['foo'] == 'value'
+    mdlist[0].value = 'bar'
+    assert mdlist[0].value == 'bar'
+    assert md['foo'] == 'bar'
+
+    # Append new NVPair
+    nvpair = GiftiNVPairs('key', 'value')
+    mdlist.append(nvpair)
+    assert len(mdlist) == 2
+    assert mdlist[1].name == 'key'
+    assert mdlist[1].value == 'value'
+    assert len(md) == 2
+    assert md == {'foo': 'bar', 'key': 'value'}
+
+    # Clearing empties both
+    mdlist.clear()
+    assert len(mdlist) == 0
+    assert len(md) == 0
+
+    # Extension adds multiple keys
+    foobar = GiftiNVPairs('foo', 'bar')
+    mdlist.extend([nvpair, foobar])
+    assert len(mdlist) == 2
+    assert len(md) == 2
+    assert md == {'key': 'value', 'foo': 'bar'}
+
+    # Insertion updates list order, though we don't attempt to preserve it in the dict
+    lastone = GiftiNVPairs('last', 'one')
+    mdlist.insert(1, lastone)
+    assert len(mdlist) == 3
+    assert len(md) == 3
+    assert mdlist[1].name == 'last'
+    assert mdlist[1].value == 'one'
+    assert md == {'key': 'value', 'foo': 'bar', 'last': 'one'}
+
+    # Popping returns a pair
+    mypair = mdlist.pop(0)
+    assert isinstance(mypair, GiftiNVPairs)
+    assert mypair.name == 'key'
+    assert mypair.value == 'value'
+    assert len(mdlist) == 2
+    assert len(md) == 2
+    assert 'key' not in md
+    assert md == {'foo': 'bar', 'last': 'one'}
+    # Modifying the pair now does not affect md
+    mypair.name = 'completelynew'
+    mypair.value = 'strings'
+    assert 'completelynew' not in md
+    assert md == {'foo': 'bar', 'last': 'one'}
+    # Check popping from the end (lastone inserted before foobar)
+    lastpair = mdlist.pop()
+    assert len(mdlist) == 1
+    assert len(md) == 1
+    assert md == {'last': 'one'}
+
+    # And let's remove an old pair with a new object
+    lastoneagain = GiftiNVPairs('last', 'one')
+    mdlist.remove(lastoneagain)
+    assert len(mdlist) == 0
+    assert len(md) == 0
+
+
 def test_gifti_label_rgba():
     rgba = np.random.rand(4)
     kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
