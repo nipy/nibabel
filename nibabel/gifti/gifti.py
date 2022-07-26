@@ -26,6 +26,42 @@ from .util import (array_index_order_codes, gifti_encoding_codes,
 from ..deprecated import deprecate_with_version
 
 
+class _GiftiMDList(list):
+    """List view of GiftiMetaData object that will translate most operations"""
+    def __init__(self, metadata):
+        self._md = metadata
+        super().__init__(
+            GiftiNVPairs._private_init(k, v, metadata)
+            for k, v in metadata.items()
+        )
+
+    def append(self, nvpair):
+        self._md[nvpair.name] = nvpair.value
+        super().append(nvpair)
+
+    def clear(self):
+        super().clear()
+        self._md.clear()
+
+    def extend(self, iterable):
+        for nvpair in iterable:
+            self.append(nvpair)
+
+    def insert(self, index, nvpair):
+        self._md[nvpair.name] = nvpair.value
+        super().insert(index, nvpair)
+
+    def pop(self, index=-1):
+        nvpair = super().pop(index)
+        nvpair._container = None
+        del self._md[nvpair.name]
+        return nvpair
+
+    def remove(self, nvpair):
+        super().remove(nvpair)
+        del self._md[nvpair.name]
+
+
 class GiftiMetaData(CaretMetaData):
     """ A sequence of GiftiNVPairs containing metadata for a gifti data array
     """
@@ -76,7 +112,7 @@ class GiftiMetaData(CaretMetaData):
         warnings.warn(
             "GiftiMetaData.data will be a dict in NiBabel 6.0.",
             FutureWarning, stacklevel=2)
-        return [GiftiNVPairs(k, v) for k, v in self._data.items()]
+        return _GiftiMDList(self)
 
     @classmethod
     @deprecate_with_version(
@@ -114,8 +150,40 @@ class GiftiNVPairs:
     value : str
     """
     def __init__(self, name=u'', value=u''):
-        self.name = name
-        self.value = value
+        self._name = name
+        self._value = value
+        self._container = None
+
+    @classmethod
+    def _private_init(cls, name, value, md):
+        self = cls(name, value)
+        self._container = md
+        return self
+
+    def __eq__(self, other):
+        if not isinstance(other, GiftiNVPairs):
+            return NotImplemented
+        return self.name == other.name and self.value == other.value
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, key):
+        if self._container:
+            self._container[key] = self._container.pop(self._name)
+        self._name = key
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        if self._container:
+            self._container[self._name] = val
+        self._value = val
 
 
 class GiftiLabelTable(xml.XmlSerializable):
