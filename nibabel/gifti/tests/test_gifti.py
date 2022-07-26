@@ -228,7 +228,8 @@ def test_labeltable():
 def test_metadata():
     md = GiftiMetaData(key='value')
     # Old initialization methods
-    nvpair = GiftiNVPairs('key', 'value')
+    with pytest.warns(DeprecationWarning) as w:
+        nvpair = GiftiNVPairs('key', 'value')
     with pytest.warns(FutureWarning) as w:
         md2 = GiftiMetaData(nvpair=nvpair)
     assert len(w) == 1
@@ -236,7 +237,7 @@ def test_metadata():
         md3 = GiftiMetaData.from_dict({'key': 'value'})
     assert md == md2 == md3 == {'key': 'value'}
     # .data as a list of NVPairs is going away
-    with pytest.warns(FutureWarning) as w:
+    with pytest.warns(DeprecationWarning) as w:
         assert md.data[0].name == 'key'
         assert md.data[0].value == 'value'
     assert len(w) == 2
@@ -247,7 +248,7 @@ def test_metadata():
 
 def test_metadata_list_interface():
     md = GiftiMetaData(key='value')
-    with pytest.warns(FutureWarning):
+    with pytest.warns(DeprecationWarning):
         mdlist = md.data
     assert len(mdlist) == 1
     assert mdlist[0].name == 'key'
@@ -264,7 +265,8 @@ def test_metadata_list_interface():
     assert md['foo'] == 'bar'
 
     # Append new NVPair
-    nvpair = GiftiNVPairs('key', 'value')
+    with pytest.warns(DeprecationWarning) as w:
+        nvpair = GiftiNVPairs('key', 'value')
     mdlist.append(nvpair)
     assert len(mdlist) == 2
     assert mdlist[1].name == 'key'
@@ -278,14 +280,16 @@ def test_metadata_list_interface():
     assert len(md) == 0
 
     # Extension adds multiple keys
-    foobar = GiftiNVPairs('foo', 'bar')
+    with pytest.warns(DeprecationWarning) as w:
+        foobar = GiftiNVPairs('foo', 'bar')
     mdlist.extend([nvpair, foobar])
     assert len(mdlist) == 2
     assert len(md) == 2
     assert md == {'key': 'value', 'foo': 'bar'}
 
     # Insertion updates list order, though we don't attempt to preserve it in the dict
-    lastone = GiftiNVPairs('last', 'one')
+    with pytest.warns(DeprecationWarning) as w:
+        lastone = GiftiNVPairs('last', 'one')
     mdlist.insert(1, lastone)
     assert len(mdlist) == 3
     assert len(md) == 3
@@ -314,7 +318,8 @@ def test_metadata_list_interface():
     assert md == {'last': 'one'}
 
     # And let's remove an old pair with a new object
-    lastoneagain = GiftiNVPairs('last', 'one')
+    with pytest.warns(DeprecationWarning) as w:
+        lastoneagain = GiftiNVPairs('last', 'one')
     mdlist.remove(lastoneagain)
     assert len(mdlist) == 0
     assert len(md) == 0

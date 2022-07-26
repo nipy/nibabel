@@ -108,10 +108,11 @@ class GiftiMetaData(CaretMetaData):
         return (), {pair.name: pair.value}
 
     @property
+    @deprecate_with_version(
+        'The data attribute is deprecated. Use GiftiMetaData object '
+        'directly as a dict.',
+        '4.0', '6.0')
     def data(self):
-        warnings.warn(
-            "GiftiMetaData.data will be a dict in NiBabel 6.0.",
-            FutureWarning, stacklevel=2)
         return _GiftiMDList(self)
 
     @classmethod
@@ -130,7 +131,7 @@ class GiftiMetaData(CaretMetaData):
 
     @property
     @deprecate_with_version(
-        'metadata property deprecated. Use GiftiMetadata object '
+        'metadata property deprecated. Use GiftiMetaData object '
         'as dict or pass to dict() for a standard dictionary.',
         '4.0', '6.0')
     def metadata(self):
@@ -149,6 +150,10 @@ class GiftiNVPairs:
     name : str
     value : str
     """
+    @deprecate_with_version(
+        'GiftiNVPairs objects are deprecated. Use the GiftiMetaData object '
+        'as a dict, instead.',
+        '4.0', '6.0')
     def __init__(self, name=u'', value=u''):
         self._name = name
         self._value = value
@@ -156,7 +161,10 @@ class GiftiNVPairs:
 
     @classmethod
     def _private_init(cls, name, value, md):
-        self = cls(name, value)
+        """Private init method to provide warning-free experience"""
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            self = cls(name, value)
         self._container = md
         return self
 
