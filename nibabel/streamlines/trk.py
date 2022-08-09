@@ -593,7 +593,10 @@ class TrkFile(TractogramFile):
             if header_rec['version'] == 1:
                 # There is no 4x4 matrix for voxel to RAS transformation.
                 header_rec[Field.VOXEL_TO_RASMM] = np.zeros((4, 4))
-            elif header_rec['version'] == 2:
+            elif header_rec['version'] == 3:
+                warnings.warn('Parsing a TRK v3 file as v2. Some features may not '
+                              'be handled correctly.', HeaderWarning)
+            elif header_rec['version'] in (2, 3):
                 pass  # Nothing more to do.
             else:
                 raise HeaderError('NiBabel only supports versions 1 and 2 of '
