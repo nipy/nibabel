@@ -572,6 +572,28 @@ class SerializeMixin(object):
                 del img_a
                 del img_b
 
+    @pytest.fixture(autouse=True)
+    def setup(self, httpserver):
+        """Make pytest fixtures available to validate functions"""
+        self.httpserver = httpserver
+
+    def validate_from_url(self, imaker, params):
+        server = self.httpserver
+
+        img = imaker()
+        img_bytes = img.to_bytes()
+
+        server.expect_oneshot_request("/img").respond_with_data(img_bytes)
+        url = server.url_for("/img")
+        assert url.startswith("http://")  # Check we'll trigger an HTTP handler
+        rt_img = img.__class__.from_url(url)
+
+        assert rt_img.to_bytes() == img_bytes
+        assert self._header_eq(img.header, rt_img.header)
+        assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
+        del img
+        del rt_img
+
     @staticmethod
     def _header_eq(header_a, header_b):
         """ Header equality check that can be overridden by a subclass of this test
@@ -581,7 +603,6 @@ class SerializeMixin(object):
         raises a NotImplementedError for __eq__
         """
         return header_a == header_b
-
 
 
 class LoadImageAPI(GenericImageAPI,
