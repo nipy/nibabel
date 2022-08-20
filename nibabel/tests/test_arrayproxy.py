@@ -154,27 +154,36 @@ def test_nifti1_init():
         assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
 
 
-def test_proxy_slicing():
-    shapes = (15, 16, 17)
-    for n_dim in range(1, len(shapes) + 1):
-        shape = shapes[:n_dim]
-        arr = np.arange(np.prod(shape)).reshape(shape)
-        for offset in (0, 20):
-            hdr = Nifti1Header()
-            hdr.set_data_offset(offset)
-            hdr.set_data_dtype(arr.dtype)
-            hdr.set_data_shape(shape)
-            for order, klass in ('F', ArrayProxy), ('C', CArrayProxy):
-                fobj = BytesIO()
-                fobj.write(b'\0' * offset)
-                fobj.write(arr.tobytes(order=order))
-                prox = klass(fobj, hdr)
-                for sliceobj in slicer_samples(shape):
-                    assert_array_equal(arr[sliceobj], prox[sliceobj])
-    # Check slicing works with scaling
+@pytest.mark.parametrize("n_dim", (1, 2, 3))
+@pytest.mark.parametrize("offset", (0, 20))
+def test_proxy_slicing(n_dim, offset):
+    shape = (15, 16, 17)[:n_dim]
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    hdr = Nifti1Header()
+    hdr.set_data_offset(offset)
+    hdr.set_data_dtype(arr.dtype)
+    hdr.set_data_shape(shape)
+    for order, klass in ('F', ArrayProxy), ('C', CArrayProxy):
+        fobj = BytesIO()
+        fobj.write(b'\0' * offset)
+        fobj.write(arr.tobytes(order=order))
+        prox = klass(fobj, hdr)
+        assert prox.order == order
+        for sliceobj in slicer_samples(shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+
+def test_proxy_slicing_with_scaling():
+    shape = (15, 16, 17)
+    offset = 20
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    hdr = Nifti1Header()
+    hdr.set_data_offset(offset)
+    hdr.set_data_dtype(arr.dtype)
+    hdr.set_data_shape(shape)
     hdr.set_slope_inter(2.0, 1.0)
     fobj = BytesIO()
-    fobj.write(b'\0' * offset)
+    fobj.write(bytes(offset))
     fobj.write(arr.tobytes(order='F'))
     prox = ArrayProxy(fobj, hdr)
     sliceobj = (None, slice(None), 1, -1)
