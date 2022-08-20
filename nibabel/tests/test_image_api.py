@@ -573,9 +573,10 @@ class SerializeMixin(object):
                 del img_b
 
     @pytest.fixture(autouse=True)
-    def setup(self, httpserver):
+    def setup(self, httpserver, tmp_path):
         """Make pytest fixtures available to validate functions"""
         self.httpserver = httpserver
+        self.tmp_path = tmp_path
 
     def validate_from_url(self, imaker, params):
         server = self.httpserver
@@ -593,6 +594,22 @@ class SerializeMixin(object):
         assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
         del img
         del rt_img
+
+    def validate_from_file_url(self, imaker, params):
+        tmp_path = self.tmp_path
+
+        img = imaker()
+        import uuid
+        fname = tmp_path / f'img-{uuid.uuid4()}{self.standard_extension}'
+        img.to_filename(fname)
+
+        rt_img = img.__class__.from_url(f"file:///{fname}")
+
+        assert self._header_eq(img.header, rt_img.header)
+        assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
+        del img
+        del rt_img
+
 
     @staticmethod
     def _header_eq(header_a, header_b):
