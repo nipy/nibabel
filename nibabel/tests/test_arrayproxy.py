@@ -190,6 +190,19 @@ def test_proxy_slicing_with_scaling():
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])
 
 
+@pytest.mark.parametrize("order", ("C", "F"))
+def test_order_override(order):
+    shape = (15, 16, 17)
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    fobj = BytesIO()
+    fobj.write(arr.tobytes(order=order))
+    for klass in (ArrayProxy, CArrayProxy):
+        prox = klass(fobj, (shape, arr.dtype), order=order)
+        assert prox.order == order
+        sliceobj = (None, slice(None), 1, -1)
+        assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+
 def test_is_proxy():
     # Test is_proxy function
     hdr = FunkyHeader((2, 3, 4))
