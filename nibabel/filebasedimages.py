@@ -604,5 +604,5 @@ class SerializableImage(FileBasedImage):
         url : str or urllib.request.Request object
             URL of file to retrieve
         """
-        with request.urlopen(url, timeout=timeout) as response:
-            return klass._from_iobase(response)
+        response = request.urlopen(url, timeout=timeout)
+        return klass._from_iobase(response)
