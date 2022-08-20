@@ -853,7 +853,7 @@ class EcatImage(SpatialImage):
     def shape(self):
         x, y, z = self._subheader.get_shape()
         nframes = self._subheader.get_nframes()
-        return(x, y, z, nframes)
+        return (x, y, z, nframes)
 
     def get_mlist(self):
         """ get access to the mlist

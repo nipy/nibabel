@@ -55,7 +55,12 @@ def test_viewer():
     v.clim = (0, 3)
     with pytest.raises(ValueError):
         OrthoSlicer3D.clim.fset(v, (0.,))  # bad limits
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        (
+            ValueError,  # MPL3.5 and lower
+            KeyError,    # MPL3.6 and higher
+        )
+    ):
         OrthoSlicer3D.cmap.fset(v, 'foo')  # wrong cmap
 
     # decrement/increment volume numbers via keypress
