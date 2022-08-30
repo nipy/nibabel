@@ -549,17 +549,30 @@ class SerializableImage(FileBasedImage):
         return klass.make_file_map({klass.files_types[0][0]: io_obj})
 
     @classmethod
-    def _from_iobase(klass, io_obj: io.IOBase):
+    def from_stream(klass, io_obj: io.IOBase):
         """Load image from readable IO stream
 
         Convert to BytesIO to enable seeking, if input stream is not seekable
+
+        Parameters
+        ----------
+        io_obj : IOBase object
+            Readable stream
         """
         if not io_obj.seekable():
             io_obj = io.BytesIO(io_obj.read())
         return klass.from_file_map(klass._filemap_from_iobase(io_obj))
 
-    def _to_iobase(self, io_obj: io.IOBase, **kwargs):
-        """Save image from writable IO stream"""
+    def to_stream(self, io_obj: io.IOBase, **kwargs):
+        """Save image to writable IO stream
+
+        Parameters
+        ----------
+        io_obj : IOBase object
+            Writable stream
+        \*\*kwargs : keyword arguments
+            Keyword arguments that may be passed to ``img.to_file_map()``
+        """
         self.to_file_map(self._filemap_from_iobase(io_obj), **kwargs)
 
     @classmethod
@@ -573,7 +586,7 @@ class SerializableImage(FileBasedImage):
         bstring : bytes
             Byte string containing the on-disk representation of an image
         """
-        return klass._from_iobase(io.BytesIO(bytestring))
+        return klass.from_stream(io.BytesIO(bytestring))
 
     def to_bytes(self, **kwargs) -> bytes:
         r""" Return a ``bytes`` object with the contents of the file that would
@@ -590,7 +603,7 @@ class SerializableImage(FileBasedImage):
             Serialized image
         """
         bio = io.BytesIO()
-        self._to_iobase(bio, **kwargs)
+        self.to_stream(bio, **kwargs)
         return bio.getvalue()
 
     @classmethod
@@ -603,6 +616,8 @@ class SerializableImage(FileBasedImage):
         ----------
         url : str or urllib.request.Request object
             URL of file to retrieve
+        timeout : float, optional
+            Time (in seconds) to wait for a response
         """
         response = request.urlopen(url, timeout=timeout)
-        return klass._from_iobase(response)
+        return klass.from_stream(response)
