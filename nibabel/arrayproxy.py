@@ -115,7 +115,7 @@ class ArrayProxy:
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
-        order : {'F', 'C'}, optional, keyword only
+        order : {None, 'F', 'C'}, optional, keyword only
             `order` controls the order of the data array layout. Fortran-style,
             column-major order may be indicated with 'F', and C-style, row-major
             order may be indicated with 'C'. The default order is 'F'.
