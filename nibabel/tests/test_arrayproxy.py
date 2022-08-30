@@ -15,13 +15,16 @@ import contextlib
 
 import pickle
 from io import BytesIO
+from packaging.version import Version
 from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
+from .. import __version__
 from ..arrayproxy import (ArrayProxy, is_proxy, reshape_dataobj, get_obj_dtype)
 from ..openers import ImageOpener
 from ..nifti1 import Nifti1Header
+from ..deprecator import ExpiredDeprecationError
 
 from unittest import mock
 
@@ -57,6 +60,10 @@ class FunkyHeader(object):
 
 class CArrayProxy(ArrayProxy):
     # C array memory layout
+    _default_order = 'C'
+
+
+class DeprecatedCArrayProxy(ArrayProxy):
     order = 'C'
 
 
@@ -201,6 +208,38 @@ def test_order_override(order):
         assert prox.order == order
         sliceobj = (None, slice(None), 1, -1)
         assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+
+def test_deprecated_order_classvar():
+    shape = (15, 16, 17)
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    fobj = BytesIO()
+    fobj.write(arr.tobytes(order='C'))
+    sliceobj = (None, slice(None), 1, -1)
+
+    # We don't really care about the original order, just that the behavior
+    # of the deprecated mode matches the new behavior
+    fprox = ArrayProxy(fobj, (shape, arr.dtype), order='F')
+    cprox = ArrayProxy(fobj, (shape, arr.dtype), order='C')
+
+    # Start raising errors when we crank the dev version
+    if Version(__version__) >= Version('7.0.0.dev0'):
+        cm = pytest.raises(ExpiredDeprecationError)
+    else:
+        cm = pytest.deprecated_call()
+
+    with cm:
+        prox = DeprecatedCArrayProxy(fobj, (shape, arr.dtype))
+        assert prox.order == 'C'
+        assert_array_equal(prox[sliceobj], cprox[sliceobj])
+    with cm:
+        prox = DeprecatedCArrayProxy(fobj, (shape, arr.dtype), order='C')
+        assert prox.order == 'C'
+        assert_array_equal(prox[sliceobj], cprox[sliceobj])
+    with cm:
+        prox = DeprecatedCArrayProxy(fobj, (shape, arr.dtype), order='F')
+        assert prox.order == 'F'
+        assert_array_equal(prox[sliceobj], fprox[sliceobj])
 
 
 def test_is_proxy():

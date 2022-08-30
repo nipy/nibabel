@@ -27,6 +27,7 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
 from threading import RLock
+import warnings
 
 import numpy as np
 
@@ -83,7 +84,7 @@ class ArrayProxy:
     See :mod:`nibabel.minc1`, :mod:`nibabel.ecat` and :mod:`nibabel.parrec` for
     examples.
     """
-    order = 'F'
+    _default_order = 'F'
 
     def __init__(self, file_like, spec, *, mmap=True, order=None, keep_file_open=None):
         """Initialize array proxy instance
@@ -147,13 +148,25 @@ class ArrayProxy:
         else:
             raise TypeError('spec must be tuple of length 2-5 or header object')
 
+        # Warn downstream users that the class variable order is going away
+        if hasattr(self.__class__, 'order'):
+            warnings.warn(f'Class {self.__class__} has an `order` class variable. '
+                          'ArrayProxy subclasses should rename this variable to `_default_order` '
+                          'to avoid conflict with instance variables.\n'
+                          '* deprecated in version: 5.0\n'
+                          '* will raise error in version: 7.0\n',
+                          DeprecationWarning, stacklevel=2)
+            # Override _default_order with order, to follow intent of subclasser
+            self._default_order = self.order
+
         # Copies of values needed to read array
         self._shape, self._dtype, self._offset, self._slope, self._inter = par
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
-        if order is not None:
-            self.order = order
+        if order is None:
+            order = self._default_order
+        self.order = order
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
         self._keep_file_open, self._persist_opener = \
