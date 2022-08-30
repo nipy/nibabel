@@ -540,27 +540,27 @@ class SerializableImage(FileBasedImage):
     """
 
     @classmethod
-    def _filemap_from_iobase(klass, ioobject: io.IOBase):
+    def _filemap_from_iobase(klass, io_obj: io.IOBase):
         """For single-file image types, make a file map with the correct key"""
         if len(klass.files_types) > 1:
             raise NotImplementedError(
                 "(de)serialization is undefined for multi-file images"
             )
-        return klass.make_file_map({klass.files_types[0][0]: ioobject})
+        return klass.make_file_map({klass.files_types[0][0]: io_obj})
 
     @classmethod
-    def _from_iobase(klass, ioobject: io.IOBase):
+    def _from_iobase(klass, io_obj: io.IOBase):
         """Load image from readable IO stream
 
         Convert to BytesIO to enable seeking, if input stream is not seekable
         """
-        if not ioobject.seekable():
-            ioobject = io.BytesIO(ioobject.read())
-        return klass.from_file_map(klass._filemap_from_iobase(ioobject))
+        if not io_obj.seekable():
+            io_obj = io.BytesIO(io_obj.read())
+        return klass.from_file_map(klass._filemap_from_iobase(io_obj))
 
-    def _to_iobase(self, ioobject: io.IOBase, **kwargs):
+    def _to_iobase(self, io_obj: io.IOBase, **kwargs):
         """Save image from writable IO stream"""
-        self.to_file_map(self._filemap_from_iobase(ioobject), **kwargs)
+        self.to_file_map(self._filemap_from_iobase(io_obj), **kwargs)
 
     @classmethod
     def from_bytes(klass, bytestring: bytes):
