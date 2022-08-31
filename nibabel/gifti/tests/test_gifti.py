@@ -228,7 +228,8 @@ def test_labeltable():
 def test_metadata():
     md = GiftiMetaData(key='value')
     # Old initialization methods
-    nvpair = GiftiNVPairs('key', 'value')
+    with pytest.warns(DeprecationWarning) as w:
+        nvpair = GiftiNVPairs('key', 'value')
     with pytest.warns(FutureWarning) as w:
         md2 = GiftiMetaData(nvpair=nvpair)
     assert len(w) == 1
@@ -236,13 +237,92 @@ def test_metadata():
         md3 = GiftiMetaData.from_dict({'key': 'value'})
     assert md == md2 == md3 == {'key': 'value'}
     # .data as a list of NVPairs is going away
-    with pytest.warns(FutureWarning) as w:
+    with pytest.warns(DeprecationWarning) as w:
         assert md.data[0].name == 'key'
         assert md.data[0].value == 'value'
     assert len(w) == 2
     # Test deprecation
     with pytest.raises(ExpiredDeprecationError):
         md.get_metadata()
+
+
+def test_metadata_list_interface():
+    md = GiftiMetaData(key='value')
+    with pytest.warns(DeprecationWarning):
+        mdlist = md.data
+    assert len(mdlist) == 1
+    assert mdlist[0].name == 'key'
+    assert mdlist[0].value == 'value'
+
+    # Modify elements in-place
+    mdlist[0].name = 'foo'
+    assert mdlist[0].name == 'foo'
+    assert 'foo' in md
+    assert 'key' not in md
+    assert md['foo'] == 'value'
+    mdlist[0].value = 'bar'
+    assert mdlist[0].value == 'bar'
+    assert md['foo'] == 'bar'
+
+    # Append new NVPair
+    with pytest.warns(DeprecationWarning) as w:
+        nvpair = GiftiNVPairs('key', 'value')
+    mdlist.append(nvpair)
+    assert len(mdlist) == 2
+    assert mdlist[1].name == 'key'
+    assert mdlist[1].value == 'value'
+    assert len(md) == 2
+    assert md == {'foo': 'bar', 'key': 'value'}
+
+    # Clearing empties both
+    mdlist.clear()
+    assert len(mdlist) == 0
+    assert len(md) == 0
+
+    # Extension adds multiple keys
+    with pytest.warns(DeprecationWarning) as w:
+        foobar = GiftiNVPairs('foo', 'bar')
+    mdlist.extend([nvpair, foobar])
+    assert len(mdlist) == 2
+    assert len(md) == 2
+    assert md == {'key': 'value', 'foo': 'bar'}
+
+    # Insertion updates list order, though we don't attempt to preserve it in the dict
+    with pytest.warns(DeprecationWarning) as w:
+        lastone = GiftiNVPairs('last', 'one')
+    mdlist.insert(1, lastone)
+    assert len(mdlist) == 3
+    assert len(md) == 3
+    assert mdlist[1].name == 'last'
+    assert mdlist[1].value == 'one'
+    assert md == {'key': 'value', 'foo': 'bar', 'last': 'one'}
+
+    # Popping returns a pair
+    mypair = mdlist.pop(0)
+    assert isinstance(mypair, GiftiNVPairs)
+    assert mypair.name == 'key'
+    assert mypair.value == 'value'
+    assert len(mdlist) == 2
+    assert len(md) == 2
+    assert 'key' not in md
+    assert md == {'foo': 'bar', 'last': 'one'}
+    # Modifying the pair now does not affect md
+    mypair.name = 'completelynew'
+    mypair.value = 'strings'
+    assert 'completelynew' not in md
+    assert md == {'foo': 'bar', 'last': 'one'}
+    # Check popping from the end (lastone inserted before foobar)
+    lastpair = mdlist.pop()
+    assert len(mdlist) == 1
+    assert len(md) == 1
+    assert md == {'last': 'one'}
+
+    # And let's remove an old pair with a new object
+    with pytest.warns(DeprecationWarning) as w:
+        lastoneagain = GiftiNVPairs('last', 'one')
+    mdlist.remove(lastoneagain)
+    assert len(mdlist) == 0
+    assert len(md) == 0
 
 
 def test_gifti_label_rgba():

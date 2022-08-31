@@ -12,6 +12,8 @@ MODULE_SCHEDULE = [
 ]
 
 OBJECT_SCHEDULE = [
+    ("7.0.0", [("nibabel.gifti.gifti", "GiftiNVPairs"),
+    ]),
     ("6.0.0", [("nibabel.loadsave", "guessed_image_type"),
                ("nibabel.loadsave", "read_img_data"),
                ("nibabel.orientations", "flip_axis"),
@@ -41,6 +43,7 @@ OBJECT_SCHEDULE = [
 ATTRIBUTE_SCHEDULE = [
     ("7.0.0", [("nibabel.gifti.gifti", "GiftiMetaData", "from_dict"),
                ("nibabel.gifti.gifti", "GiftiMetaData", "metadata"),
+               ("nibabel.gifti.gifti", "GiftiMetaData", "data"),
     ]),
     ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data"),
                ("nibabel.freesurfer.mghformat", "MGHHeader", "_header_data"),
@@ -62,6 +65,7 @@ ATTRIBUTE_SCHEDULE = [
                ("nibabel.ecat", "EcatImage", "from_filespec"),
                ("nibabel.filebasedimages", "FileBasedImage", "get_header"),
                ("nibabel.spatialimages", "SpatialImage", "get_affine"),
+               ("nibabel.arraywriters", "ArrayWriter", "_check_nan2zero"),
     ]),
     ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape"),
                ("nibabel.filebasedimages", "FileBasedImage", "filespec_to_files"),
