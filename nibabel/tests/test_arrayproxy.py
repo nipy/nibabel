@@ -88,6 +88,9 @@ def test_init():
     assert ap.shape != shape
     # Data stays the same, also
     assert_array_equal(np.asarray(ap), arr)
+    # You wouldn't do this, but order=None explicitly requests the default order
+    ap2 = ArrayProxy(bio, FunkyHeader(arr.shape), order=None)
+    assert_array_equal(np.asarray(ap2), arr)
     # C order also possible
     bio = BytesIO()
     bio.seek(16)
@@ -97,6 +100,8 @@ def test_init():
     # Illegal init
     with pytest.raises(TypeError):
         ArrayProxy(bio, object())
+    with pytest.raises(ValueError):
+        ArrayProxy(bio, hdr, order='badval')
 
 
 def test_tuplespec():
