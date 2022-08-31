@@ -5,6 +5,7 @@ from itertools import product
 import warnings
 
 import numpy as np
+import pytest
 
 from ..filebasedimages import FileBasedHeader, FileBasedImage, SerializableImage
 
@@ -127,3 +128,24 @@ def test_filebased_header():
     hdr4 = H.from_header(None)
     assert isinstance(hdr4, H)
     assert hdr4.a_list == []
+
+
+class MultipartNumpyImage(FBNumpyImage):
+    # We won't actually try to write these out, just need to test an edge case
+    files_types = (('header', '.hdr'), ('image', '.npy'))
+
+
+class SerializableMPNumpyImage(MultipartNumpyImage, SerializableImage):
+    pass
+
+
+def test_multifile_stream_failure():
+    shape = (2, 3, 4)
+    arr = np.arange(np.prod(shape), dtype=np.float32).reshape(shape)
+    img = SerializableMPNumpyImage(arr)
+    with pytest.raises(NotImplementedError):
+        img.to_bytes()
+    img = SerializableNumpyImage(arr)
+    bstr = img.to_bytes()
+    with pytest.raises(NotImplementedError):
+        SerializableMPNumpyImage.from_bytes(bstr)

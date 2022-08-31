@@ -26,6 +26,7 @@ What is the image API?
 import warnings
 from functools import partial
 from itertools import product
+import io
 import pathlib
 
 import numpy as np
@@ -523,34 +524,41 @@ class AffineMixin(object):
             img.get_affine()
 
 
-class SerializeMixin(object):
-    def validate_to_bytes(self, imaker, params):
+class SerializeMixin:
+    def validate_to_from_stream(self, imaker, params):
         img = imaker()
-        serialized = img.to_bytes()
-        with InTemporaryDirectory():
-            fname = 'img' + self.standard_extension
-            img.to_filename(fname)
-            with open(fname, 'rb') as fobj:
-                file_contents = fobj.read()
-        assert serialized == file_contents
+        klass = getattr(self, 'klass', img.__class__)
+        stream = io.BytesIO()
+        img.to_stream(stream)
 
-    def validate_from_bytes(self, imaker, params):
+        rt_img = klass.from_stream(stream)
+        assert self._header_eq(img.header, rt_img.header)
+        assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
+
+    def validate_file_stream_equivalence(self, imaker, params):
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
             fname = 'img' + self.standard_extension
             img.to_filename(fname)
 
-            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
-            for img_params in all_images:
-                img_a = klass.from_filename(img_params['fname'])
-                with open(img_params['fname'], 'rb') as fobj:
-                    img_b = klass.from_bytes(fobj.read())
+            with open("stream", "wb") as fobj:
+                img.to_stream(fobj)
 
-                assert self._header_eq(img_a.header, img_b.header)
+            # Check that writing gets us the same thing
+            contents1 = pathlib.Path(fname).read_bytes()
+            contents2 = pathlib.Path("stream").read_bytes()
+            assert contents1 == contents2
+
+            # Check that reading gets us the same thing
+            img_a = klass.from_filename(fname)
+            with open(fname, "rb") as fobj:
+                img_b = klass.from_stream(fobj)
+                # This needs to happen while the filehandle is open
                 assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
-                del img_a
-                del img_b
+            assert self._header_eq(img_a.header, img_b.header)
+            del img_a
+            del img_b
 
     def validate_to_from_bytes(self, imaker, params):
         img = imaker()
@@ -572,6 +580,45 @@ class SerializeMixin(object):
                 del img_a
                 del img_b
 
+    @pytest.fixture(autouse=True)
+    def setup(self, httpserver, tmp_path):
+        """Make pytest fixtures available to validate functions"""
+        self.httpserver = httpserver
+        self.tmp_path = tmp_path
+
+    def validate_from_url(self, imaker, params):
+        server = self.httpserver
+
+        img = imaker()
+        img_bytes = img.to_bytes()
+
+        server.expect_oneshot_request("/img").respond_with_data(img_bytes)
+        url = server.url_for("/img")
+        assert url.startswith("http://")  # Check we'll trigger an HTTP handler
+        rt_img = img.__class__.from_url(url)
+
+        assert rt_img.to_bytes() == img_bytes
+        assert self._header_eq(img.header, rt_img.header)
+        assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
+        del img
+        del rt_img
+
+    def validate_from_file_url(self, imaker, params):
+        tmp_path = self.tmp_path
+
+        img = imaker()
+        import uuid
+        fname = tmp_path / f'img-{uuid.uuid4()}{self.standard_extension}'
+        img.to_filename(fname)
+
+        rt_img = img.__class__.from_url(f"file:///{fname}")
+
+        assert self._header_eq(img.header, rt_img.header)
+        assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
+        del img
+        del rt_img
+
+
     @staticmethod
     def _header_eq(header_a, header_b):
         """ Header equality check that can be overridden by a subclass of this test
@@ -581,7 +628,6 @@ class SerializeMixin(object):
         raises a NotImplementedError for __eq__
         """
         return header_a == header_b
-
 
 
 class LoadImageAPI(GenericImageAPI,

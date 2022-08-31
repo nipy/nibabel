@@ -10,6 +10,7 @@
 
 import io
 from copy import deepcopy
+from urllib import request
 from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
@@ -488,7 +489,7 @@ class FileBasedImage(object):
 
 class SerializableImage(FileBasedImage):
     """
-    Abstract image class for (de)serializing images to/from byte strings.
+    Abstract image class for (de)serializing images to/from byte streams/strings.
 
     The class doesn't define any image properties.
 
@@ -501,6 +502,7 @@ class SerializableImage(FileBasedImage):
     classmethods:
 
        * from_bytes(bytestring) - make instance by deserializing a byte string
+       * from_url(url) - make instance by fetching and deserializing a URL
 
     Loading from byte strings should provide round-trip equivalence:
 
@@ -538,7 +540,43 @@ class SerializableImage(FileBasedImage):
     """
 
     @classmethod
-    def from_bytes(klass, bytestring):
+    def _filemap_from_iobase(klass, io_obj: io.IOBase):
+        """For single-file image types, make a file map with the correct key"""
+        if len(klass.files_types) > 1:
+            raise NotImplementedError(
+                "(de)serialization is undefined for multi-file images"
+            )
+        return klass.make_file_map({klass.files_types[0][0]: io_obj})
+
+    @classmethod
+    def from_stream(klass, io_obj: io.IOBase):
+        """Load image from readable IO stream
+
+        Convert to BytesIO to enable seeking, if input stream is not seekable
+
+        Parameters
+        ----------
+        io_obj : IOBase object
+            Readable stream
+        """
+        if not io_obj.seekable():
+            io_obj = io.BytesIO(io_obj.read())
+        return klass.from_file_map(klass._filemap_from_iobase(io_obj))
+
+    def to_stream(self, io_obj: io.IOBase, **kwargs):
+        """Save image to writable IO stream
+
+        Parameters
+        ----------
+        io_obj : IOBase object
+            Writable stream
+        \*\*kwargs : keyword arguments
+            Keyword arguments that may be passed to ``img.to_file_map()``
+        """
+        self.to_file_map(self._filemap_from_iobase(io_obj), **kwargs)
+
+    @classmethod
+    def from_bytes(klass, bytestring: bytes):
         """ Construct image from a byte string
 
         Class method
@@ -548,13 +586,9 @@ class SerializableImage(FileBasedImage):
         bstring : bytes
             Byte string containing the on-disk representation of an image
         """
-        if len(klass.files_types) > 1:
-            raise NotImplementedError("from_bytes is undefined for multi-file images")
-        bio = io.BytesIO(bytestring)
-        file_map = klass.make_file_map({'image': bio, 'header': bio})
-        return klass.from_file_map(file_map)
+        return klass.from_stream(io.BytesIO(bytestring))
 
-    def to_bytes(self, **kwargs):
+    def to_bytes(self, **kwargs) -> bytes:
         r""" Return a ``bytes`` object with the contents of the file that would
         be written if the image were saved.
 
@@ -568,9 +602,22 @@ class SerializableImage(FileBasedImage):
         bytes
             Serialized image
         """
-        if len(self.__class__.files_types) > 1:
-            raise NotImplementedError("to_bytes() is undefined for multi-file images")
         bio = io.BytesIO()
-        file_map = self.make_file_map({'image': bio, 'header': bio})
-        self.to_file_map(file_map, **kwargs)
+        self.to_stream(bio, **kwargs)
         return bio.getvalue()
+
+    @classmethod
+    def from_url(klass, url, timeout=5):
+        """Retrieve and load an image from a URL
+
+        Class method
+
+        Parameters
+        ----------
+        url : str or urllib.request.Request object
+            URL of file to retrieve
+        timeout : float, optional
+            Time (in seconds) to wait for a response
+        """
+        response = request.urlopen(url, timeout=timeout)
+        return klass.from_stream(response)
