@@ -25,6 +25,22 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+4.0.2 (Wednesday 31 August 2022)
+================================
+
+Bug-fix release in the 4.0.x series.
+
+Bug fixes
+---------
+* Make ``GiftiMetaData.data`` a list proxy, deprecate (pr/1127) (CM, reviewed
+  by Hao-Ting Wang)
+
+Maintenance
+-----------
+* Finalize deprecation of ``ArrayWriter.to_fileobj(nan2zero=...)`` argument
+  (pr/1126) (CM)
+
+
 4.0.1 (Saturday 18 June 2022)
 =============================
 
