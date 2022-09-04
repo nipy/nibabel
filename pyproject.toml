@@ -16,7 +16,7 @@ license = { text="MIT License" }
 requires-python = ">=3.7"
 dependencies = ["numpy >=1.17", "packaging >=17", "setuptools"]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
