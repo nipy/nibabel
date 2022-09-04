@@ -56,12 +56,12 @@ jobs:
       EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
@@ -84,7 +84,7 @@ jobs:
         run: tools/ci/submit_coverage.sh
         if: ${{ always() }}
       - name: Upload pytest test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
           path: for_testing/test-results.xml
