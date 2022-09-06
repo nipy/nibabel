@@ -172,6 +172,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
+    environment: "Package deployment"
     needs: [stable, test-package]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
