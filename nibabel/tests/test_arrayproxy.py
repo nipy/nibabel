@@ -64,6 +64,7 @@ class CArrayProxy(ArrayProxy):
 
 
 class DeprecatedCArrayProxy(ArrayProxy):
+    # Used in test_deprecated_order_classvar. Remove when that test is removed (8.0)
     order = 'C'
 
 
