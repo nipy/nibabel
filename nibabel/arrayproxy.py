@@ -119,7 +119,8 @@ class ArrayProxy:
         order : {None, 'F', 'C'}, optional, keyword only
             `order` controls the order of the data array layout. Fortran-style,
             column-major order may be indicated with 'F', and C-style, row-major
-            order may be indicated with 'C'. The default order is 'F'.
+            order may be indicated with 'C'. None gives the default order, that
+            comes from the `_default_order` class variable.
         keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
@@ -133,7 +134,7 @@ class ArrayProxy:
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         if order not in (None, 'C', 'F'):
-            raise ValueError("order should be one of {'C', 'F'}")
+            raise ValueError("order should be one of {None, 'C', 'F'}")
         self.file_like = file_like
         if hasattr(spec, 'get_data_shape'):
             slope, inter = spec.get_slope_inter()
