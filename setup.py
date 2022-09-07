@@ -7,22 +7,27 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Build helper."""
+"""
+Setuptools entrypoint
 
-import sys
+This file is a basic stub needed to integrate with versioneer, which allows the
+version to be retrieved from git and set statically in a built package.
+
+This file should not be run directly. To install, use:
+
+    pip install .
+
+To build a package for distribution, use:
+
+    pip install --upgrade build
+    python -m build
+
+"""
 
 from setuptools import setup
 import versioneer
 
-# Give setuptools a hint to complain if it's too old a version
-# 30.3.0 allows us to put most metadata in setup.cfg
-# Should match pyproject.toml
-SETUP_REQUIRES = ['setuptools >= 30.3.0']
-# This enables setuptools to install wheel on-the-fly
-SETUP_REQUIRES += ['wheel'] if 'bdist_wheel' in sys.argv else []
-
-if __name__ == "__main__":
-    setup(name='nibabel',
-          setup_requires=SETUP_REQUIRES,
-          version=versioneer.get_version(),
-          cmdclass=versioneer.get_cmdclass())
+setup(
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+)

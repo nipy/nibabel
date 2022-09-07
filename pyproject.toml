@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "nibabel"
+description = "Access a multitude of neuroimaging data formats"
+authors = [
+  { name = "nibabel developers", email = "neuroimaging@python.org" },
+]
+maintainers = [
+  { name = "Christopher Markiewicz" },
+]
+readme = "README.rst"
+license = { text="MIT License" }
+requires-python = ">=3.7"
+dependencies = ["numpy >=1.17", "packaging >=17", "setuptools"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering",
+]
+# Version from versioneer
+# optional-dependencies from setup.cfg (using ConfigParser features)
+dynamic = ["version", "optional-dependencies"]
+
+[project.urls]
+"Homepage" = "https://nipy.org/nibabel"
+"Development" = "https://github.com/nipy/nibabel"
+
+[project.scripts]
+nib-conform = "nibabel.cmdline.conform:main"
+nib-convert = "nibabel.cmdline.convert:main"
+nib-ls = "nibabel.cmdline.ls:main"
+nib-dicomfs = "nibabel.cmdline.dicomfs:main"
+nib-diff = "nibabel.cmdline.diff:main"
+nib-stats = "nibabel.cmdline.stats:main"
+nib-nifti-dx = "nibabel.cmdline.nifti_dx:main"
+nib-tck2trk = "nibabel.cmdline.tck2trk:main"
+nib-trk2tck = "nibabel.cmdline.trk2tck:main"
+nib-roi = "nibabel.cmdline.roi:main"
+parrec2nii = "nibabel.cmdline.parrec2nii:main"
+
+[tool.setuptools]
+platforms = ["OS Independent"]
+provides = ["nibabel", "nisext"]
+zip-safe = false
+
+[tool.setuptools.packages]
+find = {}
+
+[tool.setuptools.package-data]
+nibabel = ["tests/data/*", "*/tests/data/*", "benchmarks/pytest.benchmark.ini"]

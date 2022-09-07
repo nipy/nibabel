@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from configparser import ConfigParser
+import tomli
 from pathlib import Path
 
 if sys.version_info < (3, 6):
@@ -8,13 +8,13 @@ if sys.version_info < (3, 6):
     sys.exit(1)
 
 repo_root = Path(__file__).parent.parent
-setup_cfg = repo_root / "setup.cfg"
+pyproject_toml = repo_root / "pyproject.toml"
 reqs = repo_root / "requirements.txt"
 min_reqs = repo_root / "min-requirements.txt"
 
-config = ConfigParser()
-config.read(setup_cfg)
-requirements = config.get("options", "install_requires").strip().splitlines()
+with open(pyproject_toml, 'rb') as fobj:
+    config = tomli.load(fobj)
+requirements = config["project"]["dependencies"]
 
 script_name = Path(__file__).relative_to(repo_root)
 
