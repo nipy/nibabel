@@ -27,6 +27,7 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
 from contextlib import contextmanager
 from threading import RLock
+import warnings
 
 import numpy as np
 
@@ -53,7 +54,7 @@ raised.
 KEEP_FILE_OPEN_DEFAULT = False
 
 
-class ArrayProxy(object):
+class ArrayProxy:
     """ Class to act as proxy for the array that can be read from a file
 
     The array proxy allows us to freeze the passed fileobj and header such that
@@ -83,10 +84,9 @@ class ArrayProxy(object):
     See :mod:`nibabel.minc1`, :mod:`nibabel.ecat` and :mod:`nibabel.parrec` for
     examples.
     """
-    # Assume Fortran array memory layout
-    order = 'F'
+    _default_order = 'F'
 
-    def __init__(self, file_like, spec, *, mmap=True, keep_file_open=None):
+    def __init__(self, file_like, spec, *, mmap=True, order=None, keep_file_open=None):
         """Initialize array proxy instance
 
         Parameters
@@ -116,6 +116,11 @@ class ArrayProxy(object):
             True gives the same behavior as ``mmap='c'``.  If `file_like`
             cannot be memory-mapped, ignore `mmap` value and read array from
             file.
+        order : {None, 'F', 'C'}, optional, keyword only
+            `order` controls the order of the data array layout. Fortran-style,
+            column-major order may be indicated with 'F', and C-style, row-major
+            order may be indicated with 'C'. None gives the default order, that
+            comes from the `_default_order` class variable.
         keep_file_open : { None, True, False }, optional, keyword only
             `keep_file_open` controls whether a new file handle is created
             every time the image is accessed, or a single file handle is
@@ -128,6 +133,8 @@ class ArrayProxy(object):
         """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        if order not in (None, 'C', 'F'):
+            raise ValueError("order should be one of {None, 'C', 'F'}")
         self.file_like = file_like
         if hasattr(spec, 'get_data_shape'):
             slope, inter = spec.get_slope_inter()
@@ -142,11 +149,25 @@ class ArrayProxy(object):
         else:
             raise TypeError('spec must be tuple of length 2-5 or header object')
 
+        # Warn downstream users that the class variable order is going away
+        if hasattr(self.__class__, 'order'):
+            warnings.warn(f'Class {self.__class__} has an `order` class variable. '
+                          'ArrayProxy subclasses should rename this variable to `_default_order` '
+                          'to avoid conflict with instance variables.\n'
+                          '* deprecated in version: 5.0\n'
+                          '* will raise error in version: 7.0\n',
+                          DeprecationWarning, stacklevel=2)
+            # Override _default_order with order, to follow intent of subclasser
+            self._default_order = self.order
+
         # Copies of values needed to read array
         self._shape, self._dtype, self._offset, self._slope, self._inter = par
         # Permit any specifier that can be interpreted as a numpy dtype
         self._dtype = np.dtype(self._dtype)
         self._mmap = mmap
+        if order is None:
+            order = self._default_order
+        self.order = order
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
         self._keep_file_open, self._persist_opener = \

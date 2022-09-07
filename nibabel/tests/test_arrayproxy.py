@@ -15,13 +15,16 @@ import contextlib
 
 import pickle
 from io import BytesIO
+from packaging.version import Version
 from ..tmpdirs import InTemporaryDirectory
 
 import numpy as np
 
+from .. import __version__
 from ..arrayproxy import (ArrayProxy, is_proxy, reshape_dataobj, get_obj_dtype)
 from ..openers import ImageOpener
 from ..nifti1 import Nifti1Header
+from ..deprecator import ExpiredDeprecationError
 
 from unittest import mock
 
@@ -57,6 +60,11 @@ class FunkyHeader(object):
 
 class CArrayProxy(ArrayProxy):
     # C array memory layout
+    _default_order = 'C'
+
+
+class DeprecatedCArrayProxy(ArrayProxy):
+    # Used in test_deprecated_order_classvar. Remove when that test is removed (8.0)
     order = 'C'
 
 
@@ -81,6 +89,9 @@ def test_init():
     assert ap.shape != shape
     # Data stays the same, also
     assert_array_equal(np.asarray(ap), arr)
+    # You wouldn't do this, but order=None explicitly requests the default order
+    ap2 = ArrayProxy(bio, FunkyHeader(arr.shape), order=None)
+    assert_array_equal(np.asarray(ap2), arr)
     # C order also possible
     bio = BytesIO()
     bio.seek(16)
@@ -90,6 +101,8 @@ def test_init():
     # Illegal init
     with pytest.raises(TypeError):
         ArrayProxy(bio, object())
+    with pytest.raises(ValueError):
+        ArrayProxy(bio, hdr, order='badval')
 
 
 def test_tuplespec():
@@ -154,31 +167,85 @@ def test_nifti1_init():
         assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
 
 
-def test_proxy_slicing():
-    shapes = (15, 16, 17)
-    for n_dim in range(1, len(shapes) + 1):
-        shape = shapes[:n_dim]
-        arr = np.arange(np.prod(shape)).reshape(shape)
-        for offset in (0, 20):
-            hdr = Nifti1Header()
-            hdr.set_data_offset(offset)
-            hdr.set_data_dtype(arr.dtype)
-            hdr.set_data_shape(shape)
-            for order, klass in ('F', ArrayProxy), ('C', CArrayProxy):
-                fobj = BytesIO()
-                fobj.write(b'\0' * offset)
-                fobj.write(arr.tobytes(order=order))
-                prox = klass(fobj, hdr)
-                for sliceobj in slicer_samples(shape):
-                    assert_array_equal(arr[sliceobj], prox[sliceobj])
-    # Check slicing works with scaling
+@pytest.mark.parametrize("n_dim", (1, 2, 3))
+@pytest.mark.parametrize("offset", (0, 20))
+def test_proxy_slicing(n_dim, offset):
+    shape = (15, 16, 17)[:n_dim]
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    hdr = Nifti1Header()
+    hdr.set_data_offset(offset)
+    hdr.set_data_dtype(arr.dtype)
+    hdr.set_data_shape(shape)
+    for order, klass in ('F', ArrayProxy), ('C', CArrayProxy):
+        fobj = BytesIO()
+        fobj.write(b'\0' * offset)
+        fobj.write(arr.tobytes(order=order))
+        prox = klass(fobj, hdr)
+        assert prox.order == order
+        for sliceobj in slicer_samples(shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+
+def test_proxy_slicing_with_scaling():
+    shape = (15, 16, 17)
+    offset = 20
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    hdr = Nifti1Header()
+    hdr.set_data_offset(offset)
+    hdr.set_data_dtype(arr.dtype)
+    hdr.set_data_shape(shape)
     hdr.set_slope_inter(2.0, 1.0)
     fobj = BytesIO()
-    fobj.write(b'\0' * offset)
+    fobj.write(bytes(offset))
     fobj.write(arr.tobytes(order='F'))
     prox = ArrayProxy(fobj, hdr)
     sliceobj = (None, slice(None), 1, -1)
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])
+
+
+@pytest.mark.parametrize("order", ("C", "F"))
+def test_order_override(order):
+    shape = (15, 16, 17)
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    fobj = BytesIO()
+    fobj.write(arr.tobytes(order=order))
+    for klass in (ArrayProxy, CArrayProxy):
+        prox = klass(fobj, (shape, arr.dtype), order=order)
+        assert prox.order == order
+        sliceobj = (None, slice(None), 1, -1)
+        assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+
+def test_deprecated_order_classvar():
+    shape = (15, 16, 17)
+    arr = np.arange(np.prod(shape)).reshape(shape)
+    fobj = BytesIO()
+    fobj.write(arr.tobytes(order='C'))
+    sliceobj = (None, slice(None), 1, -1)
+
+    # We don't really care about the original order, just that the behavior
+    # of the deprecated mode matches the new behavior
+    fprox = ArrayProxy(fobj, (shape, arr.dtype), order='F')
+    cprox = ArrayProxy(fobj, (shape, arr.dtype), order='C')
+
+    # Start raising errors when we crank the dev version
+    if Version(__version__) >= Version('7.0.0.dev0'):
+        cm = pytest.raises(ExpiredDeprecationError)
+    else:
+        cm = pytest.deprecated_call()
+
+    with cm:
+        prox = DeprecatedCArrayProxy(fobj, (shape, arr.dtype))
+        assert prox.order == 'C'
+        assert_array_equal(prox[sliceobj], cprox[sliceobj])
+    with cm:
+        prox = DeprecatedCArrayProxy(fobj, (shape, arr.dtype), order='C')
+        assert prox.order == 'C'
+        assert_array_equal(prox[sliceobj], cprox[sliceobj])
+    with cm:
+        prox = DeprecatedCArrayProxy(fobj, (shape, arr.dtype), order='F')
+        assert prox.order == 'F'
+        assert_array_equal(prox[sliceobj], fprox[sliceobj])
 
 
 def test_is_proxy():
