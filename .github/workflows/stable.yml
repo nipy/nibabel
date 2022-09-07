@@ -11,6 +11,8 @@ on:
     branches:
       - master
       - maint/*
+    tags:
+      - "*"
   pull_request:
     branches:
       - master
@@ -23,6 +25,59 @@ defaults:
     shell: bash
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3
+      - run: pip install --upgrade build twine
+      - name: Build sdist and wheel
+        run: python -m build
+      - run: twine check dist/*
+      - name: Build git archive
+        run: git archive -v -o dist/nibabel-archive.tgz HEAD
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  test-package:
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      matrix:
+        package: ['wheel', 'sdist', 'archive']
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Update pip
+        run: pip install --upgrade pip
+      - name: Install wheel
+        run: pip install dist/nibabel-*.whl
+        if: matrix.package == 'wheel'
+      - name: Install sdist
+        run: pip install dist/nibabel-*.tar.gz
+        if: matrix.package == 'sdist'
+      - name: Install archive
+        run: pip install dist/nibabel-archive.tgz
+        if: matrix.package == 'archive'
+      - run: python -c 'import nibabel; print(nibabel.__version__)'
+      - name: Install test extras
+        run: pip install nibabel[test]
+      - name: Run tests
+        run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel
+
   stable:
     # Check each OS, all supported Python, minimum versions and latest releases
     runs-on: ${{ matrix.os }}
@@ -68,28 +123,6 @@ jobs:
             check: skiptests
             pip-flags: ''
             depends: ''
-          # Check all installation methods
-          - os: ubuntu-latest
-            python-version: "3.10"
-            install: wheel
-            check: test
-            pip-flags: ''
-            depends: REQUIREMENTS
-            optional-depends: DEFAULT_OPT_DEPENDS
-          - os: ubuntu-latest
-            python-version: "3.10"
-            install: sdist
-            check: test
-            pip-flags: ''
-            depends: REQUIREMENTS
-            optional-depends: DEFAULT_OPT_DEPENDS
-          - os: ubuntu-latest
-            python-version: "3.10"
-            install: archive
-            check: test
-            pip-flags: ''
-            depends: REQUIREMENTS
-            optional-depends: DEFAULT_OPT_DEPENDS
         exclude:
           - os: ubuntu-latest
             architecture: x86
@@ -103,12 +136,12 @@ jobs:
       EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
@@ -131,8 +164,23 @@ jobs:
         run: tools/ci/submit_coverage.sh
         if: ${{ always() }}
       - name: Upload pytest test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
           path: for_testing/test-results.xml
         if: ${{ always() && matrix.check == 'test' }}
+
+  publish:
+    runs-on: ubuntu-latest
+    environment: "Package deployment"
+    needs: [stable, test-package]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
