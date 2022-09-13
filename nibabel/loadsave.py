@@ -22,17 +22,13 @@ from .deprecated import deprecate_with_version
 _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
 
-def _signature_matches_extension(filename, sniff):
+def _signature_matches_extension(filename):
     """Check if signature aka magic number matches filename extension.
 
     Parameters
     ----------
     filename : str or os.PathLike
         Path to the file to check
-
-    sniff : bytes or None
-        First bytes of the file. If not `None` and long enough to contain the
-        signature, avoids having to read the start of the file.
 
     Returns
     -------
@@ -56,12 +52,11 @@ def _signature_matches_extension(filename, sniff):
     if ext not in signatures:
         return True, ""
     expected_signature = signatures[ext]["signature"]
-    if sniff is None or len(sniff) < len(expected_signature):
-        try:
-            with open(filename, "rb") as fh:
-                sniff = fh.read(len(expected_signature))
-        except OSError:
-            return False, f"Could not read file: {filename}"
+    try:
+        with open(filename, "rb") as fh:
+            sniff = fh.read(len(expected_signature))
+    except OSError:
+        return False, f"Could not read file: {filename}"
     if sniff.startswith(expected_signature):
         return True, ""
     format_name = signatures[ext]["format_name"]
@@ -100,7 +95,7 @@ def load(filename, **kwargs):
             img = image_klass.from_filename(filename, **kwargs)
             return img
 
-    matches, msg = _signature_matches_extension(filename, sniff)
+    matches, msg = _signature_matches_extension(filename)
     if not matches:
         raise ImageFileError(msg)
 
