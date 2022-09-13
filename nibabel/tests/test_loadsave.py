@@ -13,6 +13,7 @@ from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
 from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
+from ..openers import Opener
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
@@ -79,6 +80,15 @@ def test_load_bad_compressed_extension(tmp_path, extension):
     file_path = tmp_path / f"img.nii{extension}"
     file_path.write_bytes(b"bad")
     with pytest.raises(ImageFileError, match=".*is not a .* file"):
+        load(file_path)
+
+
+@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+def test_load_good_extension_with_bad_data(tmp_path, extension):
+    file_path = tmp_path / f"img.nii{extension}"
+    with Opener(file_path, "wb") as fobj:
+        fobj.write(b"bad")
+    with pytest.raises(ImageFileError, match="Cannot work out file type of .*"):
         load(file_path)
 
 
