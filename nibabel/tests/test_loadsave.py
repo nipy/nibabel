@@ -98,27 +98,19 @@ def test_signature_matches_extension(tmp_path):
     good_file.write_bytes(gz_signature)
     bad_file = tmp_path / "bad.gz"
     bad_file.write_bytes(b"bad")
-    matches, msg = _signature_matches_extension(
-        tmp_path / "uncompressed.nii", None)
+    matches, msg = _signature_matches_extension(tmp_path / "uncompressed.nii")
     assert matches
     assert msg == ""
-    matches, msg = _signature_matches_extension(tmp_path / "missing.gz", None)
+    matches, msg = _signature_matches_extension(tmp_path / "missing.gz")
     assert not matches
     assert msg.startswith("Could not read")
-    matches, msg = _signature_matches_extension(bad_file, None)
+    matches, msg = _signature_matches_extension(bad_file)
     assert not matches
     assert "is not a" in msg
-    matches, msg = _signature_matches_extension(bad_file, gz_signature + b"abc")
+    matches, msg = _signature_matches_extension(good_file)
     assert matches
     assert msg == ""
-    matches, msg = _signature_matches_extension(
-        good_file, gz_signature + b"abc")
-    assert matches
-    assert msg == ""
-    matches, msg = _signature_matches_extension(good_file, gz_signature[:1])
-    assert matches
-    assert msg == ""
-    matches, msg = _signature_matches_extension(good_file, None)
+    matches, msg = _signature_matches_extension(tmp_path / "missing.nii")
     assert matches
     assert msg == ""
 
