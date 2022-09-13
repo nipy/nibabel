@@ -148,7 +148,4 @@ def test_sniff_invalid_nii_files():
         sniff = None
         matches, msg = _signature_matches_extension(filename, sniff)
 
-        if filename.endswith('.nii'):
-            assert matches == False
-        else:
-            assert matches == True
+        assert matches == True
