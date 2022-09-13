@@ -44,7 +44,8 @@ def _signature_matches_extension(filename):
     """
     signatures = {
         ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
-        ".bz2": {"signature": b"BZh", "format_name": "bzip2"}
+        ".bz2": {"signature": b"BZh", "format_name": "bzip2"},
+        ".zst": {"signature": b"\x28\xb5\x2f\xfd", "format_name": "ztsd"},
     }
     filename = _stringify_path(filename)
     *_, ext = splitext_addext(filename)

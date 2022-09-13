@@ -17,6 +17,7 @@ from ..openers import Opener
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
+_, have_pyzstd, _ = optional_package('pyzstd')
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -75,16 +76,20 @@ def test_load_empty_image():
     assert str(err.value).startswith('Empty file: ')
 
 
-@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+@pytest.mark.parametrize("extension", [".gz", ".bz2", ".zst"])
 def test_load_bad_compressed_extension(tmp_path, extension):
+    if extension == ".zst" and not have_pyzstd:
+        pytest.skip()
     file_path = tmp_path / f"img.nii{extension}"
     file_path.write_bytes(b"bad")
     with pytest.raises(ImageFileError, match=".*is not a .* file"):
         load(file_path)
 
 
-@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+@pytest.mark.parametrize("extension", [".gz", ".bz2", ".zst"])
 def test_load_good_extension_with_bad_data(tmp_path, extension):
+    if extension == ".zst" and not have_pyzstd:
+        pytest.skip()
     file_path = tmp_path / f"img.nii{extension}"
     with Opener(file_path, "wb") as fobj:
         fobj.write(b"bad")
