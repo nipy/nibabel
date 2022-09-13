@@ -13,6 +13,8 @@ from os.path import dirname, basename, join as pjoin
 
 import numpy as np
 
+from nibabel.loadsave import _signature_matches_extension
+
 from .. import (Nifti1Image, Nifti1Header, Nifti1Pair,
                 Nifti2Image, Nifti2Header, Nifti2Pair,
                 AnalyzeImage, AnalyzeHeader,
@@ -121,3 +123,32 @@ def test_sniff_and_guessed_image_type_randomized():
     img_klasses = copy.copy(all_image_classes)
     np.random.shuffle(img_klasses)
     test_sniff_and_guessed_image_type(img_klasses=img_klasses)
+
+
+def test_sniff_invalid_nii_files():
+    invalid_images = [
+        'invalid.nii',
+        'invalid.nii.gz',
+        'invalid.nii.bz2',
+        #  'invalid.nii.zst',  # requires package pyzstd
+    ]
+
+    invalid_images = [pjoin(DATA_PATH, p) for p in invalid_images]
+
+    for filename in invalid_images:
+        sniff = None
+        for image_klass in all_image_classes:
+            is_valid, sniff = image_klass.path_maybe_image(filename, sniff)
+            assert not is_valid
+            if is_valid:
+                img = image_klass.from_filename(filename, **kwargs)
+                return img
+
+        # reset sniff to None as we are not interested in the header of the decompressed file
+        sniff = None
+        matches, msg = _signature_matches_extension(filename, sniff)
+
+        if filename.endswith('.nii'):
+            assert matches == False
+        else:
+            assert matches == True

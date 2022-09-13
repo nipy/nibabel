@@ -100,6 +100,9 @@ def load(filename, **kwargs):
             img = image_klass.from_filename(filename, **kwargs)
             return img
 
+    # reset sniff to None
+    # as we don't want to sniff the contents of the decompressed container
+    sniff = None
     matches, msg = _signature_matches_extension(filename, sniff)
     if not matches:
         raise ImageFileError(msg)
