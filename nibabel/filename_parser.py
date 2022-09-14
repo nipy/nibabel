@@ -253,7 +253,7 @@ def _iendswith(whole, end):
 
 
 def splitext_addext(filename,
-                    addexts=('.gz', '.bz2'),
+                    addexts=('.gz', '.bz2', '.zst'),
                     match_case=False):
     """ Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
 

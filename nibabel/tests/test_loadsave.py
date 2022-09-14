@@ -13,9 +13,11 @@ from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
 from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
+from ..openers import Opener
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
+_, have_pyzstd, _ = optional_package('pyzstd')
 
 from numpy.testing import (assert_almost_equal,
                            assert_array_equal)
@@ -74,11 +76,24 @@ def test_load_empty_image():
     assert str(err.value).startswith('Empty file: ')
 
 
-@pytest.mark.parametrize("extension", [".gz", ".bz2"])
+@pytest.mark.parametrize("extension", [".gz", ".bz2", ".zst"])
 def test_load_bad_compressed_extension(tmp_path, extension):
+    if extension == ".zst" and not have_pyzstd:
+        pytest.skip()
     file_path = tmp_path / f"img.nii{extension}"
     file_path.write_bytes(b"bad")
     with pytest.raises(ImageFileError, match=".*is not a .* file"):
+        load(file_path)
+
+
+@pytest.mark.parametrize("extension", [".gz", ".bz2", ".zst"])
+def test_load_good_extension_with_bad_data(tmp_path, extension):
+    if extension == ".zst" and not have_pyzstd:
+        pytest.skip()
+    file_path = tmp_path / f"img.nii{extension}"
+    with Opener(file_path, "wb") as fobj:
+        fobj.write(b"bad")
+    with pytest.raises(ImageFileError, match="Cannot work out file type of .*"):
         load(file_path)
 
 
@@ -88,27 +103,19 @@ def test_signature_matches_extension(tmp_path):
     good_file.write_bytes(gz_signature)
     bad_file = tmp_path / "bad.gz"
     bad_file.write_bytes(b"bad")
-    matches, msg = _signature_matches_extension(
-        tmp_path / "uncompressed.nii", None)
+    matches, msg = _signature_matches_extension(tmp_path / "uncompressed.nii")
     assert matches
     assert msg == ""
-    matches, msg = _signature_matches_extension(tmp_path / "missing.gz", None)
+    matches, msg = _signature_matches_extension(tmp_path / "missing.gz")
     assert not matches
     assert msg.startswith("Could not read")
-    matches, msg = _signature_matches_extension(bad_file, None)
+    matches, msg = _signature_matches_extension(bad_file)
     assert not matches
     assert "is not a" in msg
-    matches, msg = _signature_matches_extension(bad_file, gz_signature + b"abc")
+    matches, msg = _signature_matches_extension(good_file)
     assert matches
     assert msg == ""
-    matches, msg = _signature_matches_extension(
-        good_file, gz_signature + b"abc")
-    assert matches
-    assert msg == ""
-    matches, msg = _signature_matches_extension(good_file, gz_signature[:1])
-    assert matches
-    assert msg == ""
-    matches, msg = _signature_matches_extension(good_file, None)
+    matches, msg = _signature_matches_extension(tmp_path / "missing.nii")
     assert matches
     assert msg == ""
 

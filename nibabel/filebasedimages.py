@@ -430,7 +430,7 @@ class FileBasedImage(object):
         try:
             with ImageOpener(meta_fname, 'rb') as fobj:
                 binaryblock = fobj.read(sniff_nbytes)
-        except IOError:
+        except (IOError, EOFError):
             return None
         return (binaryblock, meta_fname)
 
