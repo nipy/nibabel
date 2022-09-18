@@ -18,6 +18,7 @@ from .minc2 import Minc2Image
 from .nifti1 import Nifti1Pair, Nifti1Image
 from .nifti2 import Nifti2Pair, Nifti2Image
 from .parrec import PARRECImage
+from .xmlrec import XMLRECImage
 from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
 from .volumeutils import Recoder
@@ -32,7 +33,7 @@ all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
                      Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
                      Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
                      Minc1Image, Minc2Image, MGHImage,
-                     PARRECImage, GiftiImage, AFNIImage]
+                     PARRECImage, XMLRECImage, GiftiImage, AFNIImage]
 
 
 # DEPRECATED: mapping of names to classes and class functionality
@@ -90,6 +91,11 @@ class_map = ClassMapDict(
          'has_affine': True,
          'makeable': False,
          'rw': False},
+    xml={'class': XMLRECImage,
+         'ext': '.xml',
+         'has_affine': True,
+         'makeable': False,
+         'rw': False},
     afni={'class': AFNIImage,
           'ext': '.brik',
           'has_affine': True,
@@ -113,6 +119,7 @@ ext_map = ExtMapRecoder((
     ('mgh', '.mgh'),
     ('mgz', '.mgz'),
     ('par', '.par'),
+    ('xml', '.xml'),
     ('brik', '.brik')
 ))
 
@@ -121,7 +128,7 @@ ext_map = ExtMapRecoder((
 # here.
 KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
                        Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                       MGHImage, PARRECImage, AFNIImage)
+                       MGHImage, PARRECImage, XMLRECImage, AFNIImage)
 
 
 def spatial_axes_first(img):

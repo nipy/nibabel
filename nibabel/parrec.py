@@ -901,7 +901,7 @@ class PARRECHeader(SpatialHeader):
     def set_data_offset(self, offset):
         """ PAR header always has 0 data offset (into REC file) """
         if offset != 0:
-            raise PARRECError("PAR header assumes offset 0")
+            raise PARRECError("header assumes offset 0")
 
     def _calc_zooms(self):
         """Compute image zooms from header data.
@@ -930,7 +930,7 @@ class PARRECHeader(SpatialHeader):
         # If 4D dynamic scan, convert time from milliseconds to seconds
         if len(zooms) > 3 and self.general_info['dyn_scan']:
             if len(self.general_info['repetition_time']) > 1:
-                warnings.warn("multiple TRs found in .PAR file")
+                warnings.warn("multiple TRs found in header file")
             zooms[3] = self.general_info['repetition_time'][0] / 1000.
         return zooms
 

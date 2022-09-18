@@ -1,0 +1,10 @@
+#!python
+"""XML/REC to NIfTI converter
+"""
+
+# parrec2nii reads XML/REC as well
+from nibabel.cmdline.parrec2nii import main
+
+
+if __name__ == '__main__':
+    main()

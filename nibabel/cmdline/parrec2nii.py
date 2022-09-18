@@ -9,6 +9,7 @@ import os
 import csv
 import nibabel
 import nibabel.parrec as pr
+import nibabel.xmlrec as xr
 from nibabel.parrec import one_line
 from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
@@ -146,7 +147,15 @@ def error(msg, exit_code):
 
 def proc_file(infile, opts):
     # figure out the output filename, and see if it exists
-    basefilename = splitext_addext(os.path.basename(infile))[0]
+    basefilename, ext = splitext_addext(os.path.basename(infile))[:2]
+
+    ext = ext.lower()
+    if (ext == '.xml' or
+            (ext == '.rec' and os.path.exists(basefilename + '.xml'))):
+        pr_module = xr
+    else:
+        pr_module = pr
+
     if opts.outdir is not None:
         # set output path
         basefilename = os.path.join(opts.outdir, basefilename)
@@ -163,10 +172,10 @@ def proc_file(infile, opts):
     # load the PAR header and data
     scaling = 'dv' if opts.scaling == 'off' else opts.scaling
     infile = fname_ext_ul_case(infile)
-    pr_img = pr.load(infile,
-                     permit_truncated=opts.permit_truncated,
-                     scaling=scaling,
-                     strict_sort=opts.strict_sort)
+    pr_img = pr_module.load(infile,
+                            permit_truncated=opts.permit_truncated,
+                            scaling=scaling,
+                            strict_sort=opts.strict_sort)
     pr_hdr = pr_img.header
     affine = pr_hdr.get_affine(origin=opts.origin)
     slope, intercept = pr_hdr.get_data_scaling(scaling)
