@@ -327,7 +327,9 @@ class TckFile(TractogramFile):
 
             f.fobj.seek(1, os.SEEK_CUR) # Skip \n
 
-            # Read all key-value pairs contained in the header
+            found_end = False
+
+            # Read all key-value pairs contained in the header, stop at EOF
             for n_line, line in enumerate(f.fobj, 1):
                 line = asstr(line).strip()
 
@@ -335,6 +337,7 @@ class TckFile(TractogramFile):
                     continue
 
                 if line == "END": # End of the header
+                    found_end = True
                     break
 
                 if ':' not in line: # Invalid header line
@@ -342,6 +345,9 @@ class TckFile(TractogramFile):
 
                 key, value = line.split(":", 1)
                 hdr[key.strip()] = value.strip()
+
+            if not found_end:
+                raise HeaderError("Missing END in the header.")
 
             offset_data = f.tell()
 
