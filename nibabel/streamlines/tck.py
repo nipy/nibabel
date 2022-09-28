@@ -325,7 +325,7 @@ class TckFile(TractogramFile):
 
             hdr[Field.MAGIC_NUMBER] = magic_number
 
-            f.fobj.seek(1, os.SEEK_CUR) # Skip \n
+            f.fobj.seek(1, os.SEEK_CUR)  # Skip \n
 
             found_end = False
 
@@ -333,14 +333,14 @@ class TckFile(TractogramFile):
             for n_line, line in enumerate(f.fobj, 1):
                 line = asstr(line).strip()
 
-                if not line: # Skip empty lines
+                if not line:  # Skip empty lines
                     continue
 
-                if line == "END": # End of the header
+                if line == "END":  # End of the header
                     found_end = True
                     break
 
-                if ':' not in line: # Invalid header line
+                if ':' not in line:  # Invalid header line
                     raise HeaderError(f"Invalid header (line {n_line}): {line}")
 
                 key, value = line.split(":", 1)
