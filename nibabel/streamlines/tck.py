@@ -91,8 +91,8 @@ class TckFile(TractogramFile):
             otherwise returns False.
         """
         with Opener(fileobj) as f:
-            magic_number = asstr(f.fobj.readline())
-            f.seek(-len(magic_number), os.SEEK_CUR)
+            magic_number = asstr(f.fobj.read(len(cls.MAGIC_NUMBER)))
+            f.seek(-len(cls.MAGIC_NUMBER), os.SEEK_CUR)
 
         return magic_number.strip() == cls.MAGIC_NUMBER
 
@@ -287,8 +287,8 @@ class TckFile(TractogramFile):
         fileobj.write(asbytes(str(new_offset) + "\n"))
         fileobj.write(asbytes("END\n"))
 
-    @staticmethod
-    def _read_header(fileobj):
+    @classmethod
+    def _read_header(cls, fileobj):
         """ Reads a TCK header from a file.
 
         Parameters
@@ -304,23 +304,50 @@ class TckFile(TractogramFile):
         header : dict
             Metadata associated with this tractogram file.
         """
-        # Record start position if this is a file-like object
-        start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
+
+        # Build header dictionary from the buffer
+        hdr = {}
+        offset_data = 0
 
         with Opener(fileobj) as f:
-            # Read magic number
-            magic_number = f.fobj.readline().strip()
 
-            # Read all key-value pairs contained in the header.
-            buf = asstr(f.fobj.readline())
-            while not buf.rstrip().endswith("END"):
-                buf += asstr(f.fobj.readline())
+            # Record start position
+            start_position = f.fobj.tell()
+
+            # Make sure we are at the beginning of the file
+            f.fobj.seek(0, os.SEEK_SET)
+
+            # Read magic number
+            magic_number = asstr(f.fobj.read(len(cls.MAGIC_NUMBER)))
+
+            if magic_number != cls.MAGIC_NUMBER:
+                raise HeaderError(f"Invalid magic number: {magic_number}")
+
+            hdr[Field.MAGIC_NUMBER] = magic_number
+
+            f.fobj.seek(1, os.SEEK_CUR) # Skip \n
+
+            # Read all key-value pairs contained in the header
+            for n_line, line in enumerate(f.fobj, 1):
+                line = asstr(line).strip()
+
+                if not line: # Skip empty lines
+                    continue
+
+                if line == "END": # End of the header
+                    break
+
+                if ':' not in line: # Invalid header line
+                    raise HeaderError(f"Invalid header (line {n_line}): {line}")
+
+                key, value = line.split(":", 1)
+                hdr[key.strip()] = value.strip()
 
             offset_data = f.tell()
 
-        # Build header dictionary from the buffer.
-        hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')[:-1])
-        hdr[Field.MAGIC_NUMBER] = magic_number
+            # Set the file position where it was, in case it was previously open
+            if start_position is not None:
+                f.fobj.seek(start_position, os.SEEK_SET)
 
         # Check integrity of TCK header.
         if 'datatype' not in hdr:
@@ -351,10 +378,6 @@ class TckFile(TractogramFile):
 
         # Keep the file position where the data begin.
         hdr['_offset_data'] = int(hdr['file'].split()[1])
-
-        # Set the file position where it was, if it was previously open.
-        if start_position is not None:
-            fileobj.seek(start_position, os.SEEK_SET)
 
         return hdr
 
