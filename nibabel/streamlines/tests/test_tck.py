@@ -25,6 +25,9 @@ def setup_module():
     global DATA
 
     DATA['empty_tck_fname'] = pjoin(data_path, "empty.tck")
+    DATA['no_magic_number_tck_fname'] = pjoin(data_path, "no_magic_number.tck")
+    DATA['no_header_end_tck_fname'] = pjoin(data_path, "no_header_end.tck")
+    DATA['no_header_end_eof_tck_fname'] = pjoin(data_path, "no_header_end_eof.tck")
     # simple.tck contains only streamlines
     DATA['simple_tck_fname'] = pjoin(data_path, "simple.tck")
     DATA['simple_tck_big_endian_fname'] = pjoin(data_path,
@@ -49,6 +52,30 @@ class TestTCK(unittest.TestCase):
             tck = TckFile.load(DATA['empty_tck_fname'], lazy_load=lazy_load)
             with pytest.warns(Warning) if lazy_load else error_warnings():
                 assert_tractogram_equal(tck.tractogram, DATA['empty_tractogram'])
+
+    def test_load_no_magic_number_file(self):
+        for lazy_load in [False, True]:
+            with pytest.raises(HeaderError):
+                TckFile.load(
+                    DATA['no_magic_number_tck_fname'],
+                    lazy_load=lazy_load
+                )
+
+    def test_load_no_header_end_file(self):
+        for lazy_load in [False, True]:
+            with pytest.raises(HeaderError):
+                TckFile.load(
+                    DATA['no_header_end_tck_fname'],
+                    lazy_load=lazy_load
+                )
+
+    def test_load_no_header_end_eof_file(self):
+        for lazy_load in [False, True]:
+            with pytest.raises(HeaderError):
+                TckFile.load(
+                    DATA['no_header_end_eof_tck_fname'],
+                    lazy_load=lazy_load
+                )
 
     def test_load_simple_file(self):
         for lazy_load in [False, True]:
