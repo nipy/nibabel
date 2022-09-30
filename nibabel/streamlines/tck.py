@@ -91,10 +91,10 @@ class TckFile(TractogramFile):
             otherwise returns False.
         """
         with Opener(fileobj) as f:
-            magic_number = asstr(f.fobj.read(len(cls.MAGIC_NUMBER)))
+            magic_number = f.read(len(cls.MAGIC_NUMBER))
             f.seek(-len(cls.MAGIC_NUMBER), os.SEEK_CUR)
 
-        return magic_number.strip() == cls.MAGIC_NUMBER
+        return asstr(magic_number) == cls.MAGIC_NUMBER
 
     @classmethod
     def create_empty_header(cls):
@@ -312,25 +312,25 @@ class TckFile(TractogramFile):
         with Opener(fileobj) as f:
 
             # Record start position
-            start_position = f.fobj.tell()
+            start_position = f.tell()
 
             # Make sure we are at the beginning of the file
-            f.fobj.seek(0, os.SEEK_SET)
+            f.seek(0, os.SEEK_SET)
 
             # Read magic number
-            magic_number = asstr(f.fobj.read(len(cls.MAGIC_NUMBER)))
+            magic_number = f.read(len(cls.MAGIC_NUMBER))
 
-            if magic_number != cls.MAGIC_NUMBER:
+            if asstr(magic_number) != cls.MAGIC_NUMBER:
                 raise HeaderError(f"Invalid magic number: {magic_number}")
 
             hdr[Field.MAGIC_NUMBER] = magic_number
 
-            f.fobj.seek(1, os.SEEK_CUR)  # Skip \n
+            f.seek(1, os.SEEK_CUR)  # Skip \n
 
             found_end = False
 
             # Read all key-value pairs contained in the header, stop at EOF
-            for n_line, line in enumerate(f.fobj, 1):
+            for n_line, line in enumerate(f, 1):
                 line = asstr(line).strip()
 
                 if not line:  # Skip empty lines
@@ -353,7 +353,7 @@ class TckFile(TractogramFile):
 
             # Set the file position where it was, in case it was previously open
             if start_position is not None:
-                f.fobj.seek(start_position, os.SEEK_SET)
+                f.seek(start_position, os.SEEK_SET)
 
         # Check integrity of TCK header.
         if 'datatype' not in hdr:
