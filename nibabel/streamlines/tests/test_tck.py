@@ -216,6 +216,34 @@ class TestTCK(unittest.TestCase):
         with pytest.raises(HeaderError):
             tck.save(tck_file)
 
+    def test_write_bigheader_file(self):
+        tractogram = Tractogram(DATA['streamlines'],
+                                affine_to_rasmm=np.eye(4))
+
+        # Offset is represented by 2 characters.
+        tck_file = BytesIO()
+        tck = TckFile(tractogram)
+        tck.header['new_entry'] = ' ' * 20
+        tck.save(tck_file)
+        tck_file.seek(0, os.SEEK_SET)
+
+        new_tck = TckFile.load(tck_file)
+        assert_tractogram_equal(new_tck.tractogram, tractogram)
+        assert new_tck.header['_offset_data'] == 99
+
+        # We made the jump, now offset is represented by 3 characters
+        # and we need to adjust the offset!
+        tck_file = BytesIO()
+        tck = TckFile(tractogram)
+        tck.header['new_entry'] = ' ' * 21
+        tck.save(tck_file)
+        tck_file.seek(0, os.SEEK_SET)
+
+        new_tck = TckFile.load(tck_file)
+        assert_tractogram_equal(new_tck.tractogram, tractogram)
+        assert new_tck.header['_offset_data'] == 101
+
+
     def test_load_write_file(self):
         for fname in [DATA['empty_tck_fname'],
                       DATA['simple_tck_fname']]:
