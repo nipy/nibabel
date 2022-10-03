@@ -12,7 +12,6 @@ from ... import load
 from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
                 GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
                 GiftiCoordSystem)
-from ..gifti import data_tag
 from ...nifti1 import data_type_codes
 from ...fileholders import FileHolder
 from ...deprecator import ExpiredDeprecationError
@@ -374,11 +373,6 @@ def test_gifti_coord():
     gcs.xform = None
     gcs.print_summary()
     gcs.to_xml()
-
-
-def test_data_tag_deprecated():
-    with pytest.raises(ExpiredDeprecationError):
-        data_tag(np.array([]), 'ASCII', '%i', 1)
 
 
 def test_gifti_round_trip():

@@ -378,21 +378,6 @@ class GiftiCoordSystem(xml.XmlSerializable):
         print('Affine Transformation Matrix: \n', self.xform)
 
 
-@deprecate_with_version(
-    "data_tag is an internal API that will be discontinued.",
-    '2.1', '4.0')
-def data_tag(dataarray, encoding, datatype, ordering):
-    class DataTag(xml.XmlSerializable):
-
-        def __init__(self, *args):
-            self.args = args
-
-        def _to_xml_element(self):
-            return _data_tag_element(*self.args)
-
-    return DataTag(dataarray, encoding, datatype, ordering).to_xml()
-
-
 def _data_tag_element(dataarray, encoding, dtype, ordering):
     """ Creates data tag with given `encoding`, returns as XML element
     """
@@ -400,13 +385,8 @@ def _data_tag_element(dataarray, encoding, dtype, ordering):
     order = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
     if enclabel == 'ASCII':
-        # XXX Accommodating data_tag API
-        # On removal (nibabel 4.0) drop str case
-        da = _arr2txt(dataarray, dtype if isinstance(dtype, str) else KIND2FMT[dtype.kind])
+        da = _arr2txt(dataarray, KIND2FMT[dtype.kind])
     elif enclabel in ('B64BIN', 'B64GZ'):
-        # XXX Accommodating data_tag API - don't try to fix dtype
-        if isinstance(dtype, str):
-            dtype = dataarray.dtype
         out = np.asanyarray(dataarray, dtype).tobytes(order)
         if enclabel == 'B64GZ':
             out = zlib.compress(out)
