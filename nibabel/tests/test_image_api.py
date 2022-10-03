@@ -119,12 +119,6 @@ class GenericImageAPI(ValidateAPI):
         with pytest.raises(AttributeError):
             img.header = hdr
 
-    def validate_header_deprecated(self, imaker, params):
-        # Check deprecated header API
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            hdr = img.get_header()
-
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface
 
