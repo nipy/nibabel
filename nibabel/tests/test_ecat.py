@@ -23,7 +23,6 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
-from ..deprecator import ExpiredDeprecationError
 
 from . import test_wrapstruct as tws
 from .test_fileslice import slicer_samples
@@ -268,8 +267,3 @@ class TestEcatImage(TestCase):
         # Test mlist is as same as for nibabel 1.3.0
         assert_array_equal(self.img.get_mlist(),
                            [[16842758, 3, 3011, 1]])
-
-
-def test_from_filespec_deprecation():
-    with pytest.raises(ExpiredDeprecationError):
-        EcatImage.from_filespec(ecat_file)
