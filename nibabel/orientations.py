@@ -228,14 +228,6 @@ def inv_ornt_aff(ornt, shape):
     return np.dot(undo_flip, undo_reorder)
 
 
-@deprecate_with_version('orientation_affine deprecated. '
-                        'Please use inv_ornt_aff instead.',
-                        '3.0',
-                        '4.0')
-def orientation_affine(ornt, shape):
-    return inv_ornt_aff(ornt, shape)
-
-
 @deprecate_with_version('flip_axis is deprecated. '
                         'Please use numpy.flip instead.',
                         '3.2',
