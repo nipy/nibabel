@@ -185,18 +185,6 @@ def test_load_metadata():
         assert img.version == '1.0'
 
 
-def test_metadata_deprecations():
-    img = load(datafiles[0])
-    me = img.meta
-
-    # Test deprecation
-    with pytest.raises(ExpiredDeprecationError):
-        img.get_meta()
-
-    with pytest.raises(ExpiredDeprecationError):
-        img.set_metadata(me)
-
-
 def test_load_dataarray1():
     img1 = load(DATA_FILE1)
     # Round trip
@@ -319,9 +307,6 @@ def test_load_getbyintent():
     da = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")
     assert len(da) == 1
 
-    with pytest.raises(ExpiredDeprecationError):
-        img.getArraysFromIntent("NIFTI_INTENT_POINTSET")
-
     da = img.get_arrays_from_intent("NIFTI_INTENT_TRIANGLE")
     assert len(da) == 1
 
@@ -347,18 +332,6 @@ def test_load_labeltable():
         assert img.labeltable.labels[1].green == 0.392157
         assert img.labeltable.labels[1].blue == 0.156863
         assert img.labeltable.labels[1].alpha == 1
-
-
-def test_labeltable_deprecations():
-    img = load(DATA_FILE6)
-    lt = img.labeltable
-
-    # Test deprecation
-    with pytest.raises(ExpiredDeprecationError):
-        img.get_labeltable()
-
-    with pytest.raises(ExpiredDeprecationError):
-        img.set_labeltable(lt)
 
 
 def test_parse_dataarrays():
