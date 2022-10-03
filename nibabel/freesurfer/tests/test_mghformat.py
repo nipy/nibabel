@@ -22,7 +22,6 @@ from ...spatialimages import HeaderDataError
 from ...volumeutils import sys_is_le
 from ...wrapstruct import WrapStructError
 from ... import imageglobals
-from ...deprecator import ExpiredDeprecationError
 
 
 import pytest
@@ -338,20 +337,6 @@ def test_mghheader_default_structarr():
     for endianness in LITTLE_CODES:
         with pytest.raises(ValueError):
             MGHHeader.default_structarr(endianness=endianness)
-
-
-def test_deprecated_fields():
-    hdr = MGHHeader()
-    hdr_data = MGHHeader._HeaderData(hdr.structarr)
-
-    # mrparams is the only deprecated field at the moment
-    # Accessing hdr_data is equivalent to accessing hdr, so double all checks,
-    # but expect success on hdr_data['mrparams']
-    with pytest.raises(ExpiredDeprecationError):
-        hdr['mrparams']
-    with pytest.raises(ExpiredDeprecationError):
-        hdr['mrparams'] = [1, 2, 3, 4]
-    assert_array_equal(hdr_data['mrparams'], 0)
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):

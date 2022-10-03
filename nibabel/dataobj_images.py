@@ -48,13 +48,6 @@ class DataobjImage(FileBasedImage):
     def dataobj(self):
         return self._dataobj
 
-    @property
-    @deprecate_with_version('_data attribute not part of public API. '
-                            'please use "dataobj" property instead.',
-                            '2.0', '4.0')
-    def _data(self):
-        return self._dataobj
-
     @deprecate_with_version('get_data() is deprecated in favor of get_fdata(),'
                             ' which has a more predictable return type. To '
                             'obtain get_data() behavior going forward, use '

@@ -412,16 +412,6 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 data = get_data_func(dtype=float_type)
             assert (data is img.dataobj) == (arr_dtype == float_type)
 
-    def validate_data_deprecated(self, imaker, params):
-        # Check _data property still exists, but raises warning
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            assert_data_similar(img._data, params)
-        # Check setting _data raises error
-        fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
-        with pytest.raises(AttributeError):
-            img._data = fake_data
-
     def validate_shape(self, imaker, params):
         # Validate shape
         img = imaker()

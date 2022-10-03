@@ -24,7 +24,6 @@ from ..arrayproxy import ArrayProxy, reshape_dataobj
 from ..openers import ImageOpener
 from ..batteryrunners import BatteryRunner, Report
 from ..wrapstruct import LabeledWrapStruct
-from ..deprecated import deprecate_with_version
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
@@ -461,45 +460,6 @@ class MGHHeader(LabeledWrapStruct):
         reports = battrun.check_only(wstr)
         return '\n'.join([report.message
                           for report in reports if report.message])
-
-    class _HeaderData:
-        """ Provide interface to deprecated MGHHeader fields"""
-        def __init__(self, structarr):
-            self._structarr = structarr
-
-        def __getitem__(self, item):
-            sa = self._structarr
-            if item == 'mrparams':
-                return np.hstack((sa['tr'], sa['flip_angle'], sa['te'], sa['ti']))
-            return sa[item]
-
-        def __setitem__(self, item, val):
-            sa = self._structarr
-            if item == 'mrparams':
-                sa['tr'], sa['flip_angle'], sa['te'], sa['ti'] = val
-            else:
-                sa[item] = val
-
-    @property
-    @deprecate_with_version('_header_data is deprecated.\n'
-                            'Please use the _structarr interface instead.\n'
-                            'Note also that some fields have changed name and '
-                            'shape.',
-                            '2.3', '4.0')
-    def _header_data(self):
-        """ Deprecated field-access interface """
-        return self._HeaderData(self._structarr)
-
-    def __getitem__(self, item):
-        if item == 'mrparams':
-            return self._header_data[item]
-        return super(MGHHeader, self).__getitem__(item)
-
-    def __setitem__(self, item, value):
-        if item == 'mrparams':
-            self._header_data[item] = value
-        else:
-            super(MGHHeader, self).__setitem__(item, value)
 
 
 class MGHImage(SpatialImage, SerializableImage):

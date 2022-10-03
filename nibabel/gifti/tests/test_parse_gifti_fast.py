@@ -17,12 +17,10 @@ import numpy as np
 
 from .. import gifti as gi
 from ..util import gifti_endian_codes
-from ..parse_gifti_fast import (Outputter, parse_gifti_file, GiftiParseError,
-                                GiftiImageParser)
+from ..parse_gifti_fast import GiftiParseError, GiftiImageParser
 from ...loadsave import load, save
 from ...nifti1 import xform_codes
 from ...tmpdirs import InTemporaryDirectory
-from ...deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_almost_equal
 
@@ -352,16 +350,6 @@ def test_parse_dataarrays():
             load(fn)
             assert len(w) == 1
             assert img.numDA == 0
-
-
-def test_parse_deprecated():
-
-    # Test deprecation
-    with pytest.raises(ExpiredDeprecationError):
-        Outputter()
-
-    with pytest.raises(ExpiredDeprecationError):
-        parse_gifti_file()
 
 
 def test_parse_with_buffersize():
