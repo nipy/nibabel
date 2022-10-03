@@ -34,7 +34,6 @@ import numpy as np
 from .casting import (int_to_float, as_int, int_abs, type_info, floor_exact,
                       best_float, shared_range)
 from .volumeutils import finite_range, array_to_file
-from .deprecator import ExpiredDeprecationError
 
 
 class WriterError(Exception):
@@ -185,19 +184,6 @@ class ArrayWriter:
             self._has_nan = has_nan
         return self._finite_range
 
-    def _check_nan2zero(self, nan2zero):
-        if nan2zero is None:
-            return
-        if nan2zero != self._nan2zero:
-            raise WriterError('Deprecated `nan2zero` argument to `to_fileobj` '
-                              'must be same as class value set in __init__')
-        raise ExpiredDeprecationError(
-            'Please remove `nan2zero` from call to `to_fileobj` '
-            'and use in instance __init__ instead.\n'
-            '* deprecated in version: 2.0\n'
-            '* Raises ExpiredDeprecationError as of version: 4.0\n'
-        )
-
     def _needs_nan2zero(self):
         """ True if nan2zero check needed for writing array """
         return (self._nan2zero and
@@ -205,7 +191,7 @@ class ArrayWriter:
                 self.out_dtype.kind in 'iu' and
                 self.has_nan)
 
-    def to_fileobj(self, fileobj, order='F', nan2zero=None):
+    def to_fileobj(self, fileobj, order='F'):
         """ Write array into `fileobj`
 
         Parameters
@@ -213,10 +199,7 @@ class ArrayWriter:
         fileobj : file-like object
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
-        nan2zero : {None, True, False}, optional, deprecated
-            Deprecated version of argument to __init__ with same name
         """
-        self._check_nan2zero(nan2zero)
         array_to_file(self._array,
                       fileobj,
                       self._out_dtype,
@@ -362,7 +345,7 @@ class SlopeArrayWriter(ArrayWriter):
             return mn, mx
         return None, None
 
-    def to_fileobj(self, fileobj, order='F', nan2zero=None):
+    def to_fileobj(self, fileobj, order='F'):
         """ Write array into `fileobj`
 
         Parameters
@@ -370,10 +353,7 @@ class SlopeArrayWriter(ArrayWriter):
         fileobj : file-like object
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
-        nan2zero : {None, True, False}, optional, deprecated
-            Deprecated version of argument to __init__ with same name
         """
-        self._check_nan2zero(nan2zero)
         mn, mx = self._writing_range()
         array_to_file(self._array,
                       fileobj,
@@ -536,7 +516,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         self._inter = np.squeeze(self.scaler_dtype.type(val))
     inter = property(_get_inter, _set_inter, None, 'get/set inter')
 
-    def to_fileobj(self, fileobj, order='F', nan2zero=None):
+    def to_fileobj(self, fileobj, order='F'):
         """ Write array into `fileobj`
 
         Parameters
@@ -544,10 +524,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         fileobj : file-like object
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
-        nan2zero : {None, True, False}, optional, deprecated
-            Deprecated version of argument to __init__ with same name
         """
-        self._check_nan2zero(nan2zero)
         mn, mx = self._writing_range()
         array_to_file(self._array,
                       fileobj,
