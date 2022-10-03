@@ -22,7 +22,6 @@ from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 from ..openers import ImageOpener
 from ..onetime import auto_attr as one_time
-from ..deprecated import deprecate_with_version
 
 pydicom = optional_package("pydicom")[0]
 
@@ -101,7 +100,6 @@ class Wrapper:
 
     Methods:
 
-    * get_affine() (deprecated, use affine property instead)
     * get_data()
     * get_pixel_array()
     * is_same_series(other)
@@ -292,13 +290,6 @@ class Wrapper:
     def get(self, key, default=None):
         """ Get values from underlying dicom data """
         return self.dcm_data.get(key, default)
-
-    @deprecate_with_version('get_affine method is deprecated.\n'
-                            'Please use the ``img.affine`` property '
-                            'instead.',
-                            '2.5.1', '4.0')
-    def get_affine(self):
-        return self.affine
 
     @property
     def affine(self):
