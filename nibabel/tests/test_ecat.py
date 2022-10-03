@@ -240,10 +240,6 @@ class TestEcatImage(TestCase):
         aff[0, 0] = 99
         assert not np.all(img.affine == aff)
 
-    def test_get_affine_deprecated(self):
-        with pytest.raises(ExpiredDeprecationError):
-            self.img.get_affine()
-
     def test_float_affine(self):
         # Check affines get converted to float
         img_klass = self.image_class

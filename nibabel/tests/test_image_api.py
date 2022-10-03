@@ -502,8 +502,7 @@ class HeaderShapeMixin:
 class AffineMixin:
     """ Adds test of affine property, method
 
-    Add this one if your image has an ``affine`` property.  If so, it should
-    (for now) also have a ``get_affine`` method returning the same result.
+    Add this one if your image has an ``affine`` property.
     """
 
     def validate_affine(self, imaker, params):
@@ -516,12 +515,6 @@ class AffineMixin:
         # Read only
         with pytest.raises(AttributeError):
             img.affine = np.eye(4)
-
-    def validate_affine_deprecated(self, imaker, params):
-        # Check deprecated affine API
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_affine()
 
 
 class SerializeMixin:
