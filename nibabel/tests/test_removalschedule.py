@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 MODULE_SCHEDULE = [
-    ("5.0.0", ["nibabel.keywordonly"]),
+    ("5.0.0", ["nibabel.keywordonly", "nibabel.py3k"]),
     ("4.0.0", ["nibabel.trackvis"]),
     ("3.0.0", ["nibabel.minc", "nibabel.checkwarns"]),
     # Verify that the test will be quiet if the schedule outlives the modules
