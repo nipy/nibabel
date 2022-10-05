@@ -270,10 +270,11 @@ class TckFile(TractogramFile):
         out = header[Field.MAGIC_NUMBER] + b"\n" + out.encode('utf-8')
 
         # Compute data offset considering the offset string representation
-        hdr_offset = len(out) + 8 + 3 + 3  # "file" header, END, and \n's
+        # headers + "file" header + END + \n's
+        hdr_offset = len(out) + 8 + 3 + 3
         offset_repr = f'{hdr_offset}'
 
-        # Adding the offset increases one char to the offset repr
+        # Adding the offset may increase one char to the offset repr
         hdr_offset += len(f'{hdr_offset + len(offset_repr)}')
 
         # Write header to file.
