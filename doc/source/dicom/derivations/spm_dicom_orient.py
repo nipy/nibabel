@@ -46,7 +46,7 @@ R3 = orient_pat * np.diag(pixel_spacing)
 R = zeros(4, 2)
 R[:3, :] = R3
 
-# The following is specific to the SPM algorithm. 
+# The following is specific to the SPM algorithm.
 x1 = ones(4, 1)
 y1 = ones(4, 1)
 y1[:3, :] = pos_pat_0

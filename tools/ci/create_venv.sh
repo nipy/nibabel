@@ -12,7 +12,7 @@ echo SETUP_REQUIRES = $SETUP_REQUIRES
 set -x
 
 python -m pip install --upgrade pip virtualenv
-virtualenv --python=python virtenv
+virtualenv --python=python venv
 source tools/ci/activate.sh
 python --version
 python -m pip install -U $SETUP_REQUIRES

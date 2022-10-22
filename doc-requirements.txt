@@ -1,6 +1,8 @@
 # Requirements for building docs
 -r requirements.txt
 sphinx<3
-numpydoc
+jinja2<3
+numpydoc<1.3
+MarkupSafe<2.1
 texext
 matplotlib >=1.3.1

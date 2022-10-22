@@ -14,8 +14,7 @@ set -x
 export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 
 if [ "${CHECK_TYPE}" == "style" ]; then
-    # Run styles only on core nibabel code.
-    flake8 nibabel
+    flake8
 elif [ "${CHECK_TYPE}" == "doc" ]; then
     cd doc
     make html && make doctest

@@ -1,10 +1,10 @@
-if [ -e virtenv/bin/activate ]; then
-    source virtenv/bin/activate
-elif [ -e virtenv/Scripts/activate ]; then
-    source virtenv/Scripts/activate
+if [ -e venv/bin/activate ]; then
+    source venv/bin/activate
+elif [ -e venv/Scripts/activate ]; then
+    source venv/Scripts/activate
 else
     echo Cannot activate virtual environment
-    ls -R virtenv
+    ls -R venv
     false
 fi
 

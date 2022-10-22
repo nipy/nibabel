@@ -68,6 +68,7 @@ epi_x_len = np.sqrt((np.subtract(epi_bl, epi_br)**2).sum())
 x, y = 0, 1
 # Make a rectangular box with these sides
 
+
 def make_ortho_box(bl, x_len, y_len):
     """ Make a box with sides parallel to the axes
     """
@@ -75,6 +76,7 @@ def make_ortho_box(bl, x_len, y_len):
                      [bl[x] + x_len, bl[y]],
                      [bl[x], bl[y] + y_len],
                      [bl[x] + x_len, bl[y] + y_len]))
+
 
 orth_epi_box = make_ortho_box(epi_bl, epi_x_len, epi_y_len)
 
@@ -126,6 +128,7 @@ def plot_localizer():
 def save_plot():
     # Plot using global variables
     plot_localizer()
+
     def vx2mm(pts):
         return pts - iso_center
     plot_box(vx2mm(rot_box), label='EPI bounding box')
