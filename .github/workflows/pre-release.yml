@@ -36,7 +36,7 @@ jobs:
         include:
           # Pydicom master
           - os: ubuntu-latest
-            python-version: "3.10"
+            python-version: "3.11"
             install: pip
             check: test
             pip-flags: ''
