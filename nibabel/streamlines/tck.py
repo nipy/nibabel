@@ -279,8 +279,7 @@ class TckFile(TractogramFile):
 
         # Write header to file.
         fileobj.write(out)
-        fileobj.write(b"\nfile: . " + f'{hdr_offset}'.encode('utf-8') + b"\n")
-        fileobj.write(b"END\n")
+        fileobj.write(f'\nfile: . {hdr_offset}\nEND\n'.encode('utf-8'))
 
     @classmethod
     def _read_header(cls, fileobj):
