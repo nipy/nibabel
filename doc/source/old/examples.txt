@@ -80,7 +80,7 @@ the desired values:
   >>> print nim.header['dim']
   [  4  32  32  16 100   1   1   1]
 
-First value shows the number of dimensions in the datset: 4 (good, that's what
+First value shows the number of dimensions in the dataset: 4 (good, that's what
 we wanted). The following numbers are dataset size on the x, y, z, t, u, v, w
 axis (NIfTI files can handle up to 7 dimensions).
 

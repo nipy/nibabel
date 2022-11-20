@@ -291,7 +291,7 @@ from volumes, as long as the transform is an affine.
 
 Miscellaneous functions operating on vol structs:
 
-* ``spm_conv_vol`` - convolves volume with seperable functions in x, y, z
+* ``spm_conv_vol`` - convolves volume with separable functions in x, y, z
 * ``spm_render_vol`` - does a projection of a volume onto a surface
 * ``spm_vol_check`` - takes array of vol structs and checks for sameness of
   image dimensions and ``mat`` (affines) across the list.

@@ -367,14 +367,14 @@ Discovery
 
 .. [#tag-sources]
 
-    Revsion ids could for example be hashes of the package instantiation
+    Revision ids could for example be hashes of the package instantiation
     (package contents), so they could be globally unique to the contents,
     wherever the contents was when the identifier was made.  However, *tags*
-    are just names that someone has attached to a particular revsion id.  If
+    are just names that someone has attached to a particular revision id.  If
     there is more than one person providing versions of a particular package,
-    there may not be agreement on the revsion that a particular tag is attached
+    there may not be agreement on the revision that a particular tag is attached
     to.  For example, I might think that ``release-0.3`` of ``some-package``
-    refers to package state identified by revsion id ``af5bd6``, but you might
+    refers to package state identified by revision id ``af5bd6``, but you might
     think that ``release-0.3`` of ``some-package`` refers to some other package
     state.  In this case you and are are both a *tag sources* for the package.
     The state that particular tag refers to can depend then on the source from

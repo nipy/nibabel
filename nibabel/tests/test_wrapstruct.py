@@ -213,7 +213,7 @@ class _TestWrapStructBase(BaseTestCase):
         assert eh_swapped.endianness == swapped_code
 
     def test_binblock_is_file(self):
-        # Checks that the binary string respresentation is the whole of the
+        # Checks that the binary string representation is the whole of the
         # header file.  This is true for Analyze types, but not true Nifti
         # single file headers, for example, because they will have extension
         # strings following.  More generally, there may be other perhaps

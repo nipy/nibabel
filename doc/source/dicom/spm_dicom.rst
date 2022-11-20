@@ -80,8 +80,8 @@ There's a check for not-even tag length.  If not even:
 #. 13 appears to mean 10 and is reset to be 10
 #. Any other odd number is not valid and gives a tag length of 0
 
-``SQ`` VR type (Sequnce of items type)
---------------------------------------
+``SQ`` VR type (Sequence of items type)
+---------------------------------------
 
 tag length of 13 set to tag length 10.
 

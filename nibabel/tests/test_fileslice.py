@@ -298,7 +298,7 @@ def test_optimize_slicer():
     # be 'full'
     assert optimize_slicer(slice(9), 10, False, False, 4, _always) == (slice(0, 9, 1), slice(None))
     assert optimize_slicer(slice(9), 10, True, False, 4, _always) == (slice(None), slice(0, 9, 1))
-    # Unless this is the slowest dimenion, and all_true is True, in which case
+    # Unless this is the slowest dimension, and all_true is True, in which case
     # we don't update to full
     assert optimize_slicer(slice(9), 10, True, True, 4, _always) == (slice(0, 9, 1), slice(None))
     # Nor if the heuristic won't update

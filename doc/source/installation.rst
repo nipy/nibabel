@@ -43,7 +43,7 @@ Windows), and type::
 
 This will download and install NiBabel.
 
-If you really like doing stuff manually, you can install NiBabel by downoading
+If you really like doing stuff manually, you can install NiBabel by downloading
 the source from `NiBabel pypi`_ .  Go to the pypi page and select the source
 distribution you want.  Download the distribution, unpack it, and then, from
 the unpacked directory, run::
