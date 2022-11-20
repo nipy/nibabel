@@ -18,7 +18,7 @@ Compiling dcm2nii
 =================
 
 Follow the download / install instructions at the
-http://www.lazarus.freepascal.org/ site.  I was on a Mac, and folowed the
+http://www.lazarus.freepascal.org/ site.  I was on a Mac, and followed the
 instructions here:
 http://wiki.lazarus.freepascal.org/Installing_Lazarus_on_MacOS_X .  Default
 build with version 0.9.28.2 gave an error linking against Carbon, so I needed to

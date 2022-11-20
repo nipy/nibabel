@@ -83,7 +83,7 @@ def test_adapt_affine():
                         [ 3,  4,  12],
                         [ 6,  7,  13],
                         [ 0,  0,   1]])
-    # For 4x4 affine, 1D image, 2 dropped columnn
+    # For 4x4 affine, 1D image, 2 dropped columns
     assert_array_equal(adapt_affine(aff_3d, 1),
                        [[ 0,  11],
                         [ 3,  12],

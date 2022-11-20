@@ -76,7 +76,7 @@ class Datasource(object):
             Parameters
             ----------
             relative: bool, optional
-                If True, path returned are relative to the base paht of
+                If True, path returned are relative to the base path of
                 the data source.
 
             Returns

@@ -656,7 +656,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         exp_hdr['cal_min'] = -100
         exp_hdr['cal_max'] = 100
         assert klass.from_header(H5()) == exp_hdr
-        # set_* methods override fields fron header
+        # set_* methods override fields from header
 
         class H6(H5):
 

@@ -34,7 +34,7 @@ class ValidateAPI(metaclass=validator2test):
 
     Your job is twofold:
 
-    * define an ``obj_params`` iteratable, where the iterator returns (``obj``,
+    * define an ``obj_params`` iterable, where the iterator returns (``obj``,
       ``params``) pairs.  ``obj`` is something that you want to validate against
       an API.  ``params`` is a mapping giving parameters for this object to test
       against.
