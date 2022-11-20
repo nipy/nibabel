@@ -32,7 +32,7 @@ def test_module_proxy():
 
 def test_futurewarning_mixin():
     # Test mixin for FutureWarning
-    class C(object):
+    class C:
 
         def __init__(self, val):
             self.val = val

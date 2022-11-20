@@ -24,7 +24,7 @@ def is_ndarray_of_int_or_bool(obj):
             np.issubdtype(obj.dtype, np.bool_)))
 
 
-class _BuildCache(object):
+class _BuildCache:
     def __init__(self, arr_seq, common_shape, dtype):
         self.offsets = list(arr_seq._offsets)
         self.lengths = list(arr_seq._lengths)
@@ -88,7 +88,7 @@ def _define_operators(cls):
 
 
 @_define_operators
-class ArraySequence(object):
+class ArraySequence:
     """ Sequence of ndarrays having variable first dimension sizes.
 
     This is a container that can store multiple ndarrays where each ndarray

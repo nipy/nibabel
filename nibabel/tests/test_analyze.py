@@ -523,7 +523,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             assert hdr == copy
             assert hdr is not copy
 
-        class C(object):
+        class C:
 
             def get_data_dtype(self): return np.dtype('i2')
 
@@ -619,12 +619,12 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         klass = self.header_class
         # Header needs to implement data_dtype, data_shape, zooms
 
-        class H1(object):
+        class H1:
             pass
         with pytest.raises(AttributeError):
             klass.from_header(H1())
 
-        class H2(object):
+        class H2:
 
             def get_data_dtype(self):
                 return np.dtype('u1')

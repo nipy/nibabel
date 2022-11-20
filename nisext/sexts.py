@@ -260,7 +260,7 @@ class install_scripts_bat(install_scripts):
                 fobj.write(bat_contents)
 
 
-class Bunch(object):
+class Bunch:
     def __init__(self, vars):
         for key, name in vars.items():
             if key.startswith('__'):

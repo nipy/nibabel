@@ -121,7 +121,7 @@ class WrapStructError(Exception):
     pass
 
 
-class WrapStruct(object):
+class WrapStruct:
     # placeholder datatype
     template_dtype = np.dtype([('integer', 'i2')])
 

@@ -2,7 +2,7 @@
 """
 
 
-class Field(object):
+class Field:
     """ Header fields common to multiple streamline file formats.
 
     In IPython, use `nibabel.streamlines.Field??` to list them.

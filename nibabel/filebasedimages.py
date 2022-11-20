@@ -22,7 +22,7 @@ class ImageFileError(Exception):
     pass
 
 
-class FileBasedHeader(object):
+class FileBasedHeader:
     """ Template class to implement header protocol """
 
     @classmethod
@@ -60,7 +60,7 @@ class FileBasedHeader(object):
         return deepcopy(self)
 
 
-class FileBasedImage(object):
+class FileBasedImage:
     """
     Abstract image class with interface for loading/saving images from disk.
 

@@ -579,7 +579,7 @@ def exts2pars(exts_source):
     return headers
 
 
-class PARRECArrayProxy(object):
+class PARRECArrayProxy:
 
     def __init__(self, file_like, header, *, mmap=True, scaling='dv'):
         """ Initialize PARREC array proxy

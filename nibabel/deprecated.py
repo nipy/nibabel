@@ -7,7 +7,7 @@ from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
 
 
-class ModuleProxy(object):
+class ModuleProxy:
     """ Proxy for module that may not yet have been imported
 
     Parameters
@@ -39,12 +39,12 @@ class ModuleProxy(object):
         return f"<module proxy for {self._module_name}>"
 
 
-class FutureWarningMixin(object):
+class FutureWarningMixin:
     """ Insert FutureWarning for object creation
 
     Examples
     --------
-    >>> class C(object): pass
+    >>> class C: pass
     >>> class D(FutureWarningMixin, C):
     ...     warn_message = "Please, don't use this class"
 

@@ -108,7 +108,7 @@ or the pixdims::
 """
 
 
-class BatteryRunner(object):
+class BatteryRunner:
     """ Class to run set of checks """
 
     def __init__(self, checks):
@@ -174,7 +174,7 @@ class BatteryRunner(object):
         return len(self._checks)
 
 
-class Report(object):
+class Report:
 
     def __init__(self,
                  error=Exception,

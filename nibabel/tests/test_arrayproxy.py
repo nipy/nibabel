@@ -36,7 +36,7 @@ from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip
 
 
-class FunkyHeader(object):
+class FunkyHeader:
 
     def __init__(self, shape):
         self.shape = shape
@@ -258,7 +258,7 @@ def test_is_proxy():
     assert not is_proxy(hdr)
     assert not is_proxy(np.zeros((2, 3, 4)))
 
-    class NP(object):
+    class NP:
         is_proxy = False
     assert not is_proxy(NP())
 
@@ -280,7 +280,7 @@ def test_reshape_dataobj():
                        np.reshape(arr, (2, 3, 4)))
     assert arr.shape == shape
 
-    class ArrGiver(object):
+    class ArrGiver:
 
         def __array__(self):
             return arr

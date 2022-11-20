@@ -58,7 +58,7 @@ class InstanceStackError(DFTError):
         return fmt % (self.i + 1, self.si.instance_number)
 
 
-class _Study(object):
+class _Study:
 
     def __init__(self, d):
         self.uid = d['uid']
@@ -91,7 +91,7 @@ class _Study(object):
         return self.patient_name
 
 
-class _Series(object):
+class _Series:
 
     def __init__(self, d):
         self.uid = d['uid']
@@ -219,7 +219,7 @@ class _Series(object):
         return 352 + 2 * len(self.storage_instances) * self.columns * self.rows
 
 
-class _StorageInstance(object):
+class _StorageInstance:
 
     def __init__(self, d):
         self.uid = d['uid']

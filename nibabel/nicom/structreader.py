@@ -5,7 +5,7 @@ from struct import Struct
 _ENDIAN_CODES = '@=<>!'
 
 
-class Unpacker(object):
+class Unpacker:
     """ Class to unpack values from buffer object
 
     The buffer object is usually a string. Caches compiled :mod:`struct`

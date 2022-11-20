@@ -71,7 +71,7 @@ EXAMPLE_BAD_IMAGES = [
     )
 ]
 
-class TestAFNIHeader(object):
+class TestAFNIHeader:
     module = brikhead
     test_files = EXAMPLE_IMAGES
 
@@ -86,7 +86,7 @@ class TestAFNIHeader(object):
                 self.module.AFNIHeader.from_header(tp['fname'])
 
 
-class TestAFNIImage(object):
+class TestAFNIImage:
     module = brikhead
     test_files = EXAMPLE_IMAGES
 
@@ -127,7 +127,7 @@ class TestAFNIImage(object):
                 assert_array_equal(arr[sliceobj], prox[sliceobj])
 
 
-class TestBadFiles(object):
+class TestBadFiles:
     module = brikhead
     test_files = EXAMPLE_BAD_IMAGES
 
@@ -137,7 +137,7 @@ class TestBadFiles(object):
                 self.module.load(tp['head'])
 
 
-class TestBadVars(object):
+class TestBadVars:
     module = brikhead
     vars = ['type = badtype-attribute\nname = BRICK_TYPES\ncount = 1\n1\n',
             'type = integer-attribute\ncount = 1\n1\n']

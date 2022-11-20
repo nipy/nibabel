@@ -62,7 +62,7 @@ def func_doc_long(i, j):
     "A docstring\n\n   Some text"
 
 
-class TestDeprecatorFunc(object):
+class TestDeprecatorFunc:
     """ Test deprecator function specified in ``dep_func`` """
 
     dep_func = Deprecator(cmp_func)
@@ -136,7 +136,7 @@ class TestDeprecatorFunc(object):
             func()
 
 
-class TestDeprecatorMaker(object):
+class TestDeprecatorMaker:
     """ Test deprecator class creation with custom warnings and errors """
 
     dep_maker = partial(Deprecator, cmp_func)

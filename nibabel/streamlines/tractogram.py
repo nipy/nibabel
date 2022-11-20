@@ -220,7 +220,7 @@ class LazyDict(MutableMapping):
         return len(self.store)
 
 
-class TractogramItem(object):
+class TractogramItem:
     """ Class containing information about one streamline.
 
     :class:`TractogramItem` objects have three public attributes: `streamline`,
@@ -253,7 +253,7 @@ class TractogramItem(object):
         return len(self.streamline)
 
 
-class Tractogram(object):
+class Tractogram:
     """ Container for streamlines and their data information.
 
     Streamlines of a tractogram can be in any coordinate system of your

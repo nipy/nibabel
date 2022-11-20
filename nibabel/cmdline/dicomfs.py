@@ -18,7 +18,7 @@ import locale
 import logging
 
 
-class dummy_fuse(object):
+class dummy_fuse:
     """Dummy fuse "module" so that nose does not blow during doctests"""
     Fuse = object
 

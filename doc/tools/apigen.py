@@ -28,7 +28,7 @@ from types import BuiltinFunctionType, FunctionType
 DEBUG = True
 
 
-class ApiDocWriter(object):
+class ApiDocWriter:
     """ Class for automatic detection and parsing of API docs
     to Sphinx-parsable reST format"""
 
@@ -118,7 +118,7 @@ class ApiDocWriter(object):
         >>> docwriter = ApiDocWriter('sphinx')
         >>> docwriter._get_object_name("  def func():  ")
         'func'
-        >>> docwriter._get_object_name("  class Klass(object):  ")
+        >>> docwriter._get_object_name("  class Klass:  ")
         'Klass'
         >>> docwriter._get_object_name("  class Klass:  ")
         'Klass'

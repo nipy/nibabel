@@ -45,7 +45,7 @@ class ScalingError(WriterError):
     pass
 
 
-class ArrayWriter(object):
+class ArrayWriter:
 
     def __init__(self, array, out_dtype=None, **kwargs):
         r""" Initialize array writer

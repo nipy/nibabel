@@ -253,7 +253,7 @@ intent_codes = Recoder((
 ), fields=('code', 'label', 'parameters', 'niistring'))
 
 
-class Nifti1Extension(object):
+class Nifti1Extension:
     """Baseclass for NIfTI1 header extensions.
 
     This class is sufficient to handle very simple text-based extensions, such

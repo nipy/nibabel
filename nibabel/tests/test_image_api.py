@@ -481,7 +481,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             del rt_img  # to allow windows to delete the directory
 
 
-class HeaderShapeMixin(object):
+class HeaderShapeMixin:
     """ Tests that header shape can be set and got
 
     Add this one of your header supports ``get_data_shape`` and
@@ -499,7 +499,7 @@ class HeaderShapeMixin(object):
         assert img.header.get_data_shape() == new_shape
 
 
-class AffineMixin(object):
+class AffineMixin:
     """ Adds test of affine property, method
 
     Add this one if your image has an ``affine`` property.  If so, it should

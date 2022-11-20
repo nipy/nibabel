@@ -26,7 +26,7 @@ header_file = os.path.join(data_path, 'nifti2.hdr')
 image_file = os.path.join(data_path, 'example_nifti2.nii.gz')
 
 
-class _Nifti2Mixin(object):
+class _Nifti2Mixin:
     example_file = header_file
     sizeof_hdr = Nifti2Header.sizeof_hdr
     quat_dtype = np.float64

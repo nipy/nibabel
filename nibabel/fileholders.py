@@ -17,7 +17,7 @@ class FileHolderError(Exception):
     pass
 
 
-class FileHolder(object):
+class FileHolder:
     """ class to contain filename, fileobj and file position
     """
 

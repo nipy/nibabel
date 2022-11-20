@@ -33,7 +33,7 @@ def test_kw_only_func():
         kw_func(1, akeyarg=3)
     assert kw_func.__doc__ == 'Another docstring'
 
-    class C(object):
+    class C:
 
         @kw_only_meth(1)
         def kw_meth(self, an_arg, a_kwarg='thing'):

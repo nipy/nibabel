@@ -61,7 +61,7 @@ class TestValidateSomething(ValidateAPI):
         against ``obj``.  See the :meth:`validate_something` method for an
         example.
         """
-        class C(object):
+        class C:
 
             def __init__(self, var):
                 self.var = var

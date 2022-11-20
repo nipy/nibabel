@@ -48,7 +48,7 @@ if HAVE_ZSTD:
     COMPRESSED_FILE_LIKES = (*COMPRESSED_FILE_LIKES, pyzstd.ZstdFile)
 
 
-class Recoder(object):
+class Recoder:
     """ class to return canonical code(s) from code or aliases
 
     The concept is a lot easier to read in the implementation and
@@ -224,7 +224,7 @@ class Recoder(object):
 endian_codes = Recoder(endian_codes)
 
 
-class DtypeMapper(object):
+class DtypeMapper:
     """ Specialized mapper for numpy dtypes
 
     We pass this mapper into the Recoder class to deal with numpy dtype
@@ -307,7 +307,7 @@ def pretty_mapping(mapping, getterfunc=None):
     >>> d = {'a key': 'a value'}
     >>> print(pretty_mapping(d))
     a key  : a value
-    >>> class C(object): # to control ordering, show get_ method
+    >>> class C: # to control ordering, show get_ method
     ...     def __iter__(self):
     ...         return iter(('short_field','longer_field'))
     ...     def __getitem__(self, key):

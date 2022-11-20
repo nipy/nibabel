@@ -103,7 +103,7 @@ EXAMPLE_IMAGES = [
 ]
 
 
-class _TestMincFile(object):
+class _TestMincFile:
     module = minc1
     file_class = Minc1File
     fname = EG_FNAME
