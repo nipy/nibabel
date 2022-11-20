@@ -511,7 +511,7 @@ def read_subheaders(fileobj, mlist, endianness):
     return subheaders
 
 
-class EcatSubHeader(object):
+class EcatSubHeader:
 
     _subhdrdtype = subhdr_dtype
     _data_type_codes = data_type_codes
@@ -660,7 +660,7 @@ class EcatSubHeader(object):
         return data
 
 
-class EcatImageArrayProxy(object):
+class EcatImageArrayProxy:
     """ Ecat implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and

@@ -85,7 +85,7 @@ def test_recoder_6():
 
 def test_custom_dicter():
     # Allow custom dict-like object in constructor
-    class MyDict(object):
+    class MyDict:
 
         def __init__(self):
             self._keys = []

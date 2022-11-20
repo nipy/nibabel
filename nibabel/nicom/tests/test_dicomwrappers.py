@@ -124,7 +124,7 @@ def test_get_from_wrapper():
     assert dw.get('some_key') is None
     # Check get defers to dcm_data get
 
-    class FakeData2(object):
+    class FakeData2:
 
         def get(self, key, default):
             return 1
@@ -268,7 +268,7 @@ def test_vol_matching():
     # Just to check the interface, make a pretend signature-providing
     # object.
 
-    class C(object):
+    class C:
         series_signature = {}
     assert dw_empty.is_same_series(C())
 
@@ -386,7 +386,7 @@ def fake_frames(seq_name, field_name, value_seq):
         each element in list is obj.<seq_name>[0].<field_name> =
         value_seq[n] for n in range(N)
     """
-    class Fake(object):
+    class Fake:
         pass
     frames = []
     for value in value_seq:
@@ -410,16 +410,16 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
     sid_dim : int
         the index of the column in 'div_seq' to use as 'sid_seq'
     """
-    class DimIdxSeqElem(object):
+    class DimIdxSeqElem:
         def __init__(self, dip=(0, 0), fgp=None):
             self.DimensionIndexPointer = dip
             if fgp is not None:
                 self.FunctionalGroupPointer = fgp
-    class FrmContSeqElem(object):
+    class FrmContSeqElem:
         def __init__(self, div, sid):
             self.DimensionIndexValues = div
             self.StackID = sid
-    class PerFrmFuncGrpSeqElem(object):
+    class PerFrmFuncGrpSeqElem:
         def __init__(self, div, sid):
             self.FrameContentSequence = [FrmContSeqElem(div, sid)]
     # if no StackID values passed in then use the values at index 'sid_dim' in

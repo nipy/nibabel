@@ -31,7 +31,7 @@ class BomberError(DataError, AttributeError):
     pass
 
 
-class Datasource(object):
+class Datasource:
     """ Simple class to add base path to relative path """
 
     def __init__(self, base_path):
@@ -302,7 +302,7 @@ def make_datasource(pkg_def, **kwargs):
     return VersionedDatasource(pth)
 
 
-class Bomber(object):
+class Bomber:
     """ Class to raise an informative error when used """
 
     def __init__(self, name, msg):

@@ -47,7 +47,7 @@ IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-class HeaderScalingMixin(object):
+class HeaderScalingMixin:
     """ Mixin to add scaling tests to header tests
 
     Needs to be a mixin so nifti tests can use this method without inheriting
@@ -155,7 +155,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         assert dxer(hdr.binaryblock) == 'very large origin values relative to dims'
 
 
-class ImageScalingMixin(object):
+class ImageScalingMixin:
     # Mixin to add scaling checks to image test class
     # Nifti tests inherits from Analyze tests not Spm Analyze tests.  We need
     # these tests for Nifti scaling, hence the mixin.

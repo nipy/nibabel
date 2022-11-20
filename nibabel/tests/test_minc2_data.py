@@ -34,7 +34,7 @@ def _make_affine(coses, zooms, starts):
     return affine
 
 
-class TestEPIFrame(object):
+class TestEPIFrame:
     opener = staticmethod(top_load)
     x_cos = [1, 0, 0]
     y_cos = [0., 1, 0]

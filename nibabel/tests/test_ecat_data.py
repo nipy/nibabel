@@ -22,7 +22,7 @@ from numpy.testing import (assert_array_equal, assert_almost_equal)
 ECAT_TEST_PATH = pjoin(get_nibabel_data(), 'nipy-ecattest')
 
 
-class TestNegatives(object):
+class TestNegatives:
     opener = staticmethod(load)
     example_params = dict(
         fname=os.path.join(ECAT_TEST_PATH, 'ECAT7_testcaste_neg_values.v'),

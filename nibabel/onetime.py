@@ -27,7 +27,7 @@ from nibabel.deprecated import deprecate_with_version
 # -----------------------------------------------------------------------------
 
 
-class ResetMixin(object):
+class ResetMixin:
     """A Mixin class to add a .reset() method to users of OneTimeProperty.
 
     By default, auto attributes once computed, become static.  If they happen
@@ -109,7 +109,7 @@ class ResetMixin(object):
                 delattr(self, mname)
 
 
-class OneTimeProperty(object):
+class OneTimeProperty:
     """A descriptor to make special properties that become normal attributes.
 
     This is meant to be used mostly by the auto_attr decorator in this module.
@@ -157,7 +157,7 @@ def auto_attr(func):
 
     Examples
     --------
-    >>> class MagicProp(object):
+    >>> class MagicProp:
     ...     @auto_attr
     ...     def a(self):
     ...         return 99

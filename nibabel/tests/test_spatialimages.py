@@ -69,7 +69,7 @@ def test_from_header():
     assert hdr == copy
     assert hdr is not copy
 
-    class C(object):
+    class C:
 
         def get_data_dtype(self): return np.dtype('u2')
 
@@ -188,7 +188,7 @@ def test_read_data():
         assert (data == data2).all()
 
 
-class DataLike(object):
+class DataLike:
     # Minimal class implementing 'data' API
     shape = (3,)
 
@@ -530,7 +530,7 @@ class TestSpatialImage(TestCase):
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
 
 
-class MmapImageMixin(object):
+class MmapImageMixin:
     """ Mixin for testing images that may return memory maps """
     #: whether to test mode of returned memory map
     check_mmap_mode = True

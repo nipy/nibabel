@@ -30,7 +30,7 @@ import numpy as np
 from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
 
 
-class Hdf5Bunch(object):
+class Hdf5Bunch:
     """ Make object for accessing attributes of variable
     """
 

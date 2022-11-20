@@ -728,7 +728,7 @@ def test_image_creation():
         assert_array_equal(img.dataobj, arr_prox_fp)
 
 
-class FakeHeader(object):
+class FakeHeader:
     """ Minimal API of header for PARRECArrayProxy
     """
 

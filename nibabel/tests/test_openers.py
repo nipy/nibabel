@@ -34,7 +34,7 @@ from ..deprecator import ExpiredDeprecationError
 pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 
-class Lunk(object):
+class Lunk:
     # bare file-like for testing
     closed = False
 

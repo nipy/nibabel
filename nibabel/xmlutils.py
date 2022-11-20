@@ -17,7 +17,7 @@ from xml.parsers.expat import ParserCreate
 from .filebasedimages import FileBasedHeader
 
 
-class XmlSerializable(object):
+class XmlSerializable:
     """ Basic interface for serializing an object to xml"""
 
     def _to_xml_element(self):
@@ -35,7 +35,7 @@ class XmlBasedHeader(FileBasedHeader, XmlSerializable):
     """ Basic wrapper around FileBasedHeader and XmlSerializable."""
 
 
-class XmlParser(object):
+class XmlParser:
     """ Base class for defining how to parse xml-based image snippets.
 
     Image-specific parsers should define:

@@ -96,7 +96,7 @@ def wrapper_from_data(dcm_data):
     return SiemensWrapper(dcm_data, csa)
 
 
-class Wrapper(object):
+class Wrapper:
     """ Class to wrap general DICOM files
 
     Methods:

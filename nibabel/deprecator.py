@@ -83,7 +83,7 @@ def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
                      old_lines[next_line:] + cleanup_lines + [''])
 
 
-class Deprecator(object):
+class Deprecator:
     """ Class to make decorator marking function or method as deprecated
 
     The decorated function / method will:

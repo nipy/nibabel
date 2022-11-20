@@ -1387,7 +1387,7 @@ def test_nifti_dicom_extension():
         Nifti1DicomExtension(2, 0)
 
 
-class TestNifti1General(object):
+class TestNifti1General:
     """ Test class to test nifti1 in general
 
     Tests here which mix the pair and the single type, and that should only be

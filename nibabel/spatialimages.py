@@ -322,7 +322,7 @@ class ImageDataError(Exception):
     pass
 
 
-class SpatialFirstSlicer(object):
+class SpatialFirstSlicer:
     """ Slicing interface that returns a new image with an updated affine
 
     Checks that an image's first three axes are spatial

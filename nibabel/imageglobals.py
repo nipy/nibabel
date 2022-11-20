@@ -31,7 +31,7 @@ logger = logging.getLogger('nibabel.global')
 logger.addHandler(logging.StreamHandler())
 
 
-class ErrorLevel(object):
+class ErrorLevel:
     """ Context manager to set log error level
     """
 
@@ -49,7 +49,7 @@ class ErrorLevel(object):
         return False
 
 
-class LoggingOutputSuppressor(object):
+class LoggingOutputSuppressor:
     """Context manager to prevent global logger from printing"""
 
     def __enter__(self):

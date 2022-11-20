@@ -12,7 +12,7 @@ from .optpkg import optional_package
 from .orientations import aff2axcodes, axcodes2ornt
 
 
-class OrthoSlicer3D(object):
+class OrthoSlicer3D:
     """ Orthogonal-plane slice viewer.
 
     OrthoSlicer3d expects 3- or 4-dimensional array data.  It treats

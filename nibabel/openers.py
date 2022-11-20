@@ -80,7 +80,7 @@ def _zstd_open(filename, mode="r", *, level_or_option=None, zstd_dict=None):
                            level_or_option=level_or_option, zstd_dict=zstd_dict)
 
 
-class Opener(object):
+class Opener:
     r""" Class to accept, maybe open, and context-manage file-likes / filenames
 
     Provides context manager to close files that the constructor opened for

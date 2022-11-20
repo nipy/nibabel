@@ -13,7 +13,7 @@ import shutil
 from tempfile import template, mkdtemp
 
 
-class TemporaryDirectory(object):
+class TemporaryDirectory:
     """Create and return a temporary directory.  This has the same
     behavior as mkdtemp but can be used as a context manager.
 
@@ -81,7 +81,7 @@ class InTemporaryDirectory(TemporaryDirectory):
         return super(InTemporaryDirectory, self).__exit__(exc, value, tb)
 
 
-class InGivenDirectory(object):
+class InGivenDirectory:
     """ Change directory to given directory for duration of ``with`` block
 
     Useful when you want to use `InTemporaryDirectory` for the final test, but

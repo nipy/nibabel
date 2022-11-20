@@ -39,7 +39,7 @@ class MincError(Exception):
     """ Error when reading MINC files """
 
 
-class Minc1File(object):
+class Minc1File:
     """ Class to wrap MINC1 format opened netcdf object
 
     Although it has some of the same methods as a ``Header``, we use
@@ -235,7 +235,7 @@ class Minc1File(object):
         return self._normalize(data, sliceobj)
 
 
-class MincImageArrayProxy(object):
+class MincImageArrayProxy:
     """ MINC implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
