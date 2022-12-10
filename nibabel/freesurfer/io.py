@@ -6,8 +6,7 @@ import warnings
 import numpy as np
 import getpass
 import time
-import re 
-import pandas as pd
+import re
 
 from collections import OrderedDict
 from ..openers import Opener
@@ -626,53 +625,52 @@ def _serialize_volume_info(volume_info):
                 f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode('utf-8'))
     return b''.join(strings)
 
+def read_stats_file(file_path):
+    """Extracts stats from stats files except '*curv.stats' files
 
-class StatsFileReader:
+    Parameters
+    ----------
+    file_path: str, required
 
-    @staticmethod
-    def read_stats_file(file_path):
-        """Extracts stats from stats files except '*curv.stats' files
+    Examples
+    --------
+    >>> stats_a2009, column_names = read_stats_file(r'lh.aparc.a2009s.stats')
 
-        Parameters
-        ----------
-        file_path: str, required
+    """
+    with open(file_path, 'r') as f:
+        for line in f:
+            if re.findall(r'ColHeaders .*', line):
+                parameters = line.split()
+                break
+    f.close()
+    stats = np.loadtxt(file_path, comments='#', dtype=str)
+    column_names = parameters[2:]
+    return stats, column_names
 
-        Returns
-        -------
 
-        """
-        with open(file_path, 'r') as f:
-            for line in f:
-                if re.findall(r'ColHeaders .*', line):
-                    parameters = line.split()
-                    break
-        f.close()
-        stats = np.loadtxt(file_path, comments='#', dtype=str)
-        df_stats = pd.DataFrame(stats, columns=parameters[2:])
-        df_stats.set_index('StructName', drop=True, inplace=True)
-        return df_stats
+def read_stats_file_both_hemispheres(file_path: str):
+    """Extracts stats data of both hemispheres and merges them
 
-    @staticmethod
-    def read_stats_file_both_hemispheres(file_path: str):
-        """Extracts stats data of both hemisphers and merges them
+    Parameters
+    ----------
+    file_path: str, required
+        Path of the stats file belong to left (lh) or right(rh) hemisphere
 
-        Parameters
-        ----------
-        file_path: str, required
-            Path of the stats file belong to left (lh) or right(rh) hemisphere
+    Returns
+    -------
+    stats_both_hemispheres: ndarray
+        Stats data of both hemisphers
+    column_naems: ndarray
+        Name of columns
 
-        Returns
-        -------
-        df_both_hemispheres: pd.DataFrame
-            Stats data of both hemisphers
+    Examples
+    --------
+    >>> stats_a2009, column_names = read_stats_file_both_hemispheres(r'lh.aparc.a2009s.stats')
 
-        Examples
-        --------
-        >>> df_stats_a2009 = StatsFileReader.read_stats_file(r'lh.aparc.a2009s.stats')
-
-        """
-        df_left = StatsFileReader.read_stats_file(file_path.replace('rh', 'lh'))
-        df_right = StatsFileReader.read_stats_file(file_path.replace('lh', 'rh'))
-        df_both_hemispheres = pd.merge(df_left, df_right, suffixes=('_lh', '_rh'), how='outer', left_index=True,
-                                       right_index=True)
-        return df_both_hemispheres
+    """
+    stats_left, columns_left = read_stats_file(file_path.replace('rh', 'lh'))
+    stats_right, columns_right = read_stats_file(file_path.replace('lh', 'rh'))
+    stats_both_hemispheres = np.concatenate((stats_left, stats_right[:, 1:]), axis=1)
+    column_names = [col_name + '_left' for col_name in columns_left] + [col_name + '_right' for col_name in
+                                                                        columns_right[1:]]
+    return stats_both_hemispheres, column_names
