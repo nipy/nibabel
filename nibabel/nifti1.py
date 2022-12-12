@@ -2269,7 +2269,7 @@ def load(filename):
     ------
     ImageFileError
         if `filename` doesn't look like NIfTI1;
-    IOError
+    OSError
         if `filename` does not exist.
     """
     try:

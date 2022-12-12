@@ -50,7 +50,7 @@ def test_read_nifti2():
     # Error trying to read a CIFTI-2 image from a NIfTI2-only image.
     filemap = ci.Cifti2Image.make_file_map()
     for k in filemap:
-        filemap[k].fileobj = io.open(NIFTI2_DATA)
+        filemap[k].fileobj = open(NIFTI2_DATA)
     with pytest.raises(ValueError):
         ci.Cifti2Image.from_file_map(filemap)
 

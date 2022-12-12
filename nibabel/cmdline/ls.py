@@ -145,7 +145,7 @@ def proc_file(f, opts):
                     freq = np.bincount(inv)
                     counts = " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))
                 row += ["@l" + counts]
-        except IOError as e:
+        except OSError as e:
             verbose(2, f"Failed to obtain stats/counts -- {e}")
             row += [_err()]
     return row

@@ -93,10 +93,8 @@ def get_axes():
     yield get_parcels()
     yield get_scalar()
     yield get_label()
-    for elem in get_brain_models():
-        yield elem
-    for elem in get_series():
-        yield elem
+    yield from get_brain_models()
+    yield from get_series()
 
 
 def test_brain_models():

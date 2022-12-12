@@ -144,7 +144,7 @@ class TestEcatMlist(TestCase):
         neworder = [frames_order[x][0] for x in sorted(frames_order)]
         assert neworder == [1, 2, 3, 4, 5]
         with suppress_warnings():
-            with pytest.raises(IOError):
+            with pytest.raises(OSError):
                 get_series_framenumbers(mlist)
 
 

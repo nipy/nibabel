@@ -158,7 +158,7 @@ def proc_file(infile, opts):
     else:
         outfilename = basefilename + '.nii'
     if os.path.isfile(outfilename) and not opts.overwrite:
-        raise IOError(f'Output file "{outfilename}" exists, use --overwrite to overwrite it')
+        raise OSError(f'Output file "{outfilename}" exists, use --overwrite to overwrite it')
 
     # load the PAR header and data
     scaling = 'dv' if opts.scaling == 'off' else opts.scaling

@@ -265,7 +265,7 @@ def load(filename):
     ------
     ImageFileError
         if `filename` doesn't look like nifti2;
-    IOError
+    OSError
         if `filename` does not exist.
     """
     try:

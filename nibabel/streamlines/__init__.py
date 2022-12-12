@@ -53,7 +53,7 @@ def detect_format(fileobj):
         try:
             if format.is_correct_format(fileobj):
                 return format
-        except IOError:
+        except OSError:
             pass
 
     if isinstance(fileobj, str):

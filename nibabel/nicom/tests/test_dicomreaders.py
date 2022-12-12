@@ -30,7 +30,7 @@ def test_read_dwis():
     assert_array_almost_equal(aff, EXPECTED_AFFINE)
     assert_array_almost_equal(bs, (0, EXPECTED_PARAMS[0]))
     assert_array_almost_equal(gs, (np.zeros((3,)), EXPECTED_PARAMS[1]))
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         didr.read_mosaic_dwi_dir('improbable')
 
 

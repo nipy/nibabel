@@ -83,7 +83,7 @@ def read_mosaic_dir(dicom_path,
     gradients = []
     arrays = []
     if len(filenames) == 0:
-        raise IOError(f'Found no files with "{full_globber}"')
+        raise OSError(f'Found no files with "{full_globber}"')
     for fname in filenames:
         dcm_w = wrapper_from_file(fname, **dicom_kwargs)
         # Because the routine sorts by filename, it only makes sense to use

@@ -139,7 +139,7 @@ def test_read_img_data_nifti():
             img.file_map = img.filespec_to_file_map(froot)
             # Trying to read from this filemap will generate an error because
             # we are going to read from files that do not exist
-            with pytest.deprecated_call(), pytest.raises(IOError):
+            with pytest.deprecated_call(), pytest.raises(OSError):
                 read_img_data(img)
             img.to_file_map()
             # Load - now the scaling and offset correctly applied
