@@ -32,7 +32,7 @@ def verbose(thing, msg):
     """Print `s` if `thing` is less than the `verbose_level`
     """
     # TODO: consider using nibabel's logger
-    if thing <= int(verbose_level):
+    if thing <= verbose_level:
         print(' ' * thing + msg)
 
 
