@@ -129,7 +129,7 @@ def save(tractogram, filename, **kwargs):
                    " 'TractogramFile' object.")
             warnings.warn(msg, ExtensionWarning)
 
-        if len(kwargs) > 0:
+        if kwargs:
             msg = ("A 'TractogramFile' object was provided, no need for"
                    " keyword arguments.")
             raise ValueError(msg)
