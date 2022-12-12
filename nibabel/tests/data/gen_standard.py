@@ -45,7 +45,7 @@ def mark_the_spot(mask):
     # Get the coordinates of voxels 'on' in the mask.
     coords = np.array(zip(*np.where(mask)))
 
-    streamlines = [(line + c) * voxel_size for line in X for c in coords]
+    streamlines = [(line + c) * voxel_size for c in coords for line in X]
 
     return streamlines
 
