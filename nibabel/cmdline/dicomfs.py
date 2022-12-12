@@ -48,7 +48,6 @@ class FileHandle:
         self.fno = fno
         self.keep_cache = False
         self.direct_io = False
-        return
 
     def __str__(self):
         return 'FileHandle(%d)' % self.fno
@@ -64,7 +63,6 @@ class DICOMFS(fuse.Fuse):
         self.dicom_path = kwargs.pop('dicom_path', None)
         fuse.Fuse.__init__(self, *args, **kwargs)
         self.fhs = {}
-        return
 
     def get_paths(self):
         paths = {}
@@ -190,7 +188,6 @@ class DICOMFS(fuse.Fuse):
         logger.debug(path)
         logger.debug(fh)
         del self.fhs[fh.fno]
-        return
 
 
 def get_opt_parser():

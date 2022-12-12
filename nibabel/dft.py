@@ -51,7 +51,6 @@ class InstanceStackError(DFTError):
         self.series = series
         self.i = i
         self.si = si
-        return
 
     def __str__(self):
         fmt = 'expecting instance number %d, got %d'
@@ -70,7 +69,6 @@ class _Study:
         self.patient_birth_date = d['patient_birth_date']
         self.patient_sex = d['patient_sex']
         self.series = None
-        return
 
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
@@ -103,7 +101,6 @@ class _Series:
         self.bits_allocated = d['bits_allocated']
         self.bits_stored = d['bits_stored']
         self.storage_instances = None
-        return
 
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
@@ -226,7 +223,6 @@ class _StorageInstance:
         self.instance_number = d['instance_number']
         self.series = d['series']
         self.files = None
-        return
 
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
@@ -256,7 +252,6 @@ class _db_nochange:
         if type is None:
             self.c.close()
         DB.rollback()
-        return
 
 
 class _db_change:
@@ -272,7 +267,6 @@ class _db_change:
             DB.commit()
         else:
             DB.rollback()
-        return
 
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
@@ -316,7 +310,6 @@ def update_cache(base_dir, followlinks=False):
             else:
                 query = "INSERT INTO directory (path, mtime) VALUES (?, ?)"
                 c.execute(query, (dir, mtimes[dir]))
-    return
 
 
 def get_studies(base_dir=None, followlinks=False):
@@ -382,7 +375,6 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
                               SET mtime = ?, storage_instance = ?
                             WHERE directory = ? AND name = ?"""
                 c.execute(query, (mtime, si_uid, dir, fname))
-    return
 
 
 def _update_file(c, path, fname, studies, series, storage_instances):
@@ -457,7 +449,6 @@ def clear_cache():
         c.execute("DELETE FROM storage_instance")
         c.execute("DELETE FROM series")
         c.execute("DELETE FROM study")
-    return
 
 
 CREATE_QUERIES = (

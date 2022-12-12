@@ -183,9 +183,8 @@ def package_check(pkg_name, version=None,
         _add_append_key(setuptools_args['extras_require'],
                         optional,
                         dependency)
-        return
-    _add_append_key(setuptools_args, 'install_requires', dependency)
-    return
+    else:
+        _add_append_key(setuptools_args, 'install_requires', dependency)
 
 
 def _package_status(pkg_name, version, version_getter, checker):

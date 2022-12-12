@@ -172,7 +172,6 @@ class WrapStruct:
         self._structarr = wstr.copy()
         if check:
             self.check_fix()
-        return
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
