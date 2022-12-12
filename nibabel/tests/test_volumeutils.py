@@ -947,9 +947,7 @@ def test_seek_tell():
                 # zeros in their wake.  BZ2Files can't seek when writing,
                 # unless we enable the write0 flag to seek_tell
                 # ZstdFiles also does not support seek forward on write
-                if (not write0 and
-                    (in_file == 'test.bz2' or
-                     in_file == 'test.zst')):  # Can't seek write in bz2, zst
+                if (not write0 and in_file in ('test.bz2', 'test.zst')):
                     # write the zeros by hand for the read test below
                     fobj.write(b'\x00' * diff)
                 else:
