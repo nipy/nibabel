@@ -737,7 +737,7 @@ class SiemensWrapper(Wrapper):
         ice = csar.get_ice_dims(self.csa_header)
         if ice is not None:
             ice = ice[:6] + ice[8:9]
-        signature['ICE_Dims'] = (ice, lambda x, y: x == y)
+        signature['ICE_Dims'] = (ice, operator.eq)
         return signature
 
     @one_time
