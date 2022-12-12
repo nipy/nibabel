@@ -117,8 +117,7 @@ class DICOMFS(fuse.Fuse):
             return -errno.ENOENT
         logger.debug(f'matched {matched_path}')
         fnames = [k.encode('ascii', 'replace') for k in matched_path.keys()]
-        fnames.append('.')
-        fnames.append('..')
+        fnames.extend(('.', '..'))
         return [fuse.Direntry(f) for f in fnames]
 
     def getattr(self, path):
