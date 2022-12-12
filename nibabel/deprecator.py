@@ -161,8 +161,8 @@ class Deprecator:
         deprecator : func
             Function returning a decorator.
         """
-        warn_class = warn_class if warn_class else self.warn_class
-        error_class = error_class if error_class else self.error_class
+        warn_class = warn_class or self.warn_class
+        error_class = error_class or self.error_class
         messages = [message]
         if (since, until) != ('', ''):
             messages.append('')
