@@ -59,7 +59,7 @@ class TestEcatHeader(tws._TestWrapStructBase):
             hdr.get_data_dtype()
 
     def test_header_codes(self):
-        fid = open(ecat_file, 'rb')
+        fid = open(self.example_file, 'rb')
         hdr = self.header_class()
         newhdr = hdr.from_fileobj(fid)
         fid.close()
@@ -117,6 +117,7 @@ class TestEcatMlist(TestCase):
         hdr = self.header_class.from_fileobj(fid)
         hdr['num_frames'] = 6
         mlist = read_mlist(fid, hdr.endianness)
+        fid.close()
         mlist = np.array(
             [
                 [1.68427540e07, 3.00000000e00, 1.20350000e04, 1.00000000e00],
