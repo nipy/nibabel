@@ -35,19 +35,17 @@ def mark_the_spot(mask):
         return np.array(coords).T
 
     # Generate a 3D 'X' template fitting inside the voxel centered at (0,0,0).
-    X = []
-    X.append(_gen_straight_streamline((-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)))
-    X.append(_gen_straight_streamline((-0.5, 0.5, -0.5), (0.5, -0.5, 0.5)))
-    X.append(_gen_straight_streamline((-0.5, 0.5, 0.5), (0.5, -0.5, -0.5)))
-    X.append(_gen_straight_streamline((-0.5, -0.5, 0.5), (0.5, 0.5, -0.5)))
+    X = [
+        _gen_straight_streamline((-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)),
+        _gen_straight_streamline((-0.5, 0.5, -0.5), (0.5, -0.5, 0.5)),
+        _gen_straight_streamline((-0.5, 0.5, 0.5), (0.5, -0.5, -0.5)),
+        _gen_straight_streamline((-0.5, -0.5, 0.5), (0.5, 0.5, -0.5)),
+    ]
 
     # Get the coordinates of voxels 'on' in the mask.
     coords = np.array(zip(*np.where(mask)))
 
-    streamlines = []
-    for c in coords:
-        for line in X:
-            streamlines.append((line + c) * voxel_size)
+    streamlines = [(line + c) * voxel_size for c in coords for line in X]
 
     return streamlines
 

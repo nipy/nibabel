@@ -249,12 +249,13 @@ class TckFile(TractogramFile):
                    Field.VOXEL_TO_RASMM,  # Streamlines are always in RAS+ mm.
                    "count", "datatype", "file"]  # Fields being replaced.
 
-        lines = []
-        lines.append(f"count: {header[Field.NB_STREAMLINES]:010}")
-        lines.append("datatype: Float32LE")  # Always Float32LE.
-        lines.extend([f"{k}: {v}"
-                      for k, v in header.items()
-                      if k not in exclude and not k.startswith("_")])
+        lines = [
+            f"count: {header[Field.NB_STREAMLINES]:010}",
+            "datatype: Float32LE",  # Always Float32LE.
+        ]
+        lines.extend(f"{k}: {v}"
+                     for k, v in header.items()
+                     if k not in exclude and not k.startswith("_"))
         out = "\n".join(lines)
 
         # Check the header is well formatted.

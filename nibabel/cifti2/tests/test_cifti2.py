@@ -326,8 +326,7 @@ def test_matrixindicesmap():
     parcel = ci.Cifti2Parcel()
 
     assert mim.volume is None
-    mim.append(volume)
-    mim.append(parcel)
+    mim.extend((volume, parcel))
 
 
     assert mim.volume == volume

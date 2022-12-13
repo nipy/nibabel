@@ -277,7 +277,6 @@ def contexts_print_info(mod_name, repo_path, install_path):
     print(run_mod_cmd(mod_name, site_pkgs_path, cmd_str)[0])
     # test from development tree
     print(run_mod_cmd(mod_name, repo_path, cmd_str)[0])
-    return
 
 
 def info_from_here(mod_name):
