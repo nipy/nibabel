@@ -440,7 +440,7 @@ def _count_ImageOpeners(proxy, data, voxels):
     CountingImageOpener.num_openers = 0
     # expected data is defined in the test_keep_file_open_* tests
     for i in range(voxels.shape[0]):
-        x, y, z = [int(c) for c in voxels[i, :]]
+        x, y, z = (int(c) for c in voxels[i, :])
         assert proxy[x, y, z] == x * 100 + y * 10 + z
     return CountingImageOpener.num_openers
 

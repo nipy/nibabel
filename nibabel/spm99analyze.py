@@ -278,7 +278,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             file_map, mmap=mmap, keep_file_open=keep_file_open)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
-        except IOError:
+        except OSError:
             return ret
         # Allow for possibility of empty file -> no update to affine
         with matf:

@@ -465,7 +465,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
         n_read = len(data_bytes)
         needs_copy = True
     if n_bytes != n_read:
-        raise IOError(f"Expected {n_bytes} bytes, got {n_read} bytes from "
+        raise OSError(f"Expected {n_bytes} bytes, got {n_read} bytes from "
                       f"{getattr(infile, 'name', 'object')}\n - could the file be damaged?")
     arr = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
     if needs_copy:
@@ -822,7 +822,7 @@ def seek_tell(fileobj, offset, write0=False):
     Parameters
     ----------
     fileobj : file-like
-        object implementing ``seek`` and (if seek raises an IOError) ``tell``
+        object implementing ``seek`` and (if seek raises an OSError) ``tell``
     offset : int
         position in file to which to seek
     write0 : {False, True}, optional
@@ -832,16 +832,16 @@ def seek_tell(fileobj, offset, write0=False):
     """
     try:
         fileobj.seek(offset)
-    except IOError as e:
+    except OSError as e:
         # This can be a negative seek in write mode for gz file object or any
         # seek in write mode for a bz2 file object
         pos = fileobj.tell()
         if pos == offset:
             return
         if not write0:
-            raise IOError(str(e))
+            raise OSError(str(e))
         if pos > offset:
-            raise IOError("Can't write to seek backwards")
+            raise OSError("Can't write to seek backwards")
         fileobj.write(b'\x00' * (offset - pos))
         assert fileobj.tell() == offset
 

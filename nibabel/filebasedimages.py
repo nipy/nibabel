@@ -430,7 +430,7 @@ class FileBasedImage:
         try:
             with ImageOpener(meta_fname, 'rb') as fobj:
                 binaryblock = fobj.read(sniff_nbytes)
-        except (IOError, EOFError):
+        except (OSError, EOFError):
             return None
         return (binaryblock, meta_fname)
 
@@ -564,7 +564,7 @@ class SerializableImage(FileBasedImage):
         return klass.from_file_map(klass._filemap_from_iobase(io_obj))
 
     def to_stream(self, io_obj: io.IOBase, **kwargs):
-        """Save image to writable IO stream
+        r"""Save image to writable IO stream
 
         Parameters
         ----------

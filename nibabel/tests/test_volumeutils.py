@@ -165,16 +165,14 @@ def test_array_from_file():
     arr = array_from_file((0,), np.dtype('f8'), BytesIO())
     assert len(arr) == 0
     # Check error from small file
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         array_from_file(shape, dtype, BytesIO())
     # check on real file
     fd, fname = tempfile.mkstemp()
     with InTemporaryDirectory():
         open(fname, 'wb').write(b'1')
         in_buf = open(fname, 'rb')
-        # For windows this will raise a WindowsError from mmap, Unices
-        # appear to raise an IOError
-        with pytest.raises(Exception):
+        with pytest.raises(OSError):
             array_from_file(shape, dtype, in_buf)
         del in_buf
 
@@ -981,7 +979,7 @@ def test_seek_tell():
                 assert fobj.tell() == 10
                 seek_tell(fobj, 10)
                 assert fobj.tell() == 10
-                with pytest.raises(IOError):
+                with pytest.raises(OSError):
                     seek_tell(fobj, 5)
             # Make sure read seeks don't affect file
             with ImageOpener(in_file, 'rb') as fobj:
@@ -1001,10 +999,10 @@ def test_seek_tell_logic():
     class BabyBio(BytesIO):
 
         def seek(self, *args):
-            raise IOError()
+            raise OSError()
     bio = BabyBio()
     # Fresh fileobj, position 0, can't seek - error
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         bio.seek(10)
     # Put fileobj in correct position by writing
     ZEROB = b'\x00'
@@ -1013,7 +1011,7 @@ def test_seek_tell_logic():
     assert bio.tell() == 10
     assert bio.getvalue() == ZEROB * 10
     # Try write zeros to get to new position
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         bio.seek(20)
     seek_tell(bio, 20, write0=True)
     assert bio.getvalue() == ZEROB * 20
@@ -1204,7 +1202,7 @@ def test_array_from_file_overflow():
             return b''
     try:
         array_from_file(shape, np.int8, NoStringIO())
-    except IOError as err:
+    except OSError as err:
         message = str(err)
     assert message == ("Expected 11390625000000000000 bytes, got 0 "
                        "bytes from object\n - could the file be damaged?")

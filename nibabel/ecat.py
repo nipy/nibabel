@@ -471,7 +471,7 @@ def get_series_framenumbers(mlist):
         try:
             frame_dict[frame_stored] = trueframenumbers[true_order] + 1
         except IndexError:
-            raise IOError('Error in header or mlist order unknown')
+            raise OSError('Error in header or mlist order unknown')
     return frame_dict
 
 
