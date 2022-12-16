@@ -18,6 +18,13 @@ defaults:
   run:
     shell: bash
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   pre-release:
     # Check pre-releases of dependencies on stable Python
@@ -26,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
         architecture: ['x64', 'x86']
         install: ['pip']
         check: ['test']
@@ -36,7 +43,7 @@ jobs:
         include:
           # Pydicom master
           - os: ubuntu-latest
-            python-version: "3.10"
+            python-version: "3.11"
             install: pip
             check: test
             pip-flags: ''
