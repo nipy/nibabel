@@ -25,7 +25,7 @@ elif [ "${CHECK_TYPE}" == "test" ]; then
     cd for_testing
     cp ../.coveragerc .
     pytest --doctest-modules --doctest-plus --cov nibabel --cov-report xml \
-        --junitxml=test-results.xml -v --pyargs nibabel
+        --junitxml=test-results.xml -v --pyargs nibabel -n auto
 else
     false
 fi

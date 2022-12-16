@@ -1,6 +1,7 @@
 """ Metaclass and class for validating instance APIs
 """
-
+import os
+import pytest
 
 
 class validator2test(type):
@@ -82,6 +83,10 @@ class TestValidateSomething(ValidateAPI):
         assert obj.get_var() == params['var']
 
 
+@pytest.mark.xfail(
+    os.getenv("PYTEST_XDIST_WORKER") is not None,
+    reason="Execution in the same scope cannot be guaranteed"
+)
 class TestRunAllTests(ValidateAPI):
     """ Class to test that each validator test gets run
 
@@ -98,7 +103,7 @@ class TestRunAllTests(ValidateAPI):
     def validate_second(self, obj, param):
         self.run_tests.append('second')
 
-
-def teardown():
-    # Check that both validate_xxx tests got run
-    assert TestRunAllTests.run_tests == ['first', 'second']
+    @classmethod
+    def teardown_class(cls):
+        # Check that both validate_xxx tests got run
+        assert cls.run_tests == ['first', 'second']
