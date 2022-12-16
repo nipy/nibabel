@@ -15,7 +15,6 @@ from .fileholders import FileHolder
 from .filename_parser import (types_filenames, TypesFilenamesError,
                               splitext_addext)
 from .openers import ImageOpener
-from .deprecated import deprecate_with_version
 
 
 class ImageFileError(Exception):
@@ -79,7 +78,6 @@ class FileBasedImage:
 
     methods:
 
-       * get_header() (deprecated, use header property instead)
        * to_filename(fname) - writes data to filename(s) derived from
          ``fname``, where the derivation may differ between formats.
        * to_file_map() - save image to files with which the image is already
@@ -207,15 +205,6 @@ class FileBasedImage:
         """ No slicing or dictionary interface for images
         """
         raise TypeError("Cannot slice image objects.")
-
-    @deprecate_with_version('get_header method is deprecated.\n'
-                            'Please use the ``img.header`` property '
-                            'instead.',
-                            '2.1', '4.0')
-    def get_header(self):
-        """ Get header from image
-        """
-        return self.header
 
     def get_filename(self):
         """ Fetch the image filename

@@ -23,7 +23,6 @@ from ..openers import (Opener,
                        DeterministicGzipFile,
                        )
 from ..tmpdirs import InTemporaryDirectory
-from ..volumeutils import BinOpener
 from ..optpkg import optional_package
 
 import unittest
@@ -112,11 +111,6 @@ def test_Opener_various():
                 else:
                     # Just check there is a fileno
                     assert fobj.fileno() != 0
-
-
-def test_BinOpener():
-    with pytest.raises(ExpiredDeprecationError):
-        BinOpener('test.txt', 'r')
 
 
 class MockIndexedGzipFile(GzipFile):

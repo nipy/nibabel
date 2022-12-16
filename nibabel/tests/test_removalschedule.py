@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 MODULE_SCHEDULE = [
-    ("5.0.0", ["nibabel.keywordonly"]),
+    ("5.0.0", ["nibabel.keywordonly", "nibabel.py3k"]),
     ("4.0.0", ["nibabel.trackvis"]),
     ("3.0.0", ["nibabel.minc", "nibabel.checkwarns"]),
     # Verify that the test will be quiet if the schedule outlives the modules
@@ -17,10 +17,10 @@ OBJECT_SCHEDULE = [
     ("6.0.0", [("nibabel.loadsave", "guessed_image_type"),
                ("nibabel.loadsave", "read_img_data"),
                ("nibabel.orientations", "flip_axis"),
-    ]),
-    ("5.0.0", [("nibabel.pydicom_compat", "dicom_test"),
+               ("nibabel.pydicom_compat", "dicom_test"),
                ("nibabel.onetime", "setattr_on_read"),
-               ("nibabel.gifti.gifti", "data_tag"),
+    ]),
+    ("5.0.0", [("nibabel.gifti.gifti", "data_tag"),
                ("nibabel.gifti.giftiio", "read"),
                ("nibabel.gifti.giftiio", "write"),
                ("nibabel.gifti.parse_gifti_fast", "Outputter"),
@@ -47,7 +47,6 @@ ATTRIBUTE_SCHEDULE = [
     ]),
     ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data"),
                ("nibabel.freesurfer.mghformat", "MGHHeader", "_header_data"),
-               ("nibabel.gifti.gifti", "GiftiDataArray", "num_dim"),
                ("nibabel.gifti.gifti", "GiftiDataArray", "from_array"),
                ("nibabel.gifti.gifti", "GiftiDataArray", "to_xml_open"),
                ("nibabel.gifti.gifti", "GiftiDataArray", "to_xml_close"),
@@ -56,7 +55,6 @@ ATTRIBUTE_SCHEDULE = [
                ("nibabel.gifti.gifti", "GiftiImage", "set_labeltable"),
                ("nibabel.gifti.gifti", "GiftiImage", "get_metadata"),
                ("nibabel.gifti.gifti", "GiftiImage", "set_metadata"),
-               ("nibabel.gifti.gifti", "GiftiImage", "getArraysFromIntent"),
                ("nibabel.gifti.gifti", "GiftiImage", "getArraysFromIntent"),
                ("nibabel.gifti.gifti", "GiftiMetaData", "get_metadata"),
                ("nibabel.gifti.gifti", "GiftiLabel", "get_rgba"),

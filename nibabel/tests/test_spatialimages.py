@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 
 from io import BytesIO
-from ..spatialimages import SpatialHeader, SpatialImage, HeaderDataError, Header
+from ..spatialimages import SpatialHeader, SpatialImage, HeaderDataError
 from ..imageclasses import spatial_axes_first
 
 import pytest
@@ -30,7 +30,6 @@ from ..testing import (
 )
 
 from ..tmpdirs import InTemporaryDirectory
-from ..deprecator import ExpiredDeprecationError
 from .. import load as top_load
 
 def test_header_init():
@@ -605,10 +604,3 @@ class MmapImageMixin:
                     func(param1, mmap='rw')
                 with pytest.raises(ValueError):
                     func(param1, mmap='r+')
-
-
-def test_header_deprecated():
-    class MyHeader(Header):
-        pass
-    with pytest.raises(ExpiredDeprecationError):
-        MyHeader()

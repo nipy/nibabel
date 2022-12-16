@@ -17,6 +17,5 @@
    gifti
 """
 
-from .giftiio import read, write
 from .gifti import (GiftiMetaData, GiftiNVPairs, GiftiLabelTable, GiftiLabel,
                     GiftiCoordSystem, GiftiDataArray, GiftiImage)

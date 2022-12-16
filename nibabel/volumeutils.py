@@ -19,8 +19,7 @@ from functools import reduce
 import numpy as np
 
 from .casting import shared_range, OK_FLOATS
-from .openers import Opener, BZ2File, IndexedGzipFile
-from .deprecated import deprecate_with_version
+from .openers import BZ2File, IndexedGzipFile
 from .externals.oset import OrderedSet
 from .optpkg import optional_package
 
@@ -1337,17 +1336,6 @@ def rec2dict(rec):
     return dct
 
 
-class BinOpener(Opener):
-    """ Deprecated class that used to handle .mgz through specialized logic."""
-    __doc__ = Opener.__doc__
-
-    @deprecate_with_version('BinOpener class deprecated. '
-                            "Please use Opener class instead.",
-                            '2.1', '4.0')
-    def __init__(self, *args, **kwargs):
-        return super(BinOpener, self).__init__(*args, **kwargs)
-
-
 def fname_ext_ul_case(fname):
     """ `fname` with ext changed to upper / lower case if file exists
 
@@ -1378,21 +1366,3 @@ def fname_ext_ul_case(fname):
         if exists(mod_fname):
             return mod_fname
     return fname
-
-
-@deprecate_with_version('allopen is deprecated. '
-                        'Please use "Opener" class instead.',
-                        '2.0', '4.0')
-def allopen(fileish, *args, **kwargs):
-    """ Compatibility wrapper for old ``allopen`` function
-
-    Wraps creation of ``Opener`` instance, while picking up module global
-    ``default_compresslevel``.
-
-    Please see docstring of ``Opener`` for details.
-    """
-
-    class MyOpener(Opener):
-        default_compresslevel = default_compresslevel
-
-    return MyOpener(fileish, *args, **kwargs)

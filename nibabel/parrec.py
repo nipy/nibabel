@@ -137,7 +137,6 @@ from .affines import from_matvec, dot_reduce, apply_affine
 from .nifti1 import unit_codes
 from .fileslice import fileslice, strided_scalar
 from .openers import ImageOpener
-from .deprecated import deprecate_with_version
 
 # PSL to RAS affine
 PSL_TO_RAS = np.array([[0, 0, -1, 0],  # L -> R
@@ -870,29 +869,6 @@ class PARRECHeader(SpatialHeader):
             raise PARRECError(f'Varying {name} in image sequence '
                               f'({props}). This is not supported.')
         return props[0]
-
-    @deprecate_with_version('get_voxel_size deprecated. '
-                            'Please use "get_zooms" instead.',
-                            '2.0', '4.0')
-    def get_voxel_size(self):
-        """Returns the spatial extent of a voxel.
-
-        Does not include the slice gap in the slice extent.
-
-        If you need the slice thickness not including the slice gap, use
-        ``self.image_defs['slice thickness']``.
-
-        Returns
-        -------
-        vox_size: shape (3,) ndarray
-        """
-        # slice orientation for the whole image series
-        slice_thickness = self._get_unique_image_prop('slice thickness')
-        voxsize_inplane = self._get_unique_image_prop('pixel spacing')
-        voxsize = np.array((voxsize_inplane[0],
-                            voxsize_inplane[1],
-                            slice_thickness))
-        return voxsize
 
     def get_data_offset(self):
         """ PAR header always has 0 data offset (into REC file) """

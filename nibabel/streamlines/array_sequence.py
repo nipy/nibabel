@@ -5,8 +5,6 @@ from functools import reduce
 
 import numpy as np
 
-from ..deprecated import deprecate_with_version
-
 MEGABYTE = 1024 * 1024
 
 
@@ -153,16 +151,6 @@ class ArraySequence:
     def total_nb_rows(self):
         """ Total number of rows in this array sequence. """
         return np.sum(self._lengths)
-
-    @property
-    @deprecate_with_version("'ArraySequence.data' property is deprecated.\n"
-                            "Please use the 'ArraySequence.get_data()' method instead",
-                            '3.0', '4.0')
-    def data(self):
-        """ Elements in this array sequence. """
-        view = self._data.view()
-        view.setflags(write=False)
-        return view
 
     def get_data(self):
         """ Returns a *copy* of the elements in this array sequence.

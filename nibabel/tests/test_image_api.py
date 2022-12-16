@@ -119,12 +119,6 @@ class GenericImageAPI(ValidateAPI):
         with pytest.raises(AttributeError):
             img.header = hdr
 
-    def validate_header_deprecated(self, imaker, params):
-        # Check deprecated header API
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            hdr = img.get_header()
-
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface
 
@@ -418,16 +412,6 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 data = get_data_func(dtype=float_type)
             assert (data is img.dataobj) == (arr_dtype == float_type)
 
-    def validate_data_deprecated(self, imaker, params):
-        # Check _data property still exists, but raises warning
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            assert_data_similar(img._data, params)
-        # Check setting _data raises error
-        fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
-        with pytest.raises(AttributeError):
-            img._data = fake_data
-
     def validate_shape(self, imaker, params):
         # Validate shape
         img = imaker()
@@ -502,8 +486,7 @@ class HeaderShapeMixin:
 class AffineMixin:
     """ Adds test of affine property, method
 
-    Add this one if your image has an ``affine`` property.  If so, it should
-    (for now) also have a ``get_affine`` method returning the same result.
+    Add this one if your image has an ``affine`` property.
     """
 
     def validate_affine(self, imaker, params):
@@ -516,12 +499,6 @@ class AffineMixin:
         # Read only
         with pytest.raises(AttributeError):
             img.affine = np.eye(4)
-
-    def validate_affine_deprecated(self, imaker, params):
-        # Check deprecated affine API
-        img = imaker()
-        with pytest.raises(ExpiredDeprecationError):
-            img.get_affine()
 
 
 class SerializeMixin:

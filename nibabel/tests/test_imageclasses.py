@@ -14,10 +14,9 @@ from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 
 from nibabel import imageclasses
-from nibabel.imageclasses import spatial_axes_first, class_map, ext_map
+from nibabel.imageclasses import spatial_axes_first
 
 from nibabel.optpkg import optional_package
-from nibabel.deprecator import ExpiredDeprecationError
 
 have_h5py = optional_package('h5py')[1]
 
@@ -49,11 +48,3 @@ def test_spatial_axes_first():
         img = nib.load(pjoin(DATA_DIR, fname))
         assert len(img.shape) == 4
         assert not spatial_axes_first(img)
-
-
-def test_deprecations():
-    with pytest.raises(ExpiredDeprecationError):
-        class_map['nifti_single']
-    with pytest.raises(ExpiredDeprecationError):
-        nifti_ext = ext_map['.nii']
-

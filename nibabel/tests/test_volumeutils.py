@@ -29,7 +29,6 @@ from ..openers import ImageOpener
 from ..volumeutils import (array_from_file,
                            _is_compressed_fobj,
                            array_to_file,
-                           allopen,  # for backwards compatibility
                            fname_ext_ul_case,
                            write_zeros,
                            seek_tell,
@@ -49,7 +48,6 @@ from ..volumeutils import (array_from_file,
 from ..openers import Opener, BZ2File
 from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
 
-from ..deprecator import ExpiredDeprecationError
 from ..optpkg import optional_package
 
 from numpy.testing import (assert_array_almost_equal,
@@ -1040,13 +1038,6 @@ def test_fname_ext_ul_case():
         assert fname_ext_ul_case('bfile.txt') == 'bfile.txt'
         # Not mixed case though
         assert fname_ext_ul_case('afile.TxT') == 'afile.TxT'
-
-
-def test_allopen_deprecated():
-    # This import into volumeutils is for compatibility.  The code is the
-    # ``openers`` module.
-    with pytest.raises(ExpiredDeprecationError):
-        fobj = allopen(__file__)
 
 
 def test_shape_zoom_affine():

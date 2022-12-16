@@ -21,9 +21,6 @@ It has attributes:
 methods:
 
    * .get_fdata()
-   * .get_data() (deprecated, use get_fdata() instead)
-   * .get_affine() (deprecated, use affine property instead)
-   * .get_header() (deprecated, use header property instead)
    * .to_filename(fname) - writes data to filename(s) derived from
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
@@ -141,7 +138,6 @@ from .filebasedimages import ImageFileError  # noqa
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 from .fileslice import canonical_slicers
-from .deprecated import deprecate_with_version
 from .orientations import apply_orientation, inv_ornt_aff
 
 
@@ -305,17 +301,6 @@ def supported_np_types(obj):
     # Reset original header dtype
     obj.set_data_dtype(dt)
     return set(supported)
-
-
-class Header(SpatialHeader):
-    """Alias for SpatialHeader; kept for backwards compatibility."""
-
-    @deprecate_with_version('Header class is deprecated.\n'
-                            'Please use SpatialHeader instead.'
-                            'instead.',
-                            '2.1', '4.0')
-    def __init__(self, *args, **kwargs):
-        super(Header, self).__init__(*args, **kwargs)
 
 
 class ImageDataError(Exception):
@@ -526,15 +511,6 @@ class SpatialImage(DataobjImage):
 
     def set_data_dtype(self, dtype):
         self._header.set_data_dtype(dtype)
-
-    @deprecate_with_version('get_affine method is deprecated.\n'
-                            'Please use the ``img.affine`` property '
-                            'instead.',
-                            '2.1', '4.0')
-    def get_affine(self):
-        """ Get affine from image
-        """
-        return self.affine
 
     @classmethod
     def from_image(klass, img):

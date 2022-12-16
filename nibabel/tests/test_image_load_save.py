@@ -29,7 +29,6 @@ from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
-from ..deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
@@ -269,14 +268,6 @@ def test_filename_save():
                 del rt_img
         finally:
             shutil.rmtree(pth)
-
-
-def test_analyze_detection():
-    # Test detection of Analyze, Nifti1 and Nifti2
-    # Algorithm is as described in loadsave:which_analyze_type
-    hdr = Nifti1Header(b'\0' * 348, check=False)
-    with pytest.raises(ExpiredDeprecationError):
-        nils.which_analyze_type(hdr.binaryblock)
 
 
 def test_guessed_image_type():

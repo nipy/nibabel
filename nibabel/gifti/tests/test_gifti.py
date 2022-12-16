@@ -12,10 +12,8 @@ from ... import load
 from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
                 GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
                 GiftiCoordSystem)
-from ..gifti import data_tag
 from ...nifti1 import data_type_codes
 from ...fileholders import FileHolder
-from ...deprecator import ExpiredDeprecationError
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
@@ -183,32 +181,6 @@ def test_dataarray_init():
     assert gda(ext_offset=12).ext_offset == 12
 
 
-def test_dataarray_from_array():
-    with pytest.raises(ExpiredDeprecationError):
-        GiftiDataArray.from_array(np.ones((3, 4)))
-
-
-def test_to_xml_open_close_deprecations():
-    # Smoke test on deprecated functions
-    da = GiftiDataArray(np.ones((1,)), 'triangle')
-    with pytest.raises(ExpiredDeprecationError):
-        da.to_xml_open()
-    with pytest.raises(ExpiredDeprecationError):
-        da.to_xml_close()
-
-
-def test_num_dim_deprecation():
-    da = GiftiDataArray(np.ones((2, 3, 4)))
-    # num_dim is property, set automatically from len(da.dims)
-    assert da.num_dim == 3
-    # setting num_dim to correct value is deprecated
-    with pytest.raises(ExpiredDeprecationError):
-        da.num_dim = 3
-    # setting num_dim to incorrect value is also deprecated
-    with pytest.raises(ExpiredDeprecationError):
-        da.num_dim = 4
-
-
 def test_labeltable():
     img = GiftiImage()
     assert len(img.labeltable.labels) == 0
@@ -217,12 +189,6 @@ def test_labeltable():
     new_table.labels += ['test', 'me']
     img.labeltable = new_table
     assert len(img.labeltable.labels) == 2
-
-    # Test deprecations
-    with pytest.raises(ExpiredDeprecationError):
-        newer_table = GiftiLabelTable()
-        newer_table.labels += ['test', 'me', 'again']
-        img.set_labeltable(newer_table)
 
 
 def test_metadata():
@@ -241,9 +207,6 @@ def test_metadata():
         assert md.data[0].name == 'key'
         assert md.data[0].value == 'value'
     assert len(w) == 2
-    # Test deprecation
-    with pytest.raises(ExpiredDeprecationError):
-        md.get_metadata()
 
 
 def test_metadata_list_interface():
@@ -348,10 +311,6 @@ def test_gifti_label_rgba():
     pytest.raises(ValueError, assign_rgba, gl3, rgba[:2])
     pytest.raises(ValueError, assign_rgba, gl3, rgba.tolist() + rgba.tolist())
 
-    # Test deprecation
-    with pytest.raises(ExpiredDeprecationError):
-        gl3.get_rgba()
-
     # Test default value
     gl4 = GiftiLabel()
     assert len(gl4.rgba) == 4
@@ -374,11 +333,6 @@ def test_gifti_coord():
     gcs.xform = None
     gcs.print_summary()
     gcs.to_xml()
-
-
-def test_data_tag_deprecated():
-    with pytest.raises(ExpiredDeprecationError):
-        data_tag(np.array([]), 'ASCII', '%i', 1)
 
 
 def test_gifti_round_trip():
