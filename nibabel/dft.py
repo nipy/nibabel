@@ -11,6 +11,7 @@
 """
 
 
+import contextlib
 import os
 from os.path import join as pjoin
 import tempfile
@@ -74,7 +75,7 @@ class _Study:
         val = object.__getattribute__(self, name)
         if name == 'series' and val is None:
             val = []
-            with _db_nochange() as c:
+            with DB.readonly_cursor() as c:
                 c.execute("SELECT * FROM series WHERE study = ?", (self.uid, ))
                 cols = [el[0] for el in c.description]
                 for row in c:
@@ -106,7 +107,7 @@ class _Series:
         val = object.__getattribute__(self, name)
         if name == 'storage_instances' and val is None:
             val = []
-            with _db_nochange() as c:
+            with DB.readonly_cursor() as c:
                 query = """SELECT *
                              FROM storage_instance
                             WHERE series = ?
@@ -227,7 +228,7 @@ class _StorageInstance:
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
         if name == 'files' and val is None:
-            with _db_nochange() as c:
+            with DB.readonly_cursor() as c:
                 query = """SELECT directory, name
                              FROM file
                             WHERE storage_instance = ?
@@ -239,34 +240,6 @@ class _StorageInstance:
 
     def dicom(self):
         return pydicom.read_file(self.files[0])
-
-
-class _db_nochange:
-    """context guard for read-only database access"""
-
-    def __enter__(self):
-        self.c = DB.cursor()
-        return self.c
-
-    def __exit__(self, type, value, traceback):
-        if type is None:
-            self.c.close()
-        DB.rollback()
-
-
-class _db_change:
-    """context guard for database access requiring a commit"""
-
-    def __enter__(self):
-        self.c = DB.cursor()
-        return self.c
-
-    def __exit__(self, type, value, traceback):
-        if type is None:
-            self.c.close()
-            DB.commit()
-        else:
-            DB.rollback()
 
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
@@ -288,7 +261,7 @@ def update_cache(base_dir, followlinks=False):
     for d in dirs:
         os.stat(d)
         mtimes[d] = os.stat(d).st_mtime
-    with _db_nochange() as c:
+    with DB.readwrite_cursor() as c:
         c.execute("SELECT path, mtime FROM directory")
         db_mtimes = dict(c)
         c.execute("SELECT uid FROM study")
@@ -297,7 +270,6 @@ def update_cache(base_dir, followlinks=False):
         series = [row[0] for row in c]
         c.execute("SELECT uid FROM storage_instance")
         storage_instances = [row[0] for row in c]
-    with _db_change() as c:
         for dir in sorted(mtimes.keys()):
             if dir in db_mtimes and mtimes[dir] <= db_mtimes[dir]:
                 continue
@@ -316,7 +288,7 @@ def get_studies(base_dir=None, followlinks=False):
     if base_dir is not None:
         update_cache(base_dir, followlinks)
     if base_dir is None:
-        with _db_nochange() as c:
+        with DB.readonly_cursor() as c:
             c.execute("SELECT * FROM study")
             studies = []
             cols = [el[0] for el in c.description]
@@ -331,7 +303,7 @@ def get_studies(base_dir=None, followlinks=False):
                                WHERE uid IN (SELECT storage_instance
                                                FROM file
                                               WHERE directory = ?))"""
-    with _db_nochange() as c:
+    with DB.readonly_cursor() as c:
         study_uids = {}
         for dir in _get_subdirs(base_dir, followlinks=followlinks):
             c.execute(query, (dir, ))
@@ -443,7 +415,7 @@ def _update_file(c, path, fname, studies, series, storage_instances):
 
 
 def clear_cache():
-    with _db_change() as c:
+    with DB.readwrite_cursor() as c:
         c.execute("DELETE FROM file")
         c.execute("DELETE FROM directory")
         c.execute("DELETE FROM storage_instance")
@@ -478,26 +450,64 @@ CREATE_QUERIES = (
                           mtime INTEGER NOT NULL,
                           storage_instance TEXT DEFAULT NULL REFERENCES storage_instance,
                           PRIMARY KEY (directory, name))""")
-DB_FNAME = pjoin(tempfile.gettempdir(), f'dft.{getpass.getuser()}.sqlite')
+
+
+class _DB:
+    def __init__(self, fname=None, verbose=True):
+        self.fname = fname or pjoin(tempfile.gettempdir(), f'dft.{getpass.getuser()}.sqlite')
+        self.verbose = verbose
+
+    @property
+    def session(self):
+        """Get sqlite3 Connection
+
+        The connection is created on the first call of this property
+        """
+        try:
+            return self._session
+        except AttributeError:
+            self._init_db()
+            return self._session
+
+    def _init_db(self):
+        if self.verbose:
+            logger.info('db filename: ' + self.fname)
+
+        self._session = sqlite3.connect(self.fname, isolation_level="EXCLUSIVE")
+        with self.readwrite_cursor() as c:
+            c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
+            if c.fetchone()[0] == 0:
+                logger.debug('create')
+                for q in CREATE_QUERIES:
+                    c.execute(q)
+
+    def __repr__(self):
+        return f"<DFT {self.fname!r}>"
+
+    @contextlib.contextmanager
+    def readonly_cursor(self):
+        cursor = self.session.cursor()
+        try:
+            yield cursor
+        finally:
+            cursor.close()
+            self.session.rollback()
+
+    @contextlib.contextmanager
+    def readwrite_cursor(self):
+        cursor = self.session.cursor()
+        try:
+            yield cursor
+        except Exception:
+            self.session.rollback()
+            raise
+        finally:
+            cursor.close()
+        self.session.commit()
+
+
 DB = None
-
-
-def _init_db(verbose=True):
-    """ Initialize database """
-    if verbose:
-        logger.info('db filename: ' + DB_FNAME)
-    global DB
-    DB = sqlite3.connect(DB_FNAME, check_same_thread=False)
-    with _db_change() as c:
-        c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
-        if c.fetchone()[0] == 0:
-            logger.debug('create')
-            for q in CREATE_QUERIES:
-                c.execute(q)
-
-
 if os.name == 'nt':
     warnings.warn('dft needs FUSE which is not available for windows')
 else:
-    _init_db()
-# eof
+    DB = _DB()
