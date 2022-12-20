@@ -5,6 +5,7 @@ import os
 from os.path import join as pjoin, dirname
 from io import BytesIO
 from ..testing import suppress_warnings
+import sqlite3
 
 with suppress_warnings():
     from .. import dft
@@ -29,6 +30,24 @@ def setUpModule():
         raise unittest.SkipTest('Need pydicom for dft tests, skipping')
 
 
+class Test_DBclass:
+    """Some tests on the database manager class that don't get exercised through the API"""
+    def setup_method(self):
+        self._db = dft._DB(fname=":memory:", verbose=False)
+
+    def test_repr(self):
+        assert repr(self._db) == "<DFT ':memory:'>"
+
+    def test_cursor_conflict(self):
+        rwc = self._db.readwrite_cursor
+        statement = ("INSERT INTO directory (path, mtime) VALUES (?, ?)", ("/tmp", 0))
+        with pytest.raises(sqlite3.IntegrityError):
+            # Whichever exits first will commit and make the second violate uniqueness
+            with rwc() as c1, rwc() as c2:
+                c1.execute(*statement)
+                c2.execute(*statement)
+
+
 @pytest.fixture
 def db(monkeypatch):
     """Build a dft database in memory to avoid cross-process races
@@ -41,20 +60,24 @@ def db(monkeypatch):
 def test_init(db):
     dft.clear_cache()
     dft.update_cache(data_dir)
+    # Verify a second update doesn't crash
+    dft.update_cache(data_dir)
 
 
 def test_study(db):
-    studies = dft.get_studies(data_dir)
-    assert len(studies) == 1
-    assert (studies[0].uid ==
-                 '1.3.12.2.1107.5.2.32.35119.30000010011408520750000000022')
-    assert studies[0].date == '20100114'
-    assert studies[0].time == '121314.000000'
-    assert studies[0].comments == 'dft study comments'
-    assert studies[0].patient_name == 'dft patient name'
-    assert studies[0].patient_id == '1234'
-    assert studies[0].patient_birth_date == '19800102'
-    assert studies[0].patient_sex == 'F'
+    # First pass updates the cache, second pass reads it out
+    for base_dir in (data_dir, None):
+        studies = dft.get_studies(base_dir)
+        assert len(studies) == 1
+        assert (studies[0].uid ==
+                     '1.3.12.2.1107.5.2.32.35119.30000010011408520750000000022')
+        assert studies[0].date == '20100114'
+        assert studies[0].time == '121314.000000'
+        assert studies[0].comments == 'dft study comments'
+        assert studies[0].patient_name == 'dft patient name'
+        assert studies[0].patient_id == '1234'
+        assert studies[0].patient_birth_date == '19800102'
+        assert studies[0].patient_sex == 'F'
 
 
 def test_series(db):
@@ -81,10 +104,6 @@ def test_storage_instances(db):
                  '1.3.12.2.1107.5.2.32.35119.2010011420300180088599504.0')
     assert (sis[1].uid ==
                  '1.3.12.2.1107.5.2.32.35119.2010011420300180088599504.1')
-
-
-def test_storage_instance(db):
-    pass
 
 
 @unittest.skipUnless(have_pil, 'could not import PIL.Image')
