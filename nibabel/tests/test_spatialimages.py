@@ -366,15 +366,6 @@ class TestSpatialImage(TestCase):
         in_data_template = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         in_data = in_data_template.copy()
         img = img_klass(in_data, None)
-        # Can't slice into the image object:
-        with pytest.raises(TypeError) as exception_manager:
-            img[0, 0, 0]
-        # Make sure the right message gets raised:
-        assert (str(exception_manager.value) ==
-                "Cannot slice image objects; consider using "
-                "`img.slicer[slice]` to generate a sliced image (see "
-                "documentation for caveats) or slicing image array data "
-                "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
         assert in_data is img.dataobj
         with pytest.deprecated_call():
             out_data = img.get_data()
@@ -412,6 +403,16 @@ class TestSpatialImage(TestCase):
                        (8, 5, 6)):      # Volume
             in_data = in_data_template.copy().reshape(dshape)
             img = img_klass(in_data, base_affine.copy())
+
+            # Can't slice into the image object:
+            with pytest.raises(TypeError) as exception_manager:
+                img[0, 0, 0]
+            # Make sure the right message gets raised:
+            assert (str(exception_manager.value) ==
+                    "Cannot slice image objects; consider using "
+                    "`img.slicer[slice]` to generate a sliced image (see "
+                    "documentation for caveats) or slicing image array data "
+                    "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
 
             if not spatial_axes_first(img):
                 with pytest.raises(ValueError):
