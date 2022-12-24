@@ -20,6 +20,7 @@ from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
                             ornt2axcodes, axcodes2ornt, aff2axcodes)
 
 from ..affines import from_matvec, to_matvec
+from ..testing import expires
 
 
 IN_ARRS = [np.eye(4),
@@ -353,6 +354,7 @@ def test_inv_ornt_aff():
         inv_ornt_aff([[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
 
 
+@expires('5.0.0')
 def test_flip_axis_deprecation():
     a = np.arange(24).reshape((2, 3, 4))
     axis = 1

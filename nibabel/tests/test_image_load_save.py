@@ -29,6 +29,7 @@ from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
+from ..testing import expires
 
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import pytest
@@ -270,6 +271,7 @@ def test_filename_save():
             shutil.rmtree(pth)
 
 
+@expires('5.0.0')
 def test_guessed_image_type():
     # Test whether we can guess the image type from example files
     with pytest.deprecated_call():

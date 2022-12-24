@@ -26,7 +26,8 @@ from ..testing import (
     bytesio_round_trip,
     clear_and_catch_warnings,
     suppress_warnings,
-    memmap_after_ufunc
+    memmap_after_ufunc,
+    expires,
 )
 
 from ..tmpdirs import InTemporaryDirectory
@@ -358,6 +359,7 @@ class TestSpatialImage(TestCase):
         assert rt_img.get_fdata() is not out_data
         assert (rt_img.get_fdata() == in_data).all()
 
+    @expires("5.0.0")
     def test_get_data(self):
         # Test array image and proxy image interface
         img_klass = self.image_class

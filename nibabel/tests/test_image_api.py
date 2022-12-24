@@ -48,7 +48,7 @@ import pytest
 
 from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
 from nibabel.testing import (bytesio_round_trip, bytesio_filemap, assert_data_similar,
-                             clear_and_catch_warnings, nullcontext)
+                             clear_and_catch_warnings, nullcontext, expires)
 from ..tmpdirs import InTemporaryDirectory
 
 from .test_api_validators import ValidateAPI
@@ -170,8 +170,8 @@ class GenericImageAPI(ValidateAPI):
         with pytest.raises(TypeError):
             img[:]
 
+    @expires("5.0.0")
     def validate_get_data_deprecated(self, imaker, params):
-        # Check deprecated header API
         img = imaker()
         with pytest.deprecated_call():
             data = img.get_data()

@@ -716,7 +716,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
 
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
-        # from np.asanyarray(img.dataobj) and img,get_fdata() are not
+        # from np.asanyarray(img.dataobj) and img.get_fdata() are not
         # affected by subsequent changes to the header.
         IC = self.image_class
         # save an image to a file map
@@ -740,14 +740,6 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert hdr.get_data_dtype() == np.dtype(np.uint8)
         assert_array_equal(img2.get_fdata(), data)
         assert_array_equal(np.asanyarray(img2.dataobj), data)
-        # now check read_img_data function - here we do see the changed
-        # header
-        with pytest.deprecated_call(match="from version: 3.2"):
-            sc_data = read_img_data(img2)
-        assert sc_data.shape == (3, 2, 2)
-        with pytest.deprecated_call(match="from version: 3.2"):
-            us_data = read_img_data(img2, prefer='unscaled')
-        assert us_data.shape == (3, 2, 2)
 
     def test_affine_44(self):
         IC = self.image_class

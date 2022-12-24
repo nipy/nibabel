@@ -14,6 +14,7 @@ from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
 from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 from ..openers import Opener
+from ..testing import expires
 
 from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
@@ -27,6 +28,7 @@ import pytest
 data_path = pjoin(dirname(__file__), 'data')
 
 
+@expires("5.0.0")
 def test_read_img_data():
     fnames_test = [
         'example4d.nii.gz',
@@ -120,6 +122,7 @@ def test_signature_matches_extension(tmp_path):
     assert msg == ""
 
 
+@expires("5.0.0")
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)
