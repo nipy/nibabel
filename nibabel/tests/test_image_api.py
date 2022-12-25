@@ -537,7 +537,7 @@ class SerializeMixin:
                 del img_b
 
     @pytest.fixture(autouse=True)
-    def setup(self, httpserver, tmp_path):
+    def setup_method(self, httpserver, tmp_path):
         """Make pytest fixtures available to validate functions"""
         self.httpserver = httpserver
         self.tmp_path = tmp_path
@@ -767,7 +767,7 @@ class TestMinc1API(ImageHeaderAPI):
 
 class TestMinc2API(TestMinc1API):
 
-    def setup(self):
+    def setup_method(self):
         if not have_h5py:
             raise unittest.SkipTest('Need h5py for these tests')
 
