@@ -209,7 +209,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     Use this mixin if your image has a ``dataobj`` property that contains an
     array or an array-like thing.
     """
-    meth_names = ('get_fdata', 'get_data')
+    meth_names = ('get_fdata',)
 
     def validate_data_interface(self, imaker, params):
         # Check get data returns array, and caches
@@ -304,27 +304,6 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         with maybe_deprecated(meth_name):
             data_again = method()
         assert data is data_again
-        # Check the interaction of caching with get_data, get_fdata.
-        # Caching for `get_data` should have no effect on caching for
-        # get_fdata, and vice versa.
-        # Modify the cached data
-        data[:] = 43
-        # Load using the other data fetch method
-        other_name = set(self.meth_names).difference({meth_name}).pop()
-        other_method = getattr(img, other_name)
-        with maybe_deprecated(other_name):
-            other_data = other_method()
-        # We get the original data, not the modified cache
-        assert_array_equal(proxy_data, other_data)
-        assert not np.all(data == other_data)
-        # We can modify the other cache, without affecting the first
-        other_data[:] = 44
-        with maybe_deprecated(other_name):
-            assert_array_equal(other_method(), 44)
-        with pytest.deprecated_call():
-            assert not np.all(method() == other_method())
-        if meth_name != 'get_fdata':
-            return
         # Check that caching refreshes for new floating point type.
         img.uncache()
         fdata = img.get_fdata()

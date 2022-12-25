@@ -522,13 +522,9 @@ class TestSpatialImage(TestCase):
                         pass
                     else:
                         sliced_data = in_data[sliceobj]
-                        with pytest.deprecated_call():
-                            assert (sliced_data == sliced_img.get_data()).all()
                         assert (sliced_data == sliced_img.get_fdata()).all()
                         assert (sliced_data == sliced_img.dataobj).all()
                         assert (sliced_data == img.dataobj[sliceobj]).all()
-                        with pytest.deprecated_call():
-                            assert (sliced_data == img.get_data()[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
 
 
