@@ -111,11 +111,14 @@ class TestDeprecatorFunc:
                 'foo\n\n* deprecated from version: 1.2\n* Raises '
                 f'{ExpiredDeprecationError} as of version: 1.8\n')
         func = dec('foo', '1.2', '1.8')(func_doc_long)
-        assert (func.__doc__ ==
-                'A docstring\n   \n   foo\n   \n   * deprecated from version: 1.2\n   '
-                f'* Raises {ExpiredDeprecationError} as of version: 1.8\n   \n'
-                f'{indent(TESTSETUP, "   ", lambda x: True)}'
-                f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}')
+        assert func.__doc__ == f"""\
+A docstring
+
+foo
+
+* deprecated from version: 1.2
+* Raises {ExpiredDeprecationError} as of version: 1.8
+"""
         with pytest.raises(ExpiredDeprecationError):
             func()
 

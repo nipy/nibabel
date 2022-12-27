@@ -26,7 +26,8 @@ from ..testing import (
     bytesio_round_trip,
     clear_and_catch_warnings,
     suppress_warnings,
-    memmap_after_ufunc
+    memmap_after_ufunc,
+    expires,
 )
 
 from ..tmpdirs import InTemporaryDirectory
@@ -358,21 +359,13 @@ class TestSpatialImage(TestCase):
         assert rt_img.get_fdata() is not out_data
         assert (rt_img.get_fdata() == in_data).all()
 
+    @expires("5.0.0")
     def test_get_data(self):
         # Test array image and proxy image interface
         img_klass = self.image_class
         in_data_template = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         in_data = in_data_template.copy()
         img = img_klass(in_data, None)
-        # Can't slice into the image object:
-        with pytest.raises(TypeError) as exception_manager:
-            img[0, 0, 0]
-        # Make sure the right message gets raised:
-        assert (str(exception_manager.value) ==
-                "Cannot slice image objects; consider using "
-                "`img.slicer[slice]` to generate a sliced image (see "
-                "documentation for caveats) or slicing image array data "
-                "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
         assert in_data is img.dataobj
         with pytest.deprecated_call():
             out_data = img.get_data()
@@ -410,6 +403,16 @@ class TestSpatialImage(TestCase):
                        (8, 5, 6)):      # Volume
             in_data = in_data_template.copy().reshape(dshape)
             img = img_klass(in_data, base_affine.copy())
+
+            # Can't slice into the image object:
+            with pytest.raises(TypeError) as exception_manager:
+                img[0, 0, 0]
+            # Make sure the right message gets raised:
+            assert (str(exception_manager.value) ==
+                    "Cannot slice image objects; consider using "
+                    "`img.slicer[slice]` to generate a sliced image (see "
+                    "documentation for caveats) or slicing image array data "
+                    "with `img.dataobj[slice]` or `img.get_fdata()[slice]`")
 
             if not spatial_axes_first(img):
                 with pytest.raises(ValueError):
@@ -519,13 +522,9 @@ class TestSpatialImage(TestCase):
                         pass
                     else:
                         sliced_data = in_data[sliceobj]
-                        with pytest.deprecated_call():
-                            assert (sliced_data == sliced_img.get_data()).all()
                         assert (sliced_data == sliced_img.get_fdata()).all()
                         assert (sliced_data == sliced_img.dataobj).all()
                         assert (sliced_data == img.dataobj[sliceobj]).all()
-                        with pytest.deprecated_call():
-                            assert (sliced_data == img.get_data()[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
 
 

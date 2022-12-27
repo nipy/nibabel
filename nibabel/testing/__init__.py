@@ -16,6 +16,7 @@ from pkg_resources import resource_filename
 
 import unittest
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -223,3 +224,15 @@ class BaseTestCase(unittest.TestCase):
         if self.__class__.__name__.startswith('_'):
             raise unittest.SkipTest("Base test case - subclass to run")
         super().setUp()
+
+
+def expires(version):
+    "Decorator to mark a test as xfail with ExpiredDeprecationError after version"
+    from packaging.version import Version
+    from nibabel import __version__ as nbver
+    from nibabel.deprecator import ExpiredDeprecationError
+
+    if Version(nbver) < Version(version):
+        return lambda x: x
+
+    return pytest.mark.xfail(raises=ExpiredDeprecationError)

@@ -182,8 +182,18 @@ class Deprecator:
                 warnings.warn(message, warn_class, stacklevel=2)
                 return func(*args, **kwargs)
 
-            deprecated_func.__doc__ = _add_dep_doc(deprecated_func.__doc__,
-                                                   message, TESTSETUP, TESTCLEANUP)
+            keep_doc = deprecated_func.__doc__
+            setup = TESTSETUP
+            cleanup = TESTCLEANUP
+            # After expiration, remove all but the first paragraph.
+            # The details are no longer relevant, but any code will likely
+            # raise exceptions we don't need.
+            if keep_doc and until and self.is_bad_version(until):
+                lines = '\n'.join(line.rstrip() for line in keep_doc.splitlines())
+                keep_doc = lines.split('\n\n', 1)[0]
+                setup = ''
+                cleanup = ''
+            deprecated_func.__doc__ = _add_dep_doc(keep_doc, message, setup, cleanup)
             return deprecated_func
 
         return deprecator
