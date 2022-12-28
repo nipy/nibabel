@@ -23,7 +23,10 @@ import os
 from pathlib import Path
 from runpy import run_path
 
-import toml
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 # Check for external Sphinx extensions we depend on
 try:
@@ -52,7 +55,8 @@ with open('_long_description.inc', 'wt') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
-pyproject_dict = toml.load(Path("../../pyproject.toml"))
+with open(Path("../../pyproject.toml"), 'rb') as f:
+    pyproject_dict = tomllib.load(f)
 metadata = pyproject_dict["project"]
 
 # Add any Sphinx extension module names here, as strings. They can be
