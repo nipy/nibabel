@@ -90,8 +90,10 @@ class Minc1File:
     def get_data_shape(self):
         return self._image.data.shape
 
-    def get_zooms(self):
+    def get_zooms(self, units='norm', raise_unknown=False):
         """ Get real-world sizes of voxels """
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         # zooms must be positive; but steps in MINC can be negative
         return tuple([abs(float(dim.step)) if hasattr(dim, 'step') else 1.0
                       for dim in self._dims])

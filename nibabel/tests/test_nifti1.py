@@ -718,6 +718,30 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr['slice_code'] = 4  # alternating decreasing
         assert hdr.get_value_label('slice_code') == 'alternating decreasing'
 
+    def test_general_init(self):
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1PairHeader, self).test_general_init()
+
+    def test_from_header(self):
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1PairHeader, self).test_from_header()
+
+    def test_data_shape_zooms_affine(self):
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1PairHeader, self).test_data_shape_zooms_affine()
+
 
 def unshear_44(affine):
     RZS = affine[:3, :3]
@@ -881,11 +905,11 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         img.set_qform(new_affine, 1, update_affine=False)
         assert_array_almost_equal(img.affine, aff_affine)
         # Clear qform using None, zooms unchanged
-        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [1.1, 1.1, 1.1])
         img.set_qform(None)
         qaff, code = img.get_qform(coded=True)
         assert (qaff, code) == (None, 0)
-        assert_array_almost_equal(hdr.get_zooms(), [1.1, 1.1, 1.1])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [1.1, 1.1, 1.1])
         # Best affine similarly
         assert_array_almost_equal(img.affine, hdr.get_best_affine())
         # If sform is not set, qform should update affine
@@ -942,9 +966,9 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_almost_equal(img.affine, aff_affine)
         # zooms do not get updated when qform is 0
         assert_array_almost_equal(img.get_qform(), orig_aff)
-        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [2.2, 3.3, 4.3])
         img.set_qform(None)
-        assert_array_almost_equal(hdr.get_zooms(), [2.2, 3.3, 4.3])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [2.2, 3.3, 4.3])
         # Set sform using new_affine when qform is set
         img.set_qform(qform_affine, 1)
         img.set_sform(new_affine, 1)
@@ -953,7 +977,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_almost_equal(saff, new_affine)
         assert_array_almost_equal(img.affine, new_affine)
         # zooms follow qform
-        assert_array_almost_equal(hdr.get_zooms(), [1.2, 1.2, 1.2])
+        assert_array_almost_equal(hdr.get_zooms(units='raw'), [1.2, 1.2, 1.2])
         # Clear sform using None, best_affine should fall back on qform
         img.set_sform(None)
         assert hdr['sform_code'] == 0
@@ -1042,7 +1066,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         # Check qform, sform, pixdims are the same
         assert_array_equal(img_hdr.get_qform(), qaff)
         assert_array_equal(img_hdr.get_sform(), saff)
-        assert_array_equal(img_hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(img_hdr.get_zooms(units='raw'), [2, 3, 4])
         # Save to stringio
         re_simg = bytesio_round_trip(simg)
         assert_array_equal(re_simg.get_fdata(), arr)
@@ -1050,7 +1074,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         rimg_hdr = re_simg.header
         assert_array_equal(rimg_hdr.get_qform(), qaff)
         assert_array_equal(rimg_hdr.get_sform(), saff)
-        assert_array_equal(rimg_hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(rimg_hdr.get_zooms(units='raw'), [2, 3, 4])
 
     def test_affines_init(self):
         # Test we are doing vaguely spec-related qform things.  The 'spec' here
@@ -1064,20 +1088,20 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr = img.header
         assert hdr['qform_code'] == 0
         assert hdr['sform_code'] == 2
-        assert_array_equal(hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(hdr.get_zooms(units='raw'), [2, 3, 4])
         # This is also true for affines with header passed
         qaff = np.diag([3, 4, 5, 1])
         saff = np.diag([6, 7, 8, 1])
         hdr.set_qform(qaff, code='scanner')
         hdr.set_sform(saff, code='talairach')
-        assert_array_equal(hdr.get_zooms(), [3, 4, 5])
+        assert_array_equal(hdr.get_zooms(units='raw'), [3, 4, 5])
         img = IC(arr, aff, hdr)
         new_hdr = img.header
         # Again affine is sort of anonymous space
         assert new_hdr['qform_code'] == 0
         assert new_hdr['sform_code'] == 2
         assert_array_equal(new_hdr.get_sform(), aff)
-        assert_array_equal(new_hdr.get_zooms(), [2, 3, 4])
+        assert_array_equal(new_hdr.get_zooms(units='raw'), [2, 3, 4])
         # But if no affine passed, codes and matrices stay the same
         img = IC(arr, None, hdr)
         new_hdr = img.header
@@ -1086,7 +1110,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert new_hdr['sform_code'] == 3  # Still talairach
         assert_array_equal(new_hdr.get_sform(), saff)
         # Pixdims as in the original header
-        assert_array_equal(new_hdr.get_zooms(), [3, 4, 5])
+        assert_array_equal(new_hdr.get_zooms(units='raw'), [3, 4, 5])
 
     def test_read_no_extensions(self):
         IC = self.image_class
@@ -1175,6 +1199,123 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                 assert img.get_data_dtype() == effective_dt
                 img_rt = bytesio_round_trip(img)
                 assert img_rt.get_data_dtype() == effective_dt
+
+    def test_zooms_edge_cases(self):
+        img_klass = self.image_class
+        arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+
+        # Unknown units = 2 warnings
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.simplefilter('always')
+            assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                      (1, 1, 1, 1))
+            assert_equal(len(warns), 2)
+        assert_raises(ValueError, img.header.get_zooms,
+                      units='norm', raise_unknown=True)
+
+        img.header.set_xyzt_units(xyz='meter')
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.simplefilter('always')
+            assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                      (1000, 1000, 1000, 1))
+            assert_equal(len(warns), 1)
+        assert_raises(ValueError, img.header.get_zooms,
+                      units='norm', raise_unknown=True)
+
+        img.header.set_xyzt_units(xyz='mm', t='sec')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (1, 1, 1, 1))
+        img.header.set_xyzt_units(xyz='micron', t='sec')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (0.001, 0.001, 0.001, 1))
+
+        img.header.set_xyzt_units(t='sec')
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.simplefilter('always')
+            assert_array_equal(img.header.get_zooms(units='norm'),
+                               (1, 1, 1, 1))
+            assert_equal(len(warns), 1)
+        assert_raises(ValueError, img.header.get_zooms,
+                      units='norm', raise_unknown=True)
+
+        img.header.set_xyzt_units(xyz='mm', t='msec')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (1, 1, 1, 0.001))
+
+        img.header.set_xyzt_units(xyz='mm', t='usec')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (1, 1, 1, 0.000001))
+
+        img.header.set_xyzt_units(xyz='meter', t='usec')
+        assert_equal(img.header.get_xyzt_units(), ('meter', 'usec'))
+
+        # Verify `set_zooms(units='raw')` leaves units unchanged
+        img.header.set_zooms((2, 2, 2, 2.5), units='raw')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (2000, 2000, 2000, 0.0000025))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 2.5))
+        assert_equal(img.header.get_xyzt_units(), ('meter', 'usec'))
+
+        # Verify `set_zooms(units=<tuple>)` sets units explicitly
+        img.header.set_zooms((2, 2, 2, 2.5), units=('micron', 'msec'))
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (0.002, 0.002, 0.002, 0.0025))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 2.5))
+        assert_equal(img.header.get_xyzt_units(), ('micron', 'msec'))
+
+        # Verify `set_zooms(units='norm')` resets units
+        img.header.set_zooms((2, 2, 2, 2.5), units='norm')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (2, 2, 2, 2.5))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 2.5))
+        assert_equal(img.header.get_xyzt_units(), ('mm', 'sec'))
+
+        # Non-temporal t units are not transformed
+        img.header.set_zooms((1, 1, 1, 1.5), units=('mm', 'ppm'))
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.simplefilter('always')
+            assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                      (1, 1, 1, 1.5))
+            assert_equal(len(warns), 1)
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (1, 1, 1, 1.5))
+
+        # Non-temporal t units are not normalized
+        img.header.set_zooms((2, 2, 2, 3.5), units='norm')
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.simplefilter('always')
+            assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                      (2, 2, 2, 3.5))
+            assert_equal(len(warns), 1)
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 3.5))
+        assert_equal(img.header.get_xyzt_units(), ('mm', 'ppm'))
+
+        # Unknown t units are normalized to seconds
+        img.header.set_xyzt_units(xyz='mm', t='unknown')
+        img.header.set_zooms((2, 2, 2, 3.5), units='norm')
+        assert_array_almost_equal(img.header.get_zooms(units='norm'),
+                                  (2, 2, 2, 3.5))
+        assert_array_almost_equal(img.header.get_zooms(units='raw'),
+                                  (2, 2, 2, 3.5))
+        assert_equal(img.header.get_xyzt_units(), ('mm', 'sec'))
+
+        assert_raises(ValueError, img.header.get_zooms, units='badparam')
+        assert_raises(ValueError, img.header.set_zooms, (3, 3, 3, 3.5),
+                      units='badparam')
+
+    def test_no_finite_values(self):
+        with clear_and_catch_warnings(modules=(nifti1,)) as warns:
+            warnings.filterwarnings('ignore', 'get_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'set_zooms', FutureWarning)
+            warnings.filterwarnings('ignore', 'Unknown (spatial|time) units',
+                                    UserWarning)
+            super(TestNifti1Pair, self).test_no_finite_values()
 
 
 class TestNifti1Image(TestNifti1Pair):

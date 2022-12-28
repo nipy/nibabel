@@ -215,7 +215,7 @@ class TestSpatialImage(TestCase):
         # Pass it back in
         img = img_klass(arr, aff, ihdr)
         # Check modifying header outside does not modify image
-        ihdr.set_zooms((4, 5, 6))
+        ihdr.set_zooms((4, 5, 6), units='norm')
         assert img.header != ihdr
 
     def test_float_affine(self):
@@ -526,6 +526,34 @@ class TestSpatialImage(TestCase):
                         assert (sliced_data == sliced_img.dataobj).all()
                         assert (sliced_data == img.dataobj[sliceobj]).all()
                         assert (sliced_data == img.get_fdata()[sliceobj]).all()
+
+    def test_zooms(self):
+        ''' Should be true for all images '''
+        img_klass = self.image_class
+        arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+        img.header.set_zooms((2, 2, 2, 2.5), units='norm')
+        assert_array_equal(img.header.get_zooms(units='norm'), (2, 2, 2, 2.5))
+        with assert_raises(ValueError):
+            img.header.set_zooms((1, 1, 1, 1), units='badarg')
+        with assert_raises(ValueError):
+            img.header.get_zooms(units='badarg')
+        with assert_raises(HeaderDataError):
+            img.header.set_zooms((-1, 1, 1, 1), units='norm')
+
+    def test_zooms_edge_cases(self):
+        ''' Override for classes where *_norm_zooms != *_zooms '''
+        img_klass = self.image_class
+        arr = np.arange(120, dtype=np.int16).reshape((2, 3, 4, 5))
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+        img.header.set_zooms((2, 2, 2, 2.5), units='raw')
+        assert_array_equal(img.header.get_zooms(units='raw'), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='norm'), (2, 2, 2, 2.5))
+        img.header.set_zooms((2, 2, 2, 2.5), units='norm')
+        assert_array_equal(img.header.get_zooms(units='raw'), (2, 2, 2, 2.5))
+        assert_array_equal(img.header.get_zooms(units='norm'), (2, 2, 2, 2.5))
 
 
 class MmapImageMixin:

@@ -237,40 +237,75 @@ class MGHHeader(LabeledWrapStruct):
         """
         return 3 + (self._structarr['dims'][3] > 1)
 
-    def get_zooms(self):
+    def get_zooms(self, units='norm', raise_unknown=False):
         """ Get zooms from header
 
         Returns the spacing of voxels in the x, y, and z dimensions.
         For four-dimensional files, a fourth zoom is included, equal to the
-        repetition time (TR) in ms (see `The MGH/MGZ Volume Format
-        <mghformat>`_).
+        repetition time (TR).
+        TR is stored in milliseconds (see `The MGH/MGZ Volume Format
+        <mghformat>`_),
+        so if ``units == 'raw'``, the fourth zoom will be in ms.
+        If ``units == 'norm'`` (default), the fourth zoom will be in
+        seconds.
 
         To access only the spatial zooms, use `hdr['delta']`.
 
+        Parameters
+        ----------
+        units : {'norm', 'raw'}, optional
+            Return zooms in normalized units of mm/sec for spatial/temporal or
+            as raw values stored in header.
+        raise_unkown : bool, optional
+            If normalized units are requested and the units are ambiguous, raise
+            a ``ValueError``
+
         Returns
         -------
-        z : tuple
-           tuple of header zoom values
+        zooms : tuple
+            tuple of header zoom values
 
         .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         """
+        if units == 'norm':
+            tfactor = 0.001
+        elif units == 'raw':
+            tfactor = 1
+        else:
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
+
         # Do not return time zoom (TR) if 3D image
-        tzoom = (self['tr'],) if self._ndims() > 3 else ()
+        tzoom = (self['tr'] * tfactor,) if self._ndims() > 3 else ()
         return tuple(self._structarr['delta']) + tzoom
 
-    def set_zooms(self, zooms):
+    def set_zooms(self, zooms, units='norm'):
         """ Set zooms into header fields
 
         Sets the spacing of voxels in the x, y, and z dimensions.
-        For four-dimensional files, a temporal zoom (repetition time, or TR, in
-        ms) may be provided as a fourth sequence element.
+        For four-dimensional files, a temporal zoom (repetition time, or TR)
+        may be provided as a fourth sequence element.
+
+        TR is stored in milliseconds (see `The MGH/MGZ Volume Format
+        <mghformat>`_),
+        so if ``units == 'raw'``, the fourth zoom will be interpreted as ms
+        and stored unmodified.
+        If ``units == 'norm'`` (default), the fourth zoom will be interpreted
+        as seconds, and converted to ms before storing in the header.
 
         Parameters
         ----------
         zooms : sequence
             sequence of floats specifying spatial and (optionally) temporal
             zooms
+        units : {'norm', 'raw'}, optional
+            Zooms are specified in normalized units of mm/sec for
+            spatial/temporal dimensions or as raw values to be stored in
+            header.
+
+        .. _mghformat: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat#line-82
         """
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         hdr = self._structarr
         zooms = np.asarray(zooms)
         ndims = self._ndims()
@@ -283,7 +318,13 @@ class MGHHeader(LabeledWrapStruct):
         if len(zooms) == 4:
             if zooms[3] < 0:
                 raise HeaderDataError(f'TR must be non-negative; got {zooms[3]}')
-            hdr['tr'] = zooms[3]
+            if units == 'norm':
+                tfactor = 1000
+            elif units == 'raw':
+                tfactor = 1
+            else:
+                raise ValueError("`units` parameter must be 'norm' or 'raw'")
+            hdr['tr'] = zooms[3] * tfactor
 
     def get_data_shape(self):
         """ Get shape of data

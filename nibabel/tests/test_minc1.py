@@ -117,6 +117,10 @@ class _TestMincFile:
             assert mnc.get_data_dtype().type == tp['dtype']
             assert mnc.get_data_shape() == tp['shape']
             assert mnc.get_zooms() == tp['zooms']
+            assert mnc.get_zooms(units='raw') == tp['zooms']
+            assert mnc.get_zooms(units='norm') == tp['zooms']
+            with pytest.raises(ValueError):
+                mnc.get_zooms(units='badarg')
             assert_array_equal(mnc.get_affine(), tp['affine'])
             data = mnc.get_scaled_data()
             assert data.shape == tp['shape']

@@ -224,17 +224,48 @@ class SpatialHeader(FileBasedHeader):
         nzs = min(len(self._zooms), ndim)
         self._zooms = self._zooms[:nzs] + (1.0,) * (ndim - nzs)
 
-    def get_zooms(self):
+    def get_zooms(self, units='norm', raise_unknown=False):
+        ''' Get zooms (spacing between voxels along each axis) from header
+
+        Parameters
+        ----------
+        units : {'norm', 'raw'}, optional
+            Return zooms in normalized units of mm/sec for spatial/temporal or
+            as raw values stored in header.
+        raise_unknown : bool, optional
+            If canonical units are requested and the units are ambiguous, raise
+            a ``ValueError``
+
+        Returns
+        -------
+        zooms : tuple
+            Spacing between voxels along each axis
+        '''
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
         return self._zooms
 
-    def set_zooms(self, zooms):
-        zooms = tuple([float(z) for z in zooms])
+    def set_zooms(self, zooms, units='norm'):
+        ''' Set zooms (spacing between voxels along each axis) in header
+
+        Parameters
+        ----------
+        zooms : sequence of floats
+            Spacing between voxels along each axis
+        units : {'norm', 'raw'}, optional
+            Zooms are specified in normalized units of mm/sec for
+            spatial/temporal or as raw values to be interpreted according to
+            format specification.
+        '''
+        if units not in ('norm', 'raw'):
+            raise ValueError("`units` parameter must be 'norm' or 'raw'")
+        zooms = tuple(float(z) for z in zooms)
         shape = self.get_data_shape()
         ndim = len(shape)
         if len(zooms) != ndim:
             raise HeaderDataError('Expecting %d zoom values for ndim %d'
                                   % (ndim, ndim))
-        if len([z for z in zooms if z < 0]):
+        if any(z < 0 for z in zooms):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 
