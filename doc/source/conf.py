@@ -20,8 +20,10 @@
 # serve to show the default.
 
 import os
-from configparser import ConfigParser
+from pathlib import Path
 from runpy import run_path
+
+import toml
 
 # Check for external Sphinx extensions we depend on
 try:
@@ -50,9 +52,8 @@ with open('_long_description.inc', 'wt') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
-config = ConfigParser()
-config.read(os.path.join('..', '..', 'setup.cfg'))
-metadata = config['metadata']
+pyproject_dict = toml.load(Path("../../pyproject.toml"))
+metadata = pyproject_dict["project"]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -86,7 +87,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = f"2006-2022, {metadata['maintainer']} <{metadata['author_email']}>"
+author_name = metadata["authors"][0]["name"]
+author_email = metadata["authors"][0]["email"]
+copyright = f"2006-2022, {author_name} <{author_email}>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
