@@ -5,14 +5,10 @@ build-backend = "setuptools.build_meta:__legacy__"
 [project]
 name = "nibabel"
 description = "Access a multitude of neuroimaging data formats"
-authors = [
-  { name = "nibabel developers", email = "neuroimaging@python.org" },
-]
-maintainers = [
-  { name = "Christopher Markiewicz" },
-]
+authors = [{ name = "NiBabel developers", email = "neuroimaging@python.org" }]
+maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
-license = { text="MIT License" }
+license = { text = "MIT License" }
 requires-python = ">=3.7"
 dependencies = ["numpy >=1.17", "packaging >=17", "setuptools"]
 classifiers = [
