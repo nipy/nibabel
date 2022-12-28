@@ -19,10 +19,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
+from pathlib import Path
 from runpy import run_path
-from configparser import ConfigParser
+
+import toml
 
 # Check for external Sphinx extensions we depend on
 try:
@@ -41,11 +42,6 @@ except ImportError:
     raise RuntimeError('Need nibabel on Python PATH; consider "make htmldoc" '
                        'from nibabel root directory')
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.append(os.path.abspath('../sphinxext'))
-
 # -- General configuration ----------------------------------------------------
 
 # We load the nibabel release info into a dict by explicit execution
@@ -56,9 +52,8 @@ with open('_long_description.inc', 'wt') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
-config = ConfigParser()
-config.read(os.path.join('..', '..', 'setup.cfg'))
-metadata = config['metadata']
+pyproject_dict = toml.load(Path("../../pyproject.toml"))
+metadata = pyproject_dict["project"]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -92,7 +87,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-copyright = f"2006-2022, {metadata['maintainer']} <{metadata['author_email']}>"
+author_name = metadata["authors"][0]["name"]
+author_email = metadata["authors"][0]["email"]
+copyright = f"2006-2022, {author_name} <{author_email}>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
