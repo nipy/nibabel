@@ -221,6 +221,7 @@ Improving access to varying meta data through the Nifti
 
 Currently, when accessing varying meta data through the `get_meta` method 
 you can only get one value at a time::
+
     >>> echo_times = [nii.get_meta('EchoTime', (0, 0, 0, idx)) 
                       for idx in xrange(data.shape[-1])]
 

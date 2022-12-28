@@ -325,11 +325,13 @@ def conform(from_img,
     Using the default arguments, this function is meant to replicate most parts
     of FreeSurfer's ``mri_convert --conform`` command. Specifically, this
     function:
+    
         - Resamples data to ``output_shape``
         - Resamples voxel sizes to ``voxel_size``
         - Reorients to RAS (``mri_convert --conform`` reorients to LIA)
 
     Unlike ``mri_convert --conform``, this command does not:
+    
         - Transform data to range [0, 255]
         - Cast to unsigned eight-bit integer
 
