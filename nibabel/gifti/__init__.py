@@ -13,7 +13,6 @@
 .. autosummary::
    :toctree: ../generated
 
-   giftiio
    gifti
 """
 

@@ -199,8 +199,10 @@ The base level header will usually also have image metadata fields giving
 information about the whole image. A field is an "image metadata field" if it
 is defined at the top level of the header.  For example::
 
->>> hdr = dict(nipy_header_version='1.0',
-...            Manufacturer="SIEMENS")
+.. code-block:: python
+
+  hdr = dict(nipy_header_version='1.0',
+             Manufacturer="SIEMENS")
 
 All image metadata fields are optional.
 
@@ -635,7 +637,7 @@ Use case
 ^^^^^^^^
 
 When doing motion correction on a 4D image, we calculate the required affine
-transformation from |--| say |--| the second image to the first image; the
+transformation from, say, the second image to the first image; the
 third image to the first image; etc. If there are N volumes in the 4D image,
 we would need to store N-1 affine transformations.  If we have registered to
 the mean volume of the volume series instead of one of the volumes in the
