@@ -199,10 +199,8 @@ The base level header will usually also have image metadata fields giving
 information about the whole image. A field is an "image metadata field" if it
 is defined at the top level of the header.  For example::
 
-.. code-block:: python
-
-  hdr = dict(nipy_header_version='1.0',
-             Manufacturer="SIEMENS")
+      >>> hdr = dict(nipy_header_version='1.0',
+      ...            Manufacturer="SIEMENS")
 
 All image metadata fields are optional.
 
