@@ -19,10 +19,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-from runpy import run_path
 from configparser import ConfigParser
+from runpy import run_path
 
 # Check for external Sphinx extensions we depend on
 try:
@@ -40,11 +39,6 @@ try:
 except ImportError:
     raise RuntimeError('Need nibabel on Python PATH; consider "make htmldoc" '
                        'from nibabel root directory')
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.append(os.path.abspath('../sphinxext'))
 
 # -- General configuration ----------------------------------------------------
 
