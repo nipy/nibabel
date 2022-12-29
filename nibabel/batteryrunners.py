@@ -20,6 +20,7 @@ different object, if ``fix==True``.
 
 To run checks only, and return problem report objects:
 
+>>> from nibabel.batteryrunners import BatteryRunner
 >>> def chk(obj, fix=False): # minimal check
 ...     return obj, Report()
 >>> btrun = BatteryRunner((chk,))

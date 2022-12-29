@@ -91,6 +91,7 @@ corresponding to the file types that an image needs for storage.  For
 example, the Analyze data format needs an ``image`` and a ``header``
 file type for storage:
 
+   >>> import numpy as np
    >>> import nibabel as nib
    >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
    >>> img = nib.AnalyzeImage(data, np.eye(4))
