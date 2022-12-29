@@ -25,8 +25,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 # Version from versioneer
-# optional-dependencies from setup.cfg (using ConfigParser features)
-dynamic = ["version", "optional-dependencies"]
+dynamic = ["version"]
 
 [project.urls]
 "Homepage" = "https://nipy.org/nibabel"
@@ -44,6 +43,31 @@ nib-tck2trk = "nibabel.cmdline.tck2trk:main"
 nib-trk2tck = "nibabel.cmdline.trk2tck:main"
 nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
+
+[project.optional-dependencies]
+dicom = ["pydicom >=1.0.0"]
+dicomfs = ["nibabel[dicom]", "pillow"]
+dev = ["gitpython", "twine"]
+doc = [
+    "matplotlib >= 1.5.3",
+    "numpydoc",
+    "sphinx ~= 5.3",
+    "texext",
+    "tomli; python_version < \"3.11\"",
+]
+minc2 = ["h5py"]
+spm = ["scipy"]
+style = ["flake8"]
+test = [
+    "coverage",
+    "pytest !=5.3.4",
+    "pytest-cov",
+    "pytest-doctestplus",
+    "pytest-httpserver",
+    "pytest-xdist",
+]
+zstd = ["pyzstd >= 0.14.3"]
+all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
 
 [tool.setuptools]
 platforms = ["OS Independent"]
