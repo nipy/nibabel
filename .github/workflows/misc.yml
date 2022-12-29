@@ -53,7 +53,9 @@ jobs:
           source tools/ci/build_archive.sh
           echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
       - name: Install dependencies
-        run: tools/ci/install_dependencies.sh
+        run: |
+          tools/ci/install_dependencies.sh
+          pip install pytest
       - name: Install NiBabel
         run: tools/ci/install.sh
       - name: Run tests
