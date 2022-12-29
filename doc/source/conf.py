@@ -73,9 +73,10 @@ extensions = ['sphinx.ext.autodoc',
               'matplotlib.sphinxext.plot_directive',
               ]
 
-# the following doesn't work with sphinx < 1.0, but will make a separate
-# sphinx-autogen run obsolete in the future
-#autosummary_generate = True
+# Autosummary always wants to use a `generated/` directory.
+# We generate with `make api-stamp`
+# This could change in the future
+autosummary_generate = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
