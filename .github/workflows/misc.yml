@@ -24,7 +24,7 @@ jobs:
       matrix:
         python-version: ["3.10"]
         install: ['pip']
-        check: ['style', 'doc']
+        check: ['style', 'doctest']
         pip-flags: ['']
         depends: ['REQUIREMENTS']
     env:

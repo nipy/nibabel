@@ -16,9 +16,8 @@ export NIBABEL_DATA_DIR="$PWD/nibabel-data"
 if [ "${CHECK_TYPE}" == "style" ]; then
     # Run styles only on core nibabel code.
     flake8 nibabel
-elif [ "${CHECK_TYPE}" == "doc" ]; then
-    cd doc
-    make html && make doctest
+elif [ "${CHECK_TYPE}" == "doctest" ]; then
+    make -C doc html && make -C doc doctest
 elif [ "${CHECK_TYPE}" == "test" ]; then
     # Change into an innocuous directory and find tests from installation
     mkdir for_testing

@@ -67,6 +67,7 @@ test = [
     "pytest-xdist",
 ]
 zstd = ["pyzstd >= 0.14.3"]
+doctest = ["nibabel[doc,test]"]
 all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
 
 [tool.setuptools]
