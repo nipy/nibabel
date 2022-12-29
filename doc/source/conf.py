@@ -55,9 +55,9 @@ with open('_long_description.inc', 'wt') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
-with open(Path("../../pyproject.toml"), 'rb') as f:
-    pyproject_dict = tomllib.load(f)
-metadata = pyproject_dict["project"]
+with open(Path("../../pyproject.toml"), 'rb') as fobj:
+    pyproject = tomllib.load(fobj)
+authors = pyproject["project"]["authors"][0]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -91,9 +91,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-author_name = metadata["authors"][0]["name"]
-author_email = metadata["authors"][0]["email"]
-copyright = f"2006-2022, {author_name} <{author_email}>"
+copyright = f"2006-2022, {authors['name']} <{authors['email']}>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
