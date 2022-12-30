@@ -104,7 +104,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
         if slicer == Ellipsis:
             remaining = sliceobj[i + 1 :]
             if Ellipsis in remaining:
-                raise ValueError('More than one Ellipsis in slicing ' 'expression')
+                raise ValueError('More than one Ellipsis in slicing expression')
             real_remaining = [r for r in remaining if r is not None]
             n_ellided = n_dim - n_real - len(real_remaining)
             can_slicers.extend((slice(None),) * n_ellided)

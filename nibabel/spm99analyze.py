@@ -88,7 +88,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         self._structarr['scl_slope'] = slope
         if inter in (None, 0) or np.isnan(inter):
             return
-        raise HeaderTypeError('Cannot set non-zero intercept ' 'for SPM headers')
+        raise HeaderTypeError('Cannot set non-zero intercept for SPM headers')
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
@@ -282,7 +282,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         if 'mat' in mats:  # this overrides a 'M', and includes any flip
             mat = mats['mat']
             if mat.ndim > 2:
-                warnings.warn('More than one affine in "mat" matrix, ' 'using first')
+                warnings.warn('More than one affine in "mat" matrix, using first')
                 mat = mat[:, :, 0]
             ret._affine = mat
         elif 'M' in mats:  # the 'M' matrix does not include flips

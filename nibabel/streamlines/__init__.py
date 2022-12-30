@@ -11,7 +11,10 @@ from .tractogram_file import ExtensionWarning
 from .trk import TrkFile
 
 # List of all supported formats
-FORMATS = {'.trk': TrkFile, '.tck': TckFile}
+FORMATS = {
+    '.trk': TrkFile,
+    '.tck': TckFile,
+}
 
 
 def is_supported(fileobj):

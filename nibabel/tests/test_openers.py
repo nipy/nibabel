@@ -328,9 +328,7 @@ def test_iter():
 blue ridged mountains
 of
 virginia
-""".split(
-        '\n'
-    )
+""".splitlines()
     with InTemporaryDirectory():
         sobj = BytesIO()
         files_to_test = [

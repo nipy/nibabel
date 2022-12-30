@@ -99,8 +99,8 @@ def read(csa_str):
     csa_dict['n_tags'], csa_dict['check'] = up_str.unpack('2I')
     if not 0 < csa_dict['n_tags'] <= MAX_CSA_ITEMS:
         raise CSAReadError(
-            'Number of tags `t` should be '
-            '0 < t <= %d. Instead found %d tags.' % (MAX_CSA_ITEMS, csa_dict['n_tags'])
+            f'Number of tags `t` should be 0 < t <= {MAX_CSA_ITEMS}. '
+            f'Instead found {csa_dict["n_tags"]} tags.'
         )
     for tag_no in range(csa_dict['n_tags']):
         name, vm, vr, syngodt, n_items, last3 = up_str.unpack('64si4s3i')
@@ -138,7 +138,7 @@ def read(csa_str):
             else:  # CSA2
                 item_len = x1
                 if (ptr + item_len) > csa_len:
-                    raise CSAReadError('Item is too long, ' 'aborting read')
+                    raise CSAReadError('Item is too long, aborting read')
             if item_no >= n_values:
                 assert item_len == 0
                 continue

@@ -1023,17 +1023,32 @@ def test_shape_zoom_affine():
     zooms = (3, 2, 1)
     res = shape_zoom_affine(shape, zooms)
     exp = np.array(
-        [[-3.0, 0.0, 0.0, 3.0], [0.0, 2.0, 0.0, -4.0], [0.0, 0.0, 1.0, -3.0], [0.0, 0.0, 0.0, 1.0]]
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
     )
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine((3, 5), (3, 2))
     exp = np.array(
-        [[-3.0, 0.0, 0.0, 3.0], [0.0, 2.0, 0.0, -4.0], [0.0, 0.0, 1.0, -0.0], [0.0, 0.0, 0.0, 1.0]]
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
     )
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine(shape, zooms, False)
     exp = np.array(
-        [[3.0, 0.0, 0.0, -3.0], [0.0, 2.0, 0.0, -4.0], [0.0, 0.0, 1.0, -3.0], [0.0, 0.0, 0.0, 1.0]]
+        [
+            [3.0, 0.0, 0.0, -3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
     )
     assert_array_almost_equal(res, exp)
 
@@ -1139,7 +1154,12 @@ def test__write_data():
 
     # check defense against modifying data in-place
     for in_cast, pre_clips, inter, slope, post_clips, nan_fill in itp(
-        (None, np.float32), (None, (-1, 25)), (0.0, 1.0), (1.0, 0.5), (None, (-2, 49)), (None, 1)
+        (None, np.float32),
+        (None, (-1, 25)),
+        (0.0, 1.0),
+        (1.0, 0.5),
+        (None, (-2, 49)),
+        (None, 1),
     ):
         data = np.arange(24).astype(np.float32)
         assert_rt(
@@ -1185,8 +1205,8 @@ def test_array_from_file_overflow():
     except OSError as err:
         message = str(err)
     assert message == (
-        'Expected 11390625000000000000 bytes, got 0 '
-        'bytes from object\n - could the file be damaged?'
+        'Expected 11390625000000000000 bytes, got 0 bytes from object\n'
+        ' - could the file be damaged?'
     )
 
 

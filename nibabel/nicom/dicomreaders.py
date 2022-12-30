@@ -170,9 +170,9 @@ def _third_pass(wrappers):
         '- slices are probably unsortable'
     )
     if None in inos:
-        raise DicomReadError(msg_fmt % 'some or all slices with ' 'missing InstanceNumber')
+        raise DicomReadError(msg_fmt % 'some or all slices with missing InstanceNumber')
     if len(set(inos)) < len(inos):
-        raise DicomReadError(msg_fmt % 'some or all slices with ' 'the same InstanceNumber')
+        raise DicomReadError(msg_fmt % 'some or all slices with the same InstanceNumber')
     # sort by instance number
     wrappers.sort(key=_instance_sorter)
     # start loop, in which we start a new volume, each time we see a z

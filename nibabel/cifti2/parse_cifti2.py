@@ -335,7 +335,7 @@ class Cifti2Parser(xml.XmlParser):
                 raise Cifti2HeaderError(
                     'Volume element can only be a child of the CIFTI-2 MatrixIndicesMap element'
                 )
-            dimensions = tuple([int(val) for val in attrs['VolumeDimensions'].split(',')])
+            dimensions = tuple(int(val) for val in attrs['VolumeDimensions'].split(','))
             volume = Cifti2Volume(volume_dimensions=dimensions)
             mim.append(volume)
             self.fsm_state.append('Volume')

@@ -67,7 +67,12 @@ def get_outspace_params():
             # x diff, y diff now 3 cos pi / 4 == 2.12, ceil to 3, add 1
             # most negative x now 2 cos pi / 4
             (4, 4, 4),
-            [[1, 0, 0, -2 * np.cos(np.pi / 4)], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+            [
+                [1, 0, 0, -2 * np.cos(np.pi / 4)],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ],
         ),
         # Less than 3 axes
         ((2, 3), np.eye(4), None, (2, 3), np.eye(4)),
@@ -120,7 +125,14 @@ def test_slice2volume():
             assert (slice2volume(val, axis) == exp_aff).all()
 
 
-@pytest.mark.parametrize('index, axis', [[-1, 0], [0, -1], [0, 3]])
+@pytest.mark.parametrize(
+    'index, axis',
+    [
+        [-1, 0],
+        [0, -1],
+        [0, 3],
+    ],
+)
 def test_slice2volume_exception(index, axis):
     with pytest.raises(ValueError):
         slice2volume(index, axis)

@@ -141,16 +141,35 @@ from .volumeutils import Recoder, array_from_file
 
 # PSL to RAS affine
 PSL_TO_RAS = np.array(
-    [[0, 0, -1, 0], [-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]]  # L -> R  # P -> A   # S -> S
+    [
+        [0, 0, -1, 0],  # L -> R
+        [-1, 0, 0, 0],  # P -> A
+        [0, 1, 0, 0],   # S -> S
+        [0, 0, 0, 1],
+    ]
 )
 
 # Acquisition (tra/sag/cor) to PSL axes
 # These come from looking at transverse, sagittal, coronal datasets where we
 # can see the LR, PA, SI orientation of the slice axes from the scanned object
 ACQ_TO_PSL = dict(
-    transverse=np.array([[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]]),  # P  # S  # L
+    transverse=np.array(
+        [
+            [0, 1, 0, 0],  # P
+            [0, 0, 1, 0],  # S
+            [1, 0, 0, 0],  # L
+            [0, 0, 0, 1],
+        ]
+    ),
     sagittal=np.diag([1, -1, -1, 1]),
-    coronal=np.array([[0, 0, 1, 0], [0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]]),  # P  # S  # L
+    coronal=np.array(
+        [
+            [0, 0, 1, 0],  # P
+            [0, -1, 0, 0],  # S
+            [1, 0, 0, 0],  # L
+            [0, 0, 0, 1],
+        ]
+    ),
 )
 
 DEG2RAD = np.pi / 180.0
@@ -212,121 +231,55 @@ _hdr_key_dict = {
 image_def_dtds = {}
 image_def_dtds['V4'] = [
     ('slice number', int),
-    (
-        'echo number',
-        int,
-    ),
-    (
-        'dynamic scan number',
-        int,
-    ),
-    (
-        'cardiac phase number',
-        int,
-    ),
-    (
-        'image_type_mr',
-        int,
-    ),
-    (
-        'scanning sequence',
-        int,
-    ),
-    (
-        'index in REC file',
-        int,
-    ),
-    (
-        'image pixel size',
-        int,
-    ),
-    (
-        'scan percentage',
-        int,
-    ),
-    ('recon resolution', int, (2,)),
+    ('echo number', int),
+    ('dynamic scan number', int),
+    ('cardiac phase number', int),
+    ('image_type_mr', int),
+    ('scanning sequence', int),
+    ('index in REC file', int),
+    ('image pixel size', int),
+    ('scan percentage', int),
+    ('recon resolution', int, (2)),
     ('rescale intercept', float),
     ('rescale slope', float),
     ('scale slope', float),
     # Window center, width recorded as integer but can be float
-    (
-        'window center',
-        float,
-    ),
-    (
-        'window width',
-        float,
-    ),
+    ('window center', float),
+    ('window width', float),
     ('image angulation', float, (3,)),
     ('image offcentre', float, (3,)),
     ('slice thickness', float),
     ('slice gap', float),
-    (
-        'image_display_orientation',
-        int,
-    ),
-    (
-        'slice orientation',
-        int,
-    ),
-    (
-        'fmri_status_indication',
-        int,
-    ),
-    (
-        'image_type_ed_es',
-        int,
-    ),
+    ('image_display_orientation', int),
+    ('slice orientation', int),
+    ('fmri_status_indication', int),
+    ('image_type_ed_es', int),
     ('pixel spacing', float, (2,)),
     ('echo_time', float),
     ('dyn_scan_begin_time', float),
     ('trigger_time', float),
     ('diffusion_b_factor', float),
-    (
-        'number of averages',
-        int,
-    ),
+    ('number of averages', int),
     ('image_flip_angle', float),
-    (
-        'cardiac frequency',
-        int,
-    ),
-    (
-        'minimum RR-interval',
-        int,
-    ),
-    (
-        'maximum RR-interval',
-        int,
-    ),
-    (
-        'TURBO factor',
-        int,
-    ),
+    ('cardiac frequency', int),
+    ('minimum RR-interval', int),
+    ('maximum RR-interval', int),
+    ('TURBO factor', int),
     ('Inversion delay', float),
 ]
 
 # Extra image def fields for 4.1 compared to 4
 image_def_dtds['V4.1'] = image_def_dtds['V4'] + [
-    (
-        'diffusion b value number',
-        int,
-    ),     # (imagekey!)
-    (
-        'gradient orientation number',
-        int,
-    ),  # (imagekey!)
-    ('contrast type', 'S30'),               # XXX might be too short?
-    ('diffusion anisotropy type', 'S30'),   # XXX might be too short?
+    ('diffusion b value number', int),     # (imagekey!)
+    ('gradient orientation number', int),  # (imagekey!)
+    ('contrast type', 'S30'),              # XXX might be too short?
+    ('diffusion anisotropy type', 'S30'),  # XXX might be too short?
     ('diffusion', float, (3,)),
 ]
 
 # Extra image def fields for 4.2 compared to 4.1
 image_def_dtds['V4.2'] = image_def_dtds['V4.1'] + [
-    (
-        'label type',
-        int,
-    ),                  # (imagekey!)
+    ('label type', int),                   # (imagekey!)
 ]
 
 #: PAR header versions we claim to understand
@@ -337,7 +290,12 @@ image_def_dtype = np.dtype(image_def_dtds['V4.2'])
 
 #: slice orientation codes
 slice_orientation_codes = Recoder(
-    ((1, 'transverse'), (2, 'sagittal'), (3, 'coronal')), fields=('code', 'label')  # code, label
+    (  # code, label
+        (1, 'transverse'),
+        (2, 'sagittal'),
+        (3, 'coronal'),
+    ),
+    fields=('code', 'label'),
 )
 
 
@@ -804,7 +762,7 @@ class PARRECHeader(SpatialHeader):
             raise PARRECError('Cannot create PARRECHeader from air.')
         if type(header) == klass:
             return header.copy()
-        raise PARRECError('Cannot create PARREC header from ' 'non-PARREC header.')
+        raise PARRECError('Cannot create PARREC header from non-PARREC header.')
 
     @classmethod
     def from_fileobj(klass, fileobj, permit_truncated=False, strict_sort=False):
@@ -830,9 +788,7 @@ class PARRECHeader(SpatialHeader):
             f"{self.general_info['patient_name']};"
             f"{self.general_info['exam_date'].replace(' ', '')};"
             f"{self.general_info['protocol_name']}"
-        )[
-            :80
-        ]  # max len
+        )[:80]
         is_fmri = self.general_info['max_dynamics'] > 1
         # PAR/REC uses msec, but in _calc_zooms we convert to sec
         t = 'sec' if is_fmri else 'unknown'
@@ -930,7 +886,7 @@ class PARRECHeader(SpatialHeader):
         props = self.image_defs[name]
         if np.any(np.diff(props, axis=0)):
             raise PARRECError(
-                f'Varying {name} in image sequence ' f'({props}). This is not supported.'
+                f'Varying {name} in image sequence ({props}). This is not supported.'
             )
         return props[0]
 

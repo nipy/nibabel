@@ -13,7 +13,11 @@ from ..volumeutils import Recoder
 KIND2FMT = {'i': '%i', 'u': '%i', 'f': '%10.6f', 'c': '%10.6f', 'V': ''}
 
 array_index_order_codes = Recoder(
-    ((1, 'RowMajorOrder', 'C'), (2, 'ColumnMajorOrder', 'F')), fields=('code', 'label', 'npcode')
+    (
+        (1, 'RowMajorOrder', 'C'),
+        (2, 'ColumnMajorOrder', 'F'),
+    ),
+    fields=('code', 'label', 'npcode'),
 )
 
 gifti_encoding_codes = Recoder(

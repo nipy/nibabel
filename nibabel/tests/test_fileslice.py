@@ -120,14 +120,7 @@ def test_canonical_slicers():
         canonical_slicers((1, 10), shape, True)
     # Unless check_inds is False
     assert canonical_slicers((10,), shape, False) == (10, slice(None))
-    assert canonical_slicers(
-        (
-            1,
-            10,
-        ),
-        shape,
-        False,
-    ) == (1, 10)
+    assert canonical_slicers((1, 10), shape, False) == (1, 10)
     # Check negative -> positive
     assert canonical_slicers(-1, shape) == (9, slice(None))
     assert canonical_slicers((slice(None), -1), shape) == (slice(None), 9)
@@ -487,15 +480,10 @@ def test_optimize_read_slicers():
         (slice(None), slice(None)),
     )
     # optimizing
-    assert optimize_read_slicers(
-        (
-            slice(None),
-            slice(0, 5, 2),
-        ),
-        (10, 6),
-        4,
-        _always,
-    ) == ((slice(None), slice(0, 5, 1)), (slice(None), slice(None, None, 2)))
+    assert optimize_read_slicers((slice(None), slice(0, 5, 2)), (10, 6), 4, _always) == (
+        (slice(None), slice(0, 5, 1)),
+        (slice(None), slice(None, None, 2)),
+    )
     # Optimize does nothing for integer when last
     assert optimize_read_slicers((slice(None), 1), (10, 6), 4, _always) == (
         (slice(None), 1),
@@ -623,14 +611,7 @@ def test_predict_shape():
 def test_strided_scalar():
     # Utility to make numpy array of given shape from scalar using striding
     for shape, scalar in product(
-        (
-            (2,),
-            (
-                2,
-                3,
-            ),
-            (2, 3, 4),
-        ),
+        ((2,), (2, 3), (2, 3, 4)),
         (1, 2, np.int16(3)),
     ):
         expected = np.zeros(shape, dtype=np.array(scalar).dtype) + scalar

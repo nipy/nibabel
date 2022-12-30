@@ -128,7 +128,9 @@ def test_brain_models():
     assert (bml[4].vertex == [2, 9, 14]).all()
 
     for bm, label, is_surface in zip(
-        bml, ['ThalamusRight', 'Other', 'cortex_left', 'Other'], (False, False, True, True)
+        bml,
+        ['ThalamusRight', 'Other', 'cortex_left', 'Other'],
+        (False, False, True, True),
     ):
         assert np.all(bm.surface_mask == ~bm.volume_mask)
         structures = list(bm.iter_structures())
@@ -176,18 +178,27 @@ def test_brain_models():
 
     # Test the constructor
     bm_vox = axes.BrainModelAxis(
-        'thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4)
+        'thalamus_left',
+        voxel=np.ones((5, 3), dtype=int),
+        affine=np.eye(4),
+        volume_shape=(2, 3, 4),
     )
     assert np.all(bm_vox.name == ['CIFTI_STRUCTURE_THALAMUS_LEFT'] * 5)
     assert np.array_equal(bm_vox.vertex, np.full(5, -1))
     assert np.array_equal(bm_vox.voxel, np.full((5, 3), 1))
     with pytest.raises(ValueError):
         # no volume shape
-        axes.BrainModelAxis('thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4))
+        axes.BrainModelAxis(
+            'thalamus_left',
+            voxel=np.ones((5, 3), dtype=int),
+            affine=np.eye(4),
+        )
     with pytest.raises(ValueError):
         # no affine
         axes.BrainModelAxis(
-            'thalamus_left', voxel=np.ones((5, 3), dtype=int), volume_shape=(2, 3, 4)
+            'thalamus_left',
+            voxel=np.ones((5, 3), dtype=int),
+            volume_shape=(2, 3, 4),
         )
     with pytest.raises(ValueError):
         # incorrect name
@@ -207,7 +218,11 @@ def test_brain_models():
         )
     with pytest.raises(ValueError):
         # no voxels or vertices
-        axes.BrainModelAxis('thalamus_left', affine=np.eye(4), volume_shape=(2, 3, 4))
+        axes.BrainModelAxis(
+            'thalamus_left',
+            affine=np.eye(4),
+            volume_shape=(2, 3, 4),
+        )
     with pytest.raises(ValueError):
         # incorrect voxel shape
         axes.BrainModelAxis(
@@ -218,7 +233,9 @@ def test_brain_models():
         )
 
     bm_vertex = axes.BrainModelAxis(
-        'cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_left': 20}
+        'cortex_left',
+        vertex=np.ones(5, dtype=int),
+        nvertices={'cortex_left': 20},
     )
     assert np.array_equal(bm_vertex.name, ['CIFTI_STRUCTURE_CORTEX_LEFT'] * 5)
     assert np.array_equal(bm_vertex.vertex, np.full(5, 1))
@@ -227,11 +244,15 @@ def test_brain_models():
         axes.BrainModelAxis('cortex_left', vertex=np.ones(5, dtype=int))
     with pytest.raises(ValueError):
         axes.BrainModelAxis(
-            'cortex_left', vertex=np.ones(5, dtype=int), nvertices={'cortex_right': 20}
+            'cortex_left',
+            vertex=np.ones(5, dtype=int),
+            nvertices={'cortex_right': 20},
         )
     with pytest.raises(ValueError):
         axes.BrainModelAxis(
-            'cortex_left', vertex=-np.ones(5, dtype=int), nvertices={'cortex_left': 20}
+            'cortex_left',
+            vertex=-np.ones(5, dtype=int),
+            nvertices={'cortex_left': 20},
         )
 
     # test from_mask errors
@@ -244,7 +265,10 @@ def test_brain_models():
 
     # tests error in adding together or combining as ParcelsAxis
     bm_vox = axes.BrainModelAxis(
-        'thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4)
+        'thalamus_left',
+        voxel=np.ones((5, 3), dtype=int),
+        affine=np.eye(4),
+        volume_shape=(2, 3, 4),
     )
     bm_vox + bm_vox
     assert (bm_vertex + bm_vox)[: bm_vertex.size] == bm_vertex
@@ -289,7 +313,10 @@ def test_brain_models():
 
     # test equalities
     bm_vox = axes.BrainModelAxis(
-        'thalamus_left', voxel=np.ones((5, 3), dtype=int), affine=np.eye(4), volume_shape=(2, 3, 4)
+        'thalamus_left',
+        voxel=np.ones((5, 3), dtype=int),
+        affine=np.eye(4),
+        volume_shape=(2, 3, 4),
     )
     bm_other = deepcopy(bm_vox)
     assert bm_vox == bm_other

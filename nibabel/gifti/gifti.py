@@ -108,7 +108,7 @@ class GiftiMetaData(CaretMetaData):
 
     @property
     @deprecate_with_version(
-        'The data attribute is deprecated. Use GiftiMetaData object ' 'directly as a dict.',
+        'The data attribute is deprecated. Use GiftiMetaData object directly as a dict.',
         '4.0',
         '6.0',
     )
@@ -147,7 +147,7 @@ class GiftiNVPairs:
     """
 
     @deprecate_with_version(
-        'GiftiNVPairs objects are deprecated. Use the GiftiMetaData object ' 'as a dict, instead.',
+        'GiftiNVPairs objects are deprecated. Use the GiftiMetaData object as a dict, instead.',
         '4.0',
         '6.0',
     )
@@ -834,11 +834,10 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
 
     def to_xml(self, enc='utf-8'):
         """Return XML corresponding to image content"""
-        return b"""<?xml version="1.0" encoding="UTF-8"?>
+        header = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
-""" + xml.XmlSerializable.to_xml(
-            self, enc
-        )
+"""
+        return header + super().to_xml(enc)
 
     # Avoid the indirection of going through to_file_map
     to_bytes = to_xml

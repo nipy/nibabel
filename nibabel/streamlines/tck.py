@@ -360,14 +360,14 @@ class TckFile(TractogramFile):
 
         # Check integrity of TCK header.
         if 'datatype' not in hdr:
-            msg = "Missing 'datatype' attribute in TCK header." ' Assuming it is Float32LE.'
+            msg = "Missing 'datatype' attribute in TCK header. Assuming it is Float32LE."
             warnings.warn(msg, HeaderWarning)
             hdr['datatype'] = 'Float32LE'
 
         if not hdr['datatype'].startswith('Float32'):
             msg = (
-                "TCK only supports float32 dtype but 'datatype: "
-                f"{hdr['datatype']}' was specified in the header."
+                f"TCK only supports float32 dtype but 'datatype: {hdr['datatype']}' "
+                'was specified in the header.'
             )
             raise HeaderError(msg)
 

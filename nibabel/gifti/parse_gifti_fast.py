@@ -64,7 +64,7 @@ def read_data_block(darray, fname, data, mmap):
     ``numpy.ndarray`` or ``numpy.memmap`` containing the parsed data
     """
     if mmap not in (True, False, 'c', 'r', 'r+'):
-        raise ValueError("mmap value should be one of True, False, 'c', " "'r', 'r+'")
+        raise ValueError("mmap value should be one of True, False, 'c', 'r', 'r+'")
     if mmap is True:
         mmap = 'c'
     enclabel = gifti_encoding_codes.label[darray.encoding]
@@ -85,7 +85,7 @@ def read_data_block(darray, fname, data, mmap):
     if enclabel == 'External':
         if fname is None:
             raise GiftiParseError(
-                'ExternalFileBinary is not supported ' 'when loading from in-memory XML'
+                'ExternalFileBinary is not supported when loading from in-memory XML'
             )
         ext_fname = op.join(op.dirname(fname), darray.ext_fname)
         if not op.exists(ext_fname):

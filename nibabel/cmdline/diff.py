@@ -51,7 +51,7 @@ def get_opt_parser():
                 '--header-fields',
                 dest='header_fields',
                 default='all',
-                help='Header fields (comma separated) to be printed as well' ' (if present)',
+                help='Header fields (comma separated) to be printed as well (if present)',
             ),
             Option(
                 '--ma',
@@ -59,7 +59,7 @@ def get_opt_parser():
                 dest='data_max_abs_diff',
                 type=float,
                 default=0.0,
-                help='Maximal absolute difference in data between files' ' to tolerate.',
+                help='Maximal absolute difference in data between files to tolerate.',
             ),
             Option(
                 '--mr',

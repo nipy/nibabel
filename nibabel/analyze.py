@@ -394,8 +394,8 @@ class AnalyzeHeader(LabeledWrapStruct):
             obj.set_data_dtype(orig_code)
         except HeaderDataError:
             raise HeaderDataError(
-                f'Input header {header.__class__} has '
-                f"datatype {header.get_value_label('datatype')} "
+                f'Input header {header.__class__} has datatype '
+                f'{header.get_value_label("datatype")} '
                 f'but output header {klass} does not support it'
             )
         obj.set_data_dtype(header.get_data_dtype())
@@ -785,7 +785,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         """
         if (slope in (None, 1) or np.isnan(slope)) and (inter in (None, 0) or np.isnan(inter)):
             return
-        raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 ' 'for Analyze headers')
+        raise HeaderTypeError('Cannot set slope != 1 or intercept != 0 for Analyze headers')
 
     @classmethod
     def _get_checks(klass):

@@ -87,7 +87,7 @@ class Minc1File:
     def get_zooms(self):
         """Get real-world sizes of voxels"""
         # zooms must be positive; but steps in MINC can be negative
-        return tuple([abs(float(dim.step)) if hasattr(dim, 'step') else 1.0 for dim in self._dims])
+        return tuple(abs(float(dim.step)) if hasattr(dim, 'step') else 1.0 for dim in self._dims)
 
     def get_affine(self):
         nspatial = len(self._spatial_dims)
@@ -127,7 +127,7 @@ class Minc1File:
             except AttributeError:
                 valid_range = [info.min, info.max]
         if valid_range[0] < info.min or valid_range[1] > info.max:
-            raise ValueError('Valid range outside input ' 'data type range')
+            raise ValueError('Valid range outside input data type range')
         return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
@@ -170,7 +170,7 @@ class Minc1File:
         mx_dims = self._get_dimensions(image_max)
         mn_dims = self._get_dimensions(image_min)
         if mx_dims != mn_dims:
-            raise MincError('"image-max" and "image-min" do not have the same' 'dimensions')
+            raise MincError('"image-max" and "image-min" do not have the same dimensions')
         nscales = len(mx_dims)
         if nscales > 2:
             raise MincError('More than two scaling dimensions')

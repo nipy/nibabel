@@ -20,7 +20,7 @@ import nibabel as nib
 import nibabel.cmdline.utils
 from nibabel.cmdline.utils import _err, ap, safe_get, table2string, verbose
 
-__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko ' 'and NiBabel contributors'
+__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko and NiBabel contributors'
 __license__ = 'MIT'
 
 

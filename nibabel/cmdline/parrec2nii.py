@@ -44,10 +44,7 @@ def get_opt_parser():
             type='string',
             dest='outdir',
             default=None,
-            help=one_line(
-                """Destination directory for NIfTI files.
-                             Default: current directory."""
-            ),
+            help='Destination directory for NIfTI files. Default: current directory.',
         )
     )
     p.add_option(
@@ -81,10 +78,7 @@ def get_opt_parser():
             action='store_true',
             dest='bvs',
             default=False,
-            help=one_line(
-                """Output bvals/bvecs files in addition to NIFTI
-                   image."""
-            ),
+            help='Output bvals/bvecs files in addition to NIFTI image.',
         )
     )
     p.add_option(
@@ -207,7 +201,7 @@ def get_opt_parser():
             default=False,
             help=one_line(
                 """Do not discard the diagnostic Philips DTI
-                             trace volume, if it exists in the data."""
+                   trace volume, if it exists in the data."""
             ),
         )
     )
@@ -217,10 +211,7 @@ def get_opt_parser():
             action='store_true',
             dest='overwrite',
             default=False,
-            help=one_line(
-                """Overwrite file if it exists. Default:
-                             False"""
-            ),
+            help='Overwrite file if it exists. Default: False',
         )
     )
     p.add_option(
@@ -300,7 +291,14 @@ def proc_file(infile, opts):
         out_dtype = np.float64
     # Reorient data block to LAS+ if necessary
     ornt = io_orientation(np.diag([-1, 1, 1, 1]).dot(affine))
-    if np.all(ornt == [[0, 1], [1, 1], [2, 1]]):  # already in LAS+
+    if np.array_equal(
+        ornt,
+        [
+            [0, 1],
+            [1, 1],
+            [2, 1],
+        ],
+    ):  # already in LAS+
         t_aff = np.eye(4)
     else:  # Not in LAS+
         t_aff = inv_ornt_aff(ornt, pr_img.shape)
@@ -431,6 +429,6 @@ def main():
             errs.append(f'{infile}: {e}')
 
     if len(errs):
-        error('Caught %i exceptions. Dump follows:\n\n %s' % (len(errs), '\n'.join(errs)), 1)
+        error(f'Caught {len(errs)} exceptions. Dump follows:\n\n' + '\n'.join(errs), 1)
     else:
         verbose('Done')

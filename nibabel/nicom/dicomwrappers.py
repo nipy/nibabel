@@ -84,9 +84,8 @@ def wrapper_from_data(dcm_data):
         csa = csar.get_csa_header(dcm_data)
     except csar.CSAReadError as e:
         warnings.warn(
-            'Error while attempting to read CSA header: '
-            + str(e.args)
-            + '\n Ignoring Siemens private (CSA) header info.'
+            f'Error while attempting to read CSA header: {e.args}\n'
+            'Ignoring Siemens private (CSA) header info.'
         )
         csa = None
     if csa is None:
@@ -193,7 +192,7 @@ class Wrapper:
         # motivated in ``doc/source/notebooks/ata_error.ipynb``, and from
         # discussion at https://github.com/nipy/nibabel/pull/156
         if not np.allclose(np.eye(3), np.dot(R, R.T), atol=5e-5):
-            raise WrapperPrecisionError('Rotation matrix not nearly ' 'orthogonal')
+            raise WrapperPrecisionError('Rotation matrix not nearly orthogonal')
         return R
 
     @one_time
@@ -537,7 +536,7 @@ class MultiframeWrapper(Wrapper):
         stack_ids = set(frame.FrameContentSequence[0].StackID for frame in self.frames)
         if len(stack_ids) > 1:
             raise WrapperError(
-                'File contains more than one StackID. ' 'Cannot handle multi-stack files'
+                'File contains more than one StackID. Cannot handle multi-stack files'
             )
         # Determine if one of the dimension indices refers to the stack id
         dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
@@ -551,9 +550,7 @@ class MultiframeWrapper(Wrapper):
             # derived volume is included
             derived_tag = pydicom.datadict.tag_for_keyword('DiffusionBValue')
             if derived_tag not in dim_seq:
-                raise WrapperError(
-                    'Missing information, cannot remove indices ' 'with confidence.'
-                )
+                raise WrapperError('Missing information, cannot remove indices with confidence.')
             derived_dim_idx = dim_seq.index(derived_tag)
             frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
         # account for the 2 additional dimensions (row and column) not included
@@ -568,7 +565,7 @@ class MultiframeWrapper(Wrapper):
         shape = (rows, cols) + tuple(ns_unique)
         n_vols = np.prod(shape[3:])
         if n_frames != n_vols * shape[2]:
-            raise WrapperError('Calculated shape does not match number of ' 'frames.')
+            raise WrapperError('Calculated shape does not match number of frames.')
         return tuple(shape)
 
     @one_time
@@ -582,7 +579,7 @@ class MultiframeWrapper(Wrapper):
             try:
                 iop = self.frames[0].PlaneOrientationSequence[0].ImageOrientationPatient
             except AttributeError:
-                raise WrapperError('Not enough information for ' 'image_orient_patient')
+                raise WrapperError('Not enough information for image_orient_patient')
         if iop is None:
             return None
         iop = np.array(list(map(float, iop)))
@@ -833,9 +830,7 @@ class MosaicWrapper(SiemensWrapper):
                 pass
             if n_mosaic is None or n_mosaic == 0:
                 raise WrapperError(
-                    'No valid mosaic number in CSA '
-                    'header; is this really '
-                    'Siemens mosiac data?'
+                    'No valid mosaic number in CSA header; is this really Siemens mosiac data?'
                 )
         self.n_mosaic = n_mosaic
         self.mosaic_size = int(np.ceil(np.sqrt(n_mosaic)))
@@ -848,8 +843,7 @@ class MosaicWrapper(SiemensWrapper):
         cols = self.get('Columns')
         if None in (rows, cols):
             return None
-        mosaic_size = self.mosaic_size
-        return (int(rows / mosaic_size), int(cols / mosaic_size), self.n_mosaic)
+        return (rows // self.mosaic_size, cols // self.mosaic_size, self.n_mosaic)
 
     @one_time
     def image_position(self):

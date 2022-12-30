@@ -46,17 +46,14 @@ def test_type_info():
     for dtt in np.sctypes['int'] + np.sctypes['uint']:
         info = np.iinfo(dtt)
         infod = type_info(dtt)
-        assert (
-            dict(
-                min=info.min,
-                max=info.max,
-                nexp=None,
-                nmant=None,
-                minexp=None,
-                maxexp=None,
-                width=np.dtype(dtt).itemsize,
-            )
-            == infod
+        assert infod == dict(
+            min=info.min,
+            max=info.max,
+            nexp=None,
+            nmant=None,
+            minexp=None,
+            maxexp=None,
+            width=np.dtype(dtt).itemsize,
         )
         assert infod['min'].dtype.type == dtt
         assert infod['max'].dtype.type == dtt
@@ -74,11 +71,11 @@ def test_type_info():
     # https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man3/float.3.html
     if vals in (
         (52, 11, 8),  # longdouble is same as double
-        (63, 15, 12),
+        (63, 15, 12),  # intel 80 bit
         (63, 15, 16),  # intel 80 bit
         (112, 15, 16),  # real float128
-        (106, 11, 16),
-    ):  # PPC head, tail doubles, expected values
+        (106, 11, 16),  # PPC head, tail doubles, expected values
+    ):
         pass
     elif vals == (105, 11, 16):  # bust info for PPC head / tail longdoubles
         # min and max broken, copy from infod

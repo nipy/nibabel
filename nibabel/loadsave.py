@@ -198,7 +198,9 @@ def save(img, filename, **kwargs):
 
 
 @deprecate_with_version(
-    'read_img_data deprecated. ' 'Please use ``img.dataobj.get_unscaled()`` instead.', '3.2', '5.0'
+    'read_img_data deprecated. Please use ``img.dataobj.get_unscaled()`` instead.',
+    '3.2',
+    '5.0',
 )
 def read_img_data(img, prefer='scaled'):
     """Read data from image associated with files

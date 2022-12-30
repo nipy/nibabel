@@ -665,7 +665,7 @@ class BrainModelAxis(Axis):
                 not np.allclose(other.affine, affine) or other.volume_shape != shape
             ):
                 raise ValueError(
-                    'Trying to concatenate two BrainModels defined ' 'in a different brain volume'
+                    'Trying to concatenate two BrainModels defined in a different brain volume'
                 )
 
         nvertices = dict(self.nvertices)
@@ -1008,7 +1008,7 @@ class ParcelsAxis(Axis):
                 not np.allclose(other.affine, affine) or other.volume_shape != shape
             ):
                 raise ValueError(
-                    'Trying to concatenate two ParcelsAxis defined ' 'in a different brain volume'
+                    'Trying to concatenate two ParcelsAxis defined in a different brain volume'
                 )
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():

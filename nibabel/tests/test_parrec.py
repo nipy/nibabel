@@ -310,35 +310,9 @@ def test_get_sorted_slice_indices():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS[::-1])
     assert_array_equal(
         hdr.get_sorted_slice_indices(),
-        [
-            8,
-            7,
-            6,
-            5,
-            4,
-            3,
-            2,
-            1,
-            0,
-            17,
-            16,
-            15,
-            14,
-            13,
-            12,
-            11,
-            10,
-            9,
-            26,
-            25,
-            24,
-            23,
-            22,
-            21,
-            20,
-            19,
-            18,
-        ],
+        [8, 7, 6, 5, 4, 3, 2, 1, 0]
+        + [17, 16, 15, 14, 13, 12, 11, 10, 9]
+        + [26, 25, 24, 23, 22, 21, 20, 19, 18],
     )
     # Omit last slice, only two volumes
     with clear_and_catch_warnings(modules=[parrec], record=True):
@@ -378,12 +352,12 @@ def test_sorting_multiple_echos_and_contrasts():
     # This .PAR file has 3 echos and 4 image types (real, imaginary, magnitude,
     # phase).
     # After sorting should be:
-    # Type 0, Echo 1, Slices 1-30
-    # Type 0, Echo 2, Slices 1-30
-    # Type 0, Echo 3, Slices 1-30
-    # Type 1, Echo 1, Slices 1-30
-    # ...
-    # Type 3, Echo 3, Slices 1-30
+    #     Type 0, Echo 1, Slices 1-30
+    #     Type 0, Echo 2, Slices 1-30
+    #     Type 0, Echo 3, Slices 1-30
+    #     Type 1, Echo 1, Slices 1-30
+    #     ...
+    #     Type 3, Echo 3, Slices 1-30
     t1_par = pjoin(DATA_PATH, 'T1_3echo_mag_real_imag_phase.PAR')
     with open(t1_par, 'rt') as fobj:
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)

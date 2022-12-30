@@ -11,6 +11,7 @@ import io
 from os.path import dirname
 from os.path import join as pjoin
 
+import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 from packaging.version import Version
@@ -249,12 +250,17 @@ def test_read_geometry():
             assert from_file.voxel_indices_ijk[-1] == expected[3]
     assert current_index == img.shape[1]
 
-    expected_affine = [[-2, 0, 0, 90], [0, 2, 0, -126], [0, 0, 2, -72], [0, 0, 0, 1]]
+    expected_affine = [
+        [-2, 0, 0, 90],
+        [0, 2, 0, -126],
+        [0, 0, 2, -72],
+        [0, 0, 0, 1],
+    ]
     expected_dimensions = (91, 109, 91)
-    assert (
-        geometry_mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix
-        == expected_affine
-    ).all()
+    assert np.array_equal(
+        geometry_mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix,
+        expected_affine,
+    )
     assert geometry_mapping.volume.volume_dimensions == expected_dimensions
 
 

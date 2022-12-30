@@ -154,10 +154,10 @@ def apply_orientation(arr, ornt):
     ornt = np.asarray(ornt)
     n = ornt.shape[0]
     if t_arr.ndim < n:
-        raise OrientationError('Data array has fewer dimensions than ' 'orientation')
+        raise OrientationError('Data array has fewer dimensions than orientation')
     # no coordinates can be dropped for applying the orientations
     if np.any(np.isnan(ornt[:, 0])):
-        raise OrientationError('Cannot drop coordinates when ' 'applying orientation to data')
+        raise OrientationError('Cannot drop coordinates when applying orientation to data')
     # apply ornt transformations
     for ax, flip in enumerate(ornt[:, 1]):
         if flip == -1:
@@ -225,7 +225,11 @@ def inv_ornt_aff(ornt, shape):
     return np.dot(undo_flip, undo_reorder)
 
 
-@deprecate_with_version('flip_axis is deprecated. ' 'Please use numpy.flip instead.', '3.2', '5.0')
+@deprecate_with_version(
+    'flip_axis is deprecated. Please use numpy.flip instead.',
+    '3.2',
+    '5.0',
+)
 def flip_axis(arr, axis=0):
     """Flip contents of `axis` in array `arr`
 

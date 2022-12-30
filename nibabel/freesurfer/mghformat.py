@@ -55,46 +55,10 @@ hf_dtype = np.dtype(header_dtd + footer_dtd)
 # caveat: Note that it's ambiguous to get the code given the bytespervoxel
 # caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = (  # code, conversion function, dtype, bytes per voxel
-    (
-        0,
-        'uint8',
-        '>u1',
-        '1',
-        'MRI_UCHAR',
-        np.uint8,
-        np.dtype(np.uint8),
-        np.dtype(np.uint8).newbyteorder('>'),
-    ),
-    (
-        4,
-        'int16',
-        '>i2',
-        '2',
-        'MRI_SHORT',
-        np.int16,
-        np.dtype(np.int16),
-        np.dtype(np.int16).newbyteorder('>'),
-    ),
-    (
-        1,
-        'int32',
-        '>i4',
-        '4',
-        'MRI_INT',
-        np.int32,
-        np.dtype(np.int32),
-        np.dtype(np.int32).newbyteorder('>'),
-    ),
-    (
-        3,
-        'float',
-        '>f4',
-        '4',
-        'MRI_FLOAT',
-        np.float32,
-        np.dtype(np.float32),
-        np.dtype(np.float32).newbyteorder('>'),
-    ),
+    (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype('u1'), np.dtype('>u1')),
+    (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype('i2'), np.dtype('>i2')),
+    (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype('i4'), np.dtype('>i4')),
+    (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype('f4'), np.dtype('>f4')),
 )
 
 # make full code alias bank, including dtype column
@@ -233,7 +197,12 @@ class MGHHeader(LabeledWrapStruct):
         ds = self._structarr['delta']
         ns = self._structarr['dims'][:3] * ds / 2.0
         v2rtkr = np.array(
-            [[-ds[0], 0, 0, ns[0]], [0, 0, ds[2], -ns[2]], [0, -ds[1], 0, ns[1]], [0, 0, 0, 1]],
+            [
+                [-ds[0], 0, 0, ns[0]],
+                [0, 0, ds[2], -ns[2]],
+                [0, -ds[1], 0, ns[1]],
+                [0, 0, 0, 1],
+            ],
             dtype=np.float32,
         )
         return v2rtkr
@@ -312,7 +281,7 @@ class MGHHeader(LabeledWrapStruct):
             raise HeaderDataError('Expecting %d zoom values' % ndims)
         if np.any(zooms[:3] <= 0):
             raise HeaderDataError(
-                'Spatial (first three) zooms must be positive; got ' f'{tuple(zooms[:3])}'
+                f'Spatial (first three) zooms must be positive; got {tuple(zooms[:3])}'
             )
         hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
@@ -474,7 +443,7 @@ class MGHHeader(LabeledWrapStruct):
 
         """
         if endianness is None or endian_codes[endianness] != '>':
-            raise ValueError('Cannot byteswap MGHHeader - ' 'must always be big endian')
+            raise ValueError('Cannot byteswap MGHHeader - must always be big endian')
         return self.copy()
 
     @classmethod

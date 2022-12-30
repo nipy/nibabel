@@ -432,7 +432,7 @@ class SlopeArrayWriter(ArrayWriter):
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
                 raise WriterError(
-                    'Cannot scale negative and positive ' 'numbers to uint without intercept'
+                    'Cannot scale negative and positive numbers to uint without intercept'
                 )
             if in_max <= 0:  # All input numbers <= 0
                 self.slope = in_min / out_max

@@ -259,15 +259,15 @@ def type_info(np_type):
     if vals in (
         (112, 15, 16),  # binary128
         (info_64.nmant, info_64.nexp, 8),  # float64
-        (63, 15, 12),
-        (63, 15, 16),
-    ):  # Intel extended 80
+        (63, 15, 12),  # Intel extended 80
+        (63, 15, 16),  # Intel extended 80
+    ):
         return ret  # these are OK without modification
     # The remaining types are longdoubles with bad finfo values.  Some we
     # correct, others we wait to hear of errors.
     # We start with float64 as basis
     ret = type_info(np.float64)
-    if vals in ((52, 15, 12), (52, 15, 16)):  # windows float96  # windows float128?
+    if vals in ((52, 15, 12), (52, 15, 16)):  # windows float96 / windows float128?
         # On windows 32 bit at least, float96 is Intel 80 storage but operating
         # at float64 precision. The finfo values give nexp == 15 (as for intel
         # 80) but in calculations nexp in fact appears to be 11 as for float64
@@ -298,7 +298,13 @@ def type_info(np_type):
         if np_type is np.longcomplex:
             max_val += 0j
         ret = dict(
-            min=-max_val, max=max_val, nmant=112, nexp=15, minexp=-16382, maxexp=16384, width=width
+            min=-max_val,
+            max=max_val,
+            nmant=112,
+            nexp=15,
+            minexp=-16382,
+            maxexp=16384,
+            width=width,
         )
     else:  # don't recognize the type
         raise FloatingError(f'We had not expected long double type {np_type} with info {info}')

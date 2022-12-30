@@ -211,7 +211,7 @@ class Nifti2Header(Nifti1Header):
             return hdr, rep
         rep.problem_level = 40
         rep.problem_msg = (
-            'EOL check not 0 or 13, 10, 26, 10; data may be ' 'corrupted by EOL conversion'
+            'EOL check not 0 or 13, 10, 26, 10; data may be corrupted by EOL conversion'
         )
         if fix:
             hdr['eol_check'] = (13, 10, 26, 10)

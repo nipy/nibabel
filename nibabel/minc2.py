@@ -97,7 +97,7 @@ class Minc2File(Minc1File):
             valid_range = [info.min, info.max]
         else:
             if valid_range[0] < info.min or valid_range[1] > info.max:
-                raise ValueError('Valid range outside input ' 'data type range')
+                raise ValueError('Valid range outside input data type range')
         return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):

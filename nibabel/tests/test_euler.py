@@ -32,19 +32,37 @@ for x in params:
 def x_only(x):
     cosx = np.cos(x)
     sinx = np.sin(x)
-    return np.array([[1, 0, 0], [0, cosx, -sinx], [0, sinx, cosx]])
+    return np.array(
+        [
+            [1, 0, 0],
+            [0, cosx, -sinx],
+            [0, sinx, cosx],
+        ]
+    )
 
 
 def y_only(y):
     cosy = np.cos(y)
     siny = np.sin(y)
-    return np.array([[cosy, 0, siny], [0, 1, 0], [-siny, 0, cosy]])
+    return np.array(
+        [
+            [cosy, 0, siny],
+            [0, 1, 0],
+            [-siny, 0, cosy],
+        ]
+    )
 
 
 def z_only(z):
     cosz = np.cos(z)
     sinz = np.sin(z)
-    return np.array([[cosz, -sinz, 0], [sinz, cosz, 0], [0, 0, 1]])
+    return np.array(
+        [
+            [cosz, -sinz, 0],
+            [sinz, cosz, 0],
+            [0, 0, 1],
+        ]
+    )
 
 
 def sympy_euler(z, y, x):

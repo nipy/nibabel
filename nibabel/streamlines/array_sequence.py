@@ -527,7 +527,7 @@ class ArraySequence:
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
             raise ValueError(
-                'ArraySequence object corrupted:' ' len(self._lengths) != len(self._offsets)'
+                'ArraySequence object corrupted: len(self._lengths) != len(self._offsets)'
             )
 
         for offset, lengths in zip(self._offsets, self._lengths):

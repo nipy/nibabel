@@ -114,7 +114,12 @@ def adapt_affine(affine, n_dim):
 
 
 def resample_from_to(
-    from_img, to_vox_map, order=3, mode='constant', cval=0.0, out_class=Nifti1Image
+    from_img,
+    to_vox_map,
+    order=3,
+    mode='constant',
+    cval=0.0,
+    out_class=Nifti1Image,
 ):
     """Resample image `from_img` to mapped voxel space `to_vox_map`
 
@@ -155,7 +160,7 @@ def resample_from_to(
     # This check requires `shape` attribute of image
     if not spatial_axes_first(from_img):
         raise ValueError(
-            'Cannot predict position of spatial axes for Image ' 'type ' + str(type(from_img))
+            f'Cannot predict position of spatial axes for Image type {type(from_img)}'
         )
     try:
         to_shape, to_affine = to_vox_map.shape, to_vox_map.affine
@@ -177,7 +182,12 @@ def resample_from_to(
 
 
 def resample_to_output(
-    in_img, voxel_sizes=None, order=3, mode='constant', cval=0.0, out_class=Nifti1Image
+    in_img,
+    voxel_sizes=None,
+    order=3,
+    mode='constant',
+    cval=0.0,
+    out_class=Nifti1Image,
 ):
     """Resample image `in_img` to output voxel axes (world space)
 
@@ -235,7 +245,13 @@ def resample_to_output(
     return resample_from_to(in_img, out_vox_map, order, mode, cval, out_class)
 
 
-def smooth_image(img, fwhm, mode='nearest', cval=0.0, out_class=Nifti1Image):
+def smooth_image(
+    img,
+    fwhm,
+    mode='nearest',
+    cval=0.0,
+    out_class=Nifti1Image,
+):
     """Smooth image `img` along voxel axes by FWHM `fwhm` millimeters
 
     Parameters
@@ -275,9 +291,7 @@ def smooth_image(img, fwhm, mode='nearest', cval=0.0, out_class=Nifti1Image):
     """
     # This check requires `shape` attribute of image
     if not spatial_axes_first(img):
-        raise ValueError(
-            'Cannot predict position of spatial axes for Image ' 'type ' + str(type(img))
-        )
+        raise ValueError(f'Cannot predict position of spatial axes for Image type {type(img)}')
     if out_class is None:
         out_class = img.__class__
     n_dim = len(img.shape)

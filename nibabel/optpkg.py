@@ -105,7 +105,7 @@ def optional_package(name, trip_msg=None, min_version=None):
                 trip_msg = f'These functions need {name} version >= {min_version}'
     if trip_msg is None:
         trip_msg = (
-            f'We need package {name} for these functions, ' f'but ``import {name}`` raised {exc}'
+            f'We need package {name} for these functions, but ``import {name}`` raised {exc}'
         )
     pkg = TripWire(trip_msg)
 

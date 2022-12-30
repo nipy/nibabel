@@ -58,7 +58,12 @@ _dtype_dict = {
 }
 
 space_codes = Recoder(
-    ((0, 'unknown', ''), (1, 'scanner', 'ORIG'), (3, 'talairach', 'TLRC'), (4, 'mni', 'MNI')),
+    (
+        (0, 'unknown', ''),
+        (1, 'scanner', 'ORIG'),
+        (3, 'talairach', 'TLRC'),
+        (4, 'mni', 'MNI'),
+    ),
     fields=('code', 'label', 'space'),
 )
 
@@ -104,9 +109,7 @@ def _unpack_var(var):
     TEMPLATE_SPACE ORIG
     """
 
-    err_msg = (
-        'Please check HEAD file to ensure it is AFNI compliant. ' f'Offending attribute:\n{var}'
-    )
+    err_msg = f'Please check HEAD file to ensure it is AFNI compliant. Offending attribute:\n{var}'
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
         raise AFNIHeaderError(f'Invalid attribute type entry in HEAD file. {err_msg}')
@@ -119,8 +122,7 @@ def _unpack_var(var):
             attr = [atype(f) for f in attr.split()]
         except ValueError:
             raise AFNIHeaderError(
-                'Failed to read variable from HEAD file '
-                f'due to improper type casting. {err_msg}'
+                f'Failed to read variable from HEAD file due to improper type casting. {err_msg}'
             )
     else:
         # AFNI string attributes will always start with open single quote and
@@ -354,13 +356,7 @@ class AFNIHeader(SpatialHeader):
         origin", and second giving "Time step (TR)".
         """
         xyz_step = tuple(np.abs(self.info['DELTA']))
-        t_step = self.info.get(
-            'TAXIS_FLOATS',
-            (
-                0,
-                0,
-            ),
-        )
+        t_step = self.info.get('TAXIS_FLOATS', (0, 0))
         if len(t_step) > 0:
             t_step = (t_step[1],)
         return xyz_step + t_step

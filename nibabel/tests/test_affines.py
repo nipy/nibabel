@@ -109,10 +109,23 @@ def test_append_diag():
     # Routine for appending diagonal elements
     assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]), np.diag([2, 3, 1, 1]))
     assert_array_equal(append_diag(np.diag([2, 3, 1]), [1, 1]), np.diag([2, 3, 1, 1, 1]))
-    aff = np.array([[2, 0, 0], [0, 3, 0], [0, 0, 1], [0, 0, 1]])
+    aff = np.array(
+        [
+            [2, 0, 0],
+            [0, 3, 0],
+            [0, 0, 1],
+            [0, 0, 1],
+        ]
+    )
     assert_array_equal(
         append_diag(aff, [5], [9]),
-        [[2, 0, 0, 0], [0, 3, 0, 0], [0, 0, 0, 1], [0, 0, 5, 9], [0, 0, 0, 1]],
+        [
+            [2, 0, 0, 0],
+            [0, 3, 0, 0],
+            [0, 0, 0, 1],
+            [0, 0, 5, 9],
+            [0, 0, 0, 1],
+        ],
     )
     assert_array_equal(
         append_diag(aff, [5, 6], [9, 10]),
@@ -125,10 +138,21 @@ def test_append_diag():
             [0, 0, 0, 0, 1],
         ],
     )
-    aff = np.array([[2, 0, 0, 0], [0, 3, 0, 0], [0, 0, 0, 1]])
+    aff = np.array(
+        [
+            [2, 0, 0, 0],
+            [0, 3, 0, 0],
+            [0, 0, 0, 1],
+        ]
+    )
     assert_array_equal(
         append_diag(aff, [5], [9]),
-        [[2, 0, 0, 0, 0], [0, 3, 0, 0, 0], [0, 0, 0, 5, 9], [0, 0, 0, 0, 1]],
+        [
+            [2, 0, 0, 0, 0],
+            [0, 3, 0, 0, 0],
+            [0, 0, 0, 5, 9],
+            [0, 0, 0, 0, 1],
+        ],
     )
     # Length of starts has to match length of steps
     with pytest.raises(AffineError):
@@ -150,15 +174,8 @@ def test_dot_reduce():
     assert_array_equal(dot_reduce(vec, mat), np.dot(vec, mat))
     assert_array_equal(dot_reduce(mat, vec), np.dot(mat, vec))
     mat2 = np.arange(13, 22).reshape((3, 3))
-    assert_array_equal(dot_reduce(mat2, vec, mat), np.dot(mat2, np.dot(vec, mat)))
-    assert_array_equal(
-        dot_reduce(
-            mat,
-            vec,
-            mat2,
-        ),
-        np.dot(mat, np.dot(vec, mat2)),
-    )
+    assert_array_equal(dot_reduce(mat2, vec, mat), mat2 @ (vec @ mat))
+    assert_array_equal(dot_reduce(mat, vec, mat2), mat @ (vec @ mat2))
 
 
 def test_voxel_sizes():

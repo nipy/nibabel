@@ -35,7 +35,7 @@ class FileBasedHeader:
         if type(header) == klass:
             return header.copy()
         raise NotImplementedError(
-            'Header class requires a conversion ' f'from {klass} to {type(header)}'
+            f'Header class requires a conversion from {klass} to {type(header)}'
         )
 
     @classmethod

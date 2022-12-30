@@ -81,15 +81,37 @@ def test_adapt_affine():
     # For 4x4 affine, 4D image, add extra identity dimension
     assert_array_equal(
         adapt_affine(aff_3d, 4),
-        [[0, 1, 2, 0, 11], [3, 4, 5, 0, 12], [6, 7, 8, 0, 13], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]],
+        [
+            [0, 1, 2, 0, 11],
+            [3, 4, 5, 0, 12],
+            [6, 7, 8, 0, 13],
+            [0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 1],
+        ],
     )
     # For 5x5 affine, 4D image, identity
     aff_4d = from_matvec(np.arange(16).reshape((4, 4)), [11, 12, 13, 14])
     assert_array_equal(adapt_affine(aff_4d, 4), aff_4d)
     # For 4x4 affine, 2D image, dropped column
-    assert_array_equal(adapt_affine(aff_3d, 2), [[0, 1, 11], [3, 4, 12], [6, 7, 13], [0, 0, 1]])
+    assert_array_equal(
+        adapt_affine(aff_3d, 2),
+        [
+            [0, 1, 11],
+            [3, 4, 12],
+            [6, 7, 13],
+            [0, 0, 1],
+        ],
+    )
     # For 4x4 affine, 1D image, 2 dropped columns
-    assert_array_equal(adapt_affine(aff_3d, 1), [[0, 11], [3, 12], [6, 13], [0, 1]])
+    assert_array_equal(
+        adapt_affine(aff_3d, 1),
+        [
+            [0, 11],
+            [3, 12],
+            [6, 13],
+            [0, 1],
+        ],
+    )
     # For 3x3 affine, 2D image, identity
     aff_2d = from_matvec(np.arange(4).reshape((2, 2)), [11, 12])
     assert_array_equal(adapt_affine(aff_2d, 2), aff_2d)
@@ -267,7 +289,12 @@ def test_resample_to_output(caplog):
     exp_shape = (4, 4, 4)
     assert out_img.shape == exp_shape
     exp_aff = np.array(
-        [[1, 0, 0, -2 * np.cos(np.pi / 4)], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+        [
+            [1, 0, 0, -2 * np.cos(np.pi / 4)],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
     )
     assert_almost_equal(out_img.affine, exp_aff)
     rzs, trans = to_matvec(np.dot(npl.inv(rot_3), exp_aff))

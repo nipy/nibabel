@@ -13,9 +13,7 @@ from packaging.version import Version
 
 from .environment import get_nipy_system_dir, get_nipy_user_dir
 
-DEFAULT_INSTALL_HINT = (
-    'If you have the package, have you set the ' 'path to the package correctly?'
-)
+DEFAULT_INSTALL_HINT = 'If you have the package, have you set the path to the package correctly?'
 
 
 class DataError(Exception):
@@ -135,7 +133,7 @@ class VersionedDatasource(Datasource):
         version_parts = self.version.split('.')
         self.major_version = int(version_parts[0])
         self.minor_version = int(version_parts[1])
-        self.version_no = float('%d.%d' % (self.major_version, self.minor_version))
+        self.version_no = float(f'{self.major_version}.{self.minor_version}')
 
 
 def _cfg_value(fname, section='DATA', value='path'):

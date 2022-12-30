@@ -238,7 +238,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             imageglobals.logger = logger
             hdr.copy().check_fix()
             assert str_io.getvalue() == (
-                'bitpix does not match datatype; ' 'setting bitpix to match datatype\n'
+                'bitpix does not match datatype; setting bitpix to match datatype\n'
             )
             # Check that error_level in fact causes error to be raised
             imageglobals.error_level = 10

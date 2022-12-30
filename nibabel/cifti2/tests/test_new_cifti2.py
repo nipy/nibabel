@@ -20,14 +20,27 @@ from ...testing import (
     suppress_warnings,
 )
 
-affine = [[-1.5, 0, 0, 90], [0, 1.5, 0, -85], [0, 0, 1.5, -71], [0, 0, 0, 1.0]]
+affine = [
+    [-1.5, 0, 0, 90],
+    [0, 1.5, 0, -85],
+    [0, 0, 1.5, -71],
+    [0, 0, 0, 1.0],
+]
 
 dimensions = (120, 83, 78)
 
 number_of_vertices = 30000
 
 brain_models = [
-    ('CIFTI_STRUCTURE_THALAMUS_LEFT', [[60, 60, 60], [61, 59, 60], [61, 60, 59], [80, 90, 92]]),
+    (
+        'CIFTI_STRUCTURE_THALAMUS_LEFT',
+        [
+            [60, 60, 60],
+            [61, 59, 60],
+            [61, 60, 59],
+            [80, 90, 92],
+        ],
+    ),
     ('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312]),
     ('CIFTI_STRUCTURE_CORTEX_RIGHT', [207]),
 ]
@@ -107,7 +120,17 @@ def check_geometry_map(mapping):
 
 
 parcels = [
-    ('volume_parcel', ([[60, 60, 60], [61, 59, 60], [61, 60, 59], [80, 90, 92]],)),
+    (
+        'volume_parcel',
+        (
+            [
+                [60, 60, 60],
+                [61, 59, 60],
+                [61, 60, 59],
+                [80, 90, 92],
+            ],
+        ),
+    ),
     (
         'surface_parcel',
         (
@@ -117,7 +140,13 @@ parcels = [
     ),
     (
         'mixed_parcel',
-        ([[71, 81, 39], [53, 21, 91]], ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999])),
+        (
+            [
+                [71, 81, 39],
+                [53, 21, 91],
+            ],
+            ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999]),
+        ),
     ),
     ('single_element', ([[71, 81, 39]], ('CIFTI_STRUCTURE_CORTEX_LEFT', [40]))),
 ]
@@ -196,9 +225,19 @@ labels = [
     (
         'first_name',
         {'meta_key': 'some_metadata'},
-        {0: ('label0', (0.1, 0.3, 0.2, 0.5)), 1: ('new_label', (0.5, 0.3, 0.1, 0.4))},
+        {
+            0: ('label0', (0.1, 0.3, 0.2, 0.5)),
+            1: ('new_label', (0.5, 0.3, 0.1, 0.4)),
+        },
     ),
-    ('another name', {}, {0: ('???', (0, 0, 0, 0)), 1: ('great region', (0.4, 0.1, 0.23, 0.15))}),
+    (
+        'another name',
+        {},
+        {
+            0: ('???', (0, 0, 0, 0)),
+            1: ('great region', (0.4, 0.1, 0.23, 0.15)),
+        },
+    ),
 ]
 
 
@@ -463,7 +502,7 @@ def test_pconnseries():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 13)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_' 'PARCELLATED_SERIES')
+    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnseries.nii')
@@ -486,7 +525,7 @@ def test_pconnscalar():
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 2)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_' 'PARCELLATED_SCALAR')
+    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnscalar.nii')

@@ -79,10 +79,7 @@ def test_cifti2_metadata():
 
     with pytest.raises(KeyError):
         md.difference_update({'a': 'aval', 'd': 'dval'})
-    assert (
-        md.to_xml().decode('utf-8')
-        == '<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>'
-    )
+    assert md.to_xml() == b'<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>'
 
 
 def test__float_01():
@@ -195,8 +192,7 @@ def test_cifti2_parcel():
 
     assert len(pl.vertices) == 0
     assert (
-        pl.to_xml().decode('utf-8')
-        == '<Parcel Name="region"><VoxelIndicesIJK>1 2 3</VoxelIndicesIJK></Parcel>'
+        pl.to_xml() == b'<Parcel Name="region"><VoxelIndicesIJK>1 2 3</VoxelIndicesIJK></Parcel>'
     )
 
 
@@ -207,7 +203,7 @@ def test_cifti2_vertices():
 
     vs.brain_structure = 'CIFTI_STRUCTURE_OTHER'
 
-    assert vs.to_xml().decode('utf-8') == '<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER" />'
+    assert vs.to_xml() == b'<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER" />'
 
     assert len(vs) == 0
     vs.extend(np.array([0, 1, 2]))
@@ -217,10 +213,7 @@ def test_cifti2_vertices():
     with pytest.raises(ValueError):
         vs.insert(1, 'a')
 
-    assert (
-        vs.to_xml().decode('utf-8')
-        == '<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER">0 1 2</Vertices>'
-    )
+    assert vs.to_xml() == b'<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER">0 1 2</Vertices>'
 
     vs[0] = 10
     assert vs[0] == 10
@@ -254,7 +247,7 @@ def test_cifti2_vertexindices():
         vi.to_xml()
     vi.extend(np.array([0, 1, 2]))
     assert len(vi) == 3
-    assert vi.to_xml().decode('utf-8') == '<VertexIndices>0 1 2</VertexIndices>'
+    assert vi.to_xml() == b'<VertexIndices>0 1 2</VertexIndices>'
 
     with pytest.raises(ValueError):
         vi[0] = 'a'

@@ -822,7 +822,7 @@ class EcatImage(SpatialImage):
     def affine(self):
         if not self._subheader._check_affines():
             warnings.warn(
-                'Affines different across frames, loading affine ' 'from FIRST frame', UserWarning
+                'Affines different across frames, loading affine from FIRST frame', UserWarning
             )
         return self._affine
 
@@ -893,7 +893,7 @@ class EcatImage(SpatialImage):
         # Get affine
         if not subheaders._check_affines():
             warnings.warn(
-                'Affines different across frames, loading affine ' 'from FIRST frame', UserWarning
+                'Affines different across frames, loading affine from FIRST frame', UserWarning
             )
         aff = subheaders.get_frame_affine()
         img = klass(data, aff, header, subheaders, mlist, extra=None, file_map=file_map)
@@ -1010,7 +1010,7 @@ class EcatImage(SpatialImage):
 
     @classmethod
     def from_image(klass, img):
-        raise NotImplementedError('Ecat images can only be generated ' 'from file objects')
+        raise NotImplementedError('Ecat images can only be generated from file objects')
 
     @classmethod
     def load(klass, filespec):

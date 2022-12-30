@@ -70,10 +70,15 @@ CIFTI_MAP_TYPES = (
 
 CIFTI_MODEL_TYPES = (
     'CIFTI_MODEL_TYPE_SURFACE',  # Modeled using surface vertices
-    'CIFTI_MODEL_TYPE_VOXELS',    # Modeled using voxels.
+    'CIFTI_MODEL_TYPE_VOXELS',   # Modeled using voxels.
 )
 
-CIFTI_SERIESUNIT_TYPES = ('SECOND', 'HERTZ', 'METER', 'RADIAN')
+CIFTI_SERIESUNIT_TYPES = (
+    'SECOND',
+    'HERTZ',
+    'METER',
+    'RADIAN',
+)
 
 CIFTI_BRAIN_STRUCTURES = (
     'CIFTI_STRUCTURE_ACCUMBENS_LEFT',
@@ -662,7 +667,7 @@ class Cifti2Parcel(xml.XmlSerializable):
         self.vertices = vertices if vertices is not None else []
         for val in self.vertices:
             if not isinstance(val, Cifti2Vertices):
-                raise ValueError('Cifti2Parcel vertices must be instances of ' 'Cifti2Vertices')
+                raise ValueError('Cifti2Parcel vertices must be instances of Cifti2Vertices')
 
     @property
     def voxel_indices_ijk(self):
@@ -1237,7 +1242,7 @@ class Cifti2Matrix(xml.XmlSerializable, MutableSequence):
         a2md = self._get_indices_from_mim(value)
         if not set(self.mapped_indices).isdisjoint(a2md):
             raise Cifti2HeaderError(
-                'Indices in this Cifti2MatrixIndicesMap ' 'already mapped in this matrix'
+                'Indices in this Cifti2MatrixIndicesMap already mapped in this matrix'
             )
 
     def __setitem__(self, key, value):
@@ -1412,7 +1417,13 @@ class Cifti2Image(DataobjImage, SerializableImage):
     rw = True
 
     def __init__(
-        self, dataobj=None, header=None, nifti_header=None, extra=None, file_map=None, dtype=None
+        self,
+        dataobj=None,
+        header=None,
+        nifti_header=None,
+        extra=None,
+        file_map=None,
+        dtype=None,
     ):
         """Initialize image
 
@@ -1485,7 +1496,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
                 cifti_header = item.get_content()
                 break
         else:
-            raise ValueError('NIfTI2 header does not contain a CIFTI-2 ' 'extension')
+            raise ValueError('NIfTI2 header does not contain a CIFTI-2 extension')
 
         # Construct cifti image.
         # Use array proxy object where possible

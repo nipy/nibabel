@@ -40,7 +40,14 @@ EXAMPLE_IMAGES = [
         fname=pjoin(data_path, 'tiny.mnc'),
         shape=(10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 2.0, -20], [0, 2.0, 0, -20], [2.0, 0, 0, -10], [0, 0, 0, 1]]),
+        affine=np.array(
+            [
+                [0, 0, 2.0, -20],
+                [0, 2.0, 0, -20],
+                [2.0, 0, 0, -10],
+                [0, 0, 0, 1],
+            ]
+        ),
         zooms=(2.0, 2.0, 2.0),
         # These values from SPM2
         data_summary=dict(min=0.20784314, max=0.74901961, mean=0.60602819),
@@ -50,7 +57,14 @@ EXAMPLE_IMAGES = [
         fname=pjoin(data_path, 'minc1_1_scale.mnc'),
         shape=(10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 2.0, -20], [0, 2.0, 0, -20], [2.0, 0, 0, -10], [0, 0, 0, 1]]),
+        affine=np.array(
+            [
+                [0, 0, 2.0, -20],
+                [0, 2.0, 0, -20],
+                [2.0, 0, 0, -10],
+                [0, 0, 0, 1],
+            ]
+        ),
         zooms=(2.0, 2.0, 2.0),
         # These values from mincstats
         data_summary=dict(min=0.2082842439, max=0.2094327615, mean=0.2091292083),
@@ -60,7 +74,14 @@ EXAMPLE_IMAGES = [
         fname=pjoin(data_path, 'minc1_4d.mnc'),
         shape=(2, 10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 2.0, -20], [0, 2.0, 0, -20], [2.0, 0, 0, -10], [0, 0, 0, 1]]),
+        affine=np.array(
+            [
+                [0, 0, 2.0, -20],
+                [0, 2.0, 0, -20],
+                [2.0, 0, 0, -10],
+                [0, 0, 0, 1],
+            ]
+        ),
         zooms=(1.0, 2.0, 2.0, 2.0),
         # These values from mincstats
         data_summary=dict(min=0.2078431373, max=1.498039216, mean=0.9090422837),
@@ -70,7 +91,14 @@ EXAMPLE_IMAGES = [
         fname=pjoin(data_path, 'minc1-no-att.mnc'),
         shape=(10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 1.0, 0], [0, 1.0, 0, 0], [1.0, 0, 0, 0], [0, 0, 0, 1]]),
+        affine=np.array(
+            [
+                [0, 0, 1.0, 0],
+                [0, 1.0, 0, 0],
+                [1.0, 0, 0, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
         zooms=(1.0, 1.0, 1.0),
         # These values from SPM2/mincstats
         data_summary=dict(min=0.20784314, max=0.74901961, mean=0.6061103),

@@ -311,8 +311,7 @@ class SpatialFirstSlicer:
 
         if not spatial_axes_first(img):
             raise ValueError(
-                'Cannot predict position of spatial axes for '
-                'Image type ' + img.__class__.__name__
+                'Cannot predict position of spatial axes for image type {img.__class__.__name__}'
             )
         self.img = img
 
@@ -356,7 +355,7 @@ class SpatialFirstSlicer:
                 raise IndexError('New axis not permitted in spatial dimensions')
             elif isinstance(subslicer, int):
                 raise IndexError(
-                    'Scalar indices disallowed in spatial dimensions; ' 'Use `[x]` or `x:x+1`.'
+                    'Scalar indices disallowed in spatial dimensions; Use `[x]` or `x:x+1`.'
                 )
         return spatial_slices if return_spatial else slicer
 
@@ -495,16 +494,14 @@ class SpatialImage(DataobjImage):
     def __str__(self):
         shape = self.shape
         affine = self.affine
-        return '\n'.join(
-            (
-                str(self.__class__),
-                f'data shape {shape}',
-                'affine: ',
-                str(affine),
-                'metadata:',
-                str(self._header),
-            )
-        )
+        return f"""
+{self.__class__}
+data shape {shape}
+affine:
+{affine}
+metadata:
+{self._header}
+"""
 
     def get_data_dtype(self):
         return self._header.get_data_dtype()

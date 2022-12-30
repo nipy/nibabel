@@ -70,7 +70,13 @@ def _some_slicers(shape):
             slicers[i, i] = 0
     # Add a newaxis to keep us on our toes
     no_pos = ndim // 2
-    slicers = np.hstack((slicers[:, :no_pos], np.empty((ndim, 1)), slicers[:, no_pos:]))
+    slicers = np.hstack(
+        (
+            slicers[:, :no_pos],
+            np.empty((ndim, 1)),
+            slicers[:, no_pos:],
+        )
+    )
     slicers[:, no_pos] = None
     return [tuple(s) for s in slicers]
 
@@ -236,7 +242,11 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
         slopes = (1.0, 2.0, float(np.float32(3.1416))) if self.has_slope else (1.0,)
         inters = (0.0, 10.0, float(np.float32(2.7183))) if self.has_inter else (0.0,)
         for shape, dtype, offset, slope, inter in product(
-            self.shapes, self.data_dtypes, offsets, slopes, inters
+            self.shapes,
+            self.data_dtypes,
+            offsets,
+            slopes,
+            inters,
         ):
             n_els = np.prod(shape)
             dtype = np.dtype(dtype).newbyteorder(self.data_endian)

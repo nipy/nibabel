@@ -32,11 +32,22 @@ MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
 # sample voxel to ras matrix (mri_info --vox2ras)
 v2r = np.array(
-    [[1, 2, 3, -13], [2, 3, 1, -11.5], [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32
+    [
+        [1, 2, 3, -13],
+        [2, 3, 1, -11.5],
+        [3, 1, 2, -11.5],
+        [0, 0, 0, 1],
+    ],
+    dtype=np.float32,
 )
 # sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
 v2rtkr = np.array(
-    [[-1.0, 0.0, 0.0, 1.5], [0.0, 0.0, 1.0, -2.5], [0.0, -1.0, 0.0, 2.0], [0.0, 0.0, 0.0, 1.0]],
+    [
+        [-1.0, 0.0, 0.0, 1.5],
+        [0.0, 0.0, 1.0, -2.5],
+        [0.0, -1.0, 0.0, 2.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ],
     dtype=np.float32,
 )
 
@@ -145,7 +156,13 @@ def test_set_zooms():
     assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
     h.set_zooms([1, 1, 1, 3])
     assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 3])
-    for zooms in ((-1, 1, 1, 1), (1, -1, 1, 1), (1, 1, -1, 1), (1, 1, 1, -1), (1, 1, 1, 1, 5)):
+    for zooms in (
+        (-1, 1, 1, 1),
+        (1, -1, 1, 1),
+        (1, 1, -1, 1),
+        (1, 1, 1, -1),
+        (1, 1, 1, 1, 5),
+    ):
         with pytest.raises(HeaderDataError):
             h.set_zooms(zooms)
     # smoke test for tr=0

@@ -30,21 +30,61 @@ from ..testing import expires
 
 IN_ARRS = [
     np.eye(4),
-    [[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]],
-    [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]],
-    [[3, 1, 0, 0], [1, 3, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
-    [[1, 3, 0, 0], [3, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+    [
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ],
+    [
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ],
+    [
+        [3, 1, 0, 0],
+        [1, 3, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ],
+    [
+        [1, 3, 0, 0],
+        [3, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ],
 ]
 
 OUT_ORNTS = [
-    [[0, 1], [1, 1], [2, 1]],
-    [[2, 1], [1, 1], [0, 1]],
-    [[2, 1], [0, 1], [1, 1]],
-    [[0, 1], [1, 1], [2, 1]],
-    [[1, 1], [0, 1], [2, 1]],
+    [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+    ],
+    [
+        [2, 1],
+        [1, 1],
+        [0, 1],
+    ],
+    [
+        [2, 1],
+        [0, 1],
+        [1, 1],
+    ],
+    [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+    ],
+    [
+        [1, 1],
+        [0, 1],
+        [2, 1],
+    ],
 ]
 
-IN_ARRS = IN_ARRS + [
+IN_ARRS.extend(
     [
         [np.cos(np.pi / 6 + i * np.pi / 2), np.sin(np.pi / 6 + i * np.pi / 2), 0, 0],
         [-np.sin(np.pi / 6 + i * np.pi / 2), np.cos(np.pi / 6 + i * np.pi / 2), 0, 0],
@@ -52,13 +92,29 @@ IN_ARRS = IN_ARRS + [
         [0, 0, 0, 1],
     ]
     for i in range(4)
-]
+)
 
-OUT_ORNTS = OUT_ORNTS + [
-    [[0, 1], [1, 1], [2, 1]],
-    [[1, -1], [0, 1], [2, 1]],
-    [[0, -1], [1, -1], [2, 1]],
-    [[1, 1], [0, -1], [2, 1]],
+OUT_ORNTS += [
+    [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+    ],
+    [
+        [1, -1],
+        [0, 1],
+        [2, 1],
+    ],
+    [
+        [0, -1],
+        [1, -1],
+        [2, 1],
+    ],
+    [
+        [1, 1],
+        [0, -1],
+        [2, 1],
+    ],
 ]
 
 
@@ -159,12 +215,39 @@ def test_io_orientation():
     ornt = io_orientation(arr)
     assert_array_equal(
         ornt,
-        [[0, 1], [1, 1], [2, 1], [3, 1], [np.nan, np.nan], [np.nan, np.nan], [np.nan, np.nan]],
+        [
+            [0, 1],
+            [1, 1],
+            [2, 1],
+            [3, 1],
+            [np.nan, np.nan],
+            [np.nan, np.nan],
+            [np.nan, np.nan],
+        ],
     )
     # Test behavior of thresholding
-    def_aff = np.array([[1.0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-    fail_tol = np.array([[0, 1], [np.nan, np.nan], [2, 1]])
-    pass_tol = np.array([[0, 1], [1, 1], [2, 1]])
+    def_aff = np.array(
+        [
+            [1.0, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+    )
+    fail_tol = np.array(
+        [
+            [0, 1],
+            [np.nan, np.nan],
+            [2, 1],
+        ]
+    )
+    pass_tol = np.array(
+        [
+            [0, 1],
+            [1, 1],
+            [2, 1],
+        ]
+    )
     eps = np.finfo(float).eps
     # Test that a Y axis appears as we increase the difference between the
     # first two columns
@@ -190,22 +273,40 @@ def test_io_orientation():
     aff_extra_col[:3, -1] = vec
     assert_array_equal(
         io_orientation(aff_extra_col, tol=1e-5),
-        [[0, 1], [np.nan, np.nan], [2, 1], [np.nan, np.nan]],
+        [
+            [0, 1],
+            [np.nan, np.nan],
+            [2, 1],
+            [np.nan, np.nan],
+        ],
     )
     aff_extra_row = np.zeros((5, 4))
     aff_extra_row[-1, -1] = 1  # Not strictly necessary, but for completeness
     aff_extra_row[:3, :3] = mat
     aff_extra_row[:3, -1] = vec
-    assert_array_equal(io_orientation(aff_extra_row, tol=1e-5), [[0, 1], [np.nan, np.nan], [2, 1]])
+    assert_array_equal(
+        io_orientation(aff_extra_row, tol=1e-5),
+        [
+            [0, 1],
+            [np.nan, np.nan],
+            [2, 1],
+        ],
+    )
 
 
 def test_ornt_transform():
     assert_array_equal(
-        ornt_transform([[0, 1], [1, 1], [2, -1]], [[1, 1], [0, 1], [2, 1]]),
+        ornt_transform(
+            [[0, 1], [1, 1], [2, -1]],
+            [[1, 1], [0, 1], [2, 1]],
+        ),
         [[1, 1], [0, 1], [2, -1]],
     )
     assert_array_equal(
-        ornt_transform([[0, 1], [1, 1], [2, 1]], [[2, 1], [0, -1], [1, 1]]),
+        ornt_transform(
+            [[0, 1], [1, 1], [2, 1]],
+            [[2, 1], [0, -1], [1, 1]],
+        ),
         [[1, -1], [2, 1], [0, 1]],
     )
     # Must have same shape
@@ -214,11 +315,17 @@ def test_ornt_transform():
 
     # Must be (N,2) in shape
     with pytest.raises(ValueError):
-        ornt_transform([[0, 1, 1], [1, 1, 1]], [[0, 1, 1], [1, 1, 1]])
+        ornt_transform(
+            [[0, 1, 1], [1, 1, 1]],
+            [[0, 1, 1], [1, 1, 1]],
+        )
 
     # Target axes must exist in source
     with pytest.raises(ValueError):
-        ornt_transform([[0, 1], [1, 1], [1, 1]], [[0, 1], [1, 1], [2, 1]])
+        ornt_transform(
+            [[0, 1], [1, 1], [1, 1]],
+            [[0, 1], [1, 1], [2, 1]],
+        )
 
 
 def test_ornt2axcodes():

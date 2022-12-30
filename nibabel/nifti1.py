@@ -815,7 +815,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             vec_len = int(self._structarr['glmin'])
             if vec_len == 0:
                 raise HeaderDataError(
-                    '-1 in dim[1] but 0 in glmin; ' 'inconsistent freesurfer type header?'
+                    '-1 in dim[1] but 0 in glmin; inconsistent freesurfer type header?'
                 )
             return (vec_len, 1, 1) + shape[3:]
         # Apply freesurfer hack for ico7 surface
@@ -1095,7 +1095,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         P, S, Qs = npl.svd(R)
         PR = np.dot(P, Qs)
         if not strip_shears and not np.allclose(PR, R):
-            raise HeaderDataError('Shears in affine and `strip_shears` is ' 'False')
+            raise HeaderDataError('Shears in affine and `strip_shears` is False')
         # Convert to quaternion
         quat = mat2quat(PR)
         # Set into header
@@ -1498,7 +1498,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         """
         _, _, slice_dim = self.get_dim_info()
         if slice_dim is None:
-            raise HeaderDataError('Slice dimension must be set ' 'for duration to be valid')
+            raise HeaderDataError('Slice dimension must be set for duration to be valid')
         return float(self._structarr['slice_duration'])
 
     def set_slice_duration(self, duration):
@@ -1515,20 +1515,20 @@ class Nifti1Header(SpmAnalyzeHeader):
         """
         _, _, slice_dim = self.get_dim_info()
         if slice_dim is None:
-            raise HeaderDataError('Slice dimension must be set ' 'for duration to be valid')
+            raise HeaderDataError('Slice dimension must be set for duration to be valid')
         self._structarr['slice_duration'] = duration
 
     def get_n_slices(self):
         """Return the number of slices"""
         _, _, slice_dim = self.get_dim_info()
         if slice_dim is None:
-            raise HeaderDataError('Slice dimension not set in header ' 'dim_info')
+            raise HeaderDataError('Slice dimension not set in header dim_info')
         shape = self.get_data_shape()
         try:
             slice_len = shape[slice_dim]
         except IndexError:
             raise HeaderDataError(
-                f'Slice dimension index ({slice_dim}) ' f'outside shape tuple ({shape})'
+                f'Slice dimension index ({slice_dim}) outside shape tuple ({shape})'
             )
         return slice_len
 
@@ -1561,7 +1561,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         duration = self.get_slice_duration()
         slabel = self.get_value_label('slice_code')
         if slabel == 'unknown':
-            raise HeaderDataError('Cannot get slice times when ' 'Slice code is "unknown"')
+            raise HeaderDataError('Cannot get slice times when slice code is "unknown"')
         slice_start, slice_end = (int(hdr['slice_start']), int(hdr['slice_end']))
         if slice_start < 0:
             raise HeaderDataError('slice_start should be >= 0')
@@ -1602,7 +1602,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr = self._structarr
         slice_len = self.get_n_slices()
         if slice_len != len(slice_times):
-            raise HeaderDataError('Number of slice times does not ' 'match number of slices')
+            raise HeaderDataError('Number of slice times does not match number of slices')
         # Extract Nones at beginning and end.  Check for others
         for ind, time in enumerate(slice_times):
             if time is not None:
@@ -1617,12 +1617,12 @@ class Nifti1Header(SpmAnalyzeHeader):
         timed = slice_times[slice_start : slice_end + 1]
         for time in timed:
             if time is None:
-                raise HeaderDataError('Cannot have None in middle ' 'of slice time vector')
+                raise HeaderDataError('Cannot have None in middle of slice time vector')
         # Find slice duration, check times are compatible with single
         # duration
         tdiffs = np.diff(np.sort(timed))
         if not np.allclose(np.diff(tdiffs), 0):
-            raise HeaderDataError('Slice times not compatible with ' 'single slice duration')
+            raise HeaderDataError('Slice times not compatible with single slice duration')
         duration = np.mean(tdiffs)
         # To slice time order
         st_order = np.round(np.array(timed) / duration)
@@ -1752,7 +1752,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             return hdr, rep
         if magic == hdr.single_magic and offset < hdr.single_vox_offset:
             rep.problem_level = 40
-            rep.problem_msg = 'vox offset %d too low for ' 'single file nifti1' % offset
+            rep.problem_msg = 'vox offset %d too low for single file nifti1' % offset
             if fix:
                 hdr['vox_offset'] = hdr.single_vox_offset
                 rep.fix_msg = f'setting to minimum value of {hdr.single_vox_offset}'

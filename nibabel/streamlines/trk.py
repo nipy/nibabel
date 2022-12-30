@@ -508,15 +508,7 @@ class TrkFile(TractogramFile):
 
                 points = np.asarray(t.streamline)
                 scalars = [np.asarray(t.data_for_points[k]) for k in data_for_points_keys]
-                scalars = np.concatenate(
-                    [
-                        np.ndarray(
-                            (len(points), 0),
-                        )
-                    ]
-                    + scalars,
-                    axis=1,
-                )
+                scalars = np.concatenate([np.ndarray((len(points), 0))] + scalars, axis=1)
                 properties = [
                     np.asarray(t.data_for_streamline[k]) for k in data_for_streamline_keys
                 ]
@@ -543,7 +535,7 @@ class TrkFile(TractogramFile):
                 raise DataError(msg)
 
             if nb_properties_per_streamline != int(nb_properties_per_streamline):
-                msg = 'Nb. of properties differs from one streamline to' ' another!'
+                msg = 'Nb. of properties differs from one streamline to another!'
                 raise DataError(msg)
 
             header[Field.NB_STREAMLINES] = nb_streamlines
@@ -599,14 +591,14 @@ class TrkFile(TractogramFile):
                 header_rec[Field.VOXEL_TO_RASMM] = np.zeros((4, 4))
             elif header_rec['version'] == 3:
                 warnings.warn(
-                    'Parsing a TRK v3 file as v2. Some features may not ' 'be handled correctly.',
+                    'Parsing a TRK v3 file as v2. Some features may not be handled correctly.',
                     HeaderWarning,
                 )
             elif header_rec['version'] in (2, 3):
                 pass  # Nothing more to do.
             else:
                 raise HeaderError(
-                    'NiBabel only supports versions 1 and 2 of ' 'the Trackvis file format'
+                    'NiBabel only supports versions 1 and 2 of the Trackvis file format'
                 )
 
             # Convert the first record of `header_rec` into a dictionary
@@ -617,11 +609,8 @@ class TrkFile(TractogramFile):
             if header[Field.VOXEL_TO_RASMM][3][3] == 0:
                 header[Field.VOXEL_TO_RASMM] = np.eye(4, dtype=np.float32)
                 warnings.warn(
-                    (
-                        "Field 'vox_to_ras' in the TRK's header was"
-                        " not recorded. Will continue assuming it's"
-                        ' the identity.'
-                    ),
+                    "Field 'vox_to_ras' in the TRK's header was not recorded. "
+                    "Will continue assuming it's the identity.",
                     HeaderWarning,
                 )
 

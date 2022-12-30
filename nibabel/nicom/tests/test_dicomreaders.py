@@ -54,7 +54,7 @@ def test_passing_kwds():
 
 
 def test_slices_to_series():
-    dicom_files = (pjoin(IO_DATA_PATH, '%d.dcm' % i) for i in range(2))
+    dicom_files = (pjoin(IO_DATA_PATH, f'{i}.dcm') for i in range(2))
     wrappers = [didr.wrapper_from_file(f) for f in dicom_files]
     series = didr.slices_to_series(wrappers)
     assert len(series) == 1
