@@ -10,11 +10,11 @@ _CONVERTERS = {
     'FL': float,  # float
     'FD': float,  # double
     'DS': float,  # decimal string
-    'SS': int,    # signed short
-    'US': int,    # unsigned short
-    'SL': int,    # signed long
-    'UL': int,    # unsigned long
-    'IS': int,    # integer string
+    'SS': int,  # signed short
+    'US': int,  # unsigned short
+    'SL': int,  # signed long
+    'UL': int,  # unsigned long
+    'IS': int,  # integer string
 }
 
 MAX_CSA_ITEMS = 1000

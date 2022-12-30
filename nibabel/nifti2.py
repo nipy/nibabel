@@ -74,6 +74,7 @@ typedef struct nifti_2_header nifti_2_header ;
 
 # nifti2 flat header definition for first 540 bytes
 # First number in comments indicates offset in file header in bytes
+# fmt: off
 header_dtd = [
     ('sizeof_hdr', 'i4'),       # 0; must be 540
     ('magic', 'S4'),            # 4; must be 'ni2\0' or 'n+2\0'
@@ -114,6 +115,7 @@ header_dtd = [
     ('dim_info', 'u1'),         # 524; MRI slice ordering code
     ('unused_str', 'S15'),      # 525; unused, filled with \0
 ]  # total 540
+# fmt: on
 
 # Full header numpy dtype
 header_dtype = np.dtype(header_dtd)

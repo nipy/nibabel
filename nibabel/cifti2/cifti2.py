@@ -70,7 +70,7 @@ CIFTI_MAP_TYPES = (
 
 CIFTI_MODEL_TYPES = (
     'CIFTI_MODEL_TYPE_SURFACE',  # Modeled using surface vertices
-    'CIFTI_MODEL_TYPE_VOXELS',   # Modeled using voxels.
+    'CIFTI_MODEL_TYPE_VOXELS',  # Modeled using voxels.
 )
 
 CIFTI_SERIESUNIT_TYPES = (

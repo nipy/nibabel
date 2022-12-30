@@ -144,7 +144,7 @@ PSL_TO_RAS = np.array(
     [
         [0, 0, -1, 0],  # L -> R
         [-1, 0, 0, 0],  # P -> A
-        [0, 1, 0, 0],   # S -> S
+        [0, 1, 0, 0],  # S -> S
         [0, 0, 0, 1],
     ]
 )
@@ -269,6 +269,7 @@ image_def_dtds['V4'] = [
 ]
 
 # Extra image def fields for 4.1 compared to 4
+# fmt: off
 image_def_dtds['V4.1'] = image_def_dtds['V4'] + [
     ('diffusion b value number', int),     # (imagekey!)
     ('gradient orientation number', int),  # (imagekey!)
@@ -281,6 +282,7 @@ image_def_dtds['V4.1'] = image_def_dtds['V4'] + [
 image_def_dtds['V4.2'] = image_def_dtds['V4.1'] + [
     ('label type', int),                   # (imagekey!)
 ]
+# fmt: on
 
 #: PAR header versions we claim to understand
 supported_versions = list(image_def_dtds.keys())

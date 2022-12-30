@@ -29,6 +29,7 @@ from ..wrapstruct import LabeledWrapStruct
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 DATA_OFFSET = 284
 # Note that mgh data is strictly big endian ( hence the > sign )
+# fmt: off
 header_dtd = [
     ('version', '>i4'),             # 0; must be 1
     ('dims', '>i4', (4,)),          # 4; width, height, depth, nframes
@@ -47,6 +48,7 @@ footer_dtd = [
     ('ti', '>f4'),                  # 12; inversion time
     ('fov', '>f4'),                 # 16; field of view (unused)
 ]
+# fmt: on
 
 header_dtype = np.dtype(header_dtd)
 footer_dtype = np.dtype(footer_dtd)

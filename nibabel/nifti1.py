@@ -32,6 +32,7 @@ pdcm, have_dicom, _ = optional_package('pydicom')
 
 # nifti1 flat header definition for Analyze-like first 348 bytes
 # first number in comments indicates offset in file header in bytes
+# fmt: off
 header_dtd = [
     ('sizeof_hdr', 'i4'),      # 0; must be 348
     ('data_type', 'S10'),      # 4; unused
@@ -75,8 +76,9 @@ header_dtd = [
     ('srow_y', 'f4', (4,)),    # 296; 2nd row affine transform
     ('srow_z', 'f4', (4,)),    # 312; 3rd row affine transform
     ('intent_name', 'S16'),    # 328; name or meaning of data
-    ('magic', 'S4'),            # 344; must be 'ni1\0' or 'n+1\0'
+    ('magic', 'S4'),           # 344; must be 'ni1\0' or 'n+1\0'
 ]
+# fmt: on
 
 # Full header numpy dtype
 header_dtype = np.dtype(header_dtd)
