@@ -564,8 +564,13 @@ class SpatialImage(DataobjImage):
             "slicing image array data with `img.dataobj[slice]` or "
             "`img.get_fdata()[slice]`")
 
-    def orthoview(self):
+    def orthoview(self, overlay=None, **kwargs):
         """Plot the image using OrthoSlicer3D
+
+        Parameters
+        ----------
+        overlay : ``spatialimage`` instance
+            Image to be plotted as overlay. Default: None
 
         Returns
         -------
@@ -578,8 +583,12 @@ class SpatialImage(DataobjImage):
         consider using viewer.show() (equivalently plt.show()) to show
         the figure.
         """
-        return OrthoSlicer3D(self.dataobj, self.affine,
-                             title=self.get_filename())
+        ortho = OrthoSlicer3D(self.dataobj, self.affine,
+                              title=self.get_filename())
+        if overlay is not None:
+            ortho.set_overlay(overlay, **kwargs)
+
+        return ortho
 
     def as_reoriented(self, ornt):
         """Apply an orientation change and return a new image
