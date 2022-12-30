@@ -43,6 +43,11 @@ from . import spm99analyze as spm99
 from . import spm2analyze as spm2
 from . import nifti1 as ni1
 from . import ecat
+from . import mriutils
+from . import streamlines
+from . import viewers
+
+# isort: split
 
 # object imports
 from .fileholders import FileHolder, FileHolderError
@@ -67,9 +72,8 @@ from .orientations import (
     aff2axcodes,
 )
 from .imageclasses import all_image_classes
-from . import mriutils
-from . import streamlines
-from . import viewers
+
+# isort: split
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 
