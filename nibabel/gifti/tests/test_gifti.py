@@ -465,7 +465,7 @@ def test_darray_dtype_coercion_failures():
     encodings = ('ASCII', 'B64BIN', 'B64GZ')
     for data_dtype, darray_dtype, encoding in itertools.product(dtypes, dtypes, encodings):
         da = GiftiDataArray(
-            np.arange(10).astype(data_dtype),
+            np.arange(10, dtype=data_dtype),
             encoding=encoding,
             intent='NIFTI_INTENT_NODE_INDEX',
             datatype=darray_dtype,

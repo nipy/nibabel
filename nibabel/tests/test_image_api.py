@@ -255,7 +255,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             with maybe_deprecated(meth_name), pytest.raises(ValueError):
                 method(caching='something')
         # dataobj is read only
-        fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
+        fake_data = np.zeros(img.shape, dtype=img.get_data_dtype())
         with pytest.raises(AttributeError):
             img.dataobj = fake_data
         # So is in_memory

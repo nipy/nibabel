@@ -70,9 +70,9 @@ def _read_volume_info(fobj):
         if key in ('valid', 'filename'):
             volume_info[key] = pair[1].strip()
         elif key == 'volume':
-            volume_info[key] = np.array(pair[1].split()).astype(int)
+            volume_info[key] = np.array(pair[1].split(), int)
         else:
-            volume_info[key] = np.array(pair[1].split()).astype(float)
+            volume_info[key] = np.array(pair[1].split(), float)
     # Ignore the rest
     return volume_info
 
@@ -521,7 +521,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         vnum = len(labels)
 
         def write(num, dtype=dt):
-            np.array([num]).astype(dtype).tofile(fobj)
+            np.array([num], dtype).tofile(fobj)
 
         def write_string(s):
             s = (s if isinstance(s, bytes) else s.encode()) + b'\x00'

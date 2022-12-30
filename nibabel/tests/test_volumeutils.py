@@ -1161,7 +1161,7 @@ def test__write_data():
         (None, (-2, 49)),
         (None, 1),
     ):
-        data = np.arange(24).astype(np.float32)
+        data = np.arange(24, dtype=np.float32)
         assert_rt(
             data,
             shape,

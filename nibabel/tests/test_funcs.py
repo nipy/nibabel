@@ -127,7 +127,7 @@ def test_concat():
 
 def test_closest_canonical():
     # Use 32-bit data so that the AnalyzeImage class doesn't complain
-    arr = np.arange(24).reshape((2, 3, 4, 1)).astype(np.int32)
+    arr = np.arange(24, dtype=np.int32).reshape((2, 3, 4, 1))
 
     # Test with an AnalyzeImage first
     img = AnalyzeImage(arr, np.eye(4))

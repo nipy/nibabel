@@ -123,7 +123,7 @@ def test_write_mgh():
 def test_write_noaffine_mgh():
     # now just save the image without the vox2ras transform
     # and see if it uses the default values to save
-    v = np.ones((7, 13, 3, 22)).astype(np.uint8)
+    v = np.ones((7, 13, 3, 22), np.uint8)
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     img = MGHImage(v, None)
@@ -175,7 +175,7 @@ def bad_dtype_mgh():
     """
     # try to write an unsigned short and make sure it
     # raises MGHError
-    v = np.ones((7, 13, 3, 22)).astype(np.uint16)
+    v = np.ones((7, 13, 3, 22), np.uint16)
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     MGHImage(v, None)
@@ -189,7 +189,7 @@ def test_bad_dtype_mgh():
 
 def test_filename_exts():
     # Test acceptable filename extensions
-    v = np.ones((7, 13, 3, 22)).astype(np.uint8)
+    v = np.ones((7, 13, 3, 22), np.uint8)
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     img = MGHImage(v, None)
@@ -251,7 +251,7 @@ def test_header_updating():
 
 def test_cosine_order():
     # Test we are interpreting the cosine order right
-    data = np.arange(60).reshape((3, 4, 5)).astype(np.int32)
+    data = np.arange(60, dtype=np.int32).reshape((3, 4, 5))
     aff = np.diag([2.0, 3, 4, 1])
     aff[0] = [2, 1, 0, 10]
     img = MGHImage(data, aff)
