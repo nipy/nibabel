@@ -38,7 +38,7 @@ class DataobjImage(FileBasedImage):
         file_map : mapping, optional
            mapping giving file information for this image format
         """
-        super(DataobjImage, self).__init__(header=header, extra=extra, file_map=file_map)
+        super().__init__(header=header, extra=extra, file_map=file_map)
         self._dataobj = dataobj
         self._fdata_cache = None
         self._data_cache = None

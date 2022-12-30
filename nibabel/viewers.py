@@ -216,7 +216,7 @@ class OrthoSlicer3D:
             ax.set_ylim(yl)
             self._volume_ax_objs = dict(step=step, patch=patch)
 
-        self._figs = set([a.figure for a in self._axes])
+        self._figs = {a.figure for a in self._axes}
         for fig in self._figs:
             fig.canvas.mpl_connect('scroll_event', self._on_scroll)
             fig.canvas.mpl_connect('motion_notify_event', self._on_mouse)

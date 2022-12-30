@@ -147,7 +147,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     def __init__(self, record=True, modules=()):
         self.modules = set(modules).union(self.class_modules)
         self._warnreg_copies = {}
-        super(clear_and_catch_warnings, self).__init__(record=record)
+        super().__init__(record=record)
 
     def __enter__(self):
         for mod in self.modules:
@@ -155,10 +155,10 @@ class clear_and_catch_warnings(warnings.catch_warnings):
                 mod_reg = mod.__warningregistry__
                 self._warnreg_copies[mod] = mod_reg.copy()
                 mod_reg.clear()
-        return super(clear_and_catch_warnings, self).__enter__()
+        return super().__enter__()
 
     def __exit__(self, *exc_info):
-        super(clear_and_catch_warnings, self).__exit__(*exc_info)
+        super().__exit__(*exc_info)
         for mod in self.modules:
             if hasattr(mod, '__warningregistry__'):
                 mod.__warningregistry__.clear()
@@ -183,7 +183,7 @@ class error_warnings(clear_and_catch_warnings):
     filter = 'error'
 
     def __enter__(self):
-        mgr = super(error_warnings, self).__enter__()
+        mgr = super().__enter__()
         warnings.simplefilter(self.filter)
         return mgr
 

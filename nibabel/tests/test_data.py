@@ -51,19 +51,19 @@ def test_versioned():
             VersionedDatasource(tmpdir)
         tmpfile = pjoin(tmpdir, 'config.ini')
         # ini file, but wrong section
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[SOMESECTION]\n')
             fobj.write('version = 0.1\n')
         with pytest.raises(DataError):
             VersionedDatasource(tmpdir)
         # ini file, but right section, wrong key
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DEFAULT]\n')
             fobj.write('somekey = 0.1\n')
         with pytest.raises(DataError):
             VersionedDatasource(tmpdir)
         # ini file, right section and key
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DEFAULT]\n')
             fobj.write('version = 0.1\n')
         vds = VersionedDatasource(tmpdir)
@@ -73,7 +73,7 @@ def test_versioned():
         assert vds.minor_version == 1
         assert vds.get_filename('config.ini') == tmpfile
         # ini file, right section and key, funny value
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DEFAULT]\n')
             fobj.write('version = 0.1.2.dev\n')
         vds = VersionedDatasource(tmpdir)
@@ -142,7 +142,7 @@ def test_data_path(with_nimd_env):
     # Next, make a fake user directory, and put a file in there
     with TemporaryDirectory() as tmpdir:
         tmpfile = pjoin(tmpdir, 'config.ini')
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DATA]\n')
             fobj.write(f'path = {tst_pth}')
         nibd.get_nipy_user_dir = lambda: tmpdir
@@ -153,11 +153,11 @@ def test_data_path(with_nimd_env):
     with TemporaryDirectory() as tmpdir:
         nibd.get_nipy_system_dir = lambda: tmpdir
         tmpfile = pjoin(tmpdir, 'an_example.ini')
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DATA]\n')
             fobj.write(f'path = {tst_pth}\n')
         tmpfile = pjoin(tmpdir, 'another_example.ini')
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DATA]\n')
             fobj.write('path = %s\n' % '/path/two')
         assert get_data_path() == tst_list + ['/path/two'] + old_pth
@@ -195,7 +195,7 @@ def test_make_datasource(with_nimd_env):
         with pytest.raises(DataError):
             make_datasource(pkg_def)
         tmpfile = pjoin(pkg_dir, 'config.ini')
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DEFAULT]\n')
             fobj.write('version = 0.1\n')
         ds = make_datasource(pkg_def, data_path=[tmpdir])
@@ -223,7 +223,7 @@ def test_datasource_or_bomber(with_nimd_env):
         pkg_dir = pjoin(tmpdir, 'pkg')
         os.mkdir(pkg_dir)
         tmpfile = pjoin(pkg_dir, 'config.ini')
-        with open(tmpfile, 'wt') as fobj:
+        with open(tmpfile, 'w') as fobj:
             fobj.write('[DEFAULT]\n')
             fobj.write('version = 0.2\n')
         ds = datasource_or_bomber(pkg_def)

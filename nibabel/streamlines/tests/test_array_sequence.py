@@ -89,7 +89,7 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq(ArraySequence(iter(SEQ_DATA['data']), buffer_size), SEQ_DATA['data'])
 
     def test_creating_arraysequence_from_generator(self):
-        gen_1, gen_2 = itertools.tee((e for e in SEQ_DATA['data']))
+        gen_1, gen_2 = itertools.tee(e for e in SEQ_DATA['data'])
         seq = ArraySequence(gen_1)
         seq_with_buffer = ArraySequence(gen_2, buffer_size=256)
 
@@ -189,7 +189,7 @@ class TestArraySequence(unittest.TestCase):
 
         # Extend with a generator.
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
-        seq.extend((d for d in new_data))
+        seq.extend(d for d in new_data)
         check_arr_seq(seq, SEQ_DATA['data'] + new_data)
 
         # Extend with another `ArraySequence` object.

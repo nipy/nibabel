@@ -111,7 +111,7 @@ def test_custom_dicter():
     assert rc.code['one'] == 'spam'
     assert rc.code['first'] == 'spam'
     assert rc.code['bizarre'] == 'eggs'
-    assert rc.value_set() == set(['funny', 'list'])
+    assert rc.value_set() == {'funny', 'list'}
     assert list(rc.keys()) == ['some', 'keys']
 
 
@@ -138,11 +138,11 @@ def test_sugar():
     assert rc[1] == rc.field1[1]
     assert rc['two'] == rc.field1['two']
     # keys gets all keys
-    assert set(rc.keys()) == set((1, 'one', '1', 'first', 2, 'two'))
+    assert set(rc.keys()) == {1, 'one', '1', 'first', 2, 'two'}
     # value_set gets set of values from first column
-    assert rc.value_set() == set((1, 2))
+    assert rc.value_set() == {1, 2}
     # or named column if given
-    assert rc.value_set('label') == set(('one', 'two'))
+    assert rc.value_set('label') == {'one', 'two'}
     # "in" works for values in and outside the set
     assert 'one' in rc
     assert 'three' not in rc

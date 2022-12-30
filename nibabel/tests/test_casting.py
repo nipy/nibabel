@@ -53,7 +53,7 @@ def test_shared_range():
             if thresh_overflow:
                 assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
-                assert np.all((bit_bigger <= casted_mx))
+                assert np.all(bit_bigger <= casted_mx)
             if it in np.sctypes['uint']:
                 assert mn == 0
                 continue
@@ -79,7 +79,7 @@ def test_shared_range():
             if thresh_overflow:
                 assert np.all((bit_smaller == casted_mn) | (bit_smaller == imin))
             else:
-                assert np.all((bit_smaller >= casted_mn))
+                assert np.all(bit_smaller >= casted_mn)
 
 
 def test_shared_range_inputs():

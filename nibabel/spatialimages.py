@@ -428,7 +428,7 @@ class SpatialImage(DataobjImage):
         file_map : mapping, optional
            mapping giving file information for this image format
         """
-        super(SpatialImage, self).__init__(dataobj, header=header, extra=extra, file_map=file_map)
+        super().__init__(dataobj, header=header, extra=extra, file_map=file_map)
         if affine is not None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know

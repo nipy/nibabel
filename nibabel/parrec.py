@@ -754,9 +754,7 @@ class PARRECHeader(SpatialHeader):
             )
         # REC data always little endian
         dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
-        super(PARRECHeader, self).__init__(
-            data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms()
-        )
+        super().__init__(data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms())
 
     @classmethod
     def from_header(klass, header=None):

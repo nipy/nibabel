@@ -119,7 +119,7 @@ class MGHHeader(LabeledWrapStruct):
             # Footer is optional and may contain variable-length text fields,
             # so limit to fixed fields
             binaryblock = binaryblock[:full_size] + b'\x00' * (full_size - len(binaryblock))
-        super(MGHHeader, self).__init__(binaryblock=binaryblock, endianness='big', check=False)
+        super().__init__(binaryblock=binaryblock, endianness='big', check=False)
         if not self._structarr['goodRASFlag']:
             self._set_affine_default()
         if check:
@@ -367,7 +367,7 @@ class MGHHeader(LabeledWrapStruct):
         """
         if endianness is not None and endian_codes[endianness] != '>':
             raise ValueError('MGHHeader must always be big endian')
-        structarr = super(MGHHeader, klass).default_structarr(endianness=endianness)
+        structarr = super().default_structarr(endianness=endianness)
         structarr['version'] = 1
         structarr['dims'] = 1
         structarr['type'] = 3
@@ -477,9 +477,7 @@ class MGHImage(SpatialImage, SerializableImage):
         shape = dataobj.shape
         if len(shape) < 3:
             dataobj = reshape_dataobj(dataobj, shape + (1,) * (3 - len(shape)))
-        super(MGHImage, self).__init__(
-            dataobj, affine, header=header, extra=extra, file_map=file_map
-        )
+        super().__init__(dataobj, affine, header=header, extra=extra, file_map=file_map)
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
@@ -487,7 +485,7 @@ class MGHImage(SpatialImage, SerializableImage):
         """ Check for compressed .mgz format, then .mgh format """
         if splitext(filespec)[1].lower() == '.mgz':
             return dict(image=FileHolder(filename=filespec))
-        return super(MGHImage, klass).filespec_to_file_map(filespec)
+        return super().filespec_to_file_map(filespec)
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):

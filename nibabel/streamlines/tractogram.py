@@ -98,7 +98,7 @@ class PerArrayDict(SliceableDataDict):
 
     def __init__(self, n_rows=0, *args, **kwargs):
         self.n_rows = n_rows
-        super(PerArrayDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
         value = np.asarray(list(value))
@@ -604,9 +604,7 @@ class LazyTractogram(Tractogram):
             refers to the center of the voxel. By default, the streamlines
             are in an unknown space, i.e. affine_to_rasmm is None.
         """
-        super(LazyTractogram, self).__init__(
-            streamlines, data_per_streamline, data_per_point, affine_to_rasmm
-        )
+        super().__init__(streamlines, data_per_streamline, data_per_point, affine_to_rasmm)
         self._nb_streamlines = None
         self._data = None
         self._affine_to_apply = np.eye(4)

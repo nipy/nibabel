@@ -248,7 +248,7 @@ class AnalyzeHeader(LabeledWrapStruct):
         >>> hdr4.endianness == swapped_code
         True
         """
-        super(AnalyzeHeader, self).__init__(binaryblock, endianness, check)
+        super().__init__(binaryblock, endianness, check)
 
     @classmethod
     def guessed_endian(klass, hdr):
@@ -336,7 +336,7 @@ class AnalyzeHeader(LabeledWrapStruct):
     @classmethod
     def default_structarr(klass, endianness=None):
         """Return header data for empty header with given endianness"""
-        hdr_data = super(AnalyzeHeader, klass).default_structarr(endianness)
+        hdr_data = super().default_structarr(endianness)
         hdr_data['sizeof_hdr'] = klass.sizeof_hdr
         hdr_data['dim'] = 1
         hdr_data['dim'][0] = 0
@@ -904,7 +904,7 @@ class AnalyzeImage(SpatialImage):
     ImageArrayProxy = ArrayProxy
 
     def __init__(self, dataobj, affine, header=None, extra=None, file_map=None, dtype=None):
-        super(AnalyzeImage, self).__init__(dataobj, affine, header, extra, file_map)
+        super().__init__(dataobj, affine, header, extra, file_map)
         # Reset consumable values
         self._header.set_data_offset(0)
         self._header.set_slope_inter(None, None)

@@ -150,9 +150,7 @@ def _str2int(in_str):
 
 class GiftiImageParser(XmlParser):
     def __init__(self, encoding=None, buffer_size=35000000, verbose=0, mmap=True):
-        super(GiftiImageParser, self).__init__(
-            encoding=encoding, buffer_size=buffer_size, verbose=verbose
-        )
+        super().__init__(encoding=encoding, buffer_size=buffer_size, verbose=verbose)
         # output
         self.img = None
 

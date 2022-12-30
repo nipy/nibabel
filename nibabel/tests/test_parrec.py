@@ -210,9 +210,9 @@ def test_top_level_load():
 def test_header():
     v42_hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     for strict_sort in [False, True]:
-        with open(V4_PAR, 'rt') as fobj:
+        with open(V4_PAR) as fobj:
             v4_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
-        with open(V41_PAR, 'rt') as fobj:
+        with open(V41_PAR) as fobj:
             v41_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=strict_sort)
         for hdr in (v42_hdr, v41_hdr, v4_hdr):
             hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
@@ -296,7 +296,7 @@ def test_affine_regression():
     # Data at http://psydata.ovgu.de/philips_achieva_testfiles/conversion2
     for basename, exp_affine in PREVIOUS_AFFINES.items():
         fname = pjoin(DATA_PATH, basename + '.PAR')
-        with open(fname, 'rt') as fobj:
+        with open(fname) as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
 
@@ -328,7 +328,7 @@ def test_sorting_dual_echo_T1():
     # For this .PAR file, instead of getting 1 echo per volume, they get
     # mixed up unless strict_sort=True
     t1_par = pjoin(DATA_PATH, 'T1_dual_echo.PAR')
-    with open(t1_par, 'rt') as fobj:
+    with open(t1_par) as fobj:
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
@@ -359,7 +359,7 @@ def test_sorting_multiple_echos_and_contrasts():
     #     ...
     #     Type 3, Echo 3, Slices 1-30
     t1_par = pjoin(DATA_PATH, 'T1_3echo_mag_real_imag_phase.PAR')
-    with open(t1_par, 'rt') as fobj:
+    with open(t1_par) as fobj:
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
@@ -398,7 +398,7 @@ def test_sorting_multiecho_ASL():
     # For this .PAR file has 3 keys corresponding to volumes:
     #    'echo number', 'label type', 'dynamic scan number'
     asl_par = pjoin(DATA_PATH, 'ASL_3D_Multiecho.PAR')
-    with open(asl_par, 'rt') as fobj:
+    with open(asl_par) as fobj:
         asl_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
@@ -467,13 +467,13 @@ def test_vol_is_full():
 
 def gen_par_fobj():
     for par in glob(pjoin(DATA_PATH, '*.PAR')):
-        with open(par, 'rt') as fobj:
+        with open(par) as fobj:
             yield par, fobj
 
 
 def test_truncated_load():
     # Test loading of truncated header
-    with open(TRUNC_PAR, 'rt') as fobj:
+    with open(TRUNC_PAR) as fobj:
         gen_info, slice_info = parse_PAR_header(fobj)
     with pytest.raises(PARRECError):
         PARRECHeader(gen_info, slice_info)
@@ -504,7 +504,7 @@ def test_vol_calculations():
 def test_diffusion_parameters():
     # Check getting diffusion parameters from diffusion example
     dti_par = pjoin(DATA_PATH, 'DTI.PAR')
-    with open(dti_par, 'rt') as fobj:
+    with open(dti_par) as fobj:
         dti_hdr = PARRECHeader.from_fileobj(fobj)
     assert dti_hdr.get_data_shape() == (80, 80, 10, 8)
     assert dti_hdr.general_info['diffusion'] == 1
@@ -520,7 +520,7 @@ def test_diffusion_parameters():
 def test_diffusion_parameters_strict_sort():
     # Check getting diffusion parameters from diffusion example
     dti_par = pjoin(DATA_PATH, 'DTI.PAR')
-    with open(dti_par, 'rt') as fobj:
+    with open(dti_par) as fobj:
         dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
@@ -540,7 +540,7 @@ def test_diffusion_parameters_strict_sort():
 
 def test_diffusion_parameters_v4():
     dti_v4_par = pjoin(DATA_PATH, 'DTIv40.PAR')
-    with open(dti_v4_par, 'rt') as fobj:
+    with open(dti_v4_par) as fobj:
         dti_v4_hdr = PARRECHeader.from_fileobj(fobj)
     assert dti_v4_hdr.get_data_shape() == (80, 80, 10, 8)
     assert dti_v4_hdr.general_info['diffusion'] == 1
@@ -567,7 +567,7 @@ def test_epi_params():
     # Check EPI conversion
     for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
         epi_par = pjoin(DATA_PATH, par_root + '.PAR')
-        with open(epi_par, 'rt') as fobj:
+        with open(epi_par) as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         assert len(epi_hdr.get_data_shape()) == 4
         assert_almost_equal(epi_hdr.get_zooms()[-1], 2.0)
@@ -577,7 +577,7 @@ def test_xyzt_unit_conversion():
     # Check conversion to NIfTI-like has sensible units
     for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
         epi_par = pjoin(DATA_PATH, par_root + '.PAR')
-        with open(epi_par, 'rt') as fobj:
+        with open(epi_par) as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         nifti_hdr = Nifti1Header.from_header(epi_hdr)
         assert len(nifti_hdr.get_data_shape()) == 4
@@ -588,7 +588,7 @@ def test_xyzt_unit_conversion():
 def test_truncations():
     # Test tests for truncation
     par = pjoin(DATA_PATH, 'T2_.PAR')
-    with open(par, 'rt') as fobj:
+    with open(par) as fobj:
         gen_info, slice_info = parse_PAR_header(fobj)
     # Header is well-formed as is
     hdr = PARRECHeader(gen_info, slice_info)
@@ -690,10 +690,10 @@ def test_header_copy():
     assert_copy_ok(hdr, hdr2)
     assert not hdr.permit_truncated
     assert not hdr2.permit_truncated
-    with open(TRUNC_PAR, 'rt') as fobj:
+    with open(TRUNC_PAR) as fobj:
         with pytest.raises(PARRECError):
             PARRECHeader.from_fileobj(fobj)
-    with open(TRUNC_PAR, 'rt') as fobj:
+    with open(TRUNC_PAR) as fobj:
         # Parse but warn on inconsistent header
         with pytest.warns(UserWarning, match='Header inconsistency'):
             trunc_hdr = PARRECHeader.from_fileobj(fobj, True)
@@ -826,7 +826,7 @@ def test_varying_scaling():
 
 def test_anonymized():
     # Test we can read anonymized PAR correctly
-    with open(ANON_PAR, 'rt') as fobj:
+    with open(ANON_PAR) as fobj:
         anon_hdr = PARRECHeader.from_fileobj(fobj)
     gen_defs, img_defs = anon_hdr.general_info, anon_hdr.image_defs
     assert gen_defs['patient_name'] == ''
@@ -877,7 +877,7 @@ def test_exts2par():
 
 def test_dualTR():
     expected_TRs = np.asarray([2000.0, 500.0])
-    with open(DUAL_TR_PAR, 'rt') as fobj:
+    with open(DUAL_TR_PAR) as fobj:
         with clear_and_catch_warnings(modules=[parrec], record=True) as wlist:
             simplefilter('always')
             dualTR_hdr = PARRECHeader.from_fileobj(fobj)
@@ -889,7 +889,7 @@ def test_dualTR():
 
 def test_ADC_map():
     # test reading an apparent diffusion coefficient map
-    with open(ADC_PAR, 'rt') as fobj:
+    with open(ADC_PAR) as fobj:
 
         # two truncation warnings expected because general_info indicates:
         # 1.) multiple directions

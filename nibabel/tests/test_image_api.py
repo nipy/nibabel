@@ -644,7 +644,7 @@ class MakeImageAPI(LoadImageAPI):
 
     def obj_params(self):
         # Return any obj_params from superclass
-        for func, params in super(MakeImageAPI, self).obj_params():
+        for func, params in super().obj_params():
             yield func, params
         # Create new images
         aff = np.diag([1, 2, 3, 1])

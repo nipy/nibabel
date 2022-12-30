@@ -313,7 +313,7 @@ class SlopeArrayWriter(ArrayWriter):
           data are within range of the output type, return False
         * Otherwise return True
         """
-        if not super(SlopeArrayWriter, self).scaling_needed():
+        if not super().scaling_needed():
             return False
         mn, mx = self.finite_range()  # this is cached
         # No finite data - no scaling needed
@@ -428,7 +428,7 @@ class SlopeArrayWriter(ArrayWriter):
             # not lose precision because min/max are of fp type.
             out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         else:  # (u)int
-            out_min, out_max = [int_to_float(v, big_float) for v in (out_min, out_max)]
+            out_min, out_max = (int_to_float(v, big_float) for v in (out_min, out_max))
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
                 raise WriterError(
@@ -507,13 +507,11 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         >>> (aw.slope, aw.inter) == (1.0, 128)
         True
         """
-        super(SlopeInterArrayWriter, self).__init__(
-            array, out_dtype, calc_scale, scaler_dtype, **kwargs
-        )
+        super().__init__(array, out_dtype, calc_scale, scaler_dtype, **kwargs)
 
     def reset(self):
         """Set object to values before any scaling calculation"""
-        super(SlopeInterArrayWriter, self).reset()
+        super().reset()
         self.inter = 0.0
 
     def _get_inter(self):
@@ -549,14 +547,14 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
     def _iu2iu(self):
         # (u)int to (u)int
-        mn, mx = [as_int(v) for v in self.finite_range()]
+        mn, mx = (as_int(v) for v in self.finite_range())
         # range may be greater than the largest integer for this type.
         # as_int needed to work round numpy 1.4.1 int casting bug
         out_dtype = self._out_dtype
         # Options in this method are scaling using intercept only.  These will
         # have to pass through ``self.scaler_dtype`` (because the intercept is
         # in this type).
-        o_min, o_max = [as_int(v) for v in shared_range(self.scaler_dtype, out_dtype)]
+        o_min, o_max = (as_int(v) for v in shared_range(self.scaler_dtype, out_dtype))
         type_range = o_max - o_min
         mn2mx = mx - mn
         if mn2mx <= type_range:  # might offset be enough?
@@ -579,7 +577,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
                 self.inter = inter
                 return
         # Try slope options (sign flip) and then range scaling
-        super(SlopeInterArrayWriter, self)._iu2iu()
+        super()._iu2iu()
 
     def _range_scale(self, in_min, in_max):
         """Calculate scaling, intercept based on data range and output type"""
@@ -604,7 +602,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_min, in_max = as_int(in_min), as_int(in_max)
             in_range = int_to_float(in_max - in_min, big_float)
             # Cast to float for later processing.
-            in_min, in_max = [int_to_float(v, big_float) for v in (in_min, in_max)]
+            in_min, in_max = (int_to_float(v, big_float) for v in (in_min, in_max))
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)

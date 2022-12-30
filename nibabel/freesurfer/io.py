@@ -229,7 +229,7 @@ def write_geometry(filepath, coords, faces, create_stamp=None, volume_info=None)
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
-        fobj.write((f'{create_stamp}\n\n').encode('utf-8'))
+        fobj.write((f'{create_stamp}\n\n').encode())
 
         np.array([coords.shape[0], faces.shape[0]], dtype='>i4').tofile(fobj)
 
@@ -610,13 +610,11 @@ def _serialize_volume_info(volume_info):
             strings.append(np.array(volume_info[key], dtype='>i4').tobytes())
         elif key in ('valid', 'filename'):
             val = volume_info[key]
-            strings.append(f'{key} = {val}\n'.encode('utf-8'))
+            strings.append(f'{key} = {val}\n'.encode())
         elif key == 'volume':
             val = volume_info[key]
-            strings.append(f'{key} = {val[0]} {val[1]} {val[2]}\n'.encode('utf-8'))
+            strings.append(f'{key} = {val[0]} {val[1]} {val[2]}\n'.encode())
         else:
             val = volume_info[key]
-            strings.append(
-                f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode('utf-8')
-            )
+            strings.append(f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode())
     return b''.join(strings)

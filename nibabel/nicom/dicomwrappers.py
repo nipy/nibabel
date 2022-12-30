@@ -533,7 +533,7 @@ class MultiframeWrapper(Wrapper):
             [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
         )
         # Check that there is only one multiframe stack index
-        stack_ids = set(frame.FrameContentSequence[0].StackID for frame in self.frames)
+        stack_ids = {frame.FrameContentSequence[0].StackID for frame in self.frames}
         if len(stack_ids) > 1:
             raise WrapperError(
                 'File contains more than one StackID. Cannot handle multi-stack files'
@@ -645,7 +645,7 @@ class MultiframeWrapper(Wrapper):
     def _scale_data(self, data):
         pix_trans = getattr(self.frames[0], 'PixelValueTransformationSequence', None)
         if pix_trans is None:
-            return super(MultiframeWrapper, self)._scale_data(data)
+            return super()._scale_data(data)
         scale = float(pix_trans[0].RescaleSlope)
         offset = float(pix_trans[0].RescaleIntercept)
         return self._apply_scale_offset(data, scale, offset)
@@ -681,7 +681,7 @@ class SiemensWrapper(Wrapper):
            None, we try and read the CSA information from `dcm_data`.
            If this fails, we fall back to an empty dict.
         """
-        super(SiemensWrapper, self).__init__(dcm_data)
+        super().__init__(dcm_data)
         if dcm_data is None:
             dcm_data = {}
         self.dcm_data = dcm_data
@@ -695,7 +695,7 @@ class SiemensWrapper(Wrapper):
     def slice_normal(self):
         # The std_slice_normal comes from the cross product of the directions
         # in the ImageOrientationPatient
-        std_slice_normal = super(SiemensWrapper, self).slice_normal
+        std_slice_normal = super().slice_normal
         csa_slice_normal = csar.get_slice_normal(self.csa_header)
         if std_slice_normal is None and csa_slice_normal is None:
             return None
@@ -718,7 +718,7 @@ class SiemensWrapper(Wrapper):
     @one_time
     def series_signature(self):
         """Add ICE dims from CSA header to signature"""
-        signature = super(SiemensWrapper, self).series_signature
+        signature = super().series_signature
         ice = csar.get_ice_dims(self.csa_header)
         if ice is not None:
             ice = ice[:6] + ice[8:9]
@@ -861,7 +861,7 @@ class MosaicWrapper(SiemensWrapper):
         img_pos : (3,) array
            position in mm of voxel (0,0,0) in Mosaic array
         """
-        ipp = super(MosaicWrapper, self).image_position
+        ipp = super().image_position
         # mosaic image size
         md_rows, md_cols = (self.get('Rows'), self.get('Columns'))
         iop = self.image_orient_patient

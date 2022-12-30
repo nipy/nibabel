@@ -61,7 +61,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr
-    supported_np_types = set((np.uint8, np.int16, np.int32, np.float32, np.float64, np.complex64))
+    supported_np_types = {np.uint8, np.int16, np.int32, np.float32, np.float64, np.complex64}
     add_intp(supported_np_types)
 
     def test_supported_types(self):
@@ -74,7 +74,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         return b'\x00' * self.header_class.template_dtype.itemsize
 
     def test_general_init(self):
-        super(TestAnalyzeHeader, self).test_general_init()
+        super().test_general_init()
         hdr = self.header_class()
         # an empty header has shape (0,) - like an empty array
         # (np.array([]))
@@ -497,7 +497,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         assert_array_equal(hdr.get_base_affine(), aff)
 
     def test_str(self):
-        super(TestAnalyzeHeader, self).test_str()
+        super().test_str()
         hdr = self.header_class()
         s1 = str(hdr)
         # check the datacode recoding

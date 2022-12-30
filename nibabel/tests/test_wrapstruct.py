@@ -357,7 +357,7 @@ class MyWrapStruct(WrapStruct):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        structarr = super(MyWrapStruct, klass).default_structarr(endianness)
+        structarr = super().default_structarr(endianness)
         structarr['an_integer'] = 1
         structarr['a_str'] = b'a string'
         return structarr

@@ -45,7 +45,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
     @classmethod
     def default_structarr(klass, endianness=None):
         """Create empty header binary block with given endianness"""
-        hdr_data = super(SpmAnalyzeHeader, klass).default_structarr(endianness)
+        hdr_data = super().default_structarr(endianness)
         hdr_data['scl_slope'] = 1
         return hdr_data
 
@@ -206,7 +206,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
     @classmethod
     def _get_checks(klass):
-        checks = super(Spm99AnalyzeHeader, klass)._get_checks()
+        checks = super()._get_checks()
         return checks + (klass._chk_origin,)
 
     @staticmethod
@@ -264,9 +264,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         img : Spm99AnalyzeImage instance
 
         """
-        ret = super(Spm99AnalyzeImage, klass).from_file_map(
-            file_map, mmap=mmap, keep_file_open=keep_file_open
-        )
+        ret = super().from_file_map(file_map, mmap=mmap, keep_file_open=keep_file_open)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except OSError:
@@ -312,7 +310,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         """
         if file_map is None:
             file_map = self.file_map
-        super(Spm99AnalyzeImage, self).to_file_map(file_map, dtype=dtype)
+        super().to_file_map(file_map, dtype=dtype)
         mat = self._affine
         if mat is None:
             return

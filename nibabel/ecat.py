@@ -278,7 +278,7 @@ class EcatHeader(WrapStruct):
             Whether to check and fix header for errors.  No checks currently
             implemented, so value has no effect.
         """
-        super(EcatHeader, self).__init__(binaryblock, endianness, check)
+        super().__init__(binaryblock, endianness, check)
 
     @classmethod
     def guessed_endian(klass, hdr):
@@ -291,7 +291,7 @@ class EcatHeader(WrapStruct):
     @classmethod
     def default_structarr(klass, endianness=None):
         """Return header data for empty header with given endianness"""
-        hdr_data = super(EcatHeader, klass).default_structarr(endianness)
+        hdr_data = super().default_structarr(endianness)
         hdr_data['magic_number'] = 'MATRIX72'
         hdr_data['sw_version'] = 74
         hdr_data['num_frames'] = 0

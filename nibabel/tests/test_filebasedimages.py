@@ -17,7 +17,7 @@ class FBNumpyImage(FileBasedImage):
     files_types = (('image', '.npy'),)
 
     def __init__(self, arr, header=None, extra=None, file_map=None):
-        super(FBNumpyImage, self).__init__(header, extra, file_map)
+        super().__init__(header, extra, file_map)
         self.arr = arr
 
     @property

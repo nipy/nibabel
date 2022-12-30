@@ -205,7 +205,7 @@ def parse_ascconv(ascconv_str, str_delim='"'):
         A line of the ASCCONV section could not be parsed.
     """
     attrs, content = ASCCONV_RE.match(ascconv_str).groups()
-    attrs = OrderedDict((tuple(x.split('=')) for x in attrs.split()))
+    attrs = OrderedDict(tuple(x.split('=')) for x in attrs.split())
     # Normalize string start / end markers to something Python understands
     content = content.replace(str_delim, '"""').replace('\\', '\\\\')
     # Use Python's own parser to parse modified ASCCONV assignments

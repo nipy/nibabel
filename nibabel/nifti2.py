@@ -188,7 +188,7 @@ class Nifti2Header(Nifti1Header):
     @classmethod
     def default_structarr(klass, endianness=None):
         """Create empty header binary block with given endianness"""
-        hdr_data = super(Nifti2Header, klass).default_structarr(endianness)
+        hdr_data = super().default_structarr(endianness)
         hdr_data['eol_check'] = (13, 10, 26, 10)
         return hdr_data
 
@@ -197,7 +197,7 @@ class Nifti2Header(Nifti1Header):
     @classmethod
     def _get_checks(klass):
         # Add our own checks
-        return super(Nifti2Header, klass)._get_checks() + (klass._chk_eol_check,)
+        return super()._get_checks() + (klass._chk_eol_check,)
 
     @staticmethod
     def _chk_eol_check(hdr, fix=False):

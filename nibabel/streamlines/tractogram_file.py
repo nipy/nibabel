@@ -30,7 +30,7 @@ class abstractclassmethod(classmethod):
 
     def __init__(self, callable):
         callable.__isabstractmethod__ = True
-        super(abstractclassmethod, self).__init__(callable)
+        super().__init__(callable)
 
 
 class TractogramFile(ABC):

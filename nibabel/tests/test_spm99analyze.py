@@ -83,7 +83,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
     header_class = Spm99AnalyzeHeader
 
     def test_empty(self):
-        super(TestSpm99AnalyzeHeader, self).test_empty()
+        super().test_empty()
         hdr = self.header_class()
         assert hdr['scl_slope'] == 1
 

@@ -237,7 +237,7 @@ class TrkFile(TractogramFile):
         and *mm* space where coordinate (0,0,0) refers to the center
         of the voxel.
         """
-        super(TrkFile, self).__init__(tractogram, header)
+        super().__init__(tractogram, header)
 
     @classmethod
     def is_correct_format(cls, fileobj):
@@ -359,9 +359,9 @@ class TrkFile(TractogramFile):
             def _read():
                 for pts, scals, props in cls._read(fileobj, hdr):
                     items = data_per_point_slice.items()
-                    data_for_points = dict((k, scals[:, v]) for k, v in items)
+                    data_for_points = {k: scals[:, v] for k, v in items}
                     items = data_per_streamline_slice.items()
-                    data_for_streamline = dict((k, props[v]) for k, v in items)
+                    data_for_streamline = {k: props[v] for k, v in items}
                     yield TractogramItem(pts, data_for_streamline, data_for_points)
 
             tractogram = LazyTractogram.from_data_func(_read)
@@ -503,7 +503,7 @@ class TrkFile(TractogramFile):
             header['scalar_name'][:] = scalar_name
 
             for t in tractogram:
-                if any((len(d) != len(t.streamline) for d in t.data_for_points.values())):
+                if any(len(d) != len(t.streamline) for d in t.data_for_points.values()):
                     raise DataError('Missing scalars for some points!')
 
                 points = np.asarray(t.streamline)
@@ -747,7 +747,7 @@ class TrkFile(TractogramFile):
         vars['property_names'] = '\n  '.join(property_names)
         # Make all byte strings into strings
         # Fixes recursion error on Python 3.3
-        vars = dict((k, asstr(v) if hasattr(v, 'decode') else v) for k, v in vars.items())
+        vars = {k: asstr(v) if hasattr(v, 'decode') else v for k, v in vars.items()}
         return """\
 MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}

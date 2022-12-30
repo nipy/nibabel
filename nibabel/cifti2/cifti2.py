@@ -1451,7 +1451,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
         """
         if not isinstance(header, Cifti2Header) and header:
             header = Cifti2Header.from_axes(header)
-        super(Cifti2Image, self).__init__(dataobj, header=header, extra=extra, file_map=file_map)
+        super().__init__(dataobj, header=header, extra=extra, file_map=file_map)
         self._nifti_header = LimitedNifti2Header.from_header(nifti_header)
 
         # if NIfTI header not specified, get data type from input array

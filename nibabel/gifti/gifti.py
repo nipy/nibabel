@@ -589,7 +589,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         darrays=None,
         version='1.0',
     ):
-        super(GiftiImage, self).__init__(header=header, extra=extra, file_map=file_map)
+        super().__init__(header=header, extra=extra, file_map=file_map)
         if darrays is None:
             darrays = []
         if meta is None:

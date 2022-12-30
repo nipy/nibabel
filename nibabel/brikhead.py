@@ -195,7 +195,7 @@ def parse_AFNI_header(fobj):
     """
     # edge case for being fed a filename instead of a file object
     if isinstance(fobj, str):
-        with open(fobj, 'rt') as src:
+        with open(fobj) as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
@@ -239,9 +239,7 @@ class AFNIArrayProxy(ArrayProxy):
             effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
-        super(AFNIArrayProxy, self).__init__(
-            file_like, header, mmap=mmap, keep_file_open=keep_file_open
-        )
+        super().__init__(file_like, header, mmap=mmap, keep_file_open=keep_file_open)
         self._scaling = header.get_data_scaling()
 
     @property
@@ -293,9 +291,7 @@ class AFNIHeader(SpatialHeader):
         """
         self.info = info
         dt = _get_datatype(self.info)
-        super(AFNIHeader, self).__init__(
-            data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms()
-        )
+        super().__init__(data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms())
 
     @classmethod
     def from_header(klass, header=None):
@@ -553,7 +549,7 @@ class AFNIImage(SpatialImage):
             If `filespec` is not recognizable as being a filename for this
             image type.
         """
-        file_map = super(AFNIImage, klass).filespec_to_file_map(filespec)
+        file_map = super().filespec_to_file_map(filespec)
         # check for AFNI-specific BRIK/HEAD compression idiosyncrasies
         for key, fholder in file_map.items():
             fname = fholder.filename

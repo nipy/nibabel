@@ -22,7 +22,7 @@ def lossless_slice(img, slicers):
 def parse_slice(crop, allow_step=True):
     if crop is None:
         return slice(None)
-    start, stop, *extra = [int(val) if val else None for val in crop.split(':')]
+    start, stop, *extra = (int(val) if val else None for val in crop.split(':'))
     if len(extra) > 1:
         raise ValueError(f'Cannot parse specification: {crop}')
     if not allow_step and extra and extra[0] not in (1, None):

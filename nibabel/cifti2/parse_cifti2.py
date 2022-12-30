@@ -91,7 +91,7 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
 
     @classmethod
     def may_contain_header(klass, binaryblock):
-        if not super(_Cifti2AsNiftiHeader, klass).may_contain_header(binaryblock):
+        if not super().may_contain_header(binaryblock):
             return False
         hdr = klass(binaryblock=binaryblock[: klass.sizeof_hdr])
         return klass._valid_intent_code(hdr.get_intent('code')[0])
@@ -135,9 +135,7 @@ class Cifti2Parser(xml.XmlParser):
     """Class to parse an XML string into a CIFTI-2 header object"""
 
     def __init__(self, encoding=None, buffer_size=3500000, verbose=0):
-        super(Cifti2Parser, self).__init__(
-            encoding=encoding, buffer_size=buffer_size, verbose=verbose
-        )
+        super().__init__(encoding=encoding, buffer_size=buffer_size, verbose=verbose)
         self.fsm_state = []
         self.struct_state = []
 

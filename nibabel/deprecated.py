@@ -60,7 +60,7 @@ class FutureWarningMixin:
 
     def __init__(self, *args, **kwargs):
         warnings.warn(self.warn_message, FutureWarning, stacklevel=2)
-        super(FutureWarningMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class VisibleDeprecationWarning(UserWarning):

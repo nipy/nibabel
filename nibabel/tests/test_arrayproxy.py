@@ -421,7 +421,7 @@ class CountingImageOpener(ImageOpener):
     num_openers = 0
 
     def __init__(self, *args, **kwargs):
-        super(CountingImageOpener, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         CountingImageOpener.num_openers += 1
 
 

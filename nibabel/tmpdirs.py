@@ -74,11 +74,11 @@ class InTemporaryDirectory(TemporaryDirectory):
     def __enter__(self):
         self._pwd = os.getcwd()
         os.chdir(self.name)
-        return super(InTemporaryDirectory, self).__enter__()
+        return super().__enter__()
 
     def __exit__(self, exc, value, tb):
         os.chdir(self._pwd)
-        return super(InTemporaryDirectory, self).__exit__(exc, value, tb)
+        return super().__exit__(exc, value, tb)
 
 
 class InGivenDirectory:

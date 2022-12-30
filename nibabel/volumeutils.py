@@ -593,7 +593,7 @@ def array_to_file(
     if null_scaling and np.can_cast(in_dtype, out_dtype):
         return _write_data(data, fileobj, out_dtype, order, pre_clips=pre_clips)
     # Force upcasting for floats by making atleast_1d.
-    slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
+    slope, inter = (np.atleast_1d(v) for v in (divslope, intercept))
     # Default working point type for applying slope / inter
     if slope.dtype.kind in 'iu':
         slope = slope.astype(float)
@@ -621,7 +621,7 @@ def array_to_file(
     # going to integers
     # Because we're going to integers, complex inter and slope will only slow
     # us down, cast to float
-    slope, inter = [v.astype(_matching_float(v.dtype)) for v in (slope, inter)]
+    slope, inter = (v.astype(_matching_float(v.dtype)) for v in (slope, inter))
     # We'll do the thresholding on the scaled data, so turn off the
     # thresholding on the unscaled data
     pre_clips = None
@@ -642,7 +642,7 @@ def array_to_file(
     extremes = np.array(dt_mnmx, dtype=cast_in_dtype)
     w_type = best_write_scale_ftype(extremes, slope, inter, w_type)
     # Push up precision by casting the slope, inter
-    slope, inter = [v.astype(w_type) for v in (slope, inter)]
+    slope, inter = (v.astype(w_type) for v in (slope, inter))
     # We need to know the result of applying slope and inter to the min and
     # max of the array, in order to clip the output array, after applying
     # the slope and inter.  Otherwise we'd need to clip twice, once before
@@ -887,7 +887,7 @@ def apply_read_scaling(arr, slope=None, inter=None):
         return arr
     shape = arr.shape
     # Force float / float upcasting by promoting to arrays
-    arr, slope, inter = [np.atleast_1d(v) for v in (arr, slope, inter)]
+    arr, slope, inter = (np.atleast_1d(v) for v in (arr, slope, inter))
     if arr.dtype.kind in 'iu':
         # int to float; get enough precision to avoid infs
         # Find floating point type for which scaling does not overflow,

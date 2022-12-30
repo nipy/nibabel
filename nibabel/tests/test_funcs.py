@@ -39,8 +39,8 @@ def test_concat():
 
     affine = np.eye(4)
     for dim in range(2, 6):
-        all_shapes_ND = tuple((shape[:dim] for shape in all_shapes_5D))
-        all_shapes_N1D_unary = tuple((shape + (1,) for shape in all_shapes_ND))
+        all_shapes_ND = tuple(shape[:dim] for shape in all_shapes_5D)
+        all_shapes_N1D_unary = tuple(shape + (1,) for shape in all_shapes_ND)
         all_shapes = all_shapes_ND + all_shapes_N1D_unary
 
         # Loop over all possible combinations of images, in first and

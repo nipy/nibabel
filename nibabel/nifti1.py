@@ -688,7 +688,7 @@ class Nifti1Header(SpmAnalyzeHeader):
 
     def __init__(self, binaryblock=None, endianness=None, check=True, extensions=()):
         """Initialize header from binary data block and extensions"""
-        super(Nifti1Header, self).__init__(binaryblock, endianness, check)
+        super().__init__(binaryblock, endianness, check)
         self.extensions = self.exts_klass(extensions)
 
     def copy(self):
@@ -730,7 +730,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                 raise HeaderDataError(
                     f'vox offset set to {vox_offset}, but need at least {min_vox_offset}'
                 )
-        super(Nifti1Header, self).write_to(fileobj)
+        super().write_to(fileobj)
         # Write extensions
         if len(self.extensions) == 0:
             # If single file, write required 0 stream to signal no extensions
@@ -754,7 +754,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     @classmethod
     def default_structarr(klass, endianness=None):
         """Create empty header binary block with given endianness"""
-        hdr_data = super(Nifti1Header, klass).default_structarr(endianness)
+        hdr_data = super().default_structarr(endianness)
         if klass.is_single:
             hdr_data['magic'] = klass.single_magic
         else:
@@ -781,7 +781,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr : header instance
            fresh header instance of our own class
         """
-        new_hdr = super(Nifti1Header, klass).from_header(header, check)
+        new_hdr = super().from_header(header, check)
         if isinstance(header, Nifti1Header):
             new_hdr.extensions[:] = header.extensions[:]
         return new_hdr
@@ -811,7 +811,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         Allows for freesurfer hack for 7th order icosahedron surface described
         in `issue 309`_, load_nifti.m_, and `save_nifti.m <save50_>`_.
         """
-        shape = super(Nifti1Header, self).get_data_shape()
+        shape = super().get_data_shape()
         # Apply freesurfer hack for large vectors
         if shape[:3] == (-1, 1, 1):
             vec_len = int(self._structarr['glmin'])
@@ -903,7 +903,7 @@ class Nifti1Header(SpmAnalyzeHeader):
                 stacklevel=2,
             )
             shape = (-1, 1, 1) + shape[3:]
-        super(Nifti1Header, self).set_data_shape(shape)
+        super().set_data_shape(shape)
 
     def set_data_dtype(self, datatype):
         """Set numpy dtype for data from code or dtype or type
@@ -1838,7 +1838,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
                 f'by passing the dtype argument to {self.__class__.__name__}().'
             )
             warnings.warn(msg, FutureWarning, stacklevel=2)
-        super(Nifti1Pair, self).__init__(dataobj, affine, header, extra, file_map, dtype)
+        super().__init__(dataobj, affine, header, extra, file_map, dtype)
         # Force set of s/q form when header is None unless affine is also None
         if header is None and affine is not None:
             self._affine2header()
@@ -1877,7 +1877,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         >>> np.all(hdr.get_sform() == affine)
         True
         """
-        super(Nifti1Pair, self).update_header()
+        super().update_header()
         hdr = self._header
         hdr['magic'] = hdr.pair_magic
 
@@ -2232,7 +2232,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
            the transpose that needs to be done to the implied array, as in
            ``arr.transpose(ornt[:,0])``
         """
-        img = super(Nifti1Pair, self).as_reoriented(ornt)
+        img = super().as_reoriented(ornt)
 
         if img is self:
             return img
@@ -2266,7 +2266,7 @@ class Nifti1Image(Nifti1Pair, SerializableImage):
 
     def update_header(self):
         """Harmonize header with image data and affine"""
-        super(Nifti1Image, self).update_header()
+        super().update_header()
         hdr = self._header
         hdr['magic'] = hdr.single_magic
 

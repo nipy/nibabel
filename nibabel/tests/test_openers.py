@@ -111,7 +111,7 @@ def test_Opener_various():
 class MockIndexedGzipFile(GzipFile):
     def __init__(self, *args, **kwargs):
         self._drop_handles = kwargs.pop('drop_handles', False)
-        super(MockIndexedGzipFile, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 @contextlib.contextmanager
@@ -284,7 +284,7 @@ def test_name():
         if HAVE_ZSTD:
             files_to_test += ['test.txt.zst']
         for input in files_to_test:
-            exp_name = input if type(input) == type('') else None
+            exp_name = input if type(input) == str else None
             with Opener(input, 'wb') as fobj:
                 assert fobj.name == exp_name
 
@@ -317,7 +317,7 @@ def test_close_if_mine():
             if has_closed:
                 assert not fobj.closed
             fobj.close_if_mine()
-            is_str = type(input) is type('')
+            is_str = type(input) is str
             if has_closed:
                 assert fobj.closed == is_str
 

@@ -368,7 +368,7 @@ def test_parse_dataarrays():
 
     with InTemporaryDirectory():
         save(img, fn)
-        with open(fn, 'r') as fp:
+        with open(fn) as fp:
             txt = fp.read()
         # Make a bad gifti.
         txt = txt.replace('NumberOfDataArrays="0"', 'NumberOfDataArrays ="1"')

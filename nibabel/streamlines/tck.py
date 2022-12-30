@@ -68,7 +68,7 @@ class TckFile(TractogramFile):
         This is in contrast with TRK's internal convention where it would
         have referred to a corner.
         """
-        super(TckFile, self).__init__(tractogram, header)
+        super().__init__(tractogram, header)
 
     @classmethod
     def is_correct_format(cls, fileobj):
@@ -288,7 +288,7 @@ class TckFile(TractogramFile):
 
         # Write header to file.
         fileobj.write(out)
-        fileobj.write(f'\nfile: . {hdr_offset}\nEND\n'.encode('utf-8'))
+        fileobj.write(f'\nfile: . {hdr_offset}\nEND\n'.encode())
 
     @classmethod
     def _read_header(cls, fileobj):

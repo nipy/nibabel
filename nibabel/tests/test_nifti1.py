@@ -96,7 +96,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
 
     def test_data_scaling(self):
         # Test scaling in header
-        super(TestNifti1PairHeader, self).test_data_scaling()
+        super().test_data_scaling()
         hdr = self.header_class()
         data = np.arange(0, 3, 0.5).reshape((1, 2, 3))
         hdr.set_data_shape(data.shape)
@@ -1330,9 +1330,7 @@ def test_nifti_dicom_extension():
     assert dcmext.get_content().PatientID == 'NiPy'
 
     # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / LE
-    dcmbytes_explicit = struct.pack(
-        '<HH2sH4s', 0x10, 0x20, 'LO'.encode('utf-8'), 4, 'NiPy'.encode('utf-8')
-    )
+    dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20, b'LO', 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert dcmext.__class__ == Nifti1DicomExtension
     assert dcmext._guess_implicit_VR() is False
@@ -1344,7 +1342,7 @@ def test_nifti_dicom_extension():
     assert dcmext.get_sizeondisk() % 16 == 0
 
     # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
-    dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4, 'NiPy'.encode('utf-8'))
+    dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
     assert dcmext._guess_implicit_VR() is True
     assert dcmext.get_code() == 2
@@ -1354,9 +1352,7 @@ def test_nifti_dicom_extension():
     assert dcmext.get_sizeondisk() % 16 == 0
 
     # create a single dicom tag (Patient ID, [0010,0020]) with Explicit VR / BE
-    dcmbytes_explicit_be = struct.pack(
-        '>2H2sH4s', 0x10, 0x20, 'LO'.encode('utf-8'), 4, 'NiPy'.encode('utf-8')
-    )
+    dcmbytes_explicit_be = struct.pack('>2H2sH4s', 0x10, 0x20, b'LO', 4, b'NiPy')
     hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
     assert dcmext.__class__ == Nifti1DicomExtension
@@ -1552,5 +1548,5 @@ def test_large_nifti1():
         data = load('test.nii.gz').get_fdata()
     # Check that the data are all ones
     assert image_shape == data.shape
-    n_ones = np.sum((data == 1.0))
+    n_ones = np.sum(data == 1.0)
     assert np.prod(image_shape) == n_ones

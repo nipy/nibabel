@@ -996,11 +996,11 @@ def test_seek_tell_logic():
 def test_fname_ext_ul_case():
     # Get filename ignoring the case of the filename extension
     with InTemporaryDirectory():
-        with open('afile.TXT', 'wt') as fobj:
+        with open('afile.TXT', 'w') as fobj:
             fobj.write('Interesting information')
         # OSX usually has case-insensitive file systems; Windows also
         os_cares_case = not exists('afile.txt')
-        with open('bfile.txt', 'wt') as fobj:
+        with open('bfile.txt', 'w') as fobj:
             fobj.write('More interesting information')
         # If there is no file, the case doesn't change
         assert fname_ext_ul_case('nofile.txt') == 'nofile.txt'
@@ -1070,7 +1070,7 @@ def test_dtypes():
     dt_defs = ((16, 'float32', np.float32),)
     dtr = make_dt_codes(dt_defs)
     # check we have the fields we were expecting
-    assert dtr.value_set() == set((16,))
+    assert dtr.value_set() == {16}
     assert dtr.fields == ('code', 'label', 'type', 'dtype', 'sw_dtype')
     # These of course should pass regardless of dtype
     assert dtr[np.float32] == 16
@@ -1085,7 +1085,7 @@ def test_dtypes():
     dt_defs = ((16, 'float32', np.float32, 'ASTRING'),)
     dtr = make_dt_codes(dt_defs)
     assert dtr[np.dtype('f4').newbyteorder('S')] == 16
-    assert dtr.value_set() == set((16,))
+    assert dtr.value_set() == {16}
     assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype', 'sw_dtype')
     assert dtr.niistring[16] == 'ASTRING'
     # And that unequal elements raises error

@@ -392,7 +392,7 @@ def test_parrec2nii_with_data():
             ['parrec2nii', '--overwrite', '--dwell-time', '--field-strength', '3', dti_par]
         )
         exp_dwell = (26 * 9.087) / (42.576 * 3.4 * 3 * 28)
-        with open('DTI.dwell_time', 'rt') as fobj:
+        with open('DTI.dwell_time') as fobj:
             contents = fobj.read().strip()
         assert_almost_equal(float(contents), exp_dwell)
         # ensure trace is removed by default
@@ -424,7 +424,7 @@ def test_parrec2nii_with_data():
         # Writes .ordering.csv if requested
         run_command(['parrec2nii', '--overwrite', '--volume-info', dti_par])
         assert exists('DTI.ordering.csv')
-        with open('DTI.ordering.csv', 'r') as csvfile:
+        with open('DTI.ordering.csv') as csvfile:
             csvreader = csv.reader(csvfile, delimiter=',')
             csv_keys = next(csvreader)  # header row
             nlines = 0  # count number of non-header rows

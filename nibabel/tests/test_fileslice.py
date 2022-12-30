@@ -726,8 +726,7 @@ def slicer_samples(shape):
     slicers_list = []
     for i in range(ndim):
         slicers_list.append(_slices_for_len(shape[i]))
-        for sliceobj in product(*slicers_list):
-            yield sliceobj
+        yield from product(*slicers_list)
     # Nones and ellipses
     yield (None,)
     if ndim == 0:

@@ -94,7 +94,7 @@ class XmlParser:
         if string is not None:
             fptr = BytesIO(string)
         elif fname is not None:
-            fptr = open(fname, 'r')
+            fptr = open(fname)
 
         # store the name of the xml file in case it is needed during parsing
         self.fname = getattr(fptr, 'name', None)

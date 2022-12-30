@@ -15,7 +15,7 @@ ASCCONV_INPUT = pjoin(DATA_PATH, 'ascconv_sample.txt')
 
 
 def test_ascconv_parse():
-    with open(ASCCONV_INPUT, 'rt') as fobj:
+    with open(ASCCONV_INPUT) as fobj:
         contents = fobj.read()
     ascconv_dict, attrs = ascconv.parse_ascconv(contents, str_delim='""')
     assert attrs == OrderedDict()
