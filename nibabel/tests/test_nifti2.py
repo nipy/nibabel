@@ -6,15 +6,14 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for nifti2 reading package """
+"""Tests for nifti2 reading package"""
 import os
 
 import numpy as np
 
 from .. import nifti2
-from ..nifti1 import (Nifti1Header, Nifti1PairHeader, Nifti1Extension,
-                      Nifti1Extensions)
-from ..nifti2 import (Nifti2Header, Nifti2PairHeader, Nifti2Image, Nifti2Pair)
+from ..nifti1 import Nifti1Header, Nifti1PairHeader, Nifti1Extension, Nifti1Extensions
+from ..nifti2 import Nifti2Header, Nifti2PairHeader, Nifti2Image, Nifti2Pair
 
 from . import test_nifti1 as tn1
 
@@ -52,10 +51,11 @@ class _Nifti2Mixin:
         hdr['eol_check'] = (13, 10, 0, 10)
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert_array_equal(fhdr['eol_check'], good_eol)
-        assert (message ==
-                'EOL check not 0 or 13, 10, 26, 10; '
-                'data may be corrupted by EOL conversion; '
-                'setting EOL check to 13, 10, 26, 10')
+        assert (
+            message == 'EOL check not 0 or 13, 10, 26, 10; '
+            'data may be corrupted by EOL conversion; '
+            'setting EOL check to 13, 10, 26, 10'
+        )
 
 
 class TestNifti2PairHeader(_Nifti2Mixin, tn1.TestNifti1PairHeader):
@@ -79,11 +79,12 @@ class TestNifti2Pair(tn1.TestNifti1Pair):
 
 
 class TestNifti2General(tn1.TestNifti1General):
-    """ Test class to test nifti2 in general
+    """Test class to test nifti2 in general
 
     Tests here which mix the pair and the single type, and that should only be
     run once (not for each type) because they are slow
     """
+
     single_class = Nifti2Image
     pair_class = Nifti2Pair
     module = nifti2
@@ -95,12 +96,14 @@ def test_nifti12_conversion():
     dtype_type = np.int64
     ext1 = Nifti1Extension(6, b'My comment')
     ext2 = Nifti1Extension(6, b'Fresh comment')
-    for in_type, out_type in ((Nifti1Header, Nifti2Header),
-                              (Nifti1PairHeader, Nifti2Header),
-                              (Nifti1PairHeader, Nifti2PairHeader),
-                              (Nifti2Header, Nifti1Header),
-                              (Nifti2PairHeader, Nifti1Header),
-                              (Nifti2PairHeader, Nifti1PairHeader)):
+    for in_type, out_type in (
+        (Nifti1Header, Nifti2Header),
+        (Nifti1PairHeader, Nifti2Header),
+        (Nifti1PairHeader, Nifti2PairHeader),
+        (Nifti2Header, Nifti1Header),
+        (Nifti2PairHeader, Nifti1Header),
+        (Nifti2PairHeader, Nifti1PairHeader),
+    ):
         in_hdr = in_type()
         in_hdr.set_data_shape(shape)
         in_hdr.set_data_dtype(dtype_type)

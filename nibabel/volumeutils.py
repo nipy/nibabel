@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Utility functions for analyze-like formats """
+"""Utility functions for analyze-like formats"""
 
 import sys
 import warnings
@@ -23,7 +23,7 @@ from .openers import BZ2File, IndexedGzipFile
 from .externals.oset import OrderedSet
 from .optpkg import optional_package
 
-pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
+pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -33,7 +33,8 @@ endian_codes = (  # numpy code, aliases
     ('<', 'little', 'l', 'le', 'L', 'LE'),
     ('>', 'big', 'BIG', 'b', 'be', 'B', 'BE'),
     (native_code, 'native', 'n', 'N', '=', '|', 'i', 'I'),
-    (swapped_code, 'swapped', 's', 'S', '!'))
+    (swapped_code, 'swapped', 's', 'S', '!'),
+)
 # We'll put these into the Recoder class after we define it
 
 #: default compression level when writing gz and bz2 files
@@ -48,7 +49,7 @@ if HAVE_ZSTD:
 
 
 class Recoder:
-    """ class to return canonical code(s) from code or aliases
+    """class to return canonical code(s) from code or aliases
 
     The concept is a lot easier to read in the implementation and
     tests than it is to explain, so...
@@ -82,7 +83,7 @@ class Recoder:
     """
 
     def __init__(self, codes, fields=('code',), map_maker=OrderedDict):
-        """ Create recoder object
+        """Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
         ``fields`` are names by which the entries in these sequences can be
@@ -120,7 +121,7 @@ class Recoder:
         self.add_codes(codes)
 
     def add_codes(self, code_syn_seqs):
-        """ Add codes to object
+        """Add codes to object
 
         Parameters
         ----------
@@ -154,7 +155,7 @@ class Recoder:
                     self.__dict__[field_name][alias] = code_syns[field_ind]
 
     def __getitem__(self, key):
-        """ Return value from field1 dictionary (first column of values)
+        """Return value from field1 dictionary (first column of values)
 
         Returns same value as ``obj.field1[key]`` and, with the
         default initializing ``fields`` argument of fields=('code',),
@@ -167,8 +168,7 @@ class Recoder:
         return self.field1[key]
 
     def __contains__(self, key):
-        """ True if field1 in recoder contains `key`
-        """
+        """True if field1 in recoder contains `key`"""
         try:
             self.field1[key]
         except KeyError:
@@ -176,7 +176,7 @@ class Recoder:
         return True
 
     def keys(self):
-        """ Return all available code and alias values
+        """Return all available code and alias values
 
         Returns same value as ``obj.field1.keys()`` and, with the
         default initializing ``fields`` argument of fields=('code',),
@@ -190,7 +190,7 @@ class Recoder:
         return self.field1.keys()
 
     def value_set(self, name=None):
-        """ Return OrderedSet of possible returned values for column
+        """Return OrderedSet of possible returned values for column
 
         By default, the column is the first column.
 
@@ -224,7 +224,7 @@ endian_codes = Recoder(endian_codes)
 
 
 class DtypeMapper:
-    """ Specialized mapper for numpy dtypes
+    """Specialized mapper for numpy dtypes
 
     We pass this mapper into the Recoder class to deal with numpy dtype
     hashing.
@@ -252,7 +252,7 @@ class DtypeMapper:
         return self._dict.values()
 
     def __setitem__(self, key, value):
-        """ Set item into mapping, checking for dtype keys
+        """Set item into mapping, checking for dtype keys
 
         Cache dtype keys for comparison test in __getitem__
         """
@@ -261,7 +261,7 @@ class DtypeMapper:
             self._dtype_keys.append(key)
 
     def __getitem__(self, key):
-        """ Get item from mapping, checking for dtype keys
+        """Get item from mapping, checking for dtype keys
 
         First do simple hash lookup, then check for a dtype key that has failed
         the hash lookup.  Look then for any known dtype keys that compare equal
@@ -279,7 +279,7 @@ class DtypeMapper:
 
 
 def pretty_mapping(mapping, getterfunc=None):
-    """ Make pretty string from mapping
+    """Make pretty string from mapping
 
     Adjusts text column to print values on basis of longest key.
     Probably only sensible if keys are mainly strings.
@@ -339,7 +339,7 @@ def pretty_mapping(mapping, getterfunc=None):
 
 
 def make_dt_codes(codes_seqs):
-    """ Create full dt codes Recoder instance from datatype codes
+    """Create full dt codes Recoder instance from datatype codes
 
     Include created numpy dtype (from numpy type) and opposite endian
     numpy dtype
@@ -379,13 +379,12 @@ def make_dt_codes(codes_seqs):
 
 
 def _is_compressed_fobj(fobj):
-    """ Return True if fobj represents a compressed data file-like object
-    """
+    """Return True if fobj represents a compressed data file-like object"""
     return isinstance(fobj, COMPRESSED_FILE_LIKES)
 
 
 def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
-    """ Get array from file with specified shape, dtype and file offset
+    """Get array from file with specified shape, dtype and file offset
 
     Parameters
     ----------
@@ -428,8 +427,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     True
     """
     if mmap not in (True, False, 'c', 'r', 'r+'):
-        raise ValueError("mmap value should be one of True, False, 'c', "
-                         "'r', 'r+'")
+        raise ValueError("mmap value should be one of True, False, 'c', " "'r', 'r+'")
     if mmap is True:
         mmap = 'c'
     in_dtype = np.dtype(in_dtype)
@@ -437,12 +435,7 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     infile = getattr(infile, 'fobj', infile)
     if mmap and not _is_compressed_fobj(infile):
         try:  # Try memmapping file on disk
-            return np.memmap(infile,
-                             in_dtype,
-                             mode=mmap,
-                             shape=shape,
-                             order=order,
-                             offset=offset)
+            return np.memmap(infile, in_dtype, mode=mmap, shape=shape, order=order, offset=offset)
             # The error raised by memmap, for different file types, has
             # changed in different incarnations of the numpy routine
         except (AttributeError, TypeError, ValueError):
@@ -464,8 +457,10 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
         n_read = len(data_bytes)
         needs_copy = True
     if n_bytes != n_read:
-        raise OSError(f"Expected {n_bytes} bytes, got {n_read} bytes from "
-                      f"{getattr(infile, 'name', 'object')}\n - could the file be damaged?")
+        raise OSError(
+            f'Expected {n_bytes} bytes, got {n_read} bytes from '
+            f"{getattr(infile, 'name', 'object')}\n - could the file be damaged?"
+        )
     arr = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
     if needs_copy:
         return arr.copy()
@@ -473,10 +468,19 @@ def array_from_file(shape, in_dtype, infile, offset=0, order='F', mmap=True):
     return arr
 
 
-def array_to_file(data, fileobj, out_dtype=None, offset=0,
-                  intercept=0.0, divslope=1.0,
-                  mn=None, mx=None, order='F', nan2zero=True):
-    """ Helper function for writing arrays to file objects
+def array_to_file(
+    data,
+    fileobj,
+    out_dtype=None,
+    offset=0,
+    intercept=0.0,
+    divslope=1.0,
+    mn=None,
+    mx=None,
+    order='F',
+    nan2zero=True,
+):
+    """Helper function for writing arrays to file objects
 
     Writes arrays as scaled by `intercept` and `divslope`, and clipped
     at (prescaling) `mn` minimum, and `mx` maximum.
@@ -558,8 +562,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     """
     # Shield special case
     div_none = divslope is None
-    if not np.all(
-            np.isfinite((intercept, 1.0 if div_none else divslope))):
+    if not np.all(np.isfinite((intercept, 1.0 if div_none else divslope))):
         raise ValueError('divslope and intercept must be finite')
     if divslope == 0:
         raise ValueError('divslope cannot be zero')
@@ -571,15 +574,14 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         out_dtype = np.dtype(out_dtype)
     if offset is not None:
         seek_tell(fileobj, offset)
-    if (div_none or (mn, mx) == (0, 0) or
-            ((mn is not None and mx is not None) and mx < mn)):
+    if div_none or (mn, mx) == (0, 0) or ((mn is not None and mx is not None) and mx < mn):
         write_zeros(fileobj, data.size * out_dtype.itemsize)
         return
     if order not in 'FC':
         raise ValueError('Order should be one of F or C')
     # Simple cases
     pre_clips = None if (mn is None and mx is None) else (mn, mx)
-    null_scaling = (intercept == 0 and divslope == 1)
+    null_scaling = intercept == 0 and divslope == 1
     if in_dtype.type == np.void:
         if not null_scaling:
             raise ValueError('Cannot scale non-numeric types')
@@ -589,8 +591,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     if pre_clips is not None:
         pre_clips = _dt_min_max(in_dtype, *pre_clips)
     if null_scaling and np.can_cast(in_dtype, out_dtype):
-        return _write_data(data, fileobj, out_dtype, order,
-                           pre_clips=pre_clips)
+        return _write_data(data, fileobj, out_dtype, order, pre_clips=pre_clips)
     # Force upcasting for floats by making atleast_1d.
     slope, inter = [np.atleast_1d(v) for v in (divslope, intercept)]
     # Default working point type for applying slope / inter
@@ -601,10 +602,9 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
     in_kind = in_dtype.kind
     out_kind = out_dtype.kind
     if out_kind in 'fc':
-        return _write_data(data, fileobj, out_dtype, order,
-                           slope=slope,
-                           inter=inter,
-                           pre_clips=pre_clips)
+        return _write_data(
+            data, fileobj, out_dtype, order, slope=slope, inter=inter, pre_clips=pre_clips
+        )
     assert out_kind in 'iu'
     if in_kind in 'iu':
         if null_scaling:
@@ -613,8 +613,7 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
             mn, mx = _dt_min_max(in_dtype, mn, mx)
             mn_out, mx_out = _dt_min_max(out_dtype)
             pre_clips = max(mn, mn_out), min(mx, mx_out)
-            return _write_data(data, fileobj, out_dtype, order,
-                               pre_clips=pre_clips)
+            return _write_data(data, fileobj, out_dtype, order, pre_clips=pre_clips)
         # In any case, we do not want to check for nans because we've already
         # disallowed scaling that generates nans
         nan2zero = False
@@ -677,38 +676,48 @@ def array_to_file(data, fileobj, out_dtype=None, offset=0,
         # slope).  Assume errors are for working float type. Round for integer
         # rounding
         est_err = np.round(2 * np.finfo(w_type).eps * abs(inter / slope))
-        if ((nan_fill < both_mn and abs(nan_fill - both_mn) < est_err) or
-                (nan_fill > both_mx and abs(nan_fill - both_mx) < est_err)):
+        if (nan_fill < both_mn and abs(nan_fill - both_mn) < est_err) or (
+            nan_fill > both_mx and abs(nan_fill - both_mx) < est_err
+        ):
             # nan_fill can be (just) outside clip range
             nan_fill = np.clip(nan_fill, both_mn, both_mx)
         else:
-            raise ValueError(f"nan_fill == {nan_fill}, outside safe int range "
-                             f"({int(both_mn)}-{int(both_mx)}); "
-                             "change scaling or set nan2zero=False?")
+            raise ValueError(
+                f'nan_fill == {nan_fill}, outside safe int range '
+                f'({int(both_mn)}-{int(both_mx)}); '
+                'change scaling or set nan2zero=False?'
+            )
     # Make sure non-nan output clipped to shared range
     post_mn = np.max([post_mn, both_mn])
     post_mx = np.min([post_mx, both_mx])
     in_cast = None if cast_in_dtype == in_dtype else cast_in_dtype
-    return _write_data(data, fileobj, out_dtype, order,
-                       in_cast=in_cast,
-                       pre_clips=pre_clips,
-                       inter=inter,
-                       slope=slope,
-                       post_clips=(post_mn, post_mx),
-                       nan_fill=nan_fill if nan2zero else None)
+    return _write_data(
+        data,
+        fileobj,
+        out_dtype,
+        order,
+        in_cast=in_cast,
+        pre_clips=pre_clips,
+        inter=inter,
+        slope=slope,
+        post_clips=(post_mn, post_mx),
+        nan_fill=nan_fill if nan2zero else None,
+    )
 
 
-def _write_data(data,
-                fileobj,
-                out_dtype,
-                order,
-                in_cast=None,
-                pre_clips=None,
-                inter=0.,
-                slope=1.,
-                post_clips=None,
-                nan_fill=None):
-    """ Write array `data` to `fileobj` as `out_dtype` type, layout `order`
+def _write_data(
+    data,
+    fileobj,
+    out_dtype,
+    order,
+    in_cast=None,
+    pre_clips=None,
+    inter=0.0,
+    slope=1.0,
+    post_clips=None,
+    nan_fill=None,
+):
+    """Write array `data` to `fileobj` as `out_dtype` type, layout `order`
 
     Does not modify `data` in-place.
 
@@ -741,8 +750,7 @@ def _write_data(data,
         data = np.atleast_2d(data)
     elif order == 'F':
         data = data.T
-    nan_need_copy = ((pre_clips, in_cast, inter, slope, post_clips) ==
-                     (None, None, 0, 1, None))
+    nan_need_copy = (pre_clips, in_cast, inter, slope, post_clips) == (None, None, 0, 1, None)
     for dslice in data:  # cycle over first dimension to save memory
         if pre_clips is not None:
             dslice = np.clip(dslice, *pre_clips)
@@ -773,20 +781,15 @@ def _dt_min_max(dtype_like, mn=None, mx=None):
         info = np.iinfo(dt)
         dt_mn, dt_mx = (info.min, info.max)
     else:
-        raise ValueError("unknown dtype")
+        raise ValueError('unknown dtype')
     return dt_mn if mn is None else mn, dt_mx if mx is None else mx
 
 
-_CSIZE2FLOAT = {
-    8: np.float32,
-    16: np.float64,
-    24: np.longdouble,
-    32: np.longdouble}
+_CSIZE2FLOAT = {8: np.float32, 16: np.float64, 24: np.longdouble, 32: np.longdouble}
 
 
 def _matching_float(np_type):
-    """ Return floating point type matching `np_type`
-    """
+    """Return floating point type matching `np_type`"""
     dtype = np.dtype(np_type)
     if dtype.kind not in 'cf':
         raise ValueError('Expecting float or complex type as input')
@@ -796,7 +799,7 @@ def _matching_float(np_type):
 
 
 def write_zeros(fileobj, count, block_size=8194):
-    """ Write `count` zero bytes to `fileobj`
+    """Write `count` zero bytes to `fileobj`
 
     Parameters
     ----------
@@ -816,7 +819,7 @@ def write_zeros(fileobj, count, block_size=8194):
 
 
 def seek_tell(fileobj, offset, write0=False):
-    """ Seek in `fileobj` or check we're in the right place already
+    """Seek in `fileobj` or check we're in the right place already
 
     Parameters
     ----------
@@ -846,7 +849,7 @@ def seek_tell(fileobj, offset, write0=False):
 
 
 def apply_read_scaling(arr, slope=None, inter=None):
-    """ Apply scaling in `slope` and `inter` to array `arr`
+    """Apply scaling in `slope` and `inter` to array `arr`
 
     This is for loading the array from a file (as opposed to the reverse
     scaling when saving an array to file)
@@ -889,7 +892,7 @@ def apply_read_scaling(arr, slope=None, inter=None):
         # int to float; get enough precision to avoid infs
         # Find floating point type for which scaling does not overflow,
         # starting at given type
-        default = (slope.dtype.type if slope.dtype.kind == 'f' else np.float64)
+        default = slope.dtype.type if slope.dtype.kind == 'f' else np.float64
         ftype = int_scinter_ftype(arr.dtype, slope, inter, default)
         slope = slope.astype(ftype)
         inter = inter.astype(ftype)
@@ -901,7 +904,7 @@ def apply_read_scaling(arr, slope=None, inter=None):
 
 
 def working_type(in_type, slope=1.0, inter=0.0):
-    """ Return array type from applying `slope`, `inter` to array of `in_type`
+    """Return array type from applying `slope`, `inter` to array of `in_type`
 
     Numpy type that results from an array of type `in_type` being combined with
     `slope` and `inter`. It returns something like the dtype type of
@@ -944,7 +947,7 @@ def working_type(in_type, slope=1.0, inter=0.0):
 
 
 def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
-    """ float type containing int type `ifmt` * `slope` + `inter`
+    """float type containing int type `ifmt` * `slope` + `inter`
 
     Return float type that can represent the max and the min of the `ifmt` type
     after multiplication with `slope` and addition of `inter` with something
@@ -996,7 +999,7 @@ def int_scinter_ftype(ifmt, slope=1.0, inter=0.0, default=np.float32):
 
 
 def best_write_scale_ftype(arr, slope=1.0, inter=0.0, default=np.float32):
-    """ Smallest float type to contain range of ``arr`` after scaling
+    """Smallest float type to contain range of ``arr`` after scaling
 
     Scaling that will be applied to ``arr`` is ``(arr - inter) / slope``.
 
@@ -1060,7 +1063,7 @@ def best_write_scale_ftype(arr, slope=1.0, inter=0.0, default=np.float32):
 
 
 def better_float_of(first, second, default=np.float32):
-    """ Return more capable float type of `first` and `second`
+    """Return more capable float type of `first` and `second`
 
     Return `default` if neither of `first` or `second` is a float
 
@@ -1105,10 +1108,8 @@ def better_float_of(first, second, default=np.float32):
     return second.type
 
 
-def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
-                         default=np.float32):
-    """ Smallest float type for scaling of `tst_arr` that does not overflow
-    """
+def _ftype4scaled_finite(tst_arr, slope, inter, direction='read', default=np.float32):
+    """Smallest float type for scaling of `tst_arr` that does not overflow"""
     assert direction in ('read', 'write')
     if default not in OK_FLOATS and default is np.longdouble:
         # Omitted longdouble
@@ -1146,7 +1147,7 @@ def _ftype4scaled_finite(tst_arr, slope, inter, direction='read',
 
 
 def finite_range(arr, check_nan=False):
-    """ Get range (min, max) or range and flag (min, max, has_nan) from `arr`
+    """Get range (min, max) or range and flag (min, max, has_nan) from `arr`
 
     Parameters
     ----------
@@ -1242,7 +1243,7 @@ def finite_range(arr, check_nan=False):
 
 
 def shape_zoom_affine(shape, zooms, x_flip=True):
-    """ Get affine implied by given shape and zooms
+    """Get affine implied by given shape and zooms
 
     We get the translations from the center of the image (implied by
     `shape`).
@@ -1304,7 +1305,7 @@ def shape_zoom_affine(shape, zooms, x_flip=True):
 
 
 def rec2dict(rec):
-    """ Convert recarray to dictionary
+    """Convert recarray to dictionary
 
     Also converts scalar values to scalars
 
@@ -1337,7 +1338,7 @@ def rec2dict(rec):
 
 
 def fname_ext_ul_case(fname):
-    """ `fname` with ext changed to upper / lower case if file exists
+    """`fname` with ext changed to upper / lower case if file exists
 
     Check for existence of `fname`.  If it does exist, return unmodified.  If
     it doesn't, check for existence of `fname` with case changed from lower to

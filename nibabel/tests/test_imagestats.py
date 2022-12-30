@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for image statistics """
+"""Tests for image statistics"""
 
 import numpy as np
 

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Preliminary MINC2 support
+"""Preliminary MINC2 support
 
 Use with care; I haven't tested this against a wide range of MINC files.
 
@@ -31,8 +31,7 @@ from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
 
 
 class Hdf5Bunch:
-    """ Make object for accessing attributes of variable
-    """
+    """Make object for accessing attributes of variable"""
 
     def __init__(self, var):
         for name, value in var.attrs.items():
@@ -40,7 +39,7 @@ class Hdf5Bunch:
 
 
 class Minc2File(Minc1File):
-    """ Class to wrap MINC2 format file
+    """Class to wrap MINC2 format file
 
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC2 file, to pull out useful header
@@ -61,8 +60,7 @@ class Minc2File(Minc1File):
         for dim in self._dims:
             if dim.spacing != b'regular__':
                 raise ValueError('Irregular spacing not supported')
-        self._spatial_dims = [name for name in self._dim_names
-                              if name.endswith('space')]
+        self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
         self._image_max = image['image-max']
         self._image_min = image['image-min']
 
@@ -77,7 +75,7 @@ class Minc2File(Minc1File):
         # The dimension name list must contain only as many entries
         # as the variable has dimensions. This reduces errors when an
         # unnecessary dimorder attribute is left behind.
-        return dimorder.split(',')[:len(var.shape)]
+        return dimorder.split(',')[: len(var.shape)]
 
     def get_data_dtype(self):
         return self._image.dtype
@@ -86,7 +84,7 @@ class Minc2File(Minc1File):
         return self._image.shape
 
     def _get_valid_range(self):
-        """ Return valid range for image data
+        """Return valid range for image data
 
         The valid range can come from the image 'valid_range' or
         failing that, from the data type range
@@ -99,20 +97,19 @@ class Minc2File(Minc1File):
             valid_range = [info.min, info.max]
         else:
             if valid_range[0] < info.min or valid_range[1] > info.max:
-                raise ValueError('Valid range outside input '
-                                 'data type range')
+                raise ValueError('Valid range outside input ' 'data type range')
         return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
-        """ Get scalar value from HDF5 scalar """
+        """Get scalar value from HDF5 scalar"""
         return var[()]
 
     def _get_array(self, var):
-        """ Get array from HDF5 array """
+        """Get array from HDF5 array"""
         return np.asanyarray(var)
 
     def get_scaled_data(self, sliceobj=()):
-        """ Return scaled data for slice definition `sliceobj`
+        """Return scaled data for slice definition `sliceobj`
 
         Parameters
         ----------
@@ -137,19 +134,19 @@ class Minc2File(Minc1File):
 
 
 class Minc2Header(MincHeader):
-
     @classmethod
     def may_contain_header(klass, binaryblock):
         return binaryblock[:4] == b'\211HDF'
 
 
 class Minc2Image(Minc1Image):
-    """ Class for MINC2 images
+    """Class for MINC2 images
 
     The MINC2 image class uses the default header type, rather than a
     specific MINC header type - and reads the relevant information from
     the MINC file on load.
     """
+
     # MINC2 does not do compressed whole files
     _compressed_suffixes = ()
     header_class = Minc2Header
@@ -159,6 +156,7 @@ class Minc2Image(Minc1Image):
         # Import of h5py might take awhile for MPI-enabled builds
         # So we are importing it here "on demand"
         import h5py
+
         holder = file_map['image']
         if holder.filename is None:
             raise MincError('MINC2 needs filename for load')

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Create filename pairs, triplets etc, with expected extensions """
+"""Create filename pairs, triplets etc, with expected extensions"""
 
 import os
 import pathlib
@@ -39,18 +39,21 @@ def _stringify_path(filepath_or_buffer):
     Copied from:
     https://github.com/pandas-dev/pandas/blob/325dd686de1589c17731cf93b649ed5ccb5a99b4/pandas/io/common.py#L131-L160
     """
-    if hasattr(filepath_or_buffer, "__fspath__"):
+    if hasattr(filepath_or_buffer, '__fspath__'):
         return filepath_or_buffer.__fspath__()
     elif isinstance(filepath_or_buffer, pathlib.Path):
         return str(filepath_or_buffer)
     return filepath_or_buffer
 
 
-def types_filenames(template_fname, types_exts,
-                    trailing_suffixes=('.gz', '.bz2'),
-                    enforce_extensions=True,
-                    match_case=False):
-    """ Return filenames with standard extensions from template name
+def types_filenames(
+    template_fname,
+    types_exts,
+    trailing_suffixes=('.gz', '.bz2'),
+    enforce_extensions=True,
+    match_case=False,
+):
+    """Return filenames with standard extensions from template name
 
     The typical case is returning image and header filenames for an
     Analyze image, that expects an 'image' file type with extension ``.img``,
@@ -111,13 +114,12 @@ def types_filenames(template_fname, types_exts,
     """
     template_fname = _stringify_path(template_fname)
     if not isinstance(template_fname, str):
-        raise TypesFilenamesError('Need file name as input '
-                                  'to set_filenames')
+        raise TypesFilenamesError('Need file name as input ' 'to set_filenames')
     if template_fname.endswith('.'):
         template_fname = template_fname[:-1]
-    filename, found_ext, ignored, guessed_name = \
-        parse_filename(template_fname, types_exts, trailing_suffixes,
-                       match_case)
+    filename, found_ext, ignored, guessed_name = parse_filename(
+        template_fname, types_exts, trailing_suffixes, match_case
+    )
     # Flag cases where we just set the input name directly
     direct_set_name = None
     if enforce_extensions:
@@ -128,13 +130,13 @@ def types_filenames(template_fname, types_exts,
                 # an extension, but the wrong one
                 raise TypesFilenamesError(
                     f'File extension "{found_ext}" was not in '
-                    f'expected list: {[e for t, e in types_exts]}')
+                    f'expected list: {[e for t, e in types_exts]}'
+                )
             elif ignored:  # there was no extension, but an ignored suffix
                 # This is a special case like 'test.gz' (where .gz
                 # is ignored). It's confusing to change
                 # this to test.img.gz, or test.gz.img, so error
-                raise TypesFilenamesError(
-                    f'Confusing ignored suffix {ignored} without extension')
+                raise TypesFilenamesError(f'Confusing ignored suffix {ignored} without extension')
         # if we've got to here, we have a guessed name and a found
         # extension.
     else:  # not enforcing extensions. If there's an extension, we set the
@@ -170,10 +172,7 @@ def types_filenames(template_fname, types_exts,
     return tfns
 
 
-def parse_filename(filename,
-                   types_exts,
-                   trailing_suffixes,
-                   match_case=False):
+def parse_filename(filename, types_exts, trailing_suffixes, match_case=False):
     """Split filename into fileroot, extension, trailing suffix; guess type.
 
     Parameters
@@ -252,10 +251,8 @@ def _iendswith(whole, end):
     return whole.lower().endswith(end.lower())
 
 
-def splitext_addext(filename,
-                    addexts=('.gz', '.bz2', '.zst'),
-                    match_case=False):
-    """ Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
+def splitext_addext(filename, addexts=('.gz', '.bz2', '.zst'), match_case=False):
+    """Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
 
     where ``.gz`` may be any of passed `addext` trailing suffixes.
 

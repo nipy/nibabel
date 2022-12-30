@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests recoder class """
+"""Tests recoder class"""
 
 import numpy as np
 
@@ -23,6 +23,7 @@ def test_recoder_1():
     assert rc.code[2] == 2
     with pytest.raises(KeyError):
         rc.code[3]
+
 
 def test_recoder_2():
     # with explicit name for code
@@ -48,6 +49,7 @@ def test_recoder_3():
         rc.code['three']
     with pytest.raises(AttributeError):
         rc.label
+
 
 def test_recoder_4():
     # with explicit column names
@@ -86,7 +88,6 @@ def test_recoder_6():
 def test_custom_dicter():
     # Allow custom dict-like object in constructor
     class MyDict:
-
         def __init__(self):
             self._keys = []
 
@@ -103,6 +104,7 @@ def test_custom_dicter():
 
         def values(self):
             return ['funny', 'list']
+
     # code, label, aliases
     codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes, map_maker=MyDict)

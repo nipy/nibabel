@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test for image funcs """
+"""Test for image funcs"""
 
 import numpy as np
 
@@ -37,9 +37,7 @@ def test_concat():
         concat_images([])
 
     # Build combinations of 3D, 4D w/size[3] == 1, and 4D w/size[3] == 3
-    all_shapes_5D = ((1, 4, 5, 3, 3),
-                     (7, 3, 1, 4, 5),
-                     (0, 2, 1, 4, 5))
+    all_shapes_5D = ((1, 4, 5, 3, 3), (7, 3, 1, 4, 5), (0, 2, 1, 4, 5))
 
     affine = np.eye(4)
     for dim in range(2, 6):
@@ -61,7 +59,7 @@ def test_concat():
                 img2_mem = Nifti1Image(data1, affine + 1)  # bad affine
 
                 # Loop over every possible axis, including None (explicit and implied)
-                for axis in (list(range(-(dim - 2), (dim - 1))) + [None, '__default__']):
+                for axis in list(range(-(dim - 2), (dim - 1))) + [None, '__default__']:
 
                     # Allow testing default vs. passing explicit param
                     if axis == '__default__':
@@ -83,12 +81,12 @@ def test_concat():
                         #   3D and the same size) fails, so we also
                         #   have to expect errors for those.
                         if axis is None:  # 3D from here and below
-                            all_data = np.concatenate([data0[..., np.newaxis],
-                                                       data1[..., np.newaxis]],
-                                                      **np_concat_kwargs)
+                            all_data = np.concatenate(
+                                [data0[..., np.newaxis], data1[..., np.newaxis]],
+                                **np_concat_kwargs,
+                            )
                         else:  # both 3D, appending on final axis
-                            all_data = np.concatenate([data0, data1],
-                                                      **np_concat_kwargs)
+                            all_data = np.concatenate([data0, data1], **np_concat_kwargs)
                         expect_error = False
                     except ValueError:
                         # Shapes are not combinable
@@ -102,12 +100,13 @@ def test_concat():
                         imgs_mixed = [imgs[0], img_files[1], imgs[2]]
                         for img0, img1, img2 in (imgs, img_files, imgs_mixed):
                             try:
-                                all_imgs = concat_images([img0, img1],
-                                                         **concat_imgs_kwargs)
+                                all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
-                                assert not expect_error, "Expected a concatenation error, but got none."
+                                assert (
+                                    not expect_error
+                                ), 'Expected a concatenation error, but got none.'
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
@@ -121,7 +120,9 @@ def test_concat():
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
-                                assert not expect_error, "Expected a concatenation error, but got none."
+                                assert (
+                                    not expect_error
+                                ), 'Expected a concatenation error, but got none.'
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
@@ -176,7 +177,8 @@ def test_closest_canonical():
 
     # an axis swap
     aff = np.diag([1, 0, 0, 1])
-    aff[1, 2] = 1; aff[2, 1] = 1
+    aff[1, 2] = 1
+    aff[2, 1] = 1
     img = Nifti1Image(arr, aff)
     img.header.set_dim_info(0, 1, 2)
 

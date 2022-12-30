@@ -1,4 +1,4 @@
-""" Testing dataobj_images module
+"""Testing dataobj_images module
 """
 
 import numpy as np
@@ -43,7 +43,7 @@ class DoNumpyImage(DataobjImage):
 
 
 class TestDataobjAPI(_TFI, DataInterfaceMixin):
-    """ Validation for DataobjImage instances
-    """
+    """Validation for DataobjImage instances"""
+
     # A callable returning an image from ``image_maker(data, header)``
     image_maker = DoNumpyImage

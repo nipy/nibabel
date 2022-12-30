@@ -21,7 +21,7 @@ from ..loadsave import load, save
 from ..nifti1 import Nifti1Image
 
 
-@unittest.skipIf(SOFT_LIMIT > 4900, "It would take too long to test filehandles")
+@unittest.skipIf(SOFT_LIMIT > 4900, 'It would take too long to test filehandles')
 def test_multiload():
     # Make a tiny image, save, load many times.  If we are leaking filehandles,
     # this will cause us to run out and generate an error

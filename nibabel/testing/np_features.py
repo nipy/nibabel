@@ -1,11 +1,11 @@
-""" Look for changes in numpy behavior over versions
+"""Look for changes in numpy behavior over versions
 """
 
 import numpy as np
 
 
 def memmap_after_ufunc():
-    """ Return True if ufuncs on memmap arrays always return memmap arrays
+    """Return True if ufuncs on memmap arrays always return memmap arrays
 
     This should be True for numpy < 1.12, False otherwise.
 
@@ -19,5 +19,6 @@ def memmap_after_ufunc():
         mm_arr = np.memmap(fobj, mode='r', shape=(10,), dtype=np.uint8)
         memmap_after_ufunc.result = isinstance(mm_arr + 1, np.memmap)
     return memmap_after_ufunc.result
+
 
 memmap_after_ufunc.result = None

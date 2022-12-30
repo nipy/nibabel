@@ -1,4 +1,4 @@
-""" Testing environment settings
+"""Testing environment settings
 """
 
 import os
@@ -44,7 +44,7 @@ def test_user_dir(with_environment):
     if USER_KEY in env:
         del env[USER_KEY]
     home_dir = nibe.get_home_dir()
-    if os.name == "posix":
+    if os.name == 'posix':
         exp = pjoin(home_dir, '.nipy')
     else:
         exp = pjoin(home_dir, '_nipy')

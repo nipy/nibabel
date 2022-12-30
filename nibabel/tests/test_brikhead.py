@@ -26,50 +26,40 @@ EXAMPLE_IMAGES = [
         fname=pjoin(data_path, 'example4d+orig.BRIK.gz'),
         shape=(33, 41, 25, 3),
         dtype=np.int16,
-        affine=np.array([[-3.0,0,0,49.5],
-                         [0,-3.0,0,82.312],
-                         [0,0,3.0,-52.3511],
-                         [0,0,0,1.0]]),
-        zooms=(3., 3., 3., 3.),
-        data_summary=dict(
-            min=0,
-            max=13722,
-            mean=4266.76024636),
+        affine=np.array(
+            [[-3.0, 0, 0, 49.5], [0, -3.0, 0, 82.312], [0, 0, 3.0, -52.3511], [0, 0, 0, 1.0]]
+        ),
+        zooms=(3.0, 3.0, 3.0, 3.0),
+        data_summary=dict(min=0, max=13722, mean=4266.76024636),
         is_proxy=True,
         space='ORIG',
         labels=['#0', '#1', '#2'],
-        scaling=None),
+        scaling=None,
+    ),
     dict(
         head=pjoin(data_path, 'scaled+tlrc.HEAD'),
         fname=pjoin(data_path, 'scaled+tlrc.BRIK'),
-        shape=(47, 54, 43, 1.),
+        shape=(47, 54, 43, 1.0),
         dtype=np.int16,
-        affine=np.array([[3.0,0,0,-66.],
-                         [0,3.0,0,-87.],
-                         [0,0,3.0,-54.],
-                         [0,0,0,1.0]]),
-        zooms=(3., 3., 3., 0.),
+        affine=np.array(
+            [[3.0, 0, 0, -66.0], [0, 3.0, 0, -87.0], [0, 0, 3.0, -54.0], [0, 0, 0, 1.0]]
+        ),
+        zooms=(3.0, 3.0, 3.0, 0.0),
         data_summary=dict(
-            min=1.9416814999999998e-07,
-            max=0.0012724615542099998,
-            mean=0.00023919645351876782),
+            min=1.9416814999999998e-07, max=0.0012724615542099998, mean=0.00023919645351876782
+        ),
         is_proxy=True,
         space='TLRC',
         labels=['#0'],
-        scaling=np.array([  3.88336300e-08]),
-    )
+        scaling=np.array([3.88336300e-08]),
+    ),
 ]
 
 EXAMPLE_BAD_IMAGES = [
-    dict(
-        head=pjoin(data_path, 'bad_datatype+orig.HEAD'),
-        err=brikhead.AFNIImageError
-    ),
-    dict(
-        head=pjoin(data_path, 'bad_attribute+orig.HEAD'),
-        err=brikhead.AFNIHeaderError
-    )
+    dict(head=pjoin(data_path, 'bad_datatype+orig.HEAD'), err=brikhead.AFNIImageError),
+    dict(head=pjoin(data_path, 'bad_attribute+orig.HEAD'), err=brikhead.AFNIHeaderError),
 ]
+
 
 class TestAFNIHeader:
     module = brikhead
@@ -139,8 +129,10 @@ class TestBadFiles:
 
 class TestBadVars:
     module = brikhead
-    vars = ['type = badtype-attribute\nname = BRICK_TYPES\ncount = 1\n1\n',
-            'type = integer-attribute\ncount = 1\n1\n']
+    vars = [
+        'type = badtype-attribute\nname = BRICK_TYPES\ncount = 1\n1\n',
+        'type = integer-attribute\ncount = 1\n1\n',
+    ]
 
     def test_unpack_var(self):
         for var in self.vars:

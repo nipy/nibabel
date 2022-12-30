@@ -1,4 +1,4 @@
-""" Testing Siemens CSA header reader
+"""Testing Siemens CSA header reader
 """
 import sys
 import struct
@@ -8,8 +8,8 @@ from ..structreader import Unpacker
 
 def test_unpacker():
     s = b'1234\x00\x01'
-    le_int, = struct.unpack('<h', b'\x00\x01')
-    be_int, = struct.unpack('>h', b'\x00\x01')
+    (le_int,) = struct.unpack('<h', b'\x00\x01')
+    (be_int,) = struct.unpack('>h', b'\x00\x01')
     if sys.byteorder == 'little':
         native_int = le_int
         swapped_int = be_int

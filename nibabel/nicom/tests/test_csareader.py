@@ -1,4 +1,4 @@
-""" Testing Siemens CSA header reader
+"""Testing Siemens CSA header reader
 """
 import sys
 from os.path import join as pjoin
@@ -114,12 +114,9 @@ def test_csa_params():
 
 
 def test_ice_dims():
-    ex_dims0 = ['X', '1', '1', '1', '1', '1', '1',
-                '48', '1', '1', '1', '1', '201']
-    ex_dims1 = ['X', '1', '1', '1', '2', '1', '1',
-                '48', '1', '1', '1', '1', '201']
-    for csa_str, ex_dims in ((CSA2_B0, ex_dims0),
-                             (CSA2_B1000, ex_dims1)):
+    ex_dims0 = ['X', '1', '1', '1', '1', '1', '1', '48', '1', '1', '1', '1', '201']
+    ex_dims1 = ['X', '1', '1', '1', '2', '1', '1', '48', '1', '1', '1', '1', '201']
+    for csa_str, ex_dims in ((CSA2_B0, ex_dims0), (CSA2_B1000, ex_dims1)):
         csa_info = csa.read(csa_str)
         assert csa.get_ice_dims(csa_info) == ex_dims
     assert csa.get_ice_dims({}) is None

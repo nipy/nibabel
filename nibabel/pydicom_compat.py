@@ -1,4 +1,4 @@
-""" Adapter module for working with pydicom < 1.0 and >= 1.0
+"""Adapter module for working with pydicom < 1.0 and >= 1.0
 
 In what follows, "dicom is available" means we can import either a) ``dicom``
 (pydicom < 1.0) or or b) ``pydicom`` (pydicom >= 1.0).
@@ -35,6 +35,7 @@ except ImportError:
 else:  # pydicom module available
     from pydicom.dicomio import read_file
     from pydicom.sequence import Sequence
+
     # Values not imported by default
     import pydicom.values
 
@@ -42,9 +43,11 @@ if have_dicom:
     tag_for_keyword = pydicom.datadict.tag_for_keyword
 
 
-@deprecate_with_version("dicom_test has been moved to nibabel.nicom.tests",
-                        since="3.1", until="5.0")
+@deprecate_with_version(
+    'dicom_test has been moved to nibabel.nicom.tests', since='3.1', until='5.0'
+)
 def dicom_test(func):
     # Import locally to avoid circular dependency
     from .nicom.tests import dicom_test
+
     return dicom_test(func)

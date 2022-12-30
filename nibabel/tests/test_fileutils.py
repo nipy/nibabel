@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Testing fileutils module
+"""Testing fileutils module
 """
 
 

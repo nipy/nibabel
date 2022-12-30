@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Fileholder class """
+"""Fileholder class"""
 
 from copy import copy
 
@@ -18,14 +18,10 @@ class FileHolderError(Exception):
 
 
 class FileHolder:
-    """ class to contain filename, fileobj and file position
-    """
+    """class to contain filename, fileobj and file position"""
 
-    def __init__(self,
-                 filename=None,
-                 fileobj=None,
-                 pos=0):
-        """ Initialize FileHolder instance
+    def __init__(self, filename=None, fileobj=None, pos=0):
+        """Initialize FileHolder instance
 
         Parameters
         ----------
@@ -43,7 +39,7 @@ class FileHolder:
         self.pos = pos
 
     def get_prepare_fileobj(self, *args, **kwargs):
-        """ Return fileobj if present, or return fileobj from filename
+        """Return fileobj if present, or return fileobj from filename
 
         Set position to that given in self.pos
 
@@ -75,7 +71,7 @@ class FileHolder:
         return obj
 
     def same_file_as(self, other):
-        """ Test if `self` refers to same files / fileobj as `other`
+        """Test if `self` refers to same files / fileobj as `other`
 
         Parameters
         ----------
@@ -88,18 +84,16 @@ class FileHolder:
             True if `other` has the same filename (or both have None) and the
             same fileobj (or both have None
         """
-        return ((self.filename == other.filename) and
-                (self.fileobj == other.fileobj))
+        return (self.filename == other.filename) and (self.fileobj == other.fileobj)
 
     @property
     def file_like(self):
-        """ Return ``self.fileobj`` if not None, otherwise ``self.filename``
-        """
+        """Return ``self.fileobj`` if not None, otherwise ``self.filename``"""
         return self.fileobj if self.fileobj is not None else self.filename
 
 
 def copy_file_map(file_map):
-    r""" Copy mapping of fileholders given by `file_map`
+    r"""Copy mapping of fileholders given by `file_map`
 
     Parameters
     ----------

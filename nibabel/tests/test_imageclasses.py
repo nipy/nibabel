@@ -1,4 +1,4 @@
-""" Testing imageclasses module
+"""Testing imageclasses module
 """
 
 from os.path import dirname, join as pjoin

@@ -1,12 +1,11 @@
-""" Testing `deprecated` module
+"""Testing `deprecated` module
 """
 
 import warnings
 import pytest
 
 from nibabel import pkg_info
-from nibabel.deprecated import (ModuleProxy, FutureWarningMixin,
-                                deprecate_with_version)
+from nibabel.deprecated import ModuleProxy, FutureWarningMixin, deprecate_with_version
 
 
 from nibabel.tests.test_deprecator import TestDeprecatorFunc as _TestDF
@@ -33,7 +32,6 @@ def test_module_proxy():
 def test_futurewarning_mixin():
     # Test mixin for FutureWarning
     class C:
-
         def __init__(self, val):
             self.val = val
 
@@ -44,7 +42,8 @@ def test_futurewarning_mixin():
         pass
 
     class E(FutureWarningMixin, C):
-        warn_message = "Oh no, not this one"
+        warn_message = 'Oh no, not this one'
+
     with warnings.catch_warnings(record=True) as warns:
         c = C(42)
         assert c.meth() == 42
@@ -53,8 +52,7 @@ def test_futurewarning_mixin():
         assert d.meth() == 42
         warn = warns.pop(0)
         assert warn.category == FutureWarning
-        assert (str(warn.message) ==
-                     'This class will be removed in future versions')
+        assert str(warn.message) == 'This class will be removed in future versions'
         e = E(42)
         assert e.meth() == 42
         warn = warns.pop(0)
@@ -63,7 +61,7 @@ def test_futurewarning_mixin():
 
 
 class TestNibabelDeprecator(_TestDF):
-    """ Test deprecations against nibabel version """
+    """Test deprecations against nibabel version"""
 
     dep_func = deprecate_with_version
 

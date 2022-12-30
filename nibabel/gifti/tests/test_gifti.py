@@ -1,4 +1,4 @@
-""" Testing gifti objects
+"""Testing gifti objects
 """
 import warnings
 import sys
@@ -9,17 +9,29 @@ import numpy as np
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from ... import load
-from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
-                GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
-                GiftiCoordSystem)
+from .. import (
+    GiftiImage,
+    GiftiDataArray,
+    GiftiLabel,
+    GiftiLabelTable,
+    GiftiMetaData,
+    GiftiNVPairs,
+    GiftiCoordSystem,
+)
 from ...nifti1 import data_type_codes
 from ...fileholders import FileHolder
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 import pytest
 from ...testing import test_data
-from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
-                                    DATA_FILE4, DATA_FILE5, DATA_FILE6)
+from .test_parse_gifti_fast import (
+    DATA_FILE1,
+    DATA_FILE2,
+    DATA_FILE3,
+    DATA_FILE4,
+    DATA_FILE5,
+    DATA_FILE6,
+)
 import itertools
 
 
@@ -50,6 +62,7 @@ def test_agg_data():
 
     assert surf_gii_img.agg_data(('pointset', 'triangle')) == (point_data, triangle_data)
     assert surf_gii_img.agg_data(('triangle', 'pointset')) == (triangle_data, point_data)
+
 
 def test_gifti_image():
     # Check that we're not modifying the default empty list in the default
@@ -104,11 +117,13 @@ def test_gifti_image_bad_inputs():
     # Try to set to non-table
     def assign_labeltable(val):
         img.labeltable = val
+
     pytest.raises(TypeError, assign_labeltable, 'not-a-table')
 
     # Try to set to non-table
     def assign_metadata(val):
         img.meta = val
+
     pytest.raises(TypeError, assign_metadata, 'not-a-meta')
 
 
@@ -172,7 +187,7 @@ def test_dataarray_init():
     assert gda(ordering='ColumnMajorOrder').ind_ord == 2
     pytest.raises(KeyError, gda, ordering='not an ordering')
     # metadata
-    meta_dict=dict(one=1, two=2)
+    meta_dict = dict(one=1, two=2)
     assert gda(meta=GiftiMetaData(meta_dict)).meta == meta_dict
     assert gda(meta=meta_dict).meta == meta_dict
     assert gda(meta=None).meta == {}
@@ -307,6 +322,7 @@ def test_gifti_label_rgba():
 
     def assign_rgba(gl, val):
         gl.rgba = val
+
     gl3 = GiftiLabel(**kwargs)
     pytest.raises(ValueError, assign_rgba, gl3, rgba[:2])
     pytest.raises(ValueError, assign_rgba, gl3, rgba.tolist() + rgba.tolist())
@@ -318,14 +334,14 @@ def test_gifti_label_rgba():
 
 
 def test_print_summary():
-    for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
-                DATA_FILE5, DATA_FILE6]:
+    for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]:
         gimg = load(fil)
         gimg.print_summary()
 
 
 def test_gifti_coord():
     from ..gifti import GiftiCoordSystem
+
     gcs = GiftiCoordSystem()
     assert gcs.xform is not None
 
@@ -339,7 +355,7 @@ def test_gifti_round_trip():
     # From section 14.4 in GIFTI Surface Data Format Version 1.0
     # (with some adaptations)
 
-    test_data = b'''<?xml version="1.0" encoding="UTF-8"?>
+    test_data = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/1594/gifti.dtd">
 <GIFTI
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -396,14 +412,13 @@ ExternalFileName="" ExternalFileOffset="">
 0 2 3
 </Data>
 </DataArray>
-</GIFTI>'''
+</GIFTI>"""
 
     exp_verts = np.zeros((4, 3))
     exp_verts[0, 0] = 10.5
     exp_verts[1, 1] = 20.5
     exp_verts[2, 2] = 30.5
-    exp_faces = np.asarray([[0, 1, 2], [1, 2, 3], [0, 1, 3], [0, 2, 3]],
-                           dtype=np.int32)
+    exp_faces = np.asarray([[0, 1, 2], [1, 2, 3], [0, 1, 3], [0, 2, 3]], dtype=np.int32)
 
     def _check_gifti(gio):
         vertices = gio.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0].data
@@ -449,13 +464,13 @@ def test_data_array_round_trip():
 def test_darray_dtype_coercion_failures():
     dtypes = (np.uint8, np.int32, np.int64, np.float32, np.float64)
     encodings = ('ASCII', 'B64BIN', 'B64GZ')
-    for data_dtype, darray_dtype, encoding in itertools.product(dtypes,
-                                                                dtypes,
-                                                                encodings):
-        da = GiftiDataArray(np.arange(10).astype(data_dtype),
-                            encoding=encoding,
-                            intent='NIFTI_INTENT_NODE_INDEX',
-                            datatype=darray_dtype)
+    for data_dtype, darray_dtype, encoding in itertools.product(dtypes, dtypes, encodings):
+        da = GiftiDataArray(
+            np.arange(10).astype(data_dtype),
+            encoding=encoding,
+            intent='NIFTI_INTENT_NODE_INDEX',
+            datatype=darray_dtype,
+        )
         gii = GiftiImage(darrays=[da])
         gii_copy = GiftiImage.from_bytes(gii.to_bytes())
         da_copy = gii_copy.darrays[0]

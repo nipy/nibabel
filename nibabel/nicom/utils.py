@@ -1,11 +1,11 @@
-""" Utilities for working with DICOM datasets
+"""Utilities for working with DICOM datasets
 """
 
 from numpy.compat.py3k import asstr
 
 
 def find_private_section(dcm_data, group_no, creator):
-    """ Return start element in group `group_no` given creator name `creator`
+    """Return start element in group `group_no` given creator name `creator`
 
     Private attribute tags need to announce where they will go by putting a tag
     in the private group (here `group_no`) between elements 1 and 0xFF.  The

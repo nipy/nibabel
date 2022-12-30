@@ -1,4 +1,4 @@
-""" Test tmpdirs module """
+"""Test tmpdirs module"""
 
 from os import getcwd
 from os.path import realpath, abspath, dirname, isfile

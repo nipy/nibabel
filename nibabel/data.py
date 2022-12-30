@@ -2,7 +2,6 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
 Utilities to find files from NIPY data packages
-
 """
 import os
 from os.path import join as pjoin
@@ -14,8 +13,9 @@ from packaging.version import Version
 from .environment import get_nipy_user_dir, get_nipy_system_dir
 
 
-DEFAULT_INSTALL_HINT = ('If you have the package, have you set the '
-                        'path to the package correctly?')
+DEFAULT_INSTALL_HINT = (
+    'If you have the package, have you set the ' 'path to the package correctly?'
+)
 
 
 class DataError(Exception):
@@ -23,19 +23,20 @@ class DataError(Exception):
 
 
 class BomberError(DataError, AttributeError):
-    """ Error when trying to access Bomber instance
+    """Error when trying to access Bomber instance
 
     Should be instance of AttributeError to allow Python 3 inspect to do
     various ``hasattr`` checks without raising an error
     """
+
     pass
 
 
 class Datasource:
-    """ Simple class to add base path to relative path """
+    """Simple class to add base path to relative path"""
 
     def __init__(self, base_path):
-        """ Initialize datasource
+        """Initialize datasource
 
         Parameters
         ----------
@@ -53,7 +54,7 @@ class Datasource:
         self.base_path = base_path
 
     def get_filename(self, *path_parts):
-        """ Prepend base path to `*path_parts`
+        """Prepend base path to `*path_parts`
 
         We make no check whether the returned path exists.
 
@@ -71,36 +72,34 @@ class Datasource:
         return pjoin(self.base_path, *path_parts)
 
     def list_files(self, relative=True):
-        """ Recursively list the files in the data source directory.
+        """Recursively list the files in the data source directory.
 
-            Parameters
-            ----------
-            relative: bool, optional
-                If True, path returned are relative to the base path of
-                the data source.
+        Parameters
+        ----------
+        relative: bool, optional
+            If True, path returned are relative to the base path of
+            the data source.
 
-            Returns
-            -------
-            file_list: list of strings
-                List of the paths of all the files in the data source.
+        Returns
+        -------
+        file_list: list of strings
+            List of the paths of all the files in the data source.
 
         """
         out_list = list()
         for base, dirs, files in os.walk(self.base_path):
             if relative:
-                base = base[len(self.base_path) + 1:]
+                base = base[len(self.base_path) + 1 :]
             for filename in files:
                 out_list.append(pjoin(base, filename))
         return out_list
 
 
 class VersionedDatasource(Datasource):
-    """ Datasource with version information in config file
-
-    """
+    """Datasource with version information in config file"""
 
     def __init__(self, base_path, config_filename=None):
-        """ Initialize versioned datasource
+        """Initialize versioned datasource
 
         We assume that there is a configuration file with version
         information in datasource directory tree.
@@ -136,12 +135,11 @@ class VersionedDatasource(Datasource):
         version_parts = self.version.split('.')
         self.major_version = int(version_parts[0])
         self.minor_version = int(version_parts[1])
-        self.version_no = float('%d.%d' % (self.major_version,
-                                           self.minor_version))
+        self.version_no = float('%d.%d' % (self.major_version, self.minor_version))
 
 
 def _cfg_value(fname, section='DATA', value='path'):
-    """ Utility function to fetch value from config file """
+    """Utility function to fetch value from config file"""
     configp = configparser.ConfigParser()
     readfiles = configp.read(fname)
     if not readfiles:
@@ -153,7 +151,7 @@ def _cfg_value(fname, section='DATA', value='path'):
 
 
 def get_data_path():
-    """ Return specified or guessed locations of NIPY data files
+    """Return specified or guessed locations of NIPY data files
 
     The algorithm is to return paths, extracted from strings, where
     strings are found in the following order:
@@ -217,7 +215,7 @@ def get_data_path():
 
 
 def find_data_dir(root_dirs, *names):
-    """ Find relative path given path prefixes to search
+    """Find relative path given path prefixes to search
 
     We raise a DataError if we can't find the relative path
 
@@ -240,12 +238,14 @@ def find_data_dir(root_dirs, *names):
         pth = pjoin(path, ds_relative)
         if os.path.isdir(pth):
             return pth
-    raise DataError(f'Could not find datasource "{ds_relative}" in '
-                    f'data path "{os.path.pathsep.join(root_dirs)}"')
+    raise DataError(
+        f'Could not find datasource "{ds_relative}" in '
+        f'data path "{os.path.pathsep.join(root_dirs)}"'
+    )
 
 
 def make_datasource(pkg_def, **kwargs):
-    """ Return datasource defined by `pkg_def` as found in `data_path`
+    """Return datasource defined by `pkg_def` as found in `data_path`
 
     `data_path` is the only allowed keyword argument.
 
@@ -290,8 +290,7 @@ def make_datasource(pkg_def, **kwargs):
     try:
         pth = find_data_dir(data_path, *names)
     except DataError as e:
-        pth = [pjoin(this_data_path, *names)
-               for this_data_path in data_path]
+        pth = [pjoin(this_data_path, *names) for this_data_path in data_path]
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
         msg = f'{e}; Is it possible you have not installed a data package?'
         if 'name' in pkg_def:
@@ -303,21 +302,22 @@ def make_datasource(pkg_def, **kwargs):
 
 
 class Bomber:
-    """ Class to raise an informative error when used """
+    """Class to raise an informative error when used"""
 
     def __init__(self, name, msg):
         self.name = name
         self.msg = msg
 
     def __getattr__(self, attr_name):
-        """ Raise informative error accessing not-found attributes """
+        """Raise informative error accessing not-found attributes"""
         raise BomberError(
             f'Trying to access attribute "{attr_name}" of '
-            f'non-existent data "{self.name}"\n\n{self.msg}\n')
+            f'non-existent data "{self.name}"\n\n{self.msg}\n'
+        )
 
 
 def datasource_or_bomber(pkg_def, **options):
-    """ Return a viable datasource or a Bomber
+    """Return a viable datasource or a Bomber
 
     This is to allow module level creation of datasource objects.  We
     create the objects, so that, if the data exist, and are the correct
@@ -355,5 +355,5 @@ def datasource_or_bomber(pkg_def, **options):
         pkg_name = pkg_def['name']
     else:
         pkg_name = 'data at ' + unix_relpath
-    msg = f"{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}"
+    msg = f'{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}'
     return Bomber(sys_relpath, DataError(msg))

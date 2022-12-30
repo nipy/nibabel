@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Testing filesets - a draft
-
+"""Testing filesets - a draft
 """
 
 import numpy as np
@@ -20,12 +19,14 @@ from ..spatialimages import SpatialImage
 from numpy.testing import assert_array_equal
 import pytest
 
+
 def test_files_spatialimages():
     # test files creation in image classes
     arr = np.zeros((2, 3, 4))
     aff = np.eye(4)
-    klasses = [klass for klass in all_image_classes
-               if klass.rw and issubclass(klass, SpatialImage)]
+    klasses = [
+        klass for klass in all_image_classes if klass.rw and issubclass(klass, SpatialImage)
+    ]
     for klass in klasses:
         file_map = klass.make_file_map()
         for key, value in file_map.items():
@@ -88,8 +89,11 @@ def test_round_trip_spatialimages():
     # write an image to files
     data = np.arange(24, dtype='i4').reshape((2, 3, 4))
     aff = np.eye(4)
-    klasses = [klass for klass in all_image_classes
-               if klass.rw and klass.makeable and issubclass(klass, SpatialImage)]
+    klasses = [
+        klass
+        for klass in all_image_classes
+        if klass.rw and klass.makeable and issubclass(klass, SpatialImage)
+    ]
     for klass in klasses:
         file_map = klass.make_file_map()
         for key in file_map:

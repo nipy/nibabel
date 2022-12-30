@@ -24,8 +24,7 @@ def setup_module():
 
 
 def generate_data(nb_arrays, common_shape, rng):
-    data = [rng.rand(*(rng.randint(3, 20),) + common_shape) * 100
-            for _ in range(nb_arrays)]
+    data = [rng.rand(*(rng.randint(3, 20),) + common_shape) * 100 for _ in range(nb_arrays)]
     return data
 
 
@@ -46,7 +45,7 @@ def check_arr_seq(seq, arrays):
     assert len(seq._lengths) == len(arrays)
     assert seq._data.shape[1:] == arrays[0].shape[1:]
     assert seq.common_shape == arrays[0].shape[1:]
-    
+
     assert_arrays_equal(seq, arrays)
 
     # If seq is a view, then order of internal data is not guaranteed.
@@ -55,9 +54,9 @@ def check_arr_seq(seq, arrays):
         assert_array_equal(sorted(seq._lengths), sorted(lengths))
     else:
         seq.shrink_data()
-        
+
         assert seq._data.shape[0] == sum(lengths)
-        
+
         assert_array_equal(seq._data, np.concatenate(arrays, axis=0))
         assert_array_equal(seq._offsets, np.r_[0, np.cumsum(lengths)[:-1]])
         assert_array_equal(seq._lengths, lengths)
@@ -72,7 +71,6 @@ def check_arr_seq_view(seq_view, seq):
 
 
 class TestArraySequence(unittest.TestCase):
-
     def test_creating_empty_arraysequence(self):
         check_empty_arr_seq(ArraySequence())
 
@@ -82,17 +80,14 @@ class TestArraySequence(unittest.TestCase):
 
         # List of ndarrays.
         N = 5
-        for ndim in range(1, N+1):
-            common_shape = tuple([SEQ_DATA['rng'].randint(1, 10)
-                                 for _ in range(ndim-1)])
-            data = generate_data(nb_arrays=5, common_shape=common_shape,
-                                 rng=SEQ_DATA['rng'])
+        for ndim in range(1, N + 1):
+            common_shape = tuple([SEQ_DATA['rng'].randint(1, 10) for _ in range(ndim - 1)])
+            data = generate_data(nb_arrays=5, common_shape=common_shape, rng=SEQ_DATA['rng'])
             check_arr_seq(ArraySequence(data), data)
 
         # Force ArraySequence constructor to use buffering.
-        buffer_size = 1. / 1024**2  # 1 bytes
-        check_arr_seq(ArraySequence(iter(SEQ_DATA['data']), buffer_size),
-                      SEQ_DATA['data'])
+        buffer_size = 1.0 / 1024**2  # 1 bytes
+        check_arr_seq(ArraySequence(iter(SEQ_DATA['data']), buffer_size), SEQ_DATA['data'])
 
     def test_creating_arraysequence_from_generator(self):
         gen_1, gen_2 = itertools.tee((e for e in SEQ_DATA['data']))
@@ -147,9 +142,9 @@ class TestArraySequence(unittest.TestCase):
         assert seq._data is not orig._data
 
     def test_arraysequence_append(self):
-        element = generate_data(nb_arrays=1,
-                                common_shape=SEQ_DATA['seq'].common_shape,
-                                rng=SEQ_DATA['rng'])[0]
+        element = generate_data(
+            nb_arrays=1, common_shape=SEQ_DATA['seq'].common_shape, rng=SEQ_DATA['rng']
+        )[0]
 
         # Append a new element.
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
@@ -172,16 +167,16 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq(seq, SEQ_DATA['seq'])
 
         # Append an element with different shape.
-        element = generate_data(nb_arrays=1,
-                                common_shape=SEQ_DATA['seq'].common_shape*2,
-                                rng=SEQ_DATA['rng'])[0]
+        element = generate_data(
+            nb_arrays=1, common_shape=SEQ_DATA['seq'].common_shape * 2, rng=SEQ_DATA['rng']
+        )[0]
         with pytest.raises(ValueError):
             seq.append(element)
 
     def test_arraysequence_extend(self):
-        new_data = generate_data(nb_arrays=10,
-                                 common_shape=SEQ_DATA['seq'].common_shape,
-                                 rng=SEQ_DATA['rng'])
+        new_data = generate_data(
+            nb_arrays=10, common_shape=SEQ_DATA['seq'].common_shape, rng=SEQ_DATA['rng']
+        )
 
         # Extend with an empty list.
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
@@ -218,9 +213,9 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq(seq, SEQ_DATA['data'])
 
         # Extend with elements of different shape.
-        data = generate_data(nb_arrays=10,
-                             common_shape=SEQ_DATA['seq'].common_shape*2,
-                             rng=SEQ_DATA['rng'])
+        data = generate_data(
+            nb_arrays=10, common_shape=SEQ_DATA['seq'].common_shape * 2, rng=SEQ_DATA['rng']
+        )
         seq = SEQ_DATA['seq'].copy()  # Copy because of in-place modification.
         with pytest.raises(ValueError):
             seq.extend(data)
@@ -263,9 +258,7 @@ class TestArraySequence(unittest.TestCase):
         selection = np.array([False, True, True, False, True])
         seq_view = SEQ_DATA['seq'][selection]
         check_arr_seq_view(seq_view, SEQ_DATA['seq'])
-        check_arr_seq(seq_view,
-                      [SEQ_DATA['data'][i]
-                       for i, keep in enumerate(selection) if keep])
+        check_arr_seq(seq_view, [SEQ_DATA['data'][i] for i, keep in enumerate(selection) if keep])
 
         # Test invalid indexing
         with pytest.raises(TypeError):
@@ -300,22 +293,22 @@ class TestArraySequence(unittest.TestCase):
         check_arr_seq(seq, SEQ_DATA['data'])
 
         # Setitem using tuple indexing.
-        seq = ArraySequence(np.arange(900).reshape((50,6,3)))
+        seq = ArraySequence(np.arange(900).reshape((50, 6, 3)))
         seq[:, 0] = 0
         assert seq._data[:, 0].sum() == 0
 
         # Setitem using tuple indexing.
-        seq = ArraySequence(np.arange(900).reshape((50,6,3)))
+        seq = ArraySequence(np.arange(900).reshape((50, 6, 3)))
         seq[range(len(seq))] = 0
         assert seq._data.sum() == 0
 
         # Setitem of a slice using another slice.
-        seq = ArraySequence(np.arange(900).reshape((50,6,3)))
+        seq = ArraySequence(np.arange(900).reshape((50, 6, 3)))
         seq[0:4] = seq[5:9]
         check_arr_seq(seq[0:4], seq[5:9])
 
         # Setitem between array sequences with different number of sequences.
-        seq = ArraySequence(np.arange(900).reshape((50,6,3)))
+        seq = ArraySequence(np.arange(900).reshape((50, 6, 3)))
         with pytest.raises(ValueError):
             seq[0:4] = seq[5:10]
 
@@ -340,7 +333,7 @@ class TestArraySequence(unittest.TestCase):
         # Disable division per zero warnings.
         flags = np.seterr(divide='ignore', invalid='ignore')
         SCALARS = [42, 0.5, True, -3, 0]
-        CMP_OPS = ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]
+        CMP_OPS = ['__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__']
 
         seq = SEQ_DATA['seq'].copy()
         seq_int = SEQ_DATA['seq'].copy()
@@ -387,11 +380,15 @@ class TestArraySequence(unittest.TestCase):
             seq2 = ArraySequence(np.arange(8).reshape(2, 2, 2))
             with pytest.raises(ValueError):
                 getattr(seq1, op)(seq2)
-            
 
-
-        for op in ["__add__", "__sub__", "__mul__", "__mod__",
-                   "__floordiv__", "__truediv__"] + CMP_OPS:
+        for op in [
+            '__add__',
+            '__sub__',
+            '__mul__',
+            '__mod__',
+            '__floordiv__',
+            '__truediv__',
+        ] + CMP_OPS:
             _test_binary(op, seq, SCALARS, ARRSEQS)
             _test_binary(op, seq_int, SCALARS, ARRSEQS)
 
@@ -405,26 +402,29 @@ class TestArraySequence(unittest.TestCase):
             op = f"__i{op.strip('_')}__"
             _test_binary(op, seq, SCALARS, ARRSEQS, inplace=True)
 
-            if op == "__itruediv__":
+            if op == '__itruediv__':
                 continue  # Going to deal with it separately.
 
-            _test_binary(op, seq_int, [42, -3, True, 0], [seq_int, seq_bool, -seq_int], inplace=True)  # int <-- int
-            
+            _test_binary(
+                op, seq_int, [42, -3, True, 0], [seq_int, seq_bool, -seq_int], inplace=True
+            )  # int <-- int
+
             with pytest.raises(TypeError):
-                _test_binary(op, seq_int, [0.5], [], inplace=True) # int <-- float
+                _test_binary(op, seq_int, [0.5], [], inplace=True)  # int <-- float
             with pytest.raises(TypeError):
-                _test_binary(op, seq_int, [], [seq], inplace=True) # int <-- float
-            
+                _test_binary(op, seq_int, [], [seq], inplace=True)  # int <-- float
 
         # __pow__ : Integers to negative integer powers are not allowed.
-        _test_binary("__pow__", seq, [42, -3, True, 0], [seq_int, seq_bool, -seq_int])
-        _test_binary("__ipow__", seq, [42, -3, True, 0], [seq_int, seq_bool, -seq_int], inplace=True)
-        
+        _test_binary('__pow__', seq, [42, -3, True, 0], [seq_int, seq_bool, -seq_int])
+        _test_binary(
+            '__ipow__', seq, [42, -3, True, 0], [seq_int, seq_bool, -seq_int], inplace=True
+        )
+
         with pytest.raises(ValueError):
-            _test_binary("__pow__", seq_int, [-3], [])
+            _test_binary('__pow__', seq_int, [-3], [])
         with pytest.raises(ValueError):
-            _test_binary("__ipow__", seq_int, [-3], [], inplace=True)
-        
+            _test_binary('__ipow__', seq_int, [-3], [], inplace=True)
+
         # __itruediv__ is only valid with float arrseq.
         for scalar in SCALARS + ARRSEQS:
             seq_int_cp = seq_int.copy()
@@ -432,25 +432,25 @@ class TestArraySequence(unittest.TestCase):
                 seq_int_cp /= scalar
 
         # Bitwise operators
-        for op in ("__lshift__", "__rshift__", "__or__", "__and__", "__xor__"):
+        for op in ('__lshift__', '__rshift__', '__or__', '__and__', '__xor__'):
             _test_binary(op, seq_bool, [42, -3, True, 0], [seq_int, seq_bool, -seq_int])
-            
+
             with pytest.raises(TypeError):
                 _test_binary(op, seq_bool, [0.5], [])
             with pytest.raises(TypeError):
                 _test_binary(op, seq, [], [seq])
 
         # Unary operators
-        for op in ["__neg__", "__abs__"]:
+        for op in ['__neg__', '__abs__']:
             _test_unary(op, seq)
             _test_unary(op, -seq)
             _test_unary(op, seq_int)
             _test_unary(op, -seq_int)
 
-        _test_unary("__abs__", seq_bool)
-        _test_unary("__invert__", seq_bool)
+        _test_unary('__abs__', seq_bool)
+        _test_unary('__invert__', seq_bool)
         with pytest.raises(TypeError):
-            _test_unary("__invert__", seq)
+            _test_unary('__invert__', seq)
 
         # Restore flags.
         np.seterr(**flags)
@@ -462,20 +462,19 @@ class TestArraySequence(unittest.TestCase):
         # Test calling repr when the number of arrays is bigger dans Numpy's
         # print option threshold.
         nb_arrays = 50
-        seq = ArraySequence(generate_data(nb_arrays, common_shape=(1,),
-                                          rng=SEQ_DATA['rng']))
+        seq = ArraySequence(generate_data(nb_arrays, common_shape=(1,), rng=SEQ_DATA['rng']))
 
         bkp_threshold = np.get_printoptions()['threshold']
-        np.set_printoptions(threshold=nb_arrays*2)
+        np.set_printoptions(threshold=nb_arrays * 2)
         txt1 = repr(seq)
-        np.set_printoptions(threshold=nb_arrays//2)
+        np.set_printoptions(threshold=nb_arrays // 2)
         txt2 = repr(seq)
         assert len(txt2) < len(txt1)
         np.set_printoptions(threshold=bkp_threshold)
 
     def test_save_and_load_arraysequence(self):
         # Test saving and loading an empty ArraySequence.
-        with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:
+        with tempfile.TemporaryFile(mode='w+b', suffix='.npz') as f:
             seq = ArraySequence()
             seq.save(f)
             f.seek(0, os.SEEK_SET)
@@ -485,7 +484,7 @@ class TestArraySequence(unittest.TestCase):
             assert_array_equal(loaded_seq._lengths, seq._lengths)
 
         # Test saving and loading a ArraySequence.
-        with tempfile.TemporaryFile(mode="w+b", suffix=".npz") as f:
+        with tempfile.TemporaryFile(mode='w+b', suffix='.npz') as f:
             seq = SEQ_DATA['seq']
             seq.save(f)
             f.seek(0, os.SEEK_SET)

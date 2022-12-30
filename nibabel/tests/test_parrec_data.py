@@ -1,4 +1,4 @@
-""" Test we can correctly import example PARREC files
+"""Test we can correctly import example PARREC files
 """
 
 from glob import glob

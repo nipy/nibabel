@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Validate image proxy API
+"""Validate image proxy API
 
 Minimum array proxy API is:
 
@@ -77,15 +77,13 @@ def _some_slicers(shape):
             slicers[i, i] = 0
     # Add a newaxis to keep us on our toes
     no_pos = ndim // 2
-    slicers = np.hstack((slicers[:, :no_pos],
-                         np.empty((ndim, 1)),
-                         slicers[:, no_pos:]))
+    slicers = np.hstack((slicers[:, :no_pos], np.empty((ndim, 1)), slicers[:, no_pos:]))
     slicers[:, no_pos] = None
     return [tuple(s) for s in slicers]
 
 
 class _TestProxyAPI(ValidateAPI):
-    """ Base class for testing proxy APIs
+    """Base class for testing proxy APIs
 
     Assumes that real classes will provide an `obj_params` method which is a
     generator returning 2 tuples of (<proxy_maker>, <param_dict>).
@@ -97,6 +95,7 @@ class _TestProxyAPI(ValidateAPI):
     The <header> above should support at least "get_data_dtype",
     "set_data_dtype", "get_data_shape", "set_data_shape"
     """
+
     # Flag True if offset can be set into header of image
     settable_offset = False
 
@@ -203,11 +202,12 @@ class _TestProxyAPI(ValidateAPI):
 
 
 class TestAnalyzeProxyAPI(_TestProxyAPI):
-    """ Specific Analyze-type array proxy API test
+    """Specific Analyze-type array proxy API test
 
     The analyze proxy extends the general API by adding read-only attributes
     ``slope, inter, offset``
     """
+
     proxy_class = ArrayProxy
     header_class = AnalyzeHeader
     shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
@@ -221,7 +221,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
     data_endian = '='
 
     def obj_params(self):
-        """ Iterator returning (``proxy_creator``, ``proxy_params``) pairs
+        """Iterator returning (``proxy_creator``, ``proxy_params``) pairs
 
         Each pair will be tested separately.
 
@@ -240,13 +240,11 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             offsets = (0, 16)
         # For non-integral parameters, cast to float32 value can be losslessly cast
         # later, enabling exact checks, then back to float for consistency
-        slopes = (1., 2., float(np.float32(3.1416))) if self.has_slope else (1.,)
-        inters = (0., 10., float(np.float32(2.7183))) if self.has_inter else (0.,)
-        for shape, dtype, offset, slope, inter in product(self.shapes,
-                                                          self.data_dtypes,
-                                                          offsets,
-                                                          slopes,
-                                                          inters):
+        slopes = (1.0, 2.0, float(np.float32(3.1416))) if self.has_slope else (1.0,)
+        inters = (0.0, 10.0, float(np.float32(2.7183))) if self.has_inter else (0.0,)
+        for shape, dtype, offset, slope, inter in product(
+            self.shapes, self.data_dtypes, offsets, slopes, inters
+        ):
             n_els = np.prod(shape)
             dtype = np.dtype(dtype).newbyteorder(self.data_endian)
             arr = np.arange(n_els, dtype=dtype).reshape(shape)
@@ -264,9 +262,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 # and datatypes of slope, inter
                 hdr.set_slope_inter(slope, inter)
                 s, i = hdr.get_slope_inter()
-                tmp = apply_read_scaling(arr,
-                                         1. if s is None else s,
-                                         0. if i is None else i)
+                tmp = apply_read_scaling(arr, 1.0 if s is None else s, 0.0 if i is None else i)
                 dtype_out = tmp.dtype.type
 
             def sio_func():
@@ -277,9 +273,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 # Use a copy of the header to avoid changing
                 # global header in test functions.
                 new_hdr = hdr.copy()
-                return (self.proxy_class(fio, new_hdr),
-                        fio,
-                        new_hdr)
+                return (self.proxy_class(fio, new_hdr), fio, new_hdr)
 
             params = dict(
                 dtype=dtype,
@@ -289,7 +283,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 shape=shape,
                 offset=offset,
                 slope=slope,
-                inter=inter)
+                inter=inter,
+            )
             yield sio_func, params
             # Same with filenames
             with InTemporaryDirectory():
@@ -302,9 +297,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                     # Use a copy of the header to avoid changing
                     # global header in test functions.
                     new_hdr = hdr.copy()
-                    return (self.proxy_class(fname, new_hdr),
-                            fname,
-                            new_hdr)
+                    return (self.proxy_class(fname, new_hdr), fname, new_hdr)
+
                 params = params.copy()
                 yield fname_func, params
 
@@ -339,8 +333,20 @@ class TestSpm2AnalyzeProxyAPI(TestSpm99AnalyzeProxyAPI):
 class TestNifti1ProxyAPI(TestSpm99AnalyzeProxyAPI):
     header_class = Nifti1Header
     has_inter = True
-    data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64,
-                   np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
+    data_dtypes = (
+        np.uint8,
+        np.int16,
+        np.int32,
+        np.float32,
+        np.complex64,
+        np.float64,
+        np.int8,
+        np.uint16,
+        np.uint32,
+        np.int64,
+        np.uint64,
+        np.complex128,
+    )
     if have_binary128():
         data_dtypes += (np.float128, np.complex256)
 
@@ -366,7 +372,7 @@ class TestMinc1API(_TestProxyAPI):
         return netcdf_file(f, mode='r')
 
     def obj_params(self):
-        """ Iterator returning (``proxy_creator``, ``proxy_params``) pairs
+        """Iterator returning (``proxy_creator``, ``proxy_params``) pairs
 
         Each pair will be tested separately.
 
@@ -378,8 +384,7 @@ class TestMinc1API(_TestProxyAPI):
         having an effect on the later tests in the same function.
         """
         eg_path = pjoin(DATA_PATH, self.eg_fname)
-        arr_out = self.file_class(
-            self.opener(eg_path)).get_scaled_data()
+        arr_out = self.file_class(self.opener(eg_path)).get_scaled_data()
 
         def eg_func():
             mf = self.file_class(self.opener(eg_path))
@@ -387,13 +392,12 @@ class TestMinc1API(_TestProxyAPI):
             img = self.module.load(eg_path)
             fobj = open(eg_path, 'rb')
             return prox, fobj, img.header
-        yield (eg_func,
-               dict(shape=self.eg_shape,
-                    dtype_out=np.float64,
-                    arr_out=arr_out))
+
+        yield (eg_func, dict(shape=self.eg_shape, dtype_out=np.float64, arr_out=arr_out))
 
 
 if have_h5py:
+
     class TestMinc2API(TestMinc1API):
         module = minc2
         file_class = minc2.Minc2File
@@ -420,32 +424,25 @@ class TestEcatAPI(_TestProxyAPI):
             prox = ecat.EcatImageArrayProxy(sh)
             fobj = open(eg_path, 'rb')
             return prox, fobj, sh
-        yield (eg_func,
-               dict(shape=self.eg_shape,
-                    dtype_out=np.float64,
-                    arr_out=arr_out))
+
+        yield (eg_func, dict(shape=self.eg_shape, dtype_out=np.float64, arr_out=arr_out))
 
     def validate_header_isolated(self, pmaker, params):
         raise unittest.SkipTest('ECAT header does not support dtype get')
 
 
 class TestPARRECAPI(_TestProxyAPI):
-
     def _func_dict(self, rec_name):
         img = parrec.load(rec_name)
         arr_out = img.get_fdata()
 
         def eg_func():
             img = parrec.load(rec_name)
-            prox = parrec.PARRECArrayProxy(rec_name,
-                                           img.header,
-                                           scaling='dv')
+            prox = parrec.PARRECArrayProxy(rec_name, img.header, scaling='dv')
             fobj = open(rec_name, 'rb')
             return prox, fobj, img.header
-        return (eg_func,
-                dict(shape=img.shape,
-                     dtype_out=np.float64,
-                     arr_out=arr_out))
+
+        return (eg_func, dict(shape=img.shape, dtype_out=np.float64, arr_out=arr_out))
 
     def obj_params(self):
         yield self._func_dict(EG_REC)

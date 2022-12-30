@@ -1,4 +1,4 @@
-""" Array writer objects
+"""Array writer objects
 
 Array writers have init signature::
 
@@ -31,8 +31,15 @@ larger ints and smaller.
 
 import numpy as np
 
-from .casting import (int_to_float, as_int, int_abs, type_info, floor_exact,
-                      best_float, shared_range)
+from .casting import (
+    int_to_float,
+    as_int,
+    int_abs,
+    type_info,
+    floor_exact,
+    best_float,
+    shared_range,
+)
 from .volumeutils import finite_range, array_to_file
 
 
@@ -45,9 +52,8 @@ class ScalingError(WriterError):
 
 
 class ArrayWriter:
-
     def __init__(self, array, out_dtype=None, **kwargs):
-        r""" Initialize array writer
+        r"""Initialize array writer
 
         Parameters
         ----------
@@ -92,10 +98,10 @@ class ArrayWriter:
         self._has_nan = None
         self._nan2zero = nan2zero
         if check_scaling and self.scaling_needed():
-            raise WriterError("Scaling needed but cannot scale")
+            raise WriterError('Scaling needed but cannot scale')
 
     def scaling_needed(self):
-        """ Checks if scaling is needed for input array
+        """Checks if scaling is needed for input array
 
         Raises WriterError if no scaling possible.
 
@@ -155,18 +161,17 @@ class ArrayWriter:
 
     @property
     def array(self):
-        """ Return array from arraywriter """
+        """Return array from arraywriter"""
         return self._array
 
     @property
     def out_dtype(self):
-        """ Return `out_dtype` from arraywriter """
+        """Return `out_dtype` from arraywriter"""
         return self._out_dtype
 
     @property
     def has_nan(self):
-        """ True if array has NaNs
-        """
+        """True if array has NaNs"""
         # Structured types raise an error for finite range; don't run finite
         # range unless we have to.
         if self._has_nan is None:
@@ -177,7 +182,7 @@ class ArrayWriter:
         return self._has_nan
 
     def finite_range(self):
-        """ Return (maybe cached) finite range of data array """
+        """Return (maybe cached) finite range of data array"""
         if self._finite_range is None:
             mn, mx, has_nan = finite_range(self._array, True)
             self._finite_range = (mn, mx)
@@ -185,14 +190,16 @@ class ArrayWriter:
         return self._finite_range
 
     def _needs_nan2zero(self):
-        """ True if nan2zero check needed for writing array """
-        return (self._nan2zero and
-                self._array.dtype.kind in 'fc' and
-                self.out_dtype.kind in 'iu' and
-                self.has_nan)
+        """True if nan2zero check needed for writing array"""
+        return (
+            self._nan2zero
+            and self._array.dtype.kind in 'fc'
+            and self.out_dtype.kind in 'iu'
+            and self.has_nan
+        )
 
     def to_fileobj(self, fileobj, order='F'):
-        """ Write array into `fileobj`
+        """Write array into `fileobj`
 
         Parameters
         ----------
@@ -200,18 +207,20 @@ class ArrayWriter:
         order : {'F', 'C'}
             order (Fortran or C) to which to write array
         """
-        array_to_file(self._array,
-                      fileobj,
-                      self._out_dtype,
-                      offset=None,
-                      mn=None,
-                      mx=None,
-                      order=order,
-                      nan2zero=self._needs_nan2zero())
+        array_to_file(
+            self._array,
+            fileobj,
+            self._out_dtype,
+            offset=None,
+            mn=None,
+            mx=None,
+            order=order,
+            nan2zero=self._needs_nan2zero(),
+        )
 
 
 class SlopeArrayWriter(ArrayWriter):
-    """ ArrayWriter that can use scalefactor for writing arrays
+    """ArrayWriter that can use scalefactor for writing arrays
 
     The scalefactor allows the array writer to write floats to int output
     types, and rescale larger ints to smaller.  It can therefore lose
@@ -227,9 +236,8 @@ class SlopeArrayWriter(ArrayWriter):
     * calc_scale() - calculate slope to best write self.array
     """
 
-    def __init__(self, array, out_dtype=None, calc_scale=True,
-                 scaler_dtype=np.float32, **kwargs):
-        r""" Initialize array writer
+    def __init__(self, array, out_dtype=None, calc_scale=True, scaler_dtype=np.float32, **kwargs):
+        r"""Initialize array writer
 
         Parameters
         ----------
@@ -286,7 +294,7 @@ class SlopeArrayWriter(ArrayWriter):
             self.calc_scale()
 
     def scaling_needed(self):
-        """ Checks if scaling is needed for input array
+        """Checks if scaling is needed for input array
 
         Raises WriterError if no scaling possible.
 
@@ -312,7 +320,7 @@ class SlopeArrayWriter(ArrayWriter):
         return (mn, mx) != (np.inf, -np.inf)
 
     def reset(self):
-        """ Set object to values before any scaling calculation """
+        """Set object to values before any scaling calculation"""
         self.slope = 1.0
         self._finite_range = None
         self._scale_calced = False
@@ -322,11 +330,11 @@ class SlopeArrayWriter(ArrayWriter):
 
     def _set_slope(self, val):
         self._slope = np.squeeze(self.scaler_dtype.type(val))
+
     slope = property(_get_slope, _set_slope, None, 'get/set slope')
 
     def calc_scale(self, force=False):
-        """ Calculate / set scaling for floats/(u)ints to (u)ints
-        """
+        """Calculate / set scaling for floats/(u)ints to (u)ints"""
         # If we've run already, return unless told otherwise
         if not force and self._scale_calced:
             return
@@ -337,7 +345,7 @@ class SlopeArrayWriter(ArrayWriter):
         self._scale_calced = True
 
     def _writing_range(self):
-        """ Finite range for thresholding on write """
+        """Finite range for thresholding on write"""
         if self._out_dtype.kind in 'iu' and self._array.dtype.kind == 'f':
             mn, mx = self.finite_range()
             if (mn, mx) == (np.inf, -np.inf):  # no finite data
@@ -346,7 +354,7 @@ class SlopeArrayWriter(ArrayWriter):
         return None, None
 
     def to_fileobj(self, fileobj, order='F'):
-        """ Write array into `fileobj`
+        """Write array into `fileobj`
 
         Parameters
         ----------
@@ -355,15 +363,17 @@ class SlopeArrayWriter(ArrayWriter):
             order (Fortran or C) to which to write array
         """
         mn, mx = self._writing_range()
-        array_to_file(self._array,
-                      fileobj,
-                      self._out_dtype,
-                      offset=None,
-                      divslope=self.slope,
-                      mn=mn,
-                      mx=mx,
-                      order=order,
-                      nan2zero=self._needs_nan2zero())
+        array_to_file(
+            self._array,
+            fileobj,
+            self._out_dtype,
+            offset=None,
+            divslope=self.slope,
+            mn=mn,
+            mx=mx,
+            order=order,
+            nan2zero=self._needs_nan2zero(),
+        )
 
     def _do_scaling(self):
         arr = self._array
@@ -383,7 +393,7 @@ class SlopeArrayWriter(ArrayWriter):
         out_max, out_min = info.max, info.min
         # If left as int64, uint64, comparisons will default to floats, and
         # these are inexact for > 2**53 - so convert to int
-        if (as_int(mx) <= as_int(out_max) and as_int(mn) >= as_int(out_min)):
+        if as_int(mx) <= as_int(out_max) and as_int(mn) >= as_int(out_min):
             # already in range
             return
         # (u)int to (u)int scaling
@@ -408,7 +418,7 @@ class SlopeArrayWriter(ArrayWriter):
         self._range_scale(mn, mx)
 
     def _range_scale(self, in_min, in_max):
-        """ Calculate scaling based on data range and output type """
+        """Calculate scaling based on data range and output type"""
         out_dtype = self._out_dtype
         info = type_info(out_dtype)
         out_min, out_max = info['min'], info['max']
@@ -418,12 +428,12 @@ class SlopeArrayWriter(ArrayWriter):
             # not lose precision because min/max are of fp type.
             out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         else:  # (u)int
-            out_min, out_max = [int_to_float(v, big_float)
-                                for v in (out_min, out_max)]
+            out_min, out_max = [int_to_float(v, big_float) for v in (out_min, out_max)]
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
-                raise WriterError('Cannot scale negative and positive '
-                                  'numbers to uint without intercept')
+                raise WriterError(
+                    'Cannot scale negative and positive ' 'numbers to uint without intercept'
+                )
             if in_max <= 0:  # All input numbers <= 0
                 self.slope = in_min / out_max
             else:  # All input numbers > 0
@@ -438,7 +448,7 @@ class SlopeArrayWriter(ArrayWriter):
 
 
 class SlopeInterArrayWriter(SlopeArrayWriter):
-    """ Array writer that can use slope and intercept to scale array
+    """Array writer that can use slope and intercept to scale array
 
     The writer can subtract an intercept, and divided by a slope, in order to
     be able to convert floating point values into a (u)int range, or to convert
@@ -455,9 +465,8 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
     * calc_scale() - calculate inter, slope to best write self.array
     """
 
-    def __init__(self, array, out_dtype=None, calc_scale=True,
-                 scaler_dtype=np.float32, **kwargs):
-        r""" Initialize array writer
+    def __init__(self, array, out_dtype=None, calc_scale=True, scaler_dtype=np.float32, **kwargs):
+        r"""Initialize array writer
 
         Parameters
         ----------
@@ -498,14 +507,12 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         >>> (aw.slope, aw.inter) == (1.0, 128)
         True
         """
-        super(SlopeInterArrayWriter, self).__init__(array,
-                                                    out_dtype,
-                                                    calc_scale,
-                                                    scaler_dtype,
-                                                    **kwargs)
+        super(SlopeInterArrayWriter, self).__init__(
+            array, out_dtype, calc_scale, scaler_dtype, **kwargs
+        )
 
     def reset(self):
-        """ Set object to values before any scaling calculation """
+        """Set object to values before any scaling calculation"""
         super(SlopeInterArrayWriter, self).reset()
         self.inter = 0.0
 
@@ -514,10 +521,11 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
     def _set_inter(self, val):
         self._inter = np.squeeze(self.scaler_dtype.type(val))
+
     inter = property(_get_inter, _set_inter, None, 'get/set inter')
 
     def to_fileobj(self, fileobj, order='F'):
-        """ Write array into `fileobj`
+        """Write array into `fileobj`
 
         Parameters
         ----------
@@ -526,16 +534,18 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             order (Fortran or C) to which to write array
         """
         mn, mx = self._writing_range()
-        array_to_file(self._array,
-                      fileobj,
-                      self._out_dtype,
-                      offset=None,
-                      intercept=self.inter,
-                      divslope=self.slope,
-                      mn=mn,
-                      mx=mx,
-                      order=order,
-                      nan2zero=self._needs_nan2zero())
+        array_to_file(
+            self._array,
+            fileobj,
+            self._out_dtype,
+            offset=None,
+            intercept=self.inter,
+            divslope=self.slope,
+            mn=mn,
+            mx=mx,
+            order=order,
+            nan2zero=self._needs_nan2zero(),
+        )
 
     def _iu2iu(self):
         # (u)int to (u)int
@@ -546,8 +556,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         # Options in this method are scaling using intercept only.  These will
         # have to pass through ``self.scaler_dtype`` (because the intercept is
         # in this type).
-        o_min, o_max = [as_int(v)
-                        for v in shared_range(self.scaler_dtype, out_dtype)]
+        o_min, o_max = [as_int(v) for v in shared_range(self.scaler_dtype, out_dtype)]
         type_range = o_max - o_min
         mn2mx = mx - mn
         if mn2mx <= type_range:  # might offset be enough?
@@ -573,10 +582,9 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         super(SlopeInterArrayWriter, self)._iu2iu()
 
     def _range_scale(self, in_min, in_max):
-        """ Calculate scaling, intercept based on data range and output type
-        """
+        """Calculate scaling, intercept based on data range and output type"""
         if in_max == in_min:  # Only one number in array
-            self.slope = 1.
+            self.slope = 1.0
             self.inter = in_min
             return
         big_float = best_float()
@@ -596,8 +604,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_min, in_max = as_int(in_min), as_int(in_max)
             in_range = int_to_float(in_max - in_min, big_float)
             # Cast to float for later processing.
-            in_min, in_max = [int_to_float(v, big_float)
-                              for v in (in_min, in_max)]
+            in_min, in_max = [int_to_float(v, big_float) for v in (in_min, in_max)]
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)
@@ -676,7 +683,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         self.inter = inter
         self.slope = slope
         if not np.all(np.isfinite([self.slope, self.inter])):
-            raise ScalingError("Slope / inter not both finite")
+            raise ScalingError('Slope / inter not both finite')
         # Check nan fill value
         if not (0 in (in_min, in_max) and self._nan2zero and self.has_nan):
             return
@@ -691,7 +698,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
 
 def get_slope_inter(writer):
-    """ Return slope, intercept from array writer object
+    """Return slope, intercept from array writer object
 
     Parameters
     ----------
@@ -725,9 +732,8 @@ def get_slope_inter(writer):
     return slope, inter
 
 
-def make_array_writer(data, out_type, has_slope=True, has_intercept=True,
-                      **kwargs):
-    r""" Make array writer instance for array `data` and output type `out_type`
+def make_array_writer(data, out_type, has_slope=True, has_intercept=True, **kwargs):
+    r"""Make array writer instance for array `data` and output type `out_type`
 
     Parameters
     ----------

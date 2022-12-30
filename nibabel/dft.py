@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
-""" DICOM filesystem tools
+"""DICOM filesystem tools
 """
 
 
@@ -27,26 +27,26 @@ from io import BytesIO
 from .nifti1 import Nifti1Header
 from nibabel.optpkg import optional_package
 
-pydicom = optional_package("pydicom")[0]
+pydicom = optional_package('pydicom')[0]
 
 logger = logging.getLogger('nibabel.dft')
 
 
 class DFTError(Exception):
-    "base class for DFT exceptions"
+    """base class for DFT exceptions"""
 
 
 class CachingError(DFTError):
-    "error while caching"
+    """error while caching"""
 
 
 class VolumeError(DFTError):
-    "unsupported volume parameter"
+    """unsupported volume parameter"""
 
 
 class InstanceStackError(DFTError):
 
-    "bad series of instance numbers"
+    """bad series of instance numbers"""
 
     def __init__(self, series, i, si):
         self.series = series
@@ -59,7 +59,6 @@ class InstanceStackError(DFTError):
 
 
 class _Study:
-
     def __init__(self, d):
         self.uid = d['uid']
         self.date = d['date']
@@ -76,7 +75,7 @@ class _Study:
         if name == 'series' and val is None:
             val = []
             with DB.readonly_cursor() as c:
-                c.execute("SELECT * FROM series WHERE study = ?", (self.uid, ))
+                c.execute('SELECT * FROM series WHERE study = ?', (self.uid,))
                 cols = [el[0] for el in c.description]
                 for row in c:
                     d = dict(zip(cols, row))
@@ -91,7 +90,6 @@ class _Study:
 
 
 class _Series:
-
     def __init__(self, d):
         self.uid = d['uid']
         self.study = d['study']
@@ -112,7 +110,7 @@ class _Series:
                              FROM storage_instance
                             WHERE series = ?
                             ORDER BY instance_number"""
-                c.execute(query, (self.uid, ))
+                c.execute(query, (self.uid,))
                 cols = [el[0] for el in c.description]
                 for row in c:
                     d = dict(zip(cols, row))
@@ -122,6 +120,7 @@ class _Series:
 
     def as_png(self, index=None, scale_to_slice=True):
         import PIL.Image
+
         # For compatibility with older versions of PIL that did not
         # have `frombytes`:
         if hasattr(PIL.Image, 'frombytes'):
@@ -160,8 +159,9 @@ class _Series:
             raise VolumeError('unsupported bits allocated')
         if self.bits_stored != 12:
             raise VolumeError('unsupported bits stored')
-        data = numpy.ndarray((len(self.storage_instances), self.rows,
-                              self.columns), dtype=numpy.int16)
+        data = numpy.ndarray(
+            (len(self.storage_instances), self.rows, self.columns), dtype=numpy.int16
+        )
         for (i, si) in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
@@ -192,10 +192,12 @@ class _Series:
         cosk = pos_n - pos_1
         cosk = cosk / numpy.linalg.norm(cosk)
 
-        m = ((pdi * cosi[0], pdj * cosj[0], pdk * cosk[0], pos_1[0]),
-             (pdi * cosi[1], pdj * cosj[1], pdk * cosk[1], pos_1[1]),
-             (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]),
-             (0, 0, 0, 1))
+        m = (
+            (pdi * cosi[0], pdj * cosj[0], pdk * cosk[0], pos_1[0]),
+            (pdi * cosi[1], pdj * cosj[1], pdk * cosk[1], pos_1[1]),
+            (pdi * cosi[2], pdj * cosj[2], pdk * cosk[2], pos_1[2]),
+            (0, 0, 0, 1),
+        )
 
         # Values are python Decimals in pydicom 0.9.7
         m = numpy.array(m, dtype=float)
@@ -205,8 +207,7 @@ class _Series:
         hdr.set_qform(m, 1)
         hdr.set_xyzt_units(2, 8)
         hdr.set_data_dtype(numpy.int16)
-        hdr.set_data_shape((self.columns, self.rows,
-                            len(self.storage_instances)))
+        hdr.set_data_shape((self.columns, self.rows, len(self.storage_instances)))
 
         s = BytesIO()
         hdr.write_to(s)
@@ -218,7 +219,6 @@ class _Series:
 
 
 class _StorageInstance:
-
     def __init__(self, d):
         self.uid = d['uid']
         self.instance_number = d['instance_number']
@@ -233,7 +233,7 @@ class _StorageInstance:
                              FROM file
                             WHERE storage_instance = ?
                             ORDER BY directory, name"""
-                c.execute(query, (self.uid, ))
+                c.execute(query, (self.uid,))
                 val = ['%s/%s' % tuple(row) for row in c]
             self.files = val
         return val
@@ -262,25 +262,24 @@ def update_cache(base_dir, followlinks=False):
         os.stat(d)
         mtimes[d] = os.stat(d).st_mtime
     with DB.readwrite_cursor() as c:
-        c.execute("SELECT path, mtime FROM directory")
+        c.execute('SELECT path, mtime FROM directory')
         db_mtimes = dict(c)
-        c.execute("SELECT uid FROM study")
+        c.execute('SELECT uid FROM study')
         studies = [row[0] for row in c]
-        c.execute("SELECT uid FROM series")
+        c.execute('SELECT uid FROM series')
         series = [row[0] for row in c]
-        c.execute("SELECT uid FROM storage_instance")
+        c.execute('SELECT uid FROM storage_instance')
         storage_instances = [row[0] for row in c]
         for dir in sorted(mtimes.keys()):
             if dir in db_mtimes and mtimes[dir] <= db_mtimes[dir]:
                 continue
             logger.debug(f'updating {dir}')
-            _update_dir(c, dir, files_by_dir[dir], studies, series,
-                        storage_instances)
+            _update_dir(c, dir, files_by_dir[dir], studies, series, storage_instances)
             if dir in db_mtimes:
-                query = "UPDATE directory SET mtime = ? WHERE path = ?"
+                query = 'UPDATE directory SET mtime = ? WHERE path = ?'
                 c.execute(query, (mtimes[dir], dir))
             else:
-                query = "INSERT INTO directory (path, mtime) VALUES (?, ?)"
+                query = 'INSERT INTO directory (path, mtime) VALUES (?, ?)'
                 c.execute(query, (dir, mtimes[dir]))
 
 
@@ -289,7 +288,7 @@ def get_studies(base_dir=None, followlinks=False):
         update_cache(base_dir, followlinks)
     if base_dir is None:
         with DB.readonly_cursor() as c:
-            c.execute("SELECT * FROM study")
+            c.execute('SELECT * FROM study')
             studies = []
             cols = [el[0] for el in c.description]
             for row in c:
@@ -306,12 +305,12 @@ def get_studies(base_dir=None, followlinks=False):
     with DB.readonly_cursor() as c:
         study_uids = {}
         for dir in _get_subdirs(base_dir, followlinks=followlinks):
-            c.execute(query, (dir, ))
+            c.execute(query, (dir,))
             for row in c:
                 study_uids[row[0]] = None
         studies = []
         for uid in study_uids:
-            c.execute("SELECT * FROM study WHERE uid = ?", (uid, ))
+            c.execute('SELECT * FROM study WHERE uid = ?', (uid,))
             cols = [el[0] for el in c.description]
             d = dict(zip(cols, c.fetchone()))
             studies.append(_Study(d))
@@ -320,21 +319,19 @@ def get_studies(base_dir=None, followlinks=False):
 
 def _update_dir(c, dir, files, studies, series, storage_instances):
     logger.debug(f'Updating directory {dir}')
-    c.execute("SELECT name, mtime FROM file WHERE directory = ?", (dir, ))
+    c.execute('SELECT name, mtime FROM file WHERE directory = ?', (dir,))
     db_mtimes = dict(c)
     for fname in db_mtimes:
         if fname not in files:
             logger.debug(f'    remove {fname}')
-            c.execute("DELETE FROM file WHERE directory = ? AND name = ?",
-                      (dir, fname))
+            c.execute('DELETE FROM file WHERE directory = ? AND name = ?', (dir, fname))
     for fname in files:
         mtime = os.lstat(f'{dir}/{fname}').st_mtime
         if fname in db_mtimes and mtime <= db_mtimes[fname]:
             logger.debug(f'    okay {fname}')
         else:
             logger.debug(f'    update {fname}')
-            si_uid = _update_file(c, dir, fname, studies, series,
-                                  storage_instances)
+            si_uid = _update_file(c, dir, fname, studies, series, storage_instances)
             if fname not in db_mtimes:
                 query = """INSERT INTO file (directory,
                                              name,
@@ -371,14 +368,16 @@ def _update_file(c, path, fname, studies, series, storage_instances):
                                           patient_birth_date,
                                           patient_sex)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
-            params = (str(do.StudyInstanceUID),
-                      do.StudyDate,
-                      do.StudyTime,
-                      study_comments,
-                      str(do.PatientName),
-                      do.PatientID,
-                      do.PatientBirthDate,
-                      do.PatientSex)
+            params = (
+                str(do.StudyInstanceUID),
+                do.StudyDate,
+                do.StudyTime,
+                study_comments,
+                str(do.PatientName),
+                do.PatientID,
+                do.PatientBirthDate,
+                do.PatientSex,
+            )
             c.execute(query, params)
             studies.append(str(do.StudyInstanceUID))
         if str(do.SeriesInstanceUID) not in series:
@@ -391,21 +390,22 @@ def _update_file(c, path, fname, studies, series, storage_instances):
                                            bits_allocated,
                                            bits_stored)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
-            params = (str(do.SeriesInstanceUID),
-                      str(do.StudyInstanceUID),
-                      do.SeriesNumber,
-                      do.SeriesDescription,
-                      do.Rows,
-                      do.Columns,
-                      do.BitsAllocated,
-                      do.BitsStored)
+            params = (
+                str(do.SeriesInstanceUID),
+                str(do.StudyInstanceUID),
+                do.SeriesNumber,
+                do.SeriesDescription,
+                do.Rows,
+                do.Columns,
+                do.BitsAllocated,
+                do.BitsStored,
+            )
             c.execute(query, params)
             series.append(str(do.SeriesInstanceUID))
         if str(do.SOPInstanceUID) not in storage_instances:
             query = """INSERT INTO storage_instance (uid, instance_number, series)
                        VALUES (?, ?, ?)"""
-            params = (str(do.SOPInstanceUID), do.InstanceNumber,
-                      str(do.SeriesInstanceUID))
+            params = (str(do.SOPInstanceUID), do.InstanceNumber, str(do.SeriesInstanceUID))
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
     except AttributeError as data:
@@ -416,11 +416,11 @@ def _update_file(c, path, fname, studies, series, storage_instances):
 
 def clear_cache():
     with DB.readwrite_cursor() as c:
-        c.execute("DELETE FROM file")
-        c.execute("DELETE FROM directory")
-        c.execute("DELETE FROM storage_instance")
-        c.execute("DELETE FROM series")
-        c.execute("DELETE FROM study")
+        c.execute('DELETE FROM file')
+        c.execute('DELETE FROM directory')
+        c.execute('DELETE FROM storage_instance')
+        c.execute('DELETE FROM series')
+        c.execute('DELETE FROM study')
 
 
 CREATE_QUERIES = (
@@ -449,7 +449,8 @@ CREATE_QUERIES = (
                           name TEXT NOT NULL,
                           mtime INTEGER NOT NULL,
                           storage_instance TEXT DEFAULT NULL REFERENCES storage_instance,
-                          PRIMARY KEY (directory, name))""")
+                          PRIMARY KEY (directory, name))""",
+)
 
 
 class _DB:
@@ -473,7 +474,7 @@ class _DB:
         if self.verbose:
             logger.info('db filename: ' + self.fname)
 
-        self._session = sqlite3.connect(self.fname, isolation_level="EXCLUSIVE")
+        self._session = sqlite3.connect(self.fname, isolation_level='EXCLUSIVE')
         with self.readwrite_cursor() as c:
             c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
             if c.fetchone()[0] == 0:
@@ -482,7 +483,7 @@ class _DB:
                     c.execute(q)
 
     def __repr__(self):
-        return f"<DFT {self.fname!r}>"
+        return f'<DFT {self.fname!r}>'
 
     @contextlib.contextmanager
     def readonly_cursor(self):

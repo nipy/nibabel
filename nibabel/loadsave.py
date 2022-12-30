@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
-""" Utilities to load and save image objects """
+"""Utilities to load and save image objects"""
 
 import os
 import numpy as np
@@ -43,29 +43,29 @@ def _signature_matches_extension(filename):
 
     """
     signatures = {
-        ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
-        ".bz2": {"signature": b"BZh", "format_name": "bzip2"},
-        ".zst": {"signature": b"\x28\xb5\x2f\xfd", "format_name": "ztsd"},
+        '.gz': {'signature': b'\x1f\x8b', 'format_name': 'gzip'},
+        '.bz2': {'signature': b'BZh', 'format_name': 'bzip2'},
+        '.zst': {'signature': b'\x28\xb5\x2f\xfd', 'format_name': 'ztsd'},
     }
     filename = _stringify_path(filename)
     *_, ext = splitext_addext(filename)
     ext = ext.lower()
     if ext not in signatures:
-        return True, ""
-    expected_signature = signatures[ext]["signature"]
+        return True, ''
+    expected_signature = signatures[ext]['signature']
     try:
-        with open(filename, "rb") as fh:
+        with open(filename, 'rb') as fh:
             sniff = fh.read(len(expected_signature))
     except OSError:
-        return False, f"Could not read file: {filename}"
+        return False, f'Could not read file: {filename}'
     if sniff.startswith(expected_signature):
-        return True, ""
-    format_name = signatures[ext]["format_name"]
-    return False, f"File {filename} is not a {format_name} file"
+        return True, ''
+    format_name = signatures[ext]['format_name']
+    return False, f'File {filename} is not a {format_name} file'
 
 
 def load(filename, **kwargs):
-    r""" Load file given filename, guessing at file type
+    r"""Load file given filename, guessing at file type
 
     Parameters
     ----------
@@ -105,7 +105,7 @@ def load(filename, **kwargs):
 
 @deprecate_with_version('guessed_image_type deprecated.', '3.2', '5.0')
 def guessed_image_type(filename):
-    """ Guess image type from file `filename`
+    """Guess image type from file `filename`
 
     Parameters
     ----------
@@ -127,7 +127,7 @@ def guessed_image_type(filename):
 
 
 def save(img, filename, **kwargs):
-    r""" Save an image to file adapting format to `filename`
+    r"""Save an image to file adapting format to `filename`
 
     Parameters
     ----------
@@ -173,8 +173,7 @@ def save(img, filename, **kwargs):
     elif type(img) == Nifti2Pair and lext == '.nii':
         klass = Nifti2Image
     else:  # arbitrary conversion
-        valid_klasses = [klass for klass in all_image_classes
-                         if ext in klass.valid_exts]
+        valid_klasses = [klass for klass in all_image_classes if ext in klass.valid_exts]
         if not valid_klasses:  # if list is empty
             raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
@@ -197,12 +196,11 @@ def save(img, filename, **kwargs):
     converted.to_filename(filename, **kwargs)
 
 
-@deprecate_with_version('read_img_data deprecated. '
-                        'Please use ``img.dataobj.get_unscaled()`` instead.',
-                        '3.2',
-                        '5.0')
+@deprecate_with_version(
+    'read_img_data deprecated. ' 'Please use ``img.dataobj.get_unscaled()`` instead.', '3.2', '5.0'
+)
 def read_img_data(img, prefer='scaled'):
-    """ Read data from image associated with files
+    """Read data from image associated with files
 
     If you want unscaled data, please use ``img.dataobj.get_unscaled()``
     instead.  If you want scaled data, use ``img.get_fdata()`` (which will cache
@@ -257,12 +255,11 @@ def read_img_data(img, prefer='scaled'):
     if not hasattr(hdr, 'raw_data_from_fileobj'):
         # We can only do scaled
         if prefer == 'unscaled':
-            raise ValueError("Can only do unscaled for Analyze types")
+            raise ValueError('Can only do unscaled for Analyze types')
         return np.array(img.dataobj)
     # Analyze types
     img_fh = img.file_map['image']
-    img_file_like = (img_fh.filename if img_fh.fileobj is None
-                     else img_fh.fileobj)
+    img_file_like = img_fh.filename if img_fh.fileobj is None else img_fh.fileobj
     if img_file_like is None:
         raise ImageFileError('No image file specified for this image')
     # Check the consumable values in the header

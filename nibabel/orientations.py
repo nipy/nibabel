@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Utilities for calculating and applying affine orientations """
+"""Utilities for calculating and applying affine orientations"""
 
 
 import numpy as np
@@ -20,7 +20,7 @@ class OrientationError(Exception):
 
 
 def io_orientation(affine, tol=None):
-    """ Orientation of input axes in terms of output axes for `affine`
+    """Orientation of input axes in terms of output axes for `affine`
 
     Valid for an affine transformation from ``p`` dimensions to ``q``
     dimensions (``affine.shape == (q + 1, p + 1)``).
@@ -66,7 +66,7 @@ def io_orientation(affine, tol=None):
     # Threshold the singular values to determine the rank.
     if tol is None:
         tol = S.max() * max(RS.shape) * np.finfo(S.dtype).eps
-    keep = (S > tol)
+    keep = S > tol
     R = np.dot(P[:, keep], Qs[keep])
     # the matrix R is such that np.dot(R,R.T) is projection onto the
     # columns of P[:,keep] and np.dot(R.T,R) is projection onto the rows
@@ -111,9 +111,9 @@ def ornt_transform(start_ornt, end_ornt):
     start_ornt = np.asarray(start_ornt)
     end_ornt = np.asarray(end_ornt)
     if start_ornt.shape != end_ornt.shape:
-        raise ValueError("The orientations must have the same shape")
+        raise ValueError('The orientations must have the same shape')
     if start_ornt.shape[1] != 2:
-        raise ValueError(f"Invalid shape for an orientation: {start_ornt.shape}")
+        raise ValueError(f'Invalid shape for an orientation: {start_ornt.shape}')
     result = np.empty_like(start_ornt)
     for end_in_idx, (end_out_idx, end_flip) in enumerate(end_ornt):
         for start_in_idx, (start_out_idx, start_flip) in enumerate(start_ornt):
@@ -125,13 +125,12 @@ def ornt_transform(start_ornt, end_ornt):
                 result[start_in_idx, :] = [end_in_idx, flip]
                 break
         else:
-            raise ValueError("Unable to find out axis %d in start_ornt" %
-                             end_out_idx)
+            raise ValueError('Unable to find out axis %d in start_ornt' % end_out_idx)
     return result
 
 
 def apply_orientation(arr, ornt):
-    """ Apply transformations implied by `ornt` to the first
+    """Apply transformations implied by `ornt` to the first
     n axes of the array `arr`
 
     Parameters
@@ -155,12 +154,10 @@ def apply_orientation(arr, ornt):
     ornt = np.asarray(ornt)
     n = ornt.shape[0]
     if t_arr.ndim < n:
-        raise OrientationError('Data array has fewer dimensions than '
-                               'orientation')
+        raise OrientationError('Data array has fewer dimensions than ' 'orientation')
     # no coordinates can be dropped for applying the orientations
     if np.any(np.isnan(ornt[:, 0])):
-        raise OrientationError('Cannot drop coordinates when '
-                               'applying orientation to data')
+        raise OrientationError('Cannot drop coordinates when ' 'applying orientation to data')
     # apply ornt transformations
     for ax, flip in enumerate(ornt[:, 1]):
         if flip == -1:
@@ -173,7 +170,7 @@ def apply_orientation(arr, ornt):
 
 
 def inv_ornt_aff(ornt, shape):
-    """ Affine transform reversing transforms implied in `ornt`
+    """Affine transform reversing transforms implied in `ornt`
 
     Imagine you have an array ``arr`` of shape `shape`, and you apply the
     transforms implied by `ornt` (more below), to get ``tarr``.
@@ -211,7 +208,7 @@ def inv_ornt_aff(ornt, shape):
     """
     ornt = np.asarray(ornt)
     if np.any(np.isnan(ornt)):
-        raise OrientationError("We cannot invert orientation transform")
+        raise OrientationError('We cannot invert orientation transform')
     p = ornt.shape[0]
     shape = np.array(shape)[:p]
     # ornt implies a flip, followed by a transpose.   We need the affine
@@ -228,12 +225,9 @@ def inv_ornt_aff(ornt, shape):
     return np.dot(undo_flip, undo_reorder)
 
 
-@deprecate_with_version('flip_axis is deprecated. '
-                        'Please use numpy.flip instead.',
-                        '3.2',
-                        '5.0')
+@deprecate_with_version('flip_axis is deprecated. ' 'Please use numpy.flip instead.', '3.2', '5.0')
 def flip_axis(arr, axis=0):
-    """ Flip contents of `axis` in array `arr`
+    """Flip contents of `axis` in array `arr`
 
     Equivalent to ``np.flip(arr, axis)``.
 
@@ -252,7 +246,7 @@ def flip_axis(arr, axis=0):
 
 
 def ornt2axcodes(ornt, labels=None):
-    """ Convert orientation `ornt` to labels for axis directions
+    """Convert orientation `ornt` to labels for axis directions
 
     Parameters
     ----------
@@ -299,7 +293,7 @@ def ornt2axcodes(ornt, labels=None):
 
 
 def axcodes2ornt(axcodes, labels=None):
-    """ Convert axis codes `axcodes` to an orientation
+    """Convert axis codes `axcodes` to an orientation
 
     Parameters
     ----------
@@ -346,7 +340,7 @@ def axcodes2ornt(axcodes, labels=None):
 
 
 def aff2axcodes(aff, labels=None, tol=None):
-    """ axis direction codes for affine `aff`
+    """axis direction codes for affine `aff`
 
     Parameters
     ----------

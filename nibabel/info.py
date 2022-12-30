@@ -1,4 +1,4 @@
-""" Define distribution parameters for nibabel, including package version
+"""Define distribution parameters for nibabel, including package version
 
 The long description parameter is used to fill settings in setup.py, the
 nibabel top-level docstring, and in building the docs.
@@ -16,7 +16,7 @@ _version_micro = 0
 _version_extra = '.dev0'
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
-VERSION = f"{_version_major}.{_version_minor}.{_version_micro}{_version_extra}"
+VERSION = f'{_version_major}.{_version_minor}.{_version_micro}{_version_extra}'
 
 
 # Note: this long_description is the canonical place to edit this text.

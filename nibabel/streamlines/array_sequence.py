@@ -1,4 +1,3 @@
-
 import numbers
 from operator import mul
 from functools import reduce
@@ -9,7 +8,7 @@ MEGABYTE = 1024 * 1024
 
 
 def is_array_sequence(obj):
-    """ Return True if `obj` is an array sequence. """
+    """Return True if `obj` is an array sequence."""
     try:
         return obj.is_array_sequence
     except AttributeError:
@@ -17,9 +16,9 @@ def is_array_sequence(obj):
 
 
 def is_ndarray_of_int_or_bool(obj):
-    return (isinstance(obj, np.ndarray) and
-            (np.issubdtype(obj.dtype, np.integer) or
-            np.issubdtype(obj.dtype, np.bool_)))
+    return isinstance(obj, np.ndarray) and (
+        np.issubdtype(obj.dtype, np.integer) or np.issubdtype(obj.dtype, np.bool_)
+    )
 
 
 class _BuildCache:
@@ -31,8 +30,7 @@ class _BuildCache:
         # Use the passed dtype only if null data array
         self.dtype = dtype if arr_seq._data.size == 0 else arr_seq._data.dtype
         if arr_seq.common_shape != () and common_shape != arr_seq.common_shape:
-            raise ValueError(
-                "All dimensions, except the first one, must match exactly")
+            raise ValueError('All dimensions, except the first one, must match exactly')
         self.common_shape = common_shape
         n_in_row = reduce(mul, common_shape, 1)
         bytes_per_row = n_in_row * dtype.itemsize
@@ -44,25 +42,29 @@ class _BuildCache:
 
 
 def _define_operators(cls):
-    """ Decorator which adds support for some Python operators. """
-    def _wrap(cls, op, inplace=False, unary=False):
+    """Decorator which adds support for some Python operators."""
 
+    def _wrap(cls, op, inplace=False, unary=False):
         def fn_unary_op(self):
             try:
                 return self._op(op)
             except SystemError as e:
-                message = ("Numpy returned an uninformative error. It possibly should be "
-                           "'Integers to negative integer powers are not allowed.' "
-                           "See https://github.com/numpy/numpy/issues/19634 for details.")
+                message = (
+                    'Numpy returned an uninformative error. It possibly should be '
+                    "'Integers to negative integer powers are not allowed.' "
+                    'See https://github.com/numpy/numpy/issues/19634 for details.'
+                )
                 raise ValueError(message) from e
 
         def fn_binary_op(self, value):
             try:
                 return self._op(op, value, inplace=inplace)
             except SystemError as e:
-                message = ("Numpy returned an uninformative error. It possibly should be "
-                           "'Integers to negative integer powers are not allowed.' "
-                           "See https://github.com/numpy/numpy/issues/19634 for details.")
+                message = (
+                    'Numpy returned an uninformative error. It possibly should be '
+                    "'Integers to negative integer powers are not allowed.' "
+                    'See https://github.com/numpy/numpy/issues/19634 for details.'
+                )
                 raise ValueError(message) from e
 
         setattr(cls, op, fn_unary_op if unary else fn_binary_op)
@@ -70,16 +72,27 @@ def _define_operators(cls):
         fn.__name__ = op
         fn.__doc__ = getattr(np.ndarray, op).__doc__
 
-    for op in ["__add__", "__sub__", "__mul__", "__mod__", "__pow__",
-               "__floordiv__", "__truediv__", "__lshift__", "__rshift__",
-               "__or__", "__and__", "__xor__"]:
+    for op in [
+        '__add__',
+        '__sub__',
+        '__mul__',
+        '__mod__',
+        '__pow__',
+        '__floordiv__',
+        '__truediv__',
+        '__lshift__',
+        '__rshift__',
+        '__or__',
+        '__and__',
+        '__xor__',
+    ]:
         _wrap(cls, op=op, inplace=False)
         _wrap(cls, op=f"__i{op.strip('_')}__", inplace=True)
 
-    for op in ["__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"]:
+    for op in ['__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__']:
         _wrap(cls, op)
 
-    for op in ["__neg__", "__abs__", "__invert__"]:
+    for op in ['__neg__', '__abs__', '__invert__']:
         _wrap(cls, op, unary=True)
 
     return cls
@@ -87,7 +100,7 @@ def _define_operators(cls):
 
 @_define_operators
 class ArraySequence:
-    """ Sequence of ndarrays having variable first dimension sizes.
+    """Sequence of ndarrays having variable first dimension sizes.
 
     This is a container that can store multiple ndarrays where each ndarray
     might have a different first dimension size but a *common* size for the
@@ -100,7 +113,7 @@ class ArraySequence:
     """
 
     def __init__(self, iterable=None, buffer_size=4):
-        """ Initialize array sequence instance
+        """Initialize array sequence instance
 
         Parameters
         ----------
@@ -144,16 +157,16 @@ class ArraySequence:
 
     @property
     def common_shape(self):
-        """ Matching shape of the elements in this array sequence. """
+        """Matching shape of the elements in this array sequence."""
         return self._data.shape[1:]
 
     @property
     def total_nb_rows(self):
-        """ Total number of rows in this array sequence. """
+        """Total number of rows in this array sequence."""
         return np.sum(self._lengths)
 
     def get_data(self):
-        """ Returns a *copy* of the elements in this array sequence.
+        """Returns a *copy* of the elements in this array sequence.
 
         Notes
         -----
@@ -164,31 +177,31 @@ class ArraySequence:
         return self.copy()._data
 
     def _check_shape(self, arrseq):
-        """ Check whether this array sequence is compatible with another. """
-        msg = "cannot perform operation - array sequences have different"
+        """Check whether this array sequence is compatible with another."""
+        msg = 'cannot perform operation - array sequences have different'
         if len(self._lengths) != len(arrseq._lengths):
-            msg += f" lengths: {len(self._lengths)} vs. {len(arrseq._lengths)}."
+            msg += f' lengths: {len(self._lengths)} vs. {len(arrseq._lengths)}.'
             raise ValueError(msg)
 
         if self.total_nb_rows != arrseq.total_nb_rows:
-            msg += f" amount of data: {self.total_nb_rows} vs. {arrseq.total_nb_rows}."
+            msg += f' amount of data: {self.total_nb_rows} vs. {arrseq.total_nb_rows}.'
             raise ValueError(msg)
 
         if self.common_shape != arrseq.common_shape:
-            msg += f" common shape: {self.common_shape} vs. {arrseq.common_shape}."
+            msg += f' common shape: {self.common_shape} vs. {arrseq.common_shape}.'
             raise ValueError(msg)
 
         return True
 
     def _get_next_offset(self):
-        """ Offset in ``self._data`` at which to write next rowelement """
+        """Offset in ``self._data`` at which to write next rowelement"""
         if len(self._offsets) == 0:
             return 0
         imax = np.argmax(self._offsets)
         return self._offsets[imax] + self._lengths[imax]
 
     def append(self, element, cache_build=False):
-        """ Appends `element` to this array sequence.
+        """Appends `element` to this array sequence.
 
         Append can be a lot faster if it knows that it is appending several
         elements instead of a single element.  In that case it can cache the
@@ -242,7 +255,7 @@ class ArraySequence:
             build_cache.update_seq(self)
 
     def finalize_append(self):
-        """ Finalize process of appending several elements to `self`
+        """Finalize process of appending several elements to `self`
 
         :meth:`append` can be a lot faster if it knows that it is appending
         several elements instead of a single element.  To tell the append
@@ -257,7 +270,7 @@ class ArraySequence:
         self.shrink_data()
 
     def _resize_data_to(self, n_rows, build_cache):
-        """ Resize data array if required """
+        """Resize data array if required"""
         # Calculate new data shape, rounding up to nearest buffer size
         n_bufs = np.ceil(n_rows / build_cache.rows_per_buf)
         extended_n_rows = int(n_bufs * build_cache.rows_per_buf)
@@ -272,11 +285,10 @@ class ArraySequence:
                 self._data.resize(new_shape, refcheck=False)
 
     def shrink_data(self):
-        self._data.resize((self._get_next_offset(),) + self.common_shape,
-                          refcheck=False)
+        self._data.resize((self._get_next_offset(),) + self.common_shape, refcheck=False)
 
     def extend(self, elements):
-        """ Appends all `elements` to this array sequence.
+        """Appends all `elements` to this array sequence.
 
         Parameters
         ----------
@@ -307,8 +319,7 @@ class ArraySequence:
             e0 = np.asarray(elements[0])
             n_elements = np.sum([len(e) for e in elements])
             self._build_cache = _BuildCache(self, e0.shape[1:], e0.dtype)
-            self._resize_data_to(self._get_next_offset() + n_elements,
-                                 self._build_cache)
+            self._resize_data_to(self._get_next_offset() + n_elements, self._build_cache)
 
         for e in elements:
             self.append(e, cache_build=True)
@@ -316,7 +327,7 @@ class ArraySequence:
         self.finalize_append()
 
     def copy(self):
-        """ Creates a copy of this :class:`ArraySequence` object.
+        """Creates a copy of this :class:`ArraySequence` object.
 
         Returns
         -------
@@ -331,15 +342,14 @@ class ArraySequence:
         """
         seq = self.__class__()
         total_lengths = np.sum(self._lengths)
-        seq._data = np.empty((total_lengths,) + self._data.shape[1:],
-                             dtype=self._data.dtype)
+        seq._data = np.empty((total_lengths,) + self._data.shape[1:], dtype=self._data.dtype)
 
         next_offset = 0
         offsets = []
         for offset, length in zip(self._offsets, self._lengths):
             offsets.append(next_offset)
-            chunk = self._data[offset:offset + length]
-            seq._data[next_offset:next_offset + length] = chunk
+            chunk = self._data[offset : offset + length]
+            seq._data[next_offset : next_offset + length] = chunk
             next_offset += length
 
         seq._offsets = np.asarray(offsets)
@@ -348,7 +358,7 @@ class ArraySequence:
         return seq
 
     def __getitem__(self, idx):
-        """ Get sequence(s) through standard or advanced numpy indexing.
+        """Get sequence(s) through standard or advanced numpy indexing.
 
         Parameters
         ----------
@@ -368,7 +378,7 @@ class ArraySequence:
         """
         if isinstance(idx, (numbers.Integral, np.integer)):
             start = self._offsets[idx]
-            return self._data[start:start + self._lengths[idx]]
+            return self._data[start : start + self._lengths[idx]]
 
         seq = self.__class__()
         seq._is_view = True
@@ -390,11 +400,13 @@ class ArraySequence:
             seq._lengths = self._lengths[off_idx]
             return seq
 
-        raise TypeError("Index must be either an int, a slice, a list of int"
-                        " or a ndarray of bool! Not " + str(type(idx)))
+        raise TypeError(
+            'Index must be either an int, a slice, a list of int'
+            ' or a ndarray of bool! Not ' + str(type(idx))
+        )
 
     def __setitem__(self, idx, elements):
-        """ Set sequence(s) through standard or advanced numpy indexing.
+        """Set sequence(s) through standard or advanced numpy indexing.
 
         Parameters
         ----------
@@ -411,7 +423,7 @@ class ArraySequence:
         """
         if isinstance(idx, (numbers.Integral, np.integer)):
             start = self._offsets[idx]
-            self._data[start:start + self._lengths[idx]] = elements
+            self._data[start : start + self._lengths[idx]] = elements
             return
 
         if isinstance(idx, tuple):
@@ -431,31 +443,33 @@ class ArraySequence:
             lengths = self._lengths[off_idx]
 
         else:
-            raise TypeError("Index must be either an int, a slice, a list of int"
-                            " or a ndarray of bool! Not " + str(type(idx)))
+            raise TypeError(
+                'Index must be either an int, a slice, a list of int'
+                ' or a ndarray of bool! Not ' + str(type(idx))
+            )
 
         if is_array_sequence(elements):
             if len(lengths) != len(elements):
-                msg = f"Trying to set {len(lengths)} sequences with {len(elements)} sequences."
+                msg = f'Trying to set {len(lengths)} sequences with {len(elements)} sequences.'
                 raise ValueError(msg)
 
             if sum(lengths) != elements.total_nb_rows:
-                msg = f"Trying to set {sum(lengths)} points with {elements.total_nb_rows} points."
+                msg = f'Trying to set {sum(lengths)} points with {elements.total_nb_rows} points.'
                 raise ValueError(msg)
 
             for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
-                data[o1:o1 + l1] = elements._data[o2:o2 + l2]
+                data[o1 : o1 + l1] = elements._data[o2 : o2 + l2]
 
         elif isinstance(elements, numbers.Number):
             for o1, l1 in zip(offsets, lengths):
-                data[o1:o1 + l1] = elements
+                data[o1 : o1 + l1] = elements
 
         else:  # Try to iterate over it.
             for o1, l1, element in zip(offsets, lengths, elements):
-                data[o1:o1 + l1] = element
+                data[o1 : o1 + l1] = element
 
     def _op(self, op, value=None, inplace=False):
-        """ Applies some operator to this arraysequence.
+        """Applies some operator to this arraysequence.
 
         This handles both unary and binary operators with a scalar or another
         array sequence. Operations are performed directly on the underlying
@@ -475,18 +489,25 @@ class ArraySequence:
         seq = self if inplace else self.copy()
 
         if is_array_sequence(value) and seq._check_shape(value):
-            elements = zip(seq._offsets, seq._lengths,
-                           self._offsets, self._lengths,
-                           value._offsets, value._lengths)
+            elements = zip(
+                seq._offsets,
+                seq._lengths,
+                self._offsets,
+                self._lengths,
+                value._offsets,
+                value._lengths,
+            )
 
             # Change seq.dtype to match the operation resulting type.
             o0, l0, o1, l1, o2, l2 = next(elements)
-            tmp = getattr(self._data[o1:o1 + l1], op)(value._data[o2:o2 + l2])
+            tmp = getattr(self._data[o1 : o1 + l1], op)(value._data[o2 : o2 + l2])
             seq._data = seq._data.astype(tmp.dtype)
-            seq._data[o0:o0 + l0] = tmp
+            seq._data[o0 : o0 + l0] = tmp
 
             for o0, l0, o1, l1, o2, l2 in elements:
-                seq._data[o0:o0 + l0] = getattr(self._data[o1:o1 + l1], op)(value._data[o2:o2 + l2])
+                seq._data[o0 : o0 + l0] = getattr(self._data[o1 : o1 + l1], op)(
+                    value._data[o2 : o2 + l2]
+                )
 
         else:
             args = [] if value is None else [value]  # Dealing with unary and binary ops.
@@ -494,22 +515,23 @@ class ArraySequence:
 
             # Change seq.dtype to match the operation resulting type.
             o0, l0, o1, l1 = next(elements)
-            tmp = getattr(self._data[o1:o1 + l1], op)(*args)
+            tmp = getattr(self._data[o1 : o1 + l1], op)(*args)
             seq._data = seq._data.astype(tmp.dtype)
-            seq._data[o0:o0 + l0] = tmp
+            seq._data[o0 : o0 + l0] = tmp
 
             for o0, l0, o1, l1 in elements:
-                seq._data[o0:o0 + l0] = getattr(self._data[o1:o1 + l1], op)(*args)
+                seq._data[o0 : o0 + l0] = getattr(self._data[o1 : o1 + l1], op)(*args)
 
         return seq
 
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
-            raise ValueError("ArraySequence object corrupted:"
-                             " len(self._lengths) != len(self._offsets)")
+            raise ValueError(
+                'ArraySequence object corrupted:' ' len(self._lengths) != len(self._offsets)'
+            )
 
         for offset, lengths in zip(self._offsets, self._lengths):
-            yield self._data[offset: offset + lengths]
+            yield self._data[offset : offset + lengths]
 
     def __len__(self):
         return len(self._offsets)
@@ -519,33 +541,30 @@ class ArraySequence:
             # Show only the first and last edgeitems.
             edgeitems = np.get_printoptions()['edgeitems']
             data = str(list(self[:edgeitems]))[:-1]
-            data += ", ..., "
+            data += ', ..., '
             data += str(list(self[-edgeitems:]))[1:]
         else:
             data = str(list(self))
 
-        return f"{self.__class__.__name__}({data})"
+        return f'{self.__class__.__name__}({data})'
 
     def save(self, filename):
-        """ Saves this :class:`ArraySequence` object to a .npz file. """
-        np.savez(filename,
-                 data=self._data,
-                 offsets=self._offsets,
-                 lengths=self._lengths)
+        """Saves this :class:`ArraySequence` object to a .npz file."""
+        np.savez(filename, data=self._data, offsets=self._offsets, lengths=self._lengths)
 
     @classmethod
     def load(cls, filename):
-        """ Loads a :class:`ArraySequence` object from a .npz file. """
+        """Loads a :class:`ArraySequence` object from a .npz file."""
         content = np.load(filename)
         seq = cls()
-        seq._data = content["data"]
-        seq._offsets = content["offsets"]
-        seq._lengths = content["lengths"]
+        seq._data = content['data']
+        seq._offsets = content['offsets']
+        seq._lengths = content['lengths']
         return seq
 
 
 def create_arraysequences_from_generator(gen, n, buffer_sizes=None):
-    """ Creates :class:`ArraySequence` objects from a generator yielding tuples
+    """Creates :class:`ArraySequence` objects from a generator yielding tuples
 
     Parameters
     ----------
@@ -572,7 +591,7 @@ def create_arraysequences_from_generator(gen, n, buffer_sizes=None):
 
 
 def concatenate(seqs, axis):
-    """ Concatenates multiple :class:`ArraySequence` objects along an axis.
+    """Concatenates multiple :class:`ArraySequence` objects along an axis.
 
     Parameters
     ----------

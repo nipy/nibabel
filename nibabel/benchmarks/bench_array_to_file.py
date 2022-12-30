@@ -1,4 +1,4 @@
-""" Benchmarks for array_to_file routine
+"""Benchmarks for array_to_file routine
 
 Run benchmarks with::
 
@@ -28,7 +28,7 @@ def bench_array_to_file():
     img_shape = (128, 128, 64, 10)
     arr = rng.normal(size=img_shape)
     sys.stdout.flush()
-    print_git_title("\nArray to file")
+    print_git_title('\nArray to file')
     mtime = measure('array_to_file(arr, BytesIO(), np.float32)', repeat)
     print('%30s %6.2f' % ('Save float64 to float32', mtime))
     mtime = measure('array_to_file(arr, BytesIO(), np.int16)', repeat)

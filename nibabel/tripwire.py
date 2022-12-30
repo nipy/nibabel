@@ -1,9 +1,10 @@
-""" Class to raise error for missing modules or other misfortunes
+"""Class to raise error for missing modules or other misfortunes
 """
 
 
 class TripWireError(AttributeError):
-    """ Exception if trying to use TripWire object """
+    """Exception if trying to use TripWire object"""
+
     # Has to be subclass of AttributeError, to work round Python 3.5 inspection
     # for doctests.  Python 3.5 looks for a ``__wrapped__`` attribute during
     # initialization of doctests, and only allows AttributeError as signal this
@@ -11,7 +12,7 @@ class TripWireError(AttributeError):
 
 
 def is_tripwire(obj):
-    """ Returns True if `obj` appears to be a TripWire object
+    """Returns True if `obj` appears to be a TripWire object
 
     Examples
     --------
@@ -30,7 +31,7 @@ def is_tripwire(obj):
 
 
 class TripWire:
-    """ Class raising error if used
+    """Class raising error if used
 
     Standard use is to proxy modules that we could not import
 
@@ -47,5 +48,5 @@ class TripWire:
         self._msg = msg
 
     def __getattr__(self, attr_name):
-        """ Raise informative error accessing attributes """
+        """Raise informative error accessing attributes"""
         raise TripWireError(self._msg)

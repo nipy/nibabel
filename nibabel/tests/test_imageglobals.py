@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for imageglobals module
+"""Tests for imageglobals module
 """
 from .. import imageglobals as igs
 

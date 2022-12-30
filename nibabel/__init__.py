@@ -11,6 +11,7 @@ import os
 
 from .pkg_info import __version__
 from .info import long_description as __doc__
+
 __doc__ += """
 Quickstart
 ==========
@@ -42,6 +43,7 @@ from . import spm99analyze as spm99
 from . import spm2analyze as spm2
 from . import nifti1 as ni1
 from . import ecat
+
 # object imports
 from .fileholders import FileHolder, FileHolderError
 from .loadsave import load, save
@@ -56,10 +58,14 @@ from .minc2 import Minc2Image
 from .cifti2 import Cifti2Header, Cifti2Image
 from .gifti import GiftiImage
 from .freesurfer import MGHImage
-from .funcs import (squeeze_image, concat_images, four_to_three,
-                    as_closest_canonical)
-from .orientations import (io_orientation, flip_axis, OrientationError,
-                           apply_orientation, aff2axcodes)
+from .funcs import squeeze_image, concat_images, four_to_three, as_closest_canonical
+from .orientations import (
+    io_orientation,
+    flip_axis,
+    OrientationError,
+    apply_orientation,
+    aff2axcodes,
+)
 from .imageclasses import all_image_classes
 from . import mriutils
 from . import streamlines
@@ -72,9 +78,15 @@ def get_info():
     return _get_pkg_info(os.path.dirname(__file__))
 
 
-def test(label=None, verbose=1, extra_argv=None,
-         doctests=False, coverage=False, raise_warnings=None,
-         timer=False):
+def test(
+    label=None,
+    verbose=1,
+    extra_argv=None,
+    doctests=False,
+    coverage=False,
+    raise_warnings=None,
+    timer=False,
+):
     """
     Run tests for nibabel using pytest
 
@@ -107,29 +119,30 @@ def test(label=None, verbose=1, extra_argv=None,
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
     import pytest
+
     args = []
 
     if label is not None:
-        raise NotImplementedError("Labels cannot be set at present")
+        raise NotImplementedError('Labels cannot be set at present')
 
     verbose = int(verbose)
     if verbose > 0:
-        args.append("-" + "v" * verbose)
+        args.append('-' + 'v' * verbose)
     elif verbose < 0:
-        args.append("-" + "q" * -verbose)
+        args.append('-' + 'q' * -verbose)
 
     if extra_argv:
         args.extend(extra_argv)
     if doctests:
-        args.append("--doctest-modules")
+        args.append('--doctest-modules')
     if coverage:
-        args.extend(["--cov", "nibabel"])
+        args.extend(['--cov', 'nibabel'])
     if raise_warnings is not None:
-        raise NotImplementedError("Warning filters are not implemented")
+        raise NotImplementedError('Warning filters are not implemented')
     if timer:
-        raise NotImplementedError("Timing is not implemented")
+        raise NotImplementedError('Timing is not implemented')
 
-    args.extend(["--pyargs", "nibabel"])
+    args.extend(['--pyargs', 'nibabel'])
 
     return pytest.main(args=args)
 
@@ -157,9 +170,10 @@ def bench(label=None, verbose=1, extra_argv=None):
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
     from pkg_resources import resource_filename
-    config = resource_filename("nibabel", "benchmarks/pytest.benchmark.ini")
+
+    config = resource_filename('nibabel', 'benchmarks/pytest.benchmark.ini')
     args = []
     if extra_argv is not None:
         args.extend(extra_argv)
-    args.extend(["-c", config])
+    args.extend(['-c', config])
     return test(label, verbose, extra_argv=args)

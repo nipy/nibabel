@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for loader function """
+"""Tests for loader function"""
 from io import BytesIO
 
 import shutil
@@ -22,9 +22,20 @@ from .. import spm99analyze as spm99
 from .. import spm2analyze as spm2
 from .. import nifti1 as ni1
 from .. import loadsave as nils
-from .. import (Nifti1Image, Nifti1Header, Nifti1Pair, Nifti2Image, Nifti2Pair,
-                Minc1Image, Minc2Image, Spm2AnalyzeImage, Spm99AnalyzeImage,
-                AnalyzeImage, MGHImage, all_image_classes)
+from .. import (
+    Nifti1Image,
+    Nifti1Header,
+    Nifti1Pair,
+    Nifti2Image,
+    Nifti2Pair,
+    Minc1Image,
+    Minc2Image,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    AnalyzeImage,
+    MGHImage,
+    all_image_classes,
+)
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 from ..optpkg import optional_package
@@ -47,8 +58,9 @@ def round_trip(img):
 def test_conversion_spatialimages(caplog):
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
-    klasses = [klass for klass in all_image_classes
-               if klass.rw and issubclass(klass, SpatialImage)]
+    klasses = [
+        klass for klass in all_image_classes if klass.rw and issubclass(klass, SpatialImage)
+    ]
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
         for r_class in klasses:

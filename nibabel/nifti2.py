@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read / write access to NIfTI2 image format
+"""Read / write access to NIfTI2 image format
 
 Format described here:
 
@@ -120,12 +120,13 @@ header_dtype = np.dtype(header_dtd)
 
 
 class Nifti2Header(Nifti1Header):
-    """ Class for NIfTI2 header
+    """Class for NIfTI2 header
 
     NIfTI2 is a slightly simplified variant of NIfTI1 which replaces 32-bit
     floats with 64-bit floats, and increases some integer widths to 32 or 64
     bits.
     """
+
     template_dtype = header_dtype
     pair_vox_offset = 0
     single_vox_offset = 544
@@ -141,7 +142,7 @@ class Nifti2Header(Nifti1Header):
     quaternion_threshold = -np.finfo(np.float64).eps * 3
 
     def get_data_shape(self):
-        """ Get shape of data
+        """Get shape of data
 
         Examples
         --------
@@ -165,7 +166,7 @@ class Nifti2Header(Nifti1Header):
         return AnalyzeHeader.get_data_shape(self)
 
     def set_data_shape(self, shape):
-        """ Set shape of data
+        """Set shape of data
 
         If ``ndims == len(shape)`` then we set zooms for dimensions higher than
         ``ndims`` to 1.0
@@ -184,7 +185,7 @@ class Nifti2Header(Nifti1Header):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        """ Create empty header binary block with given endianness """
+        """Create empty header binary block with given endianness"""
         hdr_data = super(Nifti2Header, klass).default_structarr(endianness)
         hdr_data['eol_check'] = (13, 10, 26, 10)
         return hdr_data
@@ -194,8 +195,7 @@ class Nifti2Header(Nifti1Header):
     @classmethod
     def _get_checks(klass):
         # Add our own checks
-        return (super(Nifti2Header, klass)._get_checks() +
-                (klass._chk_eol_check,))
+        return super(Nifti2Header, klass)._get_checks() + (klass._chk_eol_check,)
 
     @staticmethod
     def _chk_eol_check(hdr, fix=False):
@@ -210,8 +210,9 @@ class Nifti2Header(Nifti1Header):
                 rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
             return hdr, rep
         rep.problem_level = 40
-        rep.problem_msg = ('EOL check not 0 or 13, 10, 26, 10; data may be '
-                           'corrupted by EOL conversion')
+        rep.problem_msg = (
+            'EOL check not 0 or 13, 10, 26, 10; data may be ' 'corrupted by EOL conversion'
+        )
         if fix:
             hdr['eol_check'] = (13, 10, 26, 10)
             rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
@@ -222,34 +223,36 @@ class Nifti2Header(Nifti1Header):
         if len(binaryblock) < klass.sizeof_hdr:
             return False
 
-        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
-                                buffer=binaryblock[:klass.sizeof_hdr])
+        hdr_struct = np.ndarray(
+            shape=(), dtype=header_dtype, buffer=binaryblock[: klass.sizeof_hdr]
+        )
         bs_hdr_struct = hdr_struct.byteswap()
         return 540 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
 
 
 class Nifti2PairHeader(Nifti2Header):
-    """ Class for NIfTI2 pair header """
+    """Class for NIfTI2 pair header"""
+
     # Signal whether this is single (header + data) file
     is_single = False
 
 
 class Nifti2Pair(Nifti1Pair):
-    """ Class for NIfTI2 format image, header pair
-    """
+    """Class for NIfTI2 format image, header pair"""
+
     header_class = Nifti2PairHeader
     _meta_sniff_len = header_class.sizeof_hdr
 
 
 class Nifti2Image(Nifti1Image):
-    """ Class for single file NIfTI2 format image
-    """
+    """Class for single file NIfTI2 format image"""
+
     header_class = Nifti2Header
     _meta_sniff_len = header_class.sizeof_hdr
 
 
 def load(filename):
-    """ Load NIfTI2 single or pair image from `filename`
+    """Load NIfTI2 single or pair image from `filename`
 
     Parameters
     ----------
@@ -276,7 +279,7 @@ def load(filename):
 
 
 def save(img, filename):
-    """ Save NIfTI2 single or pair to `filename`
+    """Save NIfTI2 single or pair to `filename`
 
     Parameters
     ----------

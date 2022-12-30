@@ -36,13 +36,14 @@ from ...tests import test_wrapstruct as tws
 MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
 # sample voxel to ras matrix (mri_info --vox2ras)
-v2r = np.array([[1, 2, 3, -13], [2, 3, 1, -11.5],
-                [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32)
+v2r = np.array(
+    [[1, 2, 3, -13], [2, 3, 1, -11.5], [3, 1, 2, -11.5], [0, 0, 0, 1]], dtype=np.float32
+)
 # sample voxel to ras - tkr matrix (mri_info --vox2ras-tkr)
-v2rtkr = np.array([[-1.0, 0.0, 0.0, 1.5],
-                   [0.0, 0.0, 1.0, -2.5],
-                   [0.0, -1.0, 0.0, 2.0],
-                   [0.0, 0.0, 0.0, 1.0]], dtype=np.float32)
+v2rtkr = np.array(
+    [[-1.0, 0.0, 0.0, 1.5], [0.0, 0.0, 1.0, -2.5], [0.0, -1.0, 0.0, 2.0], [0.0, 0.0, 0.0, 1.0]],
+    dtype=np.float32,
+)
 
 BIG_CODES = ('>', 'big', 'BIG', 'b', 'be', 'B', 'BE')
 LITTLE_CODES = ('<', 'little', 'l', 'le', 'L', 'LE')
@@ -53,7 +54,6 @@ if sys_is_le:
 else:
     BIG_CODES += ('native', 'n', 'N', '=', '|', 'i', 'I')
     LITTLE_CODES += ('swapped', 's', 'S', '!')
-
 
 
 def test_read_mgh():
@@ -150,11 +150,7 @@ def test_set_zooms():
     assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 2])
     h.set_zooms([1, 1, 1, 3])
     assert_array_almost_equal(h.get_zooms(), [1, 1, 1, 3])
-    for zooms in ((-1, 1, 1, 1),
-                  (1, -1, 1, 1),
-                  (1, 1, -1, 1),
-                  (1, 1, 1, -1),
-                  (1, 1, 1, 1, 5)):
+    for zooms in ((-1, 1, 1, 1), (1, -1, 1, 1), (1, 1, -1, 1), (1, 1, 1, -1), (1, 1, 1, 1, 5)):
         with pytest.raises(HeaderDataError):
             h.set_zooms(zooms)
     # smoke test for tr=0
@@ -162,7 +158,7 @@ def test_set_zooms():
 
 
 def bad_dtype_mgh():
-    """ This function raises an MGHError exception because
+    """This function raises an MGHError exception because
     uint16 is not a valid MGH datatype.
     """
     # try to write an unsigned short and make sure it
@@ -209,11 +205,15 @@ def test_header_updating():
     mgz = load(MGZ_FNAME)
     hdr = mgz.header
     # Test against mri_info output
-    exp_aff = np.loadtxt(io.BytesIO(b"""
+    exp_aff = np.loadtxt(
+        io.BytesIO(
+            b"""
     1.0000   2.0000   3.0000   -13.0000
     2.0000   3.0000   1.0000   -11.5000
     3.0000   1.0000   2.0000   -11.5000
-    0.0000   0.0000   0.0000     1.0000"""))
+    0.0000   0.0000   0.0000     1.0000"""
+        )
+    )
     assert_almost_equal(mgz.affine, exp_aff, 6)
     assert_almost_equal(hdr.get_affine(), exp_aff, 6)
     # Test that initial wonky header elements have not changed
@@ -224,7 +224,7 @@ def test_header_updating():
     mgz2 = _mgh_rt(mgz, img_fobj)
     hdr2 = mgz2.header
     assert_almost_equal(hdr2.get_affine(), exp_aff, 6)
-    assert_array_equal(hdr2['delta'],1)
+    assert_array_equal(hdr2['delta'], 1)
     # Change affine, change underlying header info
     exp_aff_d = exp_aff.copy()
     exp_aff_d[0, -1] = -14
@@ -233,14 +233,14 @@ def test_header_updating():
     mgz2.update_header()
     assert_almost_equal(hdr2.get_affine(), exp_aff_d, 6)
     RZS = exp_aff_d[:3, :3]
-    assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS ** 2, axis=0)))
+    assert_almost_equal(hdr2['delta'], np.sqrt(np.sum(RZS**2, axis=0)))
     assert_almost_equal(hdr2['Mdc'].T, RZS / hdr2['delta'])
 
 
 def test_cosine_order():
     # Test we are interpreting the cosine order right
     data = np.arange(60).reshape((3, 4, 5)).astype(np.int32)
-    aff = np.diag([2., 3, 4, 1])
+    aff = np.diag([2.0, 3, 4, 1])
     aff[0] = [2, 1, 0, 10]
     img = MGHImage(data, aff)
     assert_almost_equal(img.affine, aff, 6)
@@ -248,7 +248,7 @@ def test_cosine_order():
     img2 = _mgh_rt(img, img_fobj)
     hdr2 = img2.header
     RZS = aff[:3, :3]
-    zooms = np.sqrt(np.sum(RZS ** 2, axis=0))
+    zooms = np.sqrt(np.sum(RZS**2, axis=0))
     assert_almost_equal(hdr2['Mdc'].T, RZS / zooms)
     assert_almost_equal(hdr2['delta'], zooms)
 
@@ -259,7 +259,7 @@ def test_eq():
     hdr2 = MGHHeader()
     assert hdr == hdr2
     hdr.set_data_shape((2, 3, 4))
-    assert(hdr != hdr2)
+    assert hdr != hdr2
     hdr2.set_data_shape((2, 3, 4))
     assert hdr == hdr2
 
@@ -286,7 +286,7 @@ def test_mgh_load_fileobj():
     bio = io.BytesIO(contents)
     fm = MGHImage.make_file_map(mapping=dict(image=bio))
     img2 = MGHImage.from_file_map(fm)
-    assert(img2.dataobj.file_like is bio)
+    assert img2.dataobj.file_like is bio
     assert_array_equal(img.get_fdata(), img2.get_fdata())
 
 
@@ -340,8 +340,8 @@ def test_mghheader_default_structarr():
 
 
 class TestMGHImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
-    """ Apply general image tests to MGHImage
-    """
+    """Apply general image tests to MGHImage"""
+
     image_class = MGHImage
     can_save = True
 
@@ -419,7 +419,7 @@ class TestMGHHeader(tws._TestLabeledWrapStruct):
         # Short binaryblocks give errors (here set through init)
         # Long binaryblocks are truncated
         with pytest.raises(WrapStructError):
-            self.header_class(bb[:self.header_class._hdrdtype.itemsize - 1])
+            self.header_class(bb[: self.header_class._hdrdtype.itemsize - 1])
 
         # Checking set to true by default, and prevents nonsense being
         # set into the header.
@@ -440,7 +440,7 @@ class TestMGHHeader(tws._TestLabeledWrapStruct):
         # same code just returns a copy
         for endianness in BIG_CODES:
             hdr2 = hdr.as_byteswapped(endianness)
-            assert(hdr2 is not hdr)
+            assert hdr2 is not hdr
             assert hdr2 == hdr
 
         # Different code raises error

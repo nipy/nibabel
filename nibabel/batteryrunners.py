@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Battery runner classes and Report classes
+"""Battery runner classes and Report classes
 
 These classes / objects are for generic checking / fixing batteries
 
@@ -104,15 +104,14 @@ or the pixdims::
             hdr['pixdim'][1:4] = np.abs(hdr['pixdim'][1:4])
             rep.fix_msg = 'setting to abs of pixdim values'
         return hdr, rep
-
 """
 
 
 class BatteryRunner:
-    """ Class to run set of checks """
+    """Class to run set of checks"""
 
     def __init__(self, checks):
-        """ Initialize instance from sequence of `checks`
+        """Initialize instance from sequence of `checks`
 
         Parameters
         ----------
@@ -130,7 +129,7 @@ class BatteryRunner:
         self._checks = checks
 
     def check_only(self, obj):
-        """ Run checks on `obj` returning reports
+        """Run checks on `obj` returning reports
 
         Parameters
         ----------
@@ -150,7 +149,7 @@ class BatteryRunner:
         return reports
 
     def check_fix(self, obj):
-        """ Run checks, with fixes, on `obj` returning `obj`, reports
+        """Run checks, with fixes, on `obj` returning `obj`, reports
 
         Parameters
         ----------
@@ -175,13 +174,8 @@ class BatteryRunner:
 
 
 class Report:
-
-    def __init__(self,
-                 error=Exception,
-                 problem_level=0,
-                 problem_msg='',
-                 fix_msg=''):
-        """ Initialize report with values
+    def __init__(self, error=Exception, problem_level=0, problem_msg='', fix_msg=''):
+        """Initialize report with values
 
         Parameters
         ----------
@@ -214,7 +208,7 @@ class Report:
         self.fix_msg = fix_msg
 
     def __getstate__(self):
-        """ State that defines object
+        """State that defines object
 
         Returns
         -------
@@ -223,7 +217,7 @@ class Report:
         return self.error, self.problem_level, self.problem_msg, self.fix_msg
 
     def __eq__(self, other):
-        """ are two BatteryRunner-like objects equal?
+        """are two BatteryRunner-like objects equal?
 
         Parameters
         ----------
@@ -243,26 +237,25 @@ class Report:
         return self.__getstate__() == other.__getstate__()
 
     def __ne__(self, other):
-        """ are two BatteryRunner-like objects not equal?
+        """are two BatteryRunner-like objects not equal?
 
         See docstring for __eq__
         """
         return not self == other
 
     def __str__(self):
-        """ Printable string for object """
+        """Printable string for object"""
         return self.__dict__.__str__()
 
     @property
     def message(self):
-        """ formatted message string, including fix message if present
-        """
+        """formatted message string, including fix message if present"""
         if self.fix_msg:
             return '; '.join((self.problem_msg, self.fix_msg))
         return self.problem_msg
 
     def log_raise(self, logger, error_level=40):
-        """ Log problem, raise error if problem >= `error_level`
+        """Log problem, raise error if problem >= `error_level`
 
         Parameters
         ----------
@@ -277,7 +270,7 @@ class Report:
                 raise self.error(self.problem_msg)
 
     def write_raise(self, stream, error_level=40, log_level=30):
-        """ Write report to `stream`
+        """Write report to `stream`
 
         Parameters
         ----------

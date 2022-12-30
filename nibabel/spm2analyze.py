@@ -6,24 +6,20 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read / write access to SPM2 version of analyze image format """
+"""Read / write access to SPM2 version of analyze image format"""
 import numpy as np
 
 from . import spm99analyze as spm99  # module import
 
 image_dimension_dtd = spm99.image_dimension_dtd[:]
-image_dimension_dtd[
-    image_dimension_dtd.index(('funused2', 'f4'))
-] = ('scl_inter', 'f4')
+image_dimension_dtd[image_dimension_dtd.index(('funused2', 'f4'))] = ('scl_inter', 'f4')
 
 # Full header numpy dtype combined across sub-fields
-header_dtype = np.dtype(spm99.header_key_dtd +
-                        image_dimension_dtd +
-                        spm99.data_history_dtd)
+header_dtype = np.dtype(spm99.header_key_dtd + image_dimension_dtd + spm99.data_history_dtd)
 
 
 class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
-    """ Class for SPM2 variant of basic Analyze header
+    """Class for SPM2 variant of basic Analyze header
 
     SPM2 variant adds the following to basic Analyze format:
 
@@ -36,7 +32,7 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
     template_dtype = header_dtype
 
     def get_slope_inter(self):
-        """ Get data scaling (slope) and intercept from header data
+        """Get data scaling (slope) and intercept from header data
 
         Uses the algorithm from SPM2 spm_vol_ana.m by John Ashburner
 
@@ -118,16 +114,19 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
         if len(binaryblock) < klass.sizeof_hdr:
             return False
 
-        hdr_struct = np.ndarray(shape=(), dtype=header_dtype,
-                                buffer=binaryblock[:klass.sizeof_hdr])
+        hdr_struct = np.ndarray(
+            shape=(), dtype=header_dtype, buffer=binaryblock[: klass.sizeof_hdr]
+        )
         bs_hdr_struct = hdr_struct.byteswap()
-        return (binaryblock[344:348] not in (b'ni1\x00', b'n+1\x00') and
-                348 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr']))
+        return binaryblock[344:348] not in (b'ni1\x00', b'n+1\x00') and 348 in (
+            hdr_struct['sizeof_hdr'],
+            bs_hdr_struct['sizeof_hdr'],
+        )
 
 
 class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
-    """ Class for SPM2 variant of basic Analyze image
-    """
+    """Class for SPM2 variant of basic Analyze image"""
+
     header_class = Spm2AnalyzeHeader
 
 

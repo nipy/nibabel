@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Utilities for testing """
+"""Utilities for testing"""
 
 import re
 import os
@@ -34,7 +34,7 @@ def test_data(subdir=None, fname=None):
     elif subdir in ('gifti', 'nicom', 'externals'):
         resource = os.path.join(subdir, 'tests', 'data')
     else:
-        raise ValueError(f"Unknown test data directory: {subdir}")
+        raise ValueError(f'Unknown test data directory: {subdir}')
 
     if fname is not None:
         resource = os.path.join(resource, fname)
@@ -47,7 +47,7 @@ data_path = test_data()
 
 
 def assert_dt_equal(a, b):
-    """ Assert two numpy dtype specifiers are equal
+    """Assert two numpy dtype specifiers are equal
 
     Avoids failed comparison between int32 / int64 and intp
     """
@@ -55,8 +55,7 @@ def assert_dt_equal(a, b):
 
 
 def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
-    """ Allclose in integers go all wrong for large integers
-    """
+    """Allclose in integers go all wrong for large integers"""
     a = np.atleast_1d(a)  # 0d arrays cannot be indexed
     a, b = np.broadcast_arrays(a, b)
     if match_nans:
@@ -78,21 +77,20 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
 
 
 def assert_arrays_equal(arrays1, arrays2):
-    """ Check two iterables yield the same sequence of arrays. """
+    """Check two iterables yield the same sequence of arrays."""
     for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
-        assert (arr1 is not None and arr2 is not None)
+        assert arr1 is not None and arr2 is not None
         assert_array_equal(arr1, arr2)
 
 
 def assert_re_in(regex, c, flags=0):
-    """Assert that container (list, str, etc) contains entry matching the regex
-    """
+    """Assert that container (list, str, etc) contains entry matching the regex"""
     if not isinstance(c, (list, tuple)):
         c = [c]
     for e in c:
         if re.match(regex, e, flags=flags):
             return
-    raise AssertionError(f"Not a single entry matched {regex!r} in {c!r}")
+    raise AssertionError(f'Not a single entry matched {regex!r} in {c!r}')
 
 
 def get_fresh_mod(mod_name=__name__):
@@ -106,7 +104,7 @@ def get_fresh_mod(mod_name=__name__):
 
 
 class clear_and_catch_warnings(warnings.catch_warnings):
-    """ Context manager that resets warning registry for catching warnings
+    """Context manager that resets warning registry for catching warnings
 
     Warnings can be slippery, because, whenever a warning is triggered, Python
     adds a ``__warningregistry__`` member to the *calling* module.  This makes
@@ -146,6 +144,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     ...     warnings.simplefilter('always')
     ...     # do something that raises a warning in np.core.fromnumeric
     """
+
     class_modules = ()
 
     def __init__(self, record=True, modules=()):
@@ -171,7 +170,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
 
 
 class error_warnings(clear_and_catch_warnings):
-    """ Context manager to check for warnings as errors.  Usually used with
+    """Context manager to check for warnings as errors.  Usually used with
     ``assert_raises`` in the with block
 
     Examples
@@ -183,6 +182,7 @@ class error_warnings(clear_and_catch_warnings):
     ...         print('I consider myself warned')
     I consider myself warned
     """
+
     filter = 'error'
 
     def __enter__(self):
@@ -192,8 +192,8 @@ class error_warnings(clear_and_catch_warnings):
 
 
 class suppress_warnings(error_warnings):
-    """ Version of ``catch_warnings`` class that suppresses warnings
-    """
+    """Version of ``catch_warnings`` class that suppresses warnings"""
+
     filter = 'ignore'
 
 
@@ -202,12 +202,11 @@ EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
 
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return unittest.skipUnless(test_str in EXTRA_SET, f"Skip {test_str} tests.")
+    return unittest.skipUnless(test_str in EXTRA_SET, f'Skip {test_str} tests.')
 
 
 def assert_arr_dict_equal(dict1, dict2):
-    """ Assert that two dicts are equal, where dicts contain arrays
-    """
+    """Assert that two dicts are equal, where dicts contain arrays"""
     assert set(dict1) == set(dict2)
     for key, value1 in dict1.items():
         value2 = dict2[key]
@@ -215,19 +214,20 @@ def assert_arr_dict_equal(dict1, dict2):
 
 
 class BaseTestCase(unittest.TestCase):
-    """ TestCase that does not attempt to run if prefixed with a ``_``
+    """TestCase that does not attempt to run if prefixed with a ``_``
 
     This restores the nose-like behavior of skipping so-named test cases
     in test runners like pytest.
     """
+
     def setUp(self):
         if self.__class__.__name__.startswith('_'):
-            raise unittest.SkipTest("Base test case - subclass to run")
+            raise unittest.SkipTest('Base test case - subclass to run')
         super().setUp()
 
 
 def expires(version):
-    "Decorator to mark a test as xfail with ExpiredDeprecationError after version"
+    """Decorator to mark a test as xfail with ExpiredDeprecationError after version"""
     from packaging.version import Version
     from nibabel import __version__ as nbver
     from nibabel.deprecator import ExpiredDeprecationError

@@ -1,4 +1,4 @@
-""" Testing filebasedimages module
+"""Testing filebasedimages module
 """
 
 from itertools import product
@@ -59,8 +59,8 @@ class SerializableNumpyImage(FBNumpyImage, SerializableImage):
 
 
 class TestFBImageAPI(GenericImageAPI):
-    """ Validation for FileBasedImage instances
-    """
+    """Validation for FileBasedImage instances"""
+
     # A callable returning an image from ``image_maker(data, header)``
     image_maker = FBNumpyImage
     # A callable returning a header from ``header_maker()``
@@ -80,11 +80,7 @@ class TestFBImageAPI(GenericImageAPI):
             arr = np.arange(np.prod(shape), dtype=dtype).reshape(shape)
             hdr = self.header_maker()
             func = self.make_imaker(arr.copy(), hdr)
-            params = dict(
-                dtype=dtype,
-                data=arr,
-                shape=shape,
-                is_proxy=False)
+            params = dict(dtype=dtype, data=arr, shape=shape, is_proxy=False)
             yield func, params
 
 
@@ -93,8 +89,8 @@ class TestSerializableImageAPI(TestFBImageAPI, SerializeMixin):
 
     @staticmethod
     def _header_eq(header_a, header_b):
-        """ FileBasedHeader is an abstract class, so __eq__ is undefined.
-        Checking for the same header type is sufficient, here. """
+        """FileBasedHeader is an abstract class, so __eq__ is undefined.
+        Checking for the same header type is sufficient, here."""
         return type(header_a) == type(header_b) == FileBasedHeader
 
 
@@ -102,7 +98,6 @@ def test_filebased_header():
     # Test stuff about the default FileBasedHeader
 
     class H(FileBasedHeader):
-
         def __init__(self, seq=None):
             if seq is None:
                 seq = []

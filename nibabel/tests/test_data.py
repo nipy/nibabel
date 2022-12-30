@@ -1,16 +1,23 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-""" Tests for data module """
+"""Tests for data module"""
 import os
 from os.path import join as pjoin
 from os import environ as env
 import sys
 import tempfile
 
-from ..data import (get_data_path, find_data_dir,
-                    DataError, _cfg_value, make_datasource,
-                    Datasource, VersionedDatasource, Bomber,
-                    datasource_or_bomber)
+from ..data import (
+    get_data_path,
+    find_data_dir,
+    DataError,
+    _cfg_value,
+    make_datasource,
+    Datasource,
+    VersionedDatasource,
+    Bomber,
+    datasource_or_bomber,
+)
 
 from ..tmpdirs import TemporaryDirectory
 
@@ -182,8 +189,7 @@ def test_find_data_dir():
 
 
 def test_make_datasource(with_nimd_env):
-    pkg_def = dict(
-        relpath='pkg')
+    pkg_def = dict(relpath='pkg')
     with TemporaryDirectory() as tmpdir:
         nibd.get_data_path = lambda: [tmpdir]
         with pytest.raises(DataError):

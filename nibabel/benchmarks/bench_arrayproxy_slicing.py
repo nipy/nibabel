@@ -124,7 +124,7 @@ def bench_arrayproxy_slicing():
         results = []
 
         # We use the same random seed for each slice object,
-        seeds = [np.random.randint(0, 2 ** 32) for s in SLICEOBJS]
+        seeds = [np.random.randint(0, 2**32) for s in SLICEOBJS]
 
         for ti, test in enumerate(tests):
 
@@ -144,8 +144,7 @@ def bench_arrayproxy_slicing():
                 img.dataobj[fix_sliceobj(sliceobj)]
 
             def testfunc():
-                with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP',
-                                have_igzip):
+                with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', have_igzip):
                     imggz.dataobj[fix_sliceobj(sliceobj)]
 
             # make sure nothing is floating around from the previous test
@@ -167,8 +166,7 @@ def bench_arrayproxy_slicing():
             np.random.seed(seed)
             basetime = float(timeit(basefunc, number=NITERS)) / float(NITERS)
 
-            results.append((label, keep_open, sliceobj, testtime, basetime,
-                            testmem, basemem))
+            results.append((label, keep_open, sliceobj, testtime, basetime, testmem, basemem))
 
     data = np.zeros((len(results), 4))
     data[:, 0] = [r[3] for r in results]

@@ -1,4 +1,4 @@
-""" Testing optpkg module
+"""Testing optpkg module
 """
 
 from unittest import mock
@@ -41,12 +41,15 @@ def test_basic():
 
     # Only disrupt imports for "nottriedbefore" package
     orig_import = builtins.__import__
+
     def raise_Exception(*args, **kwargs):
         if args[0] == 'nottriedbefore':
             raise Exception(
-                "non ImportError could be thrown by some malfunctioning module "
-                "upon import, and optional_package should catch it too")
+                'non ImportError could be thrown by some malfunctioning module '
+                'upon import, and optional_package should catch it too'
+            )
         return orig_import(*args, **kwargs)
+
     with mock.patch.object(builtins, '__import__', side_effect=raise_Exception):
         assert_bad('nottriedbefore')
 

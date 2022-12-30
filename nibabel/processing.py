@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Image processing functions for:
+"""Image processing functions for:
 
 * smoothing
 * resampling
@@ -19,6 +19,7 @@ import numpy as np
 import numpy.linalg as npl
 
 from .optpkg import optional_package
+
 spnd, _, _ = optional_package('scipy.ndimage')
 
 from .affines import AffineError, to_matvec, from_matvec, append_diag, rescale_affine
@@ -31,7 +32,7 @@ SIGMA2FWHM = np.sqrt(8 * np.log(2))
 
 
 def fwhm2sigma(fwhm):
-    """ Convert a FWHM value to sigma in a Gaussian kernel.
+    """Convert a FWHM value to sigma in a Gaussian kernel.
 
     Parameters
     ----------
@@ -54,7 +55,7 @@ def fwhm2sigma(fwhm):
 
 
 def sigma2fwhm(sigma):
-    """ Convert a sigma in a Gaussian kernel to a FWHM value
+    """Convert a sigma in a Gaussian kernel to a FWHM value
 
     Parameters
     ----------
@@ -77,7 +78,7 @@ def sigma2fwhm(sigma):
 
 
 def adapt_affine(affine, n_dim):
-    """ Adapt input / output dimensions of spatial `affine` for `n_dims`
+    """Adapt input / output dimensions of spatial `affine` for `n_dims`
 
     Adapts a spatial (4, 4) affine that is being applied to an image with fewer
     than 3 spatial dimensions, or more than 3 dimensions.  If there are more
@@ -112,13 +113,10 @@ def adapt_affine(affine, n_dim):
     return adapted
 
 
-def resample_from_to(from_img,
-                     to_vox_map,
-                     order=3,
-                     mode='constant',
-                     cval=0.,
-                     out_class=Nifti1Image):
-    """ Resample image `from_img` to mapped voxel space `to_vox_map`
+def resample_from_to(
+    from_img, to_vox_map, order=3, mode='constant', cval=0.0, out_class=Nifti1Image
+):
+    """Resample image `from_img` to mapped voxel space `to_vox_map`
 
     Resample using N-d spline interpolation.
 
@@ -156,8 +154,9 @@ def resample_from_to(from_img,
     """
     # This check requires `shape` attribute of image
     if not spatial_axes_first(from_img):
-        raise ValueError('Cannot predict position of spatial axes for Image '
-                         'type ' + str(type(from_img)))
+        raise ValueError(
+            'Cannot predict position of spatial axes for Image ' 'type ' + str(type(from_img))
+        )
     try:
         to_shape, to_affine = to_vox_map.shape, to_vox_map.affine
     except AttributeError:
@@ -171,23 +170,16 @@ def resample_from_to(from_img,
     a_from_affine = adapt_affine(from_img.affine, from_n_dim)
     to_vox2from_vox = npl.inv(a_from_affine).dot(a_to_affine)
     rzs, trans = to_matvec(to_vox2from_vox)
-    data = spnd.affine_transform(from_img.dataobj,
-                                 rzs,
-                                 trans,
-                                 to_shape,
-                                 order=order,
-                                 mode=mode,
-                                 cval=cval)
+    data = spnd.affine_transform(
+        from_img.dataobj, rzs, trans, to_shape, order=order, mode=mode, cval=cval
+    )
     return out_class(data, to_affine, from_img.header)
 
 
-def resample_to_output(in_img,
-                       voxel_sizes=None,
-                       order=3,
-                       mode='constant',
-                       cval=0.,
-                       out_class=Nifti1Image):
-    """ Resample image `in_img` to output voxel axes (world space)
+def resample_to_output(
+    in_img, voxel_sizes=None, order=3, mode='constant', cval=0.0, out_class=Nifti1Image
+):
+    """Resample image `in_img` to output voxel axes (world space)
 
     Parameters
     ----------
@@ -243,12 +235,8 @@ def resample_to_output(in_img,
     return resample_from_to(in_img, out_vox_map, order, mode, cval, out_class)
 
 
-def smooth_image(img,
-                 fwhm,
-                 mode='nearest',
-                 cval=0.,
-                 out_class=Nifti1Image):
-    """ Smooth image `img` along voxel axes by FWHM `fwhm` millimeters
+def smooth_image(img, fwhm, mode='nearest', cval=0.0, out_class=Nifti1Image):
+    """Smooth image `img` along voxel axes by FWHM `fwhm` millimeters
 
     Parameters
     ----------
@@ -287,8 +275,9 @@ def smooth_image(img,
     """
     # This check requires `shape` attribute of image
     if not spatial_axes_first(img):
-        raise ValueError('Cannot predict position of spatial axes for Image '
-                         'type ' + str(type(img)))
+        raise ValueError(
+            'Cannot predict position of spatial axes for Image ' 'type ' + str(type(img))
+        )
     if out_class is None:
         out_class = img.__class__
     n_dim = len(img.shape)
@@ -301,26 +290,25 @@ def smooth_image(img,
         fwhm[:3] = fwhm_scalar
     # Voxel sizes
     RZS = img.affine[:, :n_dim]
-    vox = np.sqrt(np.sum(RZS ** 2, 0))
+    vox = np.sqrt(np.sum(RZS**2, 0))
     # Smoothing in terms of voxels
     vox_fwhm = fwhm / vox
     vox_sd = fwhm2sigma(vox_fwhm)
     # Do the smoothing
-    sm_data = spnd.gaussian_filter(img.dataobj,
-                                   vox_sd,
-                                   mode=mode,
-                                   cval=cval)
+    sm_data = spnd.gaussian_filter(img.dataobj, vox_sd, mode=mode, cval=cval)
     return out_class(sm_data, img.affine, img.header)
 
 
-def conform(from_img,
-            out_shape=(256, 256, 256),
-            voxel_size=(1.0, 1.0, 1.0),
-            order=3,
-            cval=0.0,
-            orientation='RAS',
-            out_class=None):
-    """ Resample image to ``out_shape`` with voxels of size ``voxel_size``.
+def conform(
+    from_img,
+    out_shape=(256, 256, 256),
+    voxel_size=(1.0, 1.0, 1.0),
+    order=3,
+    cval=0.0,
+    orientation='RAS',
+    out_class=None,
+):
+    """Resample image to ``out_shape`` with voxels of size ``voxel_size``.
 
     Using the default arguments, this function is meant to replicate most parts
     of FreeSurfer's ``mri_convert --conform`` command. Specifically, this
@@ -367,11 +355,11 @@ def conform(from_img,
     # are written.
     required_ndim = 3
     if from_img.ndim != required_ndim:
-        raise ValueError("Only 3D images are supported.")
+        raise ValueError('Only 3D images are supported.')
     elif len(out_shape) != required_ndim:
-        raise ValueError(f"`out_shape` must have {required_ndim} values")
+        raise ValueError(f'`out_shape` must have {required_ndim} values')
     elif len(voxel_size) != required_ndim:
-        raise ValueError(f"`voxel_size` must have {required_ndim} values")
+        raise ValueError(f'`voxel_size` must have {required_ndim} values')
 
     start_ornt = io_orientation(from_img.affine)
     end_ornt = axcodes2ornt(orientation)
@@ -384,7 +372,12 @@ def conform(from_img,
 
     # Resample input image.
     out_img = resample_from_to(
-        from_img=from_img, to_vox_map=(out_shape, out_aff), order=order, mode="constant",
-        cval=cval, out_class=out_class)
+        from_img=from_img,
+        to_vox_map=(out_shape, out_aff),
+        order=order,
+        mode='constant',
+        cval=cval,
+        out_class=out_class,
+    )
 
     return out_img

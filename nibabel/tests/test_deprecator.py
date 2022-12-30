@@ -1,4 +1,4 @@
-""" Testing deprecator module / Deprecator class
+"""Testing deprecator module / Deprecator class
 """
 
 import sys
@@ -8,9 +8,14 @@ from textwrap import indent
 
 import pytest
 
-from nibabel.deprecator import (_ensure_cr, _add_dep_doc,
-                                ExpiredDeprecationError, Deprecator,
-                                TESTSETUP, TESTCLEANUP)
+from nibabel.deprecator import (
+    _ensure_cr,
+    _add_dep_doc,
+    ExpiredDeprecationError,
+    Deprecator,
+    TESTSETUP,
+    TESTCLEANUP,
+)
 
 from ..testing import clear_and_catch_warnings
 
@@ -35,18 +40,22 @@ def test__add_dep_doc():
     assert _add_dep_doc('   bar', 'foo\n') == '   bar\n\nfoo\n'
     assert _add_dep_doc('bar\n\n', 'foo') == 'bar\n\nfoo\n'
     assert _add_dep_doc('bar\n    \n', 'foo') == 'bar\n\nfoo\n'
-    assert (_add_dep_doc(' bar\n\nSome explanation', 'foo\nbaz') ==
-            ' bar\n\nfoo\nbaz\n\nSome explanation\n')
-    assert (_add_dep_doc(' bar\n\n  Some explanation', 'foo\nbaz') ==
-            ' bar\n  \n  foo\n  baz\n  \n  Some explanation\n')
+    assert (
+        _add_dep_doc(' bar\n\nSome explanation', 'foo\nbaz')
+        == ' bar\n\nfoo\nbaz\n\nSome explanation\n'
+    )
+    assert (
+        _add_dep_doc(' bar\n\n  Some explanation', 'foo\nbaz')
+        == ' bar\n  \n  foo\n  baz\n  \n  Some explanation\n'
+    )
 
 
 class CustomError(Exception):
-    """ Custom error class for testing expired deprecation errors """
+    """Custom error class for testing expired deprecation errors"""
 
 
 def cmp_func(v):
-    """ Comparison func tests against version 2.0 """
+    """Comparison func tests against version 2.0"""
     return (float(v) > 2) - (float(v) < 2)
 
 
@@ -55,15 +64,15 @@ def func_no_doc():
 
 
 def func_doc(i):
-    "A docstring"
+    """A docstring"""
 
 
 def func_doc_long(i, j):
-    "A docstring\n\n   Some text"
+    """A docstring\n\n   Some text"""
 
 
 class TestDeprecatorFunc:
-    """ Test deprecator function specified in ``dep_func`` """
+    """Test deprecator function specified in ``dep_func``"""
 
     dep_func = Deprecator(cmp_func)
 
@@ -83,9 +92,11 @@ class TestDeprecatorFunc:
         with pytest.deprecated_call() as w:
             assert func(1, 2) is None
             assert len(w) == 1
-        assert (func.__doc__ ==
-                f'A docstring\n   \n   foo\n   \n{indent(TESTSETUP, "   ", lambda x: True)}'
-                f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}')
+        assert (
+            func.__doc__
+            == f'A docstring\n   \n   foo\n   \n{indent(TESTSETUP, "   ", lambda x: True)}'
+            f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}'
+        )
 
         # Try some since and until versions
         func = dec('foo', '1.1')(func_no_doc)
@@ -97,21 +108,24 @@ class TestDeprecatorFunc:
         with pytest.deprecated_call() as w:
             assert func() is None
             assert len(w) == 1
-        assert (func.__doc__ ==
-                f'foo\n\n* Will raise {ExpiredDeprecationError} as of version: 99.4\n')
+        assert (
+            func.__doc__ == f'foo\n\n* Will raise {ExpiredDeprecationError} as of version: 99.4\n'
+        )
         func = dec('foo', until='1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()
-        assert (func.__doc__ ==
-                f'foo\n\n* Raises {ExpiredDeprecationError} as of version: 1.8\n')
+        assert func.__doc__ == f'foo\n\n* Raises {ExpiredDeprecationError} as of version: 1.8\n'
         func = dec('foo', '1.2', '1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()
-        assert (func.__doc__ ==
-                'foo\n\n* deprecated from version: 1.2\n* Raises '
-                f'{ExpiredDeprecationError} as of version: 1.8\n')
+        assert (
+            func.__doc__ == 'foo\n\n* deprecated from version: 1.2\n* Raises '
+            f'{ExpiredDeprecationError} as of version: 1.8\n'
+        )
         func = dec('foo', '1.2', '1.8')(func_doc_long)
-        assert func.__doc__ == f"""\
+        assert (
+            func.__doc__
+            == f"""\
 A docstring
 
 foo
@@ -119,6 +133,7 @@ foo
 * deprecated from version: 1.2
 * Raises {ExpiredDeprecationError} as of version: 1.8
 """
+        )
         with pytest.raises(ExpiredDeprecationError):
             func()
 
@@ -140,7 +155,7 @@ foo
 
 
 class TestDeprecatorMaker:
-    """ Test deprecator class creation with custom warnings and errors """
+    """Test deprecator class creation with custom warnings and errors"""
 
     dep_maker = partial(Deprecator, cmp_func)
 
