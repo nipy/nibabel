@@ -12,8 +12,8 @@ Convert neuroimaging file to new parameters
 """
 
 import argparse
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import nibabel as nib
 

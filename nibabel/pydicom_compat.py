@@ -33,11 +33,10 @@ try:
 except ImportError:
     have_dicom = False
 else:  # pydicom module available
-    from pydicom.dicomio import read_file
-    from pydicom.sequence import Sequence
-
     # Values not imported by default
     import pydicom.values
+    from pydicom.dicomio import read_file
+    from pydicom.sequence import Sequence
 
 if have_dicom:
     tag_for_keyword = pydicom.datadict.tag_for_keyword

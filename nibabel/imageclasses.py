@@ -15,11 +15,11 @@ from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
-from .nifti1 import Nifti1Pair, Nifti1Image
-from .nifti2 import Nifti2Pair, Nifti2Image
+from .nifti1 import Nifti1Image, Nifti1Pair
+from .nifti2 import Nifti2Image, Nifti2Pair
 from .parrec import PARRECImage
-from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
+from .spm99analyze import Spm99AnalyzeImage
 
 # Ordered by the load/save priority.
 all_image_classes = [

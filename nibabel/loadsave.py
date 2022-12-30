@@ -10,14 +10,15 @@
 """Utilities to load and save image objects"""
 
 import os
+
 import numpy as np
 
-from .filename_parser import splitext_addext, _stringify_path
-from .openers import ImageOpener
-from .filebasedimages import ImageFileError
-from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
+from .filebasedimages import ImageFileError
+from .filename_parser import _stringify_path, splitext_addext
+from .imageclasses import all_image_classes
+from .openers import ImageOpener
 
 _compressed_suffixes = ('.gz', '.bz2', '.zst')
 

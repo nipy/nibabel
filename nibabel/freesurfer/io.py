@@ -1,14 +1,14 @@
 """Read / write FreeSurfer geometry, morphometry, label, annotation formats
 """
 
-import warnings
-import numpy as np
 import getpass
 import time
-
+import warnings
 from collections import OrderedDict
-from ..openers import Opener
 
+import numpy as np
+
+from ..openers import Opener
 
 _ANNOT_DT = '>i4'
 """Data type for Freesurfer `.annot` files.

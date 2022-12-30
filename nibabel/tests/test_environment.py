@@ -3,12 +3,12 @@
 
 import os
 from os import environ as env
-from os.path import join as pjoin, abspath
-
-
-from .. import environment as nibe
+from os.path import abspath
+from os.path import join as pjoin
 
 import pytest
+
+from .. import environment as nibe
 
 DATA_KEY = 'NIPY_DATA_PATH'
 USER_KEY = 'NIPY_USER_DIR'

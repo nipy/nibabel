@@ -9,13 +9,13 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
 
-import sys
-import os
-import stat
 import errno
-import time
 import locale
 import logging
+import os
+import stat
+import sys
+import time
 
 
 class dummy_fuse:
@@ -32,10 +32,10 @@ try:
 except ImportError:
     fuse = dummy_fuse
 
+from optparse import Option, OptionParser
+
 import nibabel as nib
 import nibabel.dft as dft
-
-from optparse import OptionParser, Option
 
 encoding = locale.getdefaultlocale()[1]
 

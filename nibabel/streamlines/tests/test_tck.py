@@ -1,21 +1,18 @@
 import os
 import unittest
-import numpy as np
+from io import BytesIO
 from os.path import join as pjoin
 
-from io import BytesIO
-
-from ..array_sequence import ArraySequence
-from ..tractogram import Tractogram
-from ..tractogram_file import HeaderWarning, HeaderError
-from ..tractogram_file import DataError
-
-from .. import tck as tck_module
-from ..tck import TckFile
-
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
+
 from ...testing import data_path, error_warnings
+from .. import tck as tck_module
+from ..array_sequence import ArraySequence
+from ..tck import TckFile
+from ..tractogram import Tractogram
+from ..tractogram_file import DataError, HeaderError, HeaderWarning
 from .test_tractogram import assert_tractogram_equal
 
 DATA = {}

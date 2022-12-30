@@ -12,17 +12,18 @@ The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
 
-import sys
-import numpy as np
 import base64
+import sys
 import warnings
 
+import numpy as np
+
 from .. import xmlutils as xml
-from ..filebasedimages import SerializableImage
-from ..nifti1 import data_type_codes, xform_codes, intent_codes
 from ..caret import CaretMetaData
-from .util import array_index_order_codes, gifti_encoding_codes, gifti_endian_codes, KIND2FMT
 from ..deprecated import deprecate_with_version
+from ..filebasedimages import SerializableImage
+from ..nifti1 import data_type_codes, intent_codes, xform_codes
+from .util import KIND2FMT, array_index_order_codes, gifti_encoding_codes, gifti_endian_codes
 
 
 class _GiftiMDList(list):

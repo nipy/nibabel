@@ -5,30 +5,31 @@
 Test running scripts
 """
 
-import sys
+import csv
 import os
 import shutil
-from os.path import dirname, join as pjoin, abspath, splitext, basename, exists
-import csv
+import sys
+import unittest
 from glob import glob
+from os.path import abspath, basename, dirname, exists
+from os.path import join as pjoin
+from os.path import splitext
 
 import numpy as np
-
-import nibabel as nib
-from ..tmpdirs import InTemporaryDirectory
-from ..loadsave import load
-from ..orientations import aff2axcodes, inv_ornt_aff
-
-import unittest
 import pytest
 from numpy.testing import assert_almost_equal
 
-from .scriptrunner import ScriptRunner
+import nibabel as nib
+
+from ..loadsave import load
+from ..orientations import aff2axcodes, inv_ornt_aff
+from ..testing import assert_data_similar, assert_dt_equal, assert_re_in
+from ..tmpdirs import InTemporaryDirectory
 from .nibabel_data import needs_nibabel_data
-from ..testing import assert_dt_equal, assert_re_in
-from .test_parrec import DTI_PAR_BVECS, DTI_PAR_BVALS, EXAMPLE_IMAGES as PARREC_EXAMPLES
-from .test_parrec_data import BALLS, AFF_OFF
-from ..testing import assert_data_similar
+from .scriptrunner import ScriptRunner
+from .test_parrec import DTI_PAR_BVALS, DTI_PAR_BVECS
+from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLES
+from .test_parrec_data import AFF_OFF, BALLS
 
 
 def _proc_stdout(stdout):

@@ -3,10 +3,9 @@
 """
 Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 """
-import re
 import ast
+import re
 from collections import OrderedDict
-
 
 ASCCONV_RE = re.compile(
     r'### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',

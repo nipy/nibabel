@@ -10,27 +10,24 @@
 """
 
 import warnings
+from io import BytesIO
+from unittest import TestCase
 
 import numpy as np
-
-from io import BytesIO
-from ..spatialimages import SpatialHeader, SpatialImage, HeaderDataError
-from ..imageclasses import spatial_axes_first
-
 import pytest
-from unittest import TestCase
 from numpy.testing import assert_array_almost_equal
 
+from .. import load as top_load
+from ..imageclasses import spatial_axes_first
+from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
 from ..testing import (
     bytesio_round_trip,
     clear_and_catch_warnings,
-    suppress_warnings,
-    memmap_after_ufunc,
     expires,
+    memmap_after_ufunc,
+    suppress_warnings,
 )
-
 from ..tmpdirs import InTemporaryDirectory
-from .. import load as top_load
 
 
 def test_header_init():

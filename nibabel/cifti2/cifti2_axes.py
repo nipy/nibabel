@@ -118,10 +118,12 @@ like:
 ...                                     bm_cortex)))
 <class 'nibabel.cifti2.cifti2.Cifti2Header'>
 """
-import numpy as np
-from . import cifti2
-from operator import xor
 import abc
+from operator import xor
+
+import numpy as np
+
+from . import cifti2
 
 
 def from_index_mapping(mim):

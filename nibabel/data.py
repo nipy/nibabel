@@ -3,15 +3,15 @@
 """
 Utilities to find files from NIPY data packages
 """
-import os
-from os.path import join as pjoin
-import glob
-import sys
 import configparser
+import glob
+import os
+import sys
+from os.path import join as pjoin
+
 from packaging.version import Version
 
-from .environment import get_nipy_user_dir, get_nipy_system_dir
-
+from .environment import get_nipy_system_dir, get_nipy_user_dir
 
 DEFAULT_INSTALL_HINT = (
     'If you have the package, have you set the ' 'path to the package correctly?'

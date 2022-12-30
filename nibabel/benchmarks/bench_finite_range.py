@@ -13,13 +13,11 @@ Run this benchmark with::
 import sys
 
 import numpy as np
-
-
-from .butils import print_git_title
-
 from numpy.testing import measure
 
 from nibabel.volumeutils import finite_range  # NOQA
+
+from .butils import print_git_title
 
 
 def bench_finite_range():

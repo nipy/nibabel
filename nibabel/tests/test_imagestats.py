@@ -10,8 +10,7 @@
 
 import numpy as np
 
-from .. import imagestats
-from .. import Nifti1Image
+from .. import Nifti1Image, imagestats
 
 
 def test_mask_volume():

@@ -16,17 +16,17 @@ Notes:
       with native endianness used in data files.
 """
 
+import hashlib
+import os
 import re
 import sys
 from collections import OrderedDict
-from optparse import OptionParser, Option
+from optparse import Option, OptionParser
 
 import numpy as np
 
 import nibabel as nib
 import nibabel.cmdline.utils
-import hashlib
-import os
 
 
 def get_opt_parser():

@@ -1,13 +1,13 @@
 """Testing package info
 """
 
+import pytest
 from packaging.version import Version
 
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
-from ..info import VERSION
 
-import pytest
+from ..info import VERSION
 
 
 def test_pkg_info():

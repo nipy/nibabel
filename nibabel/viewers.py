@@ -4,8 +4,9 @@ Includes version of OrthoSlicer3D code originally written by our own
 Paul Ivanov.
 """
 
-import numpy as np
 import weakref
+
+import numpy as np
 
 from .affines import voxel_sizes
 from .optpkg import optional_package

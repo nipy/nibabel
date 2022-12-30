@@ -1,38 +1,35 @@
 """Testing parrec module
 """
 
-from os.path import join as pjoin, dirname, basename
 from glob import glob
+from os.path import basename, dirname
+from os.path import join as pjoin
 from warnings import simplefilter
 
 import numpy as np
+import pytest
 from numpy import array as npa
-
-from .. import load as top_load
-from ..nifti1 import Nifti1Image, Nifti1Extension, Nifti1Header
-from .. import parrec
-from ..parrec import (
-    parse_PAR_header,
-    PARRECHeader,
-    PARRECError,
-    vol_numbers,
-    vol_is_full,
-    PARRECImage,
-    PARRECArrayProxy,
-    exts2pars,
-)
-from ..openers import ImageOpener
-from ..fileholders import FileHolder
-from ..volumeutils import array_from_file
-
 from numpy.testing import assert_almost_equal, assert_array_equal
 
-import pytest
-from ..testing import clear_and_catch_warnings, suppress_warnings, assert_arr_dict_equal
-
-from .test_arrayproxy import check_mmap
+from .. import load as top_load
+from .. import parrec
+from ..fileholders import FileHolder
+from ..nifti1 import Nifti1Extension, Nifti1Header, Nifti1Image
+from ..openers import ImageOpener
+from ..parrec import (
+    PARRECArrayProxy,
+    PARRECError,
+    PARRECHeader,
+    PARRECImage,
+    exts2pars,
+    parse_PAR_header,
+    vol_is_full,
+    vol_numbers,
+)
+from ..testing import assert_arr_dict_equal, clear_and_catch_warnings, suppress_warnings
+from ..volumeutils import array_from_file
 from . import test_spatialimages as tsi
-
+from .test_arrayproxy import check_mmap
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 EG_PAR = pjoin(DATA_PATH, 'phantom_EPI_asc_CLEAR_2_1.PAR')

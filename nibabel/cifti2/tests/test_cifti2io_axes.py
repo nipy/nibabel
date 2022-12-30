@@ -1,9 +1,11 @@
-from nibabel.cifti2 import cifti2_axes, cifti2
-from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
-import nibabel as nib
 import os
-import numpy as np
 import tempfile
+
+import numpy as np
+
+import nibabel as nib
+from nibabel.cifti2 import cifti2, cifti2_axes
+from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 
 test_directory = os.path.join(get_nibabel_data(), 'nitest-cifti2')
 

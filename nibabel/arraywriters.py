@@ -32,15 +32,15 @@ larger ints and smaller.
 import numpy as np
 
 from .casting import (
-    int_to_float,
     as_int,
-    int_abs,
-    type_info,
-    floor_exact,
     best_float,
+    floor_exact,
+    int_abs,
+    int_to_float,
     shared_range,
+    type_info,
 )
-from .volumeutils import finite_range, array_to_file
+from .volumeutils import array_to_file, finite_range
 
 
 class WriterError(Exception):

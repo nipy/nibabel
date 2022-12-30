@@ -8,9 +8,9 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for filename container"""
 
-from ..filename_parser import types_filenames, TypesFilenamesError, parse_filename, splitext_addext
-
 import pytest
+
+from ..filename_parser import TypesFilenamesError, parse_filename, splitext_addext, types_filenames
 
 
 def test_filenames():

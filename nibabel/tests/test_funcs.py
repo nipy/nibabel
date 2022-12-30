@@ -9,16 +9,14 @@
 """Test for image funcs"""
 
 import numpy as np
-
-from ..funcs import concat_images, as_closest_canonical, OrientationError
-from ..analyze import AnalyzeImage
-from ..nifti1 import Nifti1Image
-from ..loadsave import save
-
-from ..tmpdirs import InTemporaryDirectory
-
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
+
+from ..analyze import AnalyzeImage
+from ..funcs import OrientationError, as_closest_canonical, concat_images
+from ..loadsave import save
+from ..nifti1 import Nifti1Image
+from ..tmpdirs import InTemporaryDirectory
 
 _counter = 0
 

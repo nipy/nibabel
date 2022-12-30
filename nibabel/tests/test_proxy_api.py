@@ -28,38 +28,31 @@ And:
 These last are to allow the proxy to be re-used with different images.
 """
 
-from os.path import join as pjoin
+import unittest
 import warnings
-from itertools import product
 from io import BytesIO
+from itertools import product
+from os.path import join as pjoin
 
 import numpy as np
-
-from ..volumeutils import apply_read_scaling
-from ..analyze import AnalyzeHeader
-from ..spm99analyze import Spm99AnalyzeHeader
-from ..spm2analyze import Spm2AnalyzeHeader
-from ..nifti1 import Nifti1Header
-from ..freesurfer.mghformat import MGHHeader
-from .. import minc1
-from ..externals.netcdf import netcdf_file
-from .. import minc2
-from .. import ecat
-from .. import parrec
-from ..casting import have_binary128
-
-from ..arrayproxy import ArrayProxy, is_proxy
-
-import unittest
 import pytest
-from numpy.testing import assert_almost_equal, assert_array_equal, assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
 
-from ..testing import data_path as DATA_PATH, assert_dt_equal, clear_and_catch_warnings
+from .. import ecat, minc1, minc2, parrec
+from ..analyze import AnalyzeHeader
+from ..arrayproxy import ArrayProxy, is_proxy
+from ..casting import have_binary128
 from ..deprecator import ExpiredDeprecationError
+from ..externals.netcdf import netcdf_file
+from ..freesurfer.mghformat import MGHHeader
+from ..nifti1 import Nifti1Header
 from ..optpkg import optional_package
-
+from ..spm2analyze import Spm2AnalyzeHeader
+from ..spm99analyze import Spm99AnalyzeHeader
+from ..testing import assert_dt_equal, clear_and_catch_warnings
+from ..testing import data_path as DATA_PATH
 from ..tmpdirs import InTemporaryDirectory
-
+from ..volumeutils import apply_read_scaling
 from .test_api_validators import ValidateAPI
 from .test_parrec import EG_REC, VARY_REC
 

@@ -9,27 +9,23 @@
 
 import os
 import warnings
+from unittest import TestCase
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from ..openers import Opener
 from ..ecat import (
     EcatHeader,
-    EcatSubHeader,
     EcatImage,
-    read_mlist,
+    EcatSubHeader,
     get_frame_order,
     get_series_framenumbers,
+    read_mlist,
 )
-
-from unittest import TestCase
-import pytest
-
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
+from ..openers import Opener
 from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
-
 from . import test_wrapstruct as tws
 from .test_fileslice import slicer_samples
 

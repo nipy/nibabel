@@ -1,7 +1,7 @@
 """Testing Siemens CSA header reader
 """
-import sys
 import struct
+import sys
 
 from ..structreader import Unpacker
 

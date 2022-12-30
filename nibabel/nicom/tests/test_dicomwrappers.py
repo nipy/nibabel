@@ -1,24 +1,23 @@
 """Testing DICOM wrappers
 """
 
-from os.path import join as pjoin, dirname
 import gzip
-from hashlib import sha1
-from decimal import Decimal
 from copy import copy
-
-import numpy as np
-
-from . import pydicom, have_dicom, dicom_test
-from .. import dicomwrappers as didw
-from .. import dicomreaders as didr
-from ...volumeutils import endian_codes
-
-import pytest
+from decimal import Decimal
+from hashlib import sha1
+from os.path import dirname
+from os.path import join as pjoin
 from unittest import TestCase
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
+from ...volumeutils import endian_codes
+from .. import dicomreaders as didr
+from .. import dicomwrappers as didw
+from . import dicom_test, have_dicom, pydicom
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')

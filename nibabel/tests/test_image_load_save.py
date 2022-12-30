@@ -7,43 +7,42 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for loader function"""
-from io import BytesIO
-
-import shutil
-from os.path import dirname, join as pjoin
-from tempfile import mkdtemp
-import pathlib
 import logging
+import pathlib
+import shutil
+from io import BytesIO
+from os.path import dirname
+from os.path import join as pjoin
+from tempfile import mkdtemp
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from .. import analyze as ana
-from .. import spm99analyze as spm99
-from .. import spm2analyze as spm2
-from .. import nifti1 as ni1
-from .. import loadsave as nils
 from .. import (
-    Nifti1Image,
+    AnalyzeImage,
+    MGHImage,
+    Minc1Image,
+    Minc2Image,
     Nifti1Header,
+    Nifti1Image,
     Nifti1Pair,
     Nifti2Image,
     Nifti2Pair,
-    Minc1Image,
-    Minc2Image,
     Spm2AnalyzeImage,
     Spm99AnalyzeImage,
-    AnalyzeImage,
-    MGHImage,
     all_image_classes,
 )
-from ..tmpdirs import InTemporaryDirectory
-from ..volumeutils import native_code, swapped_code
+from .. import analyze as ana
+from .. import loadsave as nils
+from .. import nifti1 as ni1
+from .. import spm2analyze as spm2
+from .. import spm99analyze as spm99
 from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
 from ..testing import expires
-
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-import pytest
+from ..tmpdirs import InTemporaryDirectory
+from ..volumeutils import native_code, swapped_code
 
 _, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
 DATA_PATH = pjoin(dirname(__file__), 'data')

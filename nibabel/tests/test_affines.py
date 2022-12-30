@@ -4,24 +4,22 @@
 from itertools import product
 
 import numpy as np
+import pytest
+from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
 
-from ..eulerangles import euler2mat
 from ..affines import (
     AffineError,
-    apply_affine,
     append_diag,
-    to_matvec,
-    from_matvec,
+    apply_affine,
     dot_reduce,
-    voxel_sizes,
+    from_matvec,
     obliquity,
     rescale_affine,
+    to_matvec,
+    voxel_sizes,
 )
+from ..eulerangles import euler2mat
 from ..orientations import aff2axcodes
-
-
-import pytest
-from numpy.testing import assert_array_equal, assert_almost_equal, assert_array_almost_equal
 
 
 def validated_apply_affine(T, xyz):

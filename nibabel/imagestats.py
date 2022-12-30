@@ -11,6 +11,7 @@ Functions for computing image statistics
 """
 
 import numpy as np
+
 from nibabel.imageclasses import spatial_axes_first
 
 

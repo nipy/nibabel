@@ -1,18 +1,17 @@
 """Testing Siemens CSA header reader
 """
-import sys
-from os.path import join as pjoin
-from copy import deepcopy
 import gzip
+import sys
+from copy import deepcopy
+from os.path import join as pjoin
 
 import numpy as np
+import pytest
 
 from .. import csareader as csa
 from .. import dwiparams as dwp
-
-import pytest
-from . import pydicom, dicom_test
-from .test_dicomwrappers import IO_DATA_PATH, DATA
+from . import dicom_test, pydicom
+from .test_dicomwrappers import DATA, IO_DATA_PATH
 
 CSA2_B0 = open(pjoin(IO_DATA_PATH, 'csa2_b0.bin'), 'rb').read()
 CSA2_B1000 = open(pjoin(IO_DATA_PATH, 'csa2_b1000.bin'), 'rb').read()

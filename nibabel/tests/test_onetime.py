@@ -1,4 +1,5 @@
 import pytest
+
 from nibabel.onetime import auto_attr, setattr_on_read
 from nibabel.testing import expires
 

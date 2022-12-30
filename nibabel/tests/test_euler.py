@@ -9,14 +9,14 @@
 """Tests for Euler angles"""
 
 import math
+
 import numpy as np
+import pytest
 from numpy import pi
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from .. import eulerangles as nea
 from .. import quaternions as nq
-
-import pytest
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 FLOAT_EPS = np.finfo(np.float64).eps
 

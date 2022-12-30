@@ -1,9 +1,11 @@
-import numpy as np
-import pytest
-from .test_cifti2io_axes import check_rewrite
-import nibabel.cifti2.cifti2_axes as axes
 from copy import deepcopy
 
+import numpy as np
+import pytest
+
+import nibabel.cifti2.cifti2_axes as axes
+
+from .test_cifti2io_axes import check_rewrite
 
 rand_affine = np.random.randn(4, 4)
 vol_shape = (5, 10, 3)

@@ -8,26 +8,26 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import base64
+import os.path as op
 import sys
 import warnings
 import zlib
-import os.path as op
 from io import StringIO
 from xml.parsers.expat import ExpatError
 
 import numpy as np
 
+from ..nifti1 import data_type_codes, intent_codes, xform_codes
+from ..xmlutils import XmlParser
 from .gifti import (
-    GiftiMetaData,
+    GiftiCoordSystem,
+    GiftiDataArray,
     GiftiImage,
     GiftiLabel,
     GiftiLabelTable,
-    GiftiDataArray,
-    GiftiCoordSystem,
+    GiftiMetaData,
 )
 from .util import array_index_order_codes, gifti_encoding_codes, gifti_endian_codes
-from ..nifti1 import data_type_codes, xform_codes, intent_codes
-from ..xmlutils import XmlParser
 
 
 class GiftiParseError(ExpatError):

@@ -1,28 +1,26 @@
 """Test casting utilities
 """
 import os
-
 from platform import machine
+
 import numpy as np
-
-from ..casting import (
-    float_to_int,
-    shared_range,
-    CastingError,
-    int_to_float,
-    as_int,
-    int_abs,
-    floor_log2,
-    able_int_type,
-    best_float,
-    ulp,
-    longdouble_precision_improved,
-)
-from ..testing import suppress_warnings
-
+import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-import pytest
+from ..casting import (
+    CastingError,
+    able_int_type,
+    as_int,
+    best_float,
+    float_to_int,
+    floor_log2,
+    int_abs,
+    int_to_float,
+    longdouble_precision_improved,
+    shared_range,
+    ulp,
+)
+from ..testing import suppress_warnings
 
 
 def test_shared_range():

@@ -9,12 +9,12 @@ from textwrap import indent
 import pytest
 
 from nibabel.deprecator import (
-    _ensure_cr,
-    _add_dep_doc,
-    ExpiredDeprecationError,
-    Deprecator,
-    TESTSETUP,
     TESTCLEANUP,
+    TESTSETUP,
+    Deprecator,
+    ExpiredDeprecationError,
+    _add_dep_doc,
+    _ensure_cr,
 )
 
 from ..testing import clear_and_catch_warnings

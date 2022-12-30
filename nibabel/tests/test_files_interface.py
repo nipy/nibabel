@@ -9,15 +9,15 @@
 """Testing filesets - a draft
 """
 
-import numpy as np
-
-from .. import Nifti1Image, Nifti1Pair, MGHImage, all_image_classes
 from io import BytesIO
+
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+
+from .. import MGHImage, Nifti1Image, Nifti1Pair, all_image_classes
 from ..fileholders import FileHolderError
 from ..spatialimages import SpatialImage
-
-from numpy.testing import assert_array_equal
-import pytest
 
 
 def test_files_spatialimages():

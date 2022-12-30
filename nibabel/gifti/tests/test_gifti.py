@@ -1,29 +1,29 @@
 """Testing gifti objects
 """
-import warnings
+import itertools
 import sys
+import warnings
 from io import BytesIO
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from ... import load
+from ...fileholders import FileHolder
+from ...nifti1 import data_type_codes
+from ...testing import test_data
 from .. import (
-    GiftiImage,
+    GiftiCoordSystem,
     GiftiDataArray,
+    GiftiImage,
     GiftiLabel,
     GiftiLabelTable,
     GiftiMetaData,
     GiftiNVPairs,
-    GiftiCoordSystem,
 )
-from ...nifti1 import data_type_codes
-from ...fileholders import FileHolder
-
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-import pytest
-from ...testing import test_data
 from .test_parse_gifti_fast import (
     DATA_FILE1,
     DATA_FILE2,
@@ -32,7 +32,6 @@ from .test_parse_gifti_fast import (
     DATA_FILE5,
     DATA_FILE6,
 )
-import itertools
 
 
 def test_agg_data():

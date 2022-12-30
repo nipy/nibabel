@@ -9,14 +9,11 @@
 """Tests for SPM2 header stuff"""
 
 import numpy as np
-
-from ..spatialimages import HeaderTypeError, HeaderDataError
-from ..spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
-
 import pytest
 from numpy.testing import assert_array_equal
 
-
+from ..spatialimages import HeaderDataError, HeaderTypeError
+from ..spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from . import test_spm99analyze
 
 

@@ -9,10 +9,11 @@
 """Context manager openers for various fileobject types
 """
 
-from bz2 import BZ2File
 import gzip
 import warnings
+from bz2 import BZ2File
 from os.path import splitext
+
 from packaging.version import Version
 
 from nibabel.optpkg import optional_package

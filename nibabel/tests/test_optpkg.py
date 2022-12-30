@@ -1,14 +1,13 @@
 """Testing optpkg module
 """
 
-from unittest import mock
-import types
-import sys
 import builtins
-from packaging.version import Version
+import sys
+import types
+from unittest import SkipTest, mock
 
-from unittest import SkipTest
 import pytest
+from packaging.version import Version
 
 from nibabel.optpkg import optional_package
 from nibabel.tripwire import TripWire, TripWireError

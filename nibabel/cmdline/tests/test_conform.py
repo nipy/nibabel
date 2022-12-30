@@ -13,9 +13,9 @@ import unittest
 import pytest
 
 import nibabel as nib
-from nibabel.testing import test_data
 from nibabel.cmdline.conform import main
 from nibabel.optpkg import optional_package
+from nibabel.testing import test_data
 
 _, have_scipy, _ = optional_package('scipy.ndimage')
 needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')

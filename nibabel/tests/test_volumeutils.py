@@ -8,57 +8,53 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for volumeutils module"""
 
-import os
-from os.path import exists
-
-from io import BytesIO
-import tempfile
-import warnings
-import functools
-import itertools
-import gzip
 import bz2
+import functools
+import gzip
+import itertools
+import os
+import tempfile
 import threading
 import time
-from packaging.version import Version
+import warnings
+from io import BytesIO
+from os.path import exists
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+from packaging.version import Version
 
+from nibabel.testing import (
+    assert_allclose_safely,
+    assert_dt_equal,
+    error_warnings,
+    suppress_warnings,
+)
+
+from ..casting import OK_FLOATS, floor_log2, shared_range, type_info
+from ..openers import BZ2File, ImageOpener, Opener
+from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
-from ..openers import ImageOpener
 from ..volumeutils import (
-    array_from_file,
+    _dt_min_max,
+    _ftype4scaled_finite,
     _is_compressed_fobj,
-    array_to_file,
-    fname_ext_ul_case,
-    write_zeros,
-    seek_tell,
+    _write_data,
     apply_read_scaling,
-    working_type,
+    array_from_file,
+    array_to_file,
     best_write_scale_ftype,
     better_float_of,
+    fname_ext_ul_case,
     int_scinter_ftype,
     make_dt_codes,
     native_code,
-    shape_zoom_affine,
     rec2dict,
-    _dt_min_max,
-    _write_data,
-    _ftype4scaled_finite,
-)
-from ..openers import Opener, BZ2File
-from ..casting import floor_log2, type_info, OK_FLOATS, shared_range
-
-from ..optpkg import optional_package
-
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-import pytest
-
-from nibabel.testing import (
-    assert_dt_equal,
-    assert_allclose_safely,
-    suppress_warnings,
-    error_warnings,
+    seek_tell,
+    shape_zoom_affine,
+    working_type,
+    write_zeros,
 )
 
 pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
@@ -1274,7 +1270,7 @@ def _calculate_scale(data, out_dtype, allow_intercept):
     out_dtype = np.dtype(out_dtype)
     if np.can_cast(in_dtype, out_dtype):
         return 1.0, 0.0, None, None
-    from ..arraywriters import make_array_writer, WriterError, get_slope_inter
+    from ..arraywriters import WriterError, get_slope_inter, make_array_writer
 
     try:
         writer = make_array_writer(data, out_dtype, True, allow_intercept)

@@ -2,31 +2,27 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Tests for data module"""
 import os
-from os.path import join as pjoin
-from os import environ as env
 import sys
 import tempfile
-
-from ..data import (
-    get_data_path,
-    find_data_dir,
-    DataError,
-    _cfg_value,
-    make_datasource,
-    Datasource,
-    VersionedDatasource,
-    Bomber,
-    datasource_or_bomber,
-)
-
-from ..tmpdirs import TemporaryDirectory
-
-from .. import data as nibd
-
+from os import environ as env
+from os.path import join as pjoin
 
 import pytest
 
-from .test_environment import with_environment, DATA_KEY, USER_KEY
+from .. import data as nibd
+from ..data import (
+    Bomber,
+    DataError,
+    Datasource,
+    VersionedDatasource,
+    _cfg_value,
+    datasource_or_bomber,
+    find_data_dir,
+    get_data_path,
+    make_datasource,
+)
+from ..tmpdirs import TemporaryDirectory
+from .test_environment import DATA_KEY, USER_KEY, with_environment
 
 
 @pytest.fixture

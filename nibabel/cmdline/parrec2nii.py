@@ -1,21 +1,23 @@
 """Code for PAR/REC to NIfTI converter command
 """
 
-from optparse import OptionParser, Option
+import csv
+import os
+import sys
+from optparse import Option, OptionParser
+
 import numpy as np
 import numpy.linalg as npl
-import sys
-import os
-import csv
+
 import nibabel
-import nibabel.parrec as pr
-from nibabel.parrec import one_line
-from nibabel.mriutils import calculate_dwell_time, MRIError
 import nibabel.nifti1 as nifti1
-from nibabel.filename_parser import splitext_addext
-from nibabel.volumeutils import fname_ext_ul_case
-from nibabel.orientations import io_orientation, inv_ornt_aff, apply_orientation
+import nibabel.parrec as pr
 from nibabel.affines import apply_affine, from_matvec, to_matvec
+from nibabel.filename_parser import splitext_addext
+from nibabel.mriutils import MRIError, calculate_dwell_time
+from nibabel.orientations import apply_orientation, inv_ornt_aff, io_orientation
+from nibabel.parrec import one_line
+from nibabel.volumeutils import fname_ext_ul_case
 
 
 def get_opt_parser():

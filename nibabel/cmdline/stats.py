@@ -12,8 +12,9 @@ Compute image statistics
 """
 
 import argparse
+
+from nibabel.imagestats import count_nonzero_voxels, mask_volume
 from nibabel.loadsave import load
-from nibabel.imagestats import mask_volume, count_nonzero_voxels
 
 
 def _get_parser():

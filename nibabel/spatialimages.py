@@ -131,13 +131,13 @@ work:
 
 import numpy as np
 
-from .filebasedimages import FileBasedHeader
 from .dataobj_images import DataobjImage
 from .filebasedimages import ImageFileError  # noqa
-from .viewers import OrthoSlicer3D
-from .volumeutils import shape_zoom_affine
+from .filebasedimages import FileBasedHeader
 from .fileslice import canonical_slicers
 from .orientations import apply_orientation, inv_ornt_aff
+from .viewers import OrthoSlicer3D
+from .volumeutils import shape_zoom_affine
 
 
 class HeaderDataError(Exception):

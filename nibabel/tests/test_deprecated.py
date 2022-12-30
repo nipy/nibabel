@@ -2,12 +2,11 @@
 """
 
 import warnings
+
 import pytest
 
 from nibabel import pkg_info
-from nibabel.deprecated import ModuleProxy, FutureWarningMixin, deprecate_with_version
-
-
+from nibabel.deprecated import FutureWarningMixin, ModuleProxy, deprecate_with_version
 from nibabel.tests.test_deprecator import TestDeprecatorFunc as _TestDF
 
 

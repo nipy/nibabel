@@ -27,7 +27,7 @@ and compare against command line output of::
 """
 import numpy as np
 
-from .minc1 import Minc1File, MincHeader, Minc1Image, MincError
+from .minc1 import Minc1File, Minc1Image, MincError, MincHeader
 
 
 class Hdf5Bunch:

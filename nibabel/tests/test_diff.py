@@ -3,9 +3,10 @@
 """Test diff
 """
 
-from os.path import dirname, join as pjoin, abspath
-import numpy as np
+from os.path import abspath, dirname
+from os.path import join as pjoin
 
+import numpy as np
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
@@ -41,7 +42,7 @@ def test_diff_values_mixed():
 
 
 def test_diff_values_array():
-    from numpy import nan, array, inf
+    from numpy import array, inf, nan
 
     a_int = array([1, 2])
     a_float = a_int.astype(float)

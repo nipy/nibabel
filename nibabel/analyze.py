@@ -84,21 +84,21 @@ constrain the affine.
 
 import numpy as np
 
-from .volumeutils import (
-    native_code,
-    swapped_code,
-    make_dt_codes,
-    shape_zoom_affine,
-    array_from_file,
-    seek_tell,
-    apply_read_scaling,
-)
-from .arraywriters import make_array_writer, get_slope_inter, WriterError, ArrayWriter
-from .wrapstruct import LabeledWrapStruct
-from .spatialimages import HeaderDataError, HeaderTypeError, SpatialImage
-from .fileholders import copy_file_map
-from .batteryrunners import Report
 from .arrayproxy import ArrayProxy
+from .arraywriters import ArrayWriter, WriterError, get_slope_inter, make_array_writer
+from .batteryrunners import Report
+from .fileholders import copy_file_map
+from .spatialimages import HeaderDataError, HeaderTypeError, SpatialImage
+from .volumeutils import (
+    apply_read_scaling,
+    array_from_file,
+    make_dt_codes,
+    native_code,
+    seek_tell,
+    shape_zoom_affine,
+    swapped_code,
+)
+from .wrapstruct import LabeledWrapStruct
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file

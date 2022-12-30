@@ -10,8 +10,8 @@ This can either be an actual numpy array, or an object that:
 
 import numpy as np
 
-from .filebasedimages import FileBasedImage
 from .deprecated import deprecate_with_version
+from .filebasedimages import FileBasedImage
 
 
 class DataobjImage(FileBasedImage):

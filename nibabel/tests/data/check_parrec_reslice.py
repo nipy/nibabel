@@ -22,6 +22,7 @@ The *_cor_SENSE* image has a higher RMS because the back of the phantom is out
 of the field of view.
 """
 import glob
+
 import numpy as np
 import numpy.linalg as npl
 

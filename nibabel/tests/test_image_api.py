@@ -23,11 +23,11 @@ What is the image API?
   cached, but False otherwise.
 """
 
+import io
+import pathlib
 import warnings
 from functools import partial
 from itertools import product
-import io
-import pathlib
 
 import numpy as np
 
@@ -36,45 +36,47 @@ from ..optpkg import optional_package
 _, have_scipy, _ = optional_package('scipy')
 _, have_h5py, _ = optional_package('h5py')
 
+import unittest
+
+import pytest
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal, assert_warns
+
+from nibabel.arraywriters import WriterError
+from nibabel.testing import (
+    assert_data_similar,
+    bytesio_filemap,
+    bytesio_round_trip,
+    clear_and_catch_warnings,
+    expires,
+    nullcontext,
+)
+
 from .. import (
     AnalyzeImage,
-    Spm99AnalyzeImage,
-    Spm2AnalyzeImage,
-    Nifti1Pair,
-    Nifti1Image,
-    Nifti2Pair,
-    Nifti2Image,
     GiftiImage,
     MGHImage,
     Minc1Image,
     Minc2Image,
+    Nifti1Image,
+    Nifti1Pair,
+    Nifti2Image,
+    Nifti2Pair,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    brikhead,
     is_proxy,
+    minc1,
+    minc2,
+    parrec,
 )
-from ..spatialimages import SpatialImage
-from .. import minc1, minc2, parrec, brikhead
 from ..deprecator import ExpiredDeprecationError
-
-import unittest
-import pytest
-
-from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
-from nibabel.testing import (
-    bytesio_round_trip,
-    bytesio_filemap,
-    assert_data_similar,
-    clear_and_catch_warnings,
-    nullcontext,
-    expires,
-)
+from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
-
 from .test_api_validators import ValidateAPI
+from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
-from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
-
-from nibabel.arraywriters import WriterError
 
 
 def maybe_deprecated(meth_name):

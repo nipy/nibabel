@@ -9,8 +9,8 @@
 
 import os
 
-from .pkg_info import __version__
 from .info import long_description as __doc__
+from .pkg_info import __version__
 
 __doc__ += """
 Quickstart
@@ -39,39 +39,37 @@ For more detailed information see the :ref:`manual`.
 
 # module imports
 from . import analyze as ana
-from . import spm99analyze as spm99
-from . import spm2analyze as spm2
+from . import ecat, mriutils
 from . import nifti1 as ni1
-from . import ecat
-from . import mriutils
-from . import streamlines
-from . import viewers
+from . import spm2analyze as spm2
+from . import spm99analyze as spm99
+from . import streamlines, viewers
 
 # isort: split
 
 # object imports
-from .fileholders import FileHolder, FileHolderError
-from .loadsave import load, save
-from .arrayproxy import is_proxy
 from .analyze import AnalyzeHeader, AnalyzeImage
-from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
-from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
-from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
-from .nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
+from .arrayproxy import is_proxy
+from .cifti2 import Cifti2Header, Cifti2Image
+from .fileholders import FileHolder, FileHolderError
+from .freesurfer import MGHImage
+from .funcs import as_closest_canonical, concat_images, four_to_three, squeeze_image
+from .gifti import GiftiImage
+from .imageclasses import all_image_classes
+from .loadsave import load, save
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
-from .cifti2 import Cifti2Header, Cifti2Image
-from .gifti import GiftiImage
-from .freesurfer import MGHImage
-from .funcs import squeeze_image, concat_images, four_to_three, as_closest_canonical
+from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
+from .nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
 from .orientations import (
-    io_orientation,
-    flip_axis,
     OrientationError,
-    apply_orientation,
     aff2axcodes,
+    apply_orientation,
+    flip_axis,
+    io_orientation,
 )
-from .imageclasses import all_image_classes
+from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
+from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 
 # isort: split
 

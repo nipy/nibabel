@@ -8,19 +8,19 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utility functions for analyze-like formats"""
 
+import gzip
 import sys
 import warnings
-import gzip
 from collections import OrderedDict
-from os.path import exists, splitext
-from operator import mul
 from functools import reduce
+from operator import mul
+from os.path import exists, splitext
 
 import numpy as np
 
-from .casting import shared_range, OK_FLOATS
-from .openers import BZ2File, IndexedGzipFile
+from .casting import OK_FLOATS, shared_range
 from .externals.oset import OrderedSet
+from .openers import BZ2File, IndexedGzipFile
 from .optpkg import optional_package
 
 pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')

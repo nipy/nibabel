@@ -22,11 +22,11 @@ from .optpkg import optional_package
 
 spnd, _, _ = optional_package('scipy.ndimage')
 
-from .affines import AffineError, to_matvec, from_matvec, append_diag, rescale_affine
-from .spaces import vox2out_vox
+from .affines import AffineError, append_diag, from_matvec, rescale_affine, to_matvec
+from .imageclasses import spatial_axes_first
 from .nifti1 import Nifti1Image
 from .orientations import axcodes2ornt, io_orientation, ornt_transform
-from .imageclasses import spatial_axes_first
+from .spaces import vox2out_vox
 
 SIGMA2FWHM = np.sqrt(8 * np.log(2))
 

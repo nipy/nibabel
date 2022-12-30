@@ -9,10 +9,9 @@
 """Tests recoder class"""
 
 import numpy as np
-
-from ..volumeutils import Recoder, DtypeMapper, native_code, swapped_code
-
 import pytest
+
+from ..volumeutils import DtypeMapper, Recoder, native_code, swapped_code
 
 
 def test_recoder_1():

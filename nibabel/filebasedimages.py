@@ -11,8 +11,9 @@
 import io
 from copy import deepcopy
 from urllib import request
+
 from .fileholders import FileHolder
-from .filename_parser import types_filenames, TypesFilenamesError, splitext_addext
+from .filename_parser import TypesFilenamesError, splitext_addext, types_filenames
 from .openers import ImageOpener
 
 

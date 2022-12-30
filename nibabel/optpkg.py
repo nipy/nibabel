@@ -1,5 +1,6 @@
 """Routines to support optional packages"""
 from packaging.version import Version
+
 from .tripwire import TripWire
 
 

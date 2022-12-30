@@ -9,27 +9,27 @@
 """Tests for is_image / may_contain_header functions"""
 
 import copy
-from os.path import dirname, basename, join as pjoin
+from os.path import basename, dirname
+from os.path import join as pjoin
 
 import numpy as np
 
 from .. import (
-    Nifti1Image,
-    Nifti1Header,
-    Nifti1Pair,
-    Nifti2Image,
-    Nifti2Header,
-    Nifti2Pair,
-    AnalyzeImage,
     AnalyzeHeader,
+    AnalyzeImage,
+    MGHImage,
     Minc1Image,
     Minc2Image,
+    Nifti1Header,
+    Nifti1Image,
+    Nifti1Pair,
+    Nifti2Header,
+    Nifti2Image,
+    Nifti2Pair,
     Spm2AnalyzeImage,
     Spm99AnalyzeImage,
-    MGHImage,
     all_image_classes,
 )
-
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 

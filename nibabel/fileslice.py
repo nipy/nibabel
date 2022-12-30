@@ -2,13 +2,11 @@
 """
 
 import operator
-from numbers import Integral
-from mmap import mmap
-
 from functools import reduce
+from mmap import mmap
+from numbers import Integral
 
 import numpy as np
-
 
 # Threshold for memory gap above which we always skip, to save memory
 # This value came from trying various values and looking at the timing with

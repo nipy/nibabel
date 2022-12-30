@@ -1,10 +1,10 @@
 """Test tractogramFile base class
 """
 
+import pytest
+
 from ..tractogram import Tractogram
 from ..tractogram_file import TractogramFile
-
-import pytest
 
 
 def test_subclassing_tractogram_file():

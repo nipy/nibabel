@@ -12,11 +12,9 @@ import numpy as np
 from nibabel.openers import Opener
 
 from .array_sequence import ArraySequence
-from .tractogram_file import TractogramFile
-from .tractogram_file import HeaderWarning, DataWarning
-from .tractogram_file import HeaderError, DataError
-from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
+from .tractogram import LazyTractogram, Tractogram, TractogramItem
+from .tractogram_file import DataError, DataWarning, HeaderError, HeaderWarning, TractogramFile
 from .utils import peek_next
 
 MEGABYTE = 1024 * 1024

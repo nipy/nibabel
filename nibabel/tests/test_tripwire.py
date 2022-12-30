@@ -1,9 +1,9 @@
 """Testing tripwire module
 """
 
-from ..tripwire import TripWire, is_tripwire, TripWireError
-
 import pytest
+
+from ..tripwire import TripWire, TripWireError, is_tripwire
 
 
 def test_is_tripwire():

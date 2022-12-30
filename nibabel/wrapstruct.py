@@ -111,9 +111,9 @@ The same for logging::
 """
 import numpy as np
 
-from .volumeutils import pretty_mapping, endian_codes, native_code, swapped_code
 from . import imageglobals as imageglobals
 from .batteryrunners import BatteryRunner
+from .volumeutils import endian_codes, native_code, pretty_mapping, swapped_code
 
 
 class WrapStructError(Exception):

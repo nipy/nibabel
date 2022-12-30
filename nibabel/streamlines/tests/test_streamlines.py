@@ -1,25 +1,22 @@
 import os
-import unittest
 import tempfile
-import numpy as np
+import unittest
 import warnings
-
-import pytest
-
+from io import BytesIO
 from os.path import join as pjoin
 
-import nibabel as nib
-from io import BytesIO
-from nibabel.tmpdirs import InTemporaryDirectory
+import numpy as np
+import pytest
 from numpy.compat.py3k import asbytes
 
-from nibabel.testing import data_path, error_warnings, clear_and_catch_warnings
+import nibabel as nib
+from nibabel.testing import clear_and_catch_warnings, data_path, error_warnings
+from nibabel.tmpdirs import InTemporaryDirectory
 
+from .. import FORMATS, trk
+from ..tractogram import LazyTractogram, Tractogram
+from ..tractogram_file import ExtensionWarning, TractogramFile
 from .test_tractogram import assert_tractogram_equal
-from ..tractogram import Tractogram, LazyTractogram
-from ..tractogram_file import TractogramFile, ExtensionWarning
-from .. import FORMATS
-from .. import trk
 
 DATA = {}
 

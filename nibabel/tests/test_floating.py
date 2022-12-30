@@ -2,27 +2,25 @@
 """
 import sys
 
-
 import numpy as np
+import pytest
 
 from ..casting import (
-    floor_exact,
-    ceil_exact,
-    as_int,
     FloatingError,
-    int_to_float,
-    floor_log2,
-    type_info,
-    _check_nmant,
     _check_maxexp,
+    _check_nmant,
+    as_int,
+    ceil_exact,
+    floor_exact,
+    floor_log2,
+    have_binary128,
+    int_to_float,
+    longdouble_precision_improved,
     ok_floats,
     on_powerpc,
-    have_binary128,
-    longdouble_precision_improved,
+    type_info,
 )
 from ..testing import suppress_warnings
-
-import pytest
 
 IEEE_floats = [np.float16, np.float32, np.float64]
 

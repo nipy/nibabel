@@ -8,13 +8,12 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import numpy as np
 import pytest
 
-import numpy as np
-
 import nibabel as nib
-from nibabel.testing import test_data
 from nibabel.cmdline import convert
+from nibabel.testing import test_data
 
 
 def test_convert_noop(tmp_path):

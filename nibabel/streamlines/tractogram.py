@@ -1,8 +1,9 @@
 import copy
 import numbers
-import numpy as np
-from warnings import warn
 from collections.abc import MutableMapping
+from warnings import warn
+
+import numpy as np
 
 from nibabel.affines import apply_affine
 

@@ -17,16 +17,16 @@ import numpy as np
 import numpy.linalg as npl
 from numpy.compat.py3k import asstr
 
-from .arrayproxy import get_obj_dtype
-from .optpkg import optional_package
-from .filebasedimages import SerializableImage
-from .volumeutils import Recoder, make_dt_codes, endian_codes
-from .spatialimages import HeaderDataError, ImageFileError
-from .batteryrunners import Report
-from .quaternions import fillpositive, quat2mat, mat2quat
 from . import analyze  # module import
-from .spm99analyze import SpmAnalyzeHeader
+from .arrayproxy import get_obj_dtype
+from .batteryrunners import Report
 from .casting import have_binary128
+from .filebasedimages import SerializableImage
+from .optpkg import optional_package
+from .quaternions import fillpositive, mat2quat, quat2mat
+from .spatialimages import HeaderDataError, ImageFileError
+from .spm99analyze import SpmAnalyzeHeader
+from .volumeutils import Recoder, endian_codes, make_dt_codes
 
 pdcm, have_dicom, _ = optional_package('pydicom')
 

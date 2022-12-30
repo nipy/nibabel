@@ -1,16 +1,15 @@
+import itertools
 import os
 import sys
-import unittest
 import tempfile
-import itertools
-import numpy as np
+import unittest
 
+import numpy as np
 import pytest
-from ...testing import assert_arrays_equal
 from numpy.testing import assert_array_equal
 
-from ..array_sequence import ArraySequence, is_array_sequence, concatenate
-
+from ...testing import assert_arrays_equal
+from ..array_sequence import ArraySequence, concatenate, is_array_sequence
 
 SEQ_DATA = {}
 

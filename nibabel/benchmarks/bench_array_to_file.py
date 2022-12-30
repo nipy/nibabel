@@ -14,12 +14,11 @@ import sys
 from io import BytesIO  # NOQA
 
 import numpy as np
-
-from .butils import print_git_title
-
 from numpy.testing import measure
 
 from nibabel.volumeutils import array_to_file  # NOQA
+
+from .butils import print_git_title
 
 
 def bench_array_to_file():

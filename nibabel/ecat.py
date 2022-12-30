@@ -48,11 +48,11 @@ from numbers import Integral
 
 import numpy as np
 
-from .volumeutils import native_code, swapped_code, make_dt_codes, array_from_file
-from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
-from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
+from .spatialimages import SpatialImage
+from .volumeutils import array_from_file, make_dt_codes, native_code, swapped_code
+from .wrapstruct import WrapStruct
 
 BLOCK_SIZE = 512
 

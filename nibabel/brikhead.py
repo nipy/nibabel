@@ -28,15 +28,15 @@ am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
 
-from copy import deepcopy
 import os
 import re
+from copy import deepcopy
 
 import numpy as np
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
-from .spatialimages import SpatialImage, SpatialHeader, HeaderDataError, ImageDataError
+from .spatialimages import HeaderDataError, ImageDataError, SpatialHeader, SpatialImage
 from .volumeutils import Recoder
 
 # used for doc-tests

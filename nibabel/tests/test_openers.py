@@ -7,29 +7,23 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for openers module"""
-import os
 import contextlib
+import hashlib
+import os
+import time
+import unittest
 from gzip import GzipFile
 from io import BytesIO, UnsupportedOperation
-from packaging.version import Version
-import hashlib
-import time
-
-from numpy.compat.py3k import asstr, asbytes
-from ..openers import (
-    Opener,
-    ImageOpener,
-    HAVE_INDEXED_GZIP,
-    BZ2File,
-    DeterministicGzipFile,
-)
-from ..tmpdirs import InTemporaryDirectory
-from ..optpkg import optional_package
-
-import unittest
 from unittest import mock
+
 import pytest
+from numpy.compat.py3k import asbytes, asstr
+from packaging.version import Version
+
 from ..deprecator import ExpiredDeprecationError
+from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
+from ..optpkg import optional_package
+from ..tmpdirs import InTemporaryDirectory
 
 pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 

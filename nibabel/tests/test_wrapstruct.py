@@ -24,21 +24,18 @@ With deprecation warnings
 _field_recoders -> field_recoders
 """
 import logging
-import numpy as np
-
 from io import BytesIO, StringIO
-from ..wrapstruct import WrapStructError, WrapStruct, LabeledWrapStruct
-from ..batteryrunners import Report
 
-from ..volumeutils import swapped_code, native_code, Recoder
-from ..spatialimages import HeaderDataError
-from .. import imageglobals
-
-from ..testing import BaseTestCase
-
-from numpy.testing import assert_array_equal
+import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
+from .. import imageglobals
+from ..batteryrunners import Report
+from ..spatialimages import HeaderDataError
+from ..testing import BaseTestCase
+from ..volumeutils import Recoder, native_code, swapped_code
+from ..wrapstruct import LabeledWrapStruct, WrapStruct, WrapStructError
 
 INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
 

@@ -1,28 +1,26 @@
+import copy
 import os
 import sys
-import copy
 import unittest
-import numpy as np
+from io import BytesIO
 from os.path import join as pjoin
 
-from io import BytesIO
-
+import numpy as np
 import pytest
-from ...testing import data_path, clear_and_catch_warnings, assert_arr_dict_equal, error_warnings
 from numpy.testing import assert_array_equal
 
-from .test_tractogram import assert_tractogram_equal
+from ...testing import assert_arr_dict_equal, clear_and_catch_warnings, data_path, error_warnings
+from .. import trk as trk_module
+from ..header import Field
 from ..tractogram import Tractogram
 from ..tractogram_file import HeaderError, HeaderWarning
-
-from .. import trk as trk_module
 from ..trk import (
     TrkFile,
-    encode_value_in_name,
     decode_value_from_name,
+    encode_value_in_name,
     get_affine_trackvis_to_rasmm,
 )
-from ..header import Field
+from .test_tractogram import assert_tractogram_equal
 
 DATA = {}
 

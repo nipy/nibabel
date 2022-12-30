@@ -8,19 +8,17 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for scaling / rounding in volumeutils module"""
 
-import numpy as np
 import warnings
-
 from io import BytesIO
-from ..volumeutils import finite_range, apply_read_scaling, array_to_file, array_from_file
+
+import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+
 from ..casting import type_info
 from ..testing import suppress_warnings
-
+from ..volumeutils import apply_read_scaling, array_from_file, array_to_file, finite_range
 from .test_volumeutils import _calculate_scale
-
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-import pytest
-
 
 # Debug print statements
 DEBUG = True

@@ -1,10 +1,11 @@
 """Functions / decorators for finding / requiring nibabel-data directory
 """
 
-from os import environ, listdir
-from os.path import dirname, realpath, join as pjoin, isdir, exists
-
 import unittest
+from os import environ, listdir
+from os.path import dirname, exists, isdir
+from os.path import join as pjoin
+from os.path import realpath
 
 
 def get_nibabel_data():

@@ -2,8 +2,8 @@
 """
 
 import functools
-import warnings
 import re
+import warnings
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
 

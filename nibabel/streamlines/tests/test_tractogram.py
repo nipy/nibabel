@@ -1,19 +1,26 @@
-import sys
 import copy
-import unittest
-import numpy as np
-import warnings
 import operator
+import sys
+import unittest
+import warnings
 from collections import defaultdict
 
+import numpy as np
 import pytest
-from ...testing import assert_arrays_equal, clear_and_catch_warnings
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from ...testing import assert_arrays_equal, clear_and_catch_warnings
 from .. import tractogram as module_tractogram
-from ..tractogram import is_data_dict, is_lazy_dict
-from ..tractogram import TractogramItem, Tractogram, LazyTractogram
-from ..tractogram import PerArrayDict, PerArraySequenceDict, LazyDict
+from ..tractogram import (
+    LazyDict,
+    LazyTractogram,
+    PerArrayDict,
+    PerArraySequenceDict,
+    Tractogram,
+    TractogramItem,
+    is_data_dict,
+    is_lazy_dict,
+)
 
 DATA = {}
 

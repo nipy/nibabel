@@ -2,10 +2,9 @@
 """
 
 import numpy as np
+import pytest
 
 from ..rstutils import rst_table
-
-import pytest
 
 
 def test_rst_table():

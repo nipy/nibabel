@@ -84,11 +84,9 @@ The convention of rotation around ``z``, followed by rotation around
 """
 
 import math
-
 from functools import reduce
 
 import numpy as np
-
 
 _FLOAT_EPS_4 = np.finfo(float).eps * 4.0
 

@@ -1,13 +1,12 @@
 """
 Convert tractograms (TCK -> TRK).
 """
-import os
 import argparse
+import os
 
 import nibabel as nib
-
-from nibabel.streamlines import Field
 from nibabel.orientations import aff2axcodes
+from nibabel.streamlines import Field
 
 
 def parse_args():

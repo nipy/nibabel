@@ -7,37 +7,37 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import numpy as np
 from io import BytesIO
 
+import numpy as np
 from packaging.version import Version, parse
 
+from .. import xmlutils as xml
+from ..batteryrunners import Report
+from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
+from ..nifti2 import Nifti2Header, Nifti2Image
+from ..spatialimages import HeaderDataError
 from .cifti2 import (
-    Cifti2MetaData,
+    CIFTI_BRAIN_STRUCTURES,
+    CIFTI_MODEL_TYPES,
+    Cifti2BrainModel,
     Cifti2Header,
+    Cifti2HeaderError,
     Cifti2Label,
     Cifti2LabelTable,
-    Cifti2VertexIndices,
-    Cifti2VoxelIndicesIJK,
-    Cifti2BrainModel,
     Cifti2Matrix,
     Cifti2MatrixIndicesMap,
+    Cifti2MetaData,
     Cifti2NamedMap,
     Cifti2Parcel,
     Cifti2Surface,
     Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
+    Cifti2VertexIndices,
     Cifti2Vertices,
     Cifti2Volume,
-    CIFTI_BRAIN_STRUCTURES,
-    CIFTI_MODEL_TYPES,
+    Cifti2VoxelIndicesIJK,
     _underscore,
-    Cifti2HeaderError,
 )
-from .. import xmlutils as xml
-from ..spatialimages import HeaderDataError
-from ..batteryrunners import Report
-from ..nifti1 import Nifti1Extension, extension_codes, intent_codes
-from ..nifti2 import Nifti2Header, Nifti2Image
 
 
 class Cifti2Extension(Nifti1Extension):

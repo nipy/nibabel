@@ -2,12 +2,12 @@
 """
 
 from .io import (
-    read_geometry,
-    read_morph_data,
-    write_morph_data,
     read_annot,
+    read_geometry,
     read_label,
-    write_geometry,
+    read_morph_data,
     write_annot,
+    write_geometry,
+    write_morph_data,
 )
-from .mghformat import load, save, MGHImage
+from .mghformat import MGHImage, load, save

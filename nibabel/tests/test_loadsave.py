@@ -1,34 +1,33 @@
 """Testing loadsave module
 """
 
-from os.path import dirname, join as pjoin
-import shutil
 import pathlib
+import shutil
+from os.path import dirname
+from os.path import join as pjoin
 
 import numpy as np
 
 from .. import (
-    Spm99AnalyzeImage,
-    Spm2AnalyzeImage,
-    Nifti1Pair,
     Nifti1Image,
-    Nifti2Pair,
+    Nifti1Pair,
     Nifti2Image,
+    Nifti2Pair,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
 )
-from ..loadsave import load, read_img_data, _signature_matches_extension
 from ..filebasedimages import ImageFileError
-from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
+from ..loadsave import _signature_matches_extension, load, read_img_data
 from ..openers import Opener
-from ..testing import expires
-
 from ..optpkg import optional_package
+from ..testing import expires
+from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
 
 _, have_scipy, _ = optional_package('scipy')
 _, have_pyzstd, _ = optional_package('pyzstd')
 
-from numpy.testing import assert_almost_equal, assert_array_equal
-
 import pytest
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 data_path = pjoin(dirname(__file__), 'data')
 

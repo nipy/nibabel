@@ -1,11 +1,11 @@
 import os
-import numpy as np
-import nibabel as nib
 
-from nibabel.testing import data_path
+import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-import pytest
+import nibabel as nib
+from nibabel.testing import data_path
 
 from ..utils import get_affine_from_reference
 

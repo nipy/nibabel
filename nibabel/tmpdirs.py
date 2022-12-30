@@ -10,7 +10,7 @@
 """
 import os
 import shutil
-from tempfile import template, mkdtemp
+from tempfile import mkdtemp, template
 
 
 class TemporaryDirectory:

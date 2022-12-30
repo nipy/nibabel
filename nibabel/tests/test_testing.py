@@ -1,23 +1,23 @@
 """Tests for warnings context managers
 """
 
-import sys
 import os
+import sys
 import warnings
 
 import numpy as np
+import pytest
 
 from ..testing import (
-    error_warnings,
-    suppress_warnings,
-    clear_and_catch_warnings,
     assert_allclose_safely,
-    get_fresh_mod,
     assert_re_in,
-    test_data,
+    clear_and_catch_warnings,
     data_path,
+    error_warnings,
+    get_fresh_mod,
+    suppress_warnings,
+    test_data,
 )
-import pytest
 
 
 def test_assert_allclose_safely():

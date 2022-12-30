@@ -1,7 +1,9 @@
-import nibabel as nib
-from pkg_resources import resource_filename
-import pytest
 from unittest import mock
+
+import pytest
+from pkg_resources import resource_filename
+
+import nibabel as nib
 
 
 @pytest.mark.parametrize(

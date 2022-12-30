@@ -6,7 +6,7 @@ casting.  Others work round numpy casting to and from python ints
 
 import warnings
 from numbers import Integral
-from platform import processor, machine
+from platform import machine, processor
 
 import numpy as np
 

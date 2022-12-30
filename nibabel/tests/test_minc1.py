@@ -7,29 +7,25 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import bz2
+import gzip
+import types
+import warnings
+from io import BytesIO
 from os.path import join as pjoin
 
-import gzip
-import bz2
-import warnings
-import types
-from io import BytesIO
-
 import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 
-from .. import load, Nifti1Image
-from ..externals.netcdf import netcdf_file
+from .. import Nifti1Image, load, minc1
 from ..deprecated import ModuleProxy
-from .. import minc1
+from ..deprecator import ExpiredDeprecationError
+from ..externals.netcdf import netcdf_file
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 from ..optpkg import optional_package
-
+from ..testing import assert_data_similar, clear_and_catch_warnings, data_path
 from ..tmpdirs import InTemporaryDirectory
-from ..deprecator import ExpiredDeprecationError
-from ..testing import assert_data_similar, data_path, clear_and_catch_warnings
-from numpy.testing import assert_array_equal
-import pytest
-
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
 

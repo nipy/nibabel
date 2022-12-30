@@ -1,14 +1,14 @@
 """Testing Siemens "ASCCONV" parser
 """
 
-from os.path import join as pjoin, dirname
 from collections import OrderedDict
+from os.path import dirname
+from os.path import join as pjoin
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from .. import ascconv
-
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 ASCCONV_INPUT = pjoin(DATA_PATH, 'ascconv_sample.txt')

@@ -8,55 +8,51 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti reading package"""
 import os
-import warnings
 import struct
+import unittest
+import warnings
+from io import BytesIO
 
 import numpy as np
+import pytest
+from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
 
 from nibabel import nifti1 as nifti1
 from nibabel.affines import from_matvec
-from nibabel.casting import type_info, have_binary128
+from nibabel.casting import have_binary128, type_info
 from nibabel.eulerangles import euler2mat
-from io import BytesIO
 from nibabel.nifti1 import (
-    load,
+    Nifti1DicomExtension,
+    Nifti1Extension,
+    Nifti1Extensions,
     Nifti1Header,
-    Nifti1PairHeader,
     Nifti1Image,
     Nifti1Pair,
-    Nifti1Extension,
-    Nifti1DicomExtension,
-    Nifti1Extensions,
+    Nifti1PairHeader,
     data_type_codes,
     extension_codes,
+    load,
     slice_order_codes,
 )
+from nibabel.optpkg import optional_package
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
-from nibabel.optpkg import optional_package
+
 from ..freesurfer import load as mghload
 from ..orientations import aff2axcodes
-
-from .test_arraywriters import rt_err_estimate, IUINT_TYPES
-from .test_orientations import ALL_ORNTS
-from .nibabel_data import get_nibabel_data, needs_nibabel_data
-
-from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_almost_equal
-
 from ..testing import (
+    bytesio_filemap,
+    bytesio_round_trip,
     clear_and_catch_warnings,
     data_path,
     runif_extra_has,
     suppress_warnings,
-    bytesio_filemap,
-    bytesio_round_trip,
 )
-
-import unittest
-import pytest
-
 from . import test_analyze as tana
 from . import test_spm99analyze as tspm
+from .nibabel_data import get_nibabel_data, needs_nibabel_data
+from .test_arraywriters import IUINT_TYPES, rt_err_estimate
+from .test_orientations import ALL_ORNTS
 
 header_file = os.path.join(data_path, 'nifti1.hdr')
 image_file = os.path.join(data_path, 'example4d.nii.gz')

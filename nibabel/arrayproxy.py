@@ -25,16 +25,15 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+import warnings
 from contextlib import contextmanager
 from threading import RLock
-import warnings
 
 import numpy as np
 
-from .volumeutils import array_from_file, apply_read_scaling
-from .fileslice import fileslice, canonical_slicers
 from . import openers
-
+from .fileslice import canonical_slicers, fileslice
+from .volumeutils import apply_read_scaling, array_from_file
 
 """This flag controls whether a new file handle is created every time an image
 is accessed through an ``ArrayProxy``, or a single file handle is created and
@@ -413,8 +412,8 @@ class ArrayProxy:
         size = np.prod(self._shape)
 
         # Calculate new shape if not fully specified
-        from operator import mul
         from functools import reduce
+        from operator import mul
 
         n_unknowns = len([e for e in shape if e == -1])
         if n_unknowns > 1:

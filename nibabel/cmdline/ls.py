@@ -12,13 +12,13 @@ Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
 """
 
 import sys
-from optparse import OptionParser, Option
+from optparse import Option, OptionParser
 
 import numpy as np
 
 import nibabel as nib
 import nibabel.cmdline.utils
-from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
+from nibabel.cmdline.utils import _err, ap, safe_get, table2string, verbose
 
 __copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko ' 'and NiBabel contributors'
 __license__ = 'MIT'

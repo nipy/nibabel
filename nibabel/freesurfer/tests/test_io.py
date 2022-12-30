@@ -1,32 +1,31 @@
-import os
-from os.path import join as pjoin, isdir
 import getpass
-import time
-import struct
 import hashlib
-import warnings
-
-from ...tmpdirs import InTemporaryDirectory
-
+import os
+import struct
+import time
 import unittest
-import pytest
+import warnings
+from os.path import isdir
+from os.path import join as pjoin
+
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from .. import (
-    read_geometry,
-    read_morph_data,
-    read_annot,
-    read_label,
-    write_geometry,
-    write_morph_data,
-    write_annot,
-)
-from ..io import _pack_rgb
-
-from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
 from ...testing import clear_and_catch_warnings
+from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
+from ...tmpdirs import InTemporaryDirectory
+from .. import (
+    read_annot,
+    read_geometry,
+    read_label,
+    read_morph_data,
+    write_annot,
+    write_geometry,
+    write_morph_data,
+)
+from ..io import _pack_rgb
 
 DATA_SDIR = 'fsaverage'
 

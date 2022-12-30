@@ -6,8 +6,8 @@
     * standard.trk
 """
 import numpy as np
-import nibabel as nib
 
+import nibabel as nib
 from nibabel.streamlines import FORMATS
 from nibabel.streamlines.header import Field
 

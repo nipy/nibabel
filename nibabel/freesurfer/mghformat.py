@@ -11,17 +11,18 @@
 Author: Krish Subramaniam
 """
 from os.path import splitext
+
 import numpy as np
 
-from ..affines import voxel_sizes, from_matvec
-from ..volumeutils import array_to_file, array_from_file, endian_codes, Recoder
-from ..filebasedimages import SerializableImage
-from ..filename_parser import _stringify_path
-from ..spatialimages import HeaderDataError, SpatialImage
-from ..fileholders import FileHolder
+from ..affines import from_matvec, voxel_sizes
 from ..arrayproxy import ArrayProxy, reshape_dataobj
-from ..openers import ImageOpener
 from ..batteryrunners import BatteryRunner, Report
+from ..filebasedimages import SerializableImage
+from ..fileholders import FileHolder
+from ..filename_parser import _stringify_path
+from ..openers import ImageOpener
+from ..spatialimages import HeaderDataError, SpatialImage
+from ..volumeutils import Recoder, array_from_file, array_to_file, endian_codes
 from ..wrapstruct import LabeledWrapStruct
 
 # mgh header

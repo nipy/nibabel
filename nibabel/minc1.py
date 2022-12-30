@@ -13,9 +13,8 @@ from numbers import Integral
 import numpy as np
 
 from .externals.netcdf import netcdf_file
-
-from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
+from .spatialimages import SpatialHeader, SpatialImage
 
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,

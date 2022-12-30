@@ -1,35 +1,34 @@
 """Test slicing of file-like objects"""
 
 
+import time
+from functools import partial
 from io import BytesIO
 from itertools import product
-from functools import partial
-from threading import Thread, Lock
-import time
+from threading import Lock, Thread
 
 import numpy as np
-
-from ..fileslice import (
-    is_fancy,
-    canonical_slicers,
-    fileslice,
-    predict_shape,
-    read_segments,
-    _positive_slice,
-    threshold_heuristic,
-    optimize_slicer,
-    slice2len,
-    fill_slicer,
-    optimize_read_slicers,
-    slicers2segments,
-    calc_slicedefs,
-    _simple_fileslice,
-    slice2outax,
-    strided_scalar,
-)
-
 import pytest
 from numpy.testing import assert_array_equal
+
+from ..fileslice import (
+    _positive_slice,
+    _simple_fileslice,
+    calc_slicedefs,
+    canonical_slicers,
+    fileslice,
+    fill_slicer,
+    is_fancy,
+    optimize_read_slicers,
+    optimize_slicer,
+    predict_shape,
+    read_segments,
+    slice2len,
+    slice2outax,
+    slicers2segments,
+    strided_scalar,
+    threshold_heuristic,
+)
 
 
 def _check_slice(sliceobj):

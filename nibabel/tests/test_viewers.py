@@ -7,17 +7,15 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import unittest
 from collections import namedtuple as nt
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_equal, assert_equal
 
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
-
-from numpy.testing import assert_array_equal, assert_equal
-
-import unittest
-import pytest
 
 # Need at least MPL 1.3 for viewer tests.
 # 2020.02.11 - 1.3 wheels are no longer distributed, so the minimum we test with is 1.5

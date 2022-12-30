@@ -8,13 +8,14 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from io import StringIO
 import sys
+from io import StringIO
+
 import numpy as np
 
-from nibabel.loadsave import save
-from nibabel.cmdline.stats import main
 from nibabel import Nifti1Image
+from nibabel.cmdline.stats import main
+from nibabel.loadsave import save
 
 
 def test_volume(tmpdir, capsys):

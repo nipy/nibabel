@@ -10,16 +10,13 @@
 import os
 
 import numpy as np
-
-from .. import nifti2
-from ..nifti1 import Nifti1Header, Nifti1PairHeader, Nifti1Extension, Nifti1Extensions
-from ..nifti2 import Nifti2Header, Nifti2PairHeader, Nifti2Image, Nifti2Pair
-
-from . import test_nifti1 as tn1
-
 from numpy.testing import assert_array_equal
 
+from .. import nifti2
+from ..nifti1 import Nifti1Extension, Nifti1Extensions, Nifti1Header, Nifti1PairHeader
+from ..nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair, Nifti2PairHeader
 from ..testing import data_path
+from . import test_nifti1 as tn1
 
 header_file = os.path.join(data_path, 'nifti2.hdr')
 image_file = os.path.join(data_path, 'example_nifti2.nii.gz')

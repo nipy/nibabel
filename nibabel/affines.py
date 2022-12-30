@@ -2,9 +2,9 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Utility routines for working with points and affine transforms
 """
-import numpy as np
-
 from functools import reduce
+
+import numpy as np
 
 
 class AffineError(ValueError):

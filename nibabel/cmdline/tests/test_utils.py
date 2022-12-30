@@ -5,16 +5,17 @@
 Test running scripts
 """
 
+from collections import OrderedDict
+from io import StringIO
+from os.path import join as pjoin
+
+import numpy as np
 import pytest
 
 import nibabel as nib
-import numpy as np
-from nibabel.cmdline.utils import *
 from nibabel.cmdline.diff import *
-from os.path import join as pjoin
+from nibabel.cmdline.utils import *
 from nibabel.testing import data_path
-from collections import OrderedDict
-from io import StringIO
 
 
 def test_table2string():

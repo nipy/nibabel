@@ -10,14 +10,11 @@
 from os.path import join as pjoin
 
 import numpy as np
-
-from .. import load, Nifti1Image
-from .. import brikhead
-
 import pytest
 from numpy.testing import assert_array_equal
-from ..testing import data_path, assert_data_similar
 
+from .. import Nifti1Image, brikhead, load
+from ..testing import assert_data_similar, data_path
 from .test_fileslice import slicer_samples
 
 EXAMPLE_IMAGES = [

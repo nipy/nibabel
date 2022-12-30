@@ -7,26 +7,24 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from os.path import join as pjoin, dirname, basename
+import shutil
 import sys
 import warnings
-import shutil
+from os.path import basename, dirname
+from os.path import join as pjoin
 from unittest import mock
 
 import numpy as np
-
-from .. import gifti as gi
-from ..util import gifti_endian_codes
-from ..parse_gifti_fast import GiftiParseError, GiftiImageParser
-from ...loadsave import load, save
-from ...nifti1 import xform_codes
-from ...tmpdirs import InTemporaryDirectory
-
+import pytest
 from numpy.testing import assert_array_almost_equal
 
-import pytest
+from ...loadsave import load, save
+from ...nifti1 import xform_codes
 from ...testing import clear_and_catch_warnings, suppress_warnings
-
+from ...tmpdirs import InTemporaryDirectory
+from .. import gifti as gi
+from ..parse_gifti_fast import GiftiImageParser, GiftiParseError
+from ..util import gifti_endian_codes
 
 IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 

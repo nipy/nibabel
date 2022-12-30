@@ -2,26 +2,23 @@
 # http://www.trackvis.org/docs/?subsect=fileformat
 
 import os
-import struct
 import string
+import struct
 import warnings
 
 import numpy as np
 from numpy.compat.py3k import asstr
 
 import nibabel as nib
-
 from nibabel.openers import Opener
-from nibabel.volumeutils import native_code, swapped_code, endian_codes
 from nibabel.orientations import aff2axcodes, axcodes2ornt
+from nibabel.volumeutils import endian_codes, native_code, swapped_code
 
 from .array_sequence import create_arraysequences_from_generator
-from .tractogram_file import TractogramFile
-from .tractogram_file import DataError, HeaderError, HeaderWarning
-from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
+from .tractogram import LazyTractogram, Tractogram, TractogramItem
+from .tractogram_file import DataError, HeaderError, HeaderWarning, TractogramFile
 from .utils import peek_next
-
 
 MAX_NB_NAMED_SCALARS_PER_POINT = 10
 MAX_NB_NAMED_PROPERTIES_PER_STREAMLINE = 10

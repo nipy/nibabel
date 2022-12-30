@@ -8,28 +8,25 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Testing for orientations module"""
 
-import numpy as np
 import warnings
 
+import numpy as np
 import pytest
-
 from numpy.testing import assert_array_equal
 
-from ..orientations import (
-    io_orientation,
-    ornt_transform,
-    inv_ornt_aff,
-    flip_axis,
-    apply_orientation,
-    OrientationError,
-    ornt2axcodes,
-    axcodes2ornt,
-    aff2axcodes,
-)
-
 from ..affines import from_matvec, to_matvec
+from ..orientations import (
+    OrientationError,
+    aff2axcodes,
+    apply_orientation,
+    axcodes2ornt,
+    flip_axis,
+    inv_ornt_aff,
+    io_orientation,
+    ornt2axcodes,
+    ornt_transform,
+)
 from ..testing import expires
-
 
 IN_ARRS = [
     np.eye(4),

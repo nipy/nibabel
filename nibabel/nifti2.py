@@ -17,8 +17,8 @@ import numpy as np
 
 from .analyze import AnalyzeHeader
 from .batteryrunners import Report
+from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
 from .spatialimages import HeaderDataError, ImageFileError
-from .nifti1 import Nifti1Header, Nifti1Pair, Nifti1Image
 
 r"""
 Header struct from : https://www.nitrc.org/forum/message.php?msg_id=3738

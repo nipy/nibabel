@@ -9,8 +9,9 @@
 """Testing processing module
 """
 
-from os.path import dirname, join as pjoin
 import logging
+from os.path import dirname
+from os.path import join as pjoin
 
 import numpy as np
 import numpy.linalg as npl
@@ -19,28 +20,28 @@ from nibabel.optpkg import optional_package
 
 spnd, have_scipy, _ = optional_package('scipy.ndimage')
 
+import unittest
+
+import pytest
+from numpy.testing import assert_almost_equal, assert_array_equal
+
 import nibabel as nib
-from nibabel.processing import (
-    sigma2fwhm,
-    fwhm2sigma,
-    adapt_affine,
-    resample_from_to,
-    resample_to_output,
-    smooth_image,
-    conform,
-)
+from nibabel.affines import AffineError, apply_affine, from_matvec, to_matvec, voxel_sizes
+from nibabel.eulerangles import euler2mat
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 from nibabel.orientations import aff2axcodes, inv_ornt_aff
-from nibabel.affines import AffineError, from_matvec, to_matvec, apply_affine, voxel_sizes
-from nibabel.eulerangles import euler2mat
-
-from numpy.testing import assert_almost_equal, assert_array_equal
-import unittest
-import pytest
-
-from nibabel.tests.test_spaces import assert_all_in, get_outspace_params
+from nibabel.processing import (
+    adapt_affine,
+    conform,
+    fwhm2sigma,
+    resample_from_to,
+    resample_to_output,
+    sigma2fwhm,
+    smooth_image,
+)
 from nibabel.testing import assert_allclose_safely
+from nibabel.tests.test_spaces import assert_all_in, get_outspace_params
 
 needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
 

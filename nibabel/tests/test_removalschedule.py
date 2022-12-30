@@ -1,7 +1,9 @@
-from ..pkg_info import cmp_pkg_version
 import unittest
 from unittest import mock
+
 import pytest
+
+from ..pkg_info import cmp_pkg_version
 
 MODULE_SCHEDULE = [
     ('5.0.0', ['nibabel.keywordonly', 'nibabel.py3k']),

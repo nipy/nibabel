@@ -8,15 +8,14 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read / write access to SPM99 version of analyze image format"""
 import warnings
-import numpy as np
-
 from io import BytesIO
 
-from .spatialimages import HeaderDataError, HeaderTypeError
+import numpy as np
 
-from .batteryrunners import Report
 from . import analyze  # module import
+from .batteryrunners import Report
 from .optpkg import optional_package
+from .spatialimages import HeaderDataError, HeaderTypeError
 
 have_scipy = optional_package('scipy')[1]
 

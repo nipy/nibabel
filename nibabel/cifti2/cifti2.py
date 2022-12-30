@@ -17,19 +17,19 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
     http://www.nitrc.org/projects/cifti
 """
 import re
-from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
+from collections.abc import Iterable, MutableMapping, MutableSequence
 from warnings import warn
 
 import numpy as np
 
 from .. import xmlutils as xml
-from ..filebasedimages import FileBasedHeader, SerializableImage
-from ..dataobj_images import DataobjImage
-from ..nifti1 import Nifti1Extensions
-from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from ..caret import CaretMetaData
+from ..dataobj_images import DataobjImage
+from ..filebasedimages import FileBasedHeader, SerializableImage
+from ..nifti1 import Nifti1Extensions
+from ..nifti2 import Nifti2Header, Nifti2Image
 from ..volumeutils import make_dt_codes
 
 
@@ -1473,7 +1473,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
         img : Cifti2Image
             Returns a Cifti2Image
         """
-        from .parse_cifti2 import _Cifti2AsNiftiImage, Cifti2Extension
+        from .parse_cifti2 import Cifti2Extension, _Cifti2AsNiftiImage
 
         nifti_img = _Cifti2AsNiftiImage.from_file_map(
             file_map, mmap=mmap, keep_file_open=keep_file_open

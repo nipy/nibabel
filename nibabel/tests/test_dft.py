@@ -2,17 +2,21 @@
 """
 
 import os
-from os.path import join as pjoin, dirname
-from io import BytesIO
-from ..testing import suppress_warnings
 import sqlite3
+from io import BytesIO
+from os.path import dirname
+from os.path import join as pjoin
+
+from ..testing import suppress_warnings
 
 with suppress_warnings():
     from .. import dft
-from .. import nifti1
 
 import unittest
+
 import pytest
+
+from .. import nifti1
 
 # Shield optional package imports
 from ..optpkg import optional_package

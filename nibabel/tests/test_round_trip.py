@@ -3,15 +3,15 @@
 Test arrays with a range of numerical values, integer and floating point.
 """
 
-import numpy as np
-
 from io import BytesIO
-from .. import Nifti1Image, Nifti1Header
-from ..spatialimages import HeaderDataError, supported_np_types
-from ..arraywriters import ScalingError
-from ..casting import best_float, ulp, type_info
 
+import numpy as np
 from numpy.testing import assert_array_equal
+
+from .. import Nifti1Header, Nifti1Image
+from ..arraywriters import ScalingError
+from ..casting import best_float, type_info, ulp
+from ..spatialimages import HeaderDataError, supported_np_types
 
 DEBUG = False
 

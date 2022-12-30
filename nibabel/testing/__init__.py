@@ -8,24 +8,21 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utilities for testing"""
 
-import re
 import os
+import re
 import sys
-import warnings
-from pkg_resources import resource_filename
-
 import unittest
-
-import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
-
-from .np_features import memmap_after_ufunc
-from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
-
+import warnings
+from contextlib import nullcontext
 from itertools import zip_longest
 
-from contextlib import nullcontext
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+from pkg_resources import resource_filename
+
+from .helpers import assert_data_similar, bytesio_filemap, bytesio_round_trip
+from .np_features import memmap_after_ufunc
 
 
 def test_data(subdir=None, fname=None):
@@ -229,6 +226,7 @@ class BaseTestCase(unittest.TestCase):
 def expires(version):
     """Decorator to mark a test as xfail with ExpiredDeprecationError after version"""
     from packaging.version import Version
+
     from nibabel import __version__ as nbver
     from nibabel.deprecator import ExpiredDeprecationError
 

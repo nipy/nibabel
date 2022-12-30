@@ -9,29 +9,25 @@
 """Tests for arrayproxy module
 """
 
-import warnings
-import gzip
 import contextlib
-
+import gzip
 import pickle
+import warnings
 from io import BytesIO
-from packaging.version import Version
-from ..tmpdirs import InTemporaryDirectory
-
-import numpy as np
-
-from .. import __version__
-from ..arrayproxy import ArrayProxy, is_proxy, reshape_dataobj, get_obj_dtype
-from ..openers import ImageOpener
-from ..nifti1 import Nifti1Header
-from ..deprecator import ExpiredDeprecationError
-
 from unittest import mock
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import numpy as np
 import pytest
-from ..testing import memmap_after_ufunc
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+from packaging.version import Version
 
+from .. import __version__
+from ..arrayproxy import ArrayProxy, get_obj_dtype, is_proxy, reshape_dataobj
+from ..deprecator import ExpiredDeprecationError
+from ..nifti1 import Nifti1Header
+from ..openers import ImageOpener
+from ..testing import memmap_after_ufunc
+from ..tmpdirs import InTemporaryDirectory
 from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip
 

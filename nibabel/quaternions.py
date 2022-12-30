@@ -26,6 +26,7 @@ they are applied on the left of the vector.  For example:
 """
 
 import math
+
 import numpy as np
 
 MAX_FLOAT = np.maximum_sctype(float)

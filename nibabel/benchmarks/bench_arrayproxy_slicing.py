@@ -10,18 +10,19 @@ Run this benchmark with::
     pytest -c <path>/benchmarks/pytest.benchmark.ini <path>/benchmarks/bench_arrayproxy_slicing.py
 """
 
-from timeit import timeit
 import gc
 import itertools as it
-import numpy as np
+from timeit import timeit
 from unittest import mock
 
-import nibabel as nib
-from nibabel.tmpdirs import InTemporaryDirectory
-from nibabel.openers import HAVE_INDEXED_GZIP
+import numpy as np
 
-from .butils import print_git_title
+import nibabel as nib
+from nibabel.openers import HAVE_INDEXED_GZIP
+from nibabel.tmpdirs import InTemporaryDirectory
+
 from ..rstutils import rst_table
+from .butils import print_git_title
 
 # if memory_profiler is installed, we get memory usage results
 try:

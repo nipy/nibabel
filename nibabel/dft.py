@@ -12,20 +12,20 @@
 
 
 import contextlib
-import os
-from os.path import join as pjoin
-import tempfile
 import getpass
 import logging
-import warnings
+import os
 import sqlite3
+import tempfile
+import warnings
+from io import BytesIO
+from os.path import join as pjoin
 
 import numpy
 
-from io import BytesIO
+from nibabel.optpkg import optional_package
 
 from .nifti1 import Nifti1Header
-from nibabel.optpkg import optional_package
 
 pydicom = optional_package('pydicom')[0]
 

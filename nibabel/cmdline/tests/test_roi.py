@@ -1,12 +1,13 @@
 import os
-import numpy as np
-import nibabel as nb
-from nibabel.cmdline.roi import lossless_slice, parse_slice, main
-from nibabel.testing import data_path
-
 import unittest
 from unittest import mock
+
+import numpy as np
 import pytest
+
+import nibabel as nb
+from nibabel.cmdline.roi import lossless_slice, main, parse_slice
+from nibabel.testing import data_path
 
 
 def test_parse_slice():

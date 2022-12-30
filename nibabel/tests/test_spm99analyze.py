@@ -7,14 +7,13 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import numpy as np
 import itertools
-
+import unittest
 from io import BytesIO
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-import unittest
+import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ..optpkg import optional_package
 
@@ -24,18 +23,16 @@ _, have_scipy, _ = optional_package('scipy')
 # files
 needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
-from ..spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage, HeaderTypeError
-from ..casting import type_info, shared_range
-from ..volumeutils import apply_read_scaling, _dt_min_max
-from ..spatialimages import supported_np_types, HeaderDataError
-
+from ..casting import shared_range, type_info
+from ..spatialimages import HeaderDataError, supported_np_types
+from ..spm99analyze import HeaderTypeError, Spm99AnalyzeHeader, Spm99AnalyzeImage
 from ..testing import (
-    bytesio_round_trip,
-    bytesio_filemap,
     assert_allclose_safely,
+    bytesio_filemap,
+    bytesio_round_trip,
     suppress_warnings,
 )
-
+from ..volumeutils import _dt_min_max, apply_read_scaling
 from . import test_analyze
 
 FLOAT_TYPES = np.sctypes['float']

@@ -11,16 +11,13 @@ Run this benchmark with::
 """
 
 import sys
-
-import numpy as np
-
 from io import BytesIO
 
-from .. import Nifti1Image
-
-from .butils import print_git_title
-
+import numpy as np
 from numpy.testing import measure
+
+from .. import Nifti1Image
+from .butils import print_git_title
 
 
 def bench_load_save():

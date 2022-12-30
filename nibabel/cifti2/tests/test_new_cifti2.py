@@ -7,17 +7,17 @@ These functions are used in the tests to generate most CIFTI file types from
 scratch.
 """
 import numpy as np
+import pytest
 
 import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
-import pytest
 from ...testing import (
+    assert_array_equal,
     clear_and_catch_warnings,
     error_warnings,
     suppress_warnings,
-    assert_array_equal,
 )
 
 affine = [[-1.5, 0, 0, 90], [0, 1.5, 0, -85], [0, 0, 1.5, -71], [0, 0, 0, 1.0]]

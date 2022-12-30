@@ -9,8 +9,8 @@ See ``resample_using_spm.m`` for processing of this generated image by SPM.
 import numpy as np
 
 import nibabel as nib
-from nibabel.eulerangles import euler2mat
 from nibabel.affines import from_matvec
+from nibabel.eulerangles import euler2mat
 
 if __name__ == '__main__':
     img = nib.load('anatomical.nii')

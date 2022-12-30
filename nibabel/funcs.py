@@ -9,8 +9,8 @@
 """Processor functions for images"""
 import numpy as np
 
-from .orientations import io_orientation, OrientationError
 from .loadsave import load
+from .orientations import OrientationError, io_orientation
 
 
 def squeeze_image(img):

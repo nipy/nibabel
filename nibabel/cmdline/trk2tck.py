@@ -2,8 +2,8 @@
 Convert tractograms (TRK -> TCK).
 """
 
-import os
 import argparse
+import os
 
 import nibabel as nib
 
