@@ -83,6 +83,7 @@ if __name__ == '__main__':
                                         r'\.info.*$',
                                         r'\.pkg_info.*$',
                                         r'\.py3k.*$',
+                                        r'\._version.*$',
                                         ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'index', relative_to=outdir)

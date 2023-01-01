@@ -1,5 +1,7 @@
 .. -*- mode: rst -*-
 
+:orphan:
+
 ##################################################
 Relationship between images and io implementations
 ##################################################

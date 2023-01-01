@@ -23,7 +23,10 @@ import os
 from pathlib import Path
 from runpy import run_path
 
-import toml
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 # Check for external Sphinx extensions we depend on
 try:
@@ -52,14 +55,15 @@ with open('_long_description.inc', 'wt') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
-pyproject_dict = toml.load(Path("../../pyproject.toml"))
-metadata = pyproject_dict["project"]
+with open(Path("../../pyproject.toml"), 'rb') as fobj:
+    pyproject = tomllib.load(fobj)
+authors = pyproject["project"]["authors"][0]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
-              #'sphinx.ext.intersphinx',
+              'sphinx.ext.intersphinx',
               'sphinx.ext.todo',
               'sphinx.ext.mathjax',
               'sphinx.ext.inheritance_diagram',
@@ -69,9 +73,10 @@ extensions = ['sphinx.ext.autodoc',
               'matplotlib.sphinxext.plot_directive',
               ]
 
-# the following doesn't work with sphinx < 1.0, but will make a separate
-# sphinx-autogen run obsolete in the future
-#autosummary_generate = True
+# Autosummary always wants to use a `generated/` directory.
+# We generate with `make api-stamp`
+# This could change in the future
+autosummary_generate = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -87,9 +92,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'NiBabel'
-author_name = metadata["authors"][0]["name"]
-author_email = metadata["authors"][0]["email"]
-copyright = f"2006-2022, {author_name} <{author_email}>"
+copyright = f"2006-2022, {authors['name']} <{authors['email']}>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -269,7 +272,7 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/3/': None}
 
 # Config of plot_directive
 plot_include_source = True

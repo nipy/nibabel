@@ -1,3 +1,5 @@
+:orphan:
+
 .. _installing-data:
 
 Installing data packages

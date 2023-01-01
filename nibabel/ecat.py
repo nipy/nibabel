@@ -523,7 +523,7 @@ class EcatSubHeader:
         there is one subheader for each frame in the ecat file
 
         Parameters
-        -----------
+        ----------
         hdr : EcatHeader
             ECAT main header
         mlist : array shape (N, 4)
