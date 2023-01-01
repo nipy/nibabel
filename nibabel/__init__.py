@@ -9,10 +9,11 @@
 
 import os
 
-from .info import long_description as __doc__
 from .pkg_info import __version__
 
-__doc__ += """
+with open("README.rst", "r") as readme_file:
+    long_description = readme_file.read()
+__doc__ = long_description + """
 Quickstart
 ==========
 
