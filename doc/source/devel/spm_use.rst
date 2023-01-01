@@ -16,8 +16,8 @@ their call syntax is the same for example.
 
    >> fname = 'some_image.nii';
    >> vol = spm_vol(fname) % the vol struct
-   
-   vol = 
+
+   vol =
 
          fname: 'some_image.nii'
            mat: [4x4 double]
@@ -37,7 +37,7 @@ their call syntax is the same for example.
         0     0     2   -74
         0     0     0     1
 
-   >> help spm_vol 
+   >> help spm_vol
      Get header information etc for images.
      FORMAT V = spm_vol(P)
      P - a matrix of filenames.
@@ -84,7 +84,7 @@ their call syntax is the same for example.
 
    >> vol.private
 
-   ans = 
+   ans =
 
    NIFTI object: 1-by-1
                dat: [91x109x91 file_array]
@@ -113,7 +113,7 @@ Images in SPM are always 3D.  Note this behavior:
    >> fname = 'functional_01.nii';
    >> vol = spm_vol(fname)
 
-   vol = 
+   vol =
 
    191x1 struct array with fields:
        fname
@@ -160,7 +160,7 @@ Some simple ones:
    >> new_vol.fname = new_fname;
    >> spm_write_vol(new_vol, img_arr)
 
-   ans = 
+   ans =
 
          fname: 'another_image.nii'
            mat: [4x4 double]
@@ -262,7 +262,7 @@ world coordinates according to the affine looks like:
       53.0000
        1.0000
 
-   >> vals = spm_sample_vol(vol, vc(1), vc(2), vc(3), hold_val)  
+   >> vals = spm_sample_vol(vol, vc(1), vc(2), vc(3), hold_val)
 
    vals =
 

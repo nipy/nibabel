@@ -8,11 +8,11 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
 
+import cgi
 import sys
 import traceback
-from functools import partial
 import urllib
-import cgi
+from functools import partial
 
 import jinja2
 
@@ -24,7 +24,7 @@ BASE_DIR = None
 
 # default setting for whether to follow symlinks in BASE_DIR. Python 2.5 only
 # accepts False for this setting, Python >= 2.6 accepts True or False
-FOLLOWLINKS=False
+FOLLOWLINKS = False
 
 # Define routine to get studies
 studies_getter = partial(dft.get_studies, followlinks=FOLLOWLINKS)
@@ -118,12 +118,13 @@ Study comments: {{ study.comments }}
 </html>
 """
 
-class HandlerError:
 
+class HandlerError:
     def __init__(self, status, output):
         self.status = status
         self.output = output
         return
+
 
 def application(environ, start_response):
     try:
@@ -138,12 +139,12 @@ def application(environ, start_response):
         status = '500 Internal Server Error'
         output = ''.join(lines)
         c_type = 'text/plain'
-    response_headers = [('Content-Type', c_type),
-                        ('Content-Length', str(len(output)))]
+    response_headers = [('Content-Type', c_type), ('Content-Length', str(len(output)))]
     if c_type == 'image/nifti':
         response_headers.append(('Content-Disposition', 'attachment; filename=image.nii'))
     start_response(status, response_headers)
     return [output]
+
 
 def handler(environ):
     if environ['PATH_INFO'] == '' or environ['PATH_INFO'] == '/':
@@ -158,7 +159,8 @@ def handler(environ):
             return ('200 OK', 'image/nifti', nifti(parts[0], parts[1], parts[2]))
         elif parts[3] == 'png':
             return ('200 OK', 'image/png', png(parts[0], parts[1], parts[2]))
-    raise HandlerError('404 Not Found', "%s not found\n" % environ['PATH_INFO'])
+    raise HandlerError('404 Not Found', '%s not found\n' % environ['PATH_INFO'])
+
 
 def study_cmp(a, b):
     if a.date < b.date:
@@ -171,6 +173,7 @@ def study_cmp(a, b):
         return 1
     return 0
 
+
 def index(environ):
     patients = {}
     for s in studies_getter(BASE_DIR):
@@ -178,13 +181,15 @@ def index(environ):
     template = template_env.from_string(index_template)
     return template.render(patients=patients).encode('utf-8')
 
+
 def patient(patient):
-    studies = [ s for s in studies_getter() if s.patient_name_or_uid() == patient ]
+    studies = [s for s in studies_getter() if s.patient_name_or_uid() == patient]
     if len(studies) == 0:
         raise HandlerError('404 Not Found', 'patient %s not found\n' % patient)
     studies.sort(study_cmp)
     template = template_env.from_string(patient_template)
     return template.render(studies=studies).encode('utf-8')
+
 
 def patient_date_time(patient, date_time):
     study = None
@@ -199,6 +204,7 @@ def patient_date_time(patient, date_time):
         raise HandlerError('404 Not Found', 'study not found')
     template = template_env.from_string(patient_date_time_template)
     return template.render(study=study).encode('utf-8')
+
 
 def nifti(patient, date_time, scan):
     study = None
@@ -220,6 +226,7 @@ def nifti(patient, date_time, scan):
     if ser is None:
         raise HandlerError('404 Not Found', 'series not found')
     return ser.as_nifti()
+
 
 def png(patient, date_time, scan):
     study = None
@@ -243,8 +250,10 @@ def png(patient, date_time, scan):
     index = len(ser.storage_instances) / 2
     return ser.as_png(index, True)
 
+
 if __name__ == '__main__':
     import wsgiref.simple_server
+
     httpd = wsgiref.simple_server.make_server('', 8080, application)
     httpd.serve_forever()
 

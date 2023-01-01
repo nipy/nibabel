@@ -21,10 +21,10 @@ To build a package for distribution, use:
 
     pip install --upgrade build
     python -m build
-
 """
 
 from setuptools import setup
+
 import versioneer
 
 setup(

@@ -1,4 +1,4 @@
-""" Symbolic versions of the DICOM orientation mathemeatics.
+"""Symbolic versions of the DICOM orientation mathemeatics.
 
 Notes on the SPM orientation machinery.
 
@@ -8,20 +8,17 @@ There are symbolic versions of the code in ``spm_dicom_convert``,
 """
 
 import numpy as np
-
 import sympy
-from sympy import Matrix, Symbol, symbols, zeros, ones, eye
+from sympy import Matrix, Symbol, eye, ones, symbols, zeros
 
 
 # The code below is general (independent of SPMs code)
 def numbered_matrix(nrows, ncols, symbol_prefix):
-    return Matrix(nrows, ncols, lambda i, j: Symbol(
-        symbol_prefix + '_{%d%d}' % (i + 1, j + 1)))
+    return Matrix(nrows, ncols, lambda i, j: Symbol(symbol_prefix + '_{%d%d}' % (i + 1, j + 1)))
 
 
 def numbered_vector(nrows, symbol_prefix):
-    return Matrix(nrows, 1, lambda i, j: Symbol(
-        symbol_prefix + '_{%d}' % (i + 1)))
+    return Matrix(nrows, 1, lambda i, j: Symbol(symbol_prefix + '_{%d}' % (i + 1)))
 
 
 # premultiplication matrix to go from 0 based to 1 based indexing
@@ -46,7 +43,7 @@ R3 = orient_pat * np.diag(pixel_spacing)
 R = zeros(4, 2)
 R[:3, :] = R3
 
-# The following is specific to the SPM algorithm. 
+# The following is specific to the SPM algorithm.
 x1 = ones(4, 1)
 y1 = ones(4, 1)
 y1[:3, :] = pos_pat_0

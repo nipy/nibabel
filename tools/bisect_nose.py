@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-""" Utility for git-bisecting nose failures
+"""Utility for git-bisecting nose failures
 """
 DESCRIP = 'Check nose output for given text, set sys exit for git bisect'
-EPILOG = \
-"""
+EPILOG = """
 Imagine you've just detected a nose test failure.  The failure is in a
 particular test or test module - here 'test_analyze.py'.  The failure *is* in
 git branch ``main-master`` but it *is not* in tag ``v1.6.1``. Then you can
@@ -37,14 +36,13 @@ We run the tests in a temporary directory, so the code you are testing must be
 on the python path.
 """
 import os
-import sys
-import shutil
-import tempfile
 import re
-from functools import partial
-from subprocess import check_call, Popen, PIPE, CalledProcessError
-
+import shutil
+import sys
+import tempfile
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from functools import partial
+from subprocess import PIPE, CalledProcessError, Popen, check_call
 
 caller = partial(check_call, shell=True)
 popener = partial(Popen, stdout=PIPE, stderr=PIPE, shell=True)
@@ -63,31 +61,27 @@ def call_or_untestable(cmd):
 
 
 def main():
-    parser = ArgumentParser(description=DESCRIP,
-                            epilog=EPILOG,
-                            formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('test_path', type=str,
-                        help='Path to test')
-    parser.add_argument('--error-txt', type=str,
-                        help='regular expression for error of interest')
-    parser.add_argument('--clean', action='store_true',
-                        help='Clean git tree before running tests')
-    parser.add_argument('--build', action='store_true',
-                        help='Build git tree before running tests')
+    parser = ArgumentParser(
+        description=DESCRIP, epilog=EPILOG, formatter_class=RawDescriptionHelpFormatter
+    )
+    parser.add_argument('test_path', type=str, help='Path to test')
+    parser.add_argument('--error-txt', type=str, help='regular expression for error of interest')
+    parser.add_argument('--clean', action='store_true', help='Clean git tree before running tests')
+    parser.add_argument('--build', action='store_true', help='Build git tree before running tests')
     # parse the command line
     args = parser.parse_args()
     path = os.path.abspath(args.test_path)
     if args.clean:
-        print("Cleaning")
+        print('Cleaning')
         call_or_untestable('git clean -fxd')
     if args.build:
-        print("Building")
+        print('Building')
         call_or_untestable('python setup.py build_ext -i')
     cwd = os.getcwd()
     tmpdir = tempfile.mkdtemp()
     try:
         os.chdir(tmpdir)
-        print("Testing")
+        print('Testing')
         proc = popener('nosetests ' + path)
         stdout, stderr = proc.communicate()
     finally:

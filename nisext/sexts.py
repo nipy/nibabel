@@ -1,19 +1,18 @@
-""" Distutils / setuptools helpers """
+"""Distutils / setuptools helpers"""
 
 import os
-from os.path import join as pjoin, split as psplit, splitext
-
 from configparser import ConfigParser
-
-from distutils.version import LooseVersion
+from distutils import log
 from distutils.command.build_py import build_py
 from distutils.command.install_scripts import install_scripts
-
-from distutils import log
+from distutils.version import LooseVersion
+from os.path import join as pjoin
+from os.path import split as psplit
+from os.path import splitext
 
 
 def get_comrec_build(pkg_dir, build_cmd=build_py):
-    """ Return extended build command class for recording commit
+    """Return extended build command class for recording commit
 
     The extended command tries to run git to find the current commit, getting
     the empty string if it fails.  It then writes the commit hash into a file
@@ -47,15 +46,20 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
     information at the terminal.  See the ``pkg_info.py`` module in the nipy
     package for an example.
     """
+
     class MyBuildPy(build_cmd):
-        """ Subclass to write commit data into installation tree """
+        """Subclass to write commit data into installation tree"""
+
         def run(self):
             build_cmd.run(self)
             import subprocess
-            proc = subprocess.Popen('git rev-parse --short HEAD',
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    shell=True)
+
+            proc = subprocess.Popen(
+                'git rev-parse --short HEAD',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
+            )
             repo_commit, _ = proc.communicate()
             # Fix for python 3
             repo_commit = str(repo_commit)
@@ -65,11 +69,12 @@ def get_comrec_build(pkg_dir, build_cmd=build_py):
             cfg_parser.set('commit hash', 'install_hash', repo_commit)
             out_pth = pjoin(self.build_lib, pkg_dir, 'COMMIT_INFO.txt')
             cfg_parser.write(open(out_pth, 'wt'))
+
     return MyBuildPy
 
 
 def _add_append_key(in_dict, key, value):
-    """ Helper for appending dependencies to setuptools args """
+    """Helper for appending dependencies to setuptools args"""
     # If in_dict[key] does not exist, create it
     # If in_dict[key] is a string, make it len 1 list of strings
     # Append value to in_dict[key] list
@@ -81,14 +86,16 @@ def _add_append_key(in_dict, key, value):
 
 
 # Dependency checks
-def package_check(pkg_name, version=None,
-                  optional=False,
-                  checker=LooseVersion,
-                  version_getter=None,
-                  messages=None,
-                  setuptools_args=None
-                  ):
-    """ Check if package `pkg_name` is present and has good enough version
+def package_check(
+    pkg_name,
+    version=None,
+    optional=False,
+    checker=LooseVersion,
+    version_getter=None,
+    messages=None,
+    setuptools_args=None,
+):
+    """Check if package `pkg_name` is present and has good enough version
 
     Has two modes of operation.  If `setuptools_args` is None (the default),
     raise an error for missing non-optional dependencies and log warnings for
@@ -134,42 +141,35 @@ def package_check(pkg_name, version=None,
     setuptools_mode = not setuptools_args is None
     optional_tf = bool(optional)
     if version_getter is None:
+
         def version_getter(pkg_name):
             mod = __import__(pkg_name)
             return mod.__version__
+
     if messages is None:
         messages = {}
     msgs = {
-         'missing': 'Cannot import package "%s" - is it installed?',
-         'missing opt': 'Missing optional package "%s"',
-         'opt suffix': '; you may get run-time errors',
-         'version too old': 'You have version %s of package "%s"'
-                            ' but we need version >= %s', }
+        'missing': 'Cannot import package "%s" - is it installed?',
+        'missing opt': 'Missing optional package "%s"',
+        'opt suffix': '; you may get run-time errors',
+        'version too old': 'You have version %s of package "%s" but we need version >= %s',
+    }
     msgs.update(messages)
-    status, have_version = _package_status(pkg_name,
-                                           version,
-                                           version_getter,
-                                           checker)
+    status, have_version = _package_status(pkg_name, version, version_getter, checker)
     if status == 'satisfied':
         return
     if not setuptools_mode:
         if status == 'missing':
             if not optional_tf:
                 raise RuntimeError(msgs['missing'] % pkg_name)
-            log.warn(msgs['missing opt'] % pkg_name +
-                     msgs['opt suffix'])
+            log.warn(msgs['missing opt'] % pkg_name + msgs['opt suffix'])
             return
         elif status == 'no-version':
             raise RuntimeError(f'Cannot find version for {pkg_name}')
         assert status == 'low-version'
         if not optional_tf:
-            raise RuntimeError(msgs['version too old'] % (have_version,
-                                                          pkg_name,
-                                                          version))
-        log.warn(msgs['version too old'] % (have_version,
-                                            pkg_name,
-                                            version)
-                    + msgs['opt suffix'])
+            raise RuntimeError(msgs['version too old'] % (have_version, pkg_name, version))
+        log.warn(msgs['version too old'] % (have_version, pkg_name, version) + msgs['opt suffix'])
         return
     # setuptools mode
     if optional_tf and not isinstance(optional, str):
@@ -180,9 +180,7 @@ def package_check(pkg_name, version=None,
     if optional_tf:
         if not 'extras_require' in setuptools_args:
             setuptools_args['extras_require'] = {}
-        _add_append_key(setuptools_args['extras_require'],
-                        optional,
-                        dependency)
+        _add_append_key(setuptools_args['extras_require'], optional, dependency)
     else:
         _add_append_key(setuptools_args, 'install_requires', dependency)
 
@@ -203,8 +201,7 @@ def _package_status(pkg_name, version, version_getter, checker):
     return 'satisfied', have_version
 
 
-BAT_TEMPLATE = \
-r"""@echo off
+BAT_TEMPLATE = r"""@echo off
 REM wrapper to use shebang first line of {FNAME}
 set mypath=%~dp0
 set pyscript="%mypath%{FNAME}"
@@ -217,8 +214,9 @@ set py_exe=%line1:~2%
 call "%py_exe%" %pyscript% %*
 """
 
+
 class install_scripts_bat(install_scripts):
-    """ Make scripts executable on Windows
+    """Make scripts executable on Windows
 
     Scripts are bare file names without extension on Unix, fitting (for example)
     Debian rules. They identify as python scripts with the usual ``#!`` first
@@ -234,25 +232,24 @@ class install_scripts_bat(install_scripts):
     example at git://github.com/matthew-brett/myscripter.git for more
     background.
     """
+
     def run(self):
         install_scripts.run(self)
-        if not os.name == "nt":
+        if not os.name == 'nt':
             return
         for filepath in self.get_outputs():
             # If we can find an executable name in the #! top line of the script
             # file, make .bat wrapper for script.
             with open(filepath, 'rt') as fobj:
                 first_line = fobj.readline()
-            if not (first_line.startswith('#!') and
-                    'python' in first_line.lower()):
-                log.info("No #!python executable found, skipping .bat "
-                            "wrapper")
+            if not (first_line.startswith('#!') and 'python' in first_line.lower()):
+                log.info('No #!python executable found, skipping .bat wrapper')
                 continue
             pth, fname = psplit(filepath)
             froot, ext = splitext(fname)
             bat_file = pjoin(pth, froot + '.bat')
             bat_contents = BAT_TEMPLATE.replace('{FNAME}', fname)
-            log.info(f"Making {bat_file} wrapper for {filepath}")
+            log.info(f'Making {bat_file} wrapper for {filepath}')
             if self.dry_run:
                 continue
             with open(bat_file, 'wt') as fobj:
@@ -268,7 +265,7 @@ class Bunch:
 
 
 def read_vars_from(ver_file):
-    """ Read variables from Python text file
+    """Read variables from Python text file
 
     Parameters
     ----------

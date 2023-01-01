@@ -38,7 +38,7 @@ RELEASE_VERSION ?= $(SETUPPY_VERSION)
 
 all: build
 
-build: 
+build:
 	$(PYTHON) setup.py config --noisy
 	$(PYTHON) setup.py build
 

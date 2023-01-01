@@ -17,6 +17,7 @@ __docformat__ = 'restructuredtext'
 
 import sys
 
+
 def main():
     del sys.argv[0]
     sys.argv.insert(1, 'bdist_mpkg')
@@ -24,6 +25,7 @@ def main():
     g['__file__'] = sys.argv[0]
     g['__name__'] = '__main__'
     execfile(sys.argv[0], g, g)
+
 
 if __name__ == '__main__':
     main()

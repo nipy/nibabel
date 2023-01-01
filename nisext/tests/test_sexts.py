@@ -1,12 +1,12 @@
-""" Tests for nisexts.sexts module
+"""Tests for nisexts.sexts module
 """
 
 import sys
 import types
 
-from ..sexts import package_check
-
 import pytest
+
+from ..sexts import package_check
 
 FAKE_NAME = 'nisext_improbable'
 assert FAKE_NAME not in sys.modules
@@ -44,10 +44,12 @@ def test_package_check_setuptools():
     # If setuptools arg not None, missing package just adds it to arg
     with pytest.raises(RuntimeError):
         package_check(FAKE_NAME, setuptools_args=None)
+
     def pkg_chk_sta(*args, **kwargs):
         st_args = {}
         package_check(*args, setuptools_args=st_args, **kwargs)
         return st_args
+
     assert pkg_chk_sta(FAKE_NAME) == {'install_requires': ['nisext_improbable']}
     # Check that this gets appended to existing value
     old_sta = {'install_requires': ['something']}
@@ -58,7 +60,9 @@ def test_package_check_setuptools():
     package_check(FAKE_NAME, setuptools_args=old_sta)
     assert old_sta == {'install_requires': ['something', 'nisext_improbable']}
     # Optional, add to extras_require
-    assert pkg_chk_sta(FAKE_NAME, optional='something') == {'extras_require': {'something': ['nisext_improbable']}}
+    assert pkg_chk_sta(FAKE_NAME, optional='something') == {
+        'extras_require': {'something': ['nisext_improbable']}
+    }
     # Check that this gets appended to existing value
     old_sta = {'extras_require': {'something': ['amodule']}}
     package_check(FAKE_NAME, optional='something', setuptools_args=old_sta)
@@ -66,8 +70,7 @@ def test_package_check_setuptools():
     # That string gets converted to a list here too
     old_sta = {'extras_require': {'something': 'amodule'}}
     package_check(FAKE_NAME, optional='something', setuptools_args=old_sta)
-    assert old_sta == {'extras_require':
-                  {'something': ['amodule', 'nisext_improbable']}}
+    assert old_sta == {'extras_require': {'something': ['amodule', 'nisext_improbable']}}
     # But optional has to be a string if not empty and setuptools_args defined
     with pytest.raises(RuntimeError):
         package_check(FAKE_NAME, optional=True, setuptools_args={})
@@ -84,21 +87,20 @@ def test_package_check_setuptools():
         assert pkg_chk_sta(FAKE_NAME, version='0.3') == {'install_requires': exp_spec}
         # Unless optional in which case goes into extras_require
         package_check(FAKE_NAME, version='0.2', version_getter=lambda x: '0.2')
-        assert pkg_chk_sta(FAKE_NAME, version='0.3', optional='afeature') == {'extras_require': {'afeature': exp_spec}}
+        assert pkg_chk_sta(FAKE_NAME, version='0.3', optional='afeature') == {
+            'extras_require': {'afeature': exp_spec}
+        }
         # Might do custom version check
-        assert pkg_chk_sta(FAKE_NAME,
-                        version='0.2',
-                        version_getter=lambda x: '0.2') == {}
+        assert pkg_chk_sta(FAKE_NAME, version='0.2', version_getter=lambda x: '0.2') == {}
         # If the version check fails, put into requires
         bad_getter = lambda x: x.not_an_attribute
         exp_spec = [FAKE_NAME + '>=0.2']
-        assert pkg_chk_sta(FAKE_NAME,
-                        version='0.2',
-                        version_getter=bad_getter) == {'install_requires': exp_spec}
+        assert pkg_chk_sta(FAKE_NAME, version='0.2', version_getter=bad_getter) == {
+            'install_requires': exp_spec
+        }
         # Likewise for optional dependency
-        assert pkg_chk_sta(FAKE_NAME,
-                        version='0.2',
-                        optional='afeature',
-                        version_getter=bad_getter) == {'extras_require': {'afeature': [FAKE_NAME + '>=0.2']}}
+        assert pkg_chk_sta(
+            FAKE_NAME, version='0.2', optional='afeature', version_getter=bad_getter
+        ) == {'extras_require': {'afeature': [FAKE_NAME + '>=0.2']}}
     finally:
         del sys.modules[FAKE_NAME]

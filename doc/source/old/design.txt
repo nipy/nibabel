@@ -46,7 +46,7 @@ by the image itself.
   frame; for reading, we just cast up to a dtype that can hold all the
   frame dtypes; for writing, we may just write as one type, or disallow
   writing altogether.
-* array shape - ``shape``.  
+* array shape - ``shape``.
 * byte offset - ``offset`` at which data starts.  This is not relevant
   for the way we currently read MINC files for example - and may not be
   relevant for ECAT files, in the sense that it may be the offset to
@@ -67,7 +67,7 @@ We think of an image as being the association of:
 
 .. note::
 
-   Why are the first three dimensions spatial?  
+   Why are the first three dimensions spatial?
 
    For simplicity, we want the transformation (above) to be spatial.
    Because the images are always at least 3D, and the transform is
@@ -105,7 +105,7 @@ image format API - see :ref:`image-formats`
 
 This immediately suggests the following interface::
 
-   img = Image(data, affine=None, output_space=None, 
+   img = Image(data, affine=None, output_space=None,
          meta=None, format=None, filename=None)
 
 The output space is a string
@@ -123,12 +123,12 @@ might imagine these methods::
    img.load(filename, format=None) # class method
    img.save(filename=None, format=None)
    img.as_file(filemaker=None, format=None)
-   
+
 and some things that formats generally support like::
 
    img.write_header(filename=None)
    img.write_data(data=None, filename=None, slicedef=None)
-   
+
 ``img.as_file`` returns the image as saved to disk; the image might
 completely correspond to something on disk, in which case it may return
 its own filename, or it might not correspond to something on disk, in
@@ -192,12 +192,12 @@ SPM Analyze adds an optional extra data file in Matlab ``.mat`` format::
   some_image.mat
 
 Of course there are rules / rules-of-thumb as to what extensions these
-various filenames can be. 
+various filenames can be.
 
 We may want to associate an image with a filename or set of filenames.
 But we may also want to be able to associate images with file-like
 objects, such as open files, or anything else that implements a file
-protocol.  
+protocol.
 
 The image ``format`` will know what the ``image`` needs in terms of
 files.  For example, a single file NIfTI image will need a single
@@ -208,7 +208,7 @@ Let's call a full specification of what the format needs a *filedef*.
 For the moment, let's imagine that is a dictionary with keys ``image``,
 ``header``, and optional ``mat``.  The values can be filenames or
 file-like objects.  A *filespec* is some argument or set of arguments
-that allow us to fully specify a *filedef*.  
+that allow us to fully specify a *filedef*.
 
 The simple case of a single-file NIfTI image::
 
@@ -221,7 +221,7 @@ tries to work out the format from the filespec.
 
 Consider::
 
-   img = Image(data, filespec='some_image.nii', 
+   img = Image(data, filespec='some_image.nii',
                format=Nifti1SingleFormat)
 
 also OK.  But::
@@ -255,7 +255,3 @@ might raise an error, on the lines of::
 
 - or it might just assume that you mean for the image and the header to
   be the same file.  Perhaps that is too implicit.
-
-
-
-

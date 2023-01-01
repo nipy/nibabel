@@ -56,7 +56,7 @@ def test_viewer():
     with pytest.raises(
         (
             ValueError,  # MPL3.5 and lower
-            KeyError,    # MPL3.6 and higher
+            KeyError,  # MPL3.6 and higher
         )
     ):
         OrthoSlicer3D.cmap.fset(v, 'foo')  # wrong cmap

@@ -7,4 +7,3 @@ else
     ls -R virtenv
     false
 fi
-

@@ -1,6 +1,6 @@
 #!/usr/bin/python
-#emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
-#ex: set sts=4 ts=4 sw=4 et:
+# emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
+# ex: set sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 #
 #   See COPYING file distributed along with the NiBabel package for the
@@ -15,10 +15,13 @@ import os
 import sys
 from os import path
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
-    usage = """Usage: %s [options] <python module> ...
-    """ % sys.argv[0]
+    usage = (
+        """Usage: %s [options] <python module> ...
+    """
+        % sys.argv[0]
+    )
 
     # default options
     convert2kcache = True
@@ -37,24 +40,24 @@ if __name__ == "__main__":
         sys.exit(1)
 
     while sys.argv[0].startswith('-'):
-        if sys.argv[0] in ["-l", "--level"]:
+        if sys.argv[0] in ['-l', '--level']:
             profilelevel = int(sys.argv[1])
             sys.argv.pop(0)
-        elif sys.argv[0] in ["-o", "--output-file"]:
+        elif sys.argv[0] in ['-o', '--output-file']:
             pfilename = sys.argv[1]
             sys.argv.pop(0)
-        elif sys.argv[0] in ["-O", "--output-statsfile"]:
+        elif sys.argv[0] in ['-O', '--output-statsfile']:
             pstatsfilename = sys.argv[1]
             sys.argv.pop(0)
-        elif sys.argv[0] in ["-s", "--stats"]:
+        elif sys.argv[0] in ['-s', '--stats']:
             printstats = True
             convert2kcache = False
             displaykcachegrinder = False
-        elif sys.argv[0] in ["-n", "--no-run"]:
+        elif sys.argv[0] in ['-n', '--no-run']:
             run = False
-        elif sys.argv[0] in ["-P", "--no-profilelines"]:
+        elif sys.argv[0] in ['-P', '--no-profilelines']:
             profilelines = False
-        elif sys.argv[0] in ["-K", "--no-kcache"]:
+        elif sys.argv[0] in ['-K', '--no-kcache']:
             convert2kcache = False
             displaykcachegrinder = False
         else:
@@ -75,13 +78,13 @@ if __name__ == "__main__":
         raise RuntimeError('No hotshot')
 
     if pfilename is None:
-        pfilename = cmdname + ".prof"
+        pfilename = cmdname + '.prof'
 
     if run:
-        exec(f"import {root} as runnable")
+        exec(f'import {root} as runnable')
 
         if not 'main' in runnable.__dict__:
-            print(f"OOPS: file/module {cmdname} has no function main defined")
+            print(f'OOPS: file/module {cmdname} has no function main defined')
             sys.exit(1)
 
         prof = hotshot.Profile(pfilename, lineevents=profilelines)
@@ -89,16 +92,17 @@ if __name__ == "__main__":
         try:
             # actually return values are never setup
             # since unittest.main sys.exit's
-            results = prof.runcall( runnable.main )
+            results = prof.runcall(runnable.main)
         except SystemExit:
             pass
 
-        print(f"Saving profile data into {pfilename}")
+        print(f'Saving profile data into {pfilename}')
         prof.close()
 
     if printstats or pstatsfilename:
         import hotshot.stats
-        print("Loading profile file to print statistics")
+
+        print('Loading profile file to print statistics')
         stats = hotshot.stats.load(pfilename)
         if printstats:
             stats.strip_dirs()
@@ -107,17 +111,17 @@ if __name__ == "__main__":
         if pstatsfilename:
             stats.dump_stats(pstatsfilename)
 
-    kfilename = pfilename + ".kcache"
+    kfilename = pfilename + '.kcache'
     if convert2kcache:
-        cmd = "hotshot2calltree -o %s %s" % (kfilename, pfilename)
+        cmd = 'hotshot2calltree -o %s %s' % (kfilename, pfilename)
         if os.system(cmd):
-            print("!!! Make sure to install kcachegrind-converters ;-)")
+            print('!!! Make sure to install kcachegrind-converters ;-)')
             sys.exit(1)
 
     if displaykcachegrinder:
         if os.system('kcachegrind %s' % kfilename):
-            print("!!! Make sure to install kcachegrind ;-)")
+            print('!!! Make sure to install kcachegrind ;-)')
             sys.exit(1)
 
 else:
-    print("Go away -- nothing to look here for as a module")
+    print('Go away -- nothing to look here for as a module')

@@ -135,4 +135,3 @@ left-right by default.  We chose this break from the standard because
 that is what SPM does with non-affine niftis, and because it seemed more
 sensible, and because it's more consistent with what we do with SPM
 non-nifti images (not surprisingly).
-
