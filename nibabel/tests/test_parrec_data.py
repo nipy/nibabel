@@ -1,20 +1,20 @@
-""" Test we can correctly import example PARREC files
+"""Test we can correctly import example PARREC files
 """
 
+import unittest
 from glob import glob
-from os.path import join as pjoin, basename, splitext, exists
+from os.path import basename, exists
+from os.path import join as pjoin
+from os.path import splitext
 
 import numpy as np
-
-from .. import load as top_load
-from ..parrec import load
-from ..affines import voxel_sizes
-
-from .nibabel_data import get_nibabel_data, needs_nibabel_data
-
-import unittest
 import pytest
 from numpy.testing import assert_almost_equal
+
+from .. import load as top_load
+from ..affines import voxel_sizes
+from ..parrec import load
+from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
 BALLS = pjoin(get_nibabel_data(), 'nitest-balls1')
 OBLIQUE = pjoin(get_nibabel_data(), 'parrec_oblique')

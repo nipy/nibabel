@@ -7,17 +7,15 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import unittest
 from collections import namedtuple as nt
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_equal, assert_equal
 
 from ..optpkg import optional_package
 from ..viewers import OrthoSlicer3D
-
-from numpy.testing import assert_array_equal, assert_equal
-
-import unittest
-import pytest
 
 # Need at least MPL 1.3 for viewer tests.
 # 2020.02.11 - 1.3 wheels are no longer distributed, so the minimum we test with is 1.5
@@ -33,9 +31,9 @@ def test_viewer():
     # Test viewer
     plt = optional_package('matplotlib.pyplot')[0]
     a = np.sin(np.linspace(0, np.pi, 20))
-    b = np.sin(np.linspace(0, np.pi*5, 30))
+    b = np.sin(np.linspace(0, np.pi * 5, 30))
     data = (np.outer(a, b)[..., np.newaxis] * a)[:, :, :, np.newaxis]
-    data = data * np.array([1., 2.])  # give it a # of volumes > 1
+    data = data * np.array([1.0, 2.0])  # give it a # of volumes > 1
     v = OrthoSlicer3D(data)
     assert_array_equal(v.position, (0, 0, 0))
     assert 'OrthoSlicer3D' in repr(v)
@@ -54,7 +52,7 @@ def test_viewer():
     v.cmap = 'hot'
     v.clim = (0, 3)
     with pytest.raises(ValueError):
-        OrthoSlicer3D.clim.fset(v, (0.,))  # bad limits
+        OrthoSlicer3D.clim.fset(v, (0.0,))  # bad limits
     with pytest.raises(
         (
             ValueError,  # MPL3.5 and lower
@@ -90,8 +88,7 @@ def test_viewer():
     fig, axes = plt.subplots(1, 4)
     plt.close(fig)
     v1 = OrthoSlicer3D(data, axes=axes)
-    aff = np.array([[0, 1, 0, 3], [-1, 0, 0, 2], [0, 0, 2, 1], [0, 0, 0, 1]],
-                   float)
+    aff = np.array([[0, 1, 0, 3], [-1, 0, 0, 2], [0, 0, 2, 1], [0, 0, 0, 1]], float)
     v2 = OrthoSlicer3D(data, affine=aff, axes=axes[:3])
     # bad data (not 3+ dim)
     with pytest.raises(ValueError):

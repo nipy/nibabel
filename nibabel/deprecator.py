@@ -1,9 +1,9 @@
-""" Class for recording and reporting deprecations
+"""Class for recording and reporting deprecations
 """
 
 import functools
-import warnings
 import re
+import warnings
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
 
@@ -29,16 +29,17 @@ TESTCLEANUP = """
 
 
 class ExpiredDeprecationError(RuntimeError):
-    """ Error for expired deprecation
+    """Error for expired deprecation
 
     Error raised when a called function or method has passed out of its
     deprecation period.
     """
+
     pass
 
 
 def _ensure_cr(text):
-    """ Remove trailing whitespace and add carriage return
+    """Remove trailing whitespace and add carriage return
 
     Ensures that `text` always ends with a carriage return
     """
@@ -46,7 +47,7 @@ def _ensure_cr(text):
 
 
 def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
-    """ Add deprecation message `dep_doc` to docstring in `old_doc`
+    """Add deprecation message `dep_doc` to docstring in `old_doc`
 
     Parameters
     ----------
@@ -79,12 +80,13 @@ def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
     setup_lines = [indent + L for L in setup.splitlines()]
     dep_lines = [indent + L for L in [''] + dep_doc.splitlines() + ['']]
     cleanup_lines = [indent + L for L in cleanup.splitlines()]
-    return '\n'.join(new_lines + dep_lines + setup_lines +
-                     old_lines[next_line:] + cleanup_lines + [''])
+    return '\n'.join(
+        new_lines + dep_lines + setup_lines + old_lines[next_line:] + cleanup_lines + ['']
+    )
 
 
 class Deprecator:
-    """ Class to make decorator marking function or method as deprecated
+    """Class to make decorator marking function or method as deprecated
 
     The decorated function / method will:
 
@@ -109,16 +111,18 @@ class Deprecator:
         given argument of ``until`` in the ``__call__`` method (see below).
     """
 
-    def __init__(self,
-                 version_comparator,
-                 warn_class=DeprecationWarning,
-                 error_class=ExpiredDeprecationError):
+    def __init__(
+        self,
+        version_comparator,
+        warn_class=DeprecationWarning,
+        error_class=ExpiredDeprecationError,
+    ):
         self.version_comparator = version_comparator
         self.warn_class = warn_class
         self.error_class = error_class
 
     def is_bad_version(self, version_str):
-        """ Return True if `version_str` is too high
+        """Return True if `version_str` is too high
 
         Tests `version_str` with ``self.version_comparator``
 
@@ -135,9 +139,8 @@ class Deprecator:
         """
         return self.version_comparator(version_str) == -1
 
-    def __call__(self, message, since='', until='',
-                 warn_class=None, error_class=None):
-        """ Return decorator function function for deprecation warning / error
+    def __call__(self, message, since='', until='', warn_class=None, error_class=None):
+        """Return decorator function function for deprecation warning / error
 
         Parameters
         ----------
@@ -169,12 +172,13 @@ class Deprecator:
         if since:
             messages.append('* deprecated from version: ' + since)
         if until:
-            messages.append(f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
-                            f"{error_class} as of version: {until}")
+            messages.append(
+                f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
+                f'{error_class} as of version: {until}'
+            )
         message = '\n'.join(messages)
 
         def deprecator(func):
-
             @functools.wraps(func)
             def deprecated_func(*args, **kwargs):
                 if until and self.is_bad_version(until):

@@ -1,4 +1,4 @@
-""" Validate image API
+"""Validate image API
 
 What is the image API?
 
@@ -23,41 +23,60 @@ What is the image API?
   cached, but False otherwise.
 """
 
+import io
+import pathlib
 import warnings
 from functools import partial
 from itertools import product
-import io
-import pathlib
 
 import numpy as np
 
 from ..optpkg import optional_package
+
 _, have_scipy, _ = optional_package('scipy')
 _, have_h5py, _ = optional_package('h5py')
 
-from .. import (AnalyzeImage, Spm99AnalyzeImage, Spm2AnalyzeImage,
-                Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
-                GiftiImage,
-                MGHImage, Minc1Image, Minc2Image, is_proxy)
-from ..spatialimages import SpatialImage
-from .. import minc1, minc2, parrec, brikhead
-from ..deprecator import ExpiredDeprecationError
-
 import unittest
+
 import pytest
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal, assert_warns
 
-from numpy.testing import assert_almost_equal, assert_array_equal, assert_warns, assert_allclose
-from nibabel.testing import (bytesio_round_trip, bytesio_filemap, assert_data_similar,
-                             clear_and_catch_warnings, nullcontext, expires)
+from nibabel.arraywriters import WriterError
+from nibabel.testing import (
+    assert_data_similar,
+    bytesio_filemap,
+    bytesio_round_trip,
+    clear_and_catch_warnings,
+    expires,
+    nullcontext,
+)
+
+from .. import (
+    AnalyzeImage,
+    GiftiImage,
+    MGHImage,
+    Minc1Image,
+    Minc2Image,
+    Nifti1Image,
+    Nifti1Pair,
+    Nifti2Image,
+    Nifti2Pair,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    brikhead,
+    is_proxy,
+    minc1,
+    minc2,
+    parrec,
+)
+from ..deprecator import ExpiredDeprecationError
+from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
-
 from .test_api_validators import ValidateAPI
+from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
-from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
-
-from nibabel.arraywriters import WriterError
 
 
 def maybe_deprecated(meth_name):
@@ -65,7 +84,8 @@ def maybe_deprecated(meth_name):
 
 
 class GenericImageAPI(ValidateAPI):
-    """ General image validation API """
+    """General image validation API"""
+
     # Whether this image type can do scaling of data
     has_scaling = False
     # Whether the image can be saved to disk / file objects
@@ -75,7 +95,7 @@ class GenericImageAPI(ValidateAPI):
     standard_extension = '.img'
 
     def obj_params(self):
-        """ Return generator returning (`img_creator`, `img_params`) tuples
+        """Return generator returning (`img_creator`, `img_params`) tuples
 
         ``img_creator`` is a function taking no arguments and returning a fresh
         image.  We need to return this ``img_creator`` function rather than an
@@ -150,18 +170,18 @@ class GenericImageAPI(ValidateAPI):
         # to_ / from_ filename
         fname = 'another_image' + self.standard_extension
         for path in (fname, pathlib.Path(fname)):
-          with InTemporaryDirectory():
-              # Validate that saving or loading a file doesn't use deprecated methods internally
-              with clear_and_catch_warnings() as w:
-                  warnings.filterwarnings('error',
-                                          category=DeprecationWarning,
-                                          module=r"nibabel.*")
-                  img.to_filename(path)
-                  rt_img = img.__class__.from_filename(path)
-              assert_array_equal(img.shape, rt_img.shape)
-              assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-              assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
-              del rt_img  # to allow windows to delete the directory
+            with InTemporaryDirectory():
+                # Validate that saving or loading a file doesn't use deprecated methods internally
+                with clear_and_catch_warnings() as w:
+                    warnings.filterwarnings(
+                        'error', category=DeprecationWarning, module=r'nibabel.*'
+                    )
+                    img.to_filename(path)
+                    rt_img = img.__class__.from_filename(path)
+                assert_array_equal(img.shape, rt_img.shape)
+                assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
+                assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
+                del rt_img  # to allow windows to delete the directory
 
     def validate_no_slicing(self, imaker, params):
         img = imaker()
@@ -170,7 +190,7 @@ class GenericImageAPI(ValidateAPI):
         with pytest.raises(TypeError):
             img[:]
 
-    @expires("5.0.0")
+    @expires('5.0.0')
     def validate_get_data_deprecated(self, imaker, params):
         img = imaker()
         with pytest.deprecated_call():
@@ -179,7 +199,7 @@ class GenericImageAPI(ValidateAPI):
 
 
 class GetSetDtypeMixin:
-    """ Adds dtype tests
+    """Adds dtype tests
 
     Add this one if your image has ``get_data_dtype`` and ``set_data_dtype``.
     """
@@ -204,11 +224,12 @@ class GetSetDtypeMixin:
 
 
 class DataInterfaceMixin(GetSetDtypeMixin):
-    """ Test dataobj interface for images with array backing
+    """Test dataobj interface for images with array backing
 
     Use this mixin if your image has a ``dataobj`` property that contains an
     array or an array-like thing.
     """
+
     meth_names = ('get_fdata',)
 
     def validate_data_interface(self, imaker, params):
@@ -234,7 +255,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             with maybe_deprecated(meth_name), pytest.raises(ValueError):
                 method(caching='something')
         # dataobj is read only
-        fake_data = np.zeros(img.shape).astype(img.get_data_dtype())
+        fake_data = np.zeros(img.shape, dtype=img.get_data_dtype())
         with pytest.raises(AttributeError):
             img.dataobj = fake_data
         # So is in_memory
@@ -343,8 +364,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def _check_array_caching(self, imaker, meth_name, caching):
         img = imaker()
         method = getattr(img, meth_name)
-        get_data_func = (method if caching is None else
-                         partial(method, caching=caching))
+        get_data_func = method if caching is None else partial(method, caching=caching)
         assert isinstance(img.dataobj, np.ndarray)
         assert img.in_memory
         with maybe_deprecated(meth_name):
@@ -445,7 +465,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
 
 
 class HeaderShapeMixin:
-    """ Tests that header shape can be set and got
+    """Tests that header shape can be set and got
 
     Add this one of your header supports ``get_data_shape`` and
     ``set_data_shape``.
@@ -463,7 +483,7 @@ class HeaderShapeMixin:
 
 
 class AffineMixin:
-    """ Adds test of affine property, method
+    """Adds test of affine property, method
 
     Add this one if your image has an ``affine`` property.
     """
@@ -498,17 +518,17 @@ class SerializeMixin:
             fname = 'img' + self.standard_extension
             img.to_filename(fname)
 
-            with open("stream", "wb") as fobj:
+            with open('stream', 'wb') as fobj:
                 img.to_stream(fobj)
 
             # Check that writing gets us the same thing
             contents1 = pathlib.Path(fname).read_bytes()
-            contents2 = pathlib.Path("stream").read_bytes()
+            contents2 = pathlib.Path('stream').read_bytes()
             assert contents1 == contents2
 
             # Check that reading gets us the same thing
             img_a = klass.from_filename(fname)
-            with open(fname, "rb") as fobj:
+            with open(fname, 'rb') as fobj:
                 img_b = klass.from_stream(fobj)
                 # This needs to happen while the filehandle is open
                 assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
@@ -548,9 +568,9 @@ class SerializeMixin:
         img = imaker()
         img_bytes = img.to_bytes()
 
-        server.expect_oneshot_request("/img").respond_with_data(img_bytes)
-        url = server.url_for("/img")
-        assert url.startswith("http://")  # Check we'll trigger an HTTP handler
+        server.expect_oneshot_request('/img').respond_with_data(img_bytes)
+        url = server.url_for('/img')
+        assert url.startswith('http://')  # Check we'll trigger an HTTP handler
         rt_img = img.__class__.from_url(url)
 
         assert rt_img.to_bytes() == img_bytes
@@ -564,20 +584,20 @@ class SerializeMixin:
 
         img = imaker()
         import uuid
+
         fname = tmp_path / f'img-{uuid.uuid4()}{self.standard_extension}'
         img.to_filename(fname)
 
-        rt_img = img.__class__.from_url(f"file:///{fname}")
+        rt_img = img.__class__.from_url(f'file:///{fname}')
 
         assert self._header_eq(img.header, rt_img.header)
         assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
         del img
         del rt_img
 
-
     @staticmethod
     def _header_eq(header_a, header_b):
-        """ Header equality check that can be overridden by a subclass of this test
+        """Header equality check that can be overridden by a subclass of this test
 
         This allows us to retain the same tests above when testing an image that uses an
         abstract class as a header, namely when testing the FileBasedImage API, which
@@ -586,11 +606,9 @@ class SerializeMixin:
         return header_a == header_b
 
 
-class LoadImageAPI(GenericImageAPI,
-                   DataInterfaceMixin,
-                   AffineMixin,
-                   GetSetDtypeMixin,
-                   HeaderShapeMixin):
+class LoadImageAPI(
+    GenericImageAPI, DataInterfaceMixin, AffineMixin, GetSetDtypeMixin, HeaderShapeMixin
+):
     # Callable returning an image from a filename
     loader = None
     # Sequence of dictionaries, where dictionaries have keys
@@ -613,8 +631,8 @@ class LoadImageAPI(GenericImageAPI,
 
 
 class MakeImageAPI(LoadImageAPI):
-    """ Validation for images we can make with ``func(data, affine, header)``
-    """
+    """Validation for images we can make with ``func(data, affine, header)``"""
+
     # A callable returning an image from ``image_maker(data, affine, header)``
     image_maker = None
     # A callable returning a header from ``header_maker()``
@@ -626,7 +644,7 @@ class MakeImageAPI(LoadImageAPI):
 
     def obj_params(self):
         # Return any obj_params from superclass
-        for func, params in super(MakeImageAPI, self).obj_params():
+        for func, params in super().obj_params():
             yield func, params
         # Create new images
         aff = np.diag([1, 2, 3, 1])
@@ -635,7 +653,6 @@ class MakeImageAPI(LoadImageAPI):
             return lambda: self.image_maker(arr, aff, header)
 
         def make_prox_imaker(arr, aff, hdr):
-
             def prox_imaker():
                 img = self.image_maker(arr, aff, hdr)
                 rt_img = bytesio_round_trip(img)
@@ -643,20 +660,14 @@ class MakeImageAPI(LoadImageAPI):
 
             return prox_imaker
 
-        for shape, stored_dtype in product(self.example_shapes,
-                                           self.storable_dtypes):
+        for shape, stored_dtype in product(self.example_shapes, self.storable_dtypes):
             # To make sure we do not trigger scaling, always use the
             # stored_dtype for the input array.
             arr = np.arange(np.prod(shape), dtype=stored_dtype).reshape(shape)
             hdr = self.header_maker()
             hdr.set_data_dtype(stored_dtype)
             func = make_imaker(arr.copy(), aff, hdr)
-            params = dict(
-                dtype=stored_dtype,
-                affine=aff,
-                data=arr,
-                shape=shape,
-                is_proxy=False)
+            params = dict(dtype=stored_dtype, affine=aff, data=arr, shape=shape, is_proxy=False)
             yield make_imaker(arr.copy(), aff, hdr), params
             if not self.can_save:
                 continue
@@ -667,7 +678,7 @@ class MakeImageAPI(LoadImageAPI):
 
 
 class DtypeOverrideMixin(GetSetDtypeMixin):
-    """ Test images that can accept ``dtype`` arguments to ``__init__`` and
+    """Test images that can accept ``dtype`` arguments to ``__init__`` and
     ``to_file_map``
     """
 
@@ -707,8 +718,7 @@ class DtypeOverrideMixin(GetSetDtypeMixin):
 
 
 class ImageHeaderAPI(MakeImageAPI):
-    """ When ``self.image_maker`` is an image class, make header from class
-    """
+    """When ``self.image_maker`` is an image class, make header from class"""
 
     def header_maker(self):
         return self.image_maker.header_class()
@@ -720,8 +730,8 @@ class TestSpatialImageAPI(ImageHeaderAPI):
 
 
 class TestAnalyzeAPI(TestSpatialImageAPI, DtypeOverrideMixin):
-    """ General image validation API instantiated for Analyze images
-    """
+    """General image validation API instantiated for Analyze images"""
+
     klass = image_maker = AnalyzeImage
     has_scaling = False
     can_save = True
@@ -766,7 +776,6 @@ class TestMinc1API(ImageHeaderAPI):
 
 
 class TestMinc2API(TestMinc1API):
-
     def setup_method(self):
         if not have_h5py:
             raise unittest.SkipTest('Need h5py for these tests')
@@ -777,7 +786,6 @@ class TestMinc2API(TestMinc1API):
 
 
 class TestPARRECAPI(LoadImageAPI):
-
     def loader(self, fname):
         return parrec.load(fname)
 

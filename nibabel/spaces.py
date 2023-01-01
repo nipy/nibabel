@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Routines to work with spaces
+"""Routines to work with spaces
 
 A space is defined by coordinate axes.
 
@@ -28,7 +28,7 @@ from .affines import apply_affine
 
 
 def vox2out_vox(mapped_voxels, voxel_sizes=None):
-    """ output-aligned shape, affine for input implied by `mapped_voxels`
+    """output-aligned shape, affine for input implied by `mapped_voxels`
 
     The input (voxel) space, and the affine mapping to output space, are given
     in `mapped_voxels`.
@@ -95,7 +95,7 @@ def vox2out_vox(mapped_voxels, voxel_sizes=None):
 
 
 def slice2volume(index, axis, shape=None):
-    """ Affine expressing selection of a single slice from 3D volume
+    """Affine expressing selection of a single slice from 3D volume
 
     Imagine we have taken a slice from an image data array, ``s = data[:, :,
     index]``.  This function returns the affine to map the array coordinates of
@@ -129,9 +129,9 @@ def slice2volume(index, axis, shape=None):
         the embedded volume
     """
     if index < 0:
-        raise ValueError("Cannot handle negative index")
+        raise ValueError('Cannot handle negative index')
     if not 0 <= axis <= 2:
-        raise ValueError("Axis should be between 0 and 2")
+        raise ValueError('Axis should be between 0 and 2')
     axes = list(range(4))
     axes.remove(axis)
     slice_aff = np.eye(4)[:, axes]

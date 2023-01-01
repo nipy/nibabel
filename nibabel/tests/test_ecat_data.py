@@ -6,18 +6,17 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test we can correctly import example ECAT files
+"""Test we can correctly import example ECAT files
 """
 
 import os
 from os.path import join as pjoin
 
 import numpy as np
+from numpy.testing import assert_almost_equal, assert_array_equal
 
-from .nibabel_data import get_nibabel_data, needs_nibabel_data
 from ..ecat import load
-
-from numpy.testing import (assert_array_equal, assert_almost_equal)
+from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
 ECAT_TEST_PATH = pjoin(get_nibabel_data(), 'nipy-ecattest')
 

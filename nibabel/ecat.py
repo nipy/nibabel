@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read ECAT format images
+"""Read ECAT format images
 
 An ECAT format image consists of:
 
@@ -48,12 +48,11 @@ from numbers import Integral
 
 import numpy as np
 
-from .volumeutils import (native_code, swapped_code, make_dt_codes,
-                          array_from_file)
-from .spatialimages import SpatialImage
 from .arraywriters import make_array_writer
-from .wrapstruct import WrapStruct
 from .fileslice import canonical_slicers, predict_shape, slice2outax
+from .spatialimages import SpatialImage
+from .volumeutils import array_from_file, make_dt_codes, native_code, swapped_code
+from .wrapstruct import WrapStruct
 
 BLOCK_SIZE = 512
 
@@ -117,7 +116,7 @@ main_header_dtd = [
     ('well_counter_corr_factor', np.float32),
     ('data_units', '32S'),
     ('septa_state', np.uint16),
-    ('fill', '12S')
+    ('fill', '12S'),
 ]
 hdr_dtype = np.dtype(main_header_dtd)
 
@@ -183,7 +182,8 @@ subheader_dtd = [
     ('recon_type', np.uint16),
     ('recon_views', np.uint16),
     ('fill', '174S'),
-    ('fill2', '96S')]
+    ('fill2', '96S'),
+]
 subhdr_dtype = np.dtype(subheader_dtd)
 
 # Ecat Data Types
@@ -199,7 +199,8 @@ _dtdefs = (  # code, name, equivalent dtype
     (4, 'ECAT7_VAXR4', np.float32),
     (5, 'ECAT7_IEEER4', np.float32),
     (6, 'ECAT7_SUNI2', np.int16),
-    (7, 'ECAT7_SUNI4', np.int32))
+    (7, 'ECAT7_SUNI4', np.int32),
+)
 data_type_codes = make_dt_codes(_dtdefs)
 
 
@@ -219,7 +220,8 @@ ft_defs = (  # code, name
     (11, 'ECAT7_3DSCAN'),
     (12, 'ECAT7_3DSCAN8'),
     (13, 'ECAT7_3DNORM'),
-    (14, 'ECAT7_3DSCANFIT'))
+    (14, 'ECAT7_3DSCANFIT'),
+)
 file_type_codes = dict(ft_defs)
 
 patient_orient_defs = (  # code, description
@@ -231,7 +233,8 @@ patient_orient_defs = (  # code, description
     (5, 'ECAT7_Head_First_Decubitus_Right'),
     (6, 'ECAT7_Feet_First_Decubitus_Left'),
     (7, 'ECAT7_Head_First_Decubitus_Left'),
-    (8, 'ECAT7_Unknown_Orientation'))
+    (8, 'ECAT7_Unknown_Orientation'),
+)
 patient_orient_codes = dict(patient_orient_defs)
 
 # Indexes from the patient_orient_defs structure defined above for the
@@ -255,14 +258,12 @@ class EcatHeader(WrapStruct):
     This just reads the main Ecat Header, it does not load the data or read the
     mlist or any sub headers
     """
+
     template_dtype = hdr_dtype
     _ft_codes = file_type_codes
     _patient_orient_codes = patient_orient_codes
 
-    def __init__(self,
-                 binaryblock=None,
-                 endianness=None,
-                 check=True):
+    def __init__(self, binaryblock=None, endianness=None, check=True):
         """Initialize Ecat header from bytes object
 
         Parameters
@@ -277,12 +278,11 @@ class EcatHeader(WrapStruct):
             Whether to check and fix header for errors.  No checks currently
             implemented, so value has no effect.
         """
-        super(EcatHeader, self).__init__(binaryblock, endianness, check)
+        super().__init__(binaryblock, endianness, check)
 
     @classmethod
     def guessed_endian(klass, hdr):
-        """Guess endian from MAGIC NUMBER value of header data
-        """
+        """Guess endian from MAGIC NUMBER value of header data"""
         if not hdr['sw_version'] == 74:
             return swapped_code
         else:
@@ -290,9 +290,8 @@ class EcatHeader(WrapStruct):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        """ Return header data for empty header with given endianness
-        """
-        hdr_data = super(EcatHeader, klass).default_structarr(endianness)
+        """Return header data for empty header with given endianness"""
+        hdr_data = super().default_structarr(endianness)
         hdr_data['magic_number'] = 'MATRIX72'
         hdr_data['sw_version'] = 74
         hdr_data['num_frames'] = 0
@@ -301,11 +300,11 @@ class EcatHeader(WrapStruct):
         return hdr_data
 
     def get_data_dtype(self):
-        """ Get numpy dtype for data from header"""
-        raise NotImplementedError("dtype is only valid from subheaders")
+        """Get numpy dtype for data from header"""
+        raise NotImplementedError('dtype is only valid from subheaders')
 
     def get_patient_orient(self):
-        """ gets orientation of patient based on code stored
+        """gets orientation of patient based on code stored
         in header, not always reliable
         """
         code = self._structarr['patient_orientation'].item()
@@ -314,7 +313,7 @@ class EcatHeader(WrapStruct):
         return self._patient_orient_codes[code]
 
     def get_filetype(self):
-        """ Type of ECAT Matrix File from code stored in header"""
+        """Type of ECAT Matrix File from code stored in header"""
         code = self._structarr['file_type'].item()
         if code not in self._ft_codes:
             raise KeyError('Ecat Filetype CODE %d not recognized' % code)
@@ -322,12 +321,12 @@ class EcatHeader(WrapStruct):
 
     @classmethod
     def _get_checks(klass):
-        """ Return sequence of check functions for this class """
+        """Return sequence of check functions for this class"""
         return ()
 
 
 def read_mlist(fileobj, endianness):
-    """ read (nframes, 4) matrix list array from `fileobj`
+    """read (nframes, 4) matrix list array from `fileobj`
 
     Parameters
     ----------
@@ -387,7 +386,7 @@ def read_mlist(fileobj, endianness):
             mlist = []
             return mlist
         # Use all but first housekeeping row
-        mlists.append(rows[1:n_rows + 1])
+        mlists.append(rows[1 : n_rows + 1])
         mlist_index += n_rows
         if mlist_block_no <= 2:  # should block_no in (1, 2) be an error?
             break
@@ -424,9 +423,13 @@ def get_frame_order(mlist):
     valid_order = np.argsort(ids)
     if not all(valid_order == sorted(valid_order)):
         # raise UserWarning if Frames stored out of order
-        warnings.warn_explicit(f'Frames stored out of order; true order = {valid_order}\n'
-                               'frames will be accessed in order STORED, NOT true order',
-                               UserWarning, 'ecat', 0)
+        warnings.warn_explicit(
+            f'Frames stored out of order; true order = {valid_order}\n'
+            'frames will be accessed in order STORED, NOT true order',
+            UserWarning,
+            'ecat',
+            0,
+        )
     id_dict = {}
     for i in range(n_valid):
         id_dict[i] = [valid_order[i], ids[valid_order[i]]]
@@ -434,7 +437,7 @@ def get_frame_order(mlist):
 
 
 def get_series_framenumbers(mlist):
-    """ Returns framenumber of data as it was collected,
+    """Returns framenumber of data as it was collected,
     as part of a series; not just the order of how it was
     stored in this or across other files
 
@@ -475,7 +478,7 @@ def get_series_framenumbers(mlist):
 
 
 def read_subheaders(fileobj, mlist, endianness):
-    """ Retrieve all subheaders and return list of subheader recarrays
+    """Retrieve all subheaders and return list of subheader recarrays
 
     Parameters
     ----------
@@ -535,7 +538,7 @@ class EcatSubHeader:
         self.subheaders = read_subheaders(fileobj, mlist, hdr.endianness)
 
     def get_shape(self, frame=0):
-        """ returns shape of given frame"""
+        """returns shape of given frame"""
         subhdr = self.subheaders[frame]
         x = subhdr['x_dimension'].item()
         y = subhdr['y_dimension'].item()
@@ -574,8 +577,7 @@ class EcatSubHeader:
         # get translations from center of image
         origin_offset = (np.array(dims) - 1) / 2.0
         aff = np.diag(zooms)
-        aff[:3, -1] = -origin_offset * zooms[:-1] + np.array([x_off, y_off,
-                                                              z_off])
+        aff[:3, -1] = -origin_offset * zooms[:-1] + np.array([x_off, y_off, z_off])
         return aff
 
     def get_zooms(self, frame=0):
@@ -659,7 +661,7 @@ class EcatSubHeader:
 
 
 class EcatImageArrayProxy:
-    """ Ecat implementation of array proxy protocol
+    """Ecat implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
@@ -685,7 +687,7 @@ class EcatImageArrayProxy:
         return True
 
     def __array__(self, dtype=None):
-        """ Read of data from file
+        """Read of data from file
 
         This reads ALL FRAMES into one array, can be memory expensive.
 
@@ -706,15 +708,13 @@ class EcatImageArrayProxy:
         data = np.empty(self.shape)
         frame_mapping = get_frame_order(self._subheader._mlist)
         for i in sorted(frame_mapping):
-            data[:, :, :, i] = self._subheader.data_from_fileobj(
-                frame_mapping[i][0])
+            data[:, :, :, i] = self._subheader.data_from_fileobj(frame_mapping[i][0])
         if dtype is not None:
             data = data.astype(dtype, copy=False)
         return data
 
     def __getitem__(self, sliceobj):
-        """ Return slice `sliceobj` from ECAT data, optimizing if possible
-        """
+        """Return slice `sliceobj` from ECAT data, optimizing if possible"""
         sliceobj = canonical_slicers(sliceobj, self.shape)
         # Indices into sliceobj referring to image axes
         ax_inds = [i for i, obj in enumerate(sliceobj) if obj is not None]
@@ -724,7 +724,7 @@ class EcatImageArrayProxy:
         slice3 = sliceobj[ax_inds[3]]
         # We will load volume by volume.  Make slicer into volume by dropping
         # index over the volume axis
-        in_slicer = sliceobj[:ax_inds[3]] + sliceobj[ax_inds[3] + 1:]
+        in_slicer = sliceobj[: ax_inds[3]] + sliceobj[ax_inds[3] + 1 :]
         # int index for 4th axis, load one slice
         if isinstance(slice3, Integral):
             data = self._subheader.data_from_fileobj(frame_mapping[slice3][0])
@@ -738,16 +738,15 @@ class EcatImageArrayProxy:
         in2out_ind = slice2outax(len(self.shape), sliceobj)[3]
         # Iterate over specified 4th axis indices
         for i in list(range(self.shape[3]))[slice3]:
-            data = self._subheader.data_from_fileobj(
-                frame_mapping[i][0])
+            data = self._subheader.data_from_fileobj(frame_mapping[i][0])
             out_slicer[in2out_ind] = i
             out_data[tuple(out_slicer)] = data[in_slicer]
         return out_data
 
 
 class EcatImage(SpatialImage):
-    """ Class returns a list of Ecat images, with one image(hdr/data) per frame
-    """
+    """Class returns a list of Ecat images, with one image(hdr/data) per frame"""
+
     _header = EcatHeader
     header_class = _header
     valid_exts = ('.v',)
@@ -756,10 +755,8 @@ class EcatImage(SpatialImage):
 
     ImageArrayProxy = EcatImageArrayProxy
 
-    def __init__(self, dataobj, affine, header,
-                 subheader, mlist,
-                 extra=None, file_map=None):
-        """ Initialize Image
+    def __init__(self, dataobj, affine, header, subheader, mlist, extra=None, file_map=None):
+        """Initialize Image
 
         The image is a combination of
         (array, affine matrix, header, subheader, mlist)
@@ -824,8 +821,9 @@ class EcatImage(SpatialImage):
     @property
     def affine(self):
         if not self._subheader._check_affines():
-            warnings.warn('Affines different across frames, loading affine '
-                          'from FIRST frame', UserWarning)
+            warnings.warn(
+                'Affines different across frames, loading affine from FIRST frame', UserWarning
+            )
         return self._affine
 
     def get_frame_affine(self, frame):
@@ -854,8 +852,7 @@ class EcatImage(SpatialImage):
         return (x, y, z, nframes)
 
     def get_mlist(self):
-        """ get access to the mlist
-        """
+        """get access to the mlist"""
         return self._mlist
 
     def get_subheaders(self):
@@ -864,7 +861,7 @@ class EcatImage(SpatialImage):
 
     @staticmethod
     def _get_fileholders(file_map):
-        """ returns files specific to header and image of the image
+        """returns files specific to header and image of the image
         for ecat .v this is the same image file
 
         Returns
@@ -887,7 +884,7 @@ class EcatImage(SpatialImage):
         # LOAD MLIST
         mlist = np.zeros((header['num_frames'], 4), dtype=np.int32)
         mlist_data = read_mlist(hdr_fid, hdr_copy.endianness)
-        mlist[:len(mlist_data)] = mlist_data
+        mlist[: len(mlist_data)] = mlist_data
         # LOAD SUBHEADERS
         subheaders = klass._subheader(hdr_copy, mlist, hdr_fid)
         # LOAD DATA
@@ -895,11 +892,11 @@ class EcatImage(SpatialImage):
         data = klass.ImageArrayProxy(subheaders)
         # Get affine
         if not subheaders._check_affines():
-            warnings.warn('Affines different across frames, loading affine '
-                          'from FIRST frame', UserWarning)
+            warnings.warn(
+                'Affines different across frames, loading affine from FIRST frame', UserWarning
+            )
         aff = subheaders.get_frame_affine()
-        img = klass(data, aff, header, subheaders, mlist,
-                    extra=None, file_map=file_map)
+        img = klass(data, aff, header, subheaders, mlist, extra=None, file_map=file_map)
         return img
 
     def _get_empty_dir(self):
@@ -925,11 +922,10 @@ class EcatImage(SpatialImage):
             endianness = native_code
 
         stream.seek(pos)
-        make_array_writer(data.newbyteorder(endianness),
-                          dtype).to_fileobj(stream)
+        make_array_writer(data.newbyteorder(endianness), dtype).to_fileobj(stream)
 
     def to_file_map(self, file_map=None):
-        """ Write ECAT7 image to `file_map` or contained ``self.file_map``
+        """Write ECAT7 image to `file_map` or contained ``self.file_map``
 
         The format consist of:
 
@@ -1014,8 +1010,7 @@ class EcatImage(SpatialImage):
 
     @classmethod
     def from_image(klass, img):
-        raise NotImplementedError("Ecat images can only be generated "
-                                  "from file objects")
+        raise NotImplementedError('Ecat images can only be generated from file objects')
 
     @classmethod
     def load(klass, filespec):

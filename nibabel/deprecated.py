@@ -1,4 +1,4 @@
-""" Module to help with deprecating objects and classes
+"""Module to help with deprecating objects and classes
 """
 
 import warnings
@@ -8,7 +8,7 @@ from .pkg_info import cmp_pkg_version
 
 
 class ModuleProxy:
-    """ Proxy for module that may not yet have been imported
+    """Proxy for module that may not yet have been imported
 
     Parameters
     ----------
@@ -36,11 +36,11 @@ class ModuleProxy:
         return getattr(mod, key)
 
     def __repr__(self):
-        return f"<module proxy for {self._module_name}>"
+        return f'<module proxy for {self._module_name}>'
 
 
 class FutureWarningMixin:
-    """ Insert FutureWarning for object creation
+    """Insert FutureWarning for object creation
 
     Examples
     --------
@@ -55,17 +55,16 @@ class FutureWarningMixin:
     ...     warns[0].message.args[0]
     "Please, don't use this class"
     """
+
     warn_message = 'This class will be removed in future versions'
 
     def __init__(self, *args, **kwargs):
-        warnings.warn(self.warn_message,
-                      FutureWarning,
-                      stacklevel=2)
-        super(FutureWarningMixin, self).__init__(*args, **kwargs)
+        warnings.warn(self.warn_message, FutureWarning, stacklevel=2)
+        super().__init__(*args, **kwargs)
 
 
 class VisibleDeprecationWarning(UserWarning):
-    """ Deprecation warning that will be shown by default
+    """Deprecation warning that will be shown by default
 
     Python >= 2.7 does not show standard DeprecationWarnings by default:
 
@@ -73,6 +72,7 @@ class VisibleDeprecationWarning(UserWarning):
 
     Use this class for cases where we do want to show deprecations by default.
     """
+
     pass
 
 

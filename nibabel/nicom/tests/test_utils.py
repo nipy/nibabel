@@ -1,12 +1,13 @@
-""" Testing nicom.utils module
+"""Testing nicom.utils module
 """
 import re
 
 from nibabel.optpkg import optional_package
-from .test_dicomwrappers import DATA, DATA_PHILIPS
-from ..utils import find_private_section
 
-pydicom, _, setup_module = optional_package("pydicom")
+from ..utils import find_private_section
+from .test_dicomwrappers import DATA, DATA_PHILIPS
+
+pydicom, _, setup_module = optional_package('pydicom')
 
 
 def test_find_private_section_real():

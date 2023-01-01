@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test binary header objects
+"""Test binary header objects
 
 This is a root testing class, used in the Analyze and other tests as a
 framework for all the tests common to the Analyze types
@@ -24,26 +24,24 @@ With deprecation warnings
 _field_recoders -> field_recoders
 """
 import logging
-import numpy as np
-
 from io import BytesIO, StringIO
-from ..wrapstruct import WrapStructError, WrapStruct, LabeledWrapStruct
-from ..batteryrunners import Report
 
-from ..volumeutils import swapped_code, native_code, Recoder
-from ..spatialimages import HeaderDataError
-from .. import imageglobals
-
-from ..testing import BaseTestCase
-
-from numpy.testing import assert_array_equal
+import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
+from .. import imageglobals
+from ..batteryrunners import Report
+from ..spatialimages import HeaderDataError
+from ..testing import BaseTestCase
+from ..volumeutils import Recoder, native_code, swapped_code
+from ..wrapstruct import LabeledWrapStruct, WrapStruct, WrapStructError
 
 INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
 
+
 def log_chk(hdr, level):
-    """ Utility method to check header checking / logging
+    """Utility method to check header checking / logging
 
     Asserts that log entry appears during ``hdr.check_fix`` for logging level
     below `level`.
@@ -99,18 +97,16 @@ def log_chk(hdr, level):
     logger.removeHandler(handler)
     # When error level == level, check_fix should raise an error
     hdrc2 = hdr.copy()
-    raiser = (HeaderDataError,
-              hdrc2.check_fix,
-              logger,
-              level)
+    raiser = (HeaderDataError, hdrc2.check_fix, logger, level)
     return hdrc, message, raiser
 
 
 class _TestWrapStructBase(BaseTestCase):
-    """ Class implements base tests for binary headers
+    """Class implements base tests for binary headers
 
     It serves as a base class for other binary header tests
     """
+
     header_class = None
 
     def get_bad_bb(self):
@@ -190,10 +186,9 @@ class _TestWrapStructBase(BaseTestCase):
         assert hdr.get(keys[0]) == falsyval
         assert hdr.get(keys[0], -1) == falsyval
 
-
     def test_endianness_ro(self):
         # endianness is a read only property
-        """ Its use in initialization tested in the init tests.
+        """Its use in initialization tested in the init tests.
         Endianness gives endian interpretation of binary data. It is
         read only because the only common use case is to set the
         endianness on initialization (or occasionally byteswapping the
@@ -237,8 +232,7 @@ class _TestWrapStructBase(BaseTestCase):
         return log_chk(hdr, level)
 
     def assert_no_log_err(self, hdr):
-        """ Assert that no logging or errors result from this `hdr`
-        """
+        """Assert that no logging or errors result from this `hdr`"""
         fhdr, message, raiser = self.log_chk(hdr, 0)
         assert (fhdr, message) == (hdr, '')
 
@@ -286,9 +280,9 @@ class _TestWrapStructBase(BaseTestCase):
         # Note that contents is not rechecked on swap / copy
 
         class DC(self.header_class):
-
             def check_fix(self, *args, **kwargs):
                 raise Exception
+
         # Assumes check=True default
         with pytest.raises(Exception):
             DC(hdr.binaryblock)
@@ -313,15 +307,15 @@ class _TestWrapStructBase(BaseTestCase):
         assert len(s1) > 0
 
 
-
 class _TestLabeledWrapStruct(_TestWrapStructBase):
-    """ Test a wrapstruct with value labeling """
+    """Test a wrapstruct with value labeling"""
 
     def test_get_value_label(self):
         # Test get value label method
         # Make a new class to avoid overwriting recoders of original
         class MyHdr(self.header_class):
             _field_recoders = {}
+
         hdr = MyHdr()
         # Key not existing raises error
         with pytest.raises(ValueError):
@@ -351,7 +345,8 @@ class _TestLabeledWrapStruct(_TestWrapStructBase):
 
 
 class MyWrapStruct(WrapStruct):
-    """ An example wrapped struct class """
+    """An example wrapped struct class"""
+
     template_dtype = np.dtype([('an_integer', 'i2'), ('a_str', 'S10')])
 
     @classmethod
@@ -362,18 +357,18 @@ class MyWrapStruct(WrapStruct):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        structarr = super(MyWrapStruct, klass).default_structarr(endianness)
+        structarr = super().default_structarr(endianness)
         structarr['an_integer'] = 1
         structarr['a_str'] = b'a string'
         return structarr
 
     @classmethod
     def _get_checks(klass):
-        """ Return sequence of check functions for this class """
-        return (klass._chk_integer,
-                klass._chk_string)
+        """Return sequence of check functions for this class"""
+        return (klass._chk_integer, klass._chk_string)
 
     """ Check functions in format expected by BatteryRunner class """
+
     @staticmethod
     def _chk_integer(hdr, fix=False):
         rep = Report(HeaderDataError)
@@ -405,7 +400,8 @@ class MyLabeledWrapStruct(LabeledWrapStruct, MyWrapStruct):
 
 
 class TestMyWrapStruct(_TestWrapStructBase):
-    """ Test fake binary header defined at top of module """
+    """Test fake binary header defined at top of module"""
+
     header_class = MyWrapStruct
 
     def get_bad_bb(self):
@@ -515,6 +511,7 @@ class TestMyLabeledWrapStruct(TestMyWrapStruct, _TestLabeledWrapStruct):
         # Make sure not to overwrite class dictionary
         class MyHdr(self.header_class):
             _field_recoders = {}
+
         hdr = MyHdr()
         s1 = str(hdr)
         assert len(s1) > 0

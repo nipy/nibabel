@@ -1,31 +1,34 @@
-""" Tests for the parrec2nii exe code
+"""Tests for the parrec2nii exe code
 """
-from os.path import join, isfile, basename
+from os.path import basename, isfile, join
+from unittest.mock import MagicMock, Mock, patch
 
 import numpy
 from numpy import array as npa
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 import nibabel
 from nibabel.cmdline import parrec2nii
-
-from unittest.mock import Mock, MagicMock, patch
-from numpy.testing import (assert_almost_equal, assert_array_equal)
-
 from nibabel.tests.test_parrec import EG_PAR, VARY_PAR
 from nibabel.tmpdirs import InTemporaryDirectory
 
-
 AN_OLD_AFFINE = numpy.array(
-    [[-3.64994708, 0., 1.83564171, 123.66276611],
-     [0., -3.75, 0., 115.617],
-     [0.86045705, 0., 7.78655376, -27.91161211],
-     [0., 0., 0., 1.]])
+    [
+        [-3.64994708, 0.0, 1.83564171, 123.66276611],
+        [0.0, -3.75, 0.0, 115.617],
+        [0.86045705, 0.0, 7.78655376, -27.91161211],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
+)
 
 PAR_AFFINE = numpy.array(
-[[  -3.64994708,    0.  ,          1.83564171,  107.63076611],
- [   0.        ,    3.75,          0.        , -118.125     ],
- [   0.86045705,    0.  ,          7.78655376,  -58.25061211],
- [   0.        ,    0.  ,          0.        ,    1.        ]])
+    [
+        [-3.64994708, 0.0, 1.83564171, 107.63076611],
+        [0.0, 3.75, 0.0, -118.125],
+        [0.86045705, 0.0, 7.78655376, -58.25061211],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
+)
 
 
 @patch('nibabel.cmdline.parrec2nii.verbose')
@@ -36,7 +39,7 @@ def test_parrec2nii_sets_qform_sform_code1(*args):
     # Check that set_sform(), set_qform() are called on the new header.
     parrec2nii.verbose.switch = False
 
-    parrec2nii.io_orientation.return_value = [[0, 1],[1, 1],[2, 1]] # LAS+
+    parrec2nii.io_orientation.return_value = [[0, 1], [1, 1], [2, 1]]  # LAS+
 
     nimg = Mock()
     nhdr = MagicMock()

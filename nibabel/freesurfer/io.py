@@ -1,16 +1,16 @@
-""" Read / write FreeSurfer geometry, morphometry, label, annotation formats
+"""Read / write FreeSurfer geometry, morphometry, label, annotation formats
 """
 
-import warnings
-import numpy as np
 import getpass
 import time
-
+import warnings
 from collections import OrderedDict
+
+import numpy as np
+
 from ..openers import Opener
 
-
-_ANNOT_DT = ">i4"
+_ANNOT_DT = '>i4'
 """Data type for Freesurfer `.annot` files.
 
 Used by :func:`read_annot` and :func:`write_annot`.  All data (apart from
@@ -31,7 +31,7 @@ def _fread3(fobj):
     n : int
         A 3 byte int
     """
-    b1, b2, b3 = np.fromfile(fobj, ">u1", 3)
+    b1, b2, b3 = np.fromfile(fobj, '>u1', 3)
     return (b1 << 16) + (b2 << 8) + b3
 
 
@@ -48,8 +48,7 @@ def _fread3_many(fobj, n):
     out : 1D array
         An array of 3 byte int
     """
-    b1, b2, b3 = np.fromfile(fobj, ">u1", 3 * n).reshape(-1,
-                                                         3).astype(int).T
+    b1, b2, b3 = np.fromfile(fobj, '>u1', 3 * n).reshape(-1, 3).astype(int).T
     return (b1 << 16) + (b2 << 8) + b3
 
 
@@ -60,21 +59,20 @@ def _read_volume_info(fobj):
     if not np.array_equal(head, [20]):  # Read two bytes more
         head = np.concatenate([head, np.fromfile(fobj, '>i4', 2)])
         if not np.array_equal(head, [2, 0, 20]):
-            warnings.warn("Unknown extension code.")
+            warnings.warn('Unknown extension code.')
             return volume_info
 
     volume_info['head'] = head
-    for key in ['valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras',
-                'zras', 'cras']:
+    for key in ['valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras']:
         pair = fobj.readline().decode('utf-8').split('=')
         if pair[0].strip() != key or len(pair) != 2:
             raise OSError('Error parsing volume info.')
         if key in ('valid', 'filename'):
             volume_info[key] = pair[1].strip()
         elif key == 'volume':
-            volume_info[key] = np.array(pair[1].split()).astype(int)
+            volume_info[key] = np.array(pair[1].split(), int)
         else:
-            volume_info[key] = np.array(pair[1].split()).astype(float)
+            volume_info[key] = np.array(pair[1].split(), float)
     # Ignore the rest
     return volume_info
 
@@ -142,12 +140,12 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
     TRIANGLE_MAGIC = 16777214
     QUAD_MAGIC = 16777215
     NEW_QUAD_MAGIC = 16777213
-    with open(filepath, "rb") as fobj:
+    with open(filepath, 'rb') as fobj:
         magic = _fread3(fobj)
         if magic in (QUAD_MAGIC, NEW_QUAD_MAGIC):  # Quad file
             nvert = _fread3(fobj)
             nquad = _fread3(fobj)
-            (fmt, div) = (">i2", 100.) if magic == QUAD_MAGIC else (">f4", 1.)
+            (fmt, div) = ('>i2', 100.0) if magic == QUAD_MAGIC else ('>f4', 1.0)
             coords = np.fromfile(fobj, fmt, nvert * 3).astype(np.float64) / div
             coords = coords.reshape(-1, 3)
             quads = _fread3_many(fobj, nquad * 4)
@@ -172,15 +170,15 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
         elif magic == TRIANGLE_MAGIC:  # Triangle file
             create_stamp = fobj.readline().rstrip(b'\n').decode('utf-8')
             fobj.readline()
-            vnum = np.fromfile(fobj, ">i4", 1)[0]
-            fnum = np.fromfile(fobj, ">i4", 1)[0]
-            coords = np.fromfile(fobj, ">f4", vnum * 3).reshape(vnum, 3)
-            faces = np.fromfile(fobj, ">i4", fnum * 3).reshape(fnum, 3)
+            vnum = np.fromfile(fobj, '>i4', 1)[0]
+            fnum = np.fromfile(fobj, '>i4', 1)[0]
+            coords = np.fromfile(fobj, '>f4', vnum * 3).reshape(vnum, 3)
+            faces = np.fromfile(fobj, '>i4', fnum * 3).reshape(fnum, 3)
 
             if read_metadata:
                 volume_info = _read_volume_info(fobj)
         else:
-            raise ValueError("File does not appear to be a Freesurfer surface")
+            raise ValueError('File does not appear to be a Freesurfer surface')
 
     coords = coords.astype(np.float64)  # XXX: due to mayavi bug on mac 32bits
 
@@ -195,8 +193,7 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
     return ret
 
 
-def write_geometry(filepath, coords, faces, create_stamp=None,
-                   volume_info=None):
+def write_geometry(filepath, coords, faces, create_stamp=None, volume_info=None):
     """Write a triangular format Freesurfer surface mesh.
 
     Parameters
@@ -228,11 +225,11 @@ def write_geometry(filepath, coords, faces, create_stamp=None,
     magic_bytes = np.array([255, 255, 254], dtype=np.uint8)
 
     if create_stamp is None:
-        create_stamp = f"created by {getpass.getuser()} on {time.ctime()}"
+        create_stamp = f'created by {getpass.getuser()} on {time.ctime()}'
 
     with open(filepath, 'wb') as fobj:
         magic_bytes.tofile(fobj)
-        fobj.write((f"{create_stamp}\n\n").encode('utf-8'))
+        fobj.write((f'{create_stamp}\n\n').encode())
 
         np.array([coords.shape[0], faces.shape[0]], dtype='>i4').tofile(fobj)
 
@@ -263,15 +260,15 @@ def read_morph_data(filepath):
     curv : numpy array
         Vector representation of surface morpometry values
     """
-    with open(filepath, "rb") as fobj:
+    with open(filepath, 'rb') as fobj:
         magic = _fread3(fobj)
         if magic == 16777215:
-            vnum = np.fromfile(fobj, ">i4", 3)[0]
-            curv = np.fromfile(fobj, ">f4", vnum)
+            vnum = np.fromfile(fobj, '>i4', 3)[0]
+            curv = np.fromfile(fobj, '>f4', vnum)
         else:
             vnum = magic
             _fread3(fobj)
-            curv = np.fromfile(fobj, ">i2", vnum) / 100
+            curv = np.fromfile(fobj, '>i2', vnum) / 100
     return curv
 
 
@@ -302,13 +299,13 @@ def write_morph_data(file_like, values, fnum=0):
     vector = np.asarray(values)
     vnum = np.prod(vector.shape)
     if vector.shape not in ((vnum,), (vnum, 1), (1, vnum), (vnum, 1, 1)):
-        raise ValueError("Invalid shape: argument values must be a vector")
+        raise ValueError('Invalid shape: argument values must be a vector')
 
     i4info = np.iinfo('i4')
     if vnum > i4info.max:
-        raise ValueError("Too many values for morphometry file")
+        raise ValueError('Too many values for morphometry file')
     if not i4info.min <= fnum <= i4info.max:
-        raise ValueError(f"Argument fnum must be between {i4info.min} and {i4info.max}")
+        raise ValueError(f'Argument fnum must be between {i4info.min} and {i4info.max}')
 
     with Opener(file_like, 'wb') as fobj:
         fobj.write(magic_bytes)
@@ -356,7 +353,7 @@ def read_annot(filepath, orig_ids=False):
     names : list of bytes
         The names of the labels. The length of the list is n_labels.
     """
-    with open(filepath, "rb") as fobj:
+    with open(filepath, 'rb') as fobj:
         dt = _ANNOT_DT
 
         # number of vertices
@@ -431,7 +428,7 @@ def _read_annot_ctab_old_format(fobj, n_entries):
     for i in range(n_entries):
         # structure name length + string
         name_length = np.fromfile(fobj, dt, 1)[0]
-        name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
+        name = np.fromfile(fobj, '|S%d' % name_length, 1)[0]
         names.append(name)
         # read RGBT for this entry
         ctab[i, :4] = np.fromfile(fobj, dt, 4)
@@ -475,7 +472,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     ctab = np.zeros((max_index, 5), dt)
     # orig_tab string length + string
     length = np.fromfile(fobj, dt, 1)[0]
-    np.fromfile(fobj, "|S%d" % length, 1)[0]  # Orig table path
+    np.fromfile(fobj, '|S%d' % length, 1)[0]  # Orig table path
     # number of LUT entries present in the file
     entries_to_read = np.fromfile(fobj, dt, 1)[0]
     names = list()
@@ -484,7 +481,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
         idx = np.fromfile(fobj, dt, 1)[0]
         # structure name length + string
         name_length = np.fromfile(fobj, dt, 1)[0]
-        name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
+        name = np.fromfile(fobj, '|S%d' % name_length, 1)[0]
         names.append(name)
         # RGBT
         ctab[idx, :4] = np.fromfile(fobj, dt, 4)
@@ -519,12 +516,12 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         (n_labels, 4) or (n_labels, 5) - if the latter, the final column is
         ignored.
     """
-    with open(filepath, "wb") as fobj:
+    with open(filepath, 'wb') as fobj:
         dt = _ANNOT_DT
         vnum = len(labels)
 
         def write(num, dtype=dt):
-            np.array([num]).astype(dtype).tofile(fobj)
+            np.array([num], dtype).tofile(fobj)
 
         def write_string(s):
             s = (s if isinstance(s, bytes) else s.encode()) + b'\x00'
@@ -545,8 +542,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         clut_labels[np.where(labels == -1)] = 0
 
         # vno, label
-        data = np.vstack((np.array(range(vnum)),
-                          clut_labels)).T.astype(dt)
+        data = np.vstack((np.array(range(vnum)), clut_labels)).T.astype(dt)
         data.tofile(fobj)
 
         # tag
@@ -598,8 +594,7 @@ def read_label(filepath, read_scalars=False):
 
 def _serialize_volume_info(volume_info):
     """Helper for serializing the volume info."""
-    keys = ['head', 'valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras',
-            'zras', 'cras']
+    keys = ['head', 'valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras']
     diff = set(volume_info.keys()).difference(keys)
     if len(diff) > 0:
         raise ValueError(f'Invalid volume info: {diff.pop()}.')
@@ -607,18 +602,19 @@ def _serialize_volume_info(volume_info):
     strings = list()
     for key in keys:
         if key == 'head':
-            if not (np.array_equal(volume_info[key], [20]) or np.array_equal(
-                    volume_info[key], [2, 0, 20])):
-                warnings.warn("Unknown extension code.")
+            if not (
+                np.array_equal(volume_info[key], [20])
+                or np.array_equal(volume_info[key], [2, 0, 20])
+            ):
+                warnings.warn('Unknown extension code.')
             strings.append(np.array(volume_info[key], dtype='>i4').tobytes())
         elif key in ('valid', 'filename'):
             val = volume_info[key]
-            strings.append(f'{key} = {val}\n'.encode('utf-8'))
+            strings.append(f'{key} = {val}\n'.encode())
         elif key == 'volume':
             val = volume_info[key]
-            strings.append(f'{key} = {val[0]} {val[1]} {val[2]}\n'.encode('utf-8'))
+            strings.append(f'{key} = {val[0]} {val[1]} {val[2]}\n'.encode())
         else:
             val = volume_info[key]
-            strings.append(
-                f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode('utf-8'))
+            strings.append(f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode())
     return b''.join(strings)

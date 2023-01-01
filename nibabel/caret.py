@@ -12,7 +12,7 @@ from . import xmlutils as xml
 
 
 class CaretMetaData(xml.XmlSerializable, MutableMapping):
-    """ A list of name-value pairs used in various Caret-based XML formats
+    """A list of name-value pairs used in various Caret-based XML formats
 
     * Description - Provides a simple method for user-supplied metadata that
       associates names with values.
@@ -44,18 +44,18 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
     >>> md.to_xml()
     b'<MetaData><MD><Name>key</Name><Value>val</Value></MD></MetaData>'
     """
+
     def __init__(self, *args, **kwargs):
         args, kwargs = self._sanitize(args, kwargs)
         self._data = dict(*args, **kwargs)
 
     @staticmethod
     def _sanitize(args, kwargs):
-        """ Override in subclasses to accept and warn on previous invocations
-        """
+        """Override in subclasses to accept and warn on previous invocations"""
         return args, kwargs
 
     def __getitem__(self, key):
-        """ Get metadata entry by name
+        """Get metadata entry by name
 
         >>> md = CaretMetaData({'key': 'val'})
         >>> md['key']
@@ -64,7 +64,7 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
         return self._data[key]
 
     def __setitem__(self, key, value):
-        """ Set metadata entry by name
+        """Set metadata entry by name
 
         >>> md = CaretMetaData({'key': 'val'})
         >>> dict(md)
@@ -79,7 +79,7 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
         self._data[key] = value
 
     def __delitem__(self, key):
-        """ Delete metadata entry by name
+        """Delete metadata entry by name
 
         >>> md = CaretMetaData({'key': 'val'})
         >>> dict(md)
@@ -91,7 +91,7 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
         del self._data[key]
 
     def __len__(self):
-        """ Get length of metadata list
+        """Get length of metadata list
 
         >>> md = CaretMetaData({'key': 'val'})
         >>> len(md)
@@ -100,7 +100,7 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
         return len(self._data)
 
     def __iter__(self):
-        """ Iterate over metadata entries
+        """Iterate over metadata entries
 
         >>> md = CaretMetaData({'key': 'val'})
         >>> for key in md:
@@ -110,7 +110,7 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
         return iter(self._data)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self._data!r}>"
+        return f'<{self.__class__.__name__} {self._data!r}>'
 
     def _to_xml_element(self):
         metadata = xml.Element('MetaData')

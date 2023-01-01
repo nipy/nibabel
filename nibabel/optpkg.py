@@ -1,5 +1,6 @@
-""" Routines to support optional packages """
+"""Routines to support optional packages"""
 from packaging.version import Version
+
 from .tripwire import TripWire
 
 
@@ -14,7 +15,7 @@ def _check_pkg_version(pkg, min_version):
 
 
 def optional_package(name, trip_msg=None, min_version=None):
-    """ Return package-like thing and module setup for package `name`
+    """Return package-like thing and module setup for package `name`
 
     Parameters
     ----------
@@ -103,12 +104,14 @@ def optional_package(name, trip_msg=None, min_version=None):
             else:
                 trip_msg = f'These functions need {name} version >= {min_version}'
     if trip_msg is None:
-        trip_msg = (f'We need package {name} for these functions, '
-                    f'but ``import {name}`` raised {exc}')
+        trip_msg = (
+            f'We need package {name} for these functions, but ``import {name}`` raised {exc}'
+        )
     pkg = TripWire(trip_msg)
 
     def setup_module():
         import unittest
+
         raise unittest.SkipTest(f'No {name} for these tests')
 
     return pkg, False, setup_module

@@ -6,17 +6,15 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test quaternion calculations """
+"""Test quaternion calculations"""
 
 import numpy as np
-from numpy import pi
-
 import pytest
-
+from numpy import pi
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from .. import quaternions as nq
 from .. import eulerangles as nea
+from .. import quaternions as nq
 
 # Example rotations
 eg_rots = []
@@ -99,7 +97,7 @@ def test_inverse_0():
     assert iq.dtype.kind == 'f'
 
 
-@pytest.mark.parametrize("M, q", eg_pairs)
+@pytest.mark.parametrize('M, q', eg_pairs)
 def test_inverse_1(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -122,15 +120,15 @@ def test_norm():
     assert not nq.isunit(qi)
 
 
-@pytest.mark.parametrize("M1, q1", eg_pairs[0::4])
-@pytest.mark.parametrize("M2, q2", eg_pairs[1::4])
+@pytest.mark.parametrize('M1, q1', eg_pairs[0::4])
+@pytest.mark.parametrize('M2, q2', eg_pairs[1::4])
 def test_mult(M1, q1, M2, q2):
     # Test that quaternion * same as matrix *
     q21 = nq.mult(q2, q1)
     assert_array_almost_equal, np.dot(M2, M1), nq.quat2mat(q21)
 
 
-@pytest.mark.parametrize("M, q", eg_pairs)
+@pytest.mark.parametrize('M, q', eg_pairs)
 def test_inverse(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -144,15 +142,15 @@ def test_eye():
     assert np.allclose(nq.quat2mat(qi), np.eye(3))
 
 
-@pytest.mark.parametrize("vec", np.eye(3))
-@pytest.mark.parametrize("M, q", eg_pairs)
+@pytest.mark.parametrize('vec', np.eye(3))
+@pytest.mark.parametrize('M, q', eg_pairs)
 def test_qrotate(vec, M, q):
     vdash = nq.rotate_vector(vec, q)
     vM = np.dot(M, vec)
     assert_array_almost_equal(vdash, vM)
 
 
-@pytest.mark.parametrize("q", unit_quats)
+@pytest.mark.parametrize('q', unit_quats)
 def test_quaternion_reconstruction(q):
     # Test reconstruction of arbitrary unit quaternions
     M = nq.quat2mat(q)
@@ -160,7 +158,7 @@ def test_quaternion_reconstruction(q):
     # Accept positive or negative match
     posm = np.allclose(q, qt)
     negm = np.allclose(q, -qt)
-    assert (posm or negm)
+    assert posm or negm
 
 
 def test_angle_axis2quat():

@@ -1,17 +1,17 @@
-""" Test numerical errors introduced by writing then reading images
+"""Test numerical errors introduced by writing then reading images
 
 Test arrays with a range of numerical values, integer and floating point.
 """
 
-import numpy as np
-
 from io import BytesIO
-from .. import Nifti1Image, Nifti1Header
-from ..spatialimages import HeaderDataError, supported_np_types
-from ..arraywriters import ScalingError
-from ..casting import best_float, ulp, type_info
 
+import numpy as np
 from numpy.testing import assert_array_equal
+
+from .. import Nifti1Header, Nifti1Image
+from ..arraywriters import ScalingError
+from ..casting import best_float, type_info, ulp
+from ..spatialimages import HeaderDataError, supported_np_types
 
 DEBUG = False
 
@@ -43,7 +43,7 @@ LOGe2 = np.log(BFT(2))
 
 
 def big_bad_ulp(arr):
-    """ Return array of ulp values for values in `arr`
+    """Return array of ulp values for values in `arr`
 
     I haven't thought about whether the vectorized log2 here could lead to
     incorrect rounding; this only needs to be ballpark
@@ -70,7 +70,7 @@ def big_bad_ulp(arr):
     nzs = working_arr > 0
     fl2[nzs] = np.floor(np.log(working_arr[nzs]) / LOGe2)
     fl2 = np.clip(fl2, info['minexp'], np.inf)
-    return 2**(fl2 - info['nmant'])
+    return 2 ** (fl2 - info['nmant'])
 
 
 def test_big_bad_ulp():
@@ -80,8 +80,17 @@ def test_big_bad_ulp():
         min_ulp = 2 ** (ti['minexp'] - ti['nmant'])
         in_arr = np.zeros((10,), dtype=ftype)
         in_arr = np.array([0, 0, 1, 2, 4, 5, -5, -np.inf, np.inf], dtype=ftype)
-        out_arr = [min_ulp, min_ulp, fi.eps, fi.eps * 2, fi.eps * 4,
-                   fi.eps * 4, fi.eps * 4, np.inf, np.inf]
+        out_arr = [
+            min_ulp,
+            min_ulp,
+            fi.eps,
+            fi.eps * 2,
+            fi.eps * 4,
+            fi.eps * 4,
+            fi.eps * 4,
+            np.inf,
+            np.inf,
+        ]
         assert_array_equal(big_bad_ulp(in_arr).astype(ftype), out_arr)
 
 
@@ -158,8 +167,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         with np.errstate(over='ignore'):
             Ai = arr - scaling_type(inter)
         Ais = Ai / scaling_type(slope)
-        exp_abs_err = inting_err + inter_err + (
-            big_bad_ulp(Ai) + big_bad_ulp(Ais))
+        exp_abs_err = inting_err + inter_err + (big_bad_ulp(Ai) + big_bad_ulp(Ais))
         # Relative scaling error from calculation of slope
         # This threshold needs to be 2 x larger on windows 32 bit and PPC for
         # some reason
@@ -167,8 +175,8 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     test_vals = (abs_err <= exp_abs_err) | (rel_err <= rel_thresh)
     this_test = np.all(test_vals)
     if DEBUG:
-        abs_fails = (abs_err > exp_abs_err)
-        rel_fails = (rel_err > rel_thresh)
+        abs_fails = abs_err > exp_abs_err
+        rel_fails = rel_err > rel_thresh
         all_fails = abs_fails & rel_fails
         if np.any(rel_fails):
             abs_mx_e = abs_err[rel_fails].max()
@@ -180,14 +188,19 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
             rel_mx_e = rel_err[abs_fails].max()
         else:
             rel_mx_e = None
-        print((test_id,
-               np.dtype(in_type).str,
-               np.dtype(out_type).str,
-               exp_abs_mx_e,
-               abs_mx_e,
-               rel_thresh,
-               rel_mx_e,
-               slope, inter))
+        print(
+            (
+                test_id,
+                np.dtype(in_type).str,
+                np.dtype(out_type).str,
+                exp_abs_mx_e,
+                abs_mx_e,
+                rel_thresh,
+                rel_mx_e,
+                slope,
+                inter,
+            )
+        )
         # To help debugging failures with --pdb-failure
         np.nonzero(all_fails)
     assert this_test

@@ -1,21 +1,22 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-""" Utility routines for working with points and affine transforms
+"""Utility routines for working with points and affine transforms
 """
-import numpy as np
-
 from functools import reduce
+
+import numpy as np
 
 
 class AffineError(ValueError):
-    """ Errors in calculating or using affines """
+    """Errors in calculating or using affines"""
+
     # Inherits from ValueError to keep compatibility with ValueError previously
     # raised in append_diag
     pass
 
 
 def apply_affine(aff, pts, inplace=False):
-    """ Apply affine matrix `aff` to points `pts`
+    """Apply affine matrix `aff` to points `pts`
 
     Returns result of application of `aff` to the *right* of `pts`.  The
     coordinate dimension of `pts` should be the last.
@@ -142,7 +143,7 @@ def to_matvec(transform):
 
 
 def from_matvec(matrix, vector=None):
-    """ Combine a matrix and vector into an homogeneous affine
+    """Combine a matrix and vector into an homogeneous affine
 
     Combine a rotation / scaling / shearing matrix and translation vector into
     a transform in homogeneous coordinates.
@@ -185,14 +186,14 @@ def from_matvec(matrix, vector=None):
     nin, nout = matrix.shape
     t = np.zeros((nin + 1, nout + 1), matrix.dtype)
     t[0:nin, 0:nout] = matrix
-    t[nin, nout] = 1.
+    t[nin, nout] = 1.0
     if vector is not None:
         t[0:nin, nout] = vector
     return t
 
 
 def append_diag(aff, steps, starts=()):
-    """ Add diagonal elements `steps` and translations `starts` to affine
+    """Add diagonal elements `steps` and translations `starts` to affine
 
     Typical use is in expanding 4x4 affines to larger dimensions.  Nipy is the
     main consumer because it uses NxM affines, whereas we generally only use
@@ -236,8 +237,7 @@ def append_diag(aff, steps, starts=()):
         raise AffineError('Steps should have same length as starts')
     old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
-    aff_plus = np.zeros((old_n_out + n_steps + 1,
-                         old_n_in + n_steps + 1), dtype=aff.dtype)
+    aff_plus = np.zeros((old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=aff.dtype)
     # Get stuff from old affine
     aff_plus[:old_n_out, :old_n_in] = aff[:old_n_out, :old_n_in]
     aff_plus[:old_n_out, -1] = aff[:old_n_out, -1]
@@ -250,7 +250,7 @@ def append_diag(aff, steps, starts=()):
 
 
 def dot_reduce(*args):
-    r""" Apply numpy dot product function from right to left on arrays
+    r"""Apply numpy dot product function from right to left on arrays
 
     For passed arrays :math:`A, B, C, ... Z` returns :math:`A \dot B \dot C ...
     \dot Z` where "." is the numpy array dot product.
@@ -270,7 +270,7 @@ def dot_reduce(*args):
 
 
 def voxel_sizes(affine):
-    r""" Return voxel size for each input axis given `affine`
+    r"""Return voxel size for each input axis given `affine`
 
     The `affine` is the mapping between array (voxel) coordinates and mm
     (world) coordinates.
@@ -308,7 +308,7 @@ def voxel_sizes(affine):
         but in general has length (N-1) where input `affine` is shape (M, N).
     """
     top_left = affine[:-1, :-1]
-    return np.sqrt(np.sum(top_left ** 2, axis=0))
+    return np.sqrt(np.sum(top_left**2, axis=0))
 
 
 def obliquity(affine):
@@ -340,7 +340,7 @@ def obliquity(affine):
 
 
 def rescale_affine(affine, shape, zooms, new_shape=None):
-    """ Return a new affine matrix with updated voxel sizes (zooms)
+    """Return a new affine matrix with updated voxel sizes (zooms)
 
     This function preserves the rotations and shears of the original
     affine, as well as the RAS location of the central voxel of the

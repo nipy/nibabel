@@ -1,11 +1,12 @@
-""" Tests for ``get_nibabel_data``
+"""Tests for ``get_nibabel_data``
 """
 
 import os
-from os.path import dirname, realpath, join as pjoin, isdir
+from os.path import dirname, isdir
+from os.path import join as pjoin
+from os.path import realpath
 
 from . import nibabel_data as nibd
-
 
 MY_DIR = dirname(__file__)
 

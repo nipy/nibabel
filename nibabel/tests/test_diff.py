@@ -1,11 +1,12 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-""" Test diff
+"""Test diff
 """
 
-from os.path import (dirname, join as pjoin, abspath)
-import numpy as np
+from os.path import abspath, dirname
+from os.path import join as pjoin
 
+import numpy as np
 
 DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
 
@@ -23,25 +24,26 @@ def test_diff_values_int():
 
 
 def test_diff_values_float():
-    assert not are_values_different(0., 0.)
-    assert not are_values_different(0., 0., 0.) # can take more
+    assert not are_values_different(0.0, 0.0)
+    assert not are_values_different(0.0, 0.0, 0.0)  # can take more
     assert not are_values_different(1.1, 1.1)
-    assert are_values_different(0., 1.1)
-    assert are_values_different(0., 0, 1.1)
-    assert are_values_different(1., 2.)
+    assert are_values_different(0.0, 1.1)
+    assert are_values_different(0.0, 0, 1.1)
+    assert are_values_different(1.0, 2.0)
 
 
 def test_diff_values_mixed():
     assert are_values_different(1.0, 1)
-    assert are_values_different(1.0, "1")
-    assert are_values_different(1, "1")
+    assert are_values_different(1.0, '1')
+    assert are_values_different(1, '1')
     assert are_values_different(1, None)
     assert are_values_different(np.ndarray([0]), 'hey')
     assert not are_values_different(None, None)
 
 
 def test_diff_values_array():
-    from numpy import nan, array, inf
+    from numpy import array, inf, nan
+
     a_int = array([1, 2])
     a_float = a_int.astype(float)
 

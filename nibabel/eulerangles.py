@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Module implementing Euler angle rotations and their conversions
+"""Module implementing Euler angle rotations and their conversions
 
 See:
 
@@ -84,17 +84,15 @@ The convention of rotation around ``z``, followed by rotation around
 """
 
 import math
-
 from functools import reduce
 
 import numpy as np
-
 
 _FLOAT_EPS_4 = np.finfo(float).eps * 4.0
 
 
 def euler2mat(z=0, y=0, x=0):
-    """ Return matrix for rotations around z, y and x axes
+    """Return matrix for rotations around z, y and x axes
 
     Uses the z, then y, then x convention above
 
@@ -170,28 +168,22 @@ def euler2mat(z=0, y=0, x=0):
     if z:
         cosz = math.cos(z)
         sinz = math.sin(z)
-        Ms.append(np.array([[cosz, -sinz, 0],
-                            [sinz, cosz, 0],
-                            [0, 0, 1]]))
+        Ms.append(np.array([[cosz, -sinz, 0], [sinz, cosz, 0], [0, 0, 1]]))
     if y:
         cosy = math.cos(y)
         siny = math.sin(y)
-        Ms.append(np.array([[cosy, 0, siny],
-                            [0, 1, 0],
-                            [-siny, 0, cosy]]))
+        Ms.append(np.array([[cosy, 0, siny], [0, 1, 0], [-siny, 0, cosy]]))
     if x:
         cosx = math.cos(x)
         sinx = math.sin(x)
-        Ms.append(np.array([[1, 0, 0],
-                            [0, cosx, -sinx],
-                            [0, sinx, cosx]]))
+        Ms.append(np.array([[1, 0, 0], [0, cosx, -sinx], [0, sinx, cosx]]))
     if Ms:
         return reduce(np.dot, Ms[::-1])
     return np.eye(3)
 
 
 def mat2euler(M, cy_thresh=None):
-    """ Discover Euler angle vector from 3x3 matrix
+    """Discover Euler angle vector from 3x3 matrix
 
     Uses the conventions above.
 
@@ -264,7 +256,7 @@ def mat2euler(M, cy_thresh=None):
 
 
 def euler2quat(z=0, y=0, x=0):
-    """ Return quaternion corresponding to these Euler angles
+    """Return quaternion corresponding to these Euler angles
 
     Uses the z, then y, then x convention above
 
@@ -304,14 +296,18 @@ def euler2quat(z=0, y=0, x=0):
     sy = math.sin(y)
     cx = math.cos(x)
     sx = math.sin(x)
-    return np.array([cx * cy * cz - sx * sy * sz,
-                     cx * sy * sz + cy * cz * sx,
-                     cx * cz * sy - sx * cy * sz,
-                     cx * cy * sz + sx * cz * sy])
+    return np.array(
+        [
+            cx * cy * cz - sx * sy * sz,
+            cx * sy * sz + cy * cz * sx,
+            cx * cz * sy - sx * cy * sz,
+            cx * cy * sz + sx * cz * sy,
+        ]
+    )
 
 
 def quat2euler(q):
-    """ Return Euler angles corresponding to quaternion `q`
+    """Return Euler angles corresponding to quaternion `q`
 
     Parameters
     ----------
@@ -336,11 +332,12 @@ def quat2euler(q):
     """
     # delayed import to avoid cyclic dependencies
     from . import quaternions as nq
+
     return mat2euler(nq.quat2mat(q))
 
 
 def euler2angle_axis(z=0, y=0, x=0):
-    """ Return angle, axis corresponding to these Euler angles
+    """Return angle, axis corresponding to these Euler angles
 
     Uses the z, then y, then x convention above
 
@@ -370,11 +367,12 @@ def euler2angle_axis(z=0, y=0, x=0):
     """
     # delayed import to avoid cyclic dependencies
     from . import quaternions as nq
+
     return nq.quat2angle_axis(euler2quat(z, y, x))
 
 
 def angle_axis2euler(theta, vector, is_normalized=False):
-    """ Convert angle, axis pair to Euler angles
+    """Convert angle, axis pair to Euler angles
 
     Parameters
     ----------
@@ -408,5 +406,6 @@ def angle_axis2euler(theta, vector, is_normalized=False):
     """
     # delayed import to avoid cyclic dependencies
     from . import quaternions as nq
+
     M = nq.angle_axis2mat(theta, vector, is_normalized)
     return mat2euler(M)

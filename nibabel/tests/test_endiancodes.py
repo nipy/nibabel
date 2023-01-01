@@ -6,11 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for endiancodes module """
+"""Tests for endiancodes module"""
 
 import sys
 
-from ..volumeutils import (endian_codes, native_code, swapped_code)
+from ..volumeutils import endian_codes, native_code, swapped_code
 
 
 def test_native_swapped():

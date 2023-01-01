@@ -1,4 +1,4 @@
-""" Generate mask and testing tractogram in known formats:
+"""Generate mask and testing tractogram in known formats:
 
 * mask: standard.nii.gz
 * tractogram:
@@ -6,14 +6,14 @@
     * standard.trk
 """
 import numpy as np
-import nibabel as nib
 
+import nibabel as nib
 from nibabel.streamlines import FORMATS
 from nibabel.streamlines.header import Field
 
 
 def mark_the_spot(mask):
-    """ Marks every nonzero voxel using streamlines to form a 3D 'X' inside.
+    """Marks every nonzero voxel using streamlines to form a 3D 'X' inside.
 
     Generates streamlines forming a 3D 'X' inside every nonzero voxel.
 
@@ -27,6 +27,7 @@ def mark_the_spot(mask):
     list of ndarrays
         All streamlines needed to mark every nonzero voxel in the `mask`.
     """
+
     def _gen_straight_streamline(start, end, steps=3):
         coords = []
         for s, e in zip(start, end):
@@ -57,11 +58,11 @@ if __name__ == '__main__':
     height = 5  # Sagittal
     depth = 7  # Axial
 
-    voxel_size = np.array((1., 3., 2.))
+    voxel_size = np.array((1.0, 3.0, 2.0))
 
     # Generate a random mask with voxel order RAS+.
     mask = rng.rand(width, height, depth) > 0.8
-    mask = (255*mask).astype(np.uint8)
+    mask = (255 * mask).astype(np.uint8)
 
     # Build tractogram
     streamlines = mark_the_spot(mask)
@@ -70,16 +71,18 @@ if __name__ == '__main__':
     # Build header
     affine = np.eye(4)
     affine[range(3), range(3)] = voxel_size
-    header = {Field.DIMENSIONS: (width, height, depth),
-              Field.VOXEL_SIZES: voxel_size,
-              Field.VOXEL_TO_RASMM: affine,
-              Field.VOXEL_ORDER: 'RAS'}
+    header = {
+        Field.DIMENSIONS: (width, height, depth),
+        Field.VOXEL_SIZES: voxel_size,
+        Field.VOXEL_TO_RASMM: affine,
+        Field.VOXEL_ORDER: 'RAS',
+    }
 
     # Save the standard mask.
     nii = nib.Nifti1Image(mask, affine=affine)
-    nib.save(nii, "standard.nii.gz")
+    nib.save(nii, 'standard.nii.gz')
 
     # Save the standard tractogram in every available file format.
     for ext, cls in FORMATS.items():
         tfile = cls(tractogram, header)
-        nib.streamlines.save(tfile, "standard" + ext)
+        nib.streamlines.save(tfile, 'standard' + ext)

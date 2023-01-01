@@ -17,5 +17,12 @@
    gifti
 """
 
-from .gifti import (GiftiMetaData, GiftiNVPairs, GiftiLabelTable, GiftiLabel,
-                    GiftiCoordSystem, GiftiDataArray, GiftiImage)
+from .gifti import (
+    GiftiCoordSystem,
+    GiftiDataArray,
+    GiftiImage,
+    GiftiLabel,
+    GiftiLabelTable,
+    GiftiMetaData,
+    GiftiNVPairs,
+)

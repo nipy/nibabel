@@ -179,5 +179,7 @@ def auto_attr(func):
 
 # For backwards compatibility
 setattr_on_read = deprecate_with_version(
-    message="setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr",
-    since="3.2", until="5.0")(auto_attr)
+    message='setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr',
+    since='3.2',
+    until='5.0',
+)(auto_attr)

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Defaults for images and headers
+"""Defaults for images and headers
 
 error_level is the problem level (see BatteryRunners) at which an error will be
 raised, by the batteryrunners ``log_raise`` method.  Thus a level of 0 will
@@ -32,8 +32,7 @@ logger.addHandler(logging.StreamHandler())
 
 
 class ErrorLevel:
-    """ Context manager to set log error level
-    """
+    """Context manager to set log error level"""
 
     def __init__(self, level):
         self.level = level

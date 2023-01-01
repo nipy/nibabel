@@ -1,4 +1,4 @@
-""" Process diffusion imaging parameters
+"""Process diffusion imaging parameters
 
 * ``q`` is a vector in Q space
 * ``b`` is a b value
@@ -17,14 +17,13 @@ The B matrix ``B`` is a symmetric positive semi-definite matrix.  If
 ``q_est`` is the closest q vector equivalent to the B matrix, then:
 
    B ~ (q_est . q_est.T) / norm(q_est)
-
 """
 import numpy as np
 import numpy.linalg as npl
 
 
 def B2q(B, tol=None):
-    """ Estimate q vector from input B matrix `B`
+    """Estimate q vector from input B matrix `B`
 
     We require that the input `B` is symmetric positive definite.
 
@@ -68,7 +67,7 @@ def B2q(B, tol=None):
 
 
 def nearest_pos_semi_def(B):
-    """ Least squares positive semi-definite tensor estimation
+    """Least squares positive semi-definite tensor estimation
 
     Reference: Niethammer M, San Jose Estepar R, Bouix S, Shenton M,
     Westin CF.  On diffusion tensor estimation. Conf Proc IEEE Eng Med
@@ -106,7 +105,7 @@ def nearest_pos_semi_def(B):
     lam1a, lam2a, lam3a = vals
     scalers = np.zeros((3,))
     if cardneg == 2:
-        b112 = np.max([0, lam1a + (lam2a + lam3a) / 3.])
+        b112 = np.max([0, lam1a + (lam2a + lam3a) / 3.0])
         scalers[0] = b112
     elif cardneg == 1:
         lam1b = lam1a + 0.25 * lam3a
@@ -115,10 +114,10 @@ def nearest_pos_semi_def(B):
             scalers[:2] = lam1b, lam2b
         else:  # one of the lam1b, lam2b is < 0
             if lam2b < 0:
-                b111 = np.max([0, lam1a + (lam2a + lam3a) / 3.])
+                b111 = np.max([0, lam1a + (lam2a + lam3a) / 3.0])
                 scalers[0] = b111
             if lam1b < 0:
-                b221 = np.max([0, lam2a + (lam1a + lam3a) / 3.])
+                b221 = np.max([0, lam2a + (lam1a + lam3a) / 3.0])
                 scalers[1] = b221
     # resort the scalers to match the original vecs
     scalers = scalers[np.argsort(inds)]
@@ -126,7 +125,7 @@ def nearest_pos_semi_def(B):
 
 
 def q2bg(q_vector, tol=1e-5):
-    """ Return b value and q unit vector from q vector `q_vector`
+    """Return b value and q unit vector from q vector `q_vector`
 
     Parameters
     ----------
@@ -155,5 +154,5 @@ def q2bg(q_vector, tol=1e-5):
     q_vec = np.asarray(q_vector)
     norm = np.sqrt(np.sum(q_vec * q_vec))
     if norm < tol:
-        return (0., np.zeros((3,)))
+        return (0.0, np.zeros((3,)))
     return norm, q_vec / norm

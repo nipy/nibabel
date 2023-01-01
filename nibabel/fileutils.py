@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Utilities for reading and writing to binary file formats
+"""Utilities for reading and writing to binary file formats
 """
 
 

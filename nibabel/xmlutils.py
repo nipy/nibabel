@@ -18,25 +18,25 @@ from .filebasedimages import FileBasedHeader
 
 
 class XmlSerializable:
-    """ Basic interface for serializing an object to xml"""
+    """Basic interface for serializing an object to xml"""
 
     def _to_xml_element(self):
-        """ Output should be a xml.etree.ElementTree.Element"""
+        """Output should be a xml.etree.ElementTree.Element"""
         raise NotImplementedError()
 
     def to_xml(self, enc='utf-8'):
-        """ Output should be an xml string with the given encoding.
+        """Output should be an xml string with the given encoding.
         (default: utf-8)"""
         ele = self._to_xml_element()
         return '' if ele is None else tostring(ele, enc)
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
-    """ Basic wrapper around FileBasedHeader and XmlSerializable."""
+    """Basic wrapper around FileBasedHeader and XmlSerializable."""
 
 
 class XmlParser:
-    """ Base class for defining how to parse xml-based image snippets.
+    """Base class for defining how to parse xml-based image snippets.
 
     Image-specific parsers should define:
         StartElementHandler
@@ -44,9 +44,7 @@ class XmlParser:
         CharacterDataHandler
     """
 
-    HANDLER_NAMES = ['StartElementHandler',
-                     'EndElementHandler',
-                     'CharacterDataHandler']
+    HANDLER_NAMES = ['StartElementHandler', 'EndElementHandler', 'CharacterDataHandler']
 
     def __init__(self, encoding='utf-8', buffer_size=35000000, verbose=0):
         """
@@ -96,7 +94,7 @@ class XmlParser:
         if string is not None:
             fptr = BytesIO(string)
         elif fname is not None:
-            fptr = open(fname, 'r')
+            fptr = open(fname)
 
         # store the name of the xml file in case it is needed during parsing
         self.fname = getattr(fptr, 'name', None)

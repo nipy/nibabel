@@ -6,22 +6,21 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Testing mriutils module
+"""Testing mriutils module
 """
 
 
-from numpy.testing import assert_almost_equal
 import pytest
+from numpy.testing import assert_almost_equal
 
-from ..mriutils import calculate_dwell_time, MRIError
+from ..mriutils import MRIError, calculate_dwell_time
 
 
 def test_calculate_dwell_time():
     # Test dwell time calculation
     # This tests only that the calculation does what it appears to; needs some
     # external check
-    assert_almost_equal(calculate_dwell_time(3.3, 2, 3),
-                        3.3 / (42.576 * 3.4 * 3 * 3))
+    assert_almost_equal(calculate_dwell_time(3.3, 2, 3), 3.3 / (42.576 * 3.4 * 3 * 3))
     # Echo train length of 1 is valid, but returns 0 dwell time
     assert_almost_equal(calculate_dwell_time(3.3, 1, 3), 0)
     with pytest.raises(MRIError):

@@ -6,13 +6,14 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Context manager openers for various fileobject types
+"""Context manager openers for various fileobject types
 """
 
-from bz2 import BZ2File
 import gzip
 import warnings
+from bz2 import BZ2File
 from os.path import splitext
+
 from packaging.version import Version
 
 from nibabel.optpkg import optional_package
@@ -20,6 +21,7 @@ from nibabel.optpkg import optional_package
 # is indexed_gzip present and modern?
 try:
     import indexed_gzip as igzip
+
     version = igzip.__version__
 
     HAVE_INDEXED_GZIP = True
@@ -43,11 +45,12 @@ except ImportError:
 
 
 class DeterministicGzipFile(gzip.GzipFile):
-    """ Deterministic variant of GzipFile
+    """Deterministic variant of GzipFile
 
     This writer does not add filename information to the header, and defaults
     to a modification time (``mtime``) of 0 seconds.
     """
+
     def __init__(self, filename=None, mode=None, compresslevel=9, fileobj=None, mtime=0):
         # These two guards are copied from
         # https://github.com/python/cpython/blob/6ab65c6/Lib/gzip.py#L171-L174
@@ -55,8 +58,9 @@ class DeterministicGzipFile(gzip.GzipFile):
             mode += 'b'
         if fileobj is None:
             fileobj = self.myfileobj = open(filename, mode or 'rb')
-        return super().__init__(filename="", mode=mode, compresslevel=compresslevel,
-                                fileobj=fileobj, mtime=mtime)
+        return super().__init__(
+            filename='', mode=mode, compresslevel=compresslevel, fileobj=fileobj, mtime=mtime
+        )
 
 
 def _gzip_open(filename, mode='rb', compresslevel=9, mtime=0, keep_open=False):
@@ -74,14 +78,13 @@ def _gzip_open(filename, mode='rb', compresslevel=9, mtime=0, keep_open=False):
     return gzip_file
 
 
-def _zstd_open(filename, mode="r", *, level_or_option=None, zstd_dict=None):
-    pyzstd = optional_package("pyzstd")[0]
-    return pyzstd.ZstdFile(filename, mode,
-                           level_or_option=level_or_option, zstd_dict=zstd_dict)
+def _zstd_open(filename, mode='r', *, level_or_option=None, zstd_dict=None):
+    pyzstd = optional_package('pyzstd')[0]
+    return pyzstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
 
 
 class Opener:
-    r""" Class to accept, maybe open, and context-manage file-likes / filenames
+    r"""Class to accept, maybe open, and context-manage file-likes / filenames
 
     Provides context manager to close files that the constructor opened for
     you.
@@ -107,15 +110,18 @@ class Opener:
         '.gz': gz_def,
         '.bz2': bz2_def,
         '.zst': zstd_def,
-        None: (open, ('mode', 'buffering'))  # default
+        None: (open, ('mode', 'buffering')),  # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
     #: default option for zst files
     default_zst_compresslevel = 3
-    default_level_or_option = {"rb": None, "r": None,
-                               "wb": default_zst_compresslevel,
-                               "w": default_zst_compresslevel}
+    default_level_or_option = {
+        'rb': None,
+        'r': None,
+        'wb': default_zst_compresslevel,
+        'w': default_zst_compresslevel,
+    }
     #: whether to ignore case looking for compression extensions
     compress_ext_icase = True
 
@@ -165,8 +171,7 @@ class Opener:
         return self.compress_ext_map[None]
 
     def _is_fileobj(self, obj):
-        """ Is `obj` a file-like object?
-        """
+        """Is `obj` a file-like object?"""
         return hasattr(obj, 'read') and hasattr(obj, 'write')
 
     @property
@@ -175,7 +180,7 @@ class Opener:
 
     @property
     def name(self):
-        """ Return ``self.fobj.name`` or self._name if not present
+        """Return ``self.fobj.name`` or self._name if not present
 
         self._name will be None if object was created with a fileobj, otherwise
         it will be the filename.
@@ -211,8 +216,7 @@ class Opener:
         return iter(self.fobj)
 
     def close_if_mine(self):
-        """ Close ``self.fobj`` iff we opened it in the constructor
-        """
+        """Close ``self.fobj`` iff we opened it in the constructor"""
         if self.me_opened:
             self.close()
 
@@ -224,7 +228,7 @@ class Opener:
 
 
 class ImageOpener(Opener):
-    """ Opener-type class to collect extra compressed extensions
+    """Opener-type class to collect extra compressed extensions
 
     A trivial sub-class of opener to which image classes can add extra
     extensions with custom openers, such as compressed openers.
@@ -241,5 +245,6 @@ class ImageOpener(Opener):
     that `function` accepts. These arguments must be any (unordered) subset of
     `mode`, `compresslevel`, and `buffering`.
     """
+
     # Add new extensions to this dictionary
     compress_ext_map = Opener.compress_ext_map.copy()

@@ -1,18 +1,19 @@
 import sys
+
 from packaging.version import Version
+
 from . import _version
 
 __version__ = _version.get_versions()['version']
 
 
 def _cmp(a, b):
-    """ Implementation of ``cmp`` for Python 3
-    """
+    """Implementation of ``cmp`` for Python 3"""
     return (a > b) - (a < b)
 
 
 def cmp_pkg_version(version_str, pkg_version_str=__version__):
-    """ Compare ``version_str`` to current package version
+    """Compare ``version_str`` to current package version
 
     This comparator follows `PEP-440`_ conventions for determining version
     ordering.
@@ -63,7 +64,7 @@ def cmp_pkg_version(version_str, pkg_version_str=__version__):
 
 
 def pkg_commit_hash(pkg_path=None):
-    """ Get short form of commit hash
+    """Get short form of commit hash
 
     Versioneer placed a ``_version.py`` file in the package directory. This file
     gets updated on installation or ``git archive``.
@@ -98,7 +99,7 @@ def pkg_commit_hash(pkg_path=None):
 
 
 def get_pkg_info(pkg_path):
-    """ Return dict describing the context of this package
+    """Return dict describing the context of this package
 
     Parameters
     ----------
@@ -112,6 +113,7 @@ def get_pkg_info(pkg_path):
     """
     src, hsh = pkg_commit_hash()
     import numpy
+
     return dict(
         pkg_path=pkg_path,
         commit_source=src,
@@ -119,4 +121,5 @@ def get_pkg_info(pkg_path):
         sys_version=sys.version,
         sys_executable=sys.executable,
         sys_platform=sys.platform,
-        np_version=numpy.__version__)
+        np_version=numpy.__version__,
+    )

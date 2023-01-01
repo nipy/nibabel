@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Define supported image classes and names """
+"""Define supported image classes and names"""
 
 from .analyze import AnalyzeImage
 from .brikhead import AFNIImage
@@ -15,29 +15,49 @@ from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
-from .nifti1 import Nifti1Pair, Nifti1Image
-from .nifti2 import Nifti2Pair, Nifti2Image
+from .nifti1 import Nifti1Image, Nifti1Pair
+from .nifti2 import Nifti2Image, Nifti2Pair
 from .parrec import PARRECImage
-from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
+from .spm99analyze import Spm99AnalyzeImage
 
 # Ordered by the load/save priority.
-all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
-                     Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
-                     Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                     Minc1Image, Minc2Image, MGHImage,
-                     PARRECImage, GiftiImage, AFNIImage]
+all_image_classes = [
+    Nifti1Pair,
+    Nifti1Image,
+    Nifti2Pair,
+    Cifti2Image,
+    Nifti2Image,  # Cifti2 before Nifti2
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    AnalyzeImage,
+    Minc1Image,
+    Minc2Image,
+    MGHImage,
+    PARRECImage,
+    GiftiImage,
+    AFNIImage,
+]
 
 # Image classes known to require spatial axes to be first in index ordering.
 # When adding an image class, consider whether the new class should be listed
 # here.
-KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
-                       Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                       MGHImage, PARRECImage, AFNIImage)
+KNOWN_SPATIAL_FIRST = (
+    Nifti1Pair,
+    Nifti1Image,
+    Nifti2Pair,
+    Nifti2Image,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    AnalyzeImage,
+    MGHImage,
+    PARRECImage,
+    AFNIImage,
+)
 
 
 def spatial_axes_first(img):
-    """ True if spatial image axes for `img` always precede other axes
+    """True if spatial image axes for `img` always precede other axes
 
     Parameters
     ----------

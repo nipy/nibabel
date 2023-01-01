@@ -8,13 +8,14 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-from io import StringIO
 import sys
+from io import StringIO
+
 import numpy as np
 
-from nibabel.loadsave import save
-from nibabel.cmdline.stats import main
 from nibabel import Nifti1Image
+from nibabel.cmdline.stats import main
+from nibabel.loadsave import save
 
 
 def test_volume(tmpdir, capsys):
@@ -22,13 +23,13 @@ def test_volume(tmpdir, capsys):
     mask_data[5:15, 5:15, 5:15] = 1
     img = Nifti1Image(mask_data, np.eye(4))
 
-    infile = tmpdir / "input.nii"
+    infile = tmpdir / 'input.nii'
     save(img, infile)
 
-    args = (f"{infile} --Volume")
+    args = f'{infile} --Volume'
     main(args.split())
     vol_mm3 = capsys.readouterr()
-    args = (f"{infile} --Volume --units vox")
+    args = f'{infile} --Volume --units vox'
     main(args.split())
     vol_vox = capsys.readouterr()
 

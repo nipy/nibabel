@@ -1,4 +1,4 @@
-""" Benchmarks for finite_range routine
+"""Benchmarks for finite_range routine
 
 Run benchmarks with::
 
@@ -13,13 +13,11 @@ Run this benchmark with::
 import sys
 
 import numpy as np
-
-
-from .butils import print_git_title
-
 from numpy.testing import measure
 
 from nibabel.volumeutils import finite_range  # NOQA
+
+from .butils import print_git_title
 
 
 def bench_finite_range():
@@ -28,7 +26,7 @@ def bench_finite_range():
     img_shape = (128, 128, 64, 10)
     arr = rng.normal(size=img_shape)
     sys.stdout.flush()
-    print_git_title("\nFinite range")
+    print_git_title('\nFinite range')
     mtime = measure('finite_range(arr)', repeat)
     print('%30s %6.2f' % ('float64 all finite', mtime))
     arr[:, :, :, 1] = np.nan

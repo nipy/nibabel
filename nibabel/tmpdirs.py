@@ -6,11 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Contexts for *with* statement providing temporary directories
+"""Contexts for *with* statement providing temporary directories
 """
 import os
 import shutil
-from tempfile import template, mkdtemp
+from tempfile import mkdtemp, template
 
 
 class TemporaryDirectory:
@@ -31,7 +31,7 @@ class TemporaryDirectory:
     False
     """
 
-    def __init__(self, suffix="", prefix=template, dir=None):
+    def __init__(self, suffix='', prefix=template, dir=None):
         self.name = mkdtemp(suffix, prefix, dir)
         self._closed = False
 
@@ -49,7 +49,7 @@ class TemporaryDirectory:
 
 
 class InTemporaryDirectory(TemporaryDirectory):
-    """ Create, return, and change directory to a temporary directory
+    """Create, return, and change directory to a temporary directory
 
     Notes
     ------
@@ -74,15 +74,15 @@ class InTemporaryDirectory(TemporaryDirectory):
     def __enter__(self):
         self._pwd = os.getcwd()
         os.chdir(self.name)
-        return super(InTemporaryDirectory, self).__enter__()
+        return super().__enter__()
 
     def __exit__(self, exc, value, tb):
         os.chdir(self._pwd)
-        return super(InTemporaryDirectory, self).__exit__(exc, value, tb)
+        return super().__exit__(exc, value, tb)
 
 
 class InGivenDirectory:
-    """ Change directory to given directory for duration of ``with`` block
+    """Change directory to given directory for duration of ``with`` block
 
     Useful when you want to use `InTemporaryDirectory` for the final test, but
     you are still debugging.  For example, you may want to do this in the end:
@@ -106,7 +106,7 @@ class InGivenDirectory:
     """
 
     def __init__(self, path=None):
-        """ Initialize directory context manager
+        """Initialize directory context manager
 
         Parameters
         ----------

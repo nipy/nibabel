@@ -1,16 +1,24 @@
-""" Tests for warnings context managers
+"""Tests for warnings context managers
 """
 
-import sys
 import os
+import sys
 import warnings
 
 import numpy as np
-
-from ..testing import (error_warnings, suppress_warnings,
-                       clear_and_catch_warnings, assert_allclose_safely,
-                       get_fresh_mod, assert_re_in, test_data, data_path)
 import pytest
+
+from ..testing import (
+    assert_allclose_safely,
+    assert_re_in,
+    clear_and_catch_warnings,
+    data_path,
+    error_warnings,
+    get_fresh_mod,
+    suppress_warnings,
+    test_data,
+)
+
 
 def test_assert_allclose_safely():
     # Test the safe version of allclose
@@ -114,6 +122,7 @@ def test_warn_error():
     def f():
         with error_warnings():
             raise ValueError('An error')
+
     with pytest.raises(ValueError):
         f()
 
@@ -133,33 +142,39 @@ def test_warn_ignore():
     def f():
         with suppress_warnings():
             raise ValueError('An error')
+
     with pytest.raises(ValueError):
         f()
 
-@pytest.mark.parametrize("regex, entries", [
-    [".*", ""],
-    [".*", ["any"]],
-    ["ab", "abc"],
-    # Sufficient to have one entry matching
-    ["ab", ["", "abc", "laskdjf"]],
-    # Tuples should be ok too
-    ["ab", ("", "abc", "laskdjf")],
-    # Should do match not search
-    pytest.param("ab", "cab", marks=pytest.mark.xfail),
-    pytest.param("ab$", "abc", marks=pytest.mark.xfail),
-    pytest.param("ab$", ["ddd", ""], marks=pytest.mark.xfail),
-    pytest.param("ab$", ("ddd", ""), marks=pytest.mark.xfail),
-    #Shouldn't "match" the empty list
-    pytest.param("", [], marks=pytest.mark.xfail)
-])
+
+@pytest.mark.parametrize(
+    'regex, entries',
+    [
+        ['.*', ''],
+        ['.*', ['any']],
+        ['ab', 'abc'],
+        # Sufficient to have one entry matching
+        ['ab', ['', 'abc', 'laskdjf']],
+        # Tuples should be ok too
+        ['ab', ('', 'abc', 'laskdjf')],
+        # Should do match not search
+        pytest.param('ab', 'cab', marks=pytest.mark.xfail),
+        pytest.param('ab$', 'abc', marks=pytest.mark.xfail),
+        pytest.param('ab$', ['ddd', ''], marks=pytest.mark.xfail),
+        pytest.param('ab$', ('ddd', ''), marks=pytest.mark.xfail),
+        # Shouldn't "match" the empty list
+        pytest.param('', [], marks=pytest.mark.xfail),
+    ],
+)
 def test_assert_re_in(regex, entries):
     assert_re_in(regex, entries)
 
 
 def test_test_data():
     assert test_data() == data_path
-    assert test_data() == os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                       '..', 'tests', 'data'))
+    assert test_data() == os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'tests', 'data')
+    )
     for subdir in ('nicom', 'gifti', 'externals'):
         assert test_data(subdir) == os.path.join(data_path[:-10], subdir, 'tests', 'data')
         assert os.path.exists(test_data(subdir))
@@ -171,8 +186,10 @@ def test_test_data():
 
     assert not os.path.exists(test_data(None, 'doesnotexist'))
 
-    for subdir, fname in [('gifti', 'ascii.gii'),
-                          ('nicom', '0.dcm'),
-                          ('externals', 'example_1.nc'),
-                          (None, 'empty.tck')]:
+    for subdir, fname in [
+        ('gifti', 'ascii.gii'),
+        ('nicom', '0.dcm'),
+        ('externals', 'example_1.nc'),
+        (None, 'empty.tck'),
+    ]:
         assert os.path.exists(test_data(subdir, fname))

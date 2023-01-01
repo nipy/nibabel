@@ -1,18 +1,26 @@
-""" Test casting utilities
+"""Test casting utilities
 """
 import os
-
 from platform import machine
+
 import numpy as np
-
-from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
-                       as_int, int_abs, floor_log2, able_int_type, best_float,
-                       ulp, longdouble_precision_improved)
-from ..testing import suppress_warnings
-
-from numpy.testing import (assert_array_almost_equal, assert_array_equal)
-
 import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+
+from ..casting import (
+    CastingError,
+    able_int_type,
+    as_int,
+    best_float,
+    float_to_int,
+    floor_log2,
+    int_abs,
+    int_to_float,
+    longdouble_precision_improved,
+    shared_range,
+    ulp,
+)
+from ..testing import suppress_warnings
 
 
 def test_shared_range():
@@ -45,7 +53,7 @@ def test_shared_range():
             if thresh_overflow:
                 assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
-                assert np.all((bit_bigger <= casted_mx))
+                assert np.all(bit_bigger <= casted_mx)
             if it in np.sctypes['uint']:
                 assert mn == 0
                 continue
@@ -71,7 +79,7 @@ def test_shared_range():
             if thresh_overflow:
                 assert np.all((bit_smaller == casted_mn) | (bit_smaller == imin))
             else:
-                assert np.all((bit_smaller >= casted_mn))
+                assert np.all(bit_smaller >= casted_mn)
 
 
 def test_shared_range_inputs():
@@ -148,7 +156,7 @@ def test_int_abs():
 
 def test_floor_log2():
     assert floor_log2(2**9 + 1) == 9
-    assert floor_log2(-2**9 + 1) == 8
+    assert floor_log2(-(2**9) + 1) == 8
     assert floor_log2(2) == 1
     assert floor_log2(1) == 0
     assert floor_log2(0.5) == -1
@@ -161,19 +169,20 @@ def test_floor_log2():
 def test_able_int_type():
     # The integer type cabable of containing values
     for vals, exp_out in (
-            ([0, 1], np.uint8),
-            ([0, 255], np.uint8),
-            ([-1, 1], np.int8),
-            ([0, 256], np.uint16),
-            ([-1, 128], np.int16),
-            ([0.1, 1], None),
-            ([0, 2**16], np.uint32),
-            ([-1, 2**15], np.int32),
-            ([0, 2**32], np.uint64),
-            ([-1, 2**31], np.int64),
-            ([-1, 2**64 - 1], None),
-            ([0, 2**64 - 1], np.uint64),
-            ([0, 2**64], None)):
+        ([0, 1], np.uint8),
+        ([0, 255], np.uint8),
+        ([-1, 1], np.int8),
+        ([0, 256], np.uint16),
+        ([-1, 128], np.int16),
+        ([0.1, 1], None),
+        ([0, 2**16], np.uint32),
+        ([-1, 2**15], np.int32),
+        ([0, 2**32], np.uint64),
+        ([-1, 2**31], np.int64),
+        ([-1, 2**64 - 1], None),
+        ([0, 2**64 - 1], np.uint64),
+        ([0, 2**64], None),
+    ):
         assert able_int_type(vals) == exp_out
 
 
@@ -200,7 +209,7 @@ def test_able_casting():
 
 def test_best_float():
     # Finds the most capable floating point type
-    """ most capable type will be np.longdouble except when
+    """most capable type will be np.longdouble except when
 
     * np.longdouble has float64 precision (MSVC compiled numpy)
     * machine is sparc64 (float128 very slow)
@@ -213,9 +222,11 @@ def test_best_float():
     assert end_of_ints == end_of_ints + 1
     # longdouble may have more, but not on 32 bit windows, at least
     end_of_ints = np.longdouble(2**53)
-    if (end_of_ints == (end_of_ints + 1) or  # off continuous integers
-            machine() == 'sparc64' or  # crippling slow longdouble on sparc
-            longdouble_precision_improved()):  # Windows precisions can change
+    if (
+        end_of_ints == (end_of_ints + 1)
+        or machine() == 'sparc64'  # off continuous integers
+        or longdouble_precision_improved()  # crippling slow longdouble on sparc
+    ):  # Windows precisions can change
         assert best == np.float64
     else:
         assert best == np.longdouble
@@ -224,6 +235,7 @@ def test_best_float():
 def test_longdouble_precision_improved():
     # Just check that this can only be True on windows, msvc
     from numpy.distutils.ccompiler import get_default_compiler
+
     if not (os.name == 'nt' and get_default_compiler() == 'msvc'):
         assert not longdouble_precision_improved()
 
@@ -248,8 +260,8 @@ def test_ulp():
     assert np.isnan(ulp(-np.inf))
     assert np.isnan(ulp(np.nan))
     # 0 gives subnormal smallest
-    subn64 = np.float64(2**(-1022 - 52))
-    subn32 = np.float32(2**(-126 - 23))
+    subn64 = np.float64(2 ** (-1022 - 52))
+    subn32 = np.float32(2 ** (-126 - 23))
     assert ulp(0.0) == subn64
     assert ulp(np.float64(0)) == subn64
     assert ulp(np.float32(0)) == subn32

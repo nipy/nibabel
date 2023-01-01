@@ -21,8 +21,11 @@
 """
 import warnings
 
-warnings.warn('The DICOM readers are highly experimental, unstable,'
-              ' and only work for Siemens time-series at the moment\n'
-              'Please use with caution.  We would be grateful for your '
-              'help in improving them',
-              UserWarning, stacklevel=2)
+warnings.warn(
+    'The DICOM readers are highly experimental, unstable,'
+    ' and only work for Siemens time-series at the moment\n'
+    'Please use with caution.  We would be grateful for your '
+    'help in improving them',
+    UserWarning,
+    stacklevel=2,
+)

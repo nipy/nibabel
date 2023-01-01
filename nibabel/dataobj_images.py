@@ -1,4 +1,4 @@
-""" File-based images that have data arrays
+"""File-based images that have data arrays
 
 The class:`DataObjImage` class defines an image that extends the
 :class:`FileBasedImage` by adding an array-like object, named ``dataobj``.
@@ -10,15 +10,15 @@ This can either be an actual numpy array, or an object that:
 
 import numpy as np
 
-from .filebasedimages import FileBasedImage
 from .deprecated import deprecate_with_version
+from .filebasedimages import FileBasedImage
 
 
 class DataobjImage(FileBasedImage):
-    """ Template class for images that have dataobj data stores"""
+    """Template class for images that have dataobj data stores"""
 
     def __init__(self, dataobj, header=None, extra=None, file_map=None):
-        """ Initialize dataobj image
+        """Initialize dataobj image
 
         The datobj image is a combination of (dataobj, header), with optional
         metadata in `extra`, and filename / file-like objects contained in the
@@ -38,8 +38,7 @@ class DataobjImage(FileBasedImage):
         file_map : mapping, optional
            mapping giving file information for this image format
         """
-        super(DataobjImage, self).__init__(header=header, extra=extra,
-                                           file_map=file_map)
+        super().__init__(header=header, extra=extra, file_map=file_map)
         self._dataobj = dataobj
         self._fdata_cache = None
         self._data_cache = None
@@ -48,13 +47,14 @@ class DataobjImage(FileBasedImage):
     def dataobj(self):
         return self._dataobj
 
-    @deprecate_with_version('get_data() is deprecated in favor of get_fdata(),'
-                            ' which has a more predictable return type. To '
-                            'obtain get_data() behavior going forward, use '
-                            'numpy.asanyarray(img.dataobj).',
-                            '3.0', '5.0')
+    @deprecate_with_version(
+        'get_data() is deprecated in favor of get_fdata(), which has a more predictable return '
+        'type. To obtain get_data() behavior going forward, use numpy.asanyarray(img.dataobj).',
+        '3.0',
+        '5.0',
+    )
     def get_data(self, caching='fill'):
-        """ Return image data from image with any necessary scaling applied
+        """Return image data from image with any necessary scaling applied
 
         .. WARNING::
 
@@ -203,7 +203,7 @@ class DataobjImage(FileBasedImage):
         return data
 
     def get_fdata(self, caching='fill', dtype=np.float64):
-        """ Return floating point image data with necessary scaling applied
+        """Return floating point image data with necessary scaling applied
 
         The image ``dataobj`` property can be an array proxy or an array.  An
         array proxy is an object that knows how to load the image data from
@@ -352,17 +352,19 @@ class DataobjImage(FileBasedImage):
 
     @property
     def in_memory(self):
-        """ True when any array data is in memory cache
+        """True when any array data is in memory cache
 
         There are separate caches for `get_data` reads and `get_fdata` reads.
         This property is True if either of those caches are set.
         """
-        return (isinstance(self._dataobj, np.ndarray) or
-                self._fdata_cache is not None or
-                self._data_cache is not None)
+        return (
+            isinstance(self._dataobj, np.ndarray)
+            or self._fdata_cache is not None
+            or self._data_cache is not None
+        )
 
     def uncache(self):
-        """ Delete any cached read of data from proxied data
+        """Delete any cached read of data from proxied data
 
         Remember there are two types of images:
 
@@ -399,7 +401,7 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
-        """ Class method to create image from mapping in ``file_map``
+        """Class method to create image from mapping in ``file_map``
 
         Parameters
         ----------
@@ -461,7 +463,6 @@ class DataobjImage(FileBasedImage):
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
-        return klass.from_file_map(file_map, mmap=mmap,
-                                   keep_file_open=keep_file_open)
+        return klass.from_file_map(file_map, mmap=mmap, keep_file_open=keep_file_open)
 
     load = from_filename

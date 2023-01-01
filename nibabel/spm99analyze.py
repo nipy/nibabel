@@ -6,40 +6,35 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read / write access to SPM99 version of analyze image format """
+"""Read / write access to SPM99 version of analyze image format"""
 import warnings
-import numpy as np
-
 from io import BytesIO
 
+import numpy as np
+
+from . import analyze  # module import
+from .batteryrunners import Report
+from .optpkg import optional_package
 from .spatialimages import HeaderDataError, HeaderTypeError
 
-from .batteryrunners import Report
-from . import analyze  # module import
-from .optpkg import optional_package
 have_scipy = optional_package('scipy')[1]
 
 """ Support subtle variations of SPM version of Analyze """
 header_key_dtd = analyze.header_key_dtd
 # funused1 in dime subfield is scalefactor
 image_dimension_dtd = analyze.image_dimension_dtd[:]
-image_dimension_dtd[
-    image_dimension_dtd.index(('funused1', 'f4'))
-] = ('scl_slope', 'f4')
+image_dimension_dtd[image_dimension_dtd.index(('funused1', 'f4'))] = ('scl_slope', 'f4')
 # originator text field used as image origin (translations)
 data_history_dtd = analyze.data_history_dtd[:]
-data_history_dtd[
-    data_history_dtd.index(('originator', 'S10'))
-] = ('origin', 'i2', (5,))
+data_history_dtd[data_history_dtd.index(('originator', 'S10'))] = ('origin', 'i2', (5,))
 
 # Full header numpy dtype combined across sub-fields
-header_dtype = np.dtype(header_key_dtd +
-                        image_dimension_dtd +
-                        data_history_dtd)
+header_dtype = np.dtype(header_key_dtd + image_dimension_dtd + data_history_dtd)
 
 
 class SpmAnalyzeHeader(analyze.AnalyzeHeader):
-    """ Basic scaling Spm Analyze header """
+    """Basic scaling Spm Analyze header"""
+
     # Copies of module level definitions
     template_dtype = header_dtype
 
@@ -49,13 +44,13 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        """ Create empty header binary block with given endianness """
-        hdr_data = super(SpmAnalyzeHeader, klass).default_structarr(endianness)
+        """Create empty header binary block with given endianness"""
+        hdr_data = super().default_structarr(endianness)
         hdr_data['scl_slope'] = 1
         return hdr_data
 
     def get_slope_inter(self):
-        """ Get scalefactor and intercept
+        """Get scalefactor and intercept
 
         If scalefactor is 0.0 return None to indicate no scalefactor.
         Intercept is always None because SPM99 analyze cannot store intercepts.
@@ -67,7 +62,7 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         return slope, None
 
     def set_slope_inter(self, slope, inter=None):
-        """ Set slope and / or intercept into header
+        """Set slope and / or intercept into header
 
         Set slope and intercept for image data, such that, if the image
         data is ``arr``, then the scaled image data will be ``(arr *
@@ -93,12 +88,11 @@ class SpmAnalyzeHeader(analyze.AnalyzeHeader):
         self._structarr['scl_slope'] = slope
         if inter in (None, 0) or np.isnan(inter):
             return
-        raise HeaderTypeError('Cannot set non-zero intercept '
-                              'for SPM headers')
+        raise HeaderTypeError('Cannot set non-zero intercept for SPM headers')
 
 
 class Spm99AnalyzeHeader(SpmAnalyzeHeader):
-    """ Class for SPM99 variant of basic Analyze header
+    """Class for SPM99 variant of basic Analyze header
 
     SPM99 variant adds the following to basic Analyze format:
 
@@ -107,7 +101,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
     """
 
     def get_origin_affine(self):
-        """ Get affine from header, using SPM origin field if sensible
+        """Get affine from header, using SPM origin field if sensible
 
         The default translations are got from the ``origin``
         field, if set, or from the center of the image otherwise.
@@ -146,8 +140,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         # Remember that the origin is for matlab (1-based indexing)
         origin = hdr['origin'][:3]
         dims = hdr['dim'][1:4]
-        if (np.any(origin) and
-                np.all(origin > -dims) and np.all(origin < dims * 2)):
+        if np.any(origin) and np.all(origin > -dims) and np.all(origin < dims * 2):
             origin = origin - 1
         else:
             origin = (dims - 1) / 2.0
@@ -159,7 +152,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
     get_best_affine = get_origin_affine
 
     def set_origin_from_affine(self, affine):
-        """ Set SPM origin to header from affine matrix.
+        """Set SPM origin to header from affine matrix.
 
         The ``origin`` field was read but not written by SPM99 and 2.  It was
         used for storing a central voxel coordinate, that could be used in
@@ -213,7 +206,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
     @classmethod
     def _get_checks(klass):
-        checks = super(Spm99AnalyzeHeader, klass)._get_checks()
+        checks = super()._get_checks()
         return checks + (klass._chk_origin,)
 
     @staticmethod
@@ -221,8 +214,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         rep = Report(HeaderDataError)
         origin = hdr['origin'][0:3]
         dims = hdr['dim'][1:4]
-        if (not np.any(origin) or
-                (np.all(origin > -dims) and np.all(origin < dims * 2))):
+        if not np.any(origin) or (np.all(origin > -dims) and np.all(origin < dims * 2)):
             return hdr, rep
         rep.problem_level = 20
         rep.problem_msg = 'very large origin values relative to dims'
@@ -232,19 +224,17 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
 
 
 class Spm99AnalyzeImage(analyze.AnalyzeImage):
-    """ Class for SPM99 variant of basic Analyze image
-    """
+    """Class for SPM99 variant of basic Analyze image"""
+
     header_class = Spm99AnalyzeHeader
-    files_types = (('image', '.img'),
-                   ('header', '.hdr'),
-                   ('mat', '.mat'))
+    files_types = (('image', '.img'), ('header', '.hdr'), ('mat', '.mat'))
     has_affine = True
     makeable = True
     rw = have_scipy
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
-        """ Class method to create image from mapping in ``file_map``
+        """Class method to create image from mapping in ``file_map``
 
         Parameters
         ----------
@@ -274,8 +264,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         img : Spm99AnalyzeImage instance
 
         """
-        ret = super(Spm99AnalyzeImage, klass).from_file_map(
-            file_map, mmap=mmap, keep_file_open=keep_file_open)
+        ret = super().from_file_map(file_map, mmap=mmap, keep_file_open=keep_file_open)
         try:
             matf = file_map['mat'].get_prepare_fileobj()
         except OSError:
@@ -286,12 +275,12 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         if len(contents) == 0:
             return ret
         import scipy.io as sio
+
         mats = sio.loadmat(BytesIO(contents))
         if 'mat' in mats:  # this overrides a 'M', and includes any flip
             mat = mats['mat']
             if mat.ndim > 2:
-                warnings.warn('More than one affine in "mat" matrix, '
-                              'using first')
+                warnings.warn('More than one affine in "mat" matrix, using first')
                 mat = mat[:, :, 0]
             ret._affine = mat
         elif 'M' in mats:  # the 'M' matrix does not include flips
@@ -309,7 +298,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         return ret
 
     def to_file_map(self, file_map=None, dtype=None):
-        """ Write image to `file_map` or contained ``self.file_map``
+        """Write image to `file_map` or contained ``self.file_map``
 
         Extends Analyze ``to_file_map`` method by writing ``mat`` file
 
@@ -321,11 +310,12 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         """
         if file_map is None:
             file_map = self.file_map
-        super(Spm99AnalyzeImage, self).to_file_map(file_map, dtype=dtype)
+        super().to_file_map(file_map, dtype=dtype)
         mat = self._affine
         if mat is None:
             return
         import scipy.io as sio
+
         hdr = self._header
         if hdr.default_x_flip:
             M = np.dot(np.diag([-1, 1, 1, 1]), mat)

@@ -6,16 +6,15 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Read MINC1 format images """
+"""Read MINC1 format images"""
 
 from numbers import Integral
 
 import numpy as np
 
 from .externals.netcdf import netcdf_file
-
-from .spatialimages import SpatialHeader, SpatialImage
 from .fileslice import canonical_slicers
+from .spatialimages import SpatialHeader, SpatialImage
 
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
@@ -29,18 +28,15 @@ _dt_dict = {
 
 # See
 # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
-_default_dir_cos = {
-    'xspace': [1, 0, 0],
-    'yspace': [0, 1, 0],
-    'zspace': [0, 0, 1]}
+_default_dir_cos = {'xspace': [1, 0, 0], 'yspace': [0, 1, 0], 'zspace': [0, 0, 1]}
 
 
 class MincError(Exception):
-    """ Error when reading MINC files """
+    """Error when reading MINC files"""
 
 
 class Minc1File:
-    """ Class to wrap MINC1 format opened netcdf object
+    """Class to wrap MINC1 format opened netcdf object
 
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC file, to pull out useful header
@@ -54,15 +50,13 @@ class Minc1File:
         # The code below will error with vector_dimensions.  See:
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#An_Introduction_to_NetCDF
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_dimensions
-        self._dims = [self._mincfile.variables[s]
-                      for s in self._dim_names]
+        self._dims = [self._mincfile.variables[s] for s in self._dim_names]
         # We don't currently support irregular spacing
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
         for dim in self._dims:
             if dim.spacing != b'regular__':
                 raise ValueError('Irregular spacing not supported')
-        self._spatial_dims = [name for name in self._dim_names
-                              if name.endswith('space')]
+        self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
         # the MINC standard appears to allow the following variables to
         # be undefined.
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_conversion_variables
@@ -91,10 +85,9 @@ class Minc1File:
         return self._image.data.shape
 
     def get_zooms(self):
-        """ Get real-world sizes of voxels """
+        """Get real-world sizes of voxels"""
         # zooms must be positive; but steps in MINC can be negative
-        return tuple([abs(float(dim.step)) if hasattr(dim, 'step') else 1.0
-                      for dim in self._dims])
+        return tuple(abs(float(dim.step)) if hasattr(dim, 'step') else 1.0 for dim in self._dims)
 
     def get_affine(self):
         nspatial = len(self._spatial_dims)
@@ -104,9 +97,11 @@ class Minc1File:
         dim_names = list(self._dim_names)  # for indexing in loop
         for i, name in enumerate(self._spatial_dims):
             dim = self._dims[dim_names.index(name)]
-            rot_mat[:, i] = (dim.direction_cosines
-                             if hasattr(dim, 'direction_cosines')
-                             else _default_dir_cos[name])
+            rot_mat[:, i] = (
+                dim.direction_cosines
+                if hasattr(dim, 'direction_cosines')
+                else _default_dir_cos[name]
+            )
             steps[i] = dim.step if hasattr(dim, 'step') else 1.0
             starts[i] = dim.start if hasattr(dim, 'start') else 0.0
         origin = np.dot(rot_mat, starts)
@@ -116,7 +111,7 @@ class Minc1File:
         return aff
 
     def _get_valid_range(self):
-        """ Return valid range for image data
+        """Return valid range for image data
 
         The valid range can come from the image 'valid_range' or
         image 'valid_min' and 'valid_max', or, failing that, from the
@@ -128,25 +123,23 @@ class Minc1File:
             valid_range = self._image.valid_range
         except AttributeError:
             try:
-                valid_range = [self._image.valid_min,
-                               self._image.valid_max]
+                valid_range = [self._image.valid_min, self._image.valid_max]
             except AttributeError:
                 valid_range = [info.min, info.max]
         if valid_range[0] < info.min or valid_range[1] > info.max:
-            raise ValueError('Valid range outside input '
-                             'data type range')
+            raise ValueError('Valid range outside input data type range')
         return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
-        """ Get scalar value from NetCDF scalar """
+        """Get scalar value from NetCDF scalar"""
         return var.getValue()
 
     def _get_array(self, var):
-        """ Get array from NetCDF array """
+        """Get array from NetCDF array"""
         return var.data
 
     def _normalize(self, data, sliceobj=()):
-        """ Apply scaling to image data `data` already sliced with `sliceobj`
+        """Apply scaling to image data `data` already sliced with `sliceobj`
 
         https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Pixel_values_and_real_values
 
@@ -177,8 +170,7 @@ class Minc1File:
         mx_dims = self._get_dimensions(image_max)
         mn_dims = self._get_dimensions(image_min)
         if mx_dims != mn_dims:
-            raise MincError('"image-max" and "image-min" do not have the same'
-                            'dimensions')
+            raise MincError('"image-max" and "image-min" do not have the same dimensions')
         nscales = len(mx_dims)
         if nscales > 2:
             raise MincError('More than two scaling dimensions')
@@ -202,19 +194,20 @@ class Minc1File:
             i_slicer = sliceobj[:nscales_ax]
             # Fill slicer to broadcast against sliced data; add length 1 axis
             # for each axis except int axes (which are dropped by slicing)
-            broad_part = tuple(None for s in sliceobj[ax_inds[nscales]:]
-                               if not isinstance(s, Integral))
+            broad_part = tuple(
+                None for s in sliceobj[ax_inds[nscales] :] if not isinstance(s, Integral)
+            )
             i_slicer += broad_part
             imax = self._get_array(image_max)[i_slicer]
             imin = self._get_array(image_min)[i_slicer]
         slope = (imax - imin) / (dmax - dmin)
-        inter = (imin - dmin * slope)
+        inter = imin - dmin * slope
         out_data *= slope
         out_data += inter
         return out_data
 
     def get_scaled_data(self, sliceobj=()):
-        """ Return scaled data for slice definition `sliceobj`
+        """Return scaled data for slice definition `sliceobj`
 
         Parameters
         ----------
@@ -236,7 +229,7 @@ class Minc1File:
 
 
 class MincImageArrayProxy:
-    """ MINC implementation of array proxy protocol
+    """MINC implementation of array proxy protocol
 
     The array proxy allows us to freeze the passed fileobj and
     header such that it returns the expected data array.
@@ -259,7 +252,7 @@ class MincImageArrayProxy:
         return True
 
     def __array__(self, dtype=None):
-        """ Read data from file and apply scaling, casting to ``dtype``
+        """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype is automatically determined.
 
@@ -279,39 +272,39 @@ class MincImageArrayProxy:
         return arr
 
     def __getitem__(self, sliceobj):
-        """ Read slice `sliceobj` of data from file """
+        """Read slice `sliceobj` of data from file"""
         return self.minc_file.get_scaled_data(sliceobj)
 
 
 class MincHeader(SpatialHeader):
-    """ Class to contain header for MINC formats
-    """
+    """Class to contain header for MINC formats"""
+
     # We don't use the data layout - this just in case we do later
     data_layout = 'C'
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
-        """ See Header class for an implementation we can't use """
+        """See Header class for an implementation we can't use"""
         raise NotImplementedError
 
     def data_from_fileobj(self, fileobj):
-        """ See Header class for an implementation we can't use """
+        """See Header class for an implementation we can't use"""
         raise NotImplementedError
 
 
 class Minc1Header(MincHeader):
-
     @classmethod
     def may_contain_header(klass, binaryblock):
         return binaryblock[:4] == b'CDF\x01'
 
 
 class Minc1Image(SpatialImage):
-    """ Class for MINC1 format images
+    """Class for MINC1 format images
 
     The MINC1 image class uses the default header type, rather than a specific
     MINC header type - and reads the relevant information from the MINC file on
     load.
     """
+
     header_class = Minc1Header
     _meta_sniff_len = 4
     valid_exts = ('.mnc',)

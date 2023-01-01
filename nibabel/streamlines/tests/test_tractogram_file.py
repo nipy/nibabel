@@ -1,10 +1,10 @@
-""" Test tractogramFile base class
+"""Test tractogramFile base class
 """
+
+import pytest
 
 from ..tractogram import Tractogram
 from ..tractogram_file import TractogramFile
-
-import pytest
 
 
 def test_subclassing_tractogram_file():
@@ -64,9 +64,9 @@ def test_subclassing_tractogram_file():
 
 def test_tractogram_file():
     with pytest.raises(NotImplementedError):
-        TractogramFile.is_correct_format("")
+        TractogramFile.is_correct_format('')
     with pytest.raises(NotImplementedError):
-        TractogramFile.load("")
+        TractogramFile.load('')
 
     # Testing calling the 'save' method of `TractogramFile` object.
     class DummyTractogramFile(TractogramFile):
@@ -83,4 +83,4 @@ def test_tractogram_file():
             pass
 
     with pytest.raises(NotImplementedError):
-        super(DummyTractogramFile, DummyTractogramFile(Tractogram)).save("")
+        super(DummyTractogramFile, DummyTractogramFile(Tractogram)).save('')

@@ -1,34 +1,38 @@
-""" Testing loadsave module
+"""Testing loadsave module
 """
 
-from os.path import dirname, join as pjoin
-import shutil
 import pathlib
+import shutil
+from os.path import dirname
+from os.path import join as pjoin
 
 import numpy as np
 
-from .. import (Spm99AnalyzeImage, Spm2AnalyzeImage,
-                Nifti1Pair, Nifti1Image,
-                Nifti2Pair, Nifti2Image)
-from ..loadsave import load, read_img_data, _signature_matches_extension
+from .. import (
+    Nifti1Image,
+    Nifti1Pair,
+    Nifti2Image,
+    Nifti2Pair,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+)
 from ..filebasedimages import ImageFileError
-from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
+from ..loadsave import _signature_matches_extension, load, read_img_data
 from ..openers import Opener
-from ..testing import expires
-
 from ..optpkg import optional_package
+from ..testing import expires
+from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
+
 _, have_scipy, _ = optional_package('scipy')
 _, have_pyzstd, _ = optional_package('pyzstd')
 
-from numpy.testing import (assert_almost_equal,
-                           assert_array_equal)
-
 import pytest
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 data_path = pjoin(dirname(__file__), 'data')
 
 
-@expires("5.0.0")
+@expires('5.0.0')
 def test_read_img_data():
     fnames_test = [
         'example4d.nii.gz',
@@ -36,7 +40,7 @@ def test_read_img_data():
         'minc1_1_scale.mnc',
         'minc1_4d.mnc',
         'test.mgz',
-        'tiny.mnc'
+        'tiny.mnc',
     ]
     fnames_test += [pathlib.Path(p) for p in fnames_test]
     for fname in fnames_test:
@@ -78,51 +82,51 @@ def test_load_empty_image():
     assert str(err.value).startswith('Empty file: ')
 
 
-@pytest.mark.parametrize("extension", [".gz", ".bz2", ".zst"])
+@pytest.mark.parametrize('extension', ['.gz', '.bz2', '.zst'])
 def test_load_bad_compressed_extension(tmp_path, extension):
-    if extension == ".zst" and not have_pyzstd:
+    if extension == '.zst' and not have_pyzstd:
         pytest.skip()
-    file_path = tmp_path / f"img.nii{extension}"
-    file_path.write_bytes(b"bad")
-    with pytest.raises(ImageFileError, match=".*is not a .* file"):
+    file_path = tmp_path / f'img.nii{extension}'
+    file_path.write_bytes(b'bad')
+    with pytest.raises(ImageFileError, match='.*is not a .* file'):
         load(file_path)
 
 
-@pytest.mark.parametrize("extension", [".gz", ".bz2", ".zst"])
+@pytest.mark.parametrize('extension', ['.gz', '.bz2', '.zst'])
 def test_load_good_extension_with_bad_data(tmp_path, extension):
-    if extension == ".zst" and not have_pyzstd:
+    if extension == '.zst' and not have_pyzstd:
         pytest.skip()
-    file_path = tmp_path / f"img.nii{extension}"
-    with Opener(file_path, "wb") as fobj:
-        fobj.write(b"bad")
-    with pytest.raises(ImageFileError, match="Cannot work out file type of .*"):
+    file_path = tmp_path / f'img.nii{extension}'
+    with Opener(file_path, 'wb') as fobj:
+        fobj.write(b'bad')
+    with pytest.raises(ImageFileError, match='Cannot work out file type of .*'):
         load(file_path)
 
 
 def test_signature_matches_extension(tmp_path):
-    gz_signature = b"\x1f\x8b"
-    good_file = tmp_path / "good.gz"
+    gz_signature = b'\x1f\x8b'
+    good_file = tmp_path / 'good.gz'
     good_file.write_bytes(gz_signature)
-    bad_file = tmp_path / "bad.gz"
-    bad_file.write_bytes(b"bad")
-    matches, msg = _signature_matches_extension(tmp_path / "uncompressed.nii")
+    bad_file = tmp_path / 'bad.gz'
+    bad_file.write_bytes(b'bad')
+    matches, msg = _signature_matches_extension(tmp_path / 'uncompressed.nii')
     assert matches
-    assert msg == ""
-    matches, msg = _signature_matches_extension(tmp_path / "missing.gz")
+    assert msg == ''
+    matches, msg = _signature_matches_extension(tmp_path / 'missing.gz')
     assert not matches
-    assert msg.startswith("Could not read")
+    assert msg.startswith('Could not read')
     matches, msg = _signature_matches_extension(bad_file)
     assert not matches
-    assert "is not a" in msg
+    assert 'is not a' in msg
     matches, msg = _signature_matches_extension(good_file)
     assert matches
-    assert msg == ""
-    matches, msg = _signature_matches_extension(tmp_path / "missing.nii")
+    assert msg == ''
+    matches, msg = _signature_matches_extension(tmp_path / 'missing.nii')
     assert matches
-    assert msg == ""
+    assert msg == ''
 
 
-@expires("5.0.0")
+@expires('5.0.0')
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)
@@ -152,8 +156,7 @@ def test_read_img_data_nifti():
             with pytest.deprecated_call():
                 assert_array_equal(data_back, read_img_data(img_back))
             # This is the same as if we loaded the image and header separately
-            hdr_fname = (img.file_map['header'].filename
-                         if 'header' in img.file_map else img_fname)
+            hdr_fname = img.file_map['header'].filename if 'header' in img.file_map else img_fname
             with open(hdr_fname, 'rb') as fobj:
                 hdr_back = img_back.header_class.from_fileobj(fobj)
             with open(img_fname, 'rb') as fobj:
@@ -182,12 +185,10 @@ def test_read_img_data_nifti():
                 new_inter = 0
             # scaled scaling comes from new parameters in header
             with pytest.deprecated_call():
-                assert np.allclose(actual_unscaled * 2.1 + new_inter,
-                                   read_img_data(img_back))
+                assert np.allclose(actual_unscaled * 2.1 + new_inter, read_img_data(img_back))
             # Unscaled array didn't change
             with pytest.deprecated_call():
-                assert_array_equal(actual_unscaled,
-                                   read_img_data(img_back, prefer='unscaled'))
+                assert_array_equal(actual_unscaled, read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
             # Delete arrays still pointing to file, so Windows can re-use
