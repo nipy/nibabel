@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/grantjenks/blue
+    rev: v0.9.1
+    hooks:
+      - id: blue
+  - repo: https://github.com/pycqa/isort
+    rev: 5.11.2
+    hooks:
+      - id: isort
