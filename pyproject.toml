@@ -83,13 +83,13 @@ nibabel = ["tests/data/*", "*/tests/data/*", "benchmarks/pytest.benchmark.ini"]
 
 [tool.blue]
 line_length = 99
-target-version = ['py37']
-extend-exclude = '''
+target-version = ["py37"]
+extend-exclude = """
 (
   _version.py
   | nibabel/externals/
 )
-'''
+"""
 
 [tool.isort]
 profile = "black"
