@@ -7,9 +7,6 @@
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
    :target: https://doi.org/10.5281/zenodo.591597
 
-.. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
-
-
 =======
 NiBabel
 =======

@@ -59,15 +59,6 @@ Release checklist
 
 * Check the copyright year in ``doc/source/conf.py``
 
-* Refresh the ``README.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
-  by running ``make refresh-readme``.
-
-  Check the output of::
-
-    rst2html.py README.rst > ~/tmp/readme.html
-
-  because this will be the output used by pypi_
-
 * Check the dependencies listed in ``nibabel/info.py`` (e.g.
   ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst`` and in
   ``requirements.txt`` and ``.travis.yml``.  They should at least match. Do

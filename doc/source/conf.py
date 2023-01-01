@@ -50,10 +50,6 @@ except ImportError:
 # We load the nibabel release info into a dict by explicit execution
 rel = run_path(os.path.join('..', '..', 'nibabel', 'info.py'))
 
-# Write long description from info
-with open('_long_description.inc', 'wt') as fobj:
-    fobj.write(rel['long_description'])
-
 # Load metadata from setup.cfg
 with open(Path("../../pyproject.toml"), 'rb') as fobj:
     pyproject = tomllib.load(fobj)
