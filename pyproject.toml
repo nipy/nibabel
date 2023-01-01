@@ -75,11 +75,8 @@ platforms = ["OS Independent"]
 provides = ["nibabel", "nisext"]
 zip-safe = false
 
-[tool.setuptools.packages]
-find = {}
-
-[tool.setuptools.package-data]
-nibabel = ["tests/data/*", "*/tests/data/*", "benchmarks/pytest.benchmark.ini"]
+[tool.setuptools.packages.find]
+include = ["nibabel*", "nisext*"]
 
 [tool.blue]
 line_length = 99
