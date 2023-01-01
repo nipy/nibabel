@@ -45,30 +45,30 @@ nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
 
 [project.optional-dependencies]
+all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
+dev = ["gitpython", "twine", "nibabel[style]"]
 dicom = ["pydicom >=1.0.0"]
 dicomfs = ["nibabel[dicom]", "pillow"]
-dev = ["gitpython", "twine"]
 doc = [
-    "matplotlib >= 1.5.3",
-    "numpydoc",
-    "sphinx ~= 5.3",
-    "texext",
-    "tomli; python_version < \"3.11\"",
+  "matplotlib >= 1.5.3",
+  "numpydoc",
+  "sphinx ~= 5.3",
+  "texext",
+  "tomli; python_version < \"3.11\"",
 ]
+doctest = ["nibabel[doc,test]"]
 minc2 = ["h5py"]
 spm = ["scipy"]
-style = ["flake8"]
+style = ["flake8", "blue", "isort"]
 test = [
-    "coverage",
-    "pytest !=5.3.4",
-    "pytest-cov",
-    "pytest-doctestplus",
-    "pytest-httpserver",
-    "pytest-xdist",
+  "coverage",
+  "pytest !=5.3.4",
+  "pytest-cov",
+  "pytest-doctestplus",
+  "pytest-httpserver",
+  "pytest-xdist",
 ]
 zstd = ["pyzstd >= 0.14.3"]
-doctest = ["nibabel[doc,test]"]
-all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
 
 [tool.setuptools]
 platforms = ["OS Independent"]
@@ -83,13 +83,13 @@ nibabel = ["tests/data/*", "*/tests/data/*", "benchmarks/pytest.benchmark.ini"]
 
 [tool.blue]
 line_length = 99
-target-version = ['py37']
-extend-exclude = '''
+target-version = ["py37"]
+extend-exclude = """
 (
   _version.py
   | nibabel/externals/
 )
-'''
+"""
 
 [tool.isort]
 profile = "black"
