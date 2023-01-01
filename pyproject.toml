@@ -45,9 +45,10 @@ nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
 
 [project.optional-dependencies]
+all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
+dev = ["gitpython", "twine", "nibabel[style]"]
 dicom = ["pydicom >=1.0.0"]
 dicomfs = ["nibabel[dicom]", "pillow"]
-dev = ["gitpython", "twine"]
 doc = [
   "matplotlib >= 1.5.3",
   "numpydoc",
@@ -55,9 +56,10 @@ doc = [
   "texext",
   "tomli; python_version < \"3.11\"",
 ]
+doctest = ["nibabel[doc,test]"]
 minc2 = ["h5py"]
 spm = ["scipy"]
-style = ["flake8"]
+style = ["flake8", "blue", "isort"]
 test = [
   "coverage",
   "pytest !=5.3.4",
@@ -67,8 +69,6 @@ test = [
   "pytest-xdist",
 ]
 zstd = ["pyzstd >= 0.14.3"]
-doctest = ["nibabel[doc,test]"]
-all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
 
 [tool.setuptools]
 platforms = ["OS Independent"]
