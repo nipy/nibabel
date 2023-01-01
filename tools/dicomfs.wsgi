@@ -128,7 +128,7 @@ class HandlerError:
 def application(environ, start_response):
     try:
         (status, c_type, output) = handler(environ)
-    except HandlerError, exc:
+    except HandlerError as exc:
         status = exc.status
         output = exc.output
         c_type = 'text/plain'
@@ -138,7 +138,7 @@ def application(environ, start_response):
         status = '500 Internal Server Error'
         output = ''.join(lines)
         c_type = 'text/plain'
-    response_headers = [('Content-Type', c_type), 
+    response_headers = [('Content-Type', c_type),
                         ('Content-Length', str(len(output)))]
     if c_type == 'image/nifti':
         response_headers.append(('Content-Disposition', 'attachment; filename=image.nii'))
@@ -191,12 +191,12 @@ def patient_date_time(patient, date_time):
     for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
-        if date_time != '%s_%s' % (s.date, s.time):
+        if date_time != '{}_{}'.format(s.date, s.time):
             continue
         study = s
         break
     if study is None:
-        raise HandlerError, ('404 Not Found', 'study not found')
+        raise HandlerError('404 Not Found', 'study not found')
     template = template_env.from_string(patient_date_time_template)
     return template.render(study=study).encode('utf-8')
 
@@ -205,12 +205,12 @@ def nifti(patient, date_time, scan):
     for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
-        if date_time != '%s_%s' % (s.date, s.time):
+        if date_time != '{}_{}'.format(s.date, s.time):
             continue
         study = s
         break
     if study is None:
-        raise HandlerError, ('404 Not Found', 'study not found')
+        raise HandlerError('404 Not Found', 'study not found')
     ser = None
     for series in s.series:
         if series.number != scan:
@@ -218,7 +218,7 @@ def nifti(patient, date_time, scan):
         ser = series
         break
     if ser is None:
-        raise HandlerError, ('404 Not Found', 'series not found')
+        raise HandlerError('404 Not Found', 'series not found')
     return ser.as_nifti()
 
 def png(patient, date_time, scan):
@@ -226,12 +226,12 @@ def png(patient, date_time, scan):
     for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
-        if date_time != '%s_%s' % (s.date, s.time):
+        if date_time != '{}_{}'.format(s.date, s.time):
             continue
         study = s
         break
     if study is None:
-        raise HandlerError, ('404 Not Found', 'study not found')
+        raise HandlerError('404 Not Found', 'study not found')
     ser = None
     for series in s.series:
         if series.number != scan:
@@ -239,7 +239,7 @@ def png(patient, date_time, scan):
         ser = series
         break
     if ser is None:
-        raise HandlerError, ('404 Not Found', 'series not found')
+        raise HandlerError('404 Not Found', 'series not found')
     index = len(ser.storage_instances) / 2
     return ser.as_png(index, True)
 
