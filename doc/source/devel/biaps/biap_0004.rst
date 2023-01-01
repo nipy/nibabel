@@ -123,7 +123,7 @@ data array.
 
 At the moment, dcmstack deals with this by wrapping the image with DICOM meta
 information in `NiftiWrapper` object : see
-https://github.com/moloney/dcmstack/blob/master/src/dcmstack/dcmmeta.py#L1185 .
+https://github.com/moloney/dcmstack/blob/d157741/src/dcmstack/dcmmeta.py#L1232.
 This object accepts a Nifti image as input, that usually contains a
 `DcmMetaExtension`, and has methods `get_meta` (to get metadata from extension),
 `split` (for taking slice specific metadata into the split parts), `meta_valid`
@@ -231,5 +231,5 @@ valid in relation to the current image.
 
 
 .. _dcmstack : https://github.com/moloney/dcmstack
-.. _DcmMetaExtension : https://github.com/moloney/dcmstack/blob/master/src/dcmstack/dcmmeta.py#L92
+.. _DcmMetaExtension : https://github.com/moloney/dcmstack/blob/d157741/src/dcmstack/dcmmeta.py#L112
 .. vim: ft=rst
