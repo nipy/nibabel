@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from subprocess import run
 
@@ -12,12 +14,12 @@ except ImportError:
 COMMIT_HASH = '$Format:%h$'
 
 
-def _cmp(a, b):
+def _cmp(a, b) -> int:
     """Implementation of ``cmp`` for Python 3"""
     return (a > b) - (a < b)
 
 
-def cmp_pkg_version(version_str, pkg_version_str=__version__):
+def cmp_pkg_version(version_str: str, pkg_version_str: str = __version__) -> int:
     """Compare ``version_str`` to current package version
 
     This comparator follows `PEP-440`_ conventions for determining version
@@ -68,7 +70,7 @@ def cmp_pkg_version(version_str, pkg_version_str=__version__):
     return _cmp(Version(version_str), Version(pkg_version_str))
 
 
-def pkg_commit_hash(pkg_path: str = None):
+def pkg_commit_hash(pkg_path: str = None) -> tuple[str, str]:
     """Get short form of commit hash
 
     In this file is a variable called COMMIT_HASH. This contains a substitution
@@ -111,7 +113,7 @@ def pkg_commit_hash(pkg_path: str = None):
     return '(none found)', '<not found>'
 
 
-def get_pkg_info(pkg_path):
+def get_pkg_info(pkg_path: str) -> dict:
     """Return dict describing the context of this package
 
     Parameters
