@@ -10,7 +10,7 @@ packages for some of the DICOM tests in nibabel.  There are also data packages
 for standard template images, and other packages for components of nipy,
 including the main nipy package.
 
-For more details on data package design, see :ref:`data-package-design`. 
+For more details on data package design, see :ref:`data-package-design`.
 
 We haven't yet made a nice automated way of downloading and installing the
 packages.  For the moment you can find packages for the data and template files
@@ -78,4 +78,3 @@ with contents::
 
    [DATA]
    c:\some\path\share\nipy
-

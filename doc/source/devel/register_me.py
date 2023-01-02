@@ -1,7 +1,7 @@
-from os.path import join as pjoin, expanduser, abspath, dirname
-import sys
 import configparser as cfp
-
+import sys
+from os.path import abspath, dirname, expanduser
+from os.path import join as pjoin
 
 if sys.platform == 'win32':
     HOME_INI = pjoin(expanduser('~'), '_dpkg', 'local.dsource')

@@ -297,4 +297,3 @@ How about the names in the proposal?  ``is_proxy``; ``unproxy=True``?
 
 
 .. vim: ft=rst
-

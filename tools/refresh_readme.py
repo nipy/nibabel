@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Refresh README.rst file from long description
+"""Refresh README.rst file from long description
 
 Should be run from nibabel root (containing setup.py)
 """

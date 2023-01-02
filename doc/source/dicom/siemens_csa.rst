@@ -12,7 +12,7 @@ header.  We'll call this the *CSA header*.
 CSA header
 ==========
 
-See this Siemens `Syngo DICOM conformance`_ statement, and a GDCM_ 
+See this Siemens `Syngo DICOM conformance`_ statement, and a GDCM_
 `Siemens header dump`_.
 
 .. _`Siemens header dump`: http://sourceforge.net/apps/mediawiki/gdcm/index.php?title=Gdcmdump#SIEMENS_CSA_Header
@@ -38,7 +38,7 @@ same format.  The fields can be of two types, CSA1 and CSA2.
 Both are always little-endian, whatever the machine endian is.
 
 The CSA2 format begins with the string 'SV10', the CSA1 format does
-not. 
+not.
 
 The code below keeps track of the position *within the CSA header
 stream*.  We'll call this ``csa_position``.  At this point (after
@@ -81,14 +81,14 @@ At this point SPM does a check, by calculating the length of this item
 If ``item_len`` is less than 0 or greater than
 ``csa_max_pos-csa_position`` (the remaining number of bytes to read in
 the whole header) then we break from the item reading loop,
-setting the value below to ''. 
+setting the value below to ''.
 
 Then we calculate ``item_len`` rounded up to the nearest 4 byte boundary
-tp get ``next_item_pos``. 
+tp get ``next_item_pos``.
 
-2. value : uint8, ``item_len``. 
+2. value : uint8, ``item_len``.
 
-We set the stream position to ``next_item_pos``. 
+We set the stream position to ``next_item_pos``.
 
 CSA2
 ====
@@ -126,10 +126,10 @@ Now there's a different length check from CSA1.  ``item_len`` is given
 just by ``xx[1]``.  If ``item_len`` > ``csa_max_pos - csa_position``
 (the remaining bytes in the header), then we just read the remaining
 bytes in the header (as above) into ``value`` below, as uint8, move the
-filepointer to the next 4 byte boundary, and give up reading. 
+filepointer to the next 4 byte boundary, and give up reading.
 
-2. value : uint8, ``item_len``. 
+2. value : uint8, ``item_len``.
 
-We set the stream position to the next 4 byte boundary. 
+We set the stream position to the next 4 byte boundary.
 
 .. include:: ../links_names.txt

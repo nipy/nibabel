@@ -41,7 +41,7 @@ From `adding nifti extensions`_:
 * 4 = NIFTI_ECODE_AFNI = AFNI header attributes: The format of the AFNI
   extension in the NIfTI-1.1 format is described at
   http://nifti.nimh.nih.gov/nifti-1/AFNIextension1/
-* 6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no  
+* 6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no
   additional structure implied
 * 8 = NIFTI_ECODE_XCEDE = XCEDE metadata:
   http://www.nbirn.net/Resources/Users/Applications/xcede/index.htm
@@ -369,7 +369,7 @@ apply to the Cartesian product of the image axis values.  For example, if the
 values of ``applies_to`` == ``['slice', 'time']``, and the slice and time axes
 in the array are lengths (6, 10) respectively, then the values apply to all
 combinations of the 6 possible values for slice indices and the 10 possible
-values for the time indices (ie apply to all 6x10=60 values).  The axis metadata 
+values for the time indices (ie apply to all 6x10=60 values).  The axis metadata
 values in this case can be:
 
 * a scalar. The value applies to every combination of (slice, time)

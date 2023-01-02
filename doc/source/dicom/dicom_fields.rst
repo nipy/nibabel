@@ -15,7 +15,7 @@ because we've covered those somewhat in :ref:`dicom-orientation`.
 Fields for ordering DICOM files into images
 ===========================================
 
-You'll see some discussion of this in :ref:`spm-dicom`. 
+You'll see some discussion of this in :ref:`spm-dicom`.
 
 Section 7.3.1: general series module
 

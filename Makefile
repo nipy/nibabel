@@ -38,7 +38,7 @@ RELEASE_VERSION ?= $(SETUPPY_VERSION)
 
 all: build
 
-build: 
+build:
 	$(PYTHON) setup.py config --noisy
 	$(PYTHON) setup.py build
 
@@ -81,6 +81,7 @@ $(WWW_DIR):
 .git-blame-ignore-revs:
 	git log --grep "\[git-blame-ignore-rev\]" --pretty=format:"# %ad - %ae - %s%n%H" \
 		> .git-blame-ignore-revs
+	echo >> .git-blame-ignore-revs
 
 #
 # Tests

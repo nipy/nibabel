@@ -4,6 +4,5 @@
 
 from nibabel.cmdline.parrec2nii import main
 
-
 if __name__ == '__main__':
     main()
