@@ -27,7 +27,6 @@ exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
 am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
-
 import os
 import re
 from copy import deepcopy

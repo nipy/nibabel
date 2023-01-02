@@ -70,7 +70,7 @@ def cmp_pkg_version(version_str: str, pkg_version_str: str = __version__) -> int
     return _cmp(Version(version_str), Version(pkg_version_str))
 
 
-def pkg_commit_hash(pkg_path: str = None) -> tuple[str, str]:
+def pkg_commit_hash(pkg_path: str | None = None) -> tuple[str, str]:
     """Get short form of commit hash
 
     In this file is a variable called COMMIT_HASH. This contains a substitution
@@ -109,7 +109,7 @@ def pkg_commit_hash(pkg_path: str = None) -> tuple[str, str]:
         cwd=pkg_path,
     )
     if proc.stdout:
-        return 'repository', proc.stdout.strip()
+        return 'repository', proc.stdout.decode().strip()
     return '(none found)', '<not found>'
 
 

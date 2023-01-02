@@ -7,8 +7,10 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read MINC1 format images"""
+from __future__ import annotations
 
 from numbers import Integral
+from typing import Type
 
 import numpy as np
 
@@ -305,11 +307,11 @@ class Minc1Image(SpatialImage):
     load.
     """
 
-    header_class = Minc1Header
-    _meta_sniff_len = 4
-    valid_exts = ('.mnc',)
-    files_types = (('image', '.mnc'),)
-    _compressed_suffixes = ('.gz', '.bz2', '.zst')
+    header_class: Type[MincHeader] = Minc1Header
+    _meta_sniff_len: int = 4
+    valid_exts: tuple[str, ...] = ('.mnc',)
+    files_types: tuple[tuple[str, str], ...] = (('image', '.mnc'),)
+    _compressed_suffixes: tuple[str, ...] = ('.gz', '.bz2', '.zst')
 
     makeable = True
     rw = False

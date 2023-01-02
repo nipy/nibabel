@@ -3,6 +3,7 @@
 Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
 """
+from __future__ import annotations
 
 import warnings
 from numbers import Integral
@@ -110,7 +111,7 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
 
 
 # Cache range values
-_SHARED_RANGES = {}
+_SHARED_RANGES: dict[tuple[type, type], tuple[np.number, np.number]] = {}
 
 
 def shared_range(flt_type, int_type):

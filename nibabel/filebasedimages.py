@@ -7,9 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Common interface for any image format--volume or surface, binary or xml."""
+from __future__ import annotations
 
 import io
 from copy import deepcopy
+from typing import Type
 from urllib import request
 
 from .fileholders import FileHolder
@@ -144,14 +146,14 @@ class FileBasedImage:
     work.
     """
 
-    header_class = FileBasedHeader
-    _meta_sniff_len = 0
-    files_types = (('image', None),)
-    valid_exts = ()
-    _compressed_suffixes = ()
+    header_class: Type[FileBasedHeader] = FileBasedHeader
+    _meta_sniff_len: int = 0
+    files_types: tuple[tuple[str, str | None], ...] = (('image', None),)
+    valid_exts: tuple[str, ...] = ()
+    _compressed_suffixes: tuple[str, ...] = ()
 
-    makeable = True  # Used in test code
-    rw = True  # Used in test code
+    makeable: bool = True  # Used in test code
+    rw: bool = True  # Used in test code
 
     def __init__(self, header=None, extra=None, file_map=None):
         """Initialize image

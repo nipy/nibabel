@@ -274,7 +274,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             contents = matf.read()
         if len(contents) == 0:
             return ret
-        import scipy.io as sio
+        import scipy.io as sio  # type: ignore
 
         mats = sio.loadmat(BytesIO(contents))
         if 'mat' in mats:  # this overrides a 'M', and includes any flip

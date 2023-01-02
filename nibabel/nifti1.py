@@ -10,8 +10,11 @@
 
 NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 """
+from __future__ import annotations
+
 import warnings
 from io import BytesIO
+from typing import Type
 
 import numpy as np
 import numpy.linalg as npl
@@ -87,8 +90,8 @@ header_dtype = np.dtype(header_dtd)
 # datatypes not in analyze format, with codes
 if have_binary128():
     # Only enable 128 bit floats if we really have IEEE binary 128 longdoubles
-    _float128t = np.longdouble
-    _complex256t = np.longcomplex
+    _float128t: Type[np.generic] = np.longdouble
+    _complex256t: Type[np.generic] = np.longcomplex
 else:
     _float128t = np.void
     _complex256t = np.void
@@ -1814,7 +1817,7 @@ class Nifti1PairHeader(Nifti1Header):
 class Nifti1Pair(analyze.AnalyzeImage):
     """Class for NIfTI1 format image, header pair"""
 
-    header_class = Nifti1PairHeader
+    header_class: Type[Nifti1Header] = Nifti1PairHeader
     _meta_sniff_len = header_class.sizeof_hdr
     rw = True
 
@@ -1848,9 +1851,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
             self._affine2header()
 
     # Copy docstring
-    __init__.__doc__ = (
-        analyze.AnalyzeImage.__init__.__doc__
-        + """
+    __init__.__doc__ = f"""{analyze.AnalyzeImage.__init__.__doc__}
         Notes
         -----
 
@@ -1863,7 +1864,6 @@ class Nifti1Pair(analyze.AnalyzeImage):
         :meth:`set_qform` methods can be used to update the codes after an image
         has been created - see those methods, and the :ref:`manual
         <default-sform-qform-codes>` for more details.  """
-    )
 
     def update_header(self):
         """Harmonize header with image data and affine

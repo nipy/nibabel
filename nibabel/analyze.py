@@ -81,6 +81,9 @@ zooms, in particular, negative X zooms.  We did not do this because the image
 can be loaded with and without a default flip, so the saved zoom will not
 constrain the affine.
 """
+from __future__ import annotations
+
+from typing import Type
 
 import numpy as np
 
@@ -88,7 +91,7 @@ from .arrayproxy import ArrayProxy
 from .arraywriters import ArrayWriter, WriterError, get_slope_inter, make_array_writer
 from .batteryrunners import Report
 from .fileholders import copy_file_map
-from .spatialimages import HeaderDataError, HeaderTypeError, SpatialImage
+from .spatialimages import HeaderDataError, HeaderTypeError, SpatialHeader, SpatialImage
 from .volumeutils import (
     apply_read_scaling,
     array_from_file,
@@ -131,7 +134,7 @@ image_dimension_dtd = [
     ('glmax', 'i4'),
     ('glmin', 'i4'),
 ]
-data_history_dtd = [
+data_history_dtd: list[tuple[str, str] | tuple[str, str, tuple[int, ...]]] = [
     ('descrip', 'S80'),
     ('aux_file', 'S24'),
     ('orient', 'S1'),
@@ -172,7 +175,7 @@ _dtdefs = (  # code, conversion function, equivalent dtype, aliases
 data_type_codes = make_dt_codes(_dtdefs)
 
 
-class AnalyzeHeader(LabeledWrapStruct):
+class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
     """Class for basic analyze header
 
     Implements zoom-only setting of affine transform, and no image
@@ -892,11 +895,11 @@ class AnalyzeHeader(LabeledWrapStruct):
 class AnalyzeImage(SpatialImage):
     """Class for basic Analyze format image"""
 
-    header_class = AnalyzeHeader
+    header_class: Type[AnalyzeHeader] = AnalyzeHeader
     _meta_sniff_len = header_class.sizeof_hdr
-    files_types = (('image', '.img'), ('header', '.hdr'))
-    valid_exts = ('.img', '.hdr')
-    _compressed_suffixes = ('.gz', '.bz2', '.zst')
+    files_types: tuple[tuple[str, str], ...] = (('image', '.img'), ('header', '.hdr'))
+    valid_exts: tuple[str, ...] = ('.img', '.hdr')
+    _compressed_suffixes: tuple[str, ...] = ('.gz', '.bz2', '.zst')
 
     makeable = True
     rw = True

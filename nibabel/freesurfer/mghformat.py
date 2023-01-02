@@ -21,7 +21,7 @@ from ..filebasedimages import SerializableImage
 from ..fileholders import FileHolder
 from ..filename_parser import _stringify_path
 from ..openers import ImageOpener
-from ..spatialimages import HeaderDataError, SpatialImage
+from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
 from ..volumeutils import Recoder, array_from_file, array_to_file, endian_codes
 from ..wrapstruct import LabeledWrapStruct
 
@@ -87,7 +87,7 @@ class MGHError(Exception):
     """
 
 
-class MGHHeader(LabeledWrapStruct):
+class MGHHeader(LabeledWrapStruct, SpatialHeader):
     """Class for MGH format header
 
     The header also consists of the footer data which MGH places after the data

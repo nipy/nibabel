@@ -20,7 +20,7 @@ from nibabel.optpkg import optional_package
 
 # is indexed_gzip present and modern?
 try:
-    import indexed_gzip as igzip
+    import indexed_gzip as igzip  # type: ignore
 
     version = igzip.__version__
 

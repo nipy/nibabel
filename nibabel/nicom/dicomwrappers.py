@@ -127,8 +127,6 @@ class Wrapper:
     is_multiframe = False
     b_matrix = None
     q_vector = None
-    b_value = None
-    b_vector = None
 
     def __init__(self, dcm_data):
         """Initialize wrapper
