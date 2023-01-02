@@ -3,5 +3,3 @@ include Changelog TODO requirements.txt
 recursive-include doc *
 recursive-include bin *
 recursive-include tools *
-include versioneer.py
-include nibabel/_version.py
