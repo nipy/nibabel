@@ -10,6 +10,19 @@
 """
 import os
 import tempfile
+from contextlib import contextmanager
+
+try:
+    from contextlib import chdir as _chdir
+except ImportError:  # PY310
+
+    @contextmanager
+    def _chdir(path):
+        cwd = os.getcwd()
+        os.chdir(path)
+        yield
+        os.chdir(cwd)
+
 
 from .deprecated import deprecate_with_version
 
@@ -42,7 +55,8 @@ class TemporaryDirectory(tempfile.TemporaryDirectory):
         return super().__init__(suffix, prefix, dir)
 
 
-class InTemporaryDirectory(tempfile.TemporaryDirectory):
+@contextmanager
+def InTemporaryDirectory():
     """Create, return, and change directory to a temporary directory
 
     Notes
@@ -65,18 +79,12 @@ class InTemporaryDirectory(tempfile.TemporaryDirectory):
     >>> os.getcwd() == my_cwd
     True
     """
-
-    def __enter__(self):
-        self._pwd = os.getcwd()
-        os.chdir(self.name)
-        return super().__enter__()
-
-    def __exit__(self, exc, value, tb):
-        os.chdir(self._pwd)
-        return super().__exit__(exc, value, tb)
+    with tempfile.TemporaryDirectory() as tmpdir, _chdir(tmpdir):
+        yield tmpdir
 
 
-class InGivenDirectory:
+@contextmanager
+def InGivenDirectory(path=None):
     """Change directory to given directory for duration of ``with`` block
 
     Useful when you want to use `InTemporaryDirectory` for the final test, but
@@ -98,27 +106,15 @@ class InGivenDirectory:
     You can then look at the temporary file outputs to debug what is happening,
     fix, and finally replace ``InGivenDirectory`` with ``InTemporaryDirectory``
     again.
+
+    Parameters
+    ----------
+    path : None or str, optional
+        path to change directory to, for duration of ``with`` block.
+        Defaults to ``os.getcwd()`` if None
     """
-
-    def __init__(self, path=None):
-        """Initialize directory context manager
-
-        Parameters
-        ----------
-        path : None or str, optional
-            path to change directory to, for duration of ``with`` block.
-            Defaults to ``os.getcwd()`` if None
-        """
-        if path is None:
-            path = os.getcwd()
-        self.path = os.path.abspath(path)
-
-    def __enter__(self):
-        self._pwd = os.path.abspath(os.getcwd())
-        if not os.path.isdir(self.path):
-            os.mkdir(self.path)
-        os.chdir(self.path)
-        return self.path
-
-    def __exit__(self, exc, value, tb):
-        os.chdir(self._pwd)
+    if path is None:
+        path = os.getcwd()
+    os.makedirs(path, exist_ok=True)
+    with _chdir(path):
+        yield os.path.abspath(path)
