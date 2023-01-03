@@ -9,46 +9,40 @@
 """Contexts for *with* statement providing temporary directories
 """
 import os
-import shutil
-from tempfile import mkdtemp, template
+import tempfile
+
+from .deprecated import deprecate_with_version
 
 
-class TemporaryDirectory:
+class TemporaryDirectory(tempfile.TemporaryDirectory):
     """Create and return a temporary directory.  This has the same
     behavior as mkdtemp but can be used as a context manager.
 
     Upon exiting the context, the directory and everything contained
     in it are removed.
-
-    Examples
-    --------
-    >>> import os
-    >>> with TemporaryDirectory() as tmpdir:
-    ...     fname = os.path.join(tmpdir, 'example_file.txt')
-    ...     with open(fname, 'wt') as fobj:
-    ...         _ = fobj.write('a string\\n')
-    >>> os.path.exists(tmpdir)
-    False
     """
 
-    def __init__(self, suffix='', prefix=template, dir=None):
-        self.name = mkdtemp(suffix, prefix, dir)
-        self._closed = False
+    @deprecate_with_version(
+        'Please use the standard library tempfile.TemporaryDirectory',
+        '5.0',
+        '7.0',
+    )
+    def __init__(self, suffix='', prefix=tempfile.template, dir=None):
+        """
+        Examples
+        --------
+        >>> import os
+        >>> with TemporaryDirectory() as tmpdir:
+        ...     fname = os.path.join(tmpdir, 'example_file.txt')
+        ...     with open(fname, 'wt') as fobj:
+        ...         _ = fobj.write('a string\\n')
+        >>> os.path.exists(tmpdir)
+        False
+        """
+        return super().__init__(suffix, prefix, dir)
 
-    def __enter__(self):
-        return self.name
 
-    def cleanup(self):
-        if not self._closed:
-            shutil.rmtree(self.name)
-            self._closed = True
-
-    def __exit__(self, exc, value, tb):
-        self.cleanup()
-        return False
-
-
-class InTemporaryDirectory(TemporaryDirectory):
+class InTemporaryDirectory(tempfile.TemporaryDirectory):
     """Create, return, and change directory to a temporary directory
 
     Notes
@@ -60,9 +54,10 @@ class InTemporaryDirectory(TemporaryDirectory):
     Examples
     --------
     >>> import os
+    >>> from pathlib import Path
     >>> my_cwd = os.getcwd()
     >>> with InTemporaryDirectory() as tmpdir:
-    ...     _ = open('test.txt', 'wt').write('some text')
+    ...     _ = Path('test.txt').write_text('some text')
     ...     assert os.path.isfile('test.txt')
     ...     assert os.path.isfile(os.path.join(tmpdir, 'test.txt'))
     >>> os.path.exists(tmpdir)
