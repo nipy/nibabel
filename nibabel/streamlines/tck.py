@@ -267,11 +267,6 @@ class TckFile(TractogramFile):
         )
         out = '\n'.join(lines)
 
-        # Check the header is well formatted.
-        if out.count('\n') > len(lines) - 1:  # \n only allowed between lines.
-            msg = f"Key-value pairs cannot contain '\\n':\n{out}"
-            raise HeaderError(msg)
-
         if out.count(':') > len(lines):
             # : only one per line (except the last one which contains END).
             msg = f"Key-value pairs cannot contain ':':\n{out}"

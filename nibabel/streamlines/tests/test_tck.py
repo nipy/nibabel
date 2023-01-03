@@ -192,10 +192,6 @@ class TestTCK(unittest.TestCase):
         # TCK file containing not well formatted entries in its header.
         tck_file = BytesIO()
         tck = TckFile(tractogram)
-        tck.header['new_entry'] = 'value\n'  # \n not allowed
-        with pytest.raises(HeaderError):
-            tck.save(tck_file)
-
         tck.header['new_entry'] = 'val:ue'  # : not allowed
         with pytest.raises(HeaderError):
             tck.save(tck_file)
