@@ -35,6 +35,7 @@ from nibabel.nifti1 import (
     slice_order_codes,
 )
 from nibabel.optpkg import optional_package
+from nibabel.pkg_info import cmp_pkg_version
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
 
@@ -766,16 +767,21 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
     image_class = Nifti1Pair
     supported_np_types = TestNifti1PairHeader.supported_np_types
 
-    def test_int64_warning(self):
+    def test_int64_warning_or_error(self):
         # Verify that initializing with (u)int64 data and no
-        # header/dtype info produces a warning
+        # header/dtype info produces a warning/error
         img_klass = self.image_class
         hdr_klass = img_klass.header_class
         for dtype in (np.int64, np.uint64):
             data = np.arange(24, dtype=dtype).reshape((2, 3, 4))
-            with pytest.warns(FutureWarning):
+            # Starts as a warning, transitions to error at 5.0
+            if cmp_pkg_version('5.0') < 0:
+                cm = pytest.raises(ValueError)
+            else:
+                cm = pytest.warns(FutureWarning)
+            with cm:
                 img_klass(data, np.eye(4))
-            # No warnings if we're explicit, though
+            # No problems if we're explicit, though
             with clear_and_catch_warnings():
                 warnings.simplefilter('error')
                 img_klass(data, np.eye(4), dtype=dtype)
