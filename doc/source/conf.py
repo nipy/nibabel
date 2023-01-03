@@ -94,7 +94,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'NiBabel'
-copyright = f"2006-2022, {authors['name']} <{authors['email']}>"
+copyright = f"2006-2023, {authors['name']} <{authors['email']}>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
