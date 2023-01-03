@@ -57,7 +57,7 @@ if __name__ == '__main__':
         from runpy import run_path
 
         try:
-            source_version = run_path(version_file)['get_versions']()['version']
+            source_version = run_path(version_file)['version']
         except (FileNotFoundError, KeyError):
             pass
         if source_version == '0+unknown':
