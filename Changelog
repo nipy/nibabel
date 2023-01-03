@@ -652,8 +652,8 @@ Enhancements
 
 Bug fixes
 ---------
-* Preserve first point of `LazyTractogram` (pr/588) (MC, reviewed by Nil
-  Goyette, CM, MB)
+* Preserve first point of :py:class:`~nibabel.streamlines.LazyTractogram`
+  (pr/588) (MC, reviewed by Nil Goyette, CM, MB)
 * Stop adding extraneous metadata padding (pr/593) (Jon Stutters, reviewed by
   CM, MB)
 * Accept lower-case orientation codes in TRK files (pr/600) (Kesshi Jordan,
@@ -727,7 +727,7 @@ Enhancements
 * Support for alternative header field name variants in .PAR files
   (pr/507) (Gregory R. Lee)
 * Various enhancements to streamlines API by MC: support for reading TRK
-  version 1 (pr/512); concatenation of tractograms using `+`/`+=` operators
+  version 1 (pr/512); concatenation of tractograms using ``+``/``+=`` operators
   (pr/495); function to concatenate multiple ArraySequence objects (pr/494)
 * Support for numpy 1.12 (pr/500, pr/502) (MC, MB)
 * Allow dtype specifiers as fileslice input (pr/485) (MB)
@@ -807,7 +807,7 @@ Enhancements
   (Brendan Moloney);
 * More explicit error when trying to read image from non-existent file
   (pr/455) (Ariel Rokem);
-* Extension to `nib-ls` command to show image statistics (pr/437) and other
+* Extension to ``nib-ls`` command to show image statistics (pr/437) and other
   header files (pr/348) (Yarik Halchenko).
 
 Bug fixes
@@ -1100,7 +1100,7 @@ Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 * ``parrec2nii`` script to convert PAR/REC images to NIfTI format (MH)
 * Very preliminary, limited and highly experimental DICOM reading support (MB,
   Ian Nimmo Smith).
-* Some functions (`nibabel.funcs`) for basic image shape changes, including
+* Some functions (:py:mod:`nibabel.funcs`) for basic image shape changes, including
   the ability to transform to the image with data closest to the cononical
   image orientation (first axis left-to-right, second back-to-front, third
   down-to-up) (MB, Jonathan Taylor)
@@ -1143,7 +1143,7 @@ visiting the URL::
 * Bugfix: Removed left-over print statement in extension code.
 * Bugfix: Prevent saving of bogus 'None.nii' images when the filename
   was previously assign, before calling NiftiImage.save() (Closes: #517920).
-* Bugfix: Extension length was to short for all `edata` whose length matches
+* Bugfix: Extension length was to short for all ``edata`` whose length matches
   n*16-8, for all integer n.
 
 0.20090205.1 (Thu, 5 Feb 2009)
@@ -1152,13 +1152,13 @@ visiting the URL::
 * This release is the first in a series that aims stabilize the API and
   finally result in PyNIfTI 1.0 with full support of the NIfTI1 standard.
 * The whole package was restructured. The included renaming
-  `nifti.nifti(image,format,clibs)` to `nifti.(image,format,clibs)`. Redirect
+  ``nifti.nifti(image,format,clibs)`` to ``nifti.(image,format,clibs)``. Redirect
   modules make sure that existing user code will not break, but they will
   issue a DeprecationWarning and will be removed with the release of PyNIfTI
   1.0.
 * Added a special extension that can embed any serializable Python object
   into the NIfTI file header. The contents of this extension is
-  automatically expanded upon request into the `.meta` attribute of each
+  automatically expanded upon request into the ``.meta`` attribute of each
   NiftiImage. When saving files to disk the content of the dictionary is also
   automatically dumped into this extension.
   Embedded meta data is not loaded automatically, since this has security
@@ -1173,11 +1173,11 @@ visiting the URL::
 * Added methods :meth:`~nifti.format.NiftiFormat.vx2q` and
   :meth:`~nifti.format.NiftiFormat.vx2s` to convert voxel indices into
   coordinates defined by qform or sform respectively.
-* Updating the `cal_min` and `cal_max` values in the NIfTI header when
+* Updating the ``cal_min`` and ``cal_max`` values in the NIfTI header when
   saving a file is now conditional, but remains enabled by default.
 * Full set of methods to query and modify axis units. This includes
-  expanding the previous `xyzt_units` field in the header dictionary into
-  editable `xyz_unit` and `time_unit` fields. The former `xyzt_units` field
+  expanding the previous ``xyzt_units`` field in the header dictionary into
+  editable ``xyz_unit`` and ``time_unit`` fields. The former ``xyzt_units`` field
   is no longer available. See:
   :meth:`~nifti.format.NiftiFormat.getXYZUnit`,
   :meth:`~nifti.format.NiftiFormat.setXYZUnit`,
@@ -1193,19 +1193,19 @@ visiting the URL::
   :attr:`~nifti.format.NiftiFormat.qform_code`,
   :attr:`~nifti.format.NiftiFormat.sform_code`
 * Each image instance is now able to generate a human-readable dump of its
-  most important header information via `__str__()`.
+  most important header information via ``__str__()``.
 * :class:`~nifti.image.NiftiImage` objects can now be pickled.
 * Switched to NumPy's distutils for building the package. Cleaned and
   simplified the build procedure. Added optimization flags to SWIG call.
 * :attr:`nifti.image.NiftiImage.filename` can now also be used to assign a
   filename.
 * Introduced :data:`nifti.__version__` as canonical version string.
-* Removed `updateQFormFromQuarternion()` from the list of public methods of
+* Removed ``updateQFormFromQuarternion()`` from the list of public methods of
   :class:`~nifti.format.NiftiFormat`. This is an internal method that
   should not be used in user code. However, a redirect to the new method
   will remain in-place until PyNIfTI 1.0.
 * Bugfix: :meth:`~nifti.image.NiftiImage.getScaledData` returns a
-  unmodified data array if `slope` is set to zero (as required by the NIfTI
+  unmodified data array if ``slope`` is set to zero (as required by the NIfTI
   standard). Thanks to Thomas Ross for reporting.
 * Bugfix: Unicode filenames are now handled properly, as long as they do not
   contain pure-unicode characters (since the NIfTI library does not support
@@ -1259,9 +1259,9 @@ visiting the URL::
   Thyreau for reporting.
 * Bugfix: setPixDims() stored meaningless values.
 * Use new NumPy API and replace deprecated function calls
-  (`PyArray_FromDimsAndData`).
+  (``PyArray_FromDimsAndData``).
 * Initial support for memory mapped access to uncompressed NIfTI files
-  (`MemMappedNiftiImage`).
+  (``MemMappedNiftiImage``).
 * Add a proper Makefile and setup.cfg for compiling PyNIfTI under Windows
   with MinGW.
 * Include a minimal copy of the most recent nifticlibs (just libniftiio and
