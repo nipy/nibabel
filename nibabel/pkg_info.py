@@ -1,18 +1,25 @@
+from __future__ import annotations
+
 import sys
+from subprocess import run
 
 from packaging.version import Version
 
-from . import _version
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = '0+unknown'
 
-__version__ = _version.get_versions()['version']
+
+COMMIT_HASH = '$Format:%h$'
 
 
-def _cmp(a, b):
+def _cmp(a, b) -> int:
     """Implementation of ``cmp`` for Python 3"""
     return (a > b) - (a < b)
 
 
-def cmp_pkg_version(version_str, pkg_version_str=__version__):
+def cmp_pkg_version(version_str: str, pkg_version_str: str = __version__) -> int:
     """Compare ``version_str`` to current package version
 
     This comparator follows `PEP-440`_ conventions for determining version
@@ -63,15 +70,20 @@ def cmp_pkg_version(version_str, pkg_version_str=__version__):
     return _cmp(Version(version_str), Version(pkg_version_str))
 
 
-def pkg_commit_hash(pkg_path=None):
+def pkg_commit_hash(pkg_path: str = None) -> tuple[str, str]:
     """Get short form of commit hash
 
-    Versioneer placed a ``_version.py`` file in the package directory. This file
-    gets updated on installation or ``git archive``.
-    We inspect the contents of ``_version`` to detect whether we are in a
-    repository, an archive of the repository, or an installed package.
+    In this file is a variable called COMMIT_HASH. This contains a substitution
+    pattern that may have been filled by the execution of ``git archive``.
 
-    If detection fails, we return a not-found placeholder tuple
+    We get the commit hash from (in order of preference):
+
+    * A substituted value in ``archive_subst_hash``
+    * A truncated commit hash value that is part of the local portion of the
+      version
+    * git's output, if we are in a git repository
+
+    If all these fail, we return a not-found placeholder tuple
 
     Parameters
     ----------
@@ -85,20 +97,23 @@ def pkg_commit_hash(pkg_path=None):
     hash_str : str
        short form of hash
     """
-    versions = _version.get_versions()
-    hash_str = versions['full-revisionid'][:7]
-    if hasattr(_version, 'version_json'):
-        hash_from = 'installation'
-    elif not _version.get_keywords()['full'].startswith('$Format:'):
-        hash_from = 'archive substitution'
-    elif versions['version'] == '0+unknown':
-        hash_from, hash_str = '(none found)', '<not found>'
-    else:
-        hash_from = 'repository'
-    return hash_from, hash_str
+    if not COMMIT_HASH.startswith('$Format'):  # it has been substituted
+        return 'archive substitution', COMMIT_HASH
+    ver = Version(__version__)
+    if ver.local is not None and ver.local.startswith('g'):
+        return ver.local[1:8], 'installation'
+    # maybe we are in a repository
+    proc = run(
+        ('git', 'rev-parse', '--short', 'HEAD'),
+        capture_output=True,
+        cwd=pkg_path,
+    )
+    if proc.stdout:
+        return 'repository', proc.stdout.strip()
+    return '(none found)', '<not found>'
 
 
-def get_pkg_info(pkg_path):
+def get_pkg_info(pkg_path: str) -> dict:
     """Return dict describing the context of this package
 
     Parameters
@@ -111,7 +126,7 @@ def get_pkg_info(pkg_path):
     context : dict
        with named parameters of interest
     """
-    src, hsh = pkg_commit_hash()
+    src, hsh = pkg_commit_hash(pkg_path)
     import numpy
 
     return dict(

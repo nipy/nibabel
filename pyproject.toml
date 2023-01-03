@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["setuptools", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "nibabel"
@@ -24,7 +24,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Topic :: Scientific/Engineering",
 ]
-# Version from versioneer
+# Version from setuptools_scm
 dynamic = ["version"]
 
 [project.urls]
@@ -75,11 +75,8 @@ platforms = ["OS Independent"]
 provides = ["nibabel", "nisext"]
 zip-safe = false
 
-[tool.setuptools.packages]
-find = {}
-
-[tool.setuptools.package-data]
-nibabel = ["tests/data/*", "*/tests/data/*", "benchmarks/pytest.benchmark.ini"]
+[tool.setuptools.packages.find]
+include = ["nibabel*", "nisext*"]
 
 [tool.blue]
 line_length = 99
@@ -95,4 +92,7 @@ force-exclude = """
 [tool.isort]
 profile = "black"
 line_length = 99
-extend_skip = ["_version.py", "externals", "versioneer.py"]
+extend_skip = ["_version.py", "externals"]
+
+[tool.setuptools_scm]
+write_to = "nibabel/_version.py"
