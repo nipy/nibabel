@@ -15,6 +15,12 @@ MODULE_SCHEDULE = [
 
 OBJECT_SCHEDULE = [
     (
+        '8.0.0',
+        [
+            ('nibabel.tmpdirs', 'TemporaryDirectory'),
+        ],
+    ),
+    (
         '7.0.0',
         [
             ('nibabel.gifti.gifti', 'GiftiNVPairs'),
