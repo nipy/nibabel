@@ -31,6 +31,7 @@ def setup_module():
     # standard.tck contains only streamlines
     DATA['standard_tck_fname'] = pjoin(data_path, 'standard.tck')
     DATA['matlab_nan_tck_fname'] = pjoin(data_path, 'matlab_nan.tck')
+    DATA['multiline_header_fname'] = pjoin(data_path, 'multiline_header_field.tck')
 
     DATA['streamlines'] = [
         np.arange(1 * 3, dtype='f4').reshape((1, 3)),
@@ -86,6 +87,14 @@ class TestTCK(unittest.TestCase):
             streamlines = list(tck.tractogram.streamlines)
             assert len(streamlines) == 1
             assert streamlines[0].shape == (108, 3)
+
+    def test_load_multiline_header_file(self):
+        for lazy_load in [False, True]:
+            tck = TckFile.load(DATA['multiline_header_fname'], lazy_load=lazy_load)
+            streamlines = list(tck.tractogram.streamlines)
+            assert len(tck.header['command_history'].splitlines()) == 3
+            assert len(streamlines) == 1
+            assert streamlines[0].shape == (253, 3)
 
     def test_writeable_data(self):
         data = DATA['simple_tractogram']
