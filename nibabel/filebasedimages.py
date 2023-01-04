@@ -10,6 +10,8 @@
 from __future__ import annotations
 
 import io
+import os
+import typing as ty
 from copy import deepcopy
 from typing import Type
 from urllib import request
@@ -17,6 +19,10 @@ from urllib import request
 from .fileholders import FileHolder
 from .filename_parser import TypesFilenamesError, splitext_addext, types_filenames
 from .openers import ImageOpener
+
+FileSpec = ty.Union[str, os.PathLike]
+FileMap = ty.Mapping[str, FileHolder]
+FileSniff = ty.Tuple[bytes, str]
 
 
 class ImageFileError(Exception):
@@ -41,10 +47,10 @@ class FileBasedHeader:
         )
 
     @classmethod
-    def from_fileobj(klass, fileobj):
+    def from_fileobj(klass, fileobj: io.IOBase):
         raise NotImplementedError
 
-    def write_to(self, fileobj):
+    def write_to(self, fileobj: io.IOBase):
         raise NotImplementedError
 
     def __eq__(self, other):
@@ -53,7 +59,7 @@ class FileBasedHeader:
     def __ne__(self, other):
         return not self == other
 
-    def copy(self):
+    def copy(self) -> FileBasedHeader:
         """Copy object to independent representation
 
         The copy should not be affected by any changes to the original
@@ -155,7 +161,12 @@ class FileBasedImage:
     makeable: bool = True  # Used in test code
     rw: bool = True  # Used in test code
 
-    def __init__(self, header=None, extra=None, file_map=None):
+    def __init__(
+        self,
+        header: FileBasedHeader | ty.Mapping | None = None,
+        extra: ty.Mapping | None = None,
+        file_map: FileMap | None = None,
+    ):
         """Initialize image
 
         The image is a combination of (header), with
@@ -182,14 +193,14 @@ class FileBasedImage:
         self.file_map = file_map
 
     @property
-    def header(self):
+    def header(self) -> FileBasedHeader:
         return self._header
 
     def __getitem__(self, key):
         """No slicing or dictionary interface for images"""
         raise TypeError('Cannot slice image objects.')
 
-    def get_filename(self):
+    def get_filename(self) -> str | None:
         """Fetch the image filename
 
         Parameters
@@ -210,7 +221,7 @@ class FileBasedImage:
         characteristic_type = self.files_types[0][0]
         return self.file_map[characteristic_type].filename
 
-    def set_filename(self, filename):
+    def set_filename(self, filename: str):
         """Sets the files in the object from a given filename
 
         The different image formats may check whether the filename has
@@ -228,16 +239,16 @@ class FileBasedImage:
         self.file_map = self.__class__.filespec_to_file_map(filename)
 
     @classmethod
-    def from_filename(klass, filename):
+    def from_filename(klass, filename: FileSpec):
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map)
 
     @classmethod
-    def from_file_map(klass, file_map):
+    def from_file_map(klass, file_map: FileMap):
         raise NotImplementedError
 
     @classmethod
-    def filespec_to_file_map(klass, filespec):
+    def filespec_to_file_map(klass, filespec: FileSpec):
         """Make `file_map` for this class from filename `filespec`
 
         Class method
@@ -271,7 +282,7 @@ class FileBasedImage:
             file_map[key] = FileHolder(filename=fname)
         return file_map
 
-    def to_filename(self, filename, **kwargs):
+    def to_filename(self, filename: FileSpec, **kwargs):
         r"""Write image to files implied by filename string
 
         Parameters
@@ -290,11 +301,11 @@ class FileBasedImage:
         self.file_map = self.filespec_to_file_map(filename)
         self.to_file_map(**kwargs)
 
-    def to_file_map(self, file_map=None, **kwargs):
+    def to_file_map(self, file_map: FileMap | None = None, **kwargs):
         raise NotImplementedError
 
     @classmethod
-    def make_file_map(klass, mapping=None):
+    def make_file_map(klass, mapping: ty.Mapping[str, str | io.IOBase] | None = None):
         """Class method to make files holder for this image type
 
         Parameters
@@ -327,7 +338,7 @@ class FileBasedImage:
     load = from_filename
 
     @classmethod
-    def instance_to_filename(klass, img, filename):
+    def instance_to_filename(klass, img: FileBasedImage, filename: FileSpec):
         """Save `img` in our own format, to name implied by `filename`
 
         This is a class method
@@ -343,7 +354,7 @@ class FileBasedImage:
         img.to_filename(filename)
 
     @classmethod
-    def from_image(klass, img):
+    def from_image(klass, img: FileBasedImage):
         """Class method to create new instance of own class from `img`
 
         Parameters
@@ -359,7 +370,12 @@ class FileBasedImage:
         raise NotImplementedError()
 
     @classmethod
-    def _sniff_meta_for(klass, filename, sniff_nbytes, sniff=None):
+    def _sniff_meta_for(
+        klass,
+        filename: FileSpec,
+        sniff_nbytes: int,
+        sniff: FileSniff | None = None,
+    ):
         """Sniff metadata for image represented by `filename`
 
         Parameters
@@ -404,7 +420,12 @@ class FileBasedImage:
         return (binaryblock, meta_fname)
 
     @classmethod
-    def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
+    def path_maybe_image(
+        klass,
+        filename: FileSpec,
+        sniff: FileSniff | None = None,
+        sniff_max: int = 1024,
+    ):
         """Return True if `filename` may be image matching this class
 
         Parameters
@@ -547,7 +568,7 @@ class SerializableImage(FileBasedImage):
 
         Parameters
         ----------
-        bstring : bytes
+        bytestring : bytes
             Byte string containing the on-disk representation of an image
         """
         return klass.from_stream(io.BytesIO(bytestring))
@@ -571,7 +592,7 @@ class SerializableImage(FileBasedImage):
         return bio.getvalue()
 
     @classmethod
-    def from_url(klass, url, timeout=5):
+    def from_url(klass, url: str | request.Request, timeout: float = 5):
         """Retrieve and load an image from a URL
 
         Class method
