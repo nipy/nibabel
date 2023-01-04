@@ -7,17 +7,31 @@ This can either be an actual numpy array, or an object that:
 * returns an array from ``numpy.asanyarray(obj)``;
 * has an attribute or property ``shape``.
 """
+from __future__ import annotations
+
+import typing as ty
 
 import numpy as np
+import numpy.typing as npt
 
+from .arrayproxy import ArrayLike
 from .deprecated import deprecate_with_version
-from .filebasedimages import FileBasedImage
+from .filebasedimages import FileBasedHeader, FileBasedImage, FileMap, FileSpec
 
 
 class DataobjImage(FileBasedImage):
     """Template class for images that have dataobj data stores"""
 
-    def __init__(self, dataobj, header=None, extra=None, file_map=None):
+    _data_cache: np.ndarray | None
+    _fdata_cache: np.ndarray | None
+
+    def __init__(
+        self,
+        dataobj: ArrayLike,
+        header: FileBasedHeader | ty.Mapping | None = None,
+        extra: ty.Mapping | None = None,
+        file_map: FileMap | None = None,
+    ):
         """Initialize dataobj image
 
         The datobj image is a combination of (dataobj, header), with optional
@@ -40,11 +54,11 @@ class DataobjImage(FileBasedImage):
         """
         super().__init__(header=header, extra=extra, file_map=file_map)
         self._dataobj = dataobj
-        self._fdata_cache = None
         self._data_cache = None
+        self._fdata_cache = None
 
     @property
-    def dataobj(self):
+    def dataobj(self) -> ArrayLike:
         return self._dataobj
 
     @deprecate_with_version(
@@ -202,7 +216,11 @@ class DataobjImage(FileBasedImage):
             self._data_cache = data
         return data
 
-    def get_fdata(self, caching='fill', dtype=np.float64):
+    def get_fdata(
+        self,
+        caching: ty.Literal['fill', 'unchanged'] = 'fill',
+        dtype: npt.DTypeLike = np.float64,
+    ) -> np.ndarray:
         """Return floating point image data with necessary scaling applied
 
         The image ``dataobj`` property can be an array proxy or an array.  An
@@ -351,7 +369,7 @@ class DataobjImage(FileBasedImage):
         return data
 
     @property
-    def in_memory(self):
+    def in_memory(self) -> bool:
         """True when any array data is in memory cache
 
         There are separate caches for `get_data` reads and `get_fdata` reads.
@@ -363,7 +381,7 @@ class DataobjImage(FileBasedImage):
             or self._data_cache is not None
         )
 
-    def uncache(self):
+    def uncache(self) -> None:
         """Delete any cached read of data from proxied data
 
         Remember there are two types of images:
@@ -392,15 +410,21 @@ class DataobjImage(FileBasedImage):
         self._data_cache = None
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, ...]:
         return self._dataobj.shape
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
         return self._dataobj.ndim
 
     @classmethod
-    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
+    def from_file_map(
+        klass,
+        file_map: FileMap,
+        *,
+        mmap: bool | ty.Literal['c', 'r'] = True,
+        keep_file_open: bool | None = None,
+    ):
         """Class method to create image from mapping in ``file_map``
 
         Parameters
@@ -433,7 +457,13 @@ class DataobjImage(FileBasedImage):
         raise NotImplementedError
 
     @classmethod
-    def from_filename(klass, filename, *, mmap=True, keep_file_open=None):
+    def from_filename(
+        klass,
+        filename: FileSpec,
+        *,
+        mmap: bool | ty.Literal['c', 'r'] = True,
+        keep_file_open: bool | None = None,
+    ):
         """Class method to create image from filename `filename`
 
         Parameters
