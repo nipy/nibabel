@@ -622,12 +622,14 @@ class TestMultiFrameWrapper(TestCase):
         assert MFW(fake_mf).image_position.dtype == float
 
     @dicom_test
+    @pytest.mark.xfail(reason='Not packaged in install', raises=FileNotFoundError)
     def test_affine(self):
         # Make sure we find orientation/position/spacing info
         dw = didw.wrapper_from_file(DATA_FILE_4D)
         aff = dw.affine
 
     @dicom_test
+    @pytest.mark.xfail(reason='Not packaged in install', raises=FileNotFoundError)
     def test_data_real(self):
         # The data in this file is (initially) a 1D gradient so it compresses
         # well.  This just tests that the data ordering produces a consistent
