@@ -129,6 +129,9 @@ work:
     >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 """
+from __future__ import annotations
+
+from typing import Type
 
 import numpy as np
 
@@ -400,7 +403,7 @@ class SpatialFirstSlicer:
 class SpatialImage(DataobjImage):
     """Template class for volumetric (3D/4D) images"""
 
-    header_class = SpatialHeader
+    header_class: Type[SpatialHeader] = SpatialHeader
     ImageSlicer = SpatialFirstSlicer
 
     def __init__(self, dataobj, affine, header=None, extra=None, file_map=None):

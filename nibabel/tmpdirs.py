@@ -16,7 +16,7 @@ try:
     from contextlib import chdir as _chdir
 except ImportError:  # PY310
 
-    @contextmanager
+    @contextmanager  # type: ignore
     def _chdir(path):
         cwd = os.getcwd()
         os.chdir(path)

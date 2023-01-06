@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utility functions for analyze-like formats"""
+from __future__ import annotations
 
 import gzip
 import sys
@@ -29,7 +30,7 @@ sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
 swapped_code = sys_is_le and '>' or '<'
 
-endian_codes = (  # numpy code, aliases
+_endian_codes = (  # numpy code, aliases
     ('<', 'little', 'l', 'le', 'L', 'LE'),
     ('>', 'big', 'BIG', 'b', 'be', 'B', 'BE'),
     (native_code, 'native', 'n', 'N', '=', '|', 'i', 'I'),
@@ -41,7 +42,7 @@ endian_codes = (  # numpy code, aliases
 default_compresslevel = 1
 
 #: file-like classes known to hold compressed data
-COMPRESSED_FILE_LIKES = (gzip.GzipFile, BZ2File, IndexedGzipFile)
+COMPRESSED_FILE_LIKES: tuple[type, ...] = (gzip.GzipFile, BZ2File, IndexedGzipFile)
 
 # Enable .zst support if pyzstd installed.
 if HAVE_ZSTD:
@@ -220,7 +221,7 @@ class Recoder:
 
 
 # Endian code aliases
-endian_codes = Recoder(endian_codes)
+endian_codes = Recoder(_endian_codes)
 
 
 class DtypeMapper:

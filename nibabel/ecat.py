@@ -50,7 +50,7 @@ import numpy as np
 
 from .arraywriters import make_array_writer
 from .fileslice import canonical_slicers, predict_shape, slice2outax
-from .spatialimages import SpatialImage
+from .spatialimages import SpatialHeader, SpatialImage
 from .volumeutils import array_from_file, make_dt_codes, native_code, swapped_code
 from .wrapstruct import WrapStruct
 
@@ -243,7 +243,7 @@ patient_orient_radiological = [0, 2, 4, 6]
 patient_orient_neurological = [1, 3, 5, 7]
 
 
-class EcatHeader(WrapStruct):
+class EcatHeader(WrapStruct, SpatialHeader):
     """Class for basic Ecat PET header
 
     Sub-parts of standard Ecat File

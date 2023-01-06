@@ -11,10 +11,12 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
+from __future__ import annotations
 
 import base64
 import sys
 import warnings
+from typing import Type
 
 import numpy as np
 
@@ -577,7 +579,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     # The parser will in due course be a GiftiImageParser, but we can't set
     # that now, because it would result in a circular import.  We set it after
     # the class has been defined, at the end of the class definition.
-    parser = None
+    parser: Type[xml.XmlParser]
 
     def __init__(
         self,
@@ -832,7 +834,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             GIFTI.append(dar._to_xml_element())
         return GIFTI
 
-    def to_xml(self, enc='utf-8'):
+    def to_xml(self, enc='utf-8') -> bytes:
         """Return XML corresponding to image content"""
         header = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
@@ -840,9 +842,12 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         return header + super().to_xml(enc)
 
     # Avoid the indirection of going through to_file_map
-    to_bytes = to_xml
+    def to_bytes(self, enc='utf-8'):
+        return self.to_xml(enc=enc)
 
-    def to_file_map(self, file_map=None):
+    to_bytes.__doc__ = SerializableImage.to_bytes.__doc__
+
+    def to_file_map(self, file_map=None, enc='utf-8'):
         """Save the current image to the specified file_map
 
         Parameters
@@ -858,7 +863,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         if file_map is None:
             file_map = self.file_map
         with file_map['image'].get_prepare_fileobj('wb') as f:
-            f.write(self.to_xml())
+            f.write(self.to_xml(enc=enc))
 
     @classmethod
     def from_file_map(klass, file_map, buffer_size=35000000, mmap=True):

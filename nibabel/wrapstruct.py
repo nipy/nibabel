@@ -109,11 +109,13 @@ The same for logging::
 
    nib.imageglobals.logger = logger
 """
+from __future__ import annotations
+
 import numpy as np
 
 from . import imageglobals as imageglobals
 from .batteryrunners import BatteryRunner
-from .volumeutils import endian_codes, native_code, pretty_mapping, swapped_code
+from .volumeutils import Recoder, endian_codes, native_code, pretty_mapping, swapped_code
 
 
 class WrapStructError(Exception):
@@ -482,7 +484,7 @@ class WrapStruct:
 class LabeledWrapStruct(WrapStruct):
     """A WrapStruct with some fields having value labels for printing etc"""
 
-    _field_recoders = {}  # for recoding values for str
+    _field_recoders: dict[str, Recoder] = {}  # for recoding values for str
 
     def get_value_label(self, fieldname):
         """Returns label for coded field

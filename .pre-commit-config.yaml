@@ -25,3 +25,15 @@ repos:
     hooks:
       - id: flake8
         exclude: "^(doc|nisext|tools)/"
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.991
+    hooks:
+      - id: mypy
+        # Sync with project.optional-dependencies.typing
+        additional_dependencies:
+          - pytest
+          - types-setuptools
+          - types-Pillow
+          - pydicom
+        # Sync with tool.mypy['exclude']
+        exclude: "^(doc|nisext|tools)/|.*/tests/"
