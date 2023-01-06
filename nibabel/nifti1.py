@@ -21,6 +21,7 @@ from . import analyze  # module import
 from .arrayproxy import get_obj_dtype
 from .batteryrunners import Report
 from .casting import have_binary128
+from .deprecated import alert_future_error
 from .filebasedimages import SerializableImage
 from .optpkg import optional_package
 from .quaternions import fillpositive, mat2quat, quat2mat
@@ -1831,13 +1832,16 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # already fail.
         danger_dts = (np.dtype('int64'), np.dtype('uint64'))
         if header is None and dtype is None and get_obj_dtype(dataobj) in danger_dts:
-            msg = (
+            alert_future_error(
                 f'Image data has type {dataobj.dtype}, which may cause '
-                'incompatibilities with other tools. This will error in '
-                'NiBabel 5.0. This warning can be silenced '
-                f'by passing the dtype argument to {self.__class__.__name__}().'
+                'incompatibilities with other tools.',
+                '5.0',
+                warning_rec='This warning can be silenced by passing the dtype argument'
+                f' to {self.__class__.__name__}().',
+                error_rec='To use this type, pass an explicit header or dtype argument'
+                f' to {self.__class__.__name__}().',
+                error_class=ValueError,
             )
-            warnings.warn(msg, FutureWarning, stacklevel=2)
         super().__init__(dataobj, affine, header, extra, file_map, dtype)
         # Force set of s/q form when header is None unless affine is also None
         if header is None and affine is not None:
