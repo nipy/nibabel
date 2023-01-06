@@ -33,7 +33,6 @@ from contextlib import contextmanager
 from threading import RLock
 
 import numpy as np
-import numpy.typing as npt
 
 from . import openers
 from .fileslice import canonical_slicers, fileslice
@@ -57,6 +56,10 @@ raised.
 KEEP_FILE_OPEN_DEFAULT = False
 
 
+if ty.TYPE_CHECKING:  # pragma: no cover
+    import numpy.typing as npt
+
+
 class ArrayLike(ty.Protocol):
     """Protocol for numpy ndarray-like objects
 
@@ -68,10 +71,10 @@ class ArrayLike(ty.Protocol):
     ndim: int
 
     def __array__(self, dtype: npt.DTypeLike | None = None, /) -> npt.NDArray:
-        ...
+        ...  # pragma: no cover
 
     def __getitem__(self, key, /) -> npt.NDArray:
-        ...
+        ...  # pragma: no cover
 
 
 class ArrayProxy(ArrayLike):

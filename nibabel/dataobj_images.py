@@ -12,11 +12,13 @@ from __future__ import annotations
 import typing as ty
 
 import numpy as np
-import numpy.typing as npt
 
 from .arrayproxy import ArrayLike
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage, FileMap, FileSpec
+
+if ty.TYPE_CHECKING:  # pragma: no cover
+    import numpy.typing as npt
 
 
 class DataobjImage(FileBasedImage):
