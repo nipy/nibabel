@@ -6,6 +6,7 @@ http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight
 
 import os
 import warnings
+from contextlib import suppress
 
 import numpy as np
 
@@ -266,11 +267,6 @@ class TckFile(TractogramFile):
         )
         out = '\n'.join(lines)
 
-        # Check the header is well formatted.
-        if out.count('\n') > len(lines) - 1:  # \n only allowed between lines.
-            msg = f"Key-value pairs cannot contain '\\n':\n{out}"
-            raise HeaderError(msg)
-
         if out.count(':') > len(lines):
             # : only one per line (except the last one which contains END).
             msg = f"Key-value pairs cannot contain ':':\n{out}"
@@ -331,6 +327,8 @@ class TckFile(TractogramFile):
             f.seek(1, os.SEEK_CUR)  # Skip \n
 
             found_end = False
+            key = None
+            tmp_hdr = {}
 
             # Read all key-value pairs contained in the header, stop at EOF
             for n_line, line in enumerate(f, 1):
@@ -343,14 +341,21 @@ class TckFile(TractogramFile):
                     found_end = True
                     break
 
-                if ':' not in line:  # Invalid header line
+                # Set new key if available, otherwise append to last known key
+                with suppress(ValueError):
+                    key, line = line.split(':', 1)
+                    key = key.strip()
+
+                # Apparent continuation line before any keys are found
+                if key is None:
                     raise HeaderError(f'Invalid header (line {n_line}): {line}')
 
-                key, value = line.split(':', 1)
-                hdr[key.strip()] = value.strip()
+                tmp_hdr.setdefault(key, []).append(line.strip())
 
             if not found_end:
                 raise HeaderError('Missing END in the header.')
+
+            hdr.update({key: '\n'.join(val) for key, val in tmp_hdr.items()})
 
             offset_data = f.tell()
 
