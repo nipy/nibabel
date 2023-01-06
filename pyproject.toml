@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm[toml]>=6.2"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "nibabel"
@@ -70,13 +70,22 @@ test = [
 ]
 zstd = ["pyzstd >= 0.14.3"]
 
-[tool.setuptools]
-platforms = ["OS Independent"]
-provides = ["nibabel", "nisext"]
-zip-safe = false
+[tool.hatch.build.targets.sdist]
+exclude = [".git_archival.txt"]
 
-[tool.setuptools.packages.find]
-include = ["nibabel*", "nisext*"]
+[tool.hatch.build.targets.wheel]
+packages = ["nibabel", "nisext"]
+exclude = [
+  # 56MB test file does not need to be installed everywhere
+  "nibabel/nicom/tests/data/4d_multiframe_test.dcm",
+]
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { version_scheme = "release-branch-semver" }
+
+[tool.hatch.build.hooks.vcs]
+version-file = "nibabel/_version.py"
 
 [tool.blue]
 line_length = 99
@@ -93,6 +102,3 @@ force-exclude = """
 profile = "black"
 line_length = 99
 extend_skip = ["_version.py", "externals"]
-
-[tool.setuptools_scm]
-write_to = "nibabel/_version.py"
