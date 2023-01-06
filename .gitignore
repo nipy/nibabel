@@ -51,12 +51,14 @@ dist/
 .coverage
 .ropeproject/
 htmlcov/
+.*_cache/
 
 # Logs and databases #
 ######################
 *.log
 *.sql
 *.sqlite
+*.sqlite3
 
 # OS generated files #
 ######################
