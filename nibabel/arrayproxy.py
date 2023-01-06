@@ -25,6 +25,9 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+from __future__ import annotations
+
+import typing as ty
 import warnings
 from contextlib import contextmanager
 from threading import RLock
@@ -53,7 +56,28 @@ raised.
 KEEP_FILE_OPEN_DEFAULT = False
 
 
-class ArrayProxy:
+if ty.TYPE_CHECKING:  # pragma: no cover
+    import numpy.typing as npt
+
+
+class ArrayLike(ty.Protocol):
+    """Protocol for numpy ndarray-like objects
+
+    This is more stringent than :class:`numpy.typing.ArrayLike`, but guarantees
+    access to shape, ndim and slicing.
+    """
+
+    shape: tuple[int, ...]
+    ndim: int
+
+    def __array__(self, dtype: npt.DTypeLike | None = None, /) -> npt.NDArray:
+        ...  # pragma: no cover
+
+    def __getitem__(self, key, /) -> npt.NDArray:
+        ...  # pragma: no cover
+
+
+class ArrayProxy(ArrayLike):
     """Class to act as proxy for the array that can be read from a file
 
     The array proxy allows us to freeze the passed fileobj and header such that
