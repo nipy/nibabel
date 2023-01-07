@@ -33,7 +33,6 @@ from numpy.testing import assert_array_equal
 from .. import imageglobals
 from ..batteryrunners import Report
 from ..spatialimages import HeaderDataError
-from ..testing import BaseTestCase
 from ..volumeutils import Recoder, native_code, swapped_code
 from ..wrapstruct import LabeledWrapStruct, WrapStruct, WrapStructError
 
@@ -101,7 +100,7 @@ def log_chk(hdr, level):
     return hdrc, message, raiser
 
 
-class _TestWrapStructBase(BaseTestCase):
+class _TestWrapStructBase:
     """Class implements base tests for binary headers
 
     It serves as a base class for other binary header tests
