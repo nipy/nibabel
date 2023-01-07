@@ -284,19 +284,17 @@ def supported_np_types(obj):
         set of numpy types that `obj` supports
     """
     dt = obj.get_data_dtype()
-    supported = []
-    for name, np_types in np.sctypes.items():
-        for np_type in np_types:
-            try:
-                obj.set_data_dtype(np_type)
-            except HeaderDataError:
-                continue
-            # Did set work?
-            if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
-                supported.append(np_type)
-    # Reset original header dtype
+    supported = set()
+    for np_type in set(np.sctypeDict.values()):
+        try:
+            obj.set_data_dtype(np_type)
+        except HeaderDataError:
+            continue
+        # Did set work?
+        if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
+            supported.add(np_type)
     obj.set_data_dtype(dt)
-    return set(supported)
+    return supported
 
 
 class ImageDataError(Exception):

@@ -35,10 +35,18 @@ from ..testing import (
 from ..volumeutils import _dt_min_max, apply_read_scaling
 from . import test_analyze
 
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
-INT_TYPES = np.sctypes['int']
-UINT_TYPES = np.sctypes['uint']
+# np.sctypes values are lists of types with unique sizes
+# For testing, we want all concrete classes of a type
+# Key on kind, rather than abstract base classes, since timedelta64 is a signedinteger
+sctypes = {}
+for sctype in set(np.sctypeDict.values()):
+    sctypes.setdefault(np.dtype(sctype).kind, []).append(sctype)
+
+# Sort types to ensure that xdist doesn't complain about test order when we parametrize
+FLOAT_TYPES = sorted(sctypes['f'], key=lambda x: x.__name__)
+COMPLEX_TYPES = sorted(sctypes['c'], key=lambda x: x.__name__)
+INT_TYPES = sorted(sctypes['i'], key=lambda x: x.__name__)
+UINT_TYPES = sorted(sctypes['u'], key=lambda x: x.__name__)
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES

@@ -49,12 +49,12 @@ header_file = os.path.join(data_path, 'analyze.hdr')
 PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 
 
-def add_intp(supported_np_types):
-    # Add intp, uintp to supported types as necessary
-    supported_dtypes = [np.dtype(t) for t in supported_np_types]
-    for np_type in (np.intp, np.uintp):
-        if np.dtype(np_type) in supported_dtypes:
-            supported_np_types.add(np_type)
+def add_duplicate_types(supported_np_types):
+    # Update supported numpy types with named scalar types that map to the same set of dtypes
+    dtypes = {np.dtype(t) for t in supported_np_types}
+    supported_np_types.update(
+        scalar for scalar in set(np.sctypeDict.values()) if np.dtype(scalar) in dtypes
+    )
 
 
 class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
@@ -62,7 +62,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr
     supported_np_types = {np.uint8, np.int16, np.int32, np.float32, np.float64, np.complex64}
-    add_intp(supported_np_types)
+    add_duplicate_types(supported_np_types)
 
     def test_supported_types(self):
         hdr = self.header_class()
