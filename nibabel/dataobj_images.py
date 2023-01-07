@@ -20,12 +20,14 @@ from .filebasedimages import FileBasedHeader, FileBasedImage, FileMap, FileSpec
 if ty.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
 
+ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
+
 
 class DataobjImage(FileBasedImage):
     """Template class for images that have dataobj data stores"""
 
     _data_cache: np.ndarray | None
-    _fdata_cache: np.ndarray | None
+    _fdata_cache: np.ndarray[ty.Any, np.dtype[np.floating]] | None
 
     def __init__(
         self,
@@ -222,7 +224,7 @@ class DataobjImage(FileBasedImage):
         self,
         caching: ty.Literal['fill', 'unchanged'] = 'fill',
         dtype: npt.DTypeLike = np.float64,
-    ) -> np.ndarray:
+    ) -> np.ndarray[ty.Any, np.dtype[np.floating]]:
         """Return floating point image data with necessary scaling applied
 
         The image ``dataobj`` property can be an array proxy or an array.  An
@@ -421,12 +423,12 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_file_map(
-        klass,
+        klass: type[ArrayImgT],
         file_map: FileMap,
         *,
         mmap: bool | ty.Literal['c', 'r'] = True,
         keep_file_open: bool | None = None,
-    ):
+    ) -> ArrayImgT:
         """Class method to create image from mapping in ``file_map``
 
         Parameters
@@ -460,12 +462,12 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_filename(
-        klass,
+        klass: type[ArrayImgT],
         filename: FileSpec,
         *,
         mmap: bool | ty.Literal['c', 'r'] = True,
         keep_file_open: bool | None = None,
-    ):
+    ) -> ArrayImgT:
         """Class method to create image from filename `filename`
 
         Parameters
