@@ -143,6 +143,11 @@ from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 
+try:
+    from functools import cache
+except ImportError:  # PY38
+    from functools import lru_cache as cache
+
 
 class HeaderDataError(Exception):
     """Class to indicate error in getting or setting header data"""
@@ -268,6 +273,41 @@ class SpatialHeader(FileBasedHeader):
         return np.ndarray(shape, dtype, data_bytes, order=self.data_layout)
 
 
+@cache
+def _supported_np_types(klass):
+    """Numpy data types that instances of ``klass`` support
+
+    Parameters
+    ----------
+    klass : class
+        Class implementing `get_data_dtype` and `set_data_dtype` methods.  The object
+        should raise ``HeaderDataError`` for setting unsupported dtypes. The
+        object will likely be a header or a :class:`SpatialImage`
+
+    Returns
+    -------
+    np_types : set
+        set of numpy types that ``klass`` instances support
+    """
+    try:
+        obj = klass()
+    except TypeError as e:
+        if hasattr(klass, 'header_class'):
+            obj = klass.header_class()
+        else:
+            raise e
+    supported = set()
+    for np_type in set(np.sctypeDict.values()):
+        try:
+            obj.set_data_dtype(np_type)
+        except HeaderDataError:
+            continue
+        # Did set work?
+        if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
+            supported.add(np_type)
+    return supported
+
+
 def supported_np_types(obj):
     """Numpy data types that instance `obj` supports
 
@@ -283,18 +323,7 @@ def supported_np_types(obj):
     np_types : set
         set of numpy types that `obj` supports
     """
-    dt = obj.get_data_dtype()
-    supported = set()
-    for np_type in set(np.sctypeDict.values()):
-        try:
-            obj.set_data_dtype(np_type)
-        except HeaderDataError:
-            continue
-        # Did set work?
-        if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
-            supported.add(np_type)
-    obj.set_data_dtype(dt)
-    return supported
+    return _supported_np_types(obj.__class__)
 
 
 class ImageDataError(Exception):
