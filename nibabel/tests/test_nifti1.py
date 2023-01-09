@@ -775,7 +775,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         for dtype in (np.int64, np.uint64):
             data = np.arange(24, dtype=dtype).reshape((2, 3, 4))
             # Starts as a warning, transitions to error at 5.0
-            if cmp_pkg_version('5.0') < 0:
+            if cmp_pkg_version('5.0') <= 0:
                 cm = pytest.raises(ValueError)
             else:
                 cm = pytest.warns(FutureWarning)
