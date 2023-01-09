@@ -111,7 +111,7 @@ def alert_future_error(
         Warnings stacklevel to provide; note that this will be incremented by
         1, so provide the stacklevel you would provide directly to warnings.warn()
     """
-    if cmp_pkg_version(version) >= 0:
+    if cmp_pkg_version(version) > 0:
         msg = f'{msg} This will error in NiBabel {version}. {warning_rec}'
         warnings.warn(msg.strip(), warning_class, stacklevel=stacklevel + 1)
     else:

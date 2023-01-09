@@ -109,3 +109,11 @@ def test_alert_future_error():
             error_rec='Fix this issue by doing XYZ.',
             error_class=ValueError,
         )
+    with pytest.raises(ValueError):
+        alert_future_error(
+            'Message',
+            '2.0.0',  # Error if we equal the (patched) version
+            warning_rec='Silence this warning by doing XYZ.',
+            error_rec='Fix this issue by doing XYZ.',
+            error_class=ValueError,
+        )
