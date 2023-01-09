@@ -5,6 +5,7 @@ import pathlib
 import shutil
 from os.path import dirname
 from os.path import join as pjoin
+from tempfile import TemporaryDirectory
 
 import numpy as np
 
@@ -21,7 +22,7 @@ from ..loadsave import _signature_matches_extension, load, read_img_data
 from ..openers import Opener
 from ..optpkg import optional_package
 from ..testing import expires
-from ..tmpdirs import InTemporaryDirectory, TemporaryDirectory
+from ..tmpdirs import InTemporaryDirectory
 
 _, have_scipy, _ = optional_package('scipy')
 _, have_pyzstd, _ = optional_package('pyzstd')
