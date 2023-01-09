@@ -25,6 +25,89 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.0.0 (Monday 9 January 2023)
+=============================
+
+New feature release in the 5.0.x series.
+
+New features
+------------
+* :class:`~nibabel.filebasedimages.SerializableImage` now has
+  :meth:`~nibabel.filebasedimages.SerializableImage.to_stream()` and
+  :meth:`~nibabel.filebasedimages.SerializableImage.from_stream()` methods to
+  read/write streams implementing the :class:`~io.IOBase` interface. A
+  :meth:`~nibabel.filebasedimages.SerializableImage.from_url()` method
+  enables loading images from URLs. (pr/1129) (CM, reviewed by MB)
+* :class:`~nibabel.streamlines.trk.TrkFile` supports TRKv3, an
+  undocumented but generally compatible variant of TRKv2. (pr/1125) (CM)
+
+Enhancements
+------------
+* Support multiline header fields in :class:`~nibabel.streamlines.tck.TCKFile`
+  (pr/1175) (CM, reviewed by Matt Cieslak)
+* Make layout order an initialization parameter of
+  :class:`~nibabel.arrayproxy.ArrayProxy` (pr/1131) (CM, reviewed by MB)
+* Initial support for type annotations. (pr/1115, pr/1178) (CM, reviewed by
+  Zvi Baratz)
+
+Bug fixes
+---------
+* Handle extension/file-format mismatches implemented incompletely in pr/1013
+  (pr/1138) (CM, reviewed by Thomas Phil)
+* Improve handling of invalid TCK files, which could sometimes cause an
+  infinite loop (pr/1140) (Anibal Solon, reviewed by CM)
+* Clean up ECAT test case that left filehandle open and failed to use class
+  variables (pr/1155) (Dimitri Papadopoulos, reviewed by CM)
+
+Maintenance
+-----------
+* Simplify TCK reading code by assuming files are open in binary mode
+  (pr/1142) (Anibal Solon, reviewed by MC, CM)
+* Code support for tests covering deprecated functionality (pr/1159) (CM)
+* Miscellaneous code cleanups (pr/1148, pr/1149, pr/1153, pr/1154, pr/1156)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Update CI to build, test and deploy PyPI artifacts (pr/1134) (CM, reviewed
+  by MB)
+* Transition from ``setup.cfg`` to ``pyproject.toml`` package configuration
+  (pr/1133) (CM, reviewed by MB)
+* Addressed race conditions preventing running tests with pytest-xdist_.
+  (pr/1157, pr/1158) (CM, reviewed by Christian Haselgrove)
+* Apply blue_ and isort_ auto-formatters and provide pre-commit_ configuration
+  to reduce human burden of style guidelines. (pr/1124, pr/1165, pr/1169)
+  (CM and Zvi Baratz)
+* Manage versioning with setuptools_scm_ (pr/1171) (CM, reviewed by Zvi Baratz)
+* Reduce installed package size by excluding very large test file (pr/1176)
+  (CM, reviewed by Zvi Baratz)
+
+API changes and deprecations
+----------------------------
+* Passing an ``int64`` array to :class:`~nibabel.nifti1.Nifti1Image` without a
+  header or dtype argument will raise a ``ValueError``. (pr/1173) (CM)
+* :class:`nibabel.tmpdirs.TemporaryDirectory` is deprecated in favor of
+  :class:`tempfile.TemporaryDirectory`. (pr/1172) (CM, reviewed by Zvi
+  Baratz)
+* The ``nisext`` package is deprecated and will be removed in NiBabel 6.0.
+  (pr/1170) (CM, reviewed by MB)
+* Drop support for Python 3.7, Numpy < 1.19 (pr/1177) (CM)
+* The following deprecated functions and methods will now raise
+  ``ExpiredDeprecationError``\s
+
+  * :func:`nibabel.loadsave.read_img_data`
+  * :meth:`nibabel.dataobj_images.DataobjImage.get_data`
+  * :func:`nibabel.loadsave.guessed_image_type`
+  * :func:`nibabel.onetime.setattr_on_read`
+  * :func:`nibabel.orientations.flip_axis`
+
+* Modules, classes and functions that expired at 4.0 were fully removed.
+  ``ExpiredDeprecationError``\s will now be ``AttributeError``\s.
+
+.. _blue: https://blue.readthedocs.io
+.. _isort: https://pycqa.github.io/isort/
+.. _pre-commit: https://pre-commit.com/
+.. _pytest-xdist: https://pytest-xdist.readthedocs.io
+.. _setuptools_scm: https://github.com/pypa/setuptools_scm
+
+
 4.0.2 (Wednesday 31 August 2022)
 ================================
 
