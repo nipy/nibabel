@@ -20,8 +20,10 @@ except ImportError:  # PY310
     def _chdir(path):
         cwd = os.getcwd()
         os.chdir(path)
-        yield
-        os.chdir(cwd)
+        try:
+            yield
+        finally:
+            os.chdir(cwd)
 
 
 from .deprecated import deprecate_with_version
