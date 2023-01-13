@@ -108,7 +108,7 @@ def test_fillpositive_simulated_error(dtype):
     # as xyz with small error, and we want to recover the w of 0
 
     # Permit 1 epsilon per value (default, but make explicit here)
-    w2_thresh = 3 * -np.finfo(dtype).eps
+    w2_thresh = 3 * np.finfo(dtype).eps
 
     pos_error = neg_error = False
     for _ in range(50):

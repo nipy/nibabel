@@ -688,7 +688,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     single_magic = b'n+1'
 
     # Quaternion threshold near 0, based on float32 precision
-    quaternion_threshold = -np.finfo(np.float32).eps * 3
+    quaternion_threshold = np.finfo(np.float32).eps * 3
 
     def __init__(self, binaryblock=None, endianness=None, check=True, extensions=()):
         """Initialize header from binary data block and extensions"""
