@@ -16,6 +16,18 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from .. import eulerangles as nea
 from .. import quaternions as nq
 
+
+def norm(vec):
+    # Return unit vector with same orientation as input vector
+    return vec / np.sqrt(vec @ vec)
+
+
+def gen_vec(dtype):
+    # Generate random 3-vector in [-1, 1]^3
+    rand = np.random.default_rng()
+    return rand.uniform(low=-1.0, high=1.0, size=(3,)).astype(dtype)
+
+
 # Example rotations
 eg_rots = []
 params = (-pi, pi, pi / 2)
@@ -67,6 +79,53 @@ def test_fillpos():
     # Test corner case where w is near zero
     wxyz = nq.fillpositive([1, 0, 0])
     assert wxyz[0] == 0.0
+
+
+@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+def test_fillpositive_plus_minus_epsilon(dtype):
+    # Deterministic test for fillpositive threshold
+    # We are trying to fill (x, y, z) with a w such that |(w, x, y, z)| == 1
+    # If |(x, y, z)| is slightly off one, w should still be 0
+    nptype = np.dtype(dtype).type
+
+    # Obviously, |(x, y, z)| == 1
+    baseline = np.array([0, 0, 1], dtype=dtype)
+
+    # Obviously, |(x, y, z)| ~ 1
+    plus = baseline * nptype(1 + np.finfo(dtype).eps)
+    minus = baseline * nptype(1 - np.finfo(dtype).eps)
+
+    assert nq.fillpositive(plus)[0] == 0.0
+    assert nq.fillpositive(minus)[0] == 0.0
+
+
+@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+def test_fillpositive_simulated_error(dtype):
+    # Nondeterministic test for fillpositive threshold
+    # Create random vectors, normalize to unit length, and count on floating point
+    # error to result in magnitudes larger/smaller than one
+    # This is to simulate cases where a unit quaternion with w == 0 would be encoded
+    # as xyz with small error, and we want to recover the w of 0
+
+    # Permit 1 epsilon per value (default, but make explicit here)
+    w2_thresh = 3 * -np.finfo(dtype).eps
+
+    pos_error = neg_error = False
+    for _ in range(50):
+        xyz = norm(gen_vec(dtype))
+
+        wxyz = nq.fillpositive(xyz, w2_thresh)
+        assert wxyz[0] == 0.0
+
+        # Verify that we exercise the threshold
+        magnitude = xyz @ xyz
+        if magnitude < 1:
+            pos_error = True
+        elif magnitude > 1:
+            neg_error = True
+
+    assert pos_error, 'Did not encounter a case where 1 - |xyz| > 0'
+    assert neg_error, 'Did not encounter a case where 1 - |xyz| < 0'
 
 
 def test_conjugate():
