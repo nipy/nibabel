@@ -42,7 +42,7 @@ def fillpositive(xyz, w2_thresh=None):
     xyz : iterable
        iterable containing 3 values, corresponding to quaternion x, y, z
     w2_thresh : None or float, optional
-       threshold to determine if w squared is really negative.
+       threshold to determine if w squared is non-zero.
        If None (default) then w2_thresh set equal to
        ``-np.finfo(xyz.dtype).eps``, if possible, otherwise
        ``-np.finfo(np.float64).eps``
@@ -95,11 +95,11 @@ def fillpositive(xyz, w2_thresh=None):
     # Use maximum precision
     xyz = np.asarray(xyz, dtype=MAX_FLOAT)
     # Calculate w
-    w2 = 1.0 - np.dot(xyz, xyz)
-    if w2 < 0:
-        if w2 < w2_thresh:
-            raise ValueError(f'w2 should be positive, but is {w2:e}')
+    w2 = 1.0 - xyz @ xyz
+    if np.abs(w2) < np.abs(w2_thresh):
         w = 0
+    elif w2 < 0:
+        raise ValueError(f'w2 should be positive, but is {w2:e}')
     else:
         w = np.sqrt(w2)
     return np.r_[w, xyz]
