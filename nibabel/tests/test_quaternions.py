@@ -29,34 +29,27 @@ def gen_vec(dtype):
 
 
 # Example rotations
-eg_rots = []
-params = (-pi, pi, pi / 2)
-zs = np.arange(*params)
-ys = np.arange(*params)
-xs = np.arange(*params)
-for z in zs:
-    for y in ys:
-        for x in xs:
-            eg_rots.append(nea.euler2mat(z, y, x))
+eg_rots = [
+    nea.euler2mat(z, y, x)
+    for z in np.arange(-pi, pi, pi / 2)
+    for y in np.arange(-pi, pi, pi / 2)
+    for x in np.arange(-pi, pi, pi / 2)
+]
+
 # Example quaternions (from rotations)
-eg_quats = []
-for M in eg_rots:
-    eg_quats.append(nq.mat2quat(M))
+eg_quats = [nq.mat2quat(M) for M in eg_rots]
 # M, quaternion pairs
 eg_pairs = list(zip(eg_rots, eg_quats))
 
 # Set of arbitrary unit quaternions
-unit_quats = set()
-params = range(-2, 3)
-for w in params:
-    for x in params:
-        for y in params:
-            for z in params:
-                q = (w, x, y, z)
-                Nq = np.sqrt(np.dot(q, q))
-                if not Nq == 0:
-                    q = tuple([e / Nq for e in q])
-                    unit_quats.add(q)
+unit_quats = set(
+    tuple(norm(np.r_[w, x, y, z]))
+    for w in range(-2, 3)
+    for x in range(-2, 3)
+    for y in range(-2, 3)
+    for z in range(-2, 3)
+    if (w, x, y, z) != (0, 0, 0, 0)
+)
 
 
 def test_fillpos():
@@ -184,7 +177,7 @@ def test_norm():
 def test_mult(M1, q1, M2, q2):
     # Test that quaternion * same as matrix *
     q21 = nq.mult(q2, q1)
-    assert_array_almost_equal, np.dot(M2, M1), nq.quat2mat(q21)
+    assert_array_almost_equal, M2 @ M1, nq.quat2mat(q21)
 
 
 @pytest.mark.parametrize('M, q', eg_pairs)
@@ -205,7 +198,7 @@ def test_eye():
 @pytest.mark.parametrize('M, q', eg_pairs)
 def test_qrotate(vec, M, q):
     vdash = nq.rotate_vector(vec, q)
-    vM = np.dot(M, vec)
+    vM = M @ vec
     assert_array_almost_equal(vdash, vM)
 
 
@@ -238,6 +231,6 @@ def test_angle_axis():
         nq.nearly_equivalent(q, q2)
         aa_mat = nq.angle_axis2mat(theta, vec)
         assert_array_almost_equal(aa_mat, M)
-        unit_vec = vec / np.sqrt(vec.dot(vec))
+        unit_vec = norm(vec)
         aa_mat2 = nq.angle_axis2mat(theta, unit_vec, is_normalized=True)
         assert_array_almost_equal(aa_mat2, M)
