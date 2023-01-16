@@ -66,17 +66,17 @@ jobs:
         package: ['wheel', 'sdist', 'archive']
     steps:
       - name: Download sdist and wheel artifacts
+        if: matrix.package != 'archive'
         uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist/
-        if: matrix.package != 'archive'
       - name: Download git archive artifact
+        if: matrix.package == 'archive'
         uses: actions/download-artifact@v3
         with:
           name: archive
           path: archive/
-        if: matrix.package == 'archive'
       - uses: actions/setup-python@v4
         with:
           python-version: 3
@@ -85,14 +85,14 @@ jobs:
       - name: Update pip
         run: pip install --upgrade pip
       - name: Install wheel
-        run: pip install dist/nibabel-*.whl
         if: matrix.package == 'wheel'
+        run: pip install dist/nibabel-*.whl
       - name: Install sdist
-        run: pip install dist/nibabel-*.tar.gz
         if: matrix.package == 'sdist'
+        run: pip install dist/nibabel-*.tar.gz
       - name: Install archive
-        run: pip install archive/nibabel-archive.tgz
         if: matrix.package == 'archive'
+        run: pip install archive/nibabel-archive.tgz
       - run: python -c 'import nibabel; print(nibabel.__version__)'
       - name: Install test extras
         run: pip install nibabel[test]
@@ -179,17 +179,17 @@ jobs:
       - name: Install NiBabel
         run: tools/ci/install.sh
       - name: Run tests
-        run: tools/ci/check.sh
         if: ${{ matrix.check != 'skiptests' }}
+        run: tools/ci/check.sh
       - name: Submit coverage
-        run: tools/ci/submit_coverage.sh
         if: ${{ always() }}
+        run: tools/ci/submit_coverage.sh
       - name: Upload pytest test results
+        if: ${{ always() && matrix.check == 'test' }}
         uses: actions/upload-artifact@v3
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
           path: for_testing/test-results.xml
-        if: ${{ always() && matrix.check == 'test' }}
 
   publish:
     runs-on: ubuntu-latest
