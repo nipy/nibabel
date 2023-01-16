@@ -46,11 +46,17 @@ jobs:
         run: python -m build
       - run: twine check dist/*
       - name: Build git archive
-        run: git archive -v -o dist/nibabel-archive.tgz HEAD
-      - uses: actions/upload-artifact@v3
+        run: mkdir archive && git archive -v -o archive/nibabel-archive.tgz HEAD
+      - name: Upload sdist and wheel artifacts
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist/
+      - name: Upload git archive artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: archive
+          path: archive/
 
   test-package:
     runs-on: ubuntu-latest
@@ -59,10 +65,18 @@ jobs:
       matrix:
         package: ['wheel', 'sdist', 'archive']
     steps:
-      - uses: actions/download-artifact@v3
+      - name: Download sdist and wheel artifacts
+        uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist/
+        if: matrix.package != 'archive'
+      - name: Download git archive artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: archive
+          path: archive/
+        if: matrix.package == 'archive'
       - uses: actions/setup-python@v4
         with:
           python-version: 3
@@ -77,7 +91,7 @@ jobs:
         run: pip install dist/nibabel-*.tar.gz
         if: matrix.package == 'sdist'
       - name: Install archive
-        run: pip install dist/nibabel-archive.tgz
+        run: pip install archive/nibabel-archive.tgz
         if: matrix.package == 'archive'
       - run: python -c 'import nibabel; print(nibabel.__version__)'
       - name: Install test extras
