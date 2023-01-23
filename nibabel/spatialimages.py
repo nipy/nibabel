@@ -395,7 +395,11 @@ class SpatialFirstSlicer(ty.Generic[SpatialImgT]):
         affine = self.slice_affine(slicer)
         return self.img.__class__(dataobj.copy(), affine, self.img.header)
 
-    def check_slicing(self, slicer: object, return_spatial: bool = False) -> tuple[slice, ...]:
+    def check_slicing(
+        self,
+        slicer: object,
+        return_spatial: bool = False,
+    ) -> tuple[slice | int | None, ...]:
         """Canonicalize slicers and check for scalar indices in spatial dims
 
         Parameters
@@ -426,7 +430,7 @@ class SpatialFirstSlicer(ty.Generic[SpatialImgT]):
                 )
         return spatial_slices if return_spatial else canonical
 
-    def slice_affine(self, slicer: tuple[slice, ...]) -> np.ndarray:
+    def slice_affine(self, slicer: object) -> np.ndarray:
         """Retrieve affine for current image, if sliced by a given index
 
         Applies scaling if down-sampling is applied, and adjusts the intercept
