@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import gzip
 import sys
+import typing as ty
 import warnings
 from collections import OrderedDict
 from functools import reduce
@@ -120,6 +121,13 @@ class Recoder:
             self.__dict__[name] = map_maker()
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
+
+    def __getattr__(self, key: str) -> ty.Mapping:
+        # By setting this, we let static analyzers know that dynamic attributes will
+        # be dict-like (Mapping).
+        # However, __getattr__ is called if looking up the field in __dict__ fails,
+        # so we only get here if the attribute is really missing.
+        raise AttributeError(f'{self.__class__.__name__!r} object has no attribute {key!r}')
 
     def add_codes(self, code_syn_seqs):
         """Add codes to object
