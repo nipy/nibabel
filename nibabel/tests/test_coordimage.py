@@ -51,22 +51,12 @@ class CaretSpec(ci.GeometryCollection):
 
 def test_Cifti2Image_as_CoordImage():
     ones = nb.load(CIFTI2_DATA / 'ones.dscalar.nii')
-    axes = [ones.header.get_axis(i) for i in range(ones.ndim)]
+    assert ones.shape == (1, 91282)
+    cimg = ci.CoordinateImage.from_image(ones)
+    assert cimg.shape == (91282, 1)
 
-    parcels = []
-    for name, slicer, bma in axes[1].iter_structures():
-        if bma.volume_shape:
-            substruct = ps.NdGrid(bma.volume_shape, bma.affine)
-            indices = bma.voxel
-        else:
-            substruct = None
-            indices = bma.vertex
-        parcels.append(ci.Parcel(name, None, indices))
-    caxis = ci.CoordinateAxis(parcels)
-    dobj = ones.dataobj.copy()
-    dobj.order = 'C'  # Hack for image with BMA as the last axis
-    cimg = ci.CoordinateImage(dobj, caxis, ones.header)
-
+    caxis = cimg.coordaxis
+    assert len(caxis) == 91282
     assert caxis[...] is caxis
     assert caxis[:] is caxis
 

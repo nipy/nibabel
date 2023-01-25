@@ -1,5 +1,7 @@
 import numpy as np
 
+import nibabel as nib
+import nibabel.pointset as ps
 from nibabel.fileslice import fill_slicer
 
 
@@ -16,6 +18,22 @@ class CoordinateImage:
         self.data = data
         self.coordaxis = coordaxis
         self.header = header
+
+    @classmethod
+    def from_image(klass, img):
+        coordaxis = CoordinateAxis.from_header(img.header)
+        if isinstance(img, nib.Cifti2Image):
+            if img.ndim != 2:
+                raise ValueError('Can only interpret 2D images')
+            for i in img.header.mapped_indices:
+                if isinstance(img.header.get_axis(i), nib.cifti2.BrainModelAxis):
+                    break
+            # Reinterpret data ordering based on location of coordinate axis
+            data = img.dataobj.copy()
+            data.order = ['F', 'C'][i]
+            if i == 1:
+                data._shape = data._shape[::-1]
+        return klass(data, coordaxis, img.header)
 
 
 class CoordinateAxis:
@@ -84,6 +102,28 @@ class CoordinateAxis:
 
     def __len__(self):
         return sum(len(parcel) for parcel in self.parcels)
+
+    # Hacky factory method for now
+    @classmethod
+    def from_header(klass, hdr):
+        parcels = []
+        if isinstance(hdr, nib.Cifti2Header):
+            axes = [hdr.get_axis(i) for i in hdr.mapped_indices]
+            for ax in axes:
+                if isinstance(ax, nib.cifti2.BrainModelAxis):
+                    break
+            else:
+                raise ValueError('No BrainModelAxis, cannot create CoordinateAxis')
+            for name, slicer, struct in ax.iter_structures():
+                if struct.volume_shape:
+                    substruct = ps.NdGrid(struct.volume_shape, struct.affine)
+                    indices = struct.voxel
+                else:
+                    substruct = None
+                    indices = struct.vertex
+                parcels.append(Parcel(name, substruct, indices))
+
+        return klass(parcels)
 
 
 class Parcel:
