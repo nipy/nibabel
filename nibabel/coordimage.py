@@ -19,6 +19,24 @@ class CoordinateImage:
         self.coordaxis = coordaxis
         self.header = header
 
+    @property
+    def shape(self):
+        return self.data.shape
+
+    def __getitem__(self, slicer):
+        if isinstance(slicer, str):
+            slicer = self.coordaxis.get_indices(slicer)
+        elif isinstance(slicer, list):
+            slicer = np.hstack([self.coordaxis.get_indices(sub) for sub in slicer])
+
+        if isinstance(slicer, range):
+            slicer = slice(slicer.start, slicer.stop, slicer.step)
+
+        data = self.data
+        if not isinstance(slicer, slice):
+            data = np.asanyarray(data)
+        return self.__class__(data[slicer], self.coordaxis[slicer], header=self.header.copy())
+
     @classmethod
     def from_image(klass, img):
         coordaxis = CoordinateAxis.from_header(img.header)
@@ -57,7 +75,7 @@ class CoordinateAxis:
         Return a sub-sampled CoordinateAxis containing structures
         matching the indices provided.
         """
-        if slicer is Ellipsis or slicer == slice(None):
+        if slicer is Ellipsis or isinstance(slicer, slice) and slicer == slice(None):
             return self
         elif isinstance(slicer, slice):
             slicer = fill_slicer(slicer, len(self))

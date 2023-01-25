@@ -70,4 +70,11 @@ def test_Cifti2Image_as_CoordImage():
     assert len(subaxis) == len(caxis) - 200
     assert len(subaxis.parcels) == len(caxis.parcels)
 
-    caxis.get_indices('CIFTI_STRUCTURE_CORTEX_LEFT')
+    lh_img = cimg['CIFTI_STRUCTURE_CORTEX_LEFT']
+    assert len(lh_img.coordaxis.parcels) == 1
+    assert lh_img.shape == (29696, 1)
+
+    # # Not working yet.
+    # cortex_img = cimg[["CIFTI_STRUCTURE_CORTEX_LEFT", "CIFTI_STRUCTURE_CORTEX_RIGHT"]]
+    # assert len(cortex_img.coordaxis.parcels) == 2
+    # assert cortex_img.shape == (59412, 1)
