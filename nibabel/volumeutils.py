@@ -13,7 +13,6 @@ import gzip
 import sys
 import typing as ty
 import warnings
-from collections import OrderedDict
 from functools import reduce
 from operator import mul
 from os.path import exists, splitext
@@ -84,7 +83,14 @@ class Recoder:
     2
     """
 
-    def __init__(self, codes, fields=('code',), map_maker=OrderedDict):
+    fields: tuple[str, ...]
+
+    def __init__(
+        self,
+        codes: ty.Sequence[ty.Sequence[ty.Hashable]],
+        fields: ty.Sequence[str] = ('code',),
+        map_maker: type[ty.Mapping[ty.Hashable, ty.Hashable]] = dict,
+    ):
         """Create recoder object
 
         ``codes`` give a sequence of code, alias sequences
@@ -122,14 +128,14 @@ class Recoder:
         self.field1 = self.__dict__[fields[0]]
         self.add_codes(codes)
 
-    def __getattr__(self, key: str) -> ty.Mapping:
+    def __getattr__(self, key: str) -> ty.Mapping[ty.Hashable, ty.Hashable]:
         # By setting this, we let static analyzers know that dynamic attributes will
         # be dict-like (Mapping).
         # However, __getattr__ is called if looking up the field in __dict__ fails,
         # so we only get here if the attribute is really missing.
         raise AttributeError(f'{self.__class__.__name__!r} object has no attribute {key!r}')
 
-    def add_codes(self, code_syn_seqs):
+    def add_codes(self, code_syn_seqs: ty.Sequence[ty.Sequence[ty.Hashable]]) -> None:
         """Add codes to object
 
         Parameters
@@ -163,7 +169,7 @@ class Recoder:
                 for field_ind, field_name in enumerate(self.fields):
                     self.__dict__[field_name][alias] = code_syns[field_ind]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: ty.Hashable) -> ty.Hashable:
         """Return value from field1 dictionary (first column of values)
 
         Returns same value as ``obj.field1[key]`` and, with the
@@ -176,13 +182,9 @@ class Recoder:
         """
         return self.field1[key]
 
-    def __contains__(self, key):
+    def __contains__(self, key: ty.Hashable) -> bool:
         """True if field1 in recoder contains `key`"""
-        try:
-            self.field1[key]
-        except KeyError:
-            return False
-        return True
+        return key in self.field1
 
     def keys(self):
         """Return all available code and alias values
@@ -198,7 +200,7 @@ class Recoder:
         """
         return self.field1.keys()
 
-    def value_set(self, name=None):
+    def value_set(self, name: str | None = None) -> OrderedSet:
         """Return OrderedSet of possible returned values for column
 
         By default, the column is the first column.
@@ -232,7 +234,7 @@ class Recoder:
 endian_codes = Recoder(_endian_codes)
 
 
-class DtypeMapper:
+class DtypeMapper(dict[ty.Hashable, ty.Hashable]):
     """Specialized mapper for numpy dtypes
 
     We pass this mapper into the Recoder class to deal with numpy dtype
@@ -250,26 +252,20 @@ class DtypeMapper:
     and return any matching values for the matching key.
     """
 
-    def __init__(self):
-        self._dict = {}
-        self._dtype_keys = []
+    def __init__(self) -> None:
+        super().__init__()
+        self._dtype_keys: list[np.dtype] = []
 
-    def keys(self):
-        return self._dict.keys()
-
-    def values(self):
-        return self._dict.values()
-
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: ty.Hashable, value: ty.Hashable) -> None:
         """Set item into mapping, checking for dtype keys
 
         Cache dtype keys for comparison test in __getitem__
         """
-        self._dict[key] = value
-        if hasattr(key, 'subdtype'):
+        super().__setitem__(key, value)
+        if isinstance(key, np.dtype):
             self._dtype_keys.append(key)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: ty.Hashable) -> ty.Hashable:
         """Get item from mapping, checking for dtype keys
 
         First do simple hash lookup, then check for a dtype key that has failed
@@ -277,13 +273,13 @@ class DtypeMapper:
         to `key`.
         """
         try:
-            return self._dict[key]
+            return super().__getitem__(key)
         except KeyError:
             pass
-        if hasattr(key, 'subdtype'):
+        if isinstance(key, np.dtype):
             for dt in self._dtype_keys:
                 if key == dt:
-                    return self._dict[dt]
+                    return super().__getitem__(dt)
         raise KeyError(key)
 
 
@@ -347,7 +343,7 @@ def pretty_mapping(mapping, getterfunc=None):
     return '\n'.join(out)
 
 
-def make_dt_codes(codes_seqs):
+def make_dt_codes(codes_seqs: ty.Sequence[ty.Sequence]) -> Recoder:
     """Create full dt codes Recoder instance from datatype codes
 
     Include created numpy dtype (from numpy type) and opposite endian
