@@ -14,7 +14,7 @@ import sys
 import typing as ty
 import warnings
 from functools import reduce
-from operator import mul
+from operator import getitem, mul
 from os.path import exists, splitext
 
 import numpy as np
@@ -25,6 +25,10 @@ from .openers import BZ2File, IndexedGzipFile
 from .optpkg import optional_package
 
 pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
+
+if ty.TYPE_CHECKING:  # pragma: no cover
+    K = ty.TypeVar('K')
+    V = ty.TypeVar('V')
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -283,7 +287,10 @@ class DtypeMapper(dict[ty.Hashable, ty.Hashable]):
         raise KeyError(key)
 
 
-def pretty_mapping(mapping, getterfunc=None):
+def pretty_mapping(
+    mapping: ty.Mapping[K, V],
+    getterfunc: ty.Callable[[ty.Mapping[K, V], K], V] | None = None,
+) -> str:
     """Make pretty string from mapping
 
     Adjusts text column to print values on basis of longest key.
@@ -332,9 +339,8 @@ def pretty_mapping(mapping, getterfunc=None):
     longer_field  : method string
     """
     if getterfunc is None:
-        getterfunc = lambda obj, key: obj[key]
-    lens = [len(str(name)) for name in mapping]
-    mxlen = np.max(lens)
+        getterfunc = getitem
+    mxlen = max(len(str(name)) for name in mapping)
     fmt = '%%-%ds  : %%s' % mxlen
     out = []
     for name in mapping:
