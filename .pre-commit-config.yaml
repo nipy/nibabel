@@ -17,7 +17,7 @@ repos:
     hooks:
       - id: blue
   - repo: https://github.com/pycqa/isort
-    rev: 5.11.2
+    rev: 5.12.0
     hooks:
       - id: isort
   - repo: https://github.com/pycqa/flake8
@@ -35,5 +35,7 @@ repos:
           - types-setuptools
           - types-Pillow
           - pydicom
-        # Sync with tool.mypy['exclude']
-        exclude: "^(doc|nisext|tools)/|.*/tests/"
+          - numpy
+          - pyzstd
+        args: ["nibabel"]
+        pass_filenames: false
