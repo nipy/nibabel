@@ -1,5 +1,6 @@
 """Class to raise error for missing modules or other misfortunes
 """
+from typing import Any
 
 
 class TripWireError(AttributeError):
@@ -11,7 +12,7 @@ class TripWireError(AttributeError):
     # is not present.
 
 
-def is_tripwire(obj):
+def is_tripwire(obj: Any) -> bool:
     """Returns True if `obj` appears to be a TripWire object
 
     Examples
@@ -44,9 +45,9 @@ class TripWire:
     TripWireError: We do not have a_module
     """
 
-    def __init__(self, msg):
+    def __init__(self, msg: str):
         self._msg = msg
 
-    def __getattr__(self, attr_name):
+    def __getattr__(self, attr_name: str) -> Any:
         """Raise informative error accessing attributes"""
         raise TripWireError(self._msg)
