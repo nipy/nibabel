@@ -2,11 +2,14 @@
 """
 from __future__ import annotations
 
+import typing as ty
 import warnings
-from typing import Type
 
 from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
+
+if ty.TYPE_CHECKING:  # pragma: no cover
+    P = ty.ParamSpec('P')
 
 
 class ModuleProxy:
@@ -30,14 +33,14 @@ class ModuleProxy:
     module.
     """
 
-    def __init__(self, module_name):
+    def __init__(self, module_name: str):
         self._module_name = module_name
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> ty.Any:
         mod = __import__(self._module_name, fromlist=[''])
         return getattr(mod, key)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<module proxy for {self._module_name}>'
 
 
@@ -60,7 +63,7 @@ class FutureWarningMixin:
 
     warn_message = 'This class will be removed in future versions'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         warnings.warn(self.warn_message, FutureWarning, stacklevel=2)
         super().__init__(*args, **kwargs)
 
@@ -85,12 +88,12 @@ def alert_future_error(
     msg: str,
     version: str,
     *,
-    warning_class: Type[Warning] = FutureWarning,
-    error_class: Type[Exception] = RuntimeError,
+    warning_class: type[Warning] = FutureWarning,
+    error_class: type[Exception] = RuntimeError,
     warning_rec: str = '',
     error_rec: str = '',
     stacklevel: int = 2,
-):
+) -> None:
     """Warn or error with appropriate messages for changing functionality.
 
     Parameters
