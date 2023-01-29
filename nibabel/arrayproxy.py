@@ -59,6 +59,9 @@ KEEP_FILE_OPEN_DEFAULT = False
 if ty.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
 
+    # Taken from numpy/__init__.pyi
+    _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
+
 
 class ArrayLike(ty.Protocol):
     """Protocol for numpy ndarray-like objects
@@ -68,9 +71,19 @@ class ArrayLike(ty.Protocol):
     """
 
     shape: tuple[int, ...]
-    ndim: int
 
-    def __array__(self, dtype: npt.DTypeLike | None = None, /) -> npt.NDArray:
+    @property
+    def ndim(self) -> int:
+        ...  # pragma: no cover
+
+    # If no dtype is passed, any dtype might be returned, depending on the array-like
+    @ty.overload
+    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
+        ...  # pragma: no cover
+
+    # Any dtype might be passed, and *that* dtype must be returned
+    @ty.overload
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
         ...  # pragma: no cover
 
     def __getitem__(self, key, /) -> npt.NDArray:

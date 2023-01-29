@@ -331,5 +331,5 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             sio.savemat(mfobj, {'M': M, 'mat': mat}, format='4')
 
 
-load = Spm99AnalyzeImage.load
+load = Spm99AnalyzeImage.from_filename
 save = Spm99AnalyzeImage.instance_to_filename

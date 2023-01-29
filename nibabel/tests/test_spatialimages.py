@@ -11,7 +11,6 @@
 
 import warnings
 from io import BytesIO
-from unittest import TestCase
 
 import numpy as np
 import pytest
@@ -205,7 +204,7 @@ class DataLike:
         return np.arange(3, dtype=dtype)
 
 
-class TestSpatialImage(TestCase):
+class TestSpatialImage:
     # class for testing images
     image_class = SpatialImage
     can_save = False

@@ -210,19 +210,6 @@ def assert_arr_dict_equal(dict1, dict2):
         assert_array_equal(value1, value2)
 
 
-class BaseTestCase(unittest.TestCase):
-    """TestCase that does not attempt to run if prefixed with a ``_``
-
-    This restores the nose-like behavior of skipping so-named test cases
-    in test runners like pytest.
-    """
-
-    def setUp(self):
-        if self.__class__.__name__.startswith('_'):
-            raise unittest.SkipTest('Base test case - subclass to run')
-        super().setUp()
-
-
 def expires(version):
     """Decorator to mark a test as xfail with ExpiredDeprecationError after version"""
     from packaging.version import Version

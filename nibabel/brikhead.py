@@ -564,4 +564,4 @@ class AFNIImage(SpatialImage):
         return file_map
 
 
-load = AFNIImage.load
+load = AFNIImage.from_filename

@@ -172,4 +172,4 @@ class Minc2Image(Minc1Image):
         return klass(data, affine, header, extra=None, file_map=file_map)
 
 
-load = Minc2Image.load
+load = Minc2Image.from_filename

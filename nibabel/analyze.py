@@ -1064,5 +1064,5 @@ class AnalyzeImage(SpatialImage):
             hdr['scl_inter'] = inter
 
 
-load = AnalyzeImage.load
+load = AnalyzeImage.from_filename
 save = AnalyzeImage.instance_to_filename

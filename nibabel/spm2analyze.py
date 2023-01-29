@@ -130,5 +130,5 @@ class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
     header_class = Spm2AnalyzeHeader
 
 
-load = Spm2AnalyzeImage.load
+load = Spm2AnalyzeImage.from_filename
 save = Spm2AnalyzeImage.instance_to_filename

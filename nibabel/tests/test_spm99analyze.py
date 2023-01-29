@@ -35,10 +35,20 @@ from ..testing import (
 from ..volumeutils import _dt_min_max, apply_read_scaling
 from . import test_analyze
 
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
-INT_TYPES = np.sctypes['int']
-UINT_TYPES = np.sctypes['uint']
+# np.sctypes values are lists of types with unique sizes
+# For testing, we want all concrete classes of a type
+# Key on kind, rather than abstract base classes, since timedelta64 is a signedinteger
+sctypes = {}
+for sctype in set(np.sctypeDict.values()):
+    sctypes.setdefault(np.dtype(sctype).kind, []).append(sctype)
+
+# Sort types to ensure that xdist doesn't complain about test order when we parametrize
+FLOAT_TYPES = sorted(sctypes['f'], key=lambda x: x.__name__)
+COMPLEX_TYPES = sorted(sctypes['c'], key=lambda x: x.__name__)
+INT_TYPES = sorted(sctypes['i'], key=lambda x: x.__name__)
+UINT_TYPES = sorted(sctypes['u'], key=lambda x: x.__name__)
+
+# Create combined type lists
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
@@ -306,57 +316,57 @@ class ImageScalingMixin:
         img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_fdata(), np.clip(arr, 0, 255))
 
-    def test_no_scaling(self):
+    # NOTE: Need to check complex scaling
+    @pytest.mark.parametrize('in_dtype', FLOAT_TYPES + IUINT_TYPES)
+    def test_no_scaling(self, in_dtype, supported_dtype):
         # Test writing image converting types when not calculating scaling
         img_class = self.image_class
         hdr_class = img_class.header_class
         hdr = hdr_class()
-        supported_types = supported_np_types(hdr)
         # Any old non-default slope and intercept
         slope = 2
         inter = 10 if hdr.has_data_intercept else 0
-        for in_dtype, out_dtype in itertools.product(FLOAT_TYPES + IUINT_TYPES, supported_types):
-            # Need to check complex scaling
-            mn_in, mx_in = _dt_min_max(in_dtype)
-            arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
-            img = img_class(arr, np.eye(4), hdr)
-            img.set_data_dtype(out_dtype)
-            # Setting the scaling means we don't calculate it later
-            img.header.set_slope_inter(slope, inter)
-            with np.errstate(invalid='ignore'):
-                rt_img = bytesio_round_trip(img)
-            with suppress_warnings():  # invalid mult
-                back_arr = np.asanyarray(rt_img.dataobj)
-            exp_back = arr.copy()
-            # If converting to floating point type, casting is direct.
-            # Otherwise we will need to do float-(u)int casting at some point
-            if out_dtype in IUINT_TYPES:
-                if in_dtype in FLOAT_TYPES:
-                    # Working precision is (at least) float
-                    exp_back = exp_back.astype(float)
-                    # Float to iu conversion will always round, clip
-                    with np.errstate(invalid='ignore'):
-                        exp_back = np.round(exp_back)
-                    if in_dtype in FLOAT_TYPES:
-                        # Clip to shared range of working precision
-                        exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
-                else:  # iu input and output type
-                    # No scaling, never gets converted to float.
-                    # Does get clipped to range of output type
-                    mn_out, mx_out = _dt_min_max(out_dtype)
-                    if (mn_in, mx_in) != (mn_out, mx_out):
-                        # Use smaller of input, output range to avoid np.clip
-                        # upcasting the array because of large clip limits.
-                        exp_back = np.clip(exp_back, max(mn_in, mn_out), min(mx_in, mx_out))
-            if out_dtype in COMPLEX_TYPES:
-                # always cast to real from complex
-                exp_back = exp_back.astype(out_dtype)
-            else:
-                # Cast to working precision
+
+        mn_in, mx_in = _dt_min_max(in_dtype)
+        arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
+        img = img_class(arr, np.eye(4), hdr)
+        img.set_data_dtype(supported_dtype)
+        # Setting the scaling means we don't calculate it later
+        img.header.set_slope_inter(slope, inter)
+        with np.errstate(invalid='ignore'):
+            rt_img = bytesio_round_trip(img)
+        with suppress_warnings():  # invalid mult
+            back_arr = np.asanyarray(rt_img.dataobj)
+        exp_back = arr.copy()
+        # If converting to floating point type, casting is direct.
+        # Otherwise we will need to do float-(u)int casting at some point
+        if supported_dtype in IUINT_TYPES:
+            if in_dtype in FLOAT_TYPES:
+                # Working precision is (at least) float
                 exp_back = exp_back.astype(float)
-            # Allow for small differences in large numbers
-            with suppress_warnings():  # invalid value
-                assert_allclose_safely(back_arr, exp_back * slope + inter)
+                # Float to iu conversion will always round, clip
+                with np.errstate(invalid='ignore'):
+                    exp_back = np.round(exp_back)
+                if in_dtype in FLOAT_TYPES:
+                    # Clip to shared range of working precision
+                    exp_back = np.clip(exp_back, *shared_range(float, supported_dtype))
+            else:  # iu input and output type
+                # No scaling, never gets converted to float.
+                # Does get clipped to range of output type
+                mn_out, mx_out = _dt_min_max(supported_dtype)
+                if (mn_in, mx_in) != (mn_out, mx_out):
+                    # Use smaller of input, output range to avoid np.clip
+                    # upcasting the array because of large clip limits.
+                    exp_back = np.clip(exp_back, max(mn_in, mn_out), min(mx_in, mx_out))
+        if supported_dtype in COMPLEX_TYPES:
+            # always cast to real from complex
+            exp_back = exp_back.astype(supported_dtype)
+        else:
+            # Cast to working precision
+            exp_back = exp_back.astype(float)
+        # Allow for small differences in large numbers
+        with suppress_warnings():  # invalid value
+            assert_allclose_safely(back_arr, exp_back * slope + inter)
 
     def test_write_scaling(self):
         # Check writes with scaling set

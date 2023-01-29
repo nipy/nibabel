@@ -589,5 +589,5 @@ class MGHImage(SpatialImage, SerializableImage):
         hdr['Pxyz_c'] = c_ras
 
 
-load = MGHImage.load
+load = MGHImage.from_filename
 save = MGHImage.instance_to_filename

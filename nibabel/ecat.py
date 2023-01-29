@@ -747,11 +747,13 @@ class EcatImageArrayProxy:
 class EcatImage(SpatialImage):
     """Class returns a list of Ecat images, with one image(hdr/data) per frame"""
 
-    _header = EcatHeader
-    header_class = _header
+    header_class = EcatHeader
+    subheader_class = EcatSubHeader
     valid_exts = ('.v',)
-    _subheader = EcatSubHeader
     files_types = (('image', '.v'), ('header', '.v'))
+
+    _header: EcatHeader
+    _subheader: EcatSubHeader
 
     ImageArrayProxy = EcatImageArrayProxy
 
@@ -879,14 +881,14 @@ class EcatImage(SpatialImage):
         hdr_file, img_file = klass._get_fileholders(file_map)
         # note header and image are in same file
         hdr_fid = hdr_file.get_prepare_fileobj(mode='rb')
-        header = klass._header.from_fileobj(hdr_fid)
+        header = klass.header_class.from_fileobj(hdr_fid)
         hdr_copy = header.copy()
         # LOAD MLIST
         mlist = np.zeros((header['num_frames'], 4), dtype=np.int32)
         mlist_data = read_mlist(hdr_fid, hdr_copy.endianness)
         mlist[: len(mlist_data)] = mlist_data
         # LOAD SUBHEADERS
-        subheaders = klass._subheader(hdr_copy, mlist, hdr_fid)
+        subheaders = klass.subheader_class(hdr_copy, mlist, hdr_fid)
         # LOAD DATA
         # Class level ImageArrayProxy
         data = klass.ImageArrayProxy(subheaders)

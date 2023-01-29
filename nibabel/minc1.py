@@ -334,4 +334,4 @@ class Minc1Image(SpatialImage):
         return klass(data, affine, header, extra=None, file_map=file_map)
 
 
-load = Minc1Image.load
+load = Minc1Image.from_filename
