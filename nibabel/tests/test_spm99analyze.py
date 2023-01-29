@@ -47,6 +47,8 @@ FLOAT_TYPES = sorted(sctypes['f'], key=lambda x: x.__name__)
 COMPLEX_TYPES = sorted(sctypes['c'], key=lambda x: x.__name__)
 INT_TYPES = sorted(sctypes['i'], key=lambda x: x.__name__)
 UINT_TYPES = sorted(sctypes['u'], key=lambda x: x.__name__)
+
+# Create combined type lists
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
