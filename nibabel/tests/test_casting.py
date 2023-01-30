@@ -233,10 +233,15 @@ def test_best_float():
 
 
 def test_longdouble_precision_improved():
-    # Just check that this can only be True on windows, msvc
-    from numpy.distutils.ccompiler import get_default_compiler
+    # Just check that this can only be True on Windows
 
-    if not (os.name == 'nt' and get_default_compiler() == 'msvc'):
+    # This previously used distutils.ccompiler.get_default_compiler to check for msvc
+    # In https://github.com/python/cpython/blob/3467991/Lib/distutils/ccompiler.py#L919-L956
+    # we see that this was implied by os.name == 'nt', so we can remove this deprecated
+    # call.
+    # However, there may be detectable conditions in Windows where we would expect this
+    # to be False as well.
+    if os.name != 'nt':
         assert not longdouble_precision_improved()
 
 
