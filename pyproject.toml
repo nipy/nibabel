@@ -10,7 +10,11 @@ maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
 license = { text = "MIT License" }
 requires-python = ">=3.8"
-dependencies = ["numpy >=1.19", "packaging >=17", "setuptools"]
+dependencies = [
+  "numpy >=1.19",
+  "packaging >=17",
+  "importlib_resources; python_version < '3.9'",
+]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
