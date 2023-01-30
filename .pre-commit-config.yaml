@@ -37,5 +37,6 @@ repos:
           - pydicom
           - numpy
           - pyzstd
+          - importlib_resources
         args: ["nibabel"]
         pass_filenames: false

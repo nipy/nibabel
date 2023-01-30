@@ -68,7 +68,14 @@ test = [
   "pytest-httpserver",
   "pytest-xdist",
 ]
-typing = ["mypy", "pytest", "types-setuptools", "types-Pillow", "pydicom"]
+typing = [
+  "mypy",
+  "pytest",
+  "types-setuptools",
+  "types-Pillow",
+  "pydicom",
+  "importlib_resources",
+]
 zstd = ["pyzstd >= 0.14.3"]
 
 [tool.hatch.build.targets.sdist]
