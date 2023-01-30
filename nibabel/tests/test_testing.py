@@ -171,12 +171,14 @@ def test_assert_re_in(regex, entries):
 
 
 def test_test_data():
-    assert test_data() == data_path
-    assert test_data() == os.path.abspath(
+    assert str(test_data()) == str(data_path)
+    assert str(test_data()) == os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'tests', 'data')
     )
     for subdir in ('nicom', 'gifti', 'externals'):
-        assert test_data(subdir) == os.path.join(data_path[:-10], subdir, 'tests', 'data')
+        assert str(test_data(subdir)) == os.path.join(
+            data_path.parent.parent, subdir, 'tests', 'data'
+        )
         assert os.path.exists(test_data(subdir))
         assert not os.path.exists(test_data(subdir, 'doesnotexist'))
 

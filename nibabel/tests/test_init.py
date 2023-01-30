@@ -1,7 +1,12 @@
+import pathlib
 from unittest import mock
 
 import pytest
-from pkg_resources import resource_filename
+
+try:
+    from importlib.resources import as_file, files
+except ImportError:
+    from importlib_resources import as_file, files
 
 import nibabel as nib
 
@@ -38,12 +43,11 @@ def test_nibabel_test_errors():
 
 
 def test_nibabel_bench():
-    expected_args = ['-c', '--pyargs', 'nibabel']
+    config_path = files('nibabel') / 'benchmarks/pytest.benchmark.ini'
+    if not isinstance(config_path, pathlib.Path):
+        raise unittest.SkipTest('Package is not unpacked; could get temp path')
 
-    try:
-        expected_args.insert(1, resource_filename('nibabel', 'benchmarks/pytest.benchmark.ini'))
-    except:
-        raise unittest.SkipTest('Not installed')
+    expected_args = ['-c', str(config_path), '--pyargs', 'nibabel']
 
     with mock.patch('pytest.main') as pytest_main:
         nib.bench(verbose=0)
