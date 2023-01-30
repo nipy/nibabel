@@ -171,14 +171,14 @@ def test_assert_re_in(regex, entries):
 
 
 def test_test_data():
-    assert str(test_data()) == str(data_path)
+    assert str(test_data()) == str(data_path)  # Always get the same result
+    # Works the same as using __file__ and os.path utilities
     assert str(test_data()) == os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'tests', 'data')
     )
+    # Check action of subdir and that existence checks work
     for subdir in ('nicom', 'gifti', 'externals'):
-        assert str(test_data(subdir)) == os.path.join(
-            data_path.parent.parent, subdir, 'tests', 'data'
-        )
+        assert test_data(subdir) == data_path.parent.parent / subdir / 'tests' / 'data'
         assert os.path.exists(test_data(subdir))
         assert not os.path.exists(test_data(subdir, 'doesnotexist'))
 
