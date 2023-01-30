@@ -33,7 +33,7 @@ except ImportError:  # PY38
     from importlib_resources.abc import Traversable
 
 
-def test_data(
+def get_test_data(
     subdir: ty.Literal['gifti', 'nicom', 'externals'] | None = None,
     fname: str | None = None,
 ) -> Traversable:
@@ -52,7 +52,7 @@ def test_data(
 
 
 # set path to example data
-data_path = test_data()
+data_path = get_test_data()
 
 
 def assert_dt_equal(a, b):

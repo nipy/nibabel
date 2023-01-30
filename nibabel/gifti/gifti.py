@@ -701,8 +701,8 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         Consider a surface GIFTI file:
 
         >>> import nibabel as nib
-        >>> from nibabel.testing import test_data
-        >>> surf_img = nib.load(test_data('gifti', 'ascii.gii'))
+        >>> from nibabel.testing import get_test_data
+        >>> surf_img = nib.load(get_test_data('gifti', 'ascii.gii'))
 
         The coordinate data, which is indicated by the ``NIFTI_INTENT_POINTSET``
         intent code, may be retrieved using any of the following equivalent
@@ -754,7 +754,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         The following image is a GIFTI file with ten (10) data arrays of the same
         size, and with intent code 2001 (``NIFTI_INTENT_TIME_SERIES``):
 
-        >>> func_img = nib.load(test_data('gifti', 'task.func.gii'))
+        >>> func_img = nib.load(get_test_data('gifti', 'task.func.gii'))
 
         When aggregating time series data, these arrays are concatenated into
         a single, vertex-by-timestep array:

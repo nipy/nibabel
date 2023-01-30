@@ -13,11 +13,11 @@ import pytest
 
 import nibabel as nib
 from nibabel.cmdline import convert
-from nibabel.testing import test_data
+from nibabel.testing import get_test_data
 
 
 def test_convert_noop(tmp_path):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / 'output.nii.gz'
 
     orig = nib.load(infile)
@@ -31,7 +31,7 @@ def test_convert_noop(tmp_path):
     assert converted.shape == orig.shape
     assert converted.get_data_dtype() == orig.get_data_dtype()
 
-    infile = test_data(fname='resampled_anat_moved.nii')
+    infile = get_test_data(fname='resampled_anat_moved.nii')
 
     with pytest.raises(FileExistsError):
         convert.main([str(infile), str(outfile)])
@@ -50,7 +50,7 @@ def test_convert_noop(tmp_path):
 
 @pytest.mark.parametrize('data_dtype', ('u1', 'i2', 'float32', 'float', 'int64'))
 def test_convert_dtype(tmp_path, data_dtype):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / 'output.nii.gz'
 
     orig = nib.load(infile)
@@ -78,7 +78,7 @@ def test_convert_dtype(tmp_path, data_dtype):
     ],
 )
 def test_convert_by_extension(tmp_path, ext, img_class):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / f'output.{ext}'
 
     orig = nib.load(infile)
@@ -102,7 +102,7 @@ def test_convert_by_extension(tmp_path, ext, img_class):
     ],
 )
 def test_convert_imgtype(tmp_path, ext, img_class):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / f'output.{ext}'
 
     orig = nib.load(infile)
@@ -118,7 +118,7 @@ def test_convert_imgtype(tmp_path, ext, img_class):
 
 
 def test_convert_nifti_int_fail(tmp_path):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / f'output.nii'
 
     orig = nib.load(infile)

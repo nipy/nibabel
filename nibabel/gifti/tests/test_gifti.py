@@ -14,7 +14,7 @@ from nibabel.tmpdirs import InTemporaryDirectory
 from ... import load
 from ...fileholders import FileHolder
 from ...nifti1 import data_type_codes
-from ...testing import test_data
+from ...testing import get_test_data
 from .. import (
     GiftiCoordSystem,
     GiftiDataArray,
@@ -35,9 +35,9 @@ from .test_parse_gifti_fast import (
 
 
 def test_agg_data():
-    surf_gii_img = load(test_data('gifti', 'ascii.gii'))
-    func_gii_img = load(test_data('gifti', 'task.func.gii'))
-    shape_gii_img = load(test_data('gifti', 'rh.shape.curv.gii'))
+    surf_gii_img = load(get_test_data('gifti', 'ascii.gii'))
+    func_gii_img = load(get_test_data('gifti', 'task.func.gii'))
+    shape_gii_img = load(get_test_data('gifti', 'rh.shape.curv.gii'))
     # add timeseries data with intent code ``none``
 
     point_data = surf_gii_img.get_arrays_from_intent('pointset')[0].data
@@ -478,7 +478,7 @@ def test_darray_dtype_coercion_failures():
 
 
 def test_gifti_file_close(recwarn):
-    gii = load(test_data('gifti', 'ascii.gii'))
+    gii = load(get_test_data('gifti', 'ascii.gii'))
     with InTemporaryDirectory():
         gii.to_filename('test.gii')
     assert not any(isinstance(r.message, ResourceWarning) for r in recwarn)

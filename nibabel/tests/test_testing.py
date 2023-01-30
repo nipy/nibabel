@@ -15,8 +15,8 @@ from ..testing import (
     data_path,
     error_warnings,
     get_fresh_mod,
+    get_test_data,
     suppress_warnings,
-    test_data,
 )
 
 
@@ -171,22 +171,22 @@ def test_assert_re_in(regex, entries):
 
 
 def test_test_data():
-    assert str(test_data()) == str(data_path)  # Always get the same result
+    assert str(get_test_data()) == str(data_path)  # Always get the same result
     # Works the same as using __file__ and os.path utilities
-    assert str(test_data()) == os.path.abspath(
+    assert str(get_test_data()) == os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'tests', 'data')
     )
     # Check action of subdir and that existence checks work
     for subdir in ('nicom', 'gifti', 'externals'):
-        assert test_data(subdir) == data_path.parent.parent / subdir / 'tests' / 'data'
-        assert os.path.exists(test_data(subdir))
-        assert not os.path.exists(test_data(subdir, 'doesnotexist'))
+        assert get_test_data(subdir) == data_path.parent.parent / subdir / 'tests' / 'data'
+        assert os.path.exists(get_test_data(subdir))
+        assert not os.path.exists(get_test_data(subdir, 'doesnotexist'))
 
     for subdir in ('freesurfer', 'doesnotexist'):
         with pytest.raises(ValueError):
-            test_data(subdir)
+            get_test_data(subdir)
 
-    assert not os.path.exists(test_data(None, 'doesnotexist'))
+    assert not os.path.exists(get_test_data(None, 'doesnotexist'))
 
     for subdir, fname in [
         ('gifti', 'ascii.gii'),
@@ -194,4 +194,4 @@ def test_test_data():
         ('externals', 'example_1.nc'),
         (None, 'empty.tck'),
     ]:
-        assert os.path.exists(test_data(subdir, fname))
+        assert os.path.exists(get_test_data(subdir, fname))
