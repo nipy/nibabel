@@ -101,7 +101,7 @@ def pkg_commit_hash(pkg_path: str | None = None) -> tuple[str, str]:
         return 'archive substitution', COMMIT_HASH
     ver = Version(__version__)
     if ver.local is not None and ver.local.startswith('g'):
-        return ver.local[1:8], 'installation'
+        return 'installation', ver.local[1:8]
     # maybe we are in a repository
     proc = run(
         ('git', 'rev-parse', '--short', 'HEAD'),
