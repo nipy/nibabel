@@ -45,7 +45,7 @@ class TripWire:
     TripWireError: We do not have a_module
     """
 
-    def __init__(self, msg: str):
+    def __init__(self, msg: str) -> None:
         self._msg = msg
 
     def __getattr__(self, attr_name: str) -> Any:

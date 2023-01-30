@@ -33,7 +33,7 @@ class ModuleProxy:
     module.
     """
 
-    def __init__(self, module_name: str):
+    def __init__(self, module_name: str) -> None:
         self._module_name = module_name
 
     def __getattr__(self, key: str) -> ty.Any:

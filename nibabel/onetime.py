@@ -119,7 +119,7 @@ class OneTimeProperty(ty.Generic[T]):
     This is meant to be used mostly by the auto_attr decorator in this module.
     """
 
-    def __init__(self, func: ty.Callable[[InstanceT], T]):
+    def __init__(self, func: ty.Callable[[InstanceT], T]) -> None:
         """Create a OneTimeProperty instance.
 
         Parameters
