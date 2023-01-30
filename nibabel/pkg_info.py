@@ -14,7 +14,7 @@ except ImportError:
 COMMIT_HASH = '$Format:%h$'
 
 
-def _cmp(a, b) -> int:
+def _cmp(a: Version, b: Version) -> int:
     """Implementation of ``cmp`` for Python 3"""
     return (a > b) - (a < b)
 
@@ -113,7 +113,7 @@ def pkg_commit_hash(pkg_path: str | None = None) -> tuple[str, str]:
     return '(none found)', '<not found>'
 
 
-def get_pkg_info(pkg_path: str) -> dict:
+def get_pkg_info(pkg_path: str) -> dict[str, str]:
     """Return dict describing the context of this package
 
     Parameters

@@ -6,7 +6,7 @@ import numpy as np
 
 from ..optpkg import optional_package
 
-_, have_scipy, _ = optional_package('scipy.io')
+have_scipy = optional_package('scipy.io')[1]
 
 from numpy.testing import assert_array_equal
 

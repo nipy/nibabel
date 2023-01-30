@@ -20,7 +20,7 @@ import numpy.linalg as npl
 
 from .optpkg import optional_package
 
-spnd, _, _ = optional_package('scipy.ndimage')
+spnd = optional_package('scipy.ndimage')[0]
 
 from .affines import AffineError, append_diag, from_matvec, rescale_affine, to_matvec
 from .imageclasses import spatial_axes_first
