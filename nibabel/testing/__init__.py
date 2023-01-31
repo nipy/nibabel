@@ -7,10 +7,12 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utilities for testing"""
+from __future__ import annotations
 
 import os
 import re
 import sys
+import typing as ty
 import unittest
 import warnings
 from contextlib import nullcontext
@@ -19,28 +21,38 @@ from itertools import zip_longest
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from pkg_resources import resource_filename
 
 from .helpers import assert_data_similar, bytesio_filemap, bytesio_round_trip
 from .np_features import memmap_after_ufunc
 
+try:
+    from importlib.abc import Traversable
+    from importlib.resources import as_file, files
+except ImportError:  # PY38
+    from importlib_resources import as_file, files
+    from importlib_resources.abc import Traversable
 
-def test_data(subdir=None, fname=None):
+
+def get_test_data(
+    subdir: ty.Literal['gifti', 'nicom', 'externals'] | None = None,
+    fname: str | None = None,
+) -> Traversable:
+    parts: tuple[str, ...]
     if subdir is None:
-        resource = os.path.join('tests', 'data')
+        parts = ('tests', 'data')
     elif subdir in ('gifti', 'nicom', 'externals'):
-        resource = os.path.join(subdir, 'tests', 'data')
+        parts = (subdir, 'tests', 'data')
     else:
         raise ValueError(f'Unknown test data directory: {subdir}')
 
     if fname is not None:
-        resource = os.path.join(resource, fname)
+        parts += (fname,)
 
-    return resource_filename('nibabel', resource)
+    return files('nibabel').joinpath(*parts)
 
 
 # set path to example data
-data_path = test_data()
+data_path = get_test_data()
 
 
 def assert_dt_equal(a, b):

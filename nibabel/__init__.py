@@ -171,11 +171,16 @@ def bench(label=None, verbose=1, extra_argv=None):
     code : ExitCode
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
-    from pkg_resources import resource_filename
+    try:
+        from importlib.resources import as_file, files
+    except ImportError:
+        from importlib_resources import as_file, files
 
-    config = resource_filename('nibabel', 'benchmarks/pytest.benchmark.ini')
     args = []
     if extra_argv is not None:
         args.extend(extra_argv)
-    args.extend(['-c', config])
-    return test(label, verbose, extra_argv=args)
+
+    config_path = files('nibabel') / 'benchmarks/pytest.benchmark.ini'
+    with as_file(config_path) as config:
+        args.extend(['-c', str(config)])
+        return test(label, verbose, extra_argv=args)

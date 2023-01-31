@@ -10,7 +10,11 @@ maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
 license = { text = "MIT License" }
 requires-python = ">=3.8"
-dependencies = ["numpy >=1.19", "packaging >=17", "setuptools"]
+dependencies = [
+  "numpy >=1.19",
+  "packaging >=17",
+  "importlib_resources; python_version < '3.9'",
+]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
@@ -68,7 +72,14 @@ test = [
   "pytest-httpserver",
   "pytest-xdist",
 ]
-typing = ["mypy", "pytest", "types-setuptools", "types-Pillow", "pydicom"]
+typing = [
+  "mypy",
+  "pytest",
+  "types-setuptools",
+  "types-Pillow",
+  "pydicom",
+  "importlib_resources",
+]
 zstd = ["pyzstd >= 0.14.3"]
 
 [tool.hatch.build.targets.sdist]

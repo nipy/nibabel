@@ -15,7 +15,7 @@ import pytest
 import nibabel as nib
 from nibabel.cmdline.conform import main
 from nibabel.optpkg import optional_package
-from nibabel.testing import test_data
+from nibabel.testing import get_test_data
 
 _, have_scipy, _ = optional_package('scipy.ndimage')
 needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
@@ -23,7 +23,7 @@ needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
 
 @needs_scipy
 def test_default(tmpdir):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmpdir / 'output.nii.gz'
     main([str(infile), str(outfile)])
     assert outfile.isfile()
@@ -41,7 +41,7 @@ def test_default(tmpdir):
 
 @needs_scipy
 def test_nondefault(tmpdir):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmpdir / 'output.nii.gz'
     out_shape = (100, 100, 150)
     voxel_size = (1, 2, 4)
