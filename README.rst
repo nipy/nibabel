@@ -19,6 +19,10 @@
    :target: https://repology.org/project/nibabel/versions
    :alt: Gentoo (::science)
 
+.. image:: https://repology.org/badge/version-for-repo/nix_unstable/python:nibabel.svg?header=nixpkgs%20unstable
+   :target: https://repology.org/project/python:nibabel/versions
+   :alt: nixpkgs unstable
+
 .. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
 
