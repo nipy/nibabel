@@ -494,13 +494,34 @@ def test_parcels():
     assert prc != prc_other
 
     # test direct initialisation
-    axes.ParcelsAxis(
+    test_parcel = axes.ParcelsAxis(
         voxels=[np.ones((3, 2), dtype=int)],
         vertices=[{}],
         name=['single_voxel'],
         affine=np.eye(4),
         volume_shape=(2, 3, 4),
     )
+    assert len(test_parcel) == 1
+
+    # test direct initialisation with multiple parcels
+    test_parcel = axes.ParcelsAxis(
+        voxels=[np.ones((3, 2), dtype=int), np.zeros((3, 2), dtype=int)],
+        vertices=[{}, {}],
+        name=['first_parcel', 'second_parcel'],
+        affine=np.eye(4),
+        volume_shape=(2, 3, 4),
+    )
+    assert len(test_parcel) == 2
+
+    # test direct initialisation with ragged voxel/vertices array
+    test_parcel = axes.ParcelsAxis(
+        voxels=[np.ones((3, 2), dtype=int), np.zeros((5, 2), dtype=int)],
+        vertices=[{}, {}],
+        name=['first_parcel', 'second_parcel'],
+        affine=np.eye(4),
+        volume_shape=(2, 3, 4),
+    )
+    assert len(test_parcel) == 2
 
     with pytest.raises(ValueError):
         axes.ParcelsAxis(
