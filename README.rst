@@ -7,7 +7,7 @@
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
    :target: https://doi.org/10.5281/zenodo.591597
 
-.. image :: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
+.. image:: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
    :target: https://repology.org/project/nibabel/versions
    :alt: Debian Unstable package
 
