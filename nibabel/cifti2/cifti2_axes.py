@@ -776,8 +776,8 @@ class ParcelsAxis(Axis):
         """
         self.name = np.asanyarray(name, dtype='U')
         self.voxels = np.empty(len(voxels), dtype='object')
-        for idx in range(len(voxels)):
-            self.voxels[idx] = voxels[idx]
+        for idx, vox in enumerate(voxels):
+            self.voxels[idx] = vox
         self.vertices = np.asanyarray(vertices, dtype='object')
         self.affine = np.asanyarray(affine) if affine is not None else None
         self.volume_shape = volume_shape
