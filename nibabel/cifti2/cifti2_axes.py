@@ -775,14 +775,9 @@ class ParcelsAxis(Axis):
             maps names of surface elements to integers (not needed for volumetric CIFTI-2 files)
         """
         self.name = np.asanyarray(name, dtype='U')
-        as_array = np.asanyarray(voxels)
-        if as_array.ndim == 1:
-            voxels = as_array.astype('object')
-        else:
-            voxels = np.empty(len(voxels), dtype='object')
-            for idx in range(len(voxels)):
-                voxels[idx] = as_array[idx]
-        self.voxels = np.asanyarray(voxels, dtype='object')
+        self.voxels = np.empty(len(voxels), dtype='object')
+        for idx, vox in enumerate(voxels):
+            self.voxels[idx] = vox
         self.vertices = np.asanyarray(vertices, dtype='object')
         self.affine = np.asanyarray(affine) if affine is not None else None
         self.volume_shape = volume_shape
