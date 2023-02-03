@@ -7,6 +7,22 @@
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
    :target: https://doi.org/10.5281/zenodo.591597
 
+.. image:: https://repology.org/badge/version-for-repo/aur/python:nibabel.svg?header=Arch%20%28%41%55%52%29
+   :target: https://repology.org/project/python:nibabel/versions
+   :alt: Arch (AUR)
+
+.. image:: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
+   :target: https://repology.org/project/nibabel/versions
+   :alt: Debian Unstable package
+
+.. image:: https://repology.org/badge/version-for-repo/gentoo_ovl_science/nibabel.svg?header=Gentoo%20%28%3A%3Ascience%29
+   :target: https://repology.org/project/nibabel/versions
+   :alt: Gentoo (::science)
+
+.. image:: https://repology.org/badge/version-for-repo/nix_unstable/python:nibabel.svg?header=nixpkgs%20unstable
+   :target: https://repology.org/project/python:nibabel/versions
+   :alt: nixpkgs unstable
+
 .. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
 
 
