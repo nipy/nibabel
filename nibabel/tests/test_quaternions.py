@@ -91,6 +91,15 @@ def test_fillpositive_plus_minus_epsilon(dtype):
     assert nq.fillpositive(plus)[0] == 0.0
     assert nq.fillpositive(minus)[0] == 0.0
 
+    # |(x, y, z)| > 1, no real solutions
+    plus = baseline * nptype(1 + 2 * np.finfo(dtype).eps)
+    with pytest.raises(ValueError):
+        nq.fillpositive(plus)
+
+    # |(x, y, z)| < 1, two real solutions, we choose positive
+    minus = baseline * nptype(1 - 2 * np.finfo(dtype).eps)
+    assert nq.fillpositive(minus)[0] > 0.0
+
 
 @pytest.mark.parametrize('dtype', ('f4', 'f8'))
 def test_fillpositive_simulated_error(dtype):
@@ -107,18 +116,7 @@ def test_fillpositive_simulated_error(dtype):
     for _ in range(50):
         xyz = norm(gen_vec(dtype))
 
-        wxyz = nq.fillpositive(xyz, w2_thresh)
-        assert wxyz[0] == 0.0
-
-        # Verify that we exercise the threshold
-        magnitude = xyz @ xyz
-        if magnitude < 1:
-            pos_error = True
-        elif magnitude > 1:
-            neg_error = True
-
-    assert pos_error, 'Did not encounter a case where 1 - |xyz| > 0'
-    assert neg_error, 'Did not encounter a case where 1 - |xyz| < 0'
+        assert nq.fillpositive(xyz, w2_thresh)[0] == 0.0
 
 
 def test_conjugate():
