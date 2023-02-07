@@ -74,11 +74,12 @@ test = [
 ]
 typing = [
   "mypy",
+  "importlib_resources",
+  "pydicom",
   "pytest",
+  "pyzstd",
   "types-setuptools",
   "types-Pillow",
-  "pydicom",
-  "importlib_resources",
 ]
 zstd = ["pyzstd >= 0.14.3"]
 
