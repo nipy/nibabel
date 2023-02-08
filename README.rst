@@ -1,29 +1,77 @@
 .. -*- rest -*-
 .. vim:syntax=rst
 
-.. image:: https://codecov.io/gh/nipy/nibabel/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/nipy/nibabel
-
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
-   :target: https://doi.org/10.5281/zenodo.591597
-
-.. image:: https://repology.org/badge/version-for-repo/aur/python:nibabel.svg?header=Arch%20%28%41%55%52%29
-   :target: https://repology.org/project/python:nibabel/versions
-   :alt: Arch (AUR)
-
-.. image:: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
-   :target: https://repology.org/project/nibabel/versions
-   :alt: Debian Unstable package
-
-.. image:: https://repology.org/badge/version-for-repo/gentoo_ovl_science/nibabel.svg?header=Gentoo%20%28%3A%3Ascience%29
-   :target: https://repology.org/project/nibabel/versions
-   :alt: Gentoo (::science)
-
-.. image:: https://repology.org/badge/version-for-repo/nix_unstable/python:nibabel.svg?header=nixpkgs%20unstable
-   :target: https://repology.org/project/python:nibabel/versions
-   :alt: nixpkgs unstable
-
 .. Following contents should be from LONG_DESCRIPTION in nibabel/info.py
+
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 0
+
+   * - Code
+     -
+      .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+         :target: https://github.com/psf/black
+         :alt: code style: black
+      .. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
+         :target: https://pycqa.github.io/isort/
+         :alt: imports: isort
+      .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
+         :target: https://github.com/pre-commit/pre-commit
+         :alt: pre-commit
+      .. image:: https://codecov.io/gh/nipy/nibabel/branch/master/graph/badge.svg
+         :target: https://codecov.io/gh/nipy/nibabel
+         :alt: codecov badge
+      .. image:: https://img.shields.io/librariesio/github/nipy/nibabel
+         :target: https://libraries.io/github/nipy/nibabel
+         :alt: Libraries.io dependency status for GitHub repo
+   * - Status
+     -
+      .. image:: https://github.com/nipy/nibabel/actions/workflows/stable.yml/badge.svg
+         :target: https://github.com/nipy/nibabel/actions/workflows/stable.yml
+         :alt: stable tests
+      .. image:: https://github.com/nipy/nibabel/actions/workflows/pages/pages-build-deployment/badge.svg
+         :target: https://github.com/nipy/nibabel/actions/workflows/pages/pages-build-deployment
+         :alt: documentation build
+   * - Packaging
+     -
+      .. image:: https://img.shields.io/pypi/v/nibabel.svg
+         :target: https://pypi.python.org/pypi/nibabel/
+         :alt: PyPI version
+      .. image:: https://img.shields.io/pypi/format/nibabel.svg
+         :target: https://pypi.org/project/nibabel
+         :alt: PyPI Format
+      .. image:: https://img.shields.io/pypi/pyversions/nibabel.svg
+         :target: https://pypi.python.org/pypi/nibabel/
+         :alt: PyPI - Python Version
+      .. image:: https://img.shields.io/pypi/implementation/nibabel.svg
+         :target: https://pypi.python.org/pypi/nibabel/
+         :alt: PyPI - Implementation
+      .. image:: https://img.shields.io/pypi/dm/nibabel.svg
+         :target: https://pypistats.org/packages/nibabel
+         :alt: PyPI - Downloads
+   * - Distribution
+     -
+      .. image:: https://repology.org/badge/version-for-repo/aur/python:nibabel.svg?header=Arch%20%28%41%55%52%29
+         :target: https://repology.org/project/python:nibabel/versions
+         :alt: Arch (AUR)
+      .. image:: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
+         :target: https://repology.org/project/nibabel/versions
+         :alt: Debian Unstable package
+      .. image:: https://repology.org/badge/version-for-repo/gentoo_ovl_science/nibabel.svg?header=Gentoo%20%28%3A%3Ascience%29
+         :target: https://repology.org/project/nibabel/versions
+         :alt: Gentoo (::science)
+      .. image:: https://repology.org/badge/version-for-repo/nix_unstable/python:nibabel.svg?header=nixpkgs%20unstable
+         :target: https://repology.org/project/python:nibabel/versions
+         :alt: nixpkgs unstable
+   * - License & DOI
+     -
+      .. image:: https://img.shields.io/pypi/l/nibabel.svg
+         :target: https://github.com/nipy/nibabel/blob/master/COPYING
+         :alt: License
+      .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591597.svg
+         :target: https://doi.org/10.5281/zenodo.591597
+         :alt: Zenodo DOI
 
 
 =======
