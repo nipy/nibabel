@@ -3,16 +3,16 @@
 
 .. Following contents should be copied from LONG_DESCRIPTION in NiBabel/info.py
 
-=======
-NiBabel
-=======
+.. image:: doc/pics/logo.png
+   :target: https://nipy.org/nibabel
+   :alt: NiBabel logo
 
 Read and write access to common neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
 GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC
 In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and morphometry files,
 and provides some limited support for DICOM_.
 
-NiBabel's API gives full or selective access to header information (metadata) and access to the image
+NiBabel's API gives full or selective access to header information (metadata), and image
 data is made available via NumPy arrays. For more information, see NiBabel's `documentation site`_
 and `API reference`_.
 
