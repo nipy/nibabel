@@ -84,7 +84,11 @@ typing = [
 zstd = ["pyzstd >= 0.14.3"]
 
 [tool.hatch.build.targets.sdist]
-exclude = [".git_archival.txt"]
+exclude = [
+  ".git_archival.txt",
+  # Submodules with large files; if we don't want them in the repo...
+  "nibabel-data/",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["nibabel", "nisext"]
