@@ -39,9 +39,9 @@ and `API reference`_.
 
    * - Code
      -
-      .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-         :target: https://github.com/psf/black
-         :alt: code style: black
+      .. image:: https://img.shields.io/badge/code%20style-blue-blue.svg
+         :target: https://blue.readthedocs.io/en/latest/
+         :alt: code style: blue
       .. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
          :target: https://pycqa.github.io/isort/
          :alt: imports: isort
