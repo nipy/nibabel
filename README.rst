@@ -51,9 +51,6 @@ and `API reference`_.
       .. image:: https://codecov.io/gh/nipy/NiBabel/branch/master/graph/badge.svg
          :target: https://codecov.io/gh/nipy/NiBabel
          :alt: codecov badge
-      .. image:: https://img.shields.io/librariesio/github/nipy/NiBabel
-         :target: https://libraries.io/github/nipy/NiBabel
-         :alt: Libraries.io dependency status for GitHub repo
 
    * - Status
      -
