@@ -134,7 +134,7 @@ please see the COPYING_ file.
 Citation
 ========
 
-Recent NiBabel releases have a Zenodo_ `Digital Object Identifier`_ (DOI) badge at
+NiBabel releases have a Zenodo_ `Digital Object Identifier`_ (DOI) badge at 
 the top of the release notes. Click on the badge for more information.
 
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
