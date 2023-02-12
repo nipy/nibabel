@@ -108,6 +108,7 @@ When working on NiBabel itself, it may be useful to install in "editable" mode::
 
    git clone https://github.com/nipy/nibabel.git
    pip install -e ./nibabel
+
 For more information on previous releases, see the `release archive`_ or `development changelog`_.
 
 .. _current release: https://pypi.python.org/pypi/NiBabel
