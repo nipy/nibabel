@@ -66,9 +66,6 @@ and `API reference`_.
       .. image:: https://img.shields.io/pypi/pyversions/nibabel.svg
          :target: https://pypi.python.org/pypi/nibabel/
          :alt: PyPI - Python Version
-      .. image:: https://img.shields.io/pypi/implementation/nibabel.svg
-         :target: https://pypi.python.org/pypi/nibabel/
-         :alt: PyPI - Implementation
       .. image:: https://img.shields.io/pypi/dm/nibabel.svg
          :target: https://pypistats.org/packages/nibabel/
          :alt: PyPI - Downloads
