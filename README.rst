@@ -57,9 +57,6 @@ and `API reference`_.
       .. image:: https://github.com/nipy/NiBabel/actions/workflows/stable.yml/badge.svg
          :target: https://github.com/nipy/NiBabel/actions/workflows/stable.yml
          :alt: stable tests
-      .. image:: https://github.com/nipy/NiBabel/actions/workflows/pages/pages-build-deployment/badge.svg
-         :target: https://github.com/nipy/NiBabel/actions/workflows/pages/pages-build-deployment
-         :alt: documentation build
 
    * - Packaging
      -
