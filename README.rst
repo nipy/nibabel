@@ -104,10 +104,11 @@ To install the latest development version, run::
 
    pip install git+https://github.com/nipy/nibabel
 
-For more information on previous releases, see the `release archive`_.
+For more information on previous releases, see the `release archive`_ or `development changelog`_.
 
 .. _current release: https://pypi.python.org/pypi/NiBabel
 .. _release archive: https://github.com/nipy/NiBabel/releases
+.. _development changelog: https://nipy.org/nibabel/changelog.html
 
 Mailing List
 ============
