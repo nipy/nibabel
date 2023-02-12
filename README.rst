@@ -8,7 +8,7 @@
    :alt: NiBabel logo
 
 Read and write access to common neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
-GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC
+GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
 In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and morphometry files,
 and provides some limited support for DICOM_.
 
