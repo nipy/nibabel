@@ -21,7 +21,7 @@ and `API reference`_.
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _CIFTI-2: https://www.nitrc.org/projects/cifti/
 .. _DICOM: http://medical.nema.org/
-.. _documentation site: http://nipy.org/NiBabel
+.. _documentation site: http://nipy.org/nibabel
 .. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
 .. _Freesurfer: https://surfer.nmr.mgh.harvard.edu
 .. _GIFTI: https://www.nitrc.org/projects/gifti
