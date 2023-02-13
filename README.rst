@@ -67,7 +67,7 @@ and `API reference`_.
          :target: https://pypi.python.org/pypi/nibabel/
          :alt: PyPI version
       .. image:: https://img.shields.io/pypi/dm/nibabel.svg
-         :target: https://pypistats.org/packages/nibabel/
+         :target: https://pypistats.org/packages/nibabel
          :alt: PyPI - Downloads
 
    * - Linux
