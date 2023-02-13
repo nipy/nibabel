@@ -33,9 +33,6 @@ and `API reference`_.
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
 
-.. role:: raw-html(raw)
-    :format: html
-
 .. list-table::
    :widths: 20 80
    :header-rows: 0
@@ -55,8 +52,8 @@ and `API reference`_.
          :target: https://github.com/pre-commit/pre-commit
          :alt: pre-commit
 
-      :raw-html:`<br />`
-
+   * - Tests
+     -
       .. image:: https://github.com/nipy/NiBabel/actions/workflows/stable.yml/badge.svg
          :target: https://github.com/nipy/NiBabel/actions/workflows/stable.yml
          :alt: stable tests
@@ -64,7 +61,7 @@ and `API reference`_.
          :target: https://codecov.io/gh/nipy/NiBabel
          :alt: codecov badge
 
-   * - Distribution
+   * - PyPI
      -
       .. image:: https://img.shields.io/pypi/v/nibabel.svg
          :target: https://pypi.python.org/pypi/nibabel/
@@ -73,14 +70,14 @@ and `API reference`_.
          :target: https://pypistats.org/packages/nibabel/
          :alt: PyPI - Downloads
 
-      :raw-html:`<br />`
-
-      .. image:: https://repology.org/badge/version-for-repo/aur/python:nibabel.svg?header=Arch%20%28%41%55%52%29
-         :target: https://repology.org/project/python:nibabel/versions
-         :alt: Arch (AUR)
+   * - Linux
+     -
       .. image:: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
          :target: https://repology.org/project/nibabel/versions
          :alt: Debian Unstable package
+      .. image:: https://repology.org/badge/version-for-repo/aur/python:nibabel.svg?header=Arch%20%28%41%55%52%29
+         :target: https://repology.org/project/python:nibabel/versions
+         :alt: Arch (AUR)
       .. image:: https://repology.org/badge/version-for-repo/gentoo_ovl_science/nibabel.svg?header=Gentoo%20%28%3A%3Ascience%29
          :target: https://repology.org/project/nibabel/versions
          :alt: Gentoo (::science)
