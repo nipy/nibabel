@@ -1,7 +1,7 @@
 .. -*- rest -*-
 .. vim:syntax=rst
 
-.. Following contents should be copied from LONG_DESCRIPTION in NiBabel/info.py
+.. Following contents should be copied from LONG_DESCRIPTION in nibabel/info.py
 
 .. image:: doc/pics/logo.png
    :target: https://nipy.org/nibabel
