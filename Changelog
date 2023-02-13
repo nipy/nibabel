@@ -25,6 +25,26 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.0.1 (Sunday 12 February 2023)
+===============================
+
+Bug-fix release in the 5.0.x series.
+
+Bug fixes
+---------
+* Support ragged voxel arrays in
+  :class:`~nibabel.cifti2.cifti2_axes.ParcelsAxis` (pr/1194) (Michiel Cottaar,
+  reviewed by CM)
+* Return to cwd on exception in :class:`~nibabel.tmpdirs.InTemporaryDirectory`
+  (pr/1184) (CM)
+
+Maintenance
+-----------
+* Add ``py.typed`` to module root to enable use of types in downstream
+  projects (CM, reviewed by Fernando Pérez-Garcia)
+* Cache git-archive separately from Python packages in GitHub Actions
+  (pr/1186) (CM, reviewed by Zvi Baratz)
+
 5.0.0 (Monday 9 January 2023)
 =============================
 
