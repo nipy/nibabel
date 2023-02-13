@@ -72,7 +72,7 @@ and `API reference`_.
 
    * - Packages
      -
-     .. image:: https://img.shields.io/conda/vn/conda-forge/nibabel
+      .. image:: https://img.shields.io/conda/vn/conda-forge/nibabel
          :target: https://anaconda.org/conda-forge/nibabel
          :alt: Conda package
       .. image:: https://repology.org/badge/version-for-repo/debian_unstable/nibabel.svg?header=Debian%20Unstable
