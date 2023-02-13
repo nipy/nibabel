@@ -33,12 +33,18 @@ and `API reference`_.
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
 
+.. role:: raw-html(raw)
+    :format: html
+
 .. list-table::
    :widths: 20 80
    :header-rows: 0
 
    * - Code
      -
+      .. image:: https://img.shields.io/pypi/pyversions/nibabel.svg
+         :target: https://pypi.python.org/pypi/nibabel/
+         :alt: PyPI - Python Version
       .. image:: https://img.shields.io/badge/code%20style-blue-blue.svg
          :target: https://blue.readthedocs.io/en/latest/
          :alt: code style: blue
@@ -48,30 +54,27 @@ and `API reference`_.
       .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
          :target: https://github.com/pre-commit/pre-commit
          :alt: pre-commit
+
+      :raw-html:`<br />`
+
+      .. image:: https://github.com/nipy/NiBabel/actions/workflows/stable.yml/badge.svg
+         :target: https://github.com/nipy/NiBabel/actions/workflows/stable.yml
+         :alt: stable tests
       .. image:: https://codecov.io/gh/nipy/NiBabel/branch/master/graph/badge.svg
          :target: https://codecov.io/gh/nipy/NiBabel
          :alt: codecov badge
 
-   * - Status
-     -
-      .. image:: https://github.com/nipy/NiBabel/actions/workflows/stable.yml/badge.svg
-         :target: https://github.com/nipy/NiBabel/actions/workflows/stable.yml
-         :alt: stable tests
-
-   * - Packaging
+   * - Distribution
      -
       .. image:: https://img.shields.io/pypi/v/nibabel.svg
          :target: https://pypi.python.org/pypi/nibabel/
          :alt: PyPI version
-      .. image:: https://img.shields.io/pypi/pyversions/nibabel.svg
-         :target: https://pypi.python.org/pypi/nibabel/
-         :alt: PyPI - Python Version
       .. image:: https://img.shields.io/pypi/dm/nibabel.svg
          :target: https://pypistats.org/packages/nibabel/
          :alt: PyPI - Downloads
 
-   * - Distribution
-     -
+      :raw-html:`<br />`
+
       .. image:: https://repology.org/badge/version-for-repo/aur/python:nibabel.svg?header=Arch%20%28%41%55%52%29
          :target: https://repology.org/project/python:nibabel/versions
          :alt: Arch (AUR)
@@ -84,6 +87,7 @@ and `API reference`_.
       .. image:: https://repology.org/badge/version-for-repo/nix_unstable/python:nibabel.svg?header=nixpkgs%20unstable
          :target: https://repology.org/project/python:nibabel/versions
          :alt: nixpkgs unstable
+
    * - License & DOI
      -
       .. image:: https://img.shields.io/pypi/l/nibabel.svg
@@ -108,6 +112,7 @@ When working on NiBabel itself, it may be useful to install in "editable" mode::
 
    git clone https://github.com/nipy/nibabel.git
    pip install -e ./nibabel
+
 For more information on previous releases, see the `release archive`_ or `development changelog`_.
 
 .. _current release: https://pypi.python.org/pypi/NiBabel
@@ -134,7 +139,7 @@ please see the COPYING_ file.
 Citation
 ========
 
-NiBabel releases have a Zenodo_ `Digital Object Identifier`_ (DOI) badge at 
+NiBabel releases have a Zenodo_ `Digital Object Identifier`_ (DOI) badge at
 the top of the release notes. Click on the badge for more information.
 
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
