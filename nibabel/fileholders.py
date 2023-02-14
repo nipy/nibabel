@@ -7,6 +7,10 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Fileholder class"""
+from __future__ import annotations
+
+import io
+import typing as ty
 from copy import copy
 
 from .openers import ImageOpener
@@ -19,7 +23,12 @@ class FileHolderError(Exception):
 class FileHolder:
     """class to contain filename, fileobj and file position"""
 
-    def __init__(self, filename=None, fileobj=None, pos=0):
+    def __init__(
+        self,
+        filename: str | None = None,
+        fileobj: io.IOBase | None = None,
+        pos: int = 0,
+    ):
         """Initialize FileHolder instance
 
         Parameters
@@ -37,7 +46,7 @@ class FileHolder:
         self.fileobj = fileobj
         self.pos = pos
 
-    def get_prepare_fileobj(self, *args, **kwargs):
+    def get_prepare_fileobj(self, *args, **kwargs) -> ImageOpener:
         """Return fileobj if present, or return fileobj from filename
 
         Set position to that given in self.pos
@@ -69,7 +78,7 @@ class FileHolder:
             raise FileHolderError('No filename or fileobj present')
         return obj
 
-    def same_file_as(self, other):
+    def same_file_as(self, other: FileHolder) -> bool:
         """Test if `self` refers to same files / fileobj as `other`
 
         Parameters
@@ -86,12 +95,15 @@ class FileHolder:
         return (self.filename == other.filename) and (self.fileobj == other.fileobj)
 
     @property
-    def file_like(self):
+    def file_like(self) -> str | io.IOBase | None:
         """Return ``self.fileobj`` if not None, otherwise ``self.filename``"""
         return self.fileobj if self.fileobj is not None else self.filename
 
 
-def copy_file_map(file_map):
+FileMap = ty.Mapping[str, FileHolder]
+
+
+def copy_file_map(file_map: FileMap) -> FileMap:
     r"""Copy mapping of fileholders given by `file_map`
 
     Parameters
@@ -105,7 +117,4 @@ def copy_file_map(file_map):
        Copy of `file_map`, using shallow copy of ``FileHolder``\s
 
     """
-    fm_copy = {}
-    for key, fh in file_map.items():
-        fm_copy[key] = copy(fh)
-    return fm_copy
+    return {key: copy(fh) for key, fh in file_map.items()}

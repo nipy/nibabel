@@ -16,12 +16,11 @@ from copy import deepcopy
 from typing import Type
 from urllib import request
 
-from .fileholders import FileHolder
+from .fileholders import FileHolder, FileMap
 from .filename_parser import TypesFilenamesError, splitext_addext, types_filenames
 from .openers import ImageOpener
 
 FileSpec = ty.Union[str, os.PathLike]
-FileMap = ty.Mapping[str, FileHolder]
 FileSniff = ty.Tuple[bytes, str]
 
 ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
