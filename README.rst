@@ -1,37 +1,9 @@
 .. -*- rest -*-
 .. vim:syntax=rst
 
-.. Following contents should be copied from LONG_DESCRIPTION in nibabel/info.py
-
 .. image:: doc/pics/logo.png
    :target: https://nipy.org/nibabel
    :alt: NiBabel logo
-
-Read and write access to common neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
-GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
-In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and morphometry files,
-and provides some limited support for DICOM_.
-
-NiBabel's API gives full or selective access to header information (metadata), and image
-data is made available via NumPy arrays. For more information, see NiBabel's `documentation site`_
-and `API reference`_.
-
-.. _API reference: https://nipy.org/nibabel/api.html
-.. _AFNI BRIK/HEAD: https://afni.nimh.nih.gov/pub/dist/src/README.attributes
-.. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
-.. _CIFTI-2: https://www.nitrc.org/projects/cifti/
-.. _DICOM: http://medical.nema.org/
-.. _documentation site: http://nipy.org/nibabel
-.. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
-.. _Freesurfer: https://surfer.nmr.mgh.harvard.edu
-.. _GIFTI: https://www.nitrc.org/projects/gifti
-.. _MGH: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
-.. _MINC1:
-    https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
-.. _MINC2:
-    https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
-.. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
-.. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
 
 .. list-table::
    :widths: 20 80
@@ -97,6 +69,35 @@ and `API reference`_.
          :target: https://doi.org/10.5281/zenodo.591597
          :alt: Zenodo DOI
 
+.. Following contents should be copied from LONG_DESCRIPTION in nibabel/info.py
+
+
+Read and write access to common neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
+GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
+In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and morphometry files,
+and provides some limited support for DICOM_.
+
+NiBabel's API gives full or selective access to header information (metadata), and image
+data is made available via NumPy arrays. For more information, see NiBabel's `documentation site`_
+and `API reference`_.
+
+.. _API reference: https://nipy.org/nibabel/api.html
+.. _AFNI BRIK/HEAD: https://afni.nimh.nih.gov/pub/dist/src/README.attributes
+.. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
+.. _CIFTI-2: https://www.nitrc.org/projects/cifti/
+.. _DICOM: http://medical.nema.org/
+.. _documentation site: http://nipy.org/nibabel
+.. _ECAT: http://xmedcon.sourceforge.net/Docs/Ecat
+.. _Freesurfer: https://surfer.nmr.mgh.harvard.edu
+.. _GIFTI: https://www.nitrc.org/projects/gifti
+.. _MGH: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+.. _MINC1:
+    https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
+.. _MINC2:
+    https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
+.. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
+.. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
+
 Installation
 ============
 
@@ -128,13 +129,13 @@ Please send any questions or suggestions to the `neuroimaging mailing list
 License
 =======
 
-NiBabel is licensed under the terms of the `MIT license`_. Some code included
-with NiBabel is licensed under the `BSD license`_. For more information,
-please see the COPYING_ file.
+NiBabel is licensed under the terms of the `MIT license
+<https://github.com/nipy/nibabel/blob/master/COPYING#nibabel>`__.
+Some code included with NiBabel is licensed under the `BSD license`_.
+For more information, please see the COPYING_ file.
 
 .. _BSD license: https://opensource.org/licenses/BSD-3-Clause
 .. _COPYING: https://github.com/nipy/nibabel/blob/master/COPYING
-.. _MIT license: https://github.com/nipy/nibabel/blob/master/COPYING#nibabel
 
 Citation
 ========
