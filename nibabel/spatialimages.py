@@ -140,7 +140,8 @@ import numpy as np
 
 from .arrayproxy import ArrayLike
 from .dataobj_images import DataobjImage
-from .filebasedimages import FileBasedHeader, FileBasedImage, FileMap
+from .filebasedimages import FileBasedHeader, FileBasedImage
+from .fileholders import FileMap
 from .fileslice import canonical_slicers
 from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D

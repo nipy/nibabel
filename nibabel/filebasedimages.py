@@ -10,17 +10,18 @@
 from __future__ import annotations
 
 import io
-import os
 import typing as ty
 from copy import deepcopy
 from typing import Type
 from urllib import request
 
 from .fileholders import FileHolder, FileMap
-from .filename_parser import TypesFilenamesError, splitext_addext, types_filenames
+from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
 from .openers import ImageOpener
 
-FileSpec = ty.Union[str, os.PathLike]
+if ty.TYPE_CHECKING:  # pragma: no cover
+    from .filename_parser import ExtensionSpec, FileSpec
+
 FileSniff = ty.Tuple[bytes, str]
 
 ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
@@ -159,7 +160,7 @@ class FileBasedImage:
     header_class: Type[FileBasedHeader] = FileBasedHeader
     _header: FileBasedHeader
     _meta_sniff_len: int = 0
-    files_types: tuple[tuple[str, str | None], ...] = (('image', None),)
+    files_types: tuple[ExtensionSpec, ...] = (('image', None),)
     valid_exts: tuple[str, ...] = ()
     _compressed_suffixes: tuple[str, ...] = ()
 
@@ -410,7 +411,7 @@ class FileBasedImage:
         t_fnames = types_filenames(
             filename, klass.files_types, trailing_suffixes=klass._compressed_suffixes
         )
-        meta_fname = t_fnames.get('header', filename)
+        meta_fname = t_fnames.get('header', _stringify_path(filename))
 
         # Do not re-sniff if it would be from the same file
         if sniff is not None and sniff[1] == meta_fname:
