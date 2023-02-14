@@ -38,7 +38,7 @@ class Lunk:
     def write(self):
         pass
 
-    def read(self):
+    def read(self, size=-1, /):
         return self.message
 
 
