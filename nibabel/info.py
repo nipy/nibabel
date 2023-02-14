@@ -1,7 +1,7 @@
-"""Define distribution parameters for nibabel, including package version
+"""Define static nibabel metadata for nibabel
 
-The long description parameter is used to fill settings in setup.py, the
-nibabel top-level docstring, and in building the docs.
+The long description parameter is used in the nibabel top-level docstring,
+and in building the docs.
 We exec this file in several places, so it cannot import nibabel or use
 relative imports.
 """
@@ -12,14 +12,15 @@ relative imports.
 # We also include this text in the docs by ``..include::`` in
 # ``docs/source/index.rst``.
 long_description = """
-Read and write access to common neuroimaging file formats, including: ANALYZE_ (plain, SPM99, SPM2 and later),
-GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_, MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
-In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and morphometry files,
-and provides some limited support for DICOM_.
+Read and write access to common neuroimaging file formats, including:
+ANALYZE_ (plain, SPM99, SPM2 and later), GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_,
+MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
+In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and
+morphometry files, and provides some limited support for DICOM_.
 
-NiBabel's API gives full or selective access to header information (metadata), and image
-data is made available via NumPy arrays. For more information, see NiBabel's `documentation site`_
-and `API reference`_.
+NiBabel's API gives full or selective access to header information (metadata),
+and image data is made available via NumPy arrays. For more information, see
+NiBabel's `documentation site`_ and `API reference`_.
 
 .. _API reference: https://nipy.org/nibabel/api.html
 .. _AFNI BRIK/HEAD: https://afni.nimh.nih.gov/pub/dist/src/README.attributes
@@ -54,7 +55,8 @@ When working on NiBabel itself, it may be useful to install in "editable" mode::
    git clone https://github.com/nipy/nibabel.git
    pip install -e ./nibabel
 
-For more information on previous releases, see the `release archive`_ or `development changelog`_.
+For more information on previous releases, see the `release archive`_ or
+`development changelog`_.
 
 .. _current release: https://pypi.python.org/pypi/NiBabel
 .. _release archive: https://github.com/nipy/NiBabel/releases
