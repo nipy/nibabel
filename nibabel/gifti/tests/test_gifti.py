@@ -195,6 +195,38 @@ def test_dataarray_init():
     assert gda(ext_offset=12).ext_offset == 12
 
 
+@pytest.mark.parametrize('label', data_type_codes.value_set('label'))
+def test_dataarray_typing(label):
+    dtype = data_type_codes.dtype[label]
+    code = data_type_codes.code[label]
+    arr = np.zeros((5,), dtype=dtype)
+
+    # Default interface: accept standards-conformant arrays, reject else
+    if dtype in ('uint8', 'int32', 'float32'):
+        assert GiftiDataArray(arr).datatype == code
+    else:
+        with pytest.raises(ValueError):
+            GiftiDataArray(arr)
+
+    # Explicit override - permit for now, may want to warn or eventually
+    # error
+    assert GiftiDataArray(arr, datatype=label).datatype == code
+    assert GiftiDataArray(arr, datatype=code).datatype == code
+    # Void is how we say we don't know how to do something, so it's not unique
+    if dtype != np.dtype('void'):
+        assert GiftiDataArray(arr, datatype=dtype).datatype == code
+
+    # Side-load data array (as in parsing)
+    # We will probably always want this to load legacy images, but it's
+    # probably not ideal to make it easy to silently propagate nonconformant
+    # arrays
+    gda = GiftiDataArray()
+    gda.data = arr
+    gda.datatype = data_type_codes.code[label]
+    assert gda.data.dtype == dtype
+    assert gda.datatype == data_type_codes.code[label]
+
+
 def test_labeltable():
     img = GiftiImage()
     assert len(img.labeltable.labels) == 0
