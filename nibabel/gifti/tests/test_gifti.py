@@ -33,6 +33,8 @@ from .test_parse_gifti_fast import (
     DATA_FILE6,
 )
 
+rng = np.random.default_rng()
+
 
 def test_agg_data():
     surf_gii_img = load(get_test_data('gifti', 'ascii.gii'))
@@ -81,7 +83,7 @@ def test_gifti_image():
     assert gi.numDA == 0
 
     # Test from numpy numeric array
-    data = np.random.random((5,))
+    data = rng.random(5, dtype=np.float32)
     da = GiftiDataArray(data)
     gi.add_gifti_data_array(da)
     assert gi.numDA == 1
@@ -98,7 +100,7 @@ def test_gifti_image():
 
     # Remove one
     gi = GiftiImage()
-    da = GiftiDataArray(np.zeros((5,)), intent=0)
+    da = GiftiDataArray(np.zeros((5,), np.float32), intent=0)
     gi.add_gifti_data_array(da)
 
     gi.remove_gifti_data_array_by_intent(3)
@@ -335,7 +337,7 @@ def test_metadata_list_interface():
 
 
 def test_gifti_label_rgba():
-    rgba = np.random.rand(4)
+    rgba = rng.random(4)
     kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
 
     gl1 = GiftiLabel(**kwargs)
