@@ -460,7 +460,21 @@ class GiftiDataArray(xml.XmlSerializable):
         self.data = None if data is None else np.asarray(data)
         self.intent = intent_codes.code[intent]
         if datatype is None:
-            datatype = 'none' if self.data is None else self.data.dtype
+            if self.data is None:
+                datatype = 'none'
+            elif self.data.dtype in (
+                np.dtype('uint8'),
+                np.dtype('int32'),
+                np.dtype('float32'),
+            ):
+                datatype = self.data.dtype
+            else:
+                raise ValueError(
+                    f'Data array has type {self.data.dtype}. '
+                    'The GIFTI standard only supports uint8, int32 and float32 arrays.\n'
+                    'Explicitly cast the data array to a supported dtype or pass an '
+                    'explicit "datatype" parameter to GiftiDataArray().'
+                )
         self.datatype = data_type_codes.code[datatype]
         self.encoding = gifti_encoding_codes.code[encoding]
         self.endian = gifti_endian_codes.code[endian]
