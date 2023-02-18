@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Define supported image classes and names"""
-
 from .analyze import AnalyzeImage
 from .brikhead import AFNIImage
 from .cifti2 import Cifti2Image

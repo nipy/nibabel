@@ -2,7 +2,6 @@
 
 * Make ReST table given array of values
 """
-
 import numpy as np
 
 

@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
 """Utilities to load and save image objects"""
-
 import os
 
 import numpy as np
