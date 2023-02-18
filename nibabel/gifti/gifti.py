@@ -16,7 +16,8 @@ from __future__ import annotations
 import base64
 import sys
 import warnings
-from typing import Type
+from copy import copy
+from typing import Type, cast
 
 import numpy as np
 
@@ -26,6 +27,12 @@ from ..deprecated import deprecate_with_version
 from ..filebasedimages import SerializableImage
 from ..nifti1 import data_type_codes, intent_codes, xform_codes
 from .util import KIND2FMT, array_index_order_codes, gifti_encoding_codes, gifti_endian_codes
+
+GIFTI_DTYPES = (
+    data_type_codes['NIFTI_TYPE_UINT8'],
+    data_type_codes['NIFTI_TYPE_INT32'],
+    data_type_codes['NIFTI_TYPE_FLOAT32'],
+)
 
 
 class _GiftiMDList(list):
@@ -462,11 +469,7 @@ class GiftiDataArray(xml.XmlSerializable):
         if datatype is None:
             if self.data is None:
                 datatype = 'none'
-            elif self.data.dtype in (
-                np.dtype('uint8'),
-                np.dtype('int32'),
-                np.dtype('float32'),
-            ):
+            elif data_type_codes[self.data.dtype] in GIFTI_DTYPES:
                 datatype = self.data.dtype
             else:
                 raise ValueError(
@@ -848,20 +851,45 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             GIFTI.append(dar._to_xml_element())
         return GIFTI
 
-    def to_xml(self, enc='utf-8') -> bytes:
+    def to_xml(self, enc='utf-8', *, mode='strict') -> bytes:
         """Return XML corresponding to image content"""
+        if mode == 'strict':
+            if any(arr.datatype not in GIFTI_DTYPES for arr in self.darrays):
+                raise ValueError(
+                    'GiftiImage contains data arrays with invalid data types; '
+                    'use mode="compat" to automatically cast to conforming types'
+                )
+        elif mode == 'compat':
+            darrays = []
+            for arr in self.darrays:
+                if arr.datatype not in GIFTI_DTYPES:
+                    arr = copy(arr)
+                    # TODO: Better typing for recoders
+                    dtype = cast(np.dtype, data_type_codes.dtype[arr.datatype])
+                    if np.issubdtype(dtype, np.floating):
+                        arr.datatype = data_type_codes['float32']
+                    elif np.issubdtype(dtype, np.integer):
+                        arr.datatype = data_type_codes['int32']
+                    else:
+                        raise ValueError(f'Cannot convert {dtype} to float32/int32')
+                darrays.append(arr)
+            gii = copy(self)
+            gii.darrays = darrays
+            return gii.to_xml(enc=enc, mode='strict')
+        elif mode != 'force':
+            raise TypeError(f'Unknown mode {mode}')
         header = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """
         return header + super().to_xml(enc)
 
     # Avoid the indirection of going through to_file_map
-    def to_bytes(self, enc='utf-8'):
-        return self.to_xml(enc=enc)
+    def to_bytes(self, enc='utf-8', *, mode='strict'):
+        return self.to_xml(enc=enc, mode=mode)
 
     to_bytes.__doc__ = SerializableImage.to_bytes.__doc__
 
-    def to_file_map(self, file_map=None, enc='utf-8'):
+    def to_file_map(self, file_map=None, enc='utf-8', *, mode='strict'):
         """Save the current image to the specified file_map
 
         Parameters
@@ -877,7 +905,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         if file_map is None:
             file_map = self.file_map
         with file_map['image'].get_prepare_fileobj('wb') as f:
-            f.write(self.to_xml(enc=enc))
+            f.write(self.to_xml(enc=enc, mode=mode))
 
     @classmethod
     def from_file_map(klass, file_map, buffer_size=35000000, mmap=True):

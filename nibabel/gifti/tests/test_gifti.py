@@ -505,7 +505,7 @@ def test_darray_dtype_coercion_failures():
             datatype=darray_dtype,
         )
         gii = GiftiImage(darrays=[da])
-        gii_copy = GiftiImage.from_bytes(gii.to_bytes())
+        gii_copy = GiftiImage.from_bytes(gii.to_bytes(mode='force'))
         da_copy = gii_copy.darrays[0]
         assert np.dtype(da_copy.data.dtype) == np.dtype(darray_dtype)
         assert_array_equal(da_copy.data, da.data)
