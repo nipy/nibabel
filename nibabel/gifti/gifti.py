@@ -88,7 +88,8 @@ class GiftiMetaData(CaretMetaData):
         <GiftiMetaData {'key': 'val'}>
         >>> GiftiMetaData({"key": "val"})
         <GiftiMetaData {'key': 'val'}>
-        >>> nvpairs = GiftiNVPairs(name='key', value='val')
+        >>> with pytest.deprecated_call():
+        ...     nvpairs = GiftiNVPairs(name='key', value='val')
         >>> with pytest.warns(FutureWarning):
         ...     GiftiMetaData(nvpairs)
         <GiftiMetaData {'key': 'val'}>
