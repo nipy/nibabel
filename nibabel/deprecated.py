@@ -1,5 +1,4 @@
-"""Module to help with deprecating objects and classes
-"""
+"""Module to help with deprecating objects and classes"""
 from __future__ import annotations
 
 import typing as ty

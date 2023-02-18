@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Context manager openers for various fileobject types
-"""
+"""Context manager openers for various fileobject types"""
 
 import gzip
 import warnings

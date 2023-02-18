@@ -14,7 +14,7 @@ from .orientations import aff2axcodes, axcodes2ornt
 
 
 class OrthoSlicer3D:
-    """Orthogonal-plane slice viewer.
+    """Orthogonal-plane slice viewer
 
     OrthoSlicer3d expects 3- or 4-dimensional array data.  It treats
     4D data as a sequence of 3D spatial volumes, where a slice over the final

@@ -6,9 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""
-Functions for computing image statistics
-"""
+"""Functions for computing image statistics"""
 
 import numpy as np
 

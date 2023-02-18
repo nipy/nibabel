@@ -1,7 +1,6 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""Utility routines for working with points and affine transforms
-"""
+"""Utility routines for working with points and affine transforms"""
 from functools import reduce
 
 import numpy as np
@@ -313,7 +312,7 @@ def voxel_sizes(affine):
 
 def obliquity(affine):
     r"""
-    Estimate the *obliquity* an affine's axes represent.
+    Estimate the *obliquity* an affine's axes represent
 
     The term *obliquity* is defined here as the rotation of those axes with
     respect to the cardinal axes.

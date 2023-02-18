@@ -7,8 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
-"""DICOM filesystem tools
-"""
+"""DICOM filesystem tools"""
 
 
 import contextlib

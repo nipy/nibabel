@@ -1,5 +1,4 @@
-"""Class to raise error for missing modules or other misfortunes
-"""
+"""Class to raise error for missing modules or other misfortunes"""
 from typing import Any
 
 

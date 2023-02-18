@@ -6,9 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""
-Thin layer around xml.etree.ElementTree, to abstract nibabel xml support.
-"""
+"""Thin layer around xml.etree.ElementTree, to abstract nibabel xml support"""
 
 from io import BytesIO
 from xml.etree.ElementTree import Element, SubElement, tostring  # noqa

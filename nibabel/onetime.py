@@ -1,5 +1,4 @@
-"""
-Descriptor support for NIPY.
+"""Descriptor support for NIPY
 
 Utilities to support special Python descriptors [1,2], in particular the use of
 a useful pattern for properties we call 'one time properties'.  These are
