@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Create filename pairs, triplets etc, with expected extensions"""
-
 import os
 import pathlib
 

@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Fileholder class"""
-
 from copy import copy
 
 from .openers import ImageOpener

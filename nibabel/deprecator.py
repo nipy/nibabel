@@ -1,5 +1,4 @@
-"""Class for recording and reporting deprecations
-"""
+"""Class for recording and reporting deprecations"""
 from __future__ import annotations
 
 import functools

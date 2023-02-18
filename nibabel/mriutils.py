@@ -6,9 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""
-Utilities for calculations related to MRI
-"""
+"""Utilities for calculations related to MRI"""
 
 __all__ = ['calculate_dwell_time']
 

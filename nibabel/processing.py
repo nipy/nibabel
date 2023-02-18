@@ -6,15 +6,16 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Image processing functions for:
+"""Image processing functions
 
-* smoothing
-* resampling
-* converting sd to and from FWHM
+Image processing functions for:
 
-Smoothing and resampling routines need scipy
+    * smoothing
+    * resampling
+    * converting SD to and from FWHM
+
+Smoothing and resampling routines need scipy.
 """
-
 import numpy as np
 import numpy.linalg as npl
 

@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""
-Class for reading AFNI BRIK/HEAD datasets
+"""Class for reading AFNI BRIK/HEAD datasets
 
 See https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html
 for information on what is required to have a valid BRIK/HEAD dataset.

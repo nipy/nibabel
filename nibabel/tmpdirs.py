@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Contexts for *with* statement providing temporary directories
-"""
+"""Contexts for *with* statement providing temporary directories"""
 import os
 import tempfile
 from contextlib import contextmanager

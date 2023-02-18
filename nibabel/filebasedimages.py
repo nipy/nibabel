@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Common interface for any image format--volume or surface, binary or xml."""
+"""Common interface for any image format--volume or surface, binary or xml"""
 from __future__ import annotations
 
 import io

@@ -19,7 +19,6 @@ A mapped voxel space (mapped voxels) is either:
   mapping), or
 * a length 2 sequence with the same information (shape, affine).
 """
-
 from itertools import product
 
 import numpy as np

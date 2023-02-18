@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
-Functions to operate on, or return, quaternions.
+Functions to operate on, or return, quaternions
 
 The module also includes functions for the closely related angle, axis
 pair as a specification for rotation.
@@ -25,7 +25,6 @@ they are applied on the left of the vector.  For example:
 >>> vec = np.array([1, 2, 3]).reshape((3,1)) # column vector
 >>> tvec = np.dot(M, vec)
 """
-
 import math
 
 import numpy as np
