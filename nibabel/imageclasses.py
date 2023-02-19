@@ -19,6 +19,7 @@ from .nifti2 import Nifti2Image, Nifti2Pair
 from .parrec import PARRECImage
 from .spm2analyze import Spm2AnalyzeImage
 from .spm99analyze import Spm99AnalyzeImage
+from .jmesh import JMesh
 
 # Ordered by the load/save priority.
 all_image_classes = [
@@ -36,6 +37,7 @@ all_image_classes = [
     PARRECImage,
     GiftiImage,
     AFNIImage,
+    JMesh,
 ]
 
 # Image classes known to require spatial axes to be first in index ordering.
