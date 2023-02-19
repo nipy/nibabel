@@ -404,13 +404,17 @@ def test_gifti_label_rgba():
     assert np.all([elem is None for elem in gl4.rgba])
 
 
-def test_print_summary():
-    for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]:
-        gimg = load(fil)
-        gimg.print_summary()
+@pytest.mark.parametrize(
+    'fname', [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
+)
+def test_print_summary(fname, capsys):
+    gimg = load(fname)
+    gimg.print_summary()
+    captured = capsys.readouterr()
+    assert captured.out.startswith('----start----\n')
 
 
-def test_gifti_coord():
+def test_gifti_coord(capsys):
     from ..gifti import GiftiCoordSystem
 
     gcs = GiftiCoordSystem()
@@ -419,6 +423,15 @@ def test_gifti_coord():
     # Smoke test
     gcs.xform = None
     gcs.print_summary()
+    captured = capsys.readouterr()
+    assert captured.out == '\n'.join(
+        [
+            'Dataspace:  NIFTI_XFORM_UNKNOWN',
+            'XFormSpace:  NIFTI_XFORM_UNKNOWN',
+            'Affine Transformation Matrix: ',
+            ' None\n',
+        ]
+    )
     gcs.to_xml()
 
 
