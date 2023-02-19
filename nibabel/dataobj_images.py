@@ -15,10 +15,13 @@ import numpy as np
 
 from .arrayproxy import ArrayLike
 from .deprecated import deprecate_with_version
-from .filebasedimages import FileBasedHeader, FileBasedImage, FileMap, FileSpec
+from .filebasedimages import FileBasedHeader, FileBasedImage
+from .fileholders import FileMap
 
 if ty.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
+
+    from .filename_parser import FileSpec
 
 ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
 

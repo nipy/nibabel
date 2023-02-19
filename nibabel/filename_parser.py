@@ -7,15 +7,21 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Create filename pairs, triplets etc, with expected extensions"""
+from __future__ import annotations
+
 import os
-import pathlib
+import typing as ty
+
+if ty.TYPE_CHECKING:  # pragma: no cover
+    FileSpec = str | os.PathLike[str]
+    ExtensionSpec = tuple[str, str | None]
 
 
 class TypesFilenamesError(Exception):
     pass
 
 
-def _stringify_path(filepath_or_buffer):
+def _stringify_path(filepath_or_buffer: FileSpec) -> str:
     """Attempt to convert a path-like object to a string.
 
     Parameters
@@ -28,30 +34,21 @@ def _stringify_path(filepath_or_buffer):
 
     Notes
     -----
-    Objects supporting the fspath protocol (python 3.6+) are coerced
-    according to its __fspath__ method.
-    For backwards compatibility with older pythons, pathlib.Path objects
-    are specially coerced.
-    Any other object is passed through unchanged, which includes bytes,
-    strings, buffers, or anything else that's not even path-like.
-
-    Copied from:
-    https://github.com/pandas-dev/pandas/blob/325dd686de1589c17731cf93b649ed5ccb5a99b4/pandas/io/common.py#L131-L160
+    Adapted from:
+    https://github.com/pandas-dev/pandas/blob/325dd68/pandas/io/common.py#L131-L160
     """
-    if hasattr(filepath_or_buffer, '__fspath__'):
+    if isinstance(filepath_or_buffer, os.PathLike):
         return filepath_or_buffer.__fspath__()
-    elif isinstance(filepath_or_buffer, pathlib.Path):
-        return str(filepath_or_buffer)
     return filepath_or_buffer
 
 
 def types_filenames(
-    template_fname,
-    types_exts,
-    trailing_suffixes=('.gz', '.bz2'),
-    enforce_extensions=True,
-    match_case=False,
-):
+    template_fname: FileSpec,
+    types_exts: ty.Sequence[ExtensionSpec],
+    trailing_suffixes: ty.Sequence[str] = ('.gz', '.bz2'),
+    enforce_extensions: bool = True,
+    match_case: bool = False,
+) -> dict[str, str]:
     """Return filenames with standard extensions from template name
 
     The typical case is returning image and header filenames for an
@@ -152,12 +149,12 @@ def types_filenames(
     # we've found .IMG as the extension, we want .HDR as the matching
     # one.  Let's only do this when the extension is all upper or all
     # lower case.
-    proc_ext = lambda s: s
+    proc_ext: ty.Callable[[str], str] = lambda s: s
     if found_ext:
         if found_ext == found_ext.upper():
-            proc_ext = lambda s: s.upper()
+            proc_ext = str.upper
         elif found_ext == found_ext.lower():
-            proc_ext = lambda s: s.lower()
+            proc_ext = str.lower
     for name, ext in types_exts:
         if name == direct_set_name:
             tfns[name] = template_fname
@@ -171,7 +168,12 @@ def types_filenames(
     return tfns
 
 
-def parse_filename(filename, types_exts, trailing_suffixes, match_case=False):
+def parse_filename(
+    filename: FileSpec,
+    types_exts: ty.Sequence[ExtensionSpec],
+    trailing_suffixes: ty.Sequence[str],
+    match_case: bool = False,
+) -> tuple[str, str, str | None, str | None]:
     """Split filename into fileroot, extension, trailing suffix; guess type.
 
     Parameters
@@ -230,9 +232,9 @@ def parse_filename(filename, types_exts, trailing_suffixes, match_case=False):
             break
     guessed_name = None
     found_ext = None
-    for name, ext in types_exts:
-        if ext and endswith(filename, ext):
-            extpos = -len(ext)
+    for name, type_ext in types_exts:
+        if type_ext and endswith(filename, type_ext):
+            extpos = -len(type_ext)
             found_ext = filename[extpos:]
             filename = filename[:extpos]
             guessed_name = name
@@ -242,15 +244,19 @@ def parse_filename(filename, types_exts, trailing_suffixes, match_case=False):
     return (filename, found_ext, ignored, guessed_name)
 
 
-def _endswith(whole, end):
+def _endswith(whole: str, end: str) -> bool:
     return whole.endswith(end)
 
 
-def _iendswith(whole, end):
+def _iendswith(whole: str, end: str) -> bool:
     return whole.lower().endswith(end.lower())
 
 
-def splitext_addext(filename, addexts=('.gz', '.bz2', '.zst'), match_case=False):
+def splitext_addext(
+    filename: FileSpec,
+    addexts: ty.Sequence[str] = ('.gz', '.bz2', '.zst'),
+    match_case: bool = False,
+) -> tuple[str, str, str]:
     """Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
 
     where ``.gz`` may be any of passed `addext` trailing suffixes.
