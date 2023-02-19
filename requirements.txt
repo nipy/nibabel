@@ -2,3 +2,5 @@
 numpy >=1.19
 packaging >=17
 setuptools
+jdata
+bjdata
