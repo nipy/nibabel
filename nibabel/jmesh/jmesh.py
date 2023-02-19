@@ -10,30 +10,25 @@
 # Qianqian Fang <q.fang at neu.edu>
 ##############
 
-__all__ = ['JMesh','read','write','default_header']
+__all__ = ['JMesh', 'read', 'write', 'default_header']
 
-from jdata import (load as jdload, save as jdsave)
+from jdata import load as jdload, save as jdsave
 import numpy as np
 from ..filebasedimages import FileBasedImage
 
 default_header = {
-    "JMeshVersion":"0.5",
-    "Comment":"Created by NiPy with NeuroJSON JMesh specification",
-    "AnnotationFormat":"https://neurojson.org/jmesh/draft2",
-    "Parser":{
-        "Python":[
-            "https://pypi.org/project/jdata",
-            "https://pypi.org/project/bjdata"
-        ],
-        "MATLAB":[
-            "https://github.com/NeuroJSON/jnifty",
-            "https://github.com/NeuroJSON/jsonlab"
-        ],
-        "JavaScript":"https://github.com/NeuroJSON/jsdata",
-        "CPP":"https://github.com/NeuroJSON/json",
-        "C":"https://github.com/NeuroJSON/ubj"
-    }
+    'JMeshVersion': '0.5',
+    'Comment': 'Created by NiPy with NeuroJSON JMesh specification',
+    'AnnotationFormat': 'https://neurojson.org/jmesh/draft2',
+    'Parser': {
+        'Python': ['https://pypi.org/project/jdata', 'https://pypi.org/project/bjdata'],
+        'MATLAB': ['https://github.com/NeuroJSON/jnifty', 'https://github.com/NeuroJSON/jsonlab'],
+        'JavaScript': 'https://github.com/NeuroJSON/jsdata',
+        'CPP': 'https://github.com/NeuroJSON/json',
+        'C': 'https://github.com/NeuroJSON/ubj',
+    },
 }
+
 
 class JMesh(FileBasedImage):
     """JMesh: a simple data structure representing a brain surface
@@ -62,28 +57,28 @@ class JMesh(FileBasedImage):
     raw : a dict
         The raw data loaded from the .jmsh or .bmsh file
     """
+
     valid_exts = ('.jmsh', '.bmsh')
     files_types = (('image', '.jmsh'), ('image', '.bmsh'))
     makeable = False
     rw = True
 
-    def __init__(self, info=None, node=None, nodelabel=None, face=None,
-                 facelabel=None):
+    def __init__(self, info=None, node=None, nodelabel=None, face=None, facelabel=None):
 
         self.raw = {}
-        if(not info is None):
+        if not info is None:
             self.raw['_DataInfo_'] = info
 
-        if(not nodelabel is None):
-            self.raw['MeshVertex3'] = {'Data': node, 'Properties': {'Tag': nodelabel} }
+        if not nodelabel is None:
+            self.raw['MeshVertex3'] = {'Data': node, 'Properties': {'Tag': nodelabel}}
             self.node = self.raw['MeshVertex3']['Data']
             self.nodelabel = self.raw['MeshVertex3']['Properties']['Tag']
         else:
             self.raw['MeshVertex3'] = node
             self.node = self.raw['MeshVertex3']
 
-        if(not facelabel is None):
-            self.raw['MeshTri3'] = {'Data': face, 'Properties': {'Tag': facelabel} }
+        if not facelabel is None:
+            self.raw['MeshTri3'] = {'Data': face, 'Properties': {'Tag': facelabel}}
             self.face = self.raw['MeshTri3']['Data']
             self.facelabel = self.raw['MeshTri3']['Properties']['Tag']
         else:
@@ -99,8 +94,9 @@ class JMesh(FileBasedImage):
     def to_filename(self, filename, opt={}, **kwargs):
         write(self, filename, opt, **kwargs)
 
+
 def read(filename, opt={}, **kwargs):
-    """ Load a JSON or binary JData (BJData) based JMesh file
+    """Load a JSON or binary JData (BJData) based JMesh file
 
     Parameters
     ----------
@@ -116,73 +112,90 @@ def read(filename, opt={}, **kwargs):
     mesh : a JMesh object
         Return a JMesh object containing mesh data fields such as node, face, nodelabel etc
     """
-    opt.setdefault('ndarray',True)
+    opt.setdefault('ndarray', True)
 
     mesh = JMesh
     mesh.raw = jdload(filename, opt, **kwargs)
 
-    #--------------------------------------------------
+    # --------------------------------------------------
     # read metadata as `info`
-    #--------------------------------------------------
-    if('_DataInfo_' in mesh.raw):
+    # --------------------------------------------------
+    if '_DataInfo_' in mesh.raw:
         mesh.info = mesh.raw['_DataInfo_']
 
-    #--------------------------------------------------
+    # --------------------------------------------------
     # read vertices as `node` and `nodelabel`
-    #--------------------------------------------------
-    if('MeshVertex3' in mesh.raw):
+    # --------------------------------------------------
+    if 'MeshVertex3' in mesh.raw:
         mesh.node = mesh.raw['MeshVertex3']
-    elif('MeshNode' in mesh.raw):
+    elif 'MeshNode' in mesh.raw:
         mesh.node = mesh.raw['MeshNode']
     else:
         raise Exception('JMesh', 'JMesh surface must contain node (MeshVertex3 or MeshNode)')
 
-    if(isinstance(mesh.node, dict)):
-        if(('Properties' in mesh.node) and ('Tag' in mesh.node['Properties'])):
+    if isinstance(mesh.node, dict):
+        if ('Properties' in mesh.node) and ('Tag' in mesh.node['Properties']):
             mesh.nodelabel = mesh.node['Properties']['Tag']
-        if('Data' in mesh.node):
+        if 'Data' in mesh.node:
             mesh.node = mesh.node['Data']
-    if(isinstance(mesh.node, np.ndarray) and mesh.node.ndim == 2 and mesh.node.shape[1] > 3):
-        mesh.nodelabel = mesh.node[:,3:]
+    if isinstance(mesh.node, np.ndarray) and mesh.node.ndim == 2 and mesh.node.shape[1] > 3:
+        mesh.nodelabel = mesh.node[:, 3:]
         mesh.node = mesh.node[:, 0:3]
 
-    #--------------------------------------------------
+    # --------------------------------------------------
     # read triangles as `face` and `facelabel`
-    #--------------------------------------------------
-    if('MeshTri3' in mesh.raw):
+    # --------------------------------------------------
+    if 'MeshTri3' in mesh.raw:
         mesh.face = mesh.raw['MeshTri3']
-    elif('MeshSurf' in mesh.raw):
+    elif 'MeshSurf' in mesh.raw:
         mesh.face = mesh.raw['MeshSurf']
 
-    if(isinstance(mesh.face, dict)):
-        if(('Properties' in mesh.face) and ('Tag' in mesh.face['Properties'])):
+    if isinstance(mesh.face, dict):
+        if ('Properties' in mesh.face) and ('Tag' in mesh.face['Properties']):
             mesh.facelabel = mesh.face['Properties']['Tag']
-        if('Data' in mesh.face):
+        if 'Data' in mesh.face:
             mesh.face = mesh.face['Data']
-    if(isinstance(mesh.face, np.ndarray) and mesh.face.ndim == 2 and mesh.face.shape[1] > 3):
-        mesh.facelabel = mesh.face[:,3:]
+    if isinstance(mesh.face, np.ndarray) and mesh.face.ndim == 2 and mesh.face.shape[1] > 3:
+        mesh.facelabel = mesh.face[:, 3:]
         mesh.face = mesh.face[:, 0:3]
 
-    #--------------------------------------------------
+    # --------------------------------------------------
     # convert to numpy ndarray
-    #--------------------------------------------------
-    if(opt['ndarray']):
-        if hasattr(mesh, 'node') and (not mesh.node is None) and (not isinstance(mesh.node, np.ndarray)):
+    # --------------------------------------------------
+    if opt['ndarray']:
+        if (
+            hasattr(mesh, 'node')
+            and (not mesh.node is None)
+            and (not isinstance(mesh.node, np.ndarray))
+        ):
             mesh.node = np.array(mesh.node)
 
-        if hasattr(mesh, 'face') and (not mesh.face is None) and (not isinstance(mesh.face, np.ndarray)):
+        if (
+            hasattr(mesh, 'face')
+            and (not mesh.face is None)
+            and (not isinstance(mesh.face, np.ndarray))
+        ):
             mesh.face = np.array(mesh.face)
 
-        if hasattr(mesh, 'nodelabel') and (not mesh.nodelabel is None) and (not isinstance(mesh.nodelabel, np.ndarray)):
+        if (
+            hasattr(mesh, 'nodelabel')
+            and (not mesh.nodelabel is None)
+            and (not isinstance(mesh.nodelabel, np.ndarray))
+        ):
             mesh.nodelabel = np.array(mesh.nodelabel)
 
-        if hasattr(mesh, 'facelabel') and (not mesh.facelabel is None) and (not isinstance(mesh.facelabel, np.ndarray)):
+        if (
+            hasattr(mesh, 'facelabel')
+            and (not mesh.facelabel is None)
+            and (not isinstance(mesh.facelabel, np.ndarray))
+        ):
             mesh.facelabel = np.array(mesh.facelabel)
 
     return mesh
 
+
 def write(mesh, filename, opt={}, **kwargs):
-    """ Save the current mesh to a new file
+    """Save the current mesh to a new file
 
     Parameters
     ----------
@@ -207,20 +220,21 @@ def write(mesh, filename, opt={}, **kwargs):
         mesh.raw = {}
 
     if hasattr(mesh, 'info') and not mesh.info is None:
-        mesh.raw['_DataInfo_']=mesh.info
+        mesh.raw['_DataInfo_'] = mesh.info
     if hasattr(mesh, 'node') and not mesh.node is None:
-        if(hasattr(mesh, 'facelabel') and not mesh.nodelabel is None):
-            mesh.raw['MeshVertex3']={'Data': mesh.node, 'Properties': {'Tag': mesh.nodelabel}}
+        if hasattr(mesh, 'facelabel') and not mesh.nodelabel is None:
+            mesh.raw['MeshVertex3'] = {'Data': mesh.node, 'Properties': {'Tag': mesh.nodelabel}}
         else:
-            mesh.raw['MeshVertex3']=mesh.node
+            mesh.raw['MeshVertex3'] = mesh.node
 
     if hasattr(mesh, 'info') and not mesh.face is None:
-        if(hasattr(mesh, 'facelabel')  and not mesh.facelabel is None):
-            mesh.raw['MeshTri3']={'Data': mesh.face, 'Properties': {'Tag': mesh.facelabel}}
+        if hasattr(mesh, 'facelabel') and not mesh.facelabel is None:
+            mesh.raw['MeshTri3'] = {'Data': mesh.face, 'Properties': {'Tag': mesh.facelabel}}
         else:
-            mesh.raw['MeshTri3']=mesh.face
+            mesh.raw['MeshTri3'] = mesh.face
 
     return jdsave(mesh.raw, filename, opt, **kwargs)
+
 
 load = read
 save = write
