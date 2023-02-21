@@ -124,40 +124,7 @@ contributed code and discussion (in rough order of appearance):
 * Jérôme Dockès
 * Jacob Roberts
 
-License reprise
-===============
-
-NiBabel is free-software (beer and speech) and covered by the `MIT License`_.
-This applies to all source code, documentation, examples and snippets inside
-the source distribution (including this website). Please see the
-:ref:`appendix of the manual <license>` for the copyright statement and the
-full text of the license.
-
-Download and Installation
-=========================
-
-Please find detailed :ref:`download and installation instructions
-<installation>` in the manual.
-
-Support
-=======
-
-If you have problems installing the software or questions about usage,
-documentation or anything else related to NiBabel, you can post to the NiPy
-mailing list.
-
-:Mailing list:  neuroimaging@python.org [subscription_, archive_]
-
-We recommend that anyone using NiBabel subscribes to the mailing list.  The
-mailing list is the preferred way to announce changes and additions to the
-project. You can also search the mailing list archive using the *mailing list
-archive search* located in the sidebar of the NiBabel home page.
-
-.. _subscription: https://mail.python.org/mailman/listinfo/neuroimaging
-.. _archive: https://mail.python.org/pipermail/neuroimaging
-
 .. include:: links_names.txt
-
 
 .. toctree::
    :hidden:
