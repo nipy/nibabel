@@ -151,7 +151,6 @@ the source distribution (including this website). Please see the
 full text of the license.
 
 .. _license: https://nipy.org/nibabel/legal.html#license
-.. _MIT License: https://opensource.org/license17s/MIT
 
 Citation
 ========
