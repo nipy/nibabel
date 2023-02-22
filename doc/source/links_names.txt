@@ -48,7 +48,6 @@
 .. _GPL: https://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: https://www.gnu.org/copyleft/lesser.html
-.. _MIT License: http://www.opensource.org/licenses/mit-license.php
 .. _PDDL 1.0: http://opendatacommons.org/licenses/pddl/1.0/
 .. _CC0: http://opendefinition.org/licenses/cc-zero
 
