@@ -84,13 +84,14 @@ We recommend that anyone using NiBabel subscribes to the mailing list.
 License
 =======
 
-NiBabel is free-software (beer and speech) and covered by the `MIT License`_.
-This applies to all source code, documentation, examples and snippets inside
-the source distribution (including this website). Please see the
-`appendix of the manual <license>`_ for the copyright statement and the
-full text of the license.
+NiBabel is free-software (beer and speech) and covered by the
+`MIT License <mit>`_. This applies to all source code, documentation,
+examples and snippets inside the source distribution (including this website).
+Please see the `appendix of the manual <license>`_ for the copyright statement
+and the full text of the license.
 
 .. _license: https://nipy.org/nibabel/legal.html#license
+.. _mit: https://opensource.org/license17s/MIT
 
 Citation
 ========
