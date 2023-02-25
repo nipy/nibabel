@@ -66,10 +66,10 @@ class JMesh(FileBasedImage):
     def __init__(self, info=None, node=None, nodelabel=None, face=None, facelabel=None):
 
         self.raw = {}
-        if not info is None:
+        if info is not None:
             self.raw['_DataInfo_'] = info
 
-        if not nodelabel is None:
+        if nodelabel is not None:
             self.raw['MeshVertex3'] = {'Data': node, 'Properties': {'Tag': nodelabel}}
             self.node = self.raw['MeshVertex3']['Data']
             self.nodelabel = self.raw['MeshVertex3']['Properties']['Tag']
@@ -77,7 +77,7 @@ class JMesh(FileBasedImage):
             self.raw['MeshVertex3'] = node
             self.node = self.raw['MeshVertex3']
 
-        if not facelabel is None:
+        if facelabel is not None:
             self.raw['MeshTri3'] = {'Data': face, 'Properties': {'Tag': facelabel}}
             self.face = self.raw['MeshTri3']['Data']
             self.facelabel = self.raw['MeshTri3']['Properties']['Tag']
@@ -165,28 +165,28 @@ def read(filename, opt={}, **kwargs):
     if opt['ndarray']:
         if (
             hasattr(mesh, 'node')
-            and (not mesh.node is None)
+            and (mesh.node is not None)
             and (not isinstance(mesh.node, np.ndarray))
         ):
             mesh.node = np.array(mesh.node)
 
         if (
             hasattr(mesh, 'face')
-            and (not mesh.face is None)
+            and (mesh.face is not None)
             and (not isinstance(mesh.face, np.ndarray))
         ):
             mesh.face = np.array(mesh.face)
 
         if (
             hasattr(mesh, 'nodelabel')
-            and (not mesh.nodelabel is None)
+            and (mesh.nodelabel is not None)
             and (not isinstance(mesh.nodelabel, np.ndarray))
         ):
             mesh.nodelabel = np.array(mesh.nodelabel)
 
         if (
             hasattr(mesh, 'facelabel')
-            and (not mesh.facelabel is None)
+            and (mesh.facelabel is not None)
             and (not isinstance(mesh.facelabel, np.ndarray))
         ):
             mesh.facelabel = np.array(mesh.facelabel)
@@ -219,16 +219,16 @@ def write(mesh, filename, opt={}, **kwargs):
     if not hasattr(mesh, 'raw') or mesh.raw is None:
         mesh.raw = {}
 
-    if hasattr(mesh, 'info') and not mesh.info is None:
+    if hasattr(mesh, 'info') and mesh.info is not None:
         mesh.raw['_DataInfo_'] = mesh.info
-    if hasattr(mesh, 'node') and not mesh.node is None:
-        if hasattr(mesh, 'facelabel') and not mesh.nodelabel is None:
+    if hasattr(mesh, 'node') and mesh.node is not None:
+        if hasattr(mesh, 'facelabel') and mesh.nodelabel is not None:
             mesh.raw['MeshVertex3'] = {'Data': mesh.node, 'Properties': {'Tag': mesh.nodelabel}}
         else:
             mesh.raw['MeshVertex3'] = mesh.node
 
-    if hasattr(mesh, 'info') and not mesh.face is None:
-        if hasattr(mesh, 'facelabel') and not mesh.facelabel is None:
+    if hasattr(mesh, 'info') and mesh.face is not None:
+        if hasattr(mesh, 'facelabel') and mesh.facelabel is not None:
             mesh.raw['MeshTri3'] = {'Data': mesh.face, 'Properties': {'Tag': mesh.facelabel}}
         else:
             mesh.raw['MeshTri3'] = mesh.face
