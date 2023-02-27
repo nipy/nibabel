@@ -44,6 +44,7 @@ from . import nifti1 as ni1
 from . import spm2analyze as spm2
 from . import spm99analyze as spm99
 from . import streamlines, viewers
+from . import imagestats
 
 # isort: split
 
