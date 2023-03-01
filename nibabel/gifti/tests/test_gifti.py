@@ -133,9 +133,7 @@ def test_image_typing(label):
     dtype = data_type_codes.dtype[label]
     if dtype == np.void:
         return
-    arr = 127 * rng.random(
-        20,
-    )
+    arr = 127 * rng.random(20)
     try:
         cast = arr.astype(label)
     except TypeError:
