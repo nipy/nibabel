@@ -15,12 +15,11 @@ import typing as ty
 from bz2 import BZ2File
 from os.path import splitext
 
-from nibabel.optpkg import optional_package
+from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, pyzstd
 
 if ty.TYPE_CHECKING:  # pragma: no cover
     from types import TracebackType
 
-    import pyzstd
     from _typeshed import WriteableBuffer
 
     ModeRT = ty.Literal['r', 'rt']
@@ -32,8 +31,6 @@ if ty.TYPE_CHECKING:  # pragma: no cover
     Mode = ty.Union[ModeR, ModeW]
 
     OpenerDef = tuple[ty.Callable[..., io.IOBase], tuple[str, ...]]
-else:
-    pyzstd = optional_package('pyzstd')[0]
 
 
 @ty.runtime_checkable
@@ -43,17 +40,6 @@ class Fileish(ty.Protocol):
 
     def write(self, b: bytes, /) -> int | None:
         ...  # pragma: no cover
-
-
-try:
-    from indexed_gzip import IndexedGzipFile  # type: ignore
-
-    HAVE_INDEXED_GZIP = True
-except ImportError:
-    # nibabel.openers.IndexedGzipFile is imported by nibabel.volumeutils
-    # to detect compressed file types, so we give a fallback value here.
-    IndexedGzipFile = gzip.GzipFile
-    HAVE_INDEXED_GZIP = False
 
 
 class DeterministicGzipFile(gzip.GzipFile):

@@ -9,36 +9,28 @@
 """Utility functions for analyze-like formats"""
 from __future__ import annotations
 
-import gzip
 import io
 import sys
 import typing as ty
 import warnings
-from bz2 import BZ2File
 from functools import reduce
 from operator import getitem, mul
 from os.path import exists, splitext
 
 import numpy as np
 
+from ._compression import COMPRESSED_FILE_LIKES
 from .casting import OK_FLOATS, shared_range
 from .externals.oset import OrderedSet
-from .openers import IndexedGzipFile
-from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
-    import pyzstd
-
-    HAVE_ZSTD = True
 
     Scalar = np.number | float
 
     K = ty.TypeVar('K')
     V = ty.TypeVar('V')
     DT = ty.TypeVar('DT', bound=np.generic)
-else:
-    pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 
 sys_is_le = sys.byteorder == 'little'
 native_code = sys_is_le and '<' or '>'
@@ -54,13 +46,6 @@ _endian_codes = (  # numpy code, aliases
 
 #: default compression level when writing gz and bz2 files
 default_compresslevel = 1
-
-#: file-like classes known to hold compressed data
-COMPRESSED_FILE_LIKES: tuple[type[io.IOBase], ...] = (gzip.GzipFile, BZ2File, IndexedGzipFile)
-
-# Enable .zst support if pyzstd installed.
-if HAVE_ZSTD:
-    COMPRESSED_FILE_LIKES = (*COMPRESSED_FILE_LIKES, pyzstd.ZstdFile)
 
 
 class Recoder:
