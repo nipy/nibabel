@@ -7,9 +7,13 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Define supported image classes and names"""
+from __future__ import annotations
+
 from .analyze import AnalyzeImage
 from .brikhead import AFNIImage
 from .cifti2 import Cifti2Image
+from .dataobj_images import DataobjImage
+from .filebasedimages import FileBasedImage
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
@@ -21,7 +25,7 @@ from .spm2analyze import Spm2AnalyzeImage
 from .spm99analyze import Spm99AnalyzeImage
 
 # Ordered by the load/save priority.
-all_image_classes = [
+all_image_classes: list[type[FileBasedImage]] = [
     Nifti1Pair,
     Nifti1Image,
     Nifti2Pair,
@@ -41,7 +45,7 @@ all_image_classes = [
 # Image classes known to require spatial axes to be first in index ordering.
 # When adding an image class, consider whether the new class should be listed
 # here.
-KNOWN_SPATIAL_FIRST = (
+KNOWN_SPATIAL_FIRST: tuple[type[FileBasedImage], ...] = (
     Nifti1Pair,
     Nifti1Image,
     Nifti2Pair,
@@ -55,7 +59,7 @@ KNOWN_SPATIAL_FIRST = (
 )
 
 
-def spatial_axes_first(img):
+def spatial_axes_first(img: DataobjImage) -> bool:
     """True if spatial image axes for `img` always precede other axes
 
     Parameters
