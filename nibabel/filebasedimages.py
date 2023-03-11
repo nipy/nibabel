@@ -15,6 +15,7 @@ from copy import deepcopy
 from typing import Type
 from urllib import request
 
+from ._compression import COMPRESSION_ERRORS
 from .fileholders import FileHolder, FileMap
 from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
 from .openers import ImageOpener
@@ -421,7 +422,7 @@ class FileBasedImage:
         try:
             with ImageOpener(meta_fname, 'rb') as fobj:
                 binaryblock = fobj.read(sniff_nbytes)
-        except (OSError, EOFError):
+        except COMPRESSION_ERRORS + (OSError, EOFError):
             return None
         return (binaryblock, meta_fname)
 
