@@ -33,6 +33,8 @@ from .test_parse_gifti_fast import (
     DATA_FILE6,
 )
 
+rng = np.random.default_rng()
+
 
 def test_agg_data():
     surf_gii_img = load(get_test_data('gifti', 'ascii.gii'))
@@ -81,7 +83,7 @@ def test_gifti_image():
     assert gi.numDA == 0
 
     # Test from numpy numeric array
-    data = np.random.random((5,))
+    data = rng.random(5, dtype=np.float32)
     da = GiftiDataArray(data)
     gi.add_gifti_data_array(da)
     assert gi.numDA == 1
@@ -98,7 +100,7 @@ def test_gifti_image():
 
     # Remove one
     gi = GiftiImage()
-    da = GiftiDataArray(np.zeros((5,)), intent=0)
+    da = GiftiDataArray(np.zeros((5,), np.float32), intent=0)
     gi.add_gifti_data_array(da)
 
     gi.remove_gifti_data_array_by_intent(3)
@@ -124,6 +126,42 @@ def test_gifti_image_bad_inputs():
         img.meta = val
 
     pytest.raises(TypeError, assign_metadata, 'not-a-meta')
+
+
+@pytest.mark.parametrize('label', data_type_codes.value_set('label'))
+def test_image_typing(label):
+    dtype = data_type_codes.dtype[label]
+    if dtype == np.void:
+        return
+    arr = 127 * rng.random(20)
+    try:
+        cast = arr.astype(label)
+    except TypeError:
+        return
+    darr = GiftiDataArray(cast, datatype=label)
+    img = GiftiImage(darrays=[darr])
+
+    # Force-write always works
+    force_rt = img.from_bytes(img.to_bytes(mode='force'))
+    assert np.array_equal(cast, force_rt.darrays[0].data)
+
+    # Compatibility mode does its best
+    if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating):
+        compat_rt = img.from_bytes(img.to_bytes(mode='compat'))
+        compat_darr = compat_rt.darrays[0].data
+        assert np.allclose(cast, compat_darr)
+        assert compat_darr.dtype in ('uint8', 'int32', 'float32')
+    else:
+        with pytest.raises(ValueError):
+            img.to_bytes(mode='compat')
+
+    # Strict mode either works or fails
+    if label in ('uint8', 'int32', 'float32'):
+        strict_rt = img.from_bytes(img.to_bytes(mode='strict'))
+        assert np.array_equal(cast, strict_rt.darrays[0].data)
+    else:
+        with pytest.raises(ValueError):
+            img.to_bytes(mode='strict')
 
 
 def test_dataarray_empty():
@@ -193,6 +231,38 @@ def test_dataarray_init():
     # ext_fname and ext_offset
     assert gda(ext_fname='foo').ext_fname == 'foo'
     assert gda(ext_offset=12).ext_offset == 12
+
+
+@pytest.mark.parametrize('label', data_type_codes.value_set('label'))
+def test_dataarray_typing(label):
+    dtype = data_type_codes.dtype[label]
+    code = data_type_codes.code[label]
+    arr = np.zeros((5,), dtype=dtype)
+
+    # Default interface: accept standards-conformant arrays, reject else
+    if dtype in ('uint8', 'int32', 'float32'):
+        assert GiftiDataArray(arr).datatype == code
+    else:
+        with pytest.raises(ValueError):
+            GiftiDataArray(arr)
+
+    # Explicit override - permit for now, may want to warn or eventually
+    # error
+    assert GiftiDataArray(arr, datatype=label).datatype == code
+    assert GiftiDataArray(arr, datatype=code).datatype == code
+    # Void is how we say we don't know how to do something, so it's not unique
+    if dtype != np.dtype('void'):
+        assert GiftiDataArray(arr, datatype=dtype).datatype == code
+
+    # Side-load data array (as in parsing)
+    # We will probably always want this to load legacy images, but it's
+    # probably not ideal to make it easy to silently propagate nonconformant
+    # arrays
+    gda = GiftiDataArray()
+    gda.data = arr
+    gda.datatype = data_type_codes.code[label]
+    assert gda.data.dtype == dtype
+    assert gda.datatype == data_type_codes.code[label]
 
 
 def test_labeltable():
@@ -303,7 +373,7 @@ def test_metadata_list_interface():
 
 
 def test_gifti_label_rgba():
-    rgba = np.random.rand(4)
+    rgba = rng.random(4)
     kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
 
     gl1 = GiftiLabel(**kwargs)
@@ -332,13 +402,17 @@ def test_gifti_label_rgba():
     assert np.all([elem is None for elem in gl4.rgba])
 
 
-def test_print_summary():
-    for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]:
-        gimg = load(fil)
-        gimg.print_summary()
+@pytest.mark.parametrize(
+    'fname', [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
+)
+def test_print_summary(fname, capsys):
+    gimg = load(fname)
+    gimg.print_summary()
+    captured = capsys.readouterr()
+    assert captured.out.startswith('----start----\n')
 
 
-def test_gifti_coord():
+def test_gifti_coord(capsys):
     from ..gifti import GiftiCoordSystem
 
     gcs = GiftiCoordSystem()
@@ -347,6 +421,15 @@ def test_gifti_coord():
     # Smoke test
     gcs.xform = None
     gcs.print_summary()
+    captured = capsys.readouterr()
+    assert captured.out == '\n'.join(
+        [
+            'Dataspace:  NIFTI_XFORM_UNKNOWN',
+            'XFormSpace:  NIFTI_XFORM_UNKNOWN',
+            'Affine Transformation Matrix: ',
+            ' None\n',
+        ]
+    )
     gcs.to_xml()
 
 
@@ -471,7 +554,7 @@ def test_darray_dtype_coercion_failures():
             datatype=darray_dtype,
         )
         gii = GiftiImage(darrays=[da])
-        gii_copy = GiftiImage.from_bytes(gii.to_bytes())
+        gii_copy = GiftiImage.from_bytes(gii.to_bytes(mode='force'))
         da_copy = gii_copy.darrays[0]
         assert np.dtype(da_copy.data.dtype) == np.dtype(darray_dtype)
         assert_array_equal(da_copy.data, da.data)
