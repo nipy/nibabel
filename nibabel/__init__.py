@@ -70,6 +70,7 @@ from .orientations import (
 )
 from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
+from .jmesh import JMesh
 
 # isort: split
 
