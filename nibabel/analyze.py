@@ -896,6 +896,7 @@ class AnalyzeImage(SpatialImage):
     """Class for basic Analyze format image"""
 
     header_class: Type[AnalyzeHeader] = AnalyzeHeader
+    header: AnalyzeHeader
     _meta_sniff_len = header_class.sizeof_hdr
     files_types: tuple[tuple[str, str], ...] = (('image', '.img'), ('header', '.hdr'))
     valid_exts: tuple[str, ...] = ('.img', '.hdr')

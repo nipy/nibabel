@@ -159,7 +159,6 @@ class FileBasedImage:
     """
 
     header_class: Type[FileBasedHeader] = FileBasedHeader
-    _header: FileBasedHeader
     _meta_sniff_len: int = 0
     files_types: tuple[ExtensionSpec, ...] = (('image', None),)
     valid_exts: tuple[str, ...] = ()

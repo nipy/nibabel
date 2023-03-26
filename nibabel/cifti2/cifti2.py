@@ -1411,6 +1411,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
     """Class for single file CIFTI-2 format image"""
 
     header_class = Cifti2Header
+    header: Cifti2Header
     valid_exts = Nifti2Image.valid_exts
     files_types = Nifti2Image.files_types
     makeable = False

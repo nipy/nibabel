@@ -150,6 +150,7 @@ class Minc2Image(Minc1Image):
     # MINC2 does not do compressed whole files
     _compressed_suffixes = ()
     header_class = Minc2Header
+    header: Minc2Header
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):

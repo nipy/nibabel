@@ -476,6 +476,7 @@ class SpatialImage(DataobjImage):
     ImageSlicer: type[SpatialFirstSlicer] = SpatialFirstSlicer
 
     _header: SpatialHeader
+    header: SpatialHeader
 
     def __init__(
         self,

@@ -1253,6 +1253,7 @@ class PARRECImage(SpatialImage):
     """PAR/REC image"""
 
     header_class = PARRECHeader
+    header: PARRECHeader
     valid_exts = ('.rec', '.par')
     files_types = (('image', '.rec'), ('header', '.par'))
 
