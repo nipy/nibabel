@@ -74,6 +74,10 @@
       "orcid": "0000-0001-8895-2740"
     },
     {
+      "name": "Baratz, Zvi",
+      "orcid": "0000-0001-7159-1387"
+    },
+    {
       "name": "Wang, Hao-Ting",
       "orcid": "0000-0003-4078-2038"
     },
@@ -124,10 +128,6 @@
       "affiliation": "MIT",
       "name": "Goncalves, Mathias",
       "orcid": "0000-0002-7252-7771"
-    },
-    {
-      "name": "Baratz, Zvi",
-      "orcid": "0000-0001-7159-1387"
     },
     {
       "affiliation": "Montreal Neurological Institute and Hospital",
@@ -230,6 +230,9 @@
       "name": "Amirbekian, Bago"
     },
     {
+      "name": "Christian, Horea"
+    },
+    {
       "name": "Nimmo-Smith, Ian"
     },
     {
@@ -273,6 +276,9 @@
     },
     {
       "name": "Fauber, Bennet"
+    },
+    {
+      "name": "Perez, Fabian"
     },
     {
       "name": "Roberts, Jacob"
