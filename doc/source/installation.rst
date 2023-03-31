@@ -86,7 +86,7 @@ Requirements
 *  Python_ 3.8 or greater
 *  NumPy_ 1.19 or greater
 *  Packaging_ 17.0 or greater
-*  Setuptools_
+*  importlib-resources_ 1.3 or greater (or Python 3.9+)
 *  SciPy_ (optional, for full SPM-ANALYZE support)
 *  h5py_ (optional, for MINC2 support)
 *  PyDICOM_ 1.0.0 or greater (optional, for DICOM support)
