@@ -751,7 +751,7 @@ class EcatImage(SpatialImage):
     valid_exts = ('.v',)
     files_types = (('image', '.v'), ('header', '.v'))
 
-    _header: EcatHeader
+    header: EcatHeader
     _subheader: EcatSubHeader
 
     ImageArrayProxy = EcatImageArrayProxy

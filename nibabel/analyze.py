@@ -83,8 +83,6 @@ constrain the affine.
 """
 from __future__ import annotations
 
-from typing import Type
-
 import numpy as np
 
 from .arrayproxy import ArrayProxy
@@ -895,7 +893,8 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
 class AnalyzeImage(SpatialImage):
     """Class for basic Analyze format image"""
 
-    header_class: Type[AnalyzeHeader] = AnalyzeHeader
+    header_class: type[AnalyzeHeader] = AnalyzeHeader
+    header: AnalyzeHeader
     _meta_sniff_len = header_class.sizeof_hdr
     files_types: tuple[tuple[str, str], ...] = (('image', '.img'), ('header', '.hdr'))
     valid_exts: tuple[str, ...] = ('.img', '.hdr')

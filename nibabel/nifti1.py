@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import warnings
 from io import BytesIO
-from typing import Type
 
 import numpy as np
 import numpy.linalg as npl
@@ -90,8 +89,8 @@ header_dtype = np.dtype(header_dtd)
 # datatypes not in analyze format, with codes
 if have_binary128():
     # Only enable 128 bit floats if we really have IEEE binary 128 longdoubles
-    _float128t: Type[np.generic] = np.longdouble
-    _complex256t: Type[np.generic] = np.longcomplex
+    _float128t: type[np.generic] = np.longdouble
+    _complex256t: type[np.generic] = np.longcomplex
 else:
     _float128t = np.void
     _complex256t = np.void
@@ -1817,7 +1816,8 @@ class Nifti1PairHeader(Nifti1Header):
 class Nifti1Pair(analyze.AnalyzeImage):
     """Class for NIfTI1 format image, header pair"""
 
-    header_class: Type[Nifti1Header] = Nifti1PairHeader
+    header_class: type[Nifti1Header] = Nifti1PairHeader
+    header: Nifti1Header
     _meta_sniff_len = header_class.sizeof_hdr
     rw = True
 

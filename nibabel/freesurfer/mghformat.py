@@ -462,6 +462,7 @@ class MGHImage(SpatialImage, SerializableImage):
     """Class for MGH format image"""
 
     header_class = MGHHeader
+    header: MGHHeader
     valid_exts = ('.mgh', '.mgz')
     # Register that .mgz extension signals gzip compression
     ImageOpener.compress_ext_map['.mgz'] = ImageOpener.gz_def

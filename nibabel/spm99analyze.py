@@ -227,6 +227,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
     """Class for SPM99 variant of basic Analyze image"""
 
     header_class = Spm99AnalyzeHeader
+    header: Spm99AnalyzeHeader
     files_types = (('image', '.img'), ('header', '.hdr'), ('mat', '.mat'))
     has_affine = True
     makeable = True

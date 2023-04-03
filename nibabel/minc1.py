@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 from numbers import Integral
-from typing import Type
 
 import numpy as np
 
@@ -307,7 +306,8 @@ class Minc1Image(SpatialImage):
     load.
     """
 
-    header_class: Type[MincHeader] = Minc1Header
+    header_class: type[MincHeader] = Minc1Header
+    header: MincHeader
     _meta_sniff_len: int = 4
     valid_exts: tuple[str, ...] = ('.mnc',)
     files_types: tuple[tuple[str, str], ...] = (('image', '.mnc'),)

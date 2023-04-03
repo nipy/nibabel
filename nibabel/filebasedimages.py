@@ -12,7 +12,6 @@ from __future__ import annotations
 import io
 import typing as ty
 from copy import deepcopy
-from typing import Type
 from urllib import request
 
 from ._compression import COMPRESSION_ERRORS
@@ -158,8 +157,7 @@ class FileBasedImage:
     work.
     """
 
-    header_class: Type[FileBasedHeader] = FileBasedHeader
-    _header: FileBasedHeader
+    header_class: type[FileBasedHeader] = FileBasedHeader
     _meta_sniff_len: int = 0
     files_types: tuple[ExtensionSpec, ...] = (('image', None),)
     valid_exts: tuple[str, ...] = ()

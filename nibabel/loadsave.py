@@ -8,7 +8,10 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
 """Utilities to load and save image objects"""
+from __future__ import annotations
+
 import os
+import typing as ty
 
 import numpy as np
 
@@ -22,7 +25,18 @@ from .openers import ImageOpener
 _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
 
-def _signature_matches_extension(filename):
+if ty.TYPE_CHECKING:  # pragma: no cover
+    from .filebasedimages import FileBasedImage
+    from .filename_parser import FileSpec
+
+    P = ty.ParamSpec('P')
+
+    class Signature(ty.TypedDict):
+        signature: bytes
+        format_name: str
+
+
+def _signature_matches_extension(filename: FileSpec) -> tuple[bool, str]:
     """Check if signature aka magic number matches filename extension.
 
     Parameters
@@ -42,7 +56,7 @@ def _signature_matches_extension(filename):
        the empty string otherwise.
 
     """
-    signatures = {
+    signatures: dict[str, Signature] = {
         '.gz': {'signature': b'\x1f\x8b', 'format_name': 'gzip'},
         '.bz2': {'signature': b'BZh', 'format_name': 'bzip2'},
         '.zst': {'signature': b'\x28\xb5\x2f\xfd', 'format_name': 'ztsd'},
@@ -64,7 +78,7 @@ def _signature_matches_extension(filename):
     return False, f'File {filename} is not a {format_name} file'
 
 
-def load(filename, **kwargs):
+def load(filename: FileSpec, **kwargs) -> FileBasedImage:
     r"""Load file given filename, guessing at file type
 
     Parameters
@@ -126,7 +140,7 @@ def guessed_image_type(filename):
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
-def save(img, filename, **kwargs):
+def save(img: FileBasedImage, filename: FileSpec, **kwargs) -> None:
     r"""Save an image to file adapting format to `filename`
 
     Parameters
@@ -161,19 +175,17 @@ def save(img, filename, **kwargs):
     from .nifti1 import Nifti1Image, Nifti1Pair
     from .nifti2 import Nifti2Image, Nifti2Pair
 
-    klass = None
-    converted = None
-
+    converted: FileBasedImage
     if type(img) == Nifti1Image and lext in ('.img', '.hdr'):
-        klass = Nifti1Pair
+        converted = Nifti1Pair.from_image(img)
     elif type(img) == Nifti2Image and lext in ('.img', '.hdr'):
-        klass = Nifti2Pair
+        converted = Nifti2Pair.from_image(img)
     elif type(img) == Nifti1Pair and lext == '.nii':
-        klass = Nifti1Image
+        converted = Nifti1Image.from_image(img)
     elif type(img) == Nifti2Pair and lext == '.nii':
-        klass = Nifti2Image
+        converted = Nifti2Image.from_image(img)
     else:  # arbitrary conversion
-        valid_klasses = [klass for klass in all_image_classes if ext in klass.valid_exts]
+        valid_klasses = [klass for klass in all_image_classes if lext in klass.valid_exts]
         if not valid_klasses:  # if list is empty
             raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
@@ -186,13 +198,9 @@ def save(img, filename, **kwargs):
                 break
             except Exception as e:
                 err = e
-        # ... and if none of them work, raise an error.
-        if converted is None:
+        else:
             raise err
 
-    # Here, we either have a klass or a converted image.
-    if converted is None:
-        converted = klass.from_image(img)
     converted.to_filename(filename, **kwargs)
 
 
