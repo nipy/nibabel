@@ -25,6 +25,48 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.1.0 (Monday 3 April 2023)
+===========================
+
+New feature release in the 5.1.x series.
+
+Enhancements
+------------
+* Make :mod:`nibabel.imagestats` available with ``import nibabel`` (pr/1208)
+  (Fabian Perez, reviewed by CM)
+* Use symmetric threshold for identifying unit quaternions on qform
+  calculations (pr/1182) (CM, reviewed by MB)
+* Type annotations for :mod:`~nibabel.loadsave` (pr/1213) and
+  :class:`~nibabel.spatialimages.SpatialImage` APIs (pr/1179),
+  :mod:`~nibabel.deprecated`, :mod:`~nibabel.deprecator`,
+  :mod:`~nibabel.onetime` and :mod:`~nibabel.optpkg` modules (pr/1188),
+  :mod:`~nibabel.volumeutils` (pr/1189), :mod:`~nibabel.filename_parser` and
+  :mod:`~nibabel.openers` (pr/1197) (CM, reviewed by Zvi Baratz)
+
+Bug fixes
+---------
+* Require explicit overrides to write GIFTI files that contain data arrays
+  with data types not permitted by the GIFTI standard (pr/1199) (CM, reviewed
+  by Alexis Thual)
+
+Maintenance
+-----------
+* Move compression detection logic into a private ``nibabel._compression``
+  module, resolving unexpected errors from pyzstd. (pr/1212) (CM)
+* Improved consistency of docstring formatting (pr/1200) (Zvi Baratz, reviewed
+  by CM)
+* Modernized README text (pr/1195) (Zvi Baratz, reviewed by CM)
+* Updated README badges to include package distributions (pr/1192) (Horea
+  Christian, reviewed by CM)
+* Removed all dependencies on distutils and setuptools (pr/1190) (CM,
+  reviewed by Zvi Baratz)
+* Add a ``_version.pyi`` stub to allow mypy_ to run without building nibabel
+  (pr/1210) (CM)
+
+
+.. _mypy: https://mypy.readthedocs.io/
+
+
 5.0.1 (Sunday 12 February 2023)
 ===============================
 
