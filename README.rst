@@ -1,7 +1,8 @@
 .. -*- rest -*-
 .. vim:syntax=rst
 
-.. image:: doc/pics/logo.png
+.. Use raw location to ensure image shows up on PyPI
+.. image:: https://raw.githubusercontent.com/nipy/nibabel/master/doc/pics/logo.png
    :target: https://nipy.org/nibabel
    :alt: NiBabel logo
 
