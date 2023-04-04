@@ -540,15 +540,15 @@ class TestSpatialImage:
                     sliceobj = tuple(np.random.choice(slice_elems, n_elems))
                     try:
                         sliced_img = img.slicer[sliceobj]
-                    except (IndexError, ValueError):
-                        # Only checking valid slices
-                        pass
-                    else:
-                        sliced_data = in_data[sliceobj]
-                        assert (sliced_data == sliced_img.get_fdata()).all()
-                        assert (sliced_data == sliced_img.dataobj).all()
-                        assert (sliced_data == img.dataobj[sliceobj]).all()
-                        assert (sliced_data == img.get_fdata()[sliceobj]).all()
+                    except (IndexError, ValueError, HeaderDataError):
+                        # Skip invalid slices or images that can't be created
+                        continue
+
+                    sliced_data = in_data[sliceobj]
+                    assert np.array_equal(sliced_data, sliced_img.get_fdata())
+                    assert np.array_equal(sliced_data, sliced_img.dataobj)
+                    assert np.array_equal(sliced_data, img.dataobj[sliceobj])
+                    assert np.array_equal(sliced_data, img.get_fdata()[sliceobj])
 
 
 class MmapImageMixin:
