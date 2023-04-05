@@ -6,7 +6,6 @@ import warnings
 import numpy as np
 import getpass
 import time
-import re
 
 from collections import OrderedDict
 from ..openers import Opener
