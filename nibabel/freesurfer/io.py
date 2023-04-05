@@ -639,13 +639,10 @@ def read_stats_file(file_path):
     """
     with open(file_path, 'r') as f:
         for line in f:
-            if re.findall(r'ColHeaders .*', line):
-                parameters = line.split()
+            if line.startswith('# ColHeaders '):
+                columns = line.split()[2:]
                 break
-    f.close()
-    stats = np.loadtxt(file_path, comments='#', dtype=str)
-    column_names = parameters[2:]
-    return stats, column_names
+        return np.genfromtxt(f, dtype=None, names=columns, encoding='utf-8')
 
 
 def read_stats_file_both_hemispheres(file_path: str):
