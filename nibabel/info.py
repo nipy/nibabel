@@ -22,7 +22,7 @@ NiBabel's API gives full or selective access to header information (metadata),
 and image data is made available via NumPy arrays. For more information, see
 NiBabel's `documentation site`_ and `API reference`_.
 
-.. _API reference: https://nipy.org/nibabel/api.html
+.. _API reference: ./api.html
 .. _AFNI BRIK/HEAD: https://afni.nimh.nih.gov/pub/dist/src/README.attributes
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _CIFTI-2: https://www.nitrc.org/projects/cifti/
@@ -58,12 +58,11 @@ When working on NiBabel itself, it may be useful to install in "editable" mode::
 For more information on previous releases, see the `release archive`_ or
 `development changelog`_.
 
-Please find detailed `download and installation instructions
-<installation>`_ in the manual.
+Please find detailed `download and installation instructions`_ in the manual.
 
 .. _current release: https://pypi.python.org/pypi/NiBabel
-.. _development changelog: https://nipy.org/nibabel/changelog.html
-.. _installation: https://nipy.org/nibabel/installation.html#installation
+.. _development changelog: ./changelog.html
+.. _download and installation instructions: ./installation.html#installation
 .. _release archive: https://github.com/nipy/NiBabel/releases
 
 Support
@@ -90,7 +89,7 @@ examples and snippets inside the source distribution (including this website).
 Please see the `appendix of the manual <license>`_ for the copyright statement
 and the full text of the license.
 
-.. _license: https://nipy.org/nibabel/legal.html#license
+.. _license: ./legal.html#license
 .. _mit: https://opensource.org/license17s/MIT
 
 Citation
