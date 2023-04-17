@@ -181,9 +181,10 @@ jobs:
       - name: Run tests
         if: ${{ matrix.check != 'skiptests' }}
         run: tools/ci/check.sh
-      - name: Submit coverage
+      - uses: codecov/codecov-action@v3
         if: ${{ always() }}
-        run: tools/ci/submit_coverage.sh
+        with:
+          files: cov.xml
       - name: Upload pytest test results
         if: ${{ always() && matrix.check == 'test' }}
         uses: actions/upload-artifact@v3
