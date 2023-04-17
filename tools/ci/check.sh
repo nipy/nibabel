@@ -23,7 +23,7 @@ elif [ "${CHECK_TYPE}" == "test" ]; then
     mkdir for_testing
     cd for_testing
     cp ../.coveragerc .
-    pytest --doctest-modules --doctest-plus --cov nibabel --cov-report xml \
+    pytest --doctest-modules --doctest-plus --cov nibabel --cov-report xml:../cov.xml \
         --junitxml=test-results.xml -v --pyargs nibabel -n auto
 elif [ "${CHECK_TYPE}" == "typing" ]; then
     mypy nibabel
