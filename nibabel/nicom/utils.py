@@ -32,7 +32,6 @@ def find_private_section(dcm_data, group_no, creator):
     if hasattr(creator, 'search'):
         match_func = creator.search
     else:  # assume string / bytes
-        creator = asstr(creator)
         match_func = asstr(creator).__eq__
     # Group elements assumed ordered by tag (groupno, elno)
     for element in dcm_data.group_dataset(group_no):
