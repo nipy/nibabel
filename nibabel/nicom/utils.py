@@ -30,7 +30,7 @@ def find_private_section(dcm_data, group_no, creator):
         Element number at which named section starts.
     """
     if hasattr(creator, 'search'):
-        match_func = lambda x : creator.search(x)
+        match_func = creator.search
     else:  # assume string / bytes
         creator = asstr(creator)
         match_func = lambda x : x == creator
