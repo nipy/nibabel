@@ -120,7 +120,6 @@ For more information on previous releases, see the `release archive`_ or
 `development changelog`_.
 
 .. _current release: https://pypi.python.org/pypi/NiBabel
-.. _release archive: https://github.com/nipy/NiBabel/releases
 .. _development changelog: https://nipy.org/nibabel/changelog.html
 
 Mailing List
@@ -144,7 +143,9 @@ Citation
 ========
 
 NiBabel releases have a Zenodo_ `Digital Object Identifier`_ (DOI) badge at
-the top of the release notes. Click on the badge for more information.
+the top of the `release notes`_. Click on the badge for more information.
 
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
 .. _zenodo: https://zenodo.org
+.. _release archive:
+.. _release notes: https://github.com/nipy/nibabel/releases
