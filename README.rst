@@ -6,6 +6,7 @@
    :target: https://nipy.org/nibabel
    :alt: NiBabel logo
 
+.. _above table:
 .. list-table::
    :widths: 20 80
    :header-rows: 0
@@ -144,6 +145,9 @@ Citation
 
 NiBabel releases have a Zenodo_ `Digital Object Identifier`_ (DOI) badge at
 the top of the `release notes`_. Click on the badge for more information.
+
+Alternately, the Zenodo DOI badge for the latest release
+can be found in the `above table`_.
 
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
 .. _zenodo: https://zenodo.org
