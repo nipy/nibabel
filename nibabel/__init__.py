@@ -9,8 +9,9 @@
 
 import os
 
-from .pkg_info import __version__
 from .info import long_description as __doc__
+from .pkg_info import __version__
+
 __doc__ += """
 Quickstart
 ==========
@@ -38,33 +39,39 @@ For more detailed information see the :ref:`manual`.
 
 # module imports
 from . import analyze as ana
-from . import spm99analyze as spm99
-from . import spm2analyze as spm2
+from . import ecat, imagestats, mriutils
 from . import nifti1 as ni1
-from . import ecat
+from . import spm2analyze as spm2
+from . import spm99analyze as spm99
+from . import streamlines, viewers
+
+# isort: split
+
 # object imports
-from .fileholders import FileHolder, FileHolderError
-from .loadsave import load, save
-from .arrayproxy import is_proxy
 from .analyze import AnalyzeHeader, AnalyzeImage
-from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
-from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
-from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
-from .nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
+from .arrayproxy import is_proxy
+from .cifti2 import Cifti2Header, Cifti2Image
+from .fileholders import FileHolder, FileHolderError
+from .freesurfer import MGHImage
+from .funcs import as_closest_canonical, concat_images, four_to_three, squeeze_image
+from .gifti import GiftiImage
+from .imageclasses import all_image_classes
+from .loadsave import load, save
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
-from .cifti2 import Cifti2Header, Cifti2Image
-from .gifti import GiftiImage
-from .freesurfer import MGHImage
-from .funcs import (squeeze_image, concat_images, four_to_three,
-                    as_closest_canonical)
-from .orientations import (io_orientation, orientation_affine,
-                           flip_axis, OrientationError,
-                           apply_orientation, aff2axcodes)
-from .imageclasses import class_map, ext_map, all_image_classes
-from . import mriutils
-from . import streamlines
-from . import viewers
+from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
+from .nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
+from .orientations import (
+    OrientationError,
+    aff2axcodes,
+    apply_orientation,
+    flip_axis,
+    io_orientation,
+)
+from .spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
+from .spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
+
+# isort: split
 
 from .pkg_info import get_pkg_info as _get_pkg_info
 
@@ -73,9 +80,15 @@ def get_info():
     return _get_pkg_info(os.path.dirname(__file__))
 
 
-def test(label=None, verbose=1, extra_argv=None,
-         doctests=False, coverage=False, raise_warnings=None,
-         timer=False):
+def test(
+    label=None,
+    verbose=1,
+    extra_argv=None,
+    doctests=False,
+    coverage=False,
+    raise_warnings=None,
+    timer=False,
+):
     """
     Run tests for nibabel using pytest
 
@@ -108,29 +121,30 @@ def test(label=None, verbose=1, extra_argv=None,
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
     import pytest
+
     args = []
 
     if label is not None:
-        raise NotImplementedError("Labels cannot be set at present")
+        raise NotImplementedError('Labels cannot be set at present')
 
     verbose = int(verbose)
     if verbose > 0:
-        args.append("-" + "v" * verbose)
+        args.append('-' + 'v' * verbose)
     elif verbose < 0:
-        args.append("-" + "q" * -verbose)
+        args.append('-' + 'q' * -verbose)
 
     if extra_argv:
         args.extend(extra_argv)
     if doctests:
-        args.append("--doctest-modules")
+        args.append('--doctest-modules')
     if coverage:
-        args.extend(["--cov", "nibabel"])
+        args.extend(['--cov', 'nibabel'])
     if raise_warnings is not None:
-        raise NotImplementedError("Warning filters are not implemented")
+        raise NotImplementedError('Warning filters are not implemented')
     if timer:
-        raise NotImplementedError("Timing is not implemented")
+        raise NotImplementedError('Timing is not implemented')
 
-    args.extend(["--pyargs", "nibabel"])
+    args.extend(['--pyargs', 'nibabel'])
 
     return pytest.main(args=args)
 
@@ -157,10 +171,16 @@ def bench(label=None, verbose=1, extra_argv=None):
     code : ExitCode
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
-    from pkg_resources import resource_filename
-    config = resource_filename("nibabel", "benchmarks/pytest.benchmark.ini")
+    try:
+        from importlib.resources import as_file, files
+    except ImportError:
+        from importlib_resources import as_file, files
+
     args = []
     if extra_argv is not None:
         args.extend(extra_argv)
-    args.extend(["-c", config])
-    return test(label, verbose, extra_argv=args)
+
+    config_path = files('nibabel') / 'benchmarks/pytest.benchmark.ini'
+    with as_file(config_path) as config:
+        args.extend(['-c', str(config)])
+        return test(label, verbose, extra_argv=args)

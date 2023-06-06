@@ -6,30 +6,30 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Header and image reading / writing functions for MGH image format
+"""Header and image reading / writing functions for MGH image format
 
 Author: Krish Subramaniam
 """
 from os.path import splitext
+
 import numpy as np
 
-from ..affines import voxel_sizes, from_matvec
-from ..volumeutils import (array_to_file, array_from_file, endian_codes,
-                           Recoder)
-from ..filebasedimages import SerializableImage
-from ..filename_parser import _stringify_path
-from ..spatialimages import HeaderDataError, SpatialImage
-from ..fileholders import FileHolder
+from ..affines import from_matvec, voxel_sizes
 from ..arrayproxy import ArrayProxy, reshape_dataobj
-from ..openers import ImageOpener
 from ..batteryrunners import BatteryRunner, Report
+from ..filebasedimages import SerializableImage
+from ..fileholders import FileHolder
+from ..filename_parser import _stringify_path
+from ..openers import ImageOpener
+from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
+from ..volumeutils import Recoder, array_from_file, array_to_file, endian_codes
 from ..wrapstruct import LabeledWrapStruct
-from ..deprecated import deprecate_with_version
 
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 DATA_OFFSET = 284
 # Note that mgh data is strictly big endian ( hence the > sign )
+# fmt: off
 header_dtd = [
     ('version', '>i4'),             # 0; must be 1
     ('dims', '>i4', (4,)),          # 4; width, height, depth, nframes
@@ -48,6 +48,7 @@ footer_dtd = [
     ('ti', '>f4'),                  # 12; inversion time
     ('fov', '>f4'),                 # 16; field of view (unused)
 ]
+# fmt: on
 
 header_dtype = np.dtype(header_dtd)
 footer_dtype = np.dtype(footer_dtd)
@@ -56,20 +57,26 @@ hf_dtype = np.dtype(header_dtd + footer_dtd)
 # caveat: Note that it's ambiguous to get the code given the bytespervoxel
 # caveat 2: Note that the bytespervox you get is in str ( not an int)
 _dtdefs = (  # code, conversion function, dtype, bytes per voxel
-    (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype(np.uint8),
-     np.dtype(np.uint8).newbyteorder('>')),
-    (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype(np.int16),
-     np.dtype(np.int16).newbyteorder('>')),
-    (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype(np.int32),
-     np.dtype(np.int32).newbyteorder('>')),
-    (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype(np.float32),
-     np.dtype(np.float32).newbyteorder('>')))
+    (0, 'uint8', '>u1', '1', 'MRI_UCHAR', np.uint8, np.dtype('u1'), np.dtype('>u1')),
+    (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype('i2'), np.dtype('>i2')),
+    (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype('i4'), np.dtype('>i4')),
+    (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype('f4'), np.dtype('>f4')),
+)
 
 # make full code alias bank, including dtype column
-data_type_codes = Recoder(_dtdefs, fields=('code', 'label', 'dtype',
-                                           'bytespervox', 'mritype',
-                                           'np_dtype1', 'np_dtype2',
-                                           'numpy_dtype'))
+data_type_codes = Recoder(
+    _dtdefs,
+    fields=(
+        'code',
+        'label',
+        'dtype',
+        'bytespervox',
+        'mritype',
+        'np_dtype1',
+        'np_dtype2',
+        'numpy_dtype',
+    ),
+)
 
 
 class MGHError(Exception):
@@ -80,22 +87,21 @@ class MGHError(Exception):
     """
 
 
-class MGHHeader(LabeledWrapStruct):
-    """ Class for MGH format header
+class MGHHeader(LabeledWrapStruct, SpatialHeader):
+    """Class for MGH format header
 
     The header also consists of the footer data which MGH places after the data
     chunk.
     """
+
     # Copies of module-level definitions
     template_dtype = hf_dtype
     _hdrdtype = header_dtype
     _ftrdtype = footer_dtype
     _data_type_codes = data_type_codes
 
-    def __init__(self,
-                 binaryblock=None,
-                 check=True):
-        """ Initialize header from binary data block
+    def __init__(self, binaryblock=None, check=True):
+        """Initialize header from binary data block
 
         Parameters
         ----------
@@ -112,11 +118,8 @@ class MGHHeader(LabeledWrapStruct):
             # Right zero-pad or truncate binaryblock to appropriate size
             # Footer is optional and may contain variable-length text fields,
             # so limit to fixed fields
-            binaryblock = (binaryblock[:full_size] +
-                           b'\x00' * (full_size - len(binaryblock)))
-        super(MGHHeader, self).__init__(binaryblock=binaryblock,
-                                        endianness='big',
-                                        check=False)
+            binaryblock = binaryblock[:full_size] + b'\x00' * (full_size - len(binaryblock))
+        super().__init__(binaryblock=binaryblock, endianness='big', check=False)
         if not self._structarr['goodRASFlag']:
             self._set_affine_default()
         if check:
@@ -138,8 +141,7 @@ class MGHHeader(LabeledWrapStruct):
 
     @classmethod
     def from_header(klass, header=None, check=True):
-        """ Class method to create MGH header from another MGH header
-        """
+        """Class method to create MGH header from another MGH header"""
         # own type, return copy
         if type(header) == klass:
             obj = header.copy()
@@ -160,19 +162,19 @@ class MGHHeader(LabeledWrapStruct):
         # dimensions from the header, skip over and then read the footer
         # information
         hdr_str = fileobj.read(klass._hdrdtype.itemsize)
-        hdr_str_to_np = np.ndarray(shape=(), dtype=klass._hdrdtype,
-                                   buffer=hdr_str)
+        hdr_str_to_np = np.ndarray(shape=(), dtype=klass._hdrdtype, buffer=hdr_str)
         if not np.all(hdr_str_to_np['dims']):
             raise MGHError('Dimensions of the data should be non-zero')
         tp = int(hdr_str_to_np['type'])
-        fileobj.seek(DATA_OFFSET +
-                     int(klass._data_type_codes.bytespervox[tp]) *
-                     np.prod(hdr_str_to_np['dims']))
+        fileobj.seek(
+            DATA_OFFSET
+            + int(klass._data_type_codes.bytespervox[tp]) * np.prod(hdr_str_to_np['dims'])
+        )
         ftr_str = fileobj.read(klass._ftrdtype.itemsize)
         return klass(hdr_str + ftr_str, check=check)
 
     def get_affine(self):
-        """ Get the affine transform from the header information.
+        """Get the affine transform from the header information.
 
         MGH format doesn't store the transform directly. Instead it's gleaned
         from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
@@ -187,29 +189,32 @@ class MGHHeader(LabeledWrapStruct):
     get_best_affine = get_affine
 
     def get_vox2ras(self):
-        """return the get_affine()
-        """
+        """return the get_affine()"""
         return self.get_affine()
 
     def get_vox2ras_tkr(self):
-        """ Get the vox2ras-tkr transform. See "Torig" here:
-                https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
+        """Get the vox2ras-tkr transform. See "Torig" here:
+        https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
         """
         ds = self._structarr['delta']
         ns = self._structarr['dims'][:3] * ds / 2.0
-        v2rtkr = np.array([[-ds[0], 0, 0, ns[0]],
-                           [0, 0, ds[2], -ns[2]],
-                           [0, -ds[1], 0, ns[1]],
-                           [0, 0, 0, 1]], dtype=np.float32)
+        v2rtkr = np.array(
+            [
+                [-ds[0], 0, 0, ns[0]],
+                [0, 0, ds[2], -ns[2]],
+                [0, -ds[1], 0, ns[1]],
+                [0, 0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
         return v2rtkr
 
     def get_ras2vox(self):
-        """return the inverse get_affine()
-        """
+        """return the inverse get_affine()"""
         return np.linalg.inv(self.get_affine())
 
     def get_data_dtype(self):
-        """ Get numpy dtype for MGH data
+        """Get numpy dtype for MGH data
 
         For examples see ``set_data_dtype``
         """
@@ -218,8 +223,7 @@ class MGHHeader(LabeledWrapStruct):
         return dtype
 
     def set_data_dtype(self, datatype):
-        """ Set numpy dtype for data from code or dtype or type
-        """
+        """Set numpy dtype for data from code or dtype or type"""
         try:
             code = self._data_type_codes[datatype]
         except KeyError:
@@ -227,7 +231,7 @@ class MGHHeader(LabeledWrapStruct):
         self._structarr['type'] = code
 
     def _ndims(self):
-        """ Get dimensionality of data
+        """Get dimensionality of data
 
         MGH does not encode dimensionality explicitly, so an image where the
         fourth dimension is 1 is treated as three-dimensional.
@@ -239,7 +243,7 @@ class MGHHeader(LabeledWrapStruct):
         return 3 + (self._structarr['dims'][3] > 1)
 
     def get_zooms(self):
-        """ Get zooms from header
+        """Get zooms from header
 
         Returns the spacing of voxels in the x, y, and z dimensions.
         For four-dimensional files, a fourth zoom is included, equal to the
@@ -260,7 +264,7 @@ class MGHHeader(LabeledWrapStruct):
         return tuple(self._structarr['delta']) + tzoom
 
     def set_zooms(self, zooms):
-        """ Set zooms into header fields
+        """Set zooms into header fields
 
         Sets the spacing of voxels in the x, y, and z dimensions.
         For four-dimensional files, a temporal zoom (repetition time, or TR, in
@@ -278,8 +282,9 @@ class MGHHeader(LabeledWrapStruct):
         if len(zooms) > ndims:
             raise HeaderDataError('Expecting %d zoom values' % ndims)
         if np.any(zooms[:3] <= 0):
-            raise HeaderDataError('Spatial (first three) zooms must be positive; got '
-                                  f'{tuple(zooms[:3])}')
+            raise HeaderDataError(
+                f'Spatial (first three) zooms must be positive; got {tuple(zooms[:3])}'
+            )
         hdr['delta'] = zooms[:3]
         if len(zooms) == 4:
             if zooms[3] < 0:
@@ -287,8 +292,7 @@ class MGHHeader(LabeledWrapStruct):
             hdr['tr'] = zooms[3]
 
     def get_data_shape(self):
-        """ Get shape of data
-        """
+        """Get shape of data"""
         shape = tuple(self._structarr['dims'])
         # If last dimension (nframes) is 1, remove it because
         # we want to maintain 3D and it's redundant
@@ -297,7 +301,7 @@ class MGHHeader(LabeledWrapStruct):
         return shape
 
     def set_data_shape(self, shape):
-        """ Set shape of data
+        """Set shape of data
 
         Parameters
         ----------
@@ -306,34 +310,30 @@ class MGHHeader(LabeledWrapStruct):
         """
         shape = tuple(shape)
         if len(shape) > 4:
-            raise ValueError("Shape may be at most 4 dimensional")
+            raise ValueError('Shape may be at most 4 dimensional')
         self._structarr['dims'] = shape + (1,) * (4 - len(shape))
         self._structarr['delta'] = 1
 
     def get_data_bytespervox(self):
-        """ Get the number of bytes per voxel of the data
-        """
-        return int(self._data_type_codes.bytespervox[
-            int(self._structarr['type'])])
+        """Get the number of bytes per voxel of the data"""
+        return int(self._data_type_codes.bytespervox[int(self._structarr['type'])])
 
     def get_data_size(self):
-        """ Get the number of bytes the data chunk occupies.
-        """
+        """Get the number of bytes the data chunk occupies."""
         return self.get_data_bytespervox() * np.prod(self._structarr['dims'])
 
     def get_data_offset(self):
-        """ Return offset into data file to read data
-        """
+        """Return offset into data file to read data"""
         return DATA_OFFSET
 
     def get_footer_offset(self):
-        """ Return offset where the footer resides.
-            Occurs immediately after the data chunk.
+        """Return offset where the footer resides.
+        Occurs immediately after the data chunk.
         """
         return self.get_data_offset() + self.get_data_size()
 
     def data_from_fileobj(self, fileobj):
-        """ Read data array from `fileobj`
+        """Read data array from `fileobj`
 
         Parameters
         ----------
@@ -351,25 +351,23 @@ class MGHHeader(LabeledWrapStruct):
         return array_from_file(shape, dtype, fileobj, offset)
 
     def get_slope_inter(self):
-        """ MGH format does not do scaling?
-        """
+        """MGH format does not do scaling?"""
         return None, None
 
     @classmethod
     def guessed_endian(klass, mapping):
-        """ MGHHeader data must be big-endian """
+        """MGHHeader data must be big-endian"""
         return '>'
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        """ Return header data for empty header
+        """Return header data for empty header
 
         Ignores byte order; always big endian
         """
         if endianness is not None and endian_codes[endianness] != '>':
             raise ValueError('MGHHeader must always be big endian')
-        structarr = super(MGHHeader,
-                          klass).default_structarr(endianness=endianness)
+        structarr = super().default_structarr(endianness=endianness)
         structarr['version'] = 1
         structarr['dims'] = 1
         structarr['type'] = 3
@@ -379,15 +377,14 @@ class MGHHeader(LabeledWrapStruct):
         return structarr
 
     def _set_affine_default(self):
-        """ If goodRASFlag is 0, set the default affine
-        """
+        """If goodRASFlag is 0, set the default affine"""
         self._structarr['goodRASFlag'] = 1
         self._structarr['delta'] = 1
         self._structarr['Mdc'] = [[-1, 0, 0], [0, 0, 1], [0, -1, 0]]
         self._structarr['Pxyz_c'] = 0
 
     def writehdr_to(self, fileobj):
-        """ Write header to fileobj
+        """Write header to fileobj
 
         Write starts at the beginning.
 
@@ -400,14 +397,13 @@ class MGHHeader(LabeledWrapStruct):
         -------
         None
         """
-        hdr_nofooter = np.ndarray((), dtype=self._hdrdtype,
-                                  buffer=self.binaryblock)
+        hdr_nofooter = np.ndarray((), dtype=self._hdrdtype, buffer=self.binaryblock)
         # goto the very beginning of the file-like obj
         fileobj.seek(0)
         fileobj.write(hdr_nofooter.tobytes())
 
     def writeftr_to(self, fileobj):
-        """ Write footer to fileobj
+        """Write footer to fileobj
 
         Footer data is located after the data chunk. So move there and write.
 
@@ -421,17 +417,18 @@ class MGHHeader(LabeledWrapStruct):
         None
         """
         ftr_loc_in_hdr = len(self.binaryblock) - self._ftrdtype.itemsize
-        ftr_nd = np.ndarray((), dtype=self._ftrdtype,
-                            buffer=self.binaryblock, offset=ftr_loc_in_hdr)
+        ftr_nd = np.ndarray(
+            (), dtype=self._ftrdtype, buffer=self.binaryblock, offset=ftr_loc_in_hdr
+        )
         fileobj.seek(self.get_footer_offset())
         fileobj.write(ftr_nd.tobytes())
 
     def copy(self):
-        """ Return copy of structure """
+        """Return copy of structure"""
         return self.__class__(self.binaryblock, check=False)
 
     def as_byteswapped(self, endianness=None):
-        """ Return new object with given ``endianness``
+        """Return new object with given ``endianness``
 
         If big endian, returns a copy of the object. Otherwise raises ValueError.
 
@@ -448,8 +445,7 @@ class MGHHeader(LabeledWrapStruct):
 
         """
         if endianness is None or endian_codes[endianness] != '>':
-            raise ValueError('Cannot byteswap MGHHeader - '
-                             'must always be big endian')
+            raise ValueError('Cannot byteswap MGHHeader - must always be big endian')
         return self.copy()
 
     @classmethod
@@ -459,53 +455,14 @@ class MGHHeader(LabeledWrapStruct):
         wstr = klass(binaryblock, check=False)
         battrun = BatteryRunner(klass._get_checks())
         reports = battrun.check_only(wstr)
-        return '\n'.join([report.message
-                          for report in reports if report.message])
-
-    class _HeaderData:
-        """ Provide interface to deprecated MGHHeader fields"""
-        def __init__(self, structarr):
-            self._structarr = structarr
-
-        def __getitem__(self, item):
-            sa = self._structarr
-            if item == 'mrparams':
-                return np.hstack((sa['tr'], sa['flip_angle'], sa['te'], sa['ti']))
-            return sa[item]
-
-        def __setitem__(self, item, val):
-            sa = self._structarr
-            if item == 'mrparams':
-                sa['tr'], sa['flip_angle'], sa['te'], sa['ti'] = val
-            else:
-                sa[item] = val
-
-    @property
-    @deprecate_with_version('_header_data is deprecated.\n'
-                            'Please use the _structarr interface instead.\n'
-                            'Note also that some fields have changed name and '
-                            'shape.',
-                            '2.3', '4.0')
-    def _header_data(self):
-        """ Deprecated field-access interface """
-        return self._HeaderData(self._structarr)
-
-    def __getitem__(self, item):
-        if item == 'mrparams':
-            return self._header_data[item]
-        return super(MGHHeader, self).__getitem__(item)
-
-    def __setitem__(self, item, value):
-        if item == 'mrparams':
-            self._header_data[item] = value
-        else:
-            super(MGHHeader, self).__setitem__(item, value)
+        return '\n'.join([report.message for report in reports if report.message])
 
 
 class MGHImage(SpatialImage, SerializableImage):
-    """ Class for MGH format image
-    """
+    """Class for MGH format image"""
+
     header_class = MGHHeader
+    header: MGHHeader
     valid_exts = ('.mgh', '.mgz')
     # Register that .mgz extension signals gzip compression
     ImageOpener.compress_ext_map['.mgz'] = ImageOpener.gz_def
@@ -517,13 +474,11 @@ class MGHImage(SpatialImage, SerializableImage):
 
     ImageArrayProxy = ArrayProxy
 
-    def __init__(self, dataobj, affine, header=None,
-                 extra=None, file_map=None):
+    def __init__(self, dataobj, affine, header=None, extra=None, file_map=None):
         shape = dataobj.shape
         if len(shape) < 3:
             dataobj = reshape_dataobj(dataobj, shape + (1,) * (3 - len(shape)))
-        super(MGHImage, self).__init__(dataobj, affine, header=header,
-                                       extra=extra, file_map=file_map)
+        super().__init__(dataobj, affine, header=header, extra=extra, file_map=file_map)
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
@@ -531,11 +486,11 @@ class MGHImage(SpatialImage, SerializableImage):
         """ Check for compressed .mgz format, then .mgh format """
         if splitext(filespec)[1].lower() == '.mgz':
             return dict(image=FileHolder(filename=filespec))
-        return super(MGHImage, klass).filespec_to_file_map(filespec)
+        return super().filespec_to_file_map(filespec)
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
-        """ Class method to create image from mapping in ``file_map``
+        """Class method to create image from mapping in ``file_map``
 
         Parameters
         ----------
@@ -572,13 +527,14 @@ class MGHImage(SpatialImage, SerializableImage):
         affine = header.get_affine()
         hdr_copy = header.copy()
         # Pass original image fileobj / filename to array proxy
-        data = klass.ImageArrayProxy(img_fh.file_like, hdr_copy, mmap=mmap,
-                                     keep_file_open=keep_file_open)
+        data = klass.ImageArrayProxy(
+            img_fh.file_like, hdr_copy, mmap=mmap, keep_file_open=keep_file_open
+        )
         img = klass(data, affine, header, file_map=file_map)
         return img
 
     def to_file_map(self, file_map=None):
-        """ Write image to `file_map` or contained ``self.file_map``
+        """Write image to `file_map` or contained ``self.file_map``
 
         Parameters
         ----------
@@ -599,7 +555,7 @@ class MGHImage(SpatialImage, SerializableImage):
         self.file_map = file_map
 
     def _write_data(self, mghfile, data, header):
-        """ Utility routine to write image
+        """Utility routine to write image
 
         Parameters
         ----------
@@ -613,14 +569,13 @@ class MGHImage(SpatialImage, SerializableImage):
         """
         shape = header.get_data_shape()
         if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' %
-                                  ', '.join(str(s) for s in shape))
+            raise HeaderDataError('Data should be shape (%s)' % ', '.join(str(s) for s in shape))
         offset = header.get_data_offset()
         out_dtype = header.get_data_dtype()
         array_to_file(data, mghfile, out_dtype, offset)
 
     def _affine2header(self):
-        """ Unconditionally set affine into the header """
+        """Unconditionally set affine into the header"""
         hdr = self._header
         shape = np.array(self._dataobj.shape[:3])
 
@@ -635,5 +590,5 @@ class MGHImage(SpatialImage, SerializableImage):
         hdr['Pxyz_c'] = c_ras
 
 
-load = MGHImage.load
+load = MGHImage.from_filename
 save = MGHImage.instance_to_filename

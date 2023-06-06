@@ -1,4 +1,4 @@
-""" Testing loading of gifti file
+"""Testing loading of gifti file
 
 The file is ``test_1`` because we are testing a bug where, if we try to load a
 file before instantiating some Gifti objects, loading fails with an

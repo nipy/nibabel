@@ -12,16 +12,15 @@ Output a summary table for neuroimaging files (resolution, dimensionality, etc.)
 """
 
 import sys
-from optparse import OptionParser, Option
+from optparse import Option, OptionParser
 
 import numpy as np
 
 import nibabel as nib
 import nibabel.cmdline.utils
-from nibabel.cmdline.utils import _err, verbose, table2string, ap, safe_get
+from nibabel.cmdline.utils import _err, ap, safe_get, table2string, verbose
 
-__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko ' \
-                'and NiBabel contributors'
+__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko and NiBabel contributors'
 __license__ = 'MIT'
 
 
@@ -31,58 +30,88 @@ MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f"{sys.argv[0]} [OPTIONS] [FILE ...]\n\n" + __doc__,
-        version="%prog " + nib.__version__)
+        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n' + __doc__,
+        version='%prog ' + nib.__version__,
+    )
 
-    p.add_options([
-        Option("-v", "--verbose", action="count",
-               dest="verbose", default=0,
-               help="Make more noise.  Could be specified multiple times"),
-
-        Option("-H", "--header-fields",
-               dest="header_fields", default='',
-               help="Header fields (comma separated) to be printed as well (if present)"),
-
-        Option("-s", "--stats",
-               action="store_true", dest='stats', default=False,
-               help="Output basic data statistics"),
-
-        Option("-c", "--counts",
-               action="store_true", dest='counts', default=False,
-               help="Output counts - number of entries for each numeric value "
-                    "(useful for int ROI maps)"),
-
-        Option("--all-counts",
-               action="store_true", dest='all_counts', default=False,
-               help="Output all counts, even if number of unique values > %d" % MAX_UNIQUE),
-
-        Option("-z", "--zeros",
-               action="store_true", dest='stats_zeros', default=False,
-               help="Include zeros into output basic data statistics (--stats, --counts)"),
-    ])
+    p.add_options(
+        [
+            Option(
+                '-v',
+                '--verbose',
+                action='count',
+                dest='verbose',
+                default=0,
+                help='Make more noise.  Could be specified multiple times',
+            ),
+            Option(
+                '-H',
+                '--header-fields',
+                dest='header_fields',
+                default='',
+                help='Header fields (comma separated) to be printed as well (if present)',
+            ),
+            Option(
+                '-s',
+                '--stats',
+                action='store_true',
+                dest='stats',
+                default=False,
+                help='Output basic data statistics',
+            ),
+            Option(
+                '-c',
+                '--counts',
+                action='store_true',
+                dest='counts',
+                default=False,
+                help='Output counts - number of entries for each numeric value '
+                '(useful for int ROI maps)',
+            ),
+            Option(
+                '--all-counts',
+                action='store_true',
+                dest='all_counts',
+                default=False,
+                help='Output all counts, even if number of unique values > %d' % MAX_UNIQUE,
+            ),
+            Option(
+                '-z',
+                '--zeros',
+                action='store_true',
+                dest='stats_zeros',
+                default=False,
+                help='Include zeros into output basic data statistics (--stats, --counts)',
+            ),
+        ]
+    )
 
     return p
 
 
 def proc_file(f, opts):
-    verbose(1, f"Loading {f}")
+    verbose(1, f'Loading {f}')
 
-    row = [f"@l{f}"]
+    row = [f'@l{f}']
     try:
         vol = nib.load(f)
         h = vol.header
     except Exception as e:
         row += ['failed']
-        verbose(2, f"Failed to gather information -- {e}")
+        verbose(2, f'Failed to gather information -- {e}')
         return row
 
-    row += [str(safe_get(h, 'data_dtype')),
-            f"@l[{ap(safe_get(h, 'data_shape'), '%3g')}]",
-            f"@l{ap(safe_get(h, 'zooms'), '%.2f', 'x')}"]
+    row += [
+        str(safe_get(h, 'data_dtype')),
+        f"@l[{ap(safe_get(h, 'data_shape'), '%3g')}]",
+        f"@l{ap(safe_get(h, 'zooms'), '%.2f', 'x')}",
+    ]
     # Slope
-    if hasattr(h, 'has_data_slope') and \
-            (h.has_data_slope or h.has_data_intercept) and \
-            not h.get_slope_inter() in [(1.0, 0.0), (None, None)]:
+    if (
+        hasattr(h, 'has_data_slope')
+        and (h.has_data_slope or h.has_data_intercept)
+        and not h.get_slope_inter() in [(1.0, 0.0), (None, None)]
+    ):
         row += ['@l*%.3g+%.3g' % h.get_slope_inter()]
     else:
         row += ['']
@@ -110,13 +139,16 @@ def proc_file(f, opts):
                 row += [_err()]
 
     try:
-        if (hasattr(h, 'get_qform') and hasattr(h, 'get_sform') and
-                (h.get_qform() != h.get_sform()).any()):
+        if (
+            hasattr(h, 'get_qform')
+            and hasattr(h, 'get_sform')
+            and (h.get_qform() != h.get_sform()).any()
+        ):
             row += ['sform']
         else:
             row += ['']
     except Exception as e:
-        verbose(2, f"Failed to obtain qform or sform -- {e}")
+        verbose(2, f'Failed to obtain qform or sform -- {e}')
         if isinstance(h, nib.AnalyzeHeader):
             row += ['']
         else:
@@ -134,19 +166,19 @@ def proc_file(f, opts):
                 d = d.reshape(-1)
             if opts.stats:
                 # just # of elements
-                row += ["@l[%d]" % np.prod(d.shape)]
+                row += ['@l[%d]' % np.prod(d.shape)]
                 # stats
                 row += [f'@l[{np.min(d):.2g}, {np.max(d):.2g}]' if len(d) else '-']
             if opts.counts:
                 items, inv = np.unique(d, return_inverse=True)
                 if len(items) > 1000 and not opts.all_counts:
-                    counts = _err("%d uniques. Use --all-counts" % len(items))
+                    counts = _err('%d uniques. Use --all-counts' % len(items))
                 else:
                     freq = np.bincount(inv)
-                    counts = " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))
-                row += ["@l" + counts]
-        except IOError as e:
-            verbose(2, f"Failed to obtain stats/counts -- {e}")
+                    counts = ' '.join('%g:%d' % (i, f) for i, f in zip(items, freq))
+                row += ['@l' + counts]
+        except OSError as e:
+            verbose(2, f'Failed to obtain stats/counts -- {e}')
             row += [_err()]
     return row
 

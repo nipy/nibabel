@@ -1,11 +1,10 @@
-
-from os.path import join as pjoin
 import glob
+from os.path import join as pjoin
 
 import numpy as np
 
 from .. import Nifti1Image
-from .dicomwrappers import (wrapper_from_data, wrapper_from_file)
+from .dicomwrappers import wrapper_from_data, wrapper_from_file
 
 
 class DicomReadError(Exception):
@@ -16,7 +15,7 @@ DPCS_TO_TAL = np.diag([-1, -1, 1, 1])
 
 
 def mosaic_to_nii(dcm_data):
-    """ Get Nifti file from Siemens
+    """Get Nifti file from Siemens
 
     Parameters
     ----------
@@ -37,15 +36,11 @@ def mosaic_to_nii(dcm_data):
 
 
 def read_mosaic_dwi_dir(dicom_path, globber='*.dcm', dicom_kwargs=None):
-    return read_mosaic_dir(dicom_path,
-                           globber,
-                           check_is_dwi=True,
-                           dicom_kwargs=dicom_kwargs)
+    return read_mosaic_dir(dicom_path, globber, check_is_dwi=True, dicom_kwargs=dicom_kwargs)
 
 
-def read_mosaic_dir(dicom_path,
-                    globber='*.dcm', check_is_dwi=False, dicom_kwargs=None):
-    """ Read all Siemens mosaic DICOMs in directory, return arrays, params
+def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, dicom_kwargs=None):
+    """Read all Siemens mosaic DICOMs in directory, return arrays, params
 
     Parameters
     ----------
@@ -83,7 +78,7 @@ def read_mosaic_dir(dicom_path,
     gradients = []
     arrays = []
     if len(filenames) == 0:
-        raise IOError(f'Found no files with "{full_globber}"')
+        raise OSError(f'Found no files with "{full_globber}"')
     for fname in filenames:
         dcm_w = wrapper_from_file(fname, **dicom_kwargs)
         # Because the routine sorts by filename, it only makes sense to use
@@ -98,7 +93,8 @@ def read_mosaic_dir(dicom_path,
                 raise DicomReadError(
                     f'Could not find diffusion information reading file "{fname}";  '
                     'is it possible this is not a _raw_ diffusion directory? '
-                    'Could it be a processed dataset like ADC etc?')
+                    'Could it be a processed dataset like ADC etc?'
+                )
             b = np.nan
             g = np.ones((3,)) + np.nan
         else:
@@ -107,14 +103,11 @@ def read_mosaic_dir(dicom_path,
         b_values.append(b)
         gradients.append(g)
     affine = np.dot(DPCS_TO_TAL, dcm_w.affine)
-    return (np.concatenate(arrays, -1),
-            affine,
-            np.array(b_values),
-            np.array(gradients))
+    return (np.concatenate(arrays, -1), affine, np.array(b_values), np.array(gradients))
 
 
 def slices_to_series(wrappers):
-    """ Sort sequence of slice wrappers into series
+    """Sort sequence of slice wrappers into series
 
     This follows the SPM model fairly closely
 
@@ -169,17 +162,17 @@ def _instance_sorter(s):
 
 
 def _third_pass(wrappers):
-    """ What we do when there are not unique zs in a slice set """
+    """What we do when there are not unique zs in a slice set"""
     inos = [s.instance_number for s in wrappers]
-    msg_fmt = ('Plausibly matching slices, but where some have '
-               'the same apparent slice location, and %s; '
-               '- slices are probably unsortable')
+    msg_fmt = (
+        'Plausibly matching slices, but where some have '
+        'the same apparent slice location, and %s; '
+        '- slices are probably unsortable'
+    )
     if None in inos:
-        raise DicomReadError(msg_fmt % 'some or all slices with '
-                             'missing InstanceNumber')
+        raise DicomReadError(msg_fmt % 'some or all slices with missing InstanceNumber')
     if len(set(inos)) < len(inos):
-        raise DicomReadError(msg_fmt % 'some or all slices with '
-                             'the same InstanceNumber')
+        raise DicomReadError(msg_fmt % 'some or all slices with the same InstanceNumber')
     # sort by instance number
     wrappers.sort(key=_instance_sorter)
     # start loop, in which we start a new volume, each time we see a z

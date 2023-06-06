@@ -1,24 +1,24 @@
-""" Multiformat-capable streamline format read / write interface
+"""Multiformat-capable streamline format read / write interface
 """
 import os
 import warnings
 
-from .header import Field
 from .array_sequence import ArraySequence
-from .tractogram import Tractogram, LazyTractogram
-from .tractogram_file import ExtensionWarning
-
-from .trk import TrkFile
+from .header import Field
 from .tck import TckFile
+from .tractogram import LazyTractogram, Tractogram
+from .tractogram_file import ExtensionWarning
+from .trk import TrkFile
 
 # List of all supported formats
-FORMATS = {".trk": TrkFile,
-           ".tck": TckFile
-           }
+FORMATS = {
+    '.trk': TrkFile,
+    '.tck': TckFile,
+}
 
 
 def is_supported(fileobj):
-    """ Checks if the file-like object if supported by NiBabel.
+    """Checks if the file-like object if supported by NiBabel.
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def is_supported(fileobj):
 
 
 def detect_format(fileobj):
-    """ Returns the StreamlinesFile object guessed from the file-like object.
+    """Returns the StreamlinesFile object guessed from the file-like object.
 
     Parameters
     ----------
@@ -53,7 +53,7 @@ def detect_format(fileobj):
         try:
             if format.is_correct_format(fileobj):
                 return format
-        except IOError:
+        except OSError:
             pass
 
     if isinstance(fileobj, str):
@@ -64,7 +64,7 @@ def detect_format(fileobj):
 
 
 def load(fileobj, lazy_load=False):
-    """ Loads streamlines in *RAS+* and *mm* space from a file-like object.
+    """Loads streamlines in *RAS+* and *mm* space from a file-like object.
 
     Parameters
     ----------
@@ -96,7 +96,7 @@ def load(fileobj, lazy_load=False):
 
 
 def save(tractogram, filename, **kwargs):
-    r""" Saves a tractogram to a file.
+    r"""Saves a tractogram to a file.
 
     Parameters
     ----------
@@ -123,15 +123,15 @@ def save(tractogram, filename, **kwargs):
 
     else:  # Assume it's a TractogramFile object.
         tractogram_file = tractogram
-        if (tractogram_file_class is None or
-                not isinstance(tractogram_file, tractogram_file_class)):
-            msg = ("The extension you specified is unusual for the provided"
-                   " 'TractogramFile' object.")
+        if tractogram_file_class is None or not isinstance(tractogram_file, tractogram_file_class):
+            msg = (
+                'The extension you specified is unusual for the provided'
+                " 'TractogramFile' object."
+            )
             warnings.warn(msg, ExtensionWarning)
 
-        if len(kwargs) > 0:
-            msg = ("A 'TractogramFile' object was provided, no need for"
-                   " keyword arguments.")
+        if kwargs:
+            msg = "A 'TractogramFile' object was provided, no need for" ' keyword arguments.'
             raise ValueError(msg)
 
     tractogram_file.save(filename)

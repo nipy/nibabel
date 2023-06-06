@@ -10,22 +10,23 @@ Run this benchmark with::
     pytest -c <path>/benchmarks/pytest.benchmark.ini <path>/benchmarks/bench_arrayproxy_slicing.py
 """
 
-from timeit import timeit
 import gc
 import itertools as it
-import numpy as np
+from timeit import timeit
 from unittest import mock
 
-import nibabel as nib
-from nibabel.tmpdirs import InTemporaryDirectory
-from nibabel.openers import HAVE_INDEXED_GZIP
+import numpy as np
 
-from .butils import print_git_title
+import nibabel as nib
+from nibabel.openers import HAVE_INDEXED_GZIP
+from nibabel.tmpdirs import InTemporaryDirectory
+
 from ..rstutils import rst_table
+from .butils import print_git_title
 
 # if memory_profiler is installed, we get memory usage results
 try:
-    from memory_profiler import memory_usage
+    from memory_profiler import memory_usage  # type: ignore
 except ImportError:
     memory_usage = None
 
@@ -124,7 +125,7 @@ def bench_arrayproxy_slicing():
         results = []
 
         # We use the same random seed for each slice object,
-        seeds = [np.random.randint(0, 2 ** 32) for s in SLICEOBJS]
+        seeds = [np.random.randint(0, 2**32) for s in SLICEOBJS]
 
         for ti, test in enumerate(tests):
 
@@ -144,8 +145,7 @@ def bench_arrayproxy_slicing():
                 img.dataobj[fix_sliceobj(sliceobj)]
 
             def testfunc():
-                with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP',
-                                have_igzip):
+                with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', have_igzip):
                     imggz.dataobj[fix_sliceobj(sliceobj)]
 
             # make sure nothing is floating around from the previous test
@@ -167,8 +167,7 @@ def bench_arrayproxy_slicing():
             np.random.seed(seed)
             basetime = float(timeit(basefunc, number=NITERS)) / float(NITERS)
 
-            results.append((label, keep_open, sliceobj, testtime, basetime,
-                            testmem, basemem))
+            results.append((label, keep_open, sliceobj, testtime, basetime, testmem, basemem))
 
     data = np.zeros((len(results), 4))
     data[:, 0] = [r[3] for r in results]

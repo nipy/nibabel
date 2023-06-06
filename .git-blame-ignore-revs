@@ -1,0 +1,14 @@
+# Sun Jan 1 12:38:02 2023 -0500 - effigies@gmail.com - STY: Run pre-commit config on all files
+d14c1cf282a9c3b19189f490f10c35f5739e24d1
+# Thu Dec 29 22:53:17 2022 -0500 - effigies@gmail.com - STY: Reduce array().astype() and similar constructs
+bf298113da99079c9c7b5e1690e41879828cd472
+# Thu Dec 29 22:32:46 2022 -0500 - effigies@gmail.com - STY: pyupgrade --py37-plus
+4481a4c2640bd4be6e9c468e550d01aae448ab99
+# Fri Dec 30 11:01:19 2022 -0500 - effigies@gmail.com - STY: Run vanilla blue
+6b0ddd23b1da1df7ca9ae275673f82bfa20a754c
+# Thu Dec 29 21:46:13 2022 -0500 - markiewicz@stanford.edu - STY: Manual, blue-compatible touchups
+263fca9bf6d4ca314a5a322b4824d6f53d0589df
+# Thu Dec 29 21:32:00 2022 -0500 - effigies@gmail.com - STY: isort
+0ab2856cac4d4baae7ab3e2f6d58421db55d807f
+# Thu Dec 29 21:30:29 2022 -0500 - effigies@gmail.com - STY: blue
+1a8dd302ff85b1136c81d492509b80e7748339f0

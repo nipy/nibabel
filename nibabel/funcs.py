@@ -1,4 +1,3 @@
-
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -7,15 +6,15 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Processor functions for images """
+"""Processor functions for images"""
 import numpy as np
 
-from .orientations import io_orientation, OrientationError
 from .loadsave import load
+from .orientations import OrientationError, io_orientation
 
 
 def squeeze_image(img):
-    """ Return image, remove axes length 1 at end of image shape
+    """Return image, remove axes length 1 at end of image shape
 
     For example, an image may have shape (10,20,30,1,1).  In this case
     squeeze will result in an image with shape (10,20,30).  See doctests
@@ -80,14 +79,11 @@ def squeeze_image(img):
         return klass.from_image(img)
     shape = shape[:slen]
     data = np.asanyarray(img.dataobj).reshape(shape)
-    return klass(data,
-                 img.affine,
-                 img.header,
-                 img.extra)
+    return klass(data, img.affine, img.header, img.extra)
 
 
 def concat_images(images, check_affines=True, axis=None):
-    r""" Concatenate images in list to single image, along specified dimension
+    r"""Concatenate images in list to single image, along specified dimension
 
     Parameters
     ----------
@@ -108,11 +104,10 @@ def concat_images(images, check_affines=True, axis=None):
        New image resulting from concatenating `images` across last
        dimension
     """
-    images = [load(img) if not hasattr(img, 'get_data')
-              else img for img in images]
+    images = [load(img) if not hasattr(img, 'get_data') else img for img in images]
     n_imgs = len(images)
     if n_imgs == 0:
-        raise ValueError("Cannot concatenate an empty list of images.")
+        raise ValueError('Cannot concatenate an empty list of images.')
     img0 = images[0]
     affine = img0.affine
     header = img0.header
@@ -121,7 +116,7 @@ def concat_images(images, check_affines=True, axis=None):
     n_dim = len(shape0)
     if axis is None:
         # collect images in output array for efficiency
-        out_shape = (n_imgs, ) + shape0
+        out_shape = (n_imgs,) + shape0
         out_data = np.empty(out_shape)
     else:
         # collect images in list for use with np.concatenate
@@ -135,8 +130,10 @@ def concat_images(images, check_affines=True, axis=None):
         if len(img.shape) != n_dim:
             raise ValueError(f'Image {i} has {len(img.shape)} dimensions, image 0 has {n_dim}')
         if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
-            raise ValueError(f'shape {img.shape} for image {i} not compatible with '
-                             f'first image shape {shape0} with axis == {axis}')
+            raise ValueError(
+                f'shape {img.shape} for image {i} not compatible with '
+                f'first image shape {shape0} with axis == {axis}'
+            )
         if check_affines and not np.all(img.affine == affine):
             raise ValueError(f'Affine for image {i} does not match affine for first image')
         # Do not fill cache in image if it is empty
@@ -151,7 +148,7 @@ def concat_images(images, check_affines=True, axis=None):
 
 
 def four_to_three(img):
-    """ Create 3D images from 4D image by slicing over last axis
+    """Create 3D images from 4D image by slicing over last axis
 
     Parameters
     ----------
@@ -180,7 +177,7 @@ def four_to_three(img):
 
 
 def as_closest_canonical(img, enforce_diag=False):
-    """ Return `img` with data reordered to be closest to canonical
+    """Return `img` with data reordered to be closest to canonical
 
     Canonical order is the ordering of the output axes.
 
@@ -212,6 +209,6 @@ def as_closest_canonical(img, enforce_diag=False):
 
 
 def _aff_is_diag(aff):
-    """ Utility function returning True if affine is nearly diagonal """
+    """Utility function returning True if affine is nearly diagonal"""
     rzs_aff = aff[:3, :3]
     return np.allclose(rzs_aff, np.diag(np.diag(rzs_aff)))

@@ -114,6 +114,7 @@
 .. _python imaging library: https://pypi.python.org/pypi/Pillow
 .. _h5py: https://www.h5py.org/
 .. _packaging: https://packaging.pypa.io
+.. _importlib-resources: https://importlib-resources.readthedocs.io/
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org

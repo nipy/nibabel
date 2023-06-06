@@ -7,33 +7,29 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import bz2
+import gzip
+import types
+import warnings
+from io import BytesIO
 from os.path import join as pjoin
 
-import gzip
-import bz2
-import warnings
-import types
-from io import BytesIO
-
 import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 
-from .. import load, Nifti1Image
-from ..externals.netcdf import netcdf_file
+from .. import Nifti1Image, load, minc1
 from ..deprecated import ModuleProxy
-from .. import minc1
+from ..deprecator import ExpiredDeprecationError
+from ..externals.netcdf import netcdf_file
 from ..minc1 import Minc1File, Minc1Image, MincHeader
 from ..optpkg import optional_package
-
+from ..testing import assert_data_similar, clear_and_catch_warnings, data_path
 from ..tmpdirs import InTemporaryDirectory
-from ..deprecator import ExpiredDeprecationError
-from ..testing import assert_data_similar, data_path, clear_and_catch_warnings
-from numpy.testing import assert_array_equal
-import pytest
-
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
 
-pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
+pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -44,62 +40,70 @@ EXAMPLE_IMAGES = [
         fname=pjoin(data_path, 'tiny.mnc'),
         shape=(10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 2.0, -20],
-                         [0, 2.0, 0, -20],
-                         [2.0, 0, 0, -10],
-                         [0, 0, 0, 1]]),
-        zooms=(2., 2., 2.),
+        affine=np.array(
+            [
+                [0, 0, 2.0, -20],
+                [0, 2.0, 0, -20],
+                [2.0, 0, 0, -10],
+                [0, 0, 0, 1],
+            ]
+        ),
+        zooms=(2.0, 2.0, 2.0),
         # These values from SPM2
-        data_summary=dict(
-            min=0.20784314,
-            max=0.74901961,
-            mean=0.60602819),
-        is_proxy=True),
+        data_summary=dict(min=0.20784314, max=0.74901961, mean=0.60602819),
+        is_proxy=True,
+    ),
     dict(
         fname=pjoin(data_path, 'minc1_1_scale.mnc'),
         shape=(10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 2.0, -20],
-                         [0, 2.0, 0, -20],
-                         [2.0, 0, 0, -10],
-                         [0, 0, 0, 1]]),
-        zooms=(2., 2., 2.),
+        affine=np.array(
+            [
+                [0, 0, 2.0, -20],
+                [0, 2.0, 0, -20],
+                [2.0, 0, 0, -10],
+                [0, 0, 0, 1],
+            ]
+        ),
+        zooms=(2.0, 2.0, 2.0),
         # These values from mincstats
-        data_summary=dict(
-            min=0.2082842439,
-            max=0.2094327615,
-            mean=0.2091292083),
-        is_proxy=True),
+        data_summary=dict(min=0.2082842439, max=0.2094327615, mean=0.2091292083),
+        is_proxy=True,
+    ),
     dict(
         fname=pjoin(data_path, 'minc1_4d.mnc'),
         shape=(2, 10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 2.0, -20],
-                         [0, 2.0, 0, -20],
-                         [2.0, 0, 0, -10],
-                         [0, 0, 0, 1]]),
-        zooms=(1., 2., 2., 2.),
+        affine=np.array(
+            [
+                [0, 0, 2.0, -20],
+                [0, 2.0, 0, -20],
+                [2.0, 0, 0, -10],
+                [0, 0, 0, 1],
+            ]
+        ),
+        zooms=(1.0, 2.0, 2.0, 2.0),
         # These values from mincstats
-        data_summary=dict(
-            min=0.2078431373,
-            max=1.498039216,
-            mean=0.9090422837),
-        is_proxy=True),
+        data_summary=dict(min=0.2078431373, max=1.498039216, mean=0.9090422837),
+        is_proxy=True,
+    ),
     dict(
         fname=pjoin(data_path, 'minc1-no-att.mnc'),
         shape=(10, 20, 20),
         dtype=np.uint8,
-        affine=np.array([[0, 0, 1.0, 0],
-                         [0, 1.0, 0, 0],
-                         [1.0, 0, 0, 0],
-                         [0, 0, 0, 1]]),
-        zooms=(1., 1., 1.),
+        affine=np.array(
+            [
+                [0, 0, 1.0, 0],
+                [0, 1.0, 0, 0],
+                [1.0, 0, 0, 0],
+                [0, 0, 0, 1],
+            ]
+        ),
+        zooms=(1.0, 1.0, 1.0),
         # These values from SPM2/mincstats
-        data_summary=dict(
-            min=0.20784314,
-            max=0.74901961,
-            mean=0.6061103),
-        is_proxy=True),
+        data_summary=dict(min=0.20784314, max=0.74901961, mean=0.6061103),
+        is_proxy=True,
+    ),
 ]
 
 
@@ -129,14 +133,15 @@ class _TestMincFile:
             mnc_obj = self.opener(tp['fname'], 'r')
             mnc = self.file_class(mnc_obj)
             data = mnc.get_scaled_data()
-            for slicedef in ((slice(None),),
-                             (1,),
-                             (slice(None), 1),
-                             (1, slice(None)),
-                             (slice(None), 1, 1),
-                             (1, slice(None), 1),
-                             (1, 1, slice(None)),
-                             ):
+            for slicedef in (
+                (slice(None),),
+                (1,),
+                (slice(None), 1),
+                (1, slice(None)),
+                (slice(None), 1, 1),
+                (1, slice(None), 1),
+                (1, 1, slice(None)),
+            ):
                 sliced_data = mnc.get_scaled_data(slicedef)
                 assert_array_equal(sliced_data, data[slicedef])
             # Can't close mmapped NetCDF with live mmap arrays
@@ -167,14 +172,12 @@ class _TestMincFile:
 
 
 class TestMinc1File(_TestMincFile):
-
     def test_compressed(self):
         # we can read minc compressed
         # Not so for MINC2; hence this small sub-class
         for tp in self.test_files:
             content = open(tp['fname'], 'rb').read()
-            openers_exts = [(gzip.open, '.gz'),
-                            (bz2.BZ2File, '.bz2')]
+            openers_exts = [(gzip.open, '.gz'), (bz2.BZ2File, '.bz2')]
             if HAVE_ZSTD:  # add .zst to test if installed
                 openers_exts += [(pyzstd.ZstdFile, '.zst')]
             with InTemporaryDirectory():

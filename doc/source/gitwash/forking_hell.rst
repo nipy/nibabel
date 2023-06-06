@@ -30,4 +30,3 @@ Create your own forked copy of nibabel_
    should find yourself at the home page for your own forked copy of nibabel_.
 
 .. include:: links.inc
-

@@ -1,14 +1,12 @@
-""" Testing diffusion parameter processing
-
+"""Testing diffusion parameter processing
 """
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_equal as np_assert_equal
 
 from ..dwiparams import B2q, q2bg
-
-import pytest
-
-from numpy.testing import (assert_array_almost_equal, assert_equal as np_assert_equal)
 
 
 def test_b2q():
@@ -31,7 +29,7 @@ def test_b2q():
     # no error if we up the tolerance
     q = B2q(B, tol=1)
     # Less massive negativity, dropping tol
-    B = np.diag([-1e-14, 10., 1])
+    B = np.diag([-1e-14, 10.0, 1])
     with pytest.raises(ValueError):
         B2q(B)
     assert_array_almost_equal(B2q(B, tol=5e-13), [0, 10, 0])
@@ -46,8 +44,8 @@ def test_q2bg():
     # Conversion of q vector to b value and unit vector
     for pos in range(3):
         q_vec = np.zeros((3,))
-        q_vec[pos] = 10.
-        np_assert_equal(q2bg(q_vec), (10, q_vec / 10.))
+        q_vec[pos] = 10.0
+        np_assert_equal(q2bg(q_vec), (10, q_vec / 10.0))
     # Also - check array-like
     q_vec = [0, 1e-6, 0]
     np_assert_equal(q2bg(q_vec), (0, 0))

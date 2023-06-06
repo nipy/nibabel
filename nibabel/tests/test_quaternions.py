@@ -6,47 +6,50 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test quaternion calculations """
+"""Test quaternion calculations"""
 
 import numpy as np
-from numpy import pi
-
 import pytest
-
+from numpy import pi
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from .. import quaternions as nq
 from .. import eulerangles as nea
+from .. import quaternions as nq
+
+
+def norm(vec):
+    # Return unit vector with same orientation as input vector
+    return vec / np.sqrt(vec @ vec)
+
+
+def gen_vec(dtype):
+    # Generate random 3-vector in [-1, 1]^3
+    rand = np.random.default_rng()
+    return rand.uniform(low=-1.0, high=1.0, size=(3,)).astype(dtype)
+
 
 # Example rotations
-eg_rots = []
-params = (-pi, pi, pi / 2)
-zs = np.arange(*params)
-ys = np.arange(*params)
-xs = np.arange(*params)
-for z in zs:
-    for y in ys:
-        for x in xs:
-            eg_rots.append(nea.euler2mat(z, y, x))
+eg_rots = [
+    nea.euler2mat(z, y, x)
+    for z in np.arange(-pi, pi, pi / 2)
+    for y in np.arange(-pi, pi, pi / 2)
+    for x in np.arange(-pi, pi, pi / 2)
+]
+
 # Example quaternions (from rotations)
-eg_quats = []
-for M in eg_rots:
-    eg_quats.append(nq.mat2quat(M))
+eg_quats = [nq.mat2quat(M) for M in eg_rots]
 # M, quaternion pairs
 eg_pairs = list(zip(eg_rots, eg_quats))
 
 # Set of arbitrary unit quaternions
-unit_quats = set()
-params = range(-2, 3)
-for w in params:
-    for x in params:
-        for y in params:
-            for z in params:
-                q = (w, x, y, z)
-                Nq = np.sqrt(np.dot(q, q))
-                if not Nq == 0:
-                    q = tuple([e / Nq for e in q])
-                    unit_quats.add(q)
+unit_quats = set(
+    tuple(norm(np.r_[w, x, y, z]))
+    for w in range(-2, 3)
+    for x in range(-2, 3)
+    for y in range(-2, 3)
+    for z in range(-2, 3)
+    if (w, x, y, z) != (0, 0, 0, 0)
+)
 
 
 def test_fillpos():
@@ -69,6 +72,51 @@ def test_fillpos():
     # Test corner case where w is near zero
     wxyz = nq.fillpositive([1, 0, 0])
     assert wxyz[0] == 0.0
+
+
+@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+def test_fillpositive_plus_minus_epsilon(dtype):
+    # Deterministic test for fillpositive threshold
+    # We are trying to fill (x, y, z) with a w such that |(w, x, y, z)| == 1
+    # If |(x, y, z)| is slightly off one, w should still be 0
+    nptype = np.dtype(dtype).type
+
+    # Obviously, |(x, y, z)| == 1
+    baseline = np.array([0, 0, 1], dtype=dtype)
+
+    # Obviously, |(x, y, z)| ~ 1
+    plus = baseline * nptype(1 + np.finfo(dtype).eps)
+    minus = baseline * nptype(1 - np.finfo(dtype).eps)
+
+    assert nq.fillpositive(plus)[0] == 0.0
+    assert nq.fillpositive(minus)[0] == 0.0
+
+    # |(x, y, z)| > 1, no real solutions
+    plus = baseline * nptype(1 + 2 * np.finfo(dtype).eps)
+    with pytest.raises(ValueError):
+        nq.fillpositive(plus)
+
+    # |(x, y, z)| < 1, two real solutions, we choose positive
+    minus = baseline * nptype(1 - 2 * np.finfo(dtype).eps)
+    assert nq.fillpositive(minus)[0] > 0.0
+
+
+@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+def test_fillpositive_simulated_error(dtype):
+    # Nondeterministic test for fillpositive threshold
+    # Create random vectors, normalize to unit length, and count on floating point
+    # error to result in magnitudes larger/smaller than one
+    # This is to simulate cases where a unit quaternion with w == 0 would be encoded
+    # as xyz with small error, and we want to recover the w of 0
+
+    # Permit 1 epsilon per value (default, but make explicit here)
+    w2_thresh = 3 * np.finfo(dtype).eps
+
+    pos_error = neg_error = False
+    for _ in range(50):
+        xyz = norm(gen_vec(dtype))
+
+        assert nq.fillpositive(xyz, w2_thresh)[0] == 0.0
 
 
 def test_conjugate():
@@ -99,7 +147,7 @@ def test_inverse_0():
     assert iq.dtype.kind == 'f'
 
 
-@pytest.mark.parametrize("M, q", eg_pairs)
+@pytest.mark.parametrize('M, q', eg_pairs)
 def test_inverse_1(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -122,15 +170,15 @@ def test_norm():
     assert not nq.isunit(qi)
 
 
-@pytest.mark.parametrize("M1, q1", eg_pairs[0::4])
-@pytest.mark.parametrize("M2, q2", eg_pairs[1::4])
+@pytest.mark.parametrize('M1, q1', eg_pairs[0::4])
+@pytest.mark.parametrize('M2, q2', eg_pairs[1::4])
 def test_mult(M1, q1, M2, q2):
     # Test that quaternion * same as matrix *
     q21 = nq.mult(q2, q1)
-    assert_array_almost_equal, np.dot(M2, M1), nq.quat2mat(q21)
+    assert_array_almost_equal, M2 @ M1, nq.quat2mat(q21)
 
 
-@pytest.mark.parametrize("M, q", eg_pairs)
+@pytest.mark.parametrize('M, q', eg_pairs)
 def test_inverse(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -144,15 +192,15 @@ def test_eye():
     assert np.allclose(nq.quat2mat(qi), np.eye(3))
 
 
-@pytest.mark.parametrize("vec", np.eye(3))
-@pytest.mark.parametrize("M, q", eg_pairs)
+@pytest.mark.parametrize('vec', np.eye(3))
+@pytest.mark.parametrize('M, q', eg_pairs)
 def test_qrotate(vec, M, q):
     vdash = nq.rotate_vector(vec, q)
-    vM = np.dot(M, vec)
+    vM = M @ vec
     assert_array_almost_equal(vdash, vM)
 
 
-@pytest.mark.parametrize("q", unit_quats)
+@pytest.mark.parametrize('q', unit_quats)
 def test_quaternion_reconstruction(q):
     # Test reconstruction of arbitrary unit quaternions
     M = nq.quat2mat(q)
@@ -160,7 +208,7 @@ def test_quaternion_reconstruction(q):
     # Accept positive or negative match
     posm = np.allclose(q, qt)
     negm = np.allclose(q, -qt)
-    assert (posm or negm)
+    assert posm or negm
 
 
 def test_angle_axis2quat():
@@ -181,6 +229,6 @@ def test_angle_axis():
         nq.nearly_equivalent(q, q2)
         aa_mat = nq.angle_axis2mat(theta, vec)
         assert_array_almost_equal(aa_mat, M)
-        unit_vec = vec / np.sqrt(vec.dot(vec))
+        unit_vec = norm(vec)
         aa_mat2 = nq.angle_axis2mat(theta, unit_vec, is_normalized=True)
         assert_array_almost_equal(aa_mat2, M)

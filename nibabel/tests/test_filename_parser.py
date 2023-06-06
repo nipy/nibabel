@@ -6,12 +6,11 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for filename container """
-
-from ..filename_parser import (types_filenames, TypesFilenamesError,
-                               parse_filename, splitext_addext)
+"""Tests for filename container"""
 
 import pytest
+
+from ..filename_parser import TypesFilenamesError, parse_filename, splitext_addext, types_filenames
 
 
 def test_filenames():
@@ -40,9 +39,9 @@ def test_filenames():
         types_filenames('test.img.gz', types_exts, ())
     # if we don't know about .gz extension, and not enforcing, then we
     # get something a bit odd
-    tfns = types_filenames('test.img.gz', types_exts,
-                           trailing_suffixes=(),
-                           enforce_extensions=False)
+    tfns = types_filenames(
+        'test.img.gz', types_exts, trailing_suffixes=(), enforce_extensions=False
+    )
     assert tfns == {'header': 'test.img.hdr', 'image': 'test.img.gz'}
     # the suffixes we remove and replaces can be any suffixes.
     tfns = types_filenames('test.img.bzr', types_exts, ('.bzr',))
@@ -50,9 +49,9 @@ def test_filenames():
     # If we specifically pass the remove / replace suffixes, then we
     # don't remove / replace the .gz and .bz2, unless they are passed
     # specifically.
-    tfns = types_filenames('test.img.bzr', types_exts,
-                           trailing_suffixes=('.bzr',),
-                           enforce_extensions=False)
+    tfns = types_filenames(
+        'test.img.bzr', types_exts, trailing_suffixes=('.bzr',), enforce_extensions=False
+    )
     assert tfns == {'header': 'test.hdr.bzr', 'image': 'test.img.bzr'}
     # but, just .gz or .bz2 as extension gives an error, if enforcing is on
     with pytest.raises(TypesFilenamesError):
@@ -61,8 +60,7 @@ def test_filenames():
         types_filenames('test.bz2', types_exts)
     # if enforcing is off, it tries to work out what the other files
     # should be assuming the passed filename is of the first input type
-    tfns = types_filenames('test.gz', types_exts,
-                           enforce_extensions=False)
+    tfns = types_filenames('test.gz', types_exts, enforce_extensions=False)
     assert tfns == {'image': 'test.gz', 'header': 'test.hdr.gz'}
     # case (in)sensitivity, and effect of uppercase, lowercase
     tfns = types_filenames('test.IMG', types_exts)
@@ -76,41 +74,29 @@ def test_filenames():
 def test_parse_filename():
     types_exts = (('t1', 'ext1'), ('t2', 'ext2'))
     exp_in_outs = (
-        (('/path/fname.funny', ()),
-         ('/path/fname', '.funny', None, None)),
-        (('/path/fnameext2', ()),
-         ('/path/fname', 'ext2', None, 't2')),
-        (('/path/fnameext2', ('.gz',)),
-         ('/path/fname', 'ext2', None, 't2')),
-        (('/path/fnameext2.gz', ('.gz',)),
-         ('/path/fname', 'ext2', '.gz', 't2'))
+        (('/path/fname.funny', ()), ('/path/fname', '.funny', None, None)),
+        (('/path/fnameext2', ()), ('/path/fname', 'ext2', None, 't2')),
+        (('/path/fnameext2', ('.gz',)), ('/path/fname', 'ext2', None, 't2')),
+        (('/path/fnameext2.gz', ('.gz',)), ('/path/fname', 'ext2', '.gz', 't2')),
     )
     for inps, exps in exp_in_outs:
         pth, sufs = inps
         res = parse_filename(pth, types_exts, sufs)
         assert res == exps
         upth = pth.upper()
-        uexps = (exps[0].upper(), exps[1].upper(),
-                 exps[2].upper() if exps[2] else None,
-                 exps[3])
+        uexps = (exps[0].upper(), exps[1].upper(), exps[2].upper() if exps[2] else None, exps[3])
         res = parse_filename(upth, types_exts, sufs)
         assert res == uexps
         # test case sensitivity
-        res = parse_filename('/path/fnameext2.GZ',
-                             types_exts,
-                             ('.gz',), False)  # case insensitive again
+        res = parse_filename(
+            '/path/fnameext2.GZ', types_exts, ('.gz',), False
+        )  # case insensitive again
         assert res == ('/path/fname', 'ext2', '.GZ', 't2')
-        res = parse_filename('/path/fnameext2.GZ',
-                             types_exts,
-                             ('.gz',), True)  # case sensitive
+        res = parse_filename('/path/fnameext2.GZ', types_exts, ('.gz',), True)  # case sensitive
         assert res == ('/path/fnameext2', '.GZ', None, None)
-        res = parse_filename('/path/fnameEXT2.gz',
-                             types_exts,
-                             ('.gz',), False)  # case insensitive
+        res = parse_filename('/path/fnameEXT2.gz', types_exts, ('.gz',), False)  # case insensitive
         assert res == ('/path/fname', 'EXT2', '.gz', 't2')
-        res = parse_filename('/path/fnameEXT2.gz',
-                             types_exts,
-                             ('.gz',), True)  # case sensitive
+        res = parse_filename('/path/fnameEXT2.gz', types_exts, ('.gz',), True)  # case sensitive
         assert res == ('/path/fnameEXT2', '', '.gz', None)
 
 

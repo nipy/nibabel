@@ -1,18 +1,16 @@
-""" Testing package info
+"""Testing package info
 """
 
+import pytest
 from packaging.version import Version
 
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
-from ..info import VERSION
-
-import pytest
 
 
 def test_pkg_info():
     """Smoke test nibabel.get_info()
-    
+
     Hits:
         - nibabel.get_info
         - nibabel.pkg_info.get_pkg_info
@@ -24,22 +22,6 @@ def test_pkg_info():
 def test_version():
     # Test info version is the same as our own version
     assert nib.pkg_info.__version__ == nib.__version__
-
-
-def test_fallback_version():
-    """Test fallback version is up-to-date
-
-    This should only fail if we fail to bump nibabel.info.VERSION immediately
-    after release
-    """
-    ver = Version(nib.__version__)
-    fallback = Version(VERSION)
-    assert (
-        # Releases have no local information, archive matches versioneer
-        ver.local is None or
-        # dev version should be larger than tag+commit-githash
-        fallback >= ver), \
-        "nibabel.info.VERSION does not match latest tag information"
 
 
 def test_cmp_pkg_version_0():
@@ -56,42 +38,44 @@ def test_cmp_pkg_version_0():
         assert cmp_pkg_version(stage2, stage1) == 1
 
 
-@pytest.mark.parametrize("test_ver, pkg_ver, exp_out",
-                         [
-                             ('1.0', '1.0', 0),
-                             ('1.0.0', '1.0', 0),
-                             ('1.0', '1.0.0', 0),
-                             ('1.1', '1.1', 0),
-                             ('1.2', '1.1', 1),
-                             ('1.1', '1.2', -1),
-                             ('1.1.1', '1.1.1', 0),
-                             ('1.1.2', '1.1.1', 1),
-                             ('1.1.1', '1.1.2', -1),
-                             ('1.1', '1.1dev', 1),
-                             ('1.1dev', '1.1', -1),
-                             ('1.2.1', '1.2.1rc1', 1),
-                             ('1.2.1rc1', '1.2.1', -1),
-                             ('1.2.1rc1', '1.2.1rc', 1),
-                             ('1.2.1rc', '1.2.1rc1', -1),
-                             ('1.2.1rc1', '1.2.1rc', 1),
-                             ('1.2.1rc', '1.2.1rc1', -1),
-                             ('1.2.1b', '1.2.1a', 1),
-                             ('1.2.1a', '1.2.1b', -1),
-                             ('1.2.0+1', '1.2', 1),
-                             ('1.2', '1.2.0+1', -1),
-                             ('1.2.1+1', '1.2.1', 1),
-                             ('1.2.1', '1.2.1+1', -1),
-                             ('1.2.1rc1+1', '1.2.1', -1),
-                             ('1.2.1', '1.2.1rc1+1', 1),
-                             ('1.2.1rc1+1', '1.2.1+1', -1),
-                             ('1.2.1+1', '1.2.1rc1+1', 1),
-                         ])
+@pytest.mark.parametrize(
+    'test_ver, pkg_ver, exp_out',
+    [
+        ('1.0', '1.0', 0),
+        ('1.0.0', '1.0', 0),
+        ('1.0', '1.0.0', 0),
+        ('1.1', '1.1', 0),
+        ('1.2', '1.1', 1),
+        ('1.1', '1.2', -1),
+        ('1.1.1', '1.1.1', 0),
+        ('1.1.2', '1.1.1', 1),
+        ('1.1.1', '1.1.2', -1),
+        ('1.1', '1.1dev', 1),
+        ('1.1dev', '1.1', -1),
+        ('1.2.1', '1.2.1rc1', 1),
+        ('1.2.1rc1', '1.2.1', -1),
+        ('1.2.1rc1', '1.2.1rc', 1),
+        ('1.2.1rc', '1.2.1rc1', -1),
+        ('1.2.1rc1', '1.2.1rc', 1),
+        ('1.2.1rc', '1.2.1rc1', -1),
+        ('1.2.1b', '1.2.1a', 1),
+        ('1.2.1a', '1.2.1b', -1),
+        ('1.2.0+1', '1.2', 1),
+        ('1.2', '1.2.0+1', -1),
+        ('1.2.1+1', '1.2.1', 1),
+        ('1.2.1', '1.2.1+1', -1),
+        ('1.2.1rc1+1', '1.2.1', -1),
+        ('1.2.1', '1.2.1rc1+1', 1),
+        ('1.2.1rc1+1', '1.2.1+1', -1),
+        ('1.2.1+1', '1.2.1rc1+1', 1),
+    ],
+)
 def test_cmp_pkg_version_1(test_ver, pkg_ver, exp_out):
     # Test version comparator
     assert cmp_pkg_version(test_ver, pkg_ver) == exp_out
 
 
-@pytest.mark.parametrize("args", [['foo.2'], ['foo.2', '1.0'], ['1.0', 'foo.2'], ['foo']])
+@pytest.mark.parametrize('args', [['foo.2'], ['foo.2', '1.0'], ['1.0', 'foo.2'], ['foo']])
 def test_cmp_pkg_version_error(args):
     with pytest.raises(ValueError):
         cmp_pkg_version(*args)

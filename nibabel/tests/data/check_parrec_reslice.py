@@ -1,4 +1,4 @@
-""" Test differences in affines by reslicing
+"""Test differences in affines by reslicing
 
 Should be run from directory containing .PAR _and_ matching .REC files from
 Michael's PAR / REC dataset at:
@@ -22,6 +22,7 @@ The *_cor_SENSE* image has a higher RMS because the back of the phantom is out
 of the field of view.
 """
 import glob
+
 import numpy as np
 import numpy.linalg as npl
 
@@ -38,13 +39,10 @@ def resample_img2img(img_to, img_from, order=1, out_class=nib.Nifti1Image):
         raise Exception('Scipy must be installed to run resample_img2img.')
 
     from scipy import ndimage as spnd
+
     vox2vox = npl.inv(img_from.affine).dot(img_to.affine)
     rzs, trans = to_matvec(vox2vox)
-    data = spnd.affine_transform(img_from.get_fdata(),
-                                 rzs,
-                                 trans,
-                                 img_to.shape,
-                                 order=order)
+    data = spnd.affine_transform(img_from.get_fdata(), rzs, trans, img_to.shape, order=order)
     return out_class(data, img_to.affine)
 
 
@@ -56,14 +54,14 @@ def gmean_norm(data):
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True, precision=4)
-    normal_fname = "Phantom_EPI_3mm_tra_SENSE_6_1.PAR"
+    normal_fname = 'Phantom_EPI_3mm_tra_SENSE_6_1.PAR'
     normal_img = parrec.load(normal_fname)
     normal_data = normal_img.get_fdata()
     normal_normed = gmean_norm(normal_data)
 
-    print(f"RMS of standard image {normal_fname:<44}: {np.sqrt(np.sum(normal_normed ** 2))}")
+    print(f'RMS of standard image {normal_fname:<44}: {np.sqrt(np.sum(normal_normed ** 2))}')
 
-    for parfile in glob.glob("*.PAR"):
+    for parfile in glob.glob('*.PAR'):
         if parfile == normal_fname:
             continue
         funny_img = parrec.load(parfile)

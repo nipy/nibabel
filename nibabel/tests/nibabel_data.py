@@ -1,14 +1,15 @@
-""" Functions / decorators for finding / requiring nibabel-data directory
+"""Functions / decorators for finding / requiring nibabel-data directory
 """
 
-from os import environ, listdir
-from os.path import dirname, realpath, join as pjoin, isdir, exists
-
 import unittest
+from os import environ, listdir
+from os.path import dirname, exists, isdir
+from os.path import join as pjoin
+from os.path import realpath
 
 
 def get_nibabel_data():
-    """ Return path to nibabel-data or empty string if missing
+    """Return path to nibabel-data or empty string if missing
 
     First use ``NIBABEL_DATA_DIR`` environment variable.
 
@@ -24,7 +25,7 @@ def get_nibabel_data():
 
 
 def needs_nibabel_data(subdir=None):
-    """ Decorator for tests needing nibabel-data
+    """Decorator for tests needing nibabel-data
 
     Parameters
     ----------
@@ -39,11 +40,10 @@ def needs_nibabel_data(subdir=None):
     """
     nibabel_data = get_nibabel_data()
     if nibabel_data == '':
-        return unittest.skip("Need nibabel-data directory for this test")
+        return unittest.skip('Need nibabel-data directory for this test')
     if subdir is None:
         return lambda x: x
     required_path = pjoin(nibabel_data, subdir)
     # Path should not be empty (as is the case for not-updated submodules)
     have_files = exists(required_path) and len(listdir(required_path)) > 0
-    return unittest.skipUnless(have_files,
-                               f"Need files in {required_path} for these tests")
+    return unittest.skipUnless(have_files, f'Need files in {required_path} for these tests')

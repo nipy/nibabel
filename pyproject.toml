@@ -1,20 +1,20 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "nibabel"
 description = "Access a multitude of neuroimaging data formats"
-authors = [
-  { name = "nibabel developers", email = "neuroimaging@python.org" },
-]
-maintainers = [
-  { name = "Christopher Markiewicz" },
-]
+authors = [{ name = "NiBabel developers", email = "neuroimaging@python.org" }]
+maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
-license = { text="MIT License" }
-requires-python = ">=3.7"
-dependencies = ["numpy >=1.17", "packaging >=17", "setuptools"]
+license = { text = "MIT License" }
+requires-python = ">=3.8"
+dependencies = [
+  "numpy >=1.19",
+  "packaging >=17",
+  "importlib_resources >=1.3; python_version < '3.9'",
+]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
@@ -22,15 +22,14 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Topic :: Scientific/Engineering",
 ]
-# Version from versioneer
-# optional-dependencies from setup.cfg (using ConfigParser features)
-dynamic = ["version", "optional-dependencies"]
+# Version from setuptools_scm
+dynamic = ["version"]
 
 [project.urls]
 "Homepage" = "https://nipy.org/nibabel"
@@ -49,13 +48,80 @@ nib-trk2tck = "nibabel.cmdline.trk2tck:main"
 nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
 
-[tool.setuptools]
-platforms = ["OS Independent"]
-provides = ["nibabel", "nisext"]
-zip-safe = false
+[project.optional-dependencies]
+all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
+dev = ["gitpython", "twine", "nibabel[style]"]
+dicom = ["pydicom >=1.0.0"]
+dicomfs = ["nibabel[dicom]", "pillow"]
+doc = [
+  "matplotlib >= 1.5.3",
+  "numpydoc",
+  "sphinx ~= 5.3",
+  "texext",
+  "tomli; python_version < \"3.11\"",
+]
+doctest = ["nibabel[doc,test]"]
+minc2 = ["h5py"]
+spm = ["scipy"]
+style = ["flake8", "blue", "isort"]
+test = [
+  "coverage",
+  "pytest !=5.3.4",
+  "pytest-cov",
+  "pytest-doctestplus",
+  "pytest-httpserver",
+  "pytest-xdist",
+]
+typing = [
+  "mypy",
+  "importlib_resources",
+  "pydicom",
+  "pytest",
+  "pyzstd",
+  "types-setuptools",
+  "types-Pillow",
+]
+zstd = ["pyzstd >= 0.14.3"]
 
-[tool.setuptools.packages]
-find = {}
+[tool.hatch.build.targets.sdist]
+exclude = [
+  ".git_archival.txt",
+  # Submodules with large files; if we don't want them in the repo...
+  "nibabel-data/",
+]
 
-[tool.setuptools.package-data]
-nibabel = ["tests/data/*", "*/tests/data/*", "benchmarks/pytest.benchmark.ini"]
+[tool.hatch.build.targets.wheel]
+packages = ["nibabel", "nisext"]
+exclude = [
+  # 56MB test file does not need to be installed everywhere
+  "nibabel/nicom/tests/data/4d_multiframe_test.dcm",
+]
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { version_scheme = "release-branch-semver" }
+
+[tool.hatch.build.hooks.vcs]
+version-file = "nibabel/_version.py"
+
+[tool.blue]
+line_length = 99
+target-version = ["py37"]
+force-exclude = """
+(
+  _version.py
+  | nibabel/externals/
+  | versioneer.py
+)
+"""
+
+[tool.isort]
+profile = "black"
+line_length = 99
+extend_skip = ["_version.py", "externals"]
+
+[tool.mypy]
+python_version = "3.11"
+exclude = [
+  "/tests",
+]

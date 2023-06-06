@@ -9,22 +9,23 @@
 
 import os
 import warnings
+from unittest import TestCase
 
 import numpy as np
-
-from ..openers import Opener
-from ..ecat import (EcatHeader, EcatSubHeader, EcatImage, read_mlist,
-                    get_frame_order, get_series_framenumbers)
-
-from unittest import TestCase
 import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
+from ..ecat import (
+    EcatHeader,
+    EcatImage,
+    EcatSubHeader,
+    get_frame_order,
+    get_series_framenumbers,
+    read_mlist,
+)
+from ..openers import Opener
 from ..testing import data_path, suppress_warnings
 from ..tmpdirs import InTemporaryDirectory
-from ..deprecator import ExpiredDeprecationError
-
 from . import test_wrapstruct as tws
 from .test_fileslice import slicer_samples
 
@@ -58,13 +59,12 @@ class TestEcatHeader(tws._TestWrapStructBase):
             hdr.get_data_dtype()
 
     def test_header_codes(self):
-        fid = open(ecat_file, 'rb')
+        fid = open(self.example_file, 'rb')
         hdr = self.header_class()
         newhdr = hdr.from_fileobj(fid)
         fid.close()
         assert newhdr.get_filetype() == 'ECAT7_VOLUME16'
-        assert (newhdr.get_patient_orient() ==
-                     'ECAT7_Unknown_Orientation')
+        assert newhdr.get_patient_orient() == 'ECAT7_Unknown_Orientation'
 
     def test_update(self):
         hdr = self.header_class()
@@ -99,18 +99,16 @@ class TestEcatMlist(TestCase):
         assert get_frame_order(mlist)[0][0] == 0
         assert get_frame_order(mlist)[0][1] == 16842758.0
         # test badly ordered mlist
-        badordermlist = np.array([[1.68427540e+07, 3.00000000e+00,
-                                   1.20350000e+04, 1.00000000e+00],
-                                  [1.68427530e+07, 1.20360000e+04,
-                                   2.40680000e+04, 1.00000000e+00],
-                                  [1.68427550e+07, 2.40690000e+04,
-                                   3.61010000e+04, 1.00000000e+00],
-                                  [1.68427560e+07, 3.61020000e+04,
-                                   4.81340000e+04, 1.00000000e+00],
-                                  [1.68427570e+07, 4.81350000e+04,
-                                   6.01670000e+04, 1.00000000e+00],
-                                  [1.68427580e+07, 6.01680000e+04,
-                                   7.22000000e+04, 1.00000000e+00]])
+        badordermlist = np.array(
+            [
+                [1.68427540e07, 3.00000000e00, 1.20350000e04, 1.00000000e00],
+                [1.68427530e07, 1.20360000e04, 2.40680000e04, 1.00000000e00],
+                [1.68427550e07, 2.40690000e04, 3.61010000e04, 1.00000000e00],
+                [1.68427560e07, 3.61020000e04, 4.81340000e04, 1.00000000e00],
+                [1.68427570e07, 4.81350000e04, 6.01670000e04, 1.00000000e00],
+                [1.68427580e07, 6.01680000e04, 7.22000000e04, 1.00000000e00],
+            ]
+        )
         with suppress_warnings():  # STORED order
             assert get_frame_order(badordermlist)[0][0] == 1
 
@@ -119,18 +117,17 @@ class TestEcatMlist(TestCase):
         hdr = self.header_class.from_fileobj(fid)
         hdr['num_frames'] = 6
         mlist = read_mlist(fid, hdr.endianness)
-        mlist = np.array([[1.68427540e+07, 3.00000000e+00,
-                           1.20350000e+04, 1.00000000e+00],
-                          [1.68427530e+07, 1.20360000e+04,
-                           2.40680000e+04, 1.00000000e+00],
-                          [1.68427550e+07, 2.40690000e+04,
-                           3.61010000e+04, 1.00000000e+00],
-                          [1.68427560e+07, 3.61020000e+04,
-                           4.81340000e+04, 1.00000000e+00],
-                          [1.68427570e+07, 4.81350000e+04,
-                           6.01670000e+04, 1.00000000e+00],
-                          [1.68427580e+07, 6.01680000e+04,
-                           7.22000000e+04, 1.00000000e+00]])
+        fid.close()
+        mlist = np.array(
+            [
+                [1.68427540e07, 3.00000000e00, 1.20350000e04, 1.00000000e00],
+                [1.68427530e07, 1.20360000e04, 2.40680000e04, 1.00000000e00],
+                [1.68427550e07, 2.40690000e04, 3.61010000e04, 1.00000000e00],
+                [1.68427560e07, 3.61020000e04, 4.81340000e04, 1.00000000e00],
+                [1.68427570e07, 4.81350000e04, 6.01670000e04, 1.00000000e00],
+                [1.68427580e07, 6.01680000e04, 7.22000000e04, 1.00000000e00],
+            ]
+        )
         with suppress_warnings():  # STORED order
             series_framenumbers = get_series_framenumbers(mlist)
         # first frame stored was actually 2nd frame acquired
@@ -144,7 +141,7 @@ class TestEcatMlist(TestCase):
         neworder = [frames_order[x][0] for x in sorted(frames_order)]
         assert neworder == [1, 2, 3, 4, 5]
         with suppress_warnings():
-            with pytest.raises(IOError):
+            with pytest.raises(OSError):
                 get_series_framenumbers(mlist)
 
 
@@ -163,15 +160,15 @@ class TestEcatSubHeader(TestCase):
     def test_subheader(self):
         assert self.subhdr.get_shape() == (10, 10, 3)
         assert self.subhdr.get_nframes() == 1
-        assert (self.subhdr.get_nframes() ==
-                     len(self.subhdr.subheaders))
+        assert self.subhdr.get_nframes() == len(self.subhdr.subheaders)
         assert self.subhdr._check_affines() is True
-        assert_array_almost_equal(np.diag(self.subhdr.get_frame_affine()),
-                                  np.array([2.20241979, 2.20241979, 3.125, 1.]))
+        assert_array_almost_equal(
+            np.diag(self.subhdr.get_frame_affine()), np.array([2.20241979, 2.20241979, 3.125, 1.0])
+        )
         assert self.subhdr.get_zooms()[0] == 2.20241978764534
         assert self.subhdr.get_zooms()[2] == 3.125
         assert self.subhdr._get_data_dtype(0) == np.int16
-        #assert_equal(self.subhdr._get_frame_offset(), 1024)
+        # assert_equal(self.subhdr._get_frame_offset(), 1024)
         assert self.subhdr._get_frame_offset() == 1536
         dat = self.subhdr.raw_data_from_fileobj()
         assert dat.shape == self.subhdr.get_shape()
@@ -186,10 +183,8 @@ class TestEcatImage(TestCase):
     img = image_class.load(example_file)
 
     def test_file(self):
-        assert (self.img.file_map['header'].filename ==
-                     self.example_file)
-        assert (self.img.file_map['image'].filename ==
-                     self.example_file)
+        assert self.img.file_map['header'].filename == self.example_file
+        assert self.img.file_map['image'].filename == self.example_file
 
     def test_save(self):
         tmp_file = 'tinypet_tmp.v'
@@ -230,28 +225,28 @@ class TestEcatImage(TestCase):
     def test_isolation(self):
         # Test image isolated from external changes to affine
         img_klass = self.image_class
-        arr, aff, hdr, sub_hdr, mlist = (self.img.get_fdata(),
-                                         self.img.affine,
-                                         self.img.header,
-                                         self.img.get_subheaders(),
-                                         self.img.get_mlist())
+        arr, aff, hdr, sub_hdr, mlist = (
+            self.img.get_fdata(),
+            self.img.affine,
+            self.img.header,
+            self.img.get_subheaders(),
+            self.img.get_mlist(),
+        )
         img = img_klass(arr, aff, hdr, sub_hdr, mlist)
         assert_array_equal(img.affine, aff)
         aff[0, 0] = 99
         assert not np.all(img.affine == aff)
 
-    def test_get_affine_deprecated(self):
-        with pytest.raises(ExpiredDeprecationError):
-            self.img.get_affine()
-
     def test_float_affine(self):
         # Check affines get converted to float
         img_klass = self.image_class
-        arr, aff, hdr, sub_hdr, mlist = (self.img.get_fdata(),
-                                         self.img.affine,
-                                         self.img.header,
-                                         self.img.get_subheaders(),
-                                         self.img.get_mlist())
+        arr, aff, hdr, sub_hdr, mlist = (
+            self.img.get_fdata(),
+            self.img.affine,
+            self.img.header,
+            self.img.get_subheaders(),
+            self.img.get_mlist(),
+        )
         img = img_klass(arr, aff.astype(np.float32), hdr, sub_hdr, mlist)
         assert img.affine.dtype == np.dtype(np.float64)
         img = img_klass(arr, aff.astype(np.int16), hdr, sub_hdr, mlist)
@@ -260,9 +255,7 @@ class TestEcatImage(TestCase):
     def test_data_regression(self):
         # Test whether data read has changed since 1.3.0
         # These values came from reading the example image using nibabel 1.3.0
-        vals = dict(max=248750736458.0,
-                    min=1125342630.0,
-                    mean=117907565661.46666)
+        vals = dict(max=248750736458.0, min=1125342630.0, mean=117907565661.46666)
         data = self.img.get_fdata()
         assert data.max() == vals['max']
         assert data.min() == vals['min']
@@ -270,10 +263,4 @@ class TestEcatImage(TestCase):
 
     def test_mlist_regression(self):
         # Test mlist is as same as for nibabel 1.3.0
-        assert_array_equal(self.img.get_mlist(),
-                           [[16842758, 3, 3011, 1]])
-
-
-def test_from_filespec_deprecation():
-    with pytest.raises(ExpiredDeprecationError):
-        EcatImage.from_filespec(ecat_file)
+        assert_array_equal(self.img.get_mlist(), [[16842758, 3, 3011, 1]])

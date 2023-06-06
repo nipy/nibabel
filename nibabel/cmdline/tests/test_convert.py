@@ -8,17 +8,16 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
+import numpy as np
 import pytest
 
-import numpy as np
-
 import nibabel as nib
-from nibabel.testing import test_data
 from nibabel.cmdline import convert
+from nibabel.testing import get_test_data
 
 
 def test_convert_noop(tmp_path):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / 'output.nii.gz'
 
     orig = nib.load(infile)
@@ -32,7 +31,7 @@ def test_convert_noop(tmp_path):
     assert converted.shape == orig.shape
     assert converted.get_data_dtype() == orig.get_data_dtype()
 
-    infile = test_data(fname='resampled_anat_moved.nii')
+    infile = get_test_data(fname='resampled_anat_moved.nii')
 
     with pytest.raises(FileExistsError):
         convert.main([str(infile), str(outfile)])
@@ -51,7 +50,7 @@ def test_convert_noop(tmp_path):
 
 @pytest.mark.parametrize('data_dtype', ('u1', 'i2', 'float32', 'float', 'int64'))
 def test_convert_dtype(tmp_path, data_dtype):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / 'output.nii.gz'
 
     orig = nib.load(infile)
@@ -71,12 +70,15 @@ def test_convert_dtype(tmp_path, data_dtype):
     assert converted.get_data_dtype() == expected_dtype
 
 
-@pytest.mark.parametrize('ext,img_class', [
-    ('mgh', nib.MGHImage),
-    ('img', nib.Nifti1Pair),
-])
+@pytest.mark.parametrize(
+    'ext,img_class',
+    [
+        ('mgh', nib.MGHImage),
+        ('img', nib.Nifti1Pair),
+    ],
+)
 def test_convert_by_extension(tmp_path, ext, img_class):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / f'output.{ext}'
 
     orig = nib.load(infile)
@@ -91,13 +93,16 @@ def test_convert_by_extension(tmp_path, ext, img_class):
     assert converted.__class__ == img_class
 
 
-@pytest.mark.parametrize('ext,img_class', [
-    ('mgh', nib.MGHImage),
-    ('img', nib.Nifti1Pair),
-    ('nii', nib.Nifti2Image),
-])
+@pytest.mark.parametrize(
+    'ext,img_class',
+    [
+        ('mgh', nib.MGHImage),
+        ('img', nib.Nifti1Pair),
+        ('nii', nib.Nifti2Image),
+    ],
+)
 def test_convert_imgtype(tmp_path, ext, img_class):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / f'output.{ext}'
 
     orig = nib.load(infile)
@@ -113,7 +118,7 @@ def test_convert_imgtype(tmp_path, ext, img_class):
 
 
 def test_convert_nifti_int_fail(tmp_path):
-    infile = test_data(fname='anatomical.nii')
+    infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / f'output.nii'
 
     orig = nib.load(infile)
@@ -122,7 +127,7 @@ def test_convert_nifti_int_fail(tmp_path):
     with pytest.raises(ValueError):
         convert.main([str(infile), str(outfile), '--out-dtype', 'int'])
     assert not outfile.exists()
-    
+
     with pytest.warns(UserWarning):
         convert.main([str(infile), str(outfile), '--out-dtype', 'int', '--force'])
     assert outfile.is_file()
@@ -135,13 +140,16 @@ def test_convert_nifti_int_fail(tmp_path):
     assert converted.get_data_dtype() == orig.get_data_dtype()
 
 
-@pytest.mark.parametrize('orig_dtype,alias,expected_dtype', [
-    ('int64', 'mask', 'uint8'),
-    ('int64', 'compat', 'int32'),
-    ('int64', 'smallest', 'uint8'),
-    ('float64', 'mask', 'uint8'),
-    ('float64', 'compat', 'float32'),
-])
+@pytest.mark.parametrize(
+    'orig_dtype,alias,expected_dtype',
+    [
+        ('int64', 'mask', 'uint8'),
+        ('int64', 'compat', 'int32'),
+        ('int64', 'smallest', 'uint8'),
+        ('float64', 'mask', 'uint8'),
+        ('float64', 'compat', 'float32'),
+    ],
+)
 def test_convert_aliases(tmp_path, orig_dtype, alias, expected_dtype):
     orig_fname = tmp_path / 'orig.nii'
     out_fname = tmp_path / 'out.nii'

@@ -1,4 +1,4 @@
-""" distutils utilities for porting to python 3 within 2-compatible tree """
+"""distutils utilities for porting to python 3 within 2-compatible tree"""
 
 
 try:
@@ -6,20 +6,20 @@ try:
 except ImportError:
     # 2.x - no parsing of code
     from distutils.command.build_py import build_py
-else: # Python 3
+else:   # Python 3
     # Command to also apply 2to3 to doctests
     from distutils import log
+
     class build_py(build_py_2to3):
         def run_2to3(self, files):
             # Add doctest parsing; this stuff copied from distutils.utils in
             # python 3.2 source
             if not files:
                 return
-            fixer_names, options, explicit = (self.fixer_names,
-                                              self.options,
-                                              self.explicit)
+            fixer_names, options, explicit = (self.fixer_names, self.options, self.explicit)
             # Make this class local, to delay import of 2to3
             from lib2to3.refactor import RefactoringTool, get_fixers_from_package
+
             class DistutilsRefactoringTool(RefactoringTool):
                 def log_error(self, msg, *args, **kw):
                     log.error(msg, *args)

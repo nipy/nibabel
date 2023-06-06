@@ -1,5 +1,4 @@
-""" CSA header reader from SPM spec
-
+"""CSA header reader from SPM spec
 """
 import numpy as np
 
@@ -11,11 +10,11 @@ _CONVERTERS = {
     'FL': float,  # float
     'FD': float,  # double
     'DS': float,  # decimal string
-    'SS': int,    # signed short
-    'US': int,    # unsigned short
-    'SL': int,    # signed long
-    'UL': int,    # unsigned long
-    'IS': int,    # integer string
+    'SS': int,  # signed short
+    'US': int,  # unsigned short
+    'SL': int,  # signed long
+    'UL': int,  # unsigned long
+    'IS': int,  # integer string
 }
 
 MAX_CSA_ITEMS = 1000
@@ -30,7 +29,7 @@ class CSAReadError(CSAError):
 
 
 def get_csa_header(dcm_data, csa_type='image'):
-    """ Get CSA header information from DICOM header
+    """Get CSA header information from DICOM header
 
     Return None if the header does not contain CSA information of the
     specified `csa_type`
@@ -72,7 +71,7 @@ def get_csa_header(dcm_data, csa_type='image'):
 
 
 def read(csa_str):
-    """ Read CSA header from string `csa_str`
+    """Read CSA header from string `csa_str`
 
     Parameters
     ----------
@@ -99,20 +98,22 @@ def read(csa_str):
     csa_dict['type'] = hdr_type
     csa_dict['n_tags'], csa_dict['check'] = up_str.unpack('2I')
     if not 0 < csa_dict['n_tags'] <= MAX_CSA_ITEMS:
-        raise CSAReadError('Number of tags `t` should be '
-                           '0 < t <= %d. Instead found %d tags.'
-                           % (MAX_CSA_ITEMS, csa_dict['n_tags']))
+        raise CSAReadError(
+            f'Number of tags `t` should be 0 < t <= {MAX_CSA_ITEMS}. '
+            f'Instead found {csa_dict["n_tags"]} tags.'
+        )
     for tag_no in range(csa_dict['n_tags']):
-        name, vm, vr, syngodt, n_items, last3 = \
-            up_str.unpack('64si4s3i')
+        name, vm, vr, syngodt, n_items, last3 = up_str.unpack('64si4s3i')
         vr = nt_str(vr)
         name = nt_str(name)
-        tag = {'n_items': n_items,
-               'vm': vm,  # value multiplicity
-               'vr': vr,  # value representation
-               'syngodt': syngodt,
-               'last3': last3,
-               'tag_no': tag_no}
+        tag = {
+            'n_items': n_items,
+            'vm': vm,  # value multiplicity
+            'vr': vr,  # value representation
+            'syngodt': syngodt,
+            'last3': last3,
+            'tag_no': tag_no,
+        }
         if vm == 0:
             n_values = n_items
         else:
@@ -137,8 +138,7 @@ def read(csa_str):
             else:  # CSA2
                 item_len = x1
                 if (ptr + item_len) > csa_len:
-                    raise CSAReadError('Item is too long, '
-                                       'aborting read')
+                    raise CSAReadError('Item is too long, aborting read')
             if item_no >= n_values:
                 assert item_len == 0
                 continue
@@ -155,7 +155,7 @@ def read(csa_str):
             # go to 4 byte boundary
             plus4 = item_len % 4
             if plus4 != 0:
-                up_str.ptr += (4 - plus4)
+                up_str.ptr += 4 - plus4
         tag['items'] = items
         csa_dict['tags'][name] = tag
     return csa_dict
@@ -184,7 +184,7 @@ def get_vector(csa_dict, tag_name, n):
 
 
 def is_mosaic(csa_dict):
-    """ Return True if the data is of Mosaic type
+    """Return True if the data is of Mosaic type
 
     Parameters
     ----------
@@ -243,7 +243,7 @@ def get_ice_dims(csa_dict):
 
 
 def nt_str(s):
-    """ Strip string to first null
+    """Strip string to first null
 
     Parameters
     ----------

@@ -1,32 +1,38 @@
-import os
-from os.path import join as pjoin, isdir
 import getpass
-import time
-import struct
 import hashlib
-import warnings
-
-from ...tmpdirs import InTemporaryDirectory
-
+import os
+import struct
+import time
 import unittest
-import pytest
+import warnings
+from os.path import isdir
+from os.path import join as pjoin
+
 import numpy as np
+import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from .. import (read_geometry, read_morph_data, read_annot, read_label,
-                write_geometry, write_morph_data, write_annot)
-from ..io import _pack_rgb
-
-from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...fileslice import strided_scalar
 from ...testing import clear_and_catch_warnings
+from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
+from ...tmpdirs import InTemporaryDirectory
+from .. import (
+    read_annot,
+    read_geometry,
+    read_label,
+    read_morph_data,
+    write_annot,
+    write_geometry,
+    write_morph_data,
+)
+from ..io import _pack_rgb
 
 DATA_SDIR = 'fsaverage'
 
 have_freesurfer = False
 if 'SUBJECTS_DIR' in os.environ:
     # May have Freesurfer installed with data
-    data_path = pjoin(os.environ["SUBJECTS_DIR"], DATA_SDIR)
+    data_path = pjoin(os.environ['SUBJECTS_DIR'], DATA_SDIR)
     have_freesurfer = isdir(data_path)
 else:
     # May have nibabel test data submodule checked out
@@ -35,8 +41,10 @@ else:
         data_path = pjoin(nib_data, 'nitest-freesurfer', DATA_SDIR)
         have_freesurfer = isdir(data_path)
 
-freesurfer_test = unittest.skipUnless(have_freesurfer,
-                                      f'cannot find freesurfer {DATA_SDIR} directory')
+freesurfer_test = unittest.skipUnless(
+    have_freesurfer, f'cannot find freesurfer {DATA_SDIR} directory'
+)
+
 
 def _hash_file_content(fname):
     hasher = hashlib.md5()
@@ -49,14 +57,15 @@ def _hash_file_content(fname):
 @freesurfer_test
 def test_geometry():
     """Test IO of .surf"""
-    surf_path = pjoin(data_path, "surf", "lh.inflated")
+    surf_path = pjoin(data_path, 'surf', 'lh.inflated')
     coords, faces = read_geometry(surf_path)
     assert 0 == faces.min()
     assert coords.shape[0] == faces.max() + 1
 
-    surf_path = pjoin(data_path, "surf", "lh.sphere")
+    surf_path = pjoin(data_path, 'surf', 'lh.sphere')
     coords, faces, volume_info, create_stamp = read_geometry(
-        surf_path, read_metadata=True, read_stamp=True)
+        surf_path, read_metadata=True, read_stamp=True
+    )
 
     assert 0 == faces.min()
     assert coords.shape[0] == faces.max() + 1
@@ -68,20 +77,18 @@ def test_geometry():
     # with respect to read_geometry()
     with InTemporaryDirectory():
         surf_path = 'test'
-        create_stamp = f"created by {getpass.getuser()} on {time.ctime()}"
-        volume_info['cras'] = [1., 2., 3.]
+        create_stamp = f'created by {getpass.getuser()} on {time.ctime()}'
+        volume_info['cras'] = [1.0, 2.0, 3.0]
         write_geometry(surf_path, coords, faces, create_stamp, volume_info)
 
-        coords2, faces2, volume_info2 = \
-            read_geometry(surf_path, read_metadata=True)
+        coords2, faces2, volume_info2 = read_geometry(surf_path, read_metadata=True)
 
         for key in ('xras', 'yras', 'zras', 'cras'):
-            assert_allclose(volume_info2[key], volume_info[key],
-                            rtol=1e-7, atol=1e-30)
+            assert_allclose(volume_info2[key], volume_info[key], rtol=1e-7, atol=1e-30)
 
         assert np.array_equal(volume_info2['cras'], volume_info['cras'])
         with open(surf_path, 'rb') as fobj:
-            np.fromfile(fobj, ">u1", 3)
+            np.fromfile(fobj, '>u1', 3)
             read_create_stamp = fobj.readline().decode().rstrip('\n')
 
         # now write an incomplete file
@@ -92,7 +99,7 @@ def test_geometry():
         assert any('extension code' in str(ww.message) for ww in w)
 
         volume_info['head'] = [1, 2]
-        with pytest.warns(UserWarning, match="Unknown extension"):
+        with pytest.warns(UserWarning, match='Unknown extension'):
             write_geometry(surf_path, coords, faces, create_stamp, volume_info)
 
         volume_info['a'] = 0
@@ -115,8 +122,9 @@ def test_geometry():
 @needs_nibabel_data('nitest-freesurfer')
 def test_quad_geometry():
     """Test IO of freesurfer quad files."""
-    new_quad = pjoin(get_nibabel_data(), 'nitest-freesurfer', 'subjects',
-                     'bert', 'surf', 'lh.inflated.nofix')
+    new_quad = pjoin(
+        get_nibabel_data(), 'nitest-freesurfer', 'subjects', 'bert', 'surf', 'lh.inflated.nofix'
+    )
     coords, faces = read_geometry(new_quad)
     assert 0 == faces.min()
     assert coords.shape[0] == (faces.max() + 1)
@@ -124,14 +132,14 @@ def test_quad_geometry():
         new_path = 'test'
         write_geometry(new_path, coords, faces)
         coords2, faces2 = read_geometry(new_path)
-        assert np.array_equal(coords,coords2)
+        assert np.array_equal(coords, coords2)
         assert np.array_equal(faces, faces2)
 
 
 @freesurfer_test
 def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
-    curv_path = pjoin(data_path, "surf", "lh.curv")
+    curv_path = pjoin(data_path, 'surf', 'lh.curv')
     curv = read_morph_data(curv_path)
     assert -1.0 < curv.min() < 0
     assert 0 < curv.max() < 1.0
@@ -159,21 +167,22 @@ def test_write_morph_data():
         # Windows 32-bit overflows Python int
         if np.dtype(int) != np.dtype(np.int32):
             with pytest.raises(ValueError):
-                write_morph_data('test.curv',  strided_scalar((big_num,)))
+                write_morph_data('test.curv', strided_scalar((big_num,)))
         for shape in bad_shapes:
             with pytest.raises(ValueError):
                 write_morph_data('test.curv', values.reshape(shape))
+
 
 @freesurfer_test
 def test_annot():
     """Test IO of .annot against freesurfer example data."""
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
-        annot_path = pjoin(data_path, "label", f"lh.{a}.annot")
+        annot_path = pjoin(data_path, 'label', f'lh.{a}.annot')
         hash_ = _hash_file_content(annot_path)
 
         labels, ctab, names = read_annot(annot_path)
-        assert labels.shape == (163842, )
+        assert labels.shape == (163842,)
         assert ctab.shape == (len(names), 5)
 
         labels_orig = None
@@ -186,8 +195,10 @@ def test_annot():
             elif hash_ == 'd4f5b7cbc2ed363ac6fcf89e19353504':
                 assert np.sum(labels_orig == 1639705) == 13327
             else:
-                raise RuntimeError("Unknown freesurfer file. Please report "
-                                   "the problem to the maintainer of nibabel.")
+                raise RuntimeError(
+                    'Unknown freesurfer file. Please report '
+                    'the problem to the maintainer of nibabel.'
+                )
 
         # Test equivalence of freesurfer- and nibabel-generated annot files
         # with respect to read_annot()
@@ -217,8 +228,7 @@ def test_read_write_annot():
     # that at least one of each label value is present. Label
     # values are in the range (0, nlabels-1) - they are used
     # as indices into the lookup table (generated below).
-    labels = list(range(nlabels)) + \
-             list(np.random.randint(0, nlabels, nvertices - nlabels))
+    labels = list(range(nlabels)) + list(np.random.randint(0, nlabels, nvertices - nlabels))
     labels = np.array(labels, dtype=np.int32)
     np.random.shuffle(labels)
     # Generate some random colours for the LUT
@@ -229,9 +239,7 @@ def test_read_write_annot():
     # for the annotation value.
     rgbal[0, 3] = 255
     # Generate the annotation values for each LUT entry
-    rgbal[:, 4] = (rgbal[:, 0] +
-                   rgbal[:, 1] * (2 ** 8) +
-                   rgbal[:, 2] * (2 ** 16))
+    rgbal[:, 4] = rgbal[:, 0] + rgbal[:, 1] * (2**8) + rgbal[:, 2] * (2**16)
     annot_path = 'c.annot'
     with InTemporaryDirectory():
         write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
@@ -243,12 +251,11 @@ def test_read_write_annot():
 
 
 def test_write_annot_fill_ctab():
-    """Test the `fill_ctab` parameter to :func:`.write_annot`. """
+    """Test the `fill_ctab` parameter to :func:`.write_annot`."""
     nvertices = 10
     nlabels = 3
     names = [f'label {l}' for l in range(1, nlabels + 1)]
-    labels = list(range(nlabels)) + \
-             list(np.random.randint(0, nlabels, nvertices - nlabels))
+    labels = list(range(nlabels)) + list(np.random.randint(0, nlabels, nvertices - nlabels))
     labels = np.array(labels, dtype=np.int32)
     np.random.shuffle(labels)
     rgba = np.array(np.random.randint(0, 255, (nlabels, 4)), dtype=np.int32)
@@ -265,8 +272,9 @@ def test_write_annot_fill_ctab():
         # values back.
         badannot = (10 * np.arange(nlabels, dtype=np.int32)).reshape(-1, 1)
         rgbal = np.hstack((rgba, badannot))
-        with pytest.warns(UserWarning,
-                          match=f'Annotation values in {annot_path} will be incorrect'):
+        with pytest.warns(
+            UserWarning, match=f'Annotation values in {annot_path} will be incorrect'
+        ):
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
         labels2, rgbal2, names2 = read_annot(annot_path, orig_ids=True)
         names2 = [n.decode('ascii') for n in names2]
@@ -276,13 +284,12 @@ def test_write_annot_fill_ctab():
         # make sure a warning is *not* emitted if fill_ctab is False, but the
         # annotation values are correct.
         rgbal = np.hstack((rgba, np.zeros((nlabels, 1), dtype=np.int32)))
-        rgbal[:, 4] = (rgbal[:, 0] +
-                       rgbal[:, 1] * (2 ** 8) +
-                       rgbal[:, 2] * (2 ** 16))
+        rgbal[:, 4] = rgbal[:, 0] + rgbal[:, 1] * (2**8) + rgbal[:, 2] * (2**16)
         with clear_and_catch_warnings() as w:
             write_annot(annot_path, labels, rgbal, names, fill_ctab=False)
-        assert all(f'Annotation values in {annot_path} will be incorrect' != str(ww.message)
-                   for ww in w)
+        assert all(
+            f'Annotation values in {annot_path} will be incorrect' != str(ww.message) for ww in w
+        )
         labels2, rgbal2, names2 = read_annot(annot_path)
         names2 = [n.decode('ascii') for n in names2]
         assert np.all(np.isclose(rgbal2[:, :4], rgba))
@@ -292,6 +299,7 @@ def test_write_annot_fill_ctab():
 
 def test_read_annot_old_format():
     """Test reading an old-style .annot file."""
+
     def gen_old_annot_file(fpath, nverts, labels, rgba, names):
         dt = '>i'
         vdata = np.zeros((nverts, 2), dtype=dt)
@@ -316,12 +324,14 @@ def test_read_annot_old_format():
             fbytes += rgba[i, :].astype(dt).tobytes()
         with open(fpath, 'wb') as f:
             f.write(fbytes)
+
     with InTemporaryDirectory():
         nverts = 10
         nlabels = 3
         names = [f'Label {l}' for l in range(nlabels)]
-        labels = np.concatenate((
-            np.arange(nlabels), np.random.randint(0, nlabels, nverts - nlabels)))
+        labels = np.concatenate(
+            (np.arange(nlabels), np.random.randint(0, nlabels, nverts - nlabels))
+        )
         np.random.shuffle(labels)
         rgba = np.random.randint(0, 255, (nlabels, 4))
         # write an old .annot file
@@ -337,7 +347,7 @@ def test_read_annot_old_format():
 @freesurfer_test
 def test_label():
     """Test IO of .label"""
-    label_path = pjoin(data_path, "label", "lh.cortex.label")
+    label_path = pjoin(data_path, 'label', 'lh.cortex.label')
     label = read_label(label_path)
     # XXX : test more
     assert label.min() >= 0

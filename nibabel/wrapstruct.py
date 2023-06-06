@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Class to wrap numpy structured array
+"""Class to wrap numpy structured array
 
 ============
  wrapstruct
@@ -109,12 +109,13 @@ The same for logging::
 
    nib.imageglobals.logger = logger
 """
+from __future__ import annotations
+
 import numpy as np
 
-from .volumeutils import (pretty_mapping, endian_codes, native_code,
-                          swapped_code)
 from . import imageglobals as imageglobals
 from .batteryrunners import BatteryRunner
+from .volumeutils import Recoder, endian_codes, native_code, pretty_mapping, swapped_code
 
 
 class WrapStructError(Exception):
@@ -125,11 +126,8 @@ class WrapStruct:
     # placeholder datatype
     template_dtype = np.dtype([('integer', 'i2')])
 
-    def __init__(self,
-                 binaryblock=None,
-                 endianness=None,
-                 check=True):
-        """ Initialize WrapStruct from binary data block
+    def __init__(self, binaryblock=None, endianness=None, check=True):
+        """Initialize WrapStruct from binary data block
 
         Parameters
         ----------
@@ -160,8 +158,7 @@ class WrapStruct:
         # check size
         if len(binaryblock) != self.template_dtype.itemsize:
             raise WrapStructError('Binary block is wrong size')
-        wstr = np.ndarray(shape=(), dtype=self.template_dtype,
-                          buffer=binaryblock)
+        wstr = np.ndarray(shape=(), dtype=self.template_dtype, buffer=binaryblock)
         if endianness is None:
             endianness = self.__class__.guessed_endian(wstr)
         else:
@@ -172,11 +169,10 @@ class WrapStruct:
         self._structarr = wstr.copy()
         if check:
             self.check_fix()
-        return
 
     @classmethod
     def from_fileobj(klass, fileobj, endianness=None, check=True):
-        """ Return read structure with given or guessed endiancode
+        """Return read structure with given or guessed endiancode
 
         Parameters
         ----------
@@ -195,7 +191,7 @@ class WrapStruct:
 
     @property
     def binaryblock(self):
-        """ binary block of data as string
+        """binary block of data as string
 
         Returns
         -------
@@ -212,7 +208,7 @@ class WrapStruct:
         return self._structarr.tobytes()
 
     def write_to(self, fileobj):
-        """ Write structure to fileobj
+        """Write structure to fileobj
 
         Write starts at fileobj current file position.
 
@@ -238,7 +234,7 @@ class WrapStruct:
 
     @property
     def endianness(self):
-        """ endian code of binary data
+        """endian code of binary data
 
         The endianness code gives the current byte order
         interpretation of the binary data.
@@ -262,7 +258,7 @@ class WrapStruct:
         return swapped_code
 
     def copy(self):
-        """ Return copy of structure
+        """Return copy of structure
 
         >>> wstr = WrapStruct()
         >>> wstr['integer'] = 3
@@ -275,7 +271,7 @@ class WrapStruct:
         return self.__class__(self.binaryblock, self.endianness, check=False)
 
     def __eq__(self, other):
-        """ equality between two structures defined by binaryblock
+        """equality between two structures defined by binaryblock
 
         Examples
         --------
@@ -303,7 +299,7 @@ class WrapStruct:
         return not self == other
 
     def __getitem__(self, item):
-        """ Return values from structure data
+        """Return values from structure data
 
         Examples
         --------
@@ -314,7 +310,7 @@ class WrapStruct:
         return self._structarr[item]
 
     def __setitem__(self, item, value):
-        """ Set values in structured data
+        """Set values in structured data
 
         Examples
         --------
@@ -329,24 +325,24 @@ class WrapStruct:
         return iter(self.keys())
 
     def keys(self):
-        """ Return keys from structured data"""
+        """Return keys from structured data"""
         return list(self.template_dtype.names)
 
     def values(self):
-        """ Return values from structured data"""
+        """Return values from structured data"""
         data = self._structarr
         return [data[key] for key in self.template_dtype.names]
 
     def items(self):
-        """ Return items from structured data"""
+        """Return items from structured data"""
         return zip(self.keys(), self.values())
 
     def get(self, k, d=None):
-        """ Return value for the key k if present or d otherwise"""
+        """Return value for the key k if present or d otherwise"""
         return self._structarr[k] if k in self.keys() else d
 
     def check_fix(self, logger=None, error_level=None):
-        """ Check structured data with checks
+        """Check structured data with checks
 
         Parameters
         ----------
@@ -366,16 +362,15 @@ class WrapStruct:
 
     @classmethod
     def diagnose_binaryblock(klass, binaryblock, endianness=None):
-        """ Run checks over binary data, return string """
+        """Run checks over binary data, return string"""
         wstr = klass(binaryblock, endianness=endianness, check=False)
         battrun = BatteryRunner(klass._get_checks())
         reports = battrun.check_only(wstr)
-        return '\n'.join([report.message
-                          for report in reports if report.message])
+        return '\n'.join([report.message for report in reports if report.message])
 
     @classmethod
     def guessed_endian(self, mapping):
-        """ Guess intended endianness from mapping-like ``mapping``
+        """Guess intended endianness from mapping-like ``mapping``
 
         Parameters
         ----------
@@ -392,8 +387,7 @@ class WrapStruct:
 
     @classmethod
     def default_structarr(klass, endianness=None):
-        """ Return structured array for default structure with given endianness
-        """
+        """Return structured array for default structure with given endianness"""
         dt = klass.template_dtype
         if endianness is not None:
             endianness = endian_codes[endianness]
@@ -402,7 +396,7 @@ class WrapStruct:
 
     @property
     def structarr(self):
-        """ Structured data, with data fields
+        """Structured data, with data fields
 
         Examples
         --------
@@ -416,12 +410,12 @@ class WrapStruct:
         return self._structarr
 
     def __str__(self):
-        """ Return string representation for printing """
+        """Return string representation for printing"""
         summary = f"{self.__class__} object, endian='{self.endianness}'"
         return '\n'.join([summary, pretty_mapping(self)])
 
     def as_byteswapped(self, endianness=None):
-        """ return new byteswapped object with given ``endianness``
+        """return new byteswapped object with given ``endianness``
 
         Guaranteed to make a copy even if endianness is the same as
         the current endianness.
@@ -483,17 +477,17 @@ class WrapStruct:
 
     @classmethod
     def _get_checks(klass):
-        """ Return sequence of check functions for this class """
+        """Return sequence of check functions for this class"""
         return ()
 
 
 class LabeledWrapStruct(WrapStruct):
-    """ A WrapStruct with some fields having value labels for printing etc
-    """
-    _field_recoders = {}  # for recoding values for str
+    """A WrapStruct with some fields having value labels for printing etc"""
+
+    _field_recoders: dict[str, Recoder] = {}  # for recoding values for str
 
     def get_value_label(self, fieldname):
-        """ Returns label for coded field
+        """Returns label for coded field
 
         A coded field is an int field containing codes that stand for
         discrete values that also have string labels.
@@ -536,7 +530,7 @@ class LabeledWrapStruct(WrapStruct):
             return f'<unknown code {code}>'
 
     def __str__(self):
-        """ Return string representation for printing """
+        """Return string representation for printing"""
         summary = f"{self.__class__} object, endian='{self.endianness}'"
 
         def _getter(obj, key):

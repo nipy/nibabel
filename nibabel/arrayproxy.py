@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Array proxy base class
+"""Array proxy base class
 
 The proxy API is - at minimum:
 
@@ -25,16 +25,18 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+from __future__ import annotations
+
+import typing as ty
+import warnings
 from contextlib import contextmanager
 from threading import RLock
-import warnings
 
 import numpy as np
 
-from .volumeutils import array_from_file, apply_read_scaling
-from .fileslice import fileslice, canonical_slicers
 from . import openers
-
+from .fileslice import canonical_slicers, fileslice
+from .volumeutils import apply_read_scaling, array_from_file
 
 """This flag controls whether a new file handle is created every time an image
 is accessed through an ``ArrayProxy``, or a single file handle is created and
@@ -54,8 +56,42 @@ raised.
 KEEP_FILE_OPEN_DEFAULT = False
 
 
-class ArrayProxy:
-    """ Class to act as proxy for the array that can be read from a file
+if ty.TYPE_CHECKING:  # pragma: no cover
+    import numpy.typing as npt
+
+    # Taken from numpy/__init__.pyi
+    _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
+
+
+class ArrayLike(ty.Protocol):
+    """Protocol for numpy ndarray-like objects
+
+    This is more stringent than :class:`numpy.typing.ArrayLike`, but guarantees
+    access to shape, ndim and slicing.
+    """
+
+    shape: tuple[int, ...]
+
+    @property
+    def ndim(self) -> int:
+        ...  # pragma: no cover
+
+    # If no dtype is passed, any dtype might be returned, depending on the array-like
+    @ty.overload
+    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
+        ...  # pragma: no cover
+
+    # Any dtype might be passed, and *that* dtype must be returned
+    @ty.overload
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
+        ...  # pragma: no cover
+
+    def __getitem__(self, key, /) -> npt.NDArray:
+        ...  # pragma: no cover
+
+
+class ArrayProxy(ArrayLike):
+    """Class to act as proxy for the array that can be read from a file
 
     The array proxy allows us to freeze the passed fileobj and header such that
     it returns the expected data array.
@@ -84,6 +120,7 @@ class ArrayProxy:
     See :mod:`nibabel.minc1`, :mod:`nibabel.ecat` and :mod:`nibabel.parrec` for
     examples.
     """
+
     _default_order = 'F'
 
     def __init__(self, file_like, spec, *, mmap=True, order=None, keep_file_open=None):
@@ -138,25 +175,30 @@ class ArrayProxy:
         self.file_like = file_like
         if hasattr(spec, 'get_data_shape'):
             slope, inter = spec.get_slope_inter()
-            par = (spec.get_data_shape(),
-                   spec.get_data_dtype(),
-                   spec.get_data_offset(),
-                   1. if slope is None else slope,
-                   0. if inter is None else inter)
+            par = (
+                spec.get_data_shape(),
+                spec.get_data_dtype(),
+                spec.get_data_offset(),
+                1.0 if slope is None else slope,
+                0.0 if inter is None else inter,
+            )
         elif 2 <= len(spec) <= 5:
-            optional = (0, 1., 0.)
-            par = spec + optional[len(spec) - 2:]
+            optional = (0, 1.0, 0.0)
+            par = spec + optional[len(spec) - 2 :]
         else:
             raise TypeError('spec must be tuple of length 2-5 or header object')
 
         # Warn downstream users that the class variable order is going away
         if hasattr(self.__class__, 'order'):
-            warnings.warn(f'Class {self.__class__} has an `order` class variable. '
-                          'ArrayProxy subclasses should rename this variable to `_default_order` '
-                          'to avoid conflict with instance variables.\n'
-                          '* deprecated in version: 5.0\n'
-                          '* will raise error in version: 7.0\n',
-                          DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                f'Class {self.__class__} has an `order` class variable. '
+                'ArrayProxy subclasses should rename this variable to `_default_order` '
+                'to avoid conflict with instance variables.\n'
+                '* deprecated in version: 5.0\n'
+                '* will raise error in version: 7.0\n',
+                DeprecationWarning,
+                stacklevel=2,
+            )
             # Override _default_order with order, to follow intent of subclasser
             self._default_order = self.order
 
@@ -170,8 +212,9 @@ class ArrayProxy:
         self.order = order
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
-        self._keep_file_open, self._persist_opener = \
-            self._should_keep_file_open(file_like, keep_file_open)
+        self._keep_file_open, self._persist_opener = self._should_keep_file_open(
+            file_like, keep_file_open
+        )
         self._lock = RLock()
 
     def __del__(self):
@@ -183,13 +226,13 @@ class ArrayProxy:
             self._opener = None
 
     def __getstate__(self):
-        """Returns the state of this ``ArrayProxy`` during pickling. """
+        """Returns the state of this ``ArrayProxy`` during pickling."""
         state = self.__dict__.copy()
         state.pop('_lock', None)
         return state
 
     def __setstate__(self, state):
-        """Sets the state of this ``ArrayProxy`` during unpickling. """
+        """Sets the state of this ``ArrayProxy`` during unpickling."""
         self.__dict__.update(state)
         self._lock = RLock()
 
@@ -260,8 +303,10 @@ class ArrayProxy:
         if keep_file_open is None:
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
             if keep_file_open not in (True, False):
-                raise ValueError("nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT "
-                                 f"must be boolean. Found: {keep_file_open}")
+                raise ValueError(
+                    'nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT '
+                    f'must be boolean. Found: {keep_file_open}'
+                )
         elif keep_file_open not in (True, False):
             raise ValueError('keep_file_open must be one of {None, True, False}')
 
@@ -317,32 +362,35 @@ class ArrayProxy:
         """
         if self._persist_opener:
             if not hasattr(self, '_opener'):
-                self._opener = openers.ImageOpener(
-                    self.file_like, keep_open=self._keep_file_open)
+                self._opener = openers.ImageOpener(self.file_like, keep_open=self._keep_file_open)
             yield self._opener
         else:
-            with openers.ImageOpener(
-                    self.file_like, keep_open=False) as opener:
+            with openers.ImageOpener(self.file_like, keep_open=False) as opener:
                 yield opener
 
     def _get_unscaled(self, slicer):
-        if canonical_slicers(slicer, self._shape, False) == \
-                canonical_slicers((), self._shape, False):
+        if canonical_slicers(slicer, self._shape, False) == canonical_slicers(
+            (), self._shape, False
+        ):
             with self._get_fileobj() as fileobj, self._lock:
-                return array_from_file(self._shape,
-                                       self._dtype,
-                                       fileobj,
-                                       offset=self._offset,
-                                       order=self.order,
-                                       mmap=self._mmap)
+                return array_from_file(
+                    self._shape,
+                    self._dtype,
+                    fileobj,
+                    offset=self._offset,
+                    order=self.order,
+                    mmap=self._mmap,
+                )
         with self._get_fileobj() as fileobj:
-            return fileslice(fileobj,
-                             slicer,
-                             self._shape,
-                             self._dtype,
-                             self._offset,
-                             order=self.order,
-                             lock=self._lock)
+            return fileslice(
+                fileobj,
+                slicer,
+                self._shape,
+                self._dtype,
+                self._offset,
+                order=self.order,
+                lock=self._lock,
+            )
 
     def _get_scaled(self, dtype, slicer):
         # Ensure scale factors have dtypes
@@ -361,14 +409,14 @@ class ArrayProxy:
         return scaled
 
     def get_unscaled(self):
-        """ Read data from file
+        """Read data from file
 
         This is an optional part of the proxy API
         """
         return self._get_unscaled(slicer=())
 
     def __array__(self, dtype=None):
-        """ Read data from file and apply scaling, casting to ``dtype``
+        """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype of the returned array is the
         narrowest dtype that can represent the data without overflow.
@@ -397,31 +445,32 @@ class ArrayProxy:
         return self._get_scaled(dtype=None, slicer=slicer)
 
     def reshape(self, shape):
-        """ Return an ArrayProxy with a new shape, without modifying data """
+        """Return an ArrayProxy with a new shape, without modifying data"""
         size = np.prod(self._shape)
 
         # Calculate new shape if not fully specified
-        from operator import mul
         from functools import reduce
+        from operator import mul
+
         n_unknowns = len([e for e in shape if e == -1])
         if n_unknowns > 1:
-            raise ValueError("can only specify one unknown dimension")
+            raise ValueError('can only specify one unknown dimension')
         elif n_unknowns == 1:
             known_size = reduce(mul, shape, -1)
             unknown_size = size // known_size
             shape = tuple(unknown_size if e == -1 else e for e in shape)
 
         if np.prod(shape) != size:
-            raise ValueError(f"cannot reshape array of size {size:d} into shape {shape!s}")
-        return self.__class__(file_like=self.file_like,
-                              spec=(shape, self._dtype, self._offset,
-                                    self._slope, self._inter),
-                              mmap=self._mmap)
+            raise ValueError(f'cannot reshape array of size {size:d} into shape {shape!s}')
+        return self.__class__(
+            file_like=self.file_like,
+            spec=(shape, self._dtype, self._offset, self._slope, self._inter),
+            mmap=self._mmap,
+        )
 
 
 def is_proxy(obj):
-    """ Return True if `obj` is an array proxy
-    """
+    """Return True if `obj` is an array proxy"""
     try:
         return obj.is_proxy
     except AttributeError:
@@ -429,19 +478,17 @@ def is_proxy(obj):
 
 
 def reshape_dataobj(obj, shape):
-    """ Use `obj` reshape method if possible, else numpy reshape function
-    """
-    return (obj.reshape(shape) if hasattr(obj, 'reshape')
-            else np.reshape(obj, shape))
+    """Use `obj` reshape method if possible, else numpy reshape function"""
+    return obj.reshape(shape) if hasattr(obj, 'reshape') else np.reshape(obj, shape)
 
 
 def get_obj_dtype(obj):
-    """ Get the effective dtype of an array-like object """
+    """Get the effective dtype of an array-like object"""
     if is_proxy(obj):
         # Read and potentially apply scaling to one value
         idx = (0,) * len(obj.shape)
         return obj[idx].dtype
-    elif hasattr(obj, "dtype"):
+    elif hasattr(obj, 'dtype'):
         # Trust the dtype (probably an ndarray)
         return obj.dtype
     else:

@@ -81,14 +81,15 @@ is for you.
 Requirements
 ------------
 
-.. check these against setup.cfg
+.. check these against pyproject.toml
 
-*  Python_ 3.6 or greater
-*  NumPy_ 1.14 or greater
-*  Packaging_ 14.3 or greater
+*  Python_ 3.8 or greater
+*  NumPy_ 1.19 or greater
+*  Packaging_ 17.0 or greater
+*  importlib-resources_ 1.3 or greater (or Python 3.9+)
 *  SciPy_ (optional, for full SPM-ANALYZE support)
 *  h5py_ (optional, for MINC2 support)
-*  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
+*  PyDICOM_ 1.0.0 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
 *  pytest_ (optional, to run the tests)
 *  sphinx_ (optional, to build the documentation)

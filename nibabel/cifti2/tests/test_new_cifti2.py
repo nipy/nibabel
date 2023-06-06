@@ -7,60 +7,83 @@ These functions are used in the tests to generate most CIFTI file types from
 scratch.
 """
 import numpy as np
+import pytest
 
 import nibabel as nib
 from nibabel import cifti2 as ci
 from nibabel.tmpdirs import InTemporaryDirectory
 
-import pytest
 from ...testing import (
-    clear_and_catch_warnings, error_warnings, suppress_warnings, assert_array_equal)
+    assert_array_equal,
+    clear_and_catch_warnings,
+    error_warnings,
+    suppress_warnings,
+)
 
-affine = [[-1.5, 0, 0, 90],
-          [0, 1.5, 0, -85],
-          [0, 0, 1.5, -71],
-          [0, 0, 0, 1.]]
+affine = [
+    [-1.5, 0, 0, 90],
+    [0, 1.5, 0, -85],
+    [0, 0, 1.5, -71],
+    [0, 0, 0, 1.0],
+]
 
 dimensions = (120, 83, 78)
 
 number_of_vertices = 30000
 
-brain_models = [('CIFTI_STRUCTURE_THALAMUS_LEFT', [[60, 60, 60],
-                                                   [61, 59, 60],
-                                                   [61, 60, 59],
-                                                   [80, 90, 92]]),
-                ('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312]),
-                ('CIFTI_STRUCTURE_CORTEX_RIGHT', [207])
-                ]
+brain_models = [
+    (
+        'CIFTI_STRUCTURE_THALAMUS_LEFT',
+        [
+            [60, 60, 60],
+            [61, 59, 60],
+            [61, 60, 59],
+            [80, 90, 92],
+        ],
+    ),
+    ('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312]),
+    ('CIFTI_STRUCTURE_CORTEX_RIGHT', [207]),
+]
 
 
 def create_geometry_map(applies_to_matrix_dimension):
     voxels = ci.Cifti2VoxelIndicesIJK(brain_models[0][1])
-    left_thalamus = ci.Cifti2BrainModel(index_offset=0, index_count=4,
-                                        model_type='CIFTI_MODEL_TYPE_VOXELS',
-                                        brain_structure=brain_models[0][0],
-                                        voxel_indices_ijk=voxels)
+    left_thalamus = ci.Cifti2BrainModel(
+        index_offset=0,
+        index_count=4,
+        model_type='CIFTI_MODEL_TYPE_VOXELS',
+        brain_structure=brain_models[0][0],
+        voxel_indices_ijk=voxels,
+    )
 
     vertices = ci.Cifti2VertexIndices(np.array(brain_models[1][1]))
-    left_cortex = ci.Cifti2BrainModel(index_offset=4, index_count=5,
-                                      model_type='CIFTI_MODEL_TYPE_SURFACE',
-                                      brain_structure=brain_models[1][0],
-                                      vertex_indices=vertices)
+    left_cortex = ci.Cifti2BrainModel(
+        index_offset=4,
+        index_count=5,
+        model_type='CIFTI_MODEL_TYPE_SURFACE',
+        brain_structure=brain_models[1][0],
+        vertex_indices=vertices,
+    )
     left_cortex.surface_number_of_vertices = number_of_vertices
 
     vertices = ci.Cifti2VertexIndices(np.array(brain_models[2][1]))
-    right_cortex = ci.Cifti2BrainModel(index_offset=9, index_count=1,
-                                       model_type='CIFTI_MODEL_TYPE_SURFACE',
-                                       brain_structure=brain_models[2][0],
-                                       vertex_indices=vertices)
+    right_cortex = ci.Cifti2BrainModel(
+        index_offset=9,
+        index_count=1,
+        model_type='CIFTI_MODEL_TYPE_SURFACE',
+        brain_structure=brain_models[2][0],
+        vertex_indices=vertices,
+    )
     right_cortex.surface_number_of_vertices = number_of_vertices
 
-    volume = ci.Cifti2Volume(dimensions,
-                     ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3,
-                                                                       affine))
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
-                                     'CIFTI_INDEX_TYPE_BRAIN_MODELS',
-                                     maps=[left_thalamus, left_cortex, right_cortex, volume])
+    volume = ci.Cifti2Volume(
+        dimensions, ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine)
+    )
+    return ci.Cifti2MatrixIndicesMap(
+        applies_to_matrix_dimension,
+        'CIFTI_INDEX_TYPE_BRAIN_MODELS',
+        maps=[left_thalamus, left_cortex, right_cortex, volume],
+    )
 
 
 def check_geometry_map(mapping):
@@ -96,25 +119,41 @@ def check_geometry_map(mapping):
     assert (mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all()
 
 
-parcels = [('volume_parcel', ([[60, 60, 60],
-                               [61, 59, 60],
-                               [61, 60, 59],
-                               [80, 90, 92]], )),
-           ('surface_parcel', (('CIFTI_STRUCTURE_CORTEX_LEFT',
-                                [0, 1000, 1301, 19972, 27312]),
-                               ('CIFTI_STRUCTURE_CORTEX_RIGHT',
-                                [0, 100, 381]))),
-           ('mixed_parcel', ([[71, 81, 39],
-                              [53, 21, 91]],
-                             ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999]))),
-           ('single_element', ([[71, 81, 39]],
-                               ('CIFTI_STRUCTURE_CORTEX_LEFT', [40]))),
-           ]
+parcels = [
+    (
+        'volume_parcel',
+        (
+            [
+                [60, 60, 60],
+                [61, 59, 60],
+                [61, 60, 59],
+                [80, 90, 92],
+            ],
+        ),
+    ),
+    (
+        'surface_parcel',
+        (
+            ('CIFTI_STRUCTURE_CORTEX_LEFT', [0, 1000, 1301, 19972, 27312]),
+            ('CIFTI_STRUCTURE_CORTEX_RIGHT', [0, 100, 381]),
+        ),
+    ),
+    (
+        'mixed_parcel',
+        (
+            [
+                [71, 81, 39],
+                [53, 21, 91],
+            ],
+            ('CIFTI_STRUCTURE_CORTEX_LEFT', [71, 88, 999]),
+        ),
+    ),
+    ('single_element', ([[71, 81, 39]], ('CIFTI_STRUCTURE_CORTEX_LEFT', [40]))),
+]
 
 
 def create_parcel_map(applies_to_matrix_dimension):
-    mapping = ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
-                                        'CIFTI_INDEX_TYPE_PARCELS')
+    mapping = ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_PARCELS')
     for name, elements in parcels:
         surfaces = []
         volume = None
@@ -125,10 +164,15 @@ def create_parcel_map(applies_to_matrix_dimension):
                 volume = ci.Cifti2VoxelIndicesIJK(element)
         mapping.append(ci.Cifti2Parcel(name, volume, surfaces))
 
-    mapping.extend([ci.Cifti2Surface(f'CIFTI_STRUCTURE_CORTEX_{orientation}',
-                    number_of_vertices) for orientation in ['LEFT', 'RIGHT']])
-    mapping.volume = ci.Cifti2Volume(dimensions,
-                 ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine))
+    mapping.extend(
+        [
+            ci.Cifti2Surface(f'CIFTI_STRUCTURE_CORTEX_{orientation}', number_of_vertices)
+            for orientation in ['LEFT', 'RIGHT']
+        ]
+    )
+    mapping.volume = ci.Cifti2Volume(
+        dimensions, ci.Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ(-3, affine)
+    )
     return mapping
 
 
@@ -155,16 +199,14 @@ def check_parcel_map(mapping):
     assert (mapping.volume.transformation_matrix_voxel_indices_ijk_to_xyz.matrix == affine).all()
 
 
-scalars = [('first_name', {'meta_key': 'some_metadata'}),
-           ('another name', {})]
+scalars = [('first_name', {'meta_key': 'some_metadata'}), ('another name', {})]
 
 
 def create_scalar_map(applies_to_matrix_dimension):
-    maps = [ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta))
-            for name, meta in scalars]
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
-                                     'CIFTI_INDEX_TYPE_SCALARS',
-                                     maps=maps)
+    maps = [ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta)) for name, meta in scalars]
+    return ci.Cifti2MatrixIndicesMap(
+        applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_SCALARS', maps=maps
+    )
 
 
 def check_scalar_map(mapping):
@@ -179,11 +221,24 @@ def check_scalar_map(mapping):
             assert named_map.metadata == expected[1]
 
 
-labels = [('first_name', {'meta_key': 'some_metadata'},
-           {0: ('label0', (0.1, 0.3, 0.2, 0.5)),
-            1: ('new_label', (0.5, 0.3, 0.1, 0.4))}),
-          ('another name', {}, {0: ('???', (0, 0, 0, 0)),
-                                1: ('great region', (0.4, 0.1, 0.23, 0.15))})]
+labels = [
+    (
+        'first_name',
+        {'meta_key': 'some_metadata'},
+        {
+            0: ('label0', (0.1, 0.3, 0.2, 0.5)),
+            1: ('new_label', (0.5, 0.3, 0.1, 0.4)),
+        },
+    ),
+    (
+        'another name',
+        {},
+        {
+            0: ('???', (0, 0, 0, 0)),
+            1: ('great region', (0.4, 0.1, 0.23, 0.15)),
+        },
+    ),
+]
 
 
 def create_label_map(applies_to_matrix_dimension):
@@ -192,11 +247,10 @@ def create_label_map(applies_to_matrix_dimension):
         label_table = ci.Cifti2LabelTable()
         for key, (tag, rgba) in label.items():
             label_table[key] = ci.Cifti2Label(key, tag, *rgba)
-        maps.append(ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta),
-                                      label_table))
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
-                                     'CIFTI_INDEX_TYPE_LABELS',
-                                     maps=maps)
+        maps.append(ci.Cifti2NamedMap(name, ci.Cifti2MetaData(meta), label_table))
+    return ci.Cifti2MatrixIndicesMap(
+        applies_to_matrix_dimension, 'CIFTI_INDEX_TYPE_LABELS', maps=maps
+    )
 
 
 def check_label_map(mapping):
@@ -212,11 +266,15 @@ def check_label_map(mapping):
 
 
 def create_series_map(applies_to_matrix_dimension):
-    return ci.Cifti2MatrixIndicesMap(applies_to_matrix_dimension,
-                                     'CIFTI_INDEX_TYPE_SERIES',
-                                     number_of_series_points=13,
-                                     series_exponent=-3, series_start=18.2,
-                                     series_step=10.5, series_unit='SECOND')
+    return ci.Cifti2MatrixIndicesMap(
+        applies_to_matrix_dimension,
+        'CIFTI_INDEX_TYPE_SERIES',
+        number_of_series_points=13,
+        series_exponent=-3,
+        series_start=18.2,
+        series_step=10.5,
+        series_unit='SECOND',
+    )
 
 
 def check_series_map(mapping):
@@ -229,11 +287,10 @@ def check_series_map(mapping):
 
 
 def test_dtseries():
-    series_map = create_series_map((0, ))
-    geometry_map = create_geometry_map((1, ))
+    series_map = create_series_map((0,))
+    geometry_map = create_geometry_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(series_map)
-    matrix.append(geometry_map)
+    matrix.extend((series_map, geometry_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 10)
     img = ci.Cifti2Image(data, hdr)
@@ -251,11 +308,10 @@ def test_dtseries():
 
 
 def test_dscalar():
-    scalar_map = create_scalar_map((0, ))
-    geometry_map = create_geometry_map((1, ))
+    scalar_map = create_scalar_map((0,))
+    geometry_map = create_geometry_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(scalar_map)
-    matrix.append(geometry_map)
+    matrix.extend((scalar_map, geometry_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
@@ -273,11 +329,10 @@ def test_dscalar():
 
 
 def test_dlabel():
-    label_map = create_label_map((0, ))
-    geometry_map = create_geometry_map((1, ))
+    label_map = create_label_map((0,))
+    geometry_map = create_geometry_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(label_map)
-    matrix.append(geometry_map)
+    matrix.extend((label_map, geometry_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 10)
     img = ci.Cifti2Image(data, hdr)
@@ -315,11 +370,10 @@ def test_dconn():
 
 
 def test_ptseries():
-    series_map = create_series_map((0, ))
-    parcel_map = create_parcel_map((1, ))
+    series_map = create_series_map((0,))
+    parcel_map = create_parcel_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(series_map)
-    matrix.append(parcel_map)
+    matrix.extend((series_map, parcel_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(13, 4)
     img = ci.Cifti2Image(data, hdr)
@@ -337,11 +391,10 @@ def test_ptseries():
 
 
 def test_pscalar():
-    scalar_map = create_scalar_map((0, ))
-    parcel_map = create_parcel_map((1, ))
+    scalar_map = create_scalar_map((0,))
+    parcel_map = create_parcel_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(scalar_map)
-    matrix.append(parcel_map)
+    matrix.extend((scalar_map, parcel_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
@@ -359,11 +412,10 @@ def test_pscalar():
 
 
 def test_pdconn():
-    geometry_map = create_geometry_map((0, ))
-    parcel_map = create_parcel_map((1, ))
+    geometry_map = create_geometry_map((0,))
+    parcel_map = create_parcel_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(geometry_map)
-    matrix.append(parcel_map)
+    matrix.extend((geometry_map, parcel_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(10, 4)
     img = ci.Cifti2Image(data, hdr)
@@ -381,11 +433,10 @@ def test_pdconn():
 
 
 def test_dpconn():
-    parcel_map = create_parcel_map((0, ))
-    geometry_map = create_geometry_map((1, ))
+    parcel_map = create_parcel_map((0,))
+    geometry_map = create_geometry_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(parcel_map)
-    matrix.append(geometry_map)
+    matrix.extend((parcel_map, geometry_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 10)
     img = ci.Cifti2Image(data, hdr)
@@ -403,11 +454,10 @@ def test_dpconn():
 
 
 def test_plabel():
-    label_map = create_label_map((0, ))
-    parcel_map = create_parcel_map((1, ))
+    label_map = create_label_map((0,))
+    parcel_map = create_parcel_map((1,))
     matrix = ci.Cifti2Matrix()
-    matrix.append(label_map)
-    matrix.append(parcel_map)
+    matrix.extend((label_map, parcel_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(2, 4)
     img = ci.Cifti2Image(data, hdr)
@@ -445,16 +495,14 @@ def test_pconn():
 
 def test_pconnseries():
     parcel_map = create_parcel_map((0, 1))
-    series_map = create_series_map((2, ))
+    series_map = create_series_map((2,))
 
     matrix = ci.Cifti2Matrix()
-    matrix.append(parcel_map)
-    matrix.append(series_map)
+    matrix.extend((parcel_map, series_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 13)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
-                                'PARCELLATED_SERIES')
+    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnseries.nii')
@@ -470,16 +518,14 @@ def test_pconnseries():
 
 def test_pconnscalar():
     parcel_map = create_parcel_map((0, 1))
-    scalar_map = create_scalar_map((2, ))
+    scalar_map = create_scalar_map((2,))
 
     matrix = ci.Cifti2Matrix()
-    matrix.append(parcel_map)
-    matrix.append(scalar_map)
+    matrix.extend((parcel_map, scalar_map))
     hdr = ci.Cifti2Header(matrix)
     data = np.random.randn(4, 4, 2)
     img = ci.Cifti2Image(data, hdr)
-    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_'
-                                'PARCELLATED_SCALAR')
+    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR')
 
     with InTemporaryDirectory():
         ci.save(img, 'test.pconnscalar.nii')
@@ -495,12 +541,11 @@ def test_pconnscalar():
 
 
 def test_wrong_shape():
-    scalar_map = create_scalar_map((0, ))
-    brain_model_map = create_geometry_map((1, ))
+    scalar_map = create_scalar_map((0,))
+    brain_model_map = create_geometry_map((1,))
 
     matrix = ci.Cifti2Matrix()
-    matrix.append(scalar_map)
-    matrix.append(brain_model_map)
+    matrix.extend((scalar_map, brain_model_map))
     hdr = ci.Cifti2Header(matrix)
 
     # correct shape is (2, 10)
@@ -517,7 +562,6 @@ def test_wrong_shape():
                     ci.Cifti2Image(data, hdr)
         with suppress_warnings():
             img = ci.Cifti2Image(data, hdr)
-        
+
         with pytest.raises(ValueError):
             img.to_file_map()
-

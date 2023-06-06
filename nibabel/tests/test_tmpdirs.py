@@ -1,10 +1,9 @@
-""" Test tmpdirs module """
+"""Test tmpdirs module"""
 
 from os import getcwd
-from os.path import realpath, abspath, dirname, isfile
+from os.path import abspath, dirname, isfile, realpath
 
 from ..tmpdirs import InGivenDirectory
-
 
 MY_PATH = abspath(__file__)
 MY_DIR = dirname(MY_PATH)

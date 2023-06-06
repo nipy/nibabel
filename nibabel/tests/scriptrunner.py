@@ -1,4 +1,4 @@
-""" Module to help tests check script output
+"""Module to help tests check script output
 
 Provides class to be instantiated in tests that check scripts.  Usually works
 something like this in a test module::
@@ -12,19 +12,18 @@ Then, in the tests, something like::
     assert_equal(code, 0)
     assert_equal(stdout, b'This script ran OK')
 """
-import sys
 import os
-from os.path import (dirname, join as pjoin, isfile, isdir, realpath, pathsep)
-
-from subprocess import Popen, PIPE
-
+import sys
+from os.path import dirname, isdir, isfile
+from os.path import join as pjoin
+from os.path import pathsep, realpath
+from subprocess import PIPE, Popen
 
 MY_PACKAGE = __package__
 
 
 def local_script_dir(script_sdir):
-    """ Get local script directory if running in development dir, else None
-    """
+    """Get local script directory if running in development dir, else None"""
     # Check for presence of scripts in development directory.  ``realpath``
     # allows for the situation where the development directory has been linked
     # into the path.
@@ -37,8 +36,7 @@ def local_script_dir(script_sdir):
 
 
 def local_module_dir(module_name):
-    """ Get local module directory if running in development dir, else None
-    """
+    """Get local module directory if running in development dir, else None"""
     mod = __import__(module_name)
     containing_path = dirname(dirname(realpath(mod.__file__)))
     if containing_path == realpath(os.getcwd()):
@@ -47,19 +45,20 @@ def local_module_dir(module_name):
 
 
 class ScriptRunner:
-    """ Class to run scripts and return output
+    """Class to run scripts and return output
 
     Finds local scripts and local modules if running in the development
     directory, otherwise finds system scripts and modules.
     """
 
-    def __init__(self,
-                 script_sdir='scripts',
-                 module_sdir=MY_PACKAGE,
-                 debug_print_var=None,
-                 output_processor=lambda x: x
-                 ):
-        """ Init ScriptRunner instance
+    def __init__(
+        self,
+        script_sdir='scripts',
+        module_sdir=MY_PACKAGE,
+        debug_print_var=None,
+        output_processor=lambda x: x,
+    ):
+        """Init ScriptRunner instance
 
         Parameters
         ----------
@@ -85,7 +84,7 @@ class ScriptRunner:
         self.output_processor = output_processor
 
     def run_command(self, cmd, check_code=True):
-        """ Run command sequence `cmd` returning exit code, stdout, stderr
+        """Run command sequence `cmd` returning exit code, stdout, stderr
 
         Parameters
         ----------
@@ -113,8 +112,7 @@ class ScriptRunner:
             # Unix, we might have the wrong incantation for the Python interpreter
             # in the hash bang first line in the source file.  So, either way, run
             # the script through the Python interpreter
-            cmd = [sys.executable,
-                   pjoin(self.local_script_dir, cmd[0])] + cmd[1:]
+            cmd = [sys.executable, pjoin(self.local_script_dir, cmd[0])] + cmd[1:]
         if os.name == 'nt':
             # Quote any arguments with spaces. The quotes delimit the arguments
             # on Windows, and the arguments might be file paths with spaces.
@@ -146,6 +144,7 @@ class ScriptRunner:
                 stderr
                 ------
                 {stderr}
-                """)
+                """
+            )
         opp = self.output_processor
         return proc.returncode, opp(stdout), opp(stderr)

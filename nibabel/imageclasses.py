@@ -6,126 +6,61 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Define supported image classes and names """
+"""Define supported image classes and names"""
+from __future__ import annotations
 
 from .analyze import AnalyzeImage
 from .brikhead import AFNIImage
 from .cifti2 import Cifti2Image
+from .dataobj_images import DataobjImage
+from .filebasedimages import FileBasedImage
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
-from .nifti1 import Nifti1Pair, Nifti1Image
-from .nifti2 import Nifti2Pair, Nifti2Image
+from .nifti1 import Nifti1Image, Nifti1Pair
+from .nifti2 import Nifti2Image, Nifti2Pair
 from .parrec import PARRECImage
-from .spm99analyze import Spm99AnalyzeImage
 from .spm2analyze import Spm2AnalyzeImage
-from .volumeutils import Recoder
-from .deprecated import deprecate_with_version
-
-from .optpkg import optional_package
-_, have_scipy, _ = optional_package('scipy')
-
+from .spm99analyze import Spm99AnalyzeImage
 
 # Ordered by the load/save priority.
-all_image_classes = [Nifti1Pair, Nifti1Image, Nifti2Pair,
-                     Cifti2Image, Nifti2Image,  # Cifti2 before Nifti2
-                     Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                     Minc1Image, Minc2Image, MGHImage,
-                     PARRECImage, GiftiImage, AFNIImage]
-
-
-# DEPRECATED: mapping of names to classes and class functionality
-class ClassMapDict(dict):
-
-    @deprecate_with_version('class_map is deprecated.',
-                            '2.1', '4.0')
-    def __getitem__(self, *args, **kwargs):
-        return super(ClassMapDict, self).__getitem__(*args, **kwargs)
-
-
-class_map = ClassMapDict(
-    analyze={'class': AnalyzeImage,  # Image class
-             'ext': '.img',  # characteristic image extension
-             'has_affine': False,  # class can store an affine
-             'makeable': True,  # empty image can be easily made in memory
-             'rw': True},  # image can be written
-    spm99analyze={'class': Spm99AnalyzeImage,
-                  'ext': '.img',
-                  'has_affine': True,
-                  'makeable': True,
-                  'rw': have_scipy},
-    spm2analyze={'class': Spm2AnalyzeImage,
-                 'ext': '.img',
-                 'has_affine': True,
-                 'makeable': True,
-                 'rw': have_scipy},
-    nifti_pair={'class': Nifti1Pair,
-                'ext': '.img',
-                'has_affine': True,
-                'makeable': True,
-                'rw': True},
-    nifti_single={'class': Nifti1Image,
-                  'ext': '.nii',
-                  'has_affine': True,
-                  'makeable': True,
-                  'rw': True},
-    minc={'class': Minc1Image,
-          'ext': '.mnc',
-          'has_affine': True,
-          'makeable': True,
-          'rw': False},
-    mgh={'class': MGHImage,
-         'ext': '.mgh',
-         'has_affine': True,
-         'makeable': True,
-         'rw': True},
-    mgz={'class': MGHImage,
-         'ext': '.mgz',
-         'has_affine': True,
-         'makeable': True,
-         'rw': True},
-    par={'class': PARRECImage,
-         'ext': '.par',
-         'has_affine': True,
-         'makeable': False,
-         'rw': False},
-    afni={'class': AFNIImage,
-          'ext': '.brik',
-          'has_affine': True,
-          'makeable': False,
-          'rw': False})
-
-
-class ExtMapRecoder(Recoder):
-
-    @deprecate_with_version('ext_map is deprecated.',
-                            '2.1', '4.0')
-    def __getitem__(self, *args, **kwargs):
-        return super(ExtMapRecoder, self).__getitem__(*args, **kwargs)
-
-
-# mapping of extensions to default image class names
-ext_map = ExtMapRecoder((
-    ('nifti_single', '.nii'),
-    ('nifti_pair', '.img', '.hdr'),
-    ('minc', '.mnc'),
-    ('mgh', '.mgh'),
-    ('mgz', '.mgz'),
-    ('par', '.par'),
-    ('brik', '.brik')
-))
+all_image_classes: list[type[FileBasedImage]] = [
+    Nifti1Pair,
+    Nifti1Image,
+    Nifti2Pair,
+    Cifti2Image,
+    Nifti2Image,  # Cifti2 before Nifti2
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    AnalyzeImage,
+    Minc1Image,
+    Minc2Image,
+    MGHImage,
+    PARRECImage,
+    GiftiImage,
+    AFNIImage,
+]
 
 # Image classes known to require spatial axes to be first in index ordering.
 # When adding an image class, consider whether the new class should be listed
 # here.
-KNOWN_SPATIAL_FIRST = (Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image,
-                       Spm2AnalyzeImage, Spm99AnalyzeImage, AnalyzeImage,
-                       MGHImage, PARRECImage, AFNIImage)
+KNOWN_SPATIAL_FIRST: tuple[type[FileBasedImage], ...] = (
+    Nifti1Pair,
+    Nifti1Image,
+    Nifti2Pair,
+    Nifti2Image,
+    Spm2AnalyzeImage,
+    Spm99AnalyzeImage,
+    AnalyzeImage,
+    MGHImage,
+    PARRECImage,
+    AFNIImage,
+)
 
 
-def spatial_axes_first(img):
-    """ True if spatial image axes for `img` always precede other axes
+def spatial_axes_first(img: DataobjImage) -> bool:
+    """True if spatial image axes for `img` always precede other axes
 
     Parameters
     ----------

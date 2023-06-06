@@ -2,10 +2,10 @@
 """Simple script to create a tarball with proper git info.
 """
 
-import commands
 import os
 
-from  toollib import *
+import commands
+from toollib import *
 
 tag = commands.getoutput('git describe')
 base_name = f'nibabel-{tag}'

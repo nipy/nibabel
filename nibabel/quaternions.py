@@ -7,7 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """
-Functions to operate on, or return, quaternions.
+Functions to operate on, or return, quaternions
 
 The module also includes functions for the closely related angle, axis
 pair as a specification for rotation.
@@ -19,13 +19,14 @@ Note - rotation matrices here apply to column vectors, that is,
 they are applied on the left of the vector.  For example:
 
 >>> import numpy as np
+>>> from nibabel.quaternions import quat2mat
 >>> q = [0, 1, 0, 0] # 180 degree rotation around axis 0
 >>> M = quat2mat(q) # from this module
 >>> vec = np.array([1, 2, 3]).reshape((3,1)) # column vector
 >>> tvec = np.dot(M, vec)
 """
-
 import math
+
 import numpy as np
 
 MAX_FLOAT = np.maximum_sctype(float)
@@ -33,17 +34,17 @@ FLOAT_EPS = np.finfo(float).eps
 
 
 def fillpositive(xyz, w2_thresh=None):
-    """ Compute unit quaternion from last 3 values
+    """Compute unit quaternion from last 3 values
 
     Parameters
     ----------
     xyz : iterable
        iterable containing 3 values, corresponding to quaternion x, y, z
     w2_thresh : None or float, optional
-       threshold to determine if w squared is really negative.
+       threshold to determine if w squared is non-zero.
        If None (default) then w2_thresh set equal to
-       ``-np.finfo(xyz.dtype).eps``, if possible, otherwise
-       ``-np.finfo(np.float64).eps``
+       3 * ``np.finfo(xyz.dtype).eps``, if possible, otherwise
+       3 * ``np.finfo(np.float64).eps``
 
     Returns
     -------
@@ -87,24 +88,24 @@ def fillpositive(xyz, w2_thresh=None):
     # If necessary, guess precision of input
     if w2_thresh is None:
         try:  # trap errors for non-array, integer array
-            w2_thresh = -np.finfo(xyz.dtype).eps * 3
+            w2_thresh = np.finfo(xyz.dtype).eps * 3
         except (AttributeError, ValueError):
-            w2_thresh = -FLOAT_EPS * 3
+            w2_thresh = FLOAT_EPS * 3
     # Use maximum precision
     xyz = np.asarray(xyz, dtype=MAX_FLOAT)
     # Calculate w
-    w2 = 1.0 - np.dot(xyz, xyz)
-    if w2 < 0:
-        if w2 < w2_thresh:
-            raise ValueError(f'w2 should be positive, but is {w2:e}')
+    w2 = 1.0 - xyz @ xyz
+    if np.abs(w2) < np.abs(w2_thresh):
         w = 0
+    elif w2 < 0:
+        raise ValueError(f'w2 should be positive, but is {w2:e}')
     else:
         w = np.sqrt(w2)
     return np.r_[w, xyz]
 
 
 def quat2mat(q):
-    """ Calculate rotation matrix corresponding to quaternion
+    """Calculate rotation matrix corresponding to quaternion
 
     Parameters
     ----------
@@ -147,13 +148,17 @@ def quat2mat(q):
     wX, wY, wZ = w * X, w * Y, w * Z
     xX, xY, xZ = x * X, x * Y, x * Z
     yY, yZ, zZ = y * Y, y * Z, z * Z
-    return np.array([[1.0 - (yY + zZ), xY - wZ, xZ + wY],
-                     [xY + wZ, 1.0 - (xX + zZ), yZ - wX],
-                     [xZ - wY, yZ + wX, 1.0 - (xX + yY)]])
+    return np.array(
+        [
+            [1.0 - (yY + zZ), xY - wZ, xZ + wY],
+            [xY + wZ, 1.0 - (xX + zZ), yZ - wX],
+            [xZ - wY, yZ + wX, 1.0 - (xX + yY)],
+        ]
+    )
 
 
 def mat2quat(M):
-    """ Calculate quaternion corresponding to given rotation matrix
+    """Calculate quaternion corresponding to given rotation matrix
 
     Parameters
     ----------
@@ -201,12 +206,17 @@ def mat2quat(M):
     # M[0,1].  The notation is from the Wikipedia article.
     Qxx, Qyx, Qzx, Qxy, Qyy, Qzy, Qxz, Qyz, Qzz = M.flat
     # Fill only lower half of symmetric matrix
-    K = np.array([
-        [Qxx - Qyy - Qzz, 0, 0, 0],
-        [Qyx + Qxy, Qyy - Qxx - Qzz, 0, 0],
-        [Qzx + Qxz, Qzy + Qyz, Qzz - Qxx - Qyy, 0],
-        [Qyz - Qzy, Qzx - Qxz, Qxy - Qyx, Qxx + Qyy + Qzz]]
-    ) / 3.0
+    K = (
+        np.array(
+            [
+                [Qxx - Qyy - Qzz, 0, 0, 0],
+                [Qyx + Qxy, Qyy - Qxx - Qzz, 0, 0],
+                [Qzx + Qxz, Qzy + Qyz, Qzz - Qxx - Qyy, 0],
+                [Qyz - Qzy, Qzx - Qxz, Qxy - Qyx, Qxx + Qyy + Qzz],
+            ]
+        )
+        / 3.0
+    )
     # Use Hermitian eigenvectors, values for speed
     vals, vecs = np.linalg.eigh(K)
     # Select largest eigenvector, reorder to w,x,y,z quaternion
@@ -219,7 +229,7 @@ def mat2quat(M):
 
 
 def mult(q1, q2):
-    """ Multiply two quaternions
+    """Multiply two quaternions
 
     Parameters
     ----------
@@ -244,7 +254,7 @@ def mult(q1, q2):
 
 
 def conjugate(q):
-    """ Conjugate of quaternion
+    """Conjugate of quaternion
 
     Parameters
     ----------
@@ -260,7 +270,7 @@ def conjugate(q):
 
 
 def norm(q):
-    """ Return norm of quaternion
+    """Return norm of quaternion
 
     Parameters
     ----------
@@ -276,12 +286,12 @@ def norm(q):
 
 
 def isunit(q):
-    """ Return True is this is very nearly a unit quaternion """
+    """Return True is this is very nearly a unit quaternion"""
     return np.allclose(norm(q), 1)
 
 
 def inverse(q):
-    """ Return multiplicative inverse of quaternion `q`
+    """Return multiplicative inverse of quaternion `q`
 
     Parameters
     ----------
@@ -297,12 +307,12 @@ def inverse(q):
 
 
 def eye():
-    """ Return identity quaternion """
+    """Return identity quaternion"""
     return np.array([1.0, 0, 0, 0])
 
 
 def rotate_vector(v, q):
-    """ Apply transformation in quaternion `q` to vector `v`
+    """Apply transformation in quaternion `q` to vector `v`
 
     Parameters
     ----------
@@ -328,7 +338,7 @@ def rotate_vector(v, q):
 
 
 def nearly_equivalent(q1, q2, rtol=1e-5, atol=1e-8):
-    """ Returns True if `q1` and `q2` give near equivalent transforms
+    """Returns True if `q1` and `q2` give near equivalent transforms
 
     `q1` may be nearly numerically equal to `q2`, or nearly equal to `q2` * -1
     (because a quaternion multiplied by -1 gives the same transform).
@@ -363,7 +373,7 @@ def nearly_equivalent(q1, q2, rtol=1e-5, atol=1e-8):
 
 
 def angle_axis2quat(theta, vector, is_normalized=False):
-    """ Quaternion for rotation of angle `theta` around `vector`
+    """Quaternion for rotation of angle `theta` around `vector`
 
     Parameters
     ----------
@@ -398,12 +408,11 @@ def angle_axis2quat(theta, vector, is_normalized=False):
         vector = vector / math.sqrt(np.dot(vector, vector))
     t2 = theta / 2.0
     st2 = math.sin(t2)
-    return np.concatenate(([math.cos(t2)],
-                           vector * st2))
+    return np.concatenate(([math.cos(t2)], vector * st2))
 
 
 def angle_axis2mat(theta, vector, is_normalized=False):
-    """ Rotation matrix of angle `theta` around `vector`
+    """Rotation matrix of angle `theta` around `vector`
 
     Parameters
     ----------
@@ -435,13 +444,17 @@ def angle_axis2mat(theta, vector, is_normalized=False):
     xs, ys, zs = x * s, y * s, z * s
     xC, yC, zC = x * C, y * C, z * C
     xyC, yzC, zxC = x * yC, y * zC, z * xC
-    return np.array([[x * xC + c, xyC - zs, zxC + ys],
-                     [xyC + zs, y * yC + c, yzC - xs],
-                     [zxC - ys, yzC + xs, z * zC + c]])
+    return np.array(
+        [
+            [x * xC + c, xyC - zs, zxC + ys],
+            [xyC + zs, y * yC + c, yzC - xs],
+            [zxC - ys, yzC + xs, z * zC + c],
+        ]
+    )
 
 
 def quat2angle_axis(quat, identity_thresh=None):
-    """ Convert quaternion to rotation of angle around axis
+    """Convert quaternion to rotation of angle around axis
 
     Parameters
     ----------

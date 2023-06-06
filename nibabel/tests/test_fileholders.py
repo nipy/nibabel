@@ -1,8 +1,7 @@
-""" Testing fileholders
+"""Testing fileholders
 """
 
 from io import BytesIO
-
 
 from ..fileholders import FileHolder
 

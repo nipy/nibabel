@@ -1,0 +1,42 @@
+exclude: ".*/data/.*"
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-vcs-permalinks
+  - repo: https://github.com/grantjenks/blue
+    rev: v0.9.1
+    hooks:
+      - id: blue
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        exclude: "^(doc|nisext|tools)/"
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.991
+    hooks:
+      - id: mypy
+        # Sync with project.optional-dependencies.typing
+        additional_dependencies:
+          - pytest
+          - types-setuptools
+          - types-Pillow
+          - pydicom
+          - numpy
+          - pyzstd
+          - importlib_resources
+        args: ["nibabel"]
+        pass_filenames: false

@@ -1,60 +1,61 @@
 import os
-import numpy as np
-import nibabel as nb
-from nibabel.cmdline.roi import lossless_slice, parse_slice, main
-from nibabel.testing import data_path
-
 import unittest
 from unittest import mock
+
+import numpy as np
 import pytest
+
+import nibabel as nb
+from nibabel.cmdline.roi import lossless_slice, main, parse_slice
+from nibabel.testing import data_path
 
 
 def test_parse_slice():
     assert parse_slice(None) == slice(None)
-    assert parse_slice("1:5") == slice(1, 5)
-    assert parse_slice("1:") == slice(1, None)
-    assert parse_slice(":5") == slice(None, 5)
-    assert parse_slice(":-1") == slice(None, -1)
-    assert parse_slice("-5:-1") == slice(-5, -1)
-    assert parse_slice("1:5:") == slice(1, 5, None)
-    assert parse_slice("1::") == slice(1, None, None)
-    assert parse_slice(":5:") == slice(None, 5, None)
-    assert parse_slice(":-1:") == slice(None, -1, None)
-    assert parse_slice("-5:-1:") == slice(-5, -1, None)
-    assert parse_slice("1:5:1") == slice(1, 5, 1)
-    assert parse_slice("1::1") == slice(1, None, 1)
-    assert parse_slice(":5:1") == slice(None, 5, 1)
-    assert parse_slice(":-1:1") == slice(None, -1, 1)
-    assert parse_slice("-5:-1:1") == slice(-5, -1, 1)
-    assert parse_slice("5:1:-1") == slice(5, 1, -1)
-    assert parse_slice(":1:-1") == slice(None, 1, -1)
-    assert parse_slice("5::-1") == slice(5, None, -1)
-    assert parse_slice("-1::-1") == slice(-1, None, -1)
-    assert parse_slice("-1:-5:-1") == slice(-1, -5, -1)
+    assert parse_slice('1:5') == slice(1, 5)
+    assert parse_slice('1:') == slice(1, None)
+    assert parse_slice(':5') == slice(None, 5)
+    assert parse_slice(':-1') == slice(None, -1)
+    assert parse_slice('-5:-1') == slice(-5, -1)
+    assert parse_slice('1:5:') == slice(1, 5, None)
+    assert parse_slice('1::') == slice(1, None, None)
+    assert parse_slice(':5:') == slice(None, 5, None)
+    assert parse_slice(':-1:') == slice(None, -1, None)
+    assert parse_slice('-5:-1:') == slice(-5, -1, None)
+    assert parse_slice('1:5:1') == slice(1, 5, 1)
+    assert parse_slice('1::1') == slice(1, None, 1)
+    assert parse_slice(':5:1') == slice(None, 5, 1)
+    assert parse_slice(':-1:1') == slice(None, -1, 1)
+    assert parse_slice('-5:-1:1') == slice(-5, -1, 1)
+    assert parse_slice('5:1:-1') == slice(5, 1, -1)
+    assert parse_slice(':1:-1') == slice(None, 1, -1)
+    assert parse_slice('5::-1') == slice(5, None, -1)
+    assert parse_slice('-1::-1') == slice(-1, None, -1)
+    assert parse_slice('-1:-5:-1') == slice(-1, -5, -1)
 
     # Max of start:stop:step
     with pytest.raises(ValueError):
-        parse_slice("1:2:3:4")
+        parse_slice('1:2:3:4')
     # Integers only
     with pytest.raises(ValueError):
-        parse_slice("abc:2:3")
+        parse_slice('abc:2:3')
     with pytest.raises(ValueError):
-        parse_slice("1.2:2:3")
+        parse_slice('1.2:2:3')
     # Unit steps only
     with pytest.raises(ValueError):
-        parse_slice("1:5:2")
+        parse_slice('1:5:2')
 
 
 def test_parse_slice_disallow_step():
     # Permit steps of 1
-    assert parse_slice("1:5", False) == slice(1, 5)
-    assert parse_slice("1:5:", False) == slice(1, 5)
-    assert parse_slice("1:5:1", False) == slice(1, 5, 1)
+    assert parse_slice('1:5', False) == slice(1, 5)
+    assert parse_slice('1:5:', False) == slice(1, 5)
+    assert parse_slice('1:5:1', False) == slice(1, 5, 1)
     # Disable other steps
     with pytest.raises(ValueError):
-        parse_slice("1:5:-1", False)
+        parse_slice('1:5:-1', False)
     with pytest.raises(ValueError):
-        parse_slice("1:5:-2", False)
+        parse_slice('1:5:-2', False)
 
 
 def test_lossless_slice_unknown_axes():
@@ -66,7 +67,7 @@ def test_lossless_slice_unknown_axes():
 def test_lossless_slice_scaling(tmp_path):
     fname = tmp_path / 'image.nii'
     img = nb.Nifti1Image(np.random.uniform(-20000, 20000, (5, 5, 5, 5)), affine=np.eye(4))
-    img.header.set_data_dtype("int16")
+    img.header.set_data_dtype('int16')
     img.to_filename(fname)
     img1 = nb.load(fname)
     sliced_fname = tmp_path / 'sliced.nii'
@@ -81,8 +82,9 @@ def test_lossless_slice_scaling(tmp_path):
 
 def test_lossless_slice_noscaling(tmp_path):
     fname = tmp_path / 'image.mgh'
-    img = nb.MGHImage(np.random.uniform(-20000, 20000, (5, 5, 5, 5)).astype("float32"),
-                      affine=np.eye(4))
+    img = nb.MGHImage(
+        np.random.uniform(-20000, 20000, (5, 5, 5, 5)).astype('float32'), affine=np.eye(4)
+    )
     img.to_filename(fname)
     img1 = nb.load(fname)
     sliced_fname = tmp_path / 'sliced.mgh'
@@ -95,7 +97,7 @@ def test_lossless_slice_noscaling(tmp_path):
     assert img1.dataobj.inter == img2.dataobj.inter
 
 
-@pytest.mark.parametrize("inplace", (True, False))
+@pytest.mark.parametrize('inplace', (True, False))
 def test_nib_roi(tmp_path, inplace):
     in_file = os.path.join(data_path, 'functional.nii')
     out_file = str(tmp_path / 'sliced.nii')
@@ -117,11 +119,14 @@ def test_nib_roi(tmp_path, inplace):
     assert np.allclose(in_sliced.affine, out_img.affine)
 
 
-@pytest.mark.parametrize("args, errmsg", (
-    (("-i", "1:1"), "Cannot take zero-length slice"),
-    (("-j", "1::2"), "Downsampling is not supported"),
-    (("-t", "5::-1"), "Step entry not permitted"),
-))
+@pytest.mark.parametrize(
+    'args, errmsg',
+    (
+        (('-i', '1:1'), 'Cannot take zero-length slice'),
+        (('-j', '1::2'), 'Downsampling is not supported'),
+        (('-t', '5::-1'), 'Step entry not permitted'),
+    ),
+)
 def test_nib_roi_bad_slices(capsys, args, errmsg):
     in_file = os.path.join(data_path, 'functional.nii')
 
@@ -133,20 +138,20 @@ def test_nib_roi_bad_slices(capsys, args, errmsg):
 
 def test_entrypoint(capsys):
     # Check that we handle missing args as expected
-    with mock.patch("sys.argv", ["nib-roi", "--help"]):
+    with mock.patch('sys.argv', ['nib-roi', '--help']):
         try:
             retval = main()
         except SystemExit:
             pass
         else:
-            assert False, "argparse exits on --help. If changing to another parser, update test."
+            assert False, 'argparse exits on --help. If changing to another parser, update test.'
     captured = capsys.readouterr()
-    assert captured.out.startswith("usage: nib-roi")
+    assert captured.out.startswith('usage: nib-roi')
 
 
 def test_nib_roi_unknown_axes(capsys):
     in_file = os.path.join(data_path, 'minc1_4d.mnc')
     with pytest.raises(ValueError):
-        main([in_file, os.devnull, "-i", ":"])
+        main([in_file, os.devnull, '-i', ':'])
     captured = capsys.readouterr()
-    assert "Could not slice image." in captured.out
+    assert 'Could not slice image.' in captured.out

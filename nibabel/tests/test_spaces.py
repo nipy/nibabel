@@ -1,16 +1,15 @@
-""" Tests for spaces module
+"""Tests for spaces module
 """
 
 import numpy as np
 import numpy.linalg as npl
-
-from ..spaces import vox2out_vox, slice2volume
-from ..affines import apply_affine, from_matvec
-from ..nifti1 import Nifti1Image
-from ..eulerangles import euler2mat
-
 import pytest
 from numpy.testing import assert_almost_equal
+
+from ..affines import apply_affine, from_matvec
+from ..eulerangles import euler2mat
+from ..nifti1 import Nifti1Image
+from ..spaces import slice2volume, vox2out_vox
 
 
 def assert_all_in(in_shape, in_affine, out_shape, out_affine):
@@ -37,42 +36,49 @@ def get_outspace_params():
     trans_123 = [[1, 0, 0, 1], [0, 1, 0, 2], [0, 0, 1, 3], [0, 0, 0, 1]]
     trans_m123 = [[1, 0, 0, -1], [0, 1, 0, -2], [0, 0, 1, -3], [0, 0, 0, 1]]
     rot_3 = from_matvec(euler2mat(np.pi / 4), [0, 0, 0])
-    return ( # in_shape, in_aff, vox, out_shape, out_aff
+    return (  # in_shape, in_aff, vox, out_shape, out_aff
         # Identity
         ((2, 3, 4), np.eye(4), None, (2, 3, 4), np.eye(4)),
         # Flip first axis
-        ((2, 3, 4), np.diag([-1, 1, 1, 1]), None,
-         (2, 3, 4), [[1, 0, 0, -1],  # axis reversed -> -ve offset
-                     [0, 1, 0, 0],
-                     [0, 0, 1, 0],
-                     [0, 0, 0, 1]]),
+        (
+            (2, 3, 4),
+            np.diag([-1, 1, 1, 1]),
+            None,
+            (2, 3, 4),
+            [
+                [1, 0, 0, -1],  # axis reversed -> -ve offset
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ],
+        ),
         # zooms for affine > 1 -> larger grid with default 1mm output voxels
-        ((2, 3, 4), np.diag([4, 5, 6, 1]), None,
-         (5, 11, 19), np.eye(4)),
+        ((2, 3, 4), np.diag([4, 5, 6, 1]), None, (5, 11, 19), np.eye(4)),
         # set output voxels to be same size as input. back to original shape
-        ((2, 3, 4), np.diag([4, 5, 6, 1]), (4, 5, 6),
-         (2, 3, 4), np.diag([4, 5, 6, 1])),
+        ((2, 3, 4), np.diag([4, 5, 6, 1]), (4, 5, 6), (2, 3, 4), np.diag([4, 5, 6, 1])),
         # Translation preserved in output
-        ((2, 3, 4), trans_123, None,
-         (2, 3, 4), trans_123),
-        ((2, 3, 4), trans_m123, None,
-         (2, 3, 4), trans_m123),
+        ((2, 3, 4), trans_123, None, (2, 3, 4), trans_123),
+        ((2, 3, 4), trans_m123, None, (2, 3, 4), trans_m123),
         # rotation around 3rd axis
-        ((2, 3, 4), rot_3, None,
-         # x diff, y diff now 3 cos pi / 4 == 2.12, ceil to 3, add 1
-         # most negative x now 2 cos pi / 4
-         (4, 4, 4), [[1, 0, 0, -2 * np.cos(np.pi / 4)],
-                     [0, 1, 0, 0],
-                     [0, 0, 1, 0],
-                     [0, 0, 0, 1]]),
+        (
+            (2, 3, 4),
+            rot_3,
+            None,
+            # x diff, y diff now 3 cos pi / 4 == 2.12, ceil to 3, add 1
+            # most negative x now 2 cos pi / 4
+            (4, 4, 4),
+            [
+                [1, 0, 0, -2 * np.cos(np.pi / 4)],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ],
+        ),
         # Less than 3 axes
-        ((2, 3), np.eye(4), None,
-         (2, 3), np.eye(4)),
-        ((2,), np.eye(4), None,
-         (2,), np.eye(4)),
+        ((2, 3), np.eye(4), None, (2, 3), np.eye(4)),
+        ((2,), np.eye(4), None, (2,), np.eye(4)),
         # Number of voxel sizes matches length
-        ((2, 3), np.diag([4, 5, 6, 1]), (4, 5),
-         (2, 3), np.diag([4, 5, 1, 1])),
+        ((2, 3), np.diag([4, 5, 6, 1]), (4, 5), (2, 3), np.diag([4, 5, 1, 1])),
     )
 
 
@@ -105,21 +111,28 @@ def test_vox2out_vox():
 
 def test_slice2volume():
     # Get affine expressing selection of single slice from volume
-    for axis, def_aff in zip((0, 1, 2), (
+    for axis, def_aff in zip(
+        (0, 1, 2),
+        (
             [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]],
             [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
-            [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]])):
+            [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]],
+        ),
+    ):
         for val in (0, 5, 10):
             exp_aff = np.array(def_aff)
             exp_aff[axis, -1] = val
             assert (slice2volume(val, axis) == exp_aff).all()
 
 
-@pytest.mark.parametrize("index, axis", [
-    [-1, 0],
-    [0, -1],
-    [0, 3]
-])
+@pytest.mark.parametrize(
+    'index, axis',
+    [
+        [-1, 0],
+        [0, -1],
+        [0, 3],
+    ],
+)
 def test_slice2volume_exception(index, axis):
     with pytest.raises(ValueError):
         slice2volume(index, axis)

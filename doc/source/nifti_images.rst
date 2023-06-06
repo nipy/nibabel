@@ -273,8 +273,8 @@ You can get and set the qform affine using the equivalent methods to those for
 the sform: ``get_qform()``, ``set_qform()``.
 
 >>> n1_header.get_qform(coded=True)
-(array([[ -2.  ,   0.  ,   0.  , 117.86],
-       [ -0.  ,   1.97,  -0.36, -35.72],
+(array([[ -2.  ,   0.  ,  -0.  , 117.86],
+       [  0.  ,   1.97,  -0.36, -35.72],
        [  0.  ,   0.32,   2.17,  -7.25],
        [  0.  ,   0.  ,   0.  ,   1.  ]]), 1)
 

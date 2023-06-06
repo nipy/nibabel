@@ -1,9 +1,10 @@
-""" Testing tripwire module
+"""Testing tripwire module
 """
 
-from ..tripwire import TripWire, is_tripwire, TripWireError
-
 import pytest
+
+from ..tripwire import TripWire, TripWireError, is_tripwire
+
 
 def test_is_tripwire():
     assert not is_tripwire(object())
@@ -21,4 +22,4 @@ def test_tripwire():
     except TripWireError as err:
         assert isinstance(err, AttributeError)
     else:
-        raise RuntimeError("No error raised, but expected")
+        raise RuntimeError('No error raised, but expected')

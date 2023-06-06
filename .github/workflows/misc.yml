@@ -24,7 +24,7 @@ jobs:
       matrix:
         python-version: ["3.10"]
         install: ['pip']
-        check: ['style', 'doc']
+        check: ['style', 'doctest', 'typing']
         pip-flags: ['']
         depends: ['REQUIREMENTS']
     env:
@@ -59,9 +59,6 @@ jobs:
       - name: Run tests
         run: tools/ci/check.sh
         if: ${{ matrix.check != 'skiptests' }}
-      - name: Submit coverage
-        run: tools/ci/submit_coverage.sh
-        if: ${{ always() }}
       - name: Upload pytest test results
         uses: actions/upload-artifact@v3
         with:

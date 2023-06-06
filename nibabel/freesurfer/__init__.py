@@ -1,6 +1,13 @@
 """Reading functions for freesurfer files
 """
 
-from .io import read_geometry, read_morph_data, write_morph_data, \
-    read_annot, read_label, write_geometry, write_annot
-from .mghformat import load, save, MGHImage
+from .io import (
+    read_annot,
+    read_geometry,
+    read_label,
+    read_morph_data,
+    write_annot,
+    write_geometry,
+    write_morph_data,
+)
+from .mghformat import MGHImage, load, save

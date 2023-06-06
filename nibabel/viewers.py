@@ -1,11 +1,11 @@
-""" Utilities for viewing images
+"""Utilities for viewing images
 
 Includes version of OrthoSlicer3D code originally written by our own
 Paul Ivanov.
 """
+import weakref
 
 import numpy as np
-import weakref
 
 from .affines import voxel_sizes
 from .optpkg import optional_package
@@ -13,7 +13,7 @@ from .orientations import aff2axcodes, axcodes2ornt
 
 
 class OrthoSlicer3D:
-    """ Orthogonal-plane slice viewer.
+    """Orthogonal-plane slice viewer
 
     OrthoSlicer3d expects 3- or 4-dimensional array data.  It treats
     4D data as a sequence of 3D spatial volumes, where a slice over the final
@@ -39,6 +39,7 @@ class OrthoSlicer3D:
     >>> data = np.outer(a, b)[..., np.newaxis] * a
     >>> OrthoSlicer3D(data).show()  # doctest: +SKIP
     """
+
     # Skip doctest above b/c not all systems have mpl installed
 
     def __init__(self, data, affine=None, axes=None, title=None):
@@ -74,7 +75,7 @@ class OrthoSlicer3D:
         if data.ndim < 3:
             raise ValueError('data must have at least 3 dimensions')
         if np.iscomplexobj(data):
-            raise TypeError("Complex data not supported")
+            raise TypeError('Complex data not supported')
         affine = np.array(affine, float) if affine is not None else np.eye(4)
         if affine.shape != (4, 4):
             raise ValueError('affine must be a 4x4 matrix')
@@ -90,7 +91,7 @@ class OrthoSlicer3D:
         self._volume_dims = data.shape[3:]
         self._current_vol_data = data[:, :, :, 0] if data.ndim > 3 else data
         self._data = data
-        self._clim = np.percentile(data, (1., 99.))
+        self._clim = np.percentile(data, (1.0, 99.0))
         del data
 
         if axes is None:  # make the axes
@@ -130,36 +131,53 @@ class OrthoSlicer3D:
 
         # set up axis crosshairs
         self._crosshairs = [None] * 3
-        r = [self._scalers[self._order[2]] / self._scalers[self._order[1]],
-             self._scalers[self._order[2]] / self._scalers[self._order[0]],
-             self._scalers[self._order[1]] / self._scalers[self._order[0]]]
+        r = [
+            self._scalers[self._order[2]] / self._scalers[self._order[1]],
+            self._scalers[self._order[2]] / self._scalers[self._order[0]],
+            self._scalers[self._order[1]] / self._scalers[self._order[0]],
+        ]
         self._sizes = [self._data.shape[order] for order in self._order]
-        for ii, xax, yax, ratio, label in zip([0, 1, 2], [1, 0, 0], [2, 2, 1],
-                                              r, ('SAIP', 'SRIL', 'ARPL')):
+        for ii, xax, yax, ratio, label in zip(
+            [0, 1, 2], [1, 0, 0], [2, 2, 1], r, ('SAIP', 'SRIL', 'ARPL')
+        ):
             ax = self._axes[ii]
             d = np.zeros((self._sizes[yax], self._sizes[xax]))
             im = self._axes[ii].imshow(
-                d, vmin=self._clim[0], vmax=self._clim[1], aspect=1,
-                cmap='gray', interpolation='nearest', origin='lower')
+                d,
+                vmin=self._clim[0],
+                vmax=self._clim[1],
+                aspect=1,
+                cmap='gray',
+                interpolation='nearest',
+                origin='lower',
+            )
             self._ims.append(im)
-            vert = ax.plot([0] * 2, [-0.5, self._sizes[yax] - 0.5],
-                           color=(0, 1, 0), linestyle='-')[0]
-            horiz = ax.plot([-0.5, self._sizes[xax] - 0.5], [0] * 2,
-                            color=(0, 1, 0), linestyle='-')[0]
+            vert = ax.plot(
+                [0] * 2, [-0.5, self._sizes[yax] - 0.5], color=(0, 1, 0), linestyle='-'
+            )[0]
+            horiz = ax.plot(
+                [-0.5, self._sizes[xax] - 0.5], [0] * 2, color=(0, 1, 0), linestyle='-'
+            )[0]
             self._crosshairs[ii] = dict(vert=vert, horiz=horiz)
             # add text labels (top, right, bottom, left)
             lims = [0, self._sizes[xax], 0, self._sizes[yax]]
             bump = 0.01
-            poss = [[lims[1] / 2., lims[3]],
-                    [(1 + bump) * lims[1], lims[3] / 2.],
-                    [lims[1] / 2., 0],
-                    [lims[0] - bump * lims[1], lims[3] / 2.]]
-            anchors = [['center', 'bottom'], ['left', 'center'],
-                       ['center', 'top'], ['right', 'center']]
+            poss = [
+                [lims[1] / 2.0, lims[3]],
+                [(1 + bump) * lims[1], lims[3] / 2.0],
+                [lims[1] / 2.0, 0],
+                [lims[0] - bump * lims[1], lims[3] / 2.0],
+            ]
+            anchors = [
+                ['center', 'bottom'],
+                ['left', 'center'],
+                ['center', 'top'],
+                ['right', 'center'],
+            ]
             for pos, anchor, lab in zip(poss, anchors, label):
-                ax.text(pos[0], pos[1], lab,
-                        horizontalalignment=anchor[0],
-                        verticalalignment=anchor[1])
+                ax.text(
+                    pos[0], pos[1], lab, horizontalalignment=anchor[0], verticalalignment=anchor[1]
+                )
             ax.axis(lims)
             ax.set_aspect(ratio)
             ax.patch.set_visible(False)
@@ -180,19 +198,24 @@ class OrthoSlicer3D:
             y = np.zeros(self.n_volumes + 1)
             x = np.arange(self.n_volumes + 1) - 0.5
             step = ax.step(x, y, where='post', color='y')[0]
-            ax.set_xticks(np.unique(np.linspace(0, self.n_volumes - 1,
-                                                5).astype(int)))
+            ax.set_xticks(np.unique(np.linspace(0, self.n_volumes - 1, 5).astype(int)))
             ax.set_xlim(x[0], x[-1])
             yl = [self._data.min(), self._data.max()]
             yl = [lim + s * np.diff(lims)[0] for lim, s in zip(yl, [-1.01, 1.01])]
-            patch = mpl_patch.Rectangle([-0.5, yl[0]], 1., np.diff(yl)[0],
-                                        fill=True, facecolor=(0, 1, 0),
-                                        edgecolor=(0, 1, 0), alpha=0.25)
+            patch = mpl_patch.Rectangle(
+                [-0.5, yl[0]],
+                1.0,
+                np.diff(yl)[0],
+                fill=True,
+                facecolor=(0, 1, 0),
+                edgecolor=(0, 1, 0),
+                alpha=0.25,
+            )
             ax.add_patch(patch)
             ax.set_ylim(yl)
             self._volume_ax_objs = dict(step=step, patch=patch)
 
-        self._figs = set([a.figure for a in self._axes])
+        self._figs = {a.figure for a in self._axes}
         for fig in self._figs:
             fig.canvas.mpl_connect('scroll_event', self._on_scroll)
             fig.canvas.mpl_connect('motion_notify_event', self._on_mouse)
@@ -202,32 +225,32 @@ class OrthoSlicer3D:
 
         # actually set data meaningfully
         self._position = np.zeros(4)
-        self._position[3] = 1.  # convenience for affine multiplication
+        self._position[3] = 1.0  # convenience for affine multiplication
         self._changing = False  # keep track of status to avoid loops
         self._links = []  # other viewers this one is linked to
         self._plt.draw()
         for fig in self._figs:
             fig.canvas.draw()
         self._set_volume_index(0, update_slices=False)
-        self._set_position(0., 0., 0.)
+        self._set_position(0.0, 0.0, 0.0)
         self._draw()
 
     def __repr__(self):
         title = '' if self._title is None else f'{self._title} '
         vol = '' if self.n_volumes <= 1 else f', {self.n_volumes}'
-        r = (f'<{self.__class__.__name__}: {title}({self._sizes[0]}, '
-             f'{self._sizes[1]}, {self._sizes[2]}{vol})>')
+        r = (
+            f'<{self.__class__.__name__}: {title}({self._sizes[0]}, '
+            f'{self._sizes[1]}, {self._sizes[2]}{vol})>'
+        )
         return r
 
     # User-level functions ###################################################
     def show(self):
-        """Show the slicer in blocking mode; convenience for ``plt.show()``
-        """
+        """Show the slicer in blocking mode; convenience for ``plt.show()``"""
         self._plt.show()
 
     def close(self):
-        """Close the viewer figures
-        """
+        """Close the viewer figures"""
         self._cleanup()
         for f in self._figs:
             self._plt.close(f)
@@ -294,8 +317,9 @@ class OrthoSlicer3D:
             Other viewer to use to link movements.
         """
         if not isinstance(other, self.__class__):
-            raise TypeError('other must be an instance of '
-                            f'{self.__class__.__name__}, not {type(other)}')
+            raise TypeError(
+                f'other must be an instance of {self.__class__.__name__}, not {type(other)}'
+            )
         self._link(other, is_primary=True)
 
     def _link(self, other, is_primary):
@@ -355,8 +379,7 @@ class OrthoSlicer3D:
         self._data_idx[3] = max(min(int(round(v)), max_ - 1), 0)
         idx = (slice(None), slice(None), slice(None))
         if self._data.ndim > 3:
-            idx = idx + tuple(np.unravel_index(self._data_idx[3],
-                                               self._volume_dims))
+            idx = idx + tuple(np.unravel_index(self._data_idx[3], self._volume_dims))
         self._current_vol_data = self._data[idx]
         # update all of our slice plots
         if update_slices:
@@ -381,8 +404,7 @@ class OrthoSlicer3D:
             # sagittal: get to S/A
             # coronal: get to S/L
             # axial: get to A/L
-            data = np.rollaxis(self._current_vol_data,
-                               axis=self._order[ii])[self._data_idx[ii]]
+            data = np.rollaxis(self._current_vol_data, axis=self._order[ii])[self._data_idx[ii]]
             xax = [1, 0, 0][ii]
             yax = [2, 2, 1][ii]
             if self._order[xax] < self._order[yax]:
@@ -440,14 +462,14 @@ class OrthoSlicer3D:
                 return
             ii = 3  # shift: change volume in any axis
         assert ii in range(4)
-        dv = 10. if event.key is not None and 'control' in event.key else 1.
-        dv *= 1. if event.button == 'up' else -1.
+        dv = 10.0 if event.key is not None and 'control' in event.key else 1.0
+        dv *= 1.0 if event.button == 'up' else -1.0
         dv *= -1 if self._flips[ii] else 1
         val = self._data_idx[ii] + dv
         if ii == 3:
             self._set_volume_index(val)
         else:
-            coords = [self._data_idx[k] for k in range(3)] + [1.]
+            coords = [self._data_idx[k] for k in range(3)] + [1.0]
             coords[ii] = val
             self._set_position(*np.dot(self._affine, coords)[:3])
         self._draw()
@@ -468,7 +490,7 @@ class OrthoSlicer3D:
             x, y = event.xdata, event.ydata
             x = self._sizes[xax] - x if self._flips[xax] else x
             y = self._sizes[yax] - y if self._flips[yax] else y
-            idxs = [None, None, None, 1.]
+            idxs = [None, None, None, 1.0]
             idxs[xax] = x
             idxs[yax] = y
             idxs[ii] = self._data_idx[ii]
@@ -479,7 +501,7 @@ class OrthoSlicer3D:
         """Handle mpl keypress events"""
         if event.key is not None and 'escape' in event.key:
             self.close()
-        elif event.key in ["=", '+']:
+        elif event.key in ['=', '+']:
             # increment volume index
             new_idx = min(self._data_idx[3] + 1, self.n_volumes)
             self._set_volume_index(new_idx, update_slices=True)

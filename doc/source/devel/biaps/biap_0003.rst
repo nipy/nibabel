@@ -41,7 +41,7 @@ From `adding nifti extensions`_:
 * 4 = NIFTI_ECODE_AFNI = AFNI header attributes: The format of the AFNI
   extension in the NIfTI-1.1 format is described at
   http://nifti.nimh.nih.gov/nifti-1/AFNIextension1/
-* 6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no  
+* 6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no
   additional structure implied
 * 8 = NIFTI_ECODE_XCEDE = XCEDE metadata:
   http://www.nbirn.net/Resources/Users/Applications/xcede/index.htm
@@ -199,8 +199,8 @@ The base level header will usually also have image metadata fields giving
 information about the whole image. A field is an "image metadata field" if it
 is defined at the top level of the header.  For example::
 
->>> hdr = dict(nipy_header_version='1.0',
-...            Manufacturer="SIEMENS")
+      >>> hdr = dict(nipy_header_version='1.0',
+      ...            Manufacturer="SIEMENS")
 
 All image metadata fields are optional.
 
@@ -369,7 +369,7 @@ apply to the Cartesian product of the image axis values.  For example, if the
 values of ``applies_to`` == ``['slice', 'time']``, and the slice and time axes
 in the array are lengths (6, 10) respectively, then the values apply to all
 combinations of the 6 possible values for slice indices and the 10 possible
-values for the time indices (ie apply to all 6x10=60 values).  The axis metadata 
+values for the time indices (ie apply to all 6x10=60 values).  The axis metadata
 values in this case can be:
 
 * a scalar. The value applies to every combination of (slice, time)
@@ -635,7 +635,7 @@ Use case
 ^^^^^^^^
 
 When doing motion correction on a 4D image, we calculate the required affine
-transformation from |--| say |--| the second image to the first image; the
+transformation from, say, the second image to the first image; the
 third image to the first image; etc. If there are N volumes in the 4D image,
 we would need to store N-1 affine transformations.  If we have registered to
 the mean volume of the volume series instead of one of the volumes in the

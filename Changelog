@@ -25,6 +25,151 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.1.0 (Monday 3 April 2023)
+===========================
+
+New feature release in the 5.1.x series.
+
+Enhancements
+------------
+* Make :mod:`nibabel.imagestats` available with ``import nibabel`` (pr/1208)
+  (Fabian Perez, reviewed by CM)
+* Use symmetric threshold for identifying unit quaternions on qform
+  calculations (pr/1182) (CM, reviewed by MB)
+* Type annotations for :mod:`~nibabel.loadsave` (pr/1213) and
+  :class:`~nibabel.spatialimages.SpatialImage` APIs (pr/1179),
+  :mod:`~nibabel.deprecated`, :mod:`~nibabel.deprecator`,
+  :mod:`~nibabel.onetime` and :mod:`~nibabel.optpkg` modules (pr/1188),
+  :mod:`~nibabel.volumeutils` (pr/1189), :mod:`~nibabel.filename_parser` and
+  :mod:`~nibabel.openers` (pr/1197) (CM, reviewed by Zvi Baratz)
+
+Bug fixes
+---------
+* Require explicit overrides to write GIFTI files that contain data arrays
+  with data types not permitted by the GIFTI standard (pr/1199) (CM, reviewed
+  by Alexis Thual)
+
+Maintenance
+-----------
+* Move compression detection logic into a private ``nibabel._compression``
+  module, resolving unexpected errors from pyzstd. (pr/1212) (CM)
+* Improved consistency of docstring formatting (pr/1200) (Zvi Baratz, reviewed
+  by CM)
+* Modernized README text (pr/1195) (Zvi Baratz, reviewed by CM)
+* Updated README badges to include package distributions (pr/1192) (Horea
+  Christian, reviewed by CM)
+* Removed all dependencies on distutils and setuptools (pr/1190) (CM,
+  reviewed by Zvi Baratz)
+* Add a ``_version.pyi`` stub to allow mypy_ to run without building nibabel
+  (pr/1210) (CM)
+
+
+.. _mypy: https://mypy.readthedocs.io/
+
+
+5.0.1 (Sunday 12 February 2023)
+===============================
+
+Bug-fix release in the 5.0.x series.
+
+Bug fixes
+---------
+* Support ragged voxel arrays in
+  :class:`~nibabel.cifti2.cifti2_axes.ParcelsAxis` (pr/1194) (Michiel Cottaar,
+  reviewed by CM)
+* Return to cwd on exception in :class:`~nibabel.tmpdirs.InTemporaryDirectory`
+  (pr/1184) (CM)
+
+Maintenance
+-----------
+* Add ``py.typed`` to module root to enable use of types in downstream
+  projects (CM, reviewed by Fernando Pérez-Garcia)
+* Cache git-archive separately from Python packages in GitHub Actions
+  (pr/1186) (CM, reviewed by Zvi Baratz)
+
+5.0.0 (Monday 9 January 2023)
+=============================
+
+New feature release in the 5.0.x series.
+
+New features
+------------
+* :class:`~nibabel.filebasedimages.SerializableImage` now has
+  :meth:`~nibabel.filebasedimages.SerializableImage.to_stream()` and
+  :meth:`~nibabel.filebasedimages.SerializableImage.from_stream()` methods to
+  read/write streams implementing the :class:`~io.IOBase` interface. A
+  :meth:`~nibabel.filebasedimages.SerializableImage.from_url()` method
+  enables loading images from URLs. (pr/1129) (CM, reviewed by MB)
+* :class:`~nibabel.streamlines.trk.TrkFile` supports TRKv3, an
+  undocumented but generally compatible variant of TRKv2. (pr/1125) (CM)
+
+Enhancements
+------------
+* Support multiline header fields in :class:`~nibabel.streamlines.tck.TCKFile`
+  (pr/1175) (CM, reviewed by Matt Cieslak)
+* Make layout order an initialization parameter of
+  :class:`~nibabel.arrayproxy.ArrayProxy` (pr/1131) (CM, reviewed by MB)
+* Initial support for type annotations. (pr/1115, pr/1178) (CM, reviewed by
+  Zvi Baratz)
+
+Bug fixes
+---------
+* Handle extension/file-format mismatches implemented incompletely in pr/1013
+  (pr/1138) (CM, reviewed by Thomas Phil)
+* Improve handling of invalid TCK files, which could sometimes cause an
+  infinite loop (pr/1140) (Anibal Solon, reviewed by CM)
+* Clean up ECAT test case that left filehandle open and failed to use class
+  variables (pr/1155) (Dimitri Papadopoulos, reviewed by CM)
+
+Maintenance
+-----------
+* Simplify TCK reading code by assuming files are open in binary mode
+  (pr/1142) (Anibal Solon, reviewed by MC, CM)
+* Code support for tests covering deprecated functionality (pr/1159) (CM)
+* Miscellaneous code cleanups (pr/1148, pr/1149, pr/1153, pr/1154, pr/1156)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Update CI to build, test and deploy PyPI artifacts (pr/1134) (CM, reviewed
+  by MB)
+* Transition from ``setup.cfg`` to ``pyproject.toml`` package configuration
+  (pr/1133) (CM, reviewed by MB)
+* Addressed race conditions preventing running tests with pytest-xdist_.
+  (pr/1157, pr/1158) (CM, reviewed by Christian Haselgrove)
+* Apply blue_ and isort_ auto-formatters and provide pre-commit_ configuration
+  to reduce human burden of style guidelines. (pr/1124, pr/1165, pr/1169)
+  (CM and Zvi Baratz)
+* Manage versioning with setuptools_scm_ (pr/1171) (CM, reviewed by Zvi Baratz)
+* Reduce installed package size by excluding very large test file (pr/1176)
+  (CM, reviewed by Zvi Baratz)
+
+API changes and deprecations
+----------------------------
+* Passing an ``int64`` array to :class:`~nibabel.nifti1.Nifti1Image` without a
+  header or dtype argument will raise a ``ValueError``. (pr/1173) (CM)
+* :class:`nibabel.tmpdirs.TemporaryDirectory` is deprecated in favor of
+  :class:`tempfile.TemporaryDirectory`. (pr/1172) (CM, reviewed by Zvi
+  Baratz)
+* The ``nisext`` package is deprecated and will be removed in NiBabel 6.0.
+  (pr/1170) (CM, reviewed by MB)
+* Drop support for Python 3.7, Numpy < 1.19 (pr/1177) (CM)
+* The following deprecated functions and methods will now raise
+  ``ExpiredDeprecationError``\s
+
+  * :func:`nibabel.loadsave.read_img_data`
+  * :meth:`nibabel.dataobj_images.DataobjImage.get_data`
+  * :func:`nibabel.loadsave.guessed_image_type`
+  * :func:`nibabel.onetime.setattr_on_read`
+  * :func:`nibabel.orientations.flip_axis`
+
+* Modules, classes and functions that expired at 4.0 were fully removed.
+  ``ExpiredDeprecationError``\s will now be ``AttributeError``\s.
+
+.. _blue: https://blue.readthedocs.io
+.. _isort: https://pycqa.github.io/isort/
+.. _pre-commit: https://pre-commit.com/
+.. _pytest-xdist: https://pytest-xdist.readthedocs.io
+.. _setuptools_scm: https://github.com/pypa/setuptools_scm
+
+
 4.0.2 (Wednesday 31 August 2022)
 ================================
 
@@ -652,8 +797,8 @@ Enhancements
 
 Bug fixes
 ---------
-* Preserve first point of `LazyTractogram` (pr/588) (MC, reviewed by Nil
-  Goyette, CM, MB)
+* Preserve first point of :py:class:`~nibabel.streamlines.LazyTractogram`
+  (pr/588) (MC, reviewed by Nil Goyette, CM, MB)
 * Stop adding extraneous metadata padding (pr/593) (Jon Stutters, reviewed by
   CM, MB)
 * Accept lower-case orientation codes in TRK files (pr/600) (Kesshi Jordan,
@@ -727,7 +872,7 @@ Enhancements
 * Support for alternative header field name variants in .PAR files
   (pr/507) (Gregory R. Lee)
 * Various enhancements to streamlines API by MC: support for reading TRK
-  version 1 (pr/512); concatenation of tractograms using `+`/`+=` operators
+  version 1 (pr/512); concatenation of tractograms using ``+``/``+=`` operators
   (pr/495); function to concatenate multiple ArraySequence objects (pr/494)
 * Support for numpy 1.12 (pr/500, pr/502) (MC, MB)
 * Allow dtype specifiers as fileslice input (pr/485) (MB)
@@ -807,7 +952,7 @@ Enhancements
   (Brendan Moloney);
 * More explicit error when trying to read image from non-existent file
   (pr/455) (Ariel Rokem);
-* Extension to `nib-ls` command to show image statistics (pr/437) and other
+* Extension to ``nib-ls`` command to show image statistics (pr/437) and other
   header files (pr/348) (Yarik Halchenko).
 
 Bug fixes
@@ -1100,7 +1245,7 @@ Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 * ``parrec2nii`` script to convert PAR/REC images to NIfTI format (MH)
 * Very preliminary, limited and highly experimental DICOM reading support (MB,
   Ian Nimmo Smith).
-* Some functions (`nibabel.funcs`) for basic image shape changes, including
+* Some functions (:py:mod:`nibabel.funcs`) for basic image shape changes, including
   the ability to transform to the image with data closest to the cononical
   image orientation (first axis left-to-right, second back-to-front, third
   down-to-up) (MB, Jonathan Taylor)
@@ -1143,7 +1288,7 @@ visiting the URL::
 * Bugfix: Removed left-over print statement in extension code.
 * Bugfix: Prevent saving of bogus 'None.nii' images when the filename
   was previously assign, before calling NiftiImage.save() (Closes: #517920).
-* Bugfix: Extension length was to short for all `edata` whose length matches
+* Bugfix: Extension length was to short for all ``edata`` whose length matches
   n*16-8, for all integer n.
 
 0.20090205.1 (Thu, 5 Feb 2009)
@@ -1152,13 +1297,13 @@ visiting the URL::
 * This release is the first in a series that aims stabilize the API and
   finally result in PyNIfTI 1.0 with full support of the NIfTI1 standard.
 * The whole package was restructured. The included renaming
-  `nifti.nifti(image,format,clibs)` to `nifti.(image,format,clibs)`. Redirect
+  ``nifti.nifti(image,format,clibs)`` to ``nifti.(image,format,clibs)``. Redirect
   modules make sure that existing user code will not break, but they will
   issue a DeprecationWarning and will be removed with the release of PyNIfTI
   1.0.
 * Added a special extension that can embed any serializable Python object
   into the NIfTI file header. The contents of this extension is
-  automatically expanded upon request into the `.meta` attribute of each
+  automatically expanded upon request into the ``.meta`` attribute of each
   NiftiImage. When saving files to disk the content of the dictionary is also
   automatically dumped into this extension.
   Embedded meta data is not loaded automatically, since this has security
@@ -1173,11 +1318,11 @@ visiting the URL::
 * Added methods :meth:`~nifti.format.NiftiFormat.vx2q` and
   :meth:`~nifti.format.NiftiFormat.vx2s` to convert voxel indices into
   coordinates defined by qform or sform respectively.
-* Updating the `cal_min` and `cal_max` values in the NIfTI header when
+* Updating the ``cal_min`` and ``cal_max`` values in the NIfTI header when
   saving a file is now conditional, but remains enabled by default.
 * Full set of methods to query and modify axis units. This includes
-  expanding the previous `xyzt_units` field in the header dictionary into
-  editable `xyz_unit` and `time_unit` fields. The former `xyzt_units` field
+  expanding the previous ``xyzt_units`` field in the header dictionary into
+  editable ``xyz_unit`` and ``time_unit`` fields. The former ``xyzt_units`` field
   is no longer available. See:
   :meth:`~nifti.format.NiftiFormat.getXYZUnit`,
   :meth:`~nifti.format.NiftiFormat.setXYZUnit`,
@@ -1193,19 +1338,19 @@ visiting the URL::
   :attr:`~nifti.format.NiftiFormat.qform_code`,
   :attr:`~nifti.format.NiftiFormat.sform_code`
 * Each image instance is now able to generate a human-readable dump of its
-  most important header information via `__str__()`.
+  most important header information via ``__str__()``.
 * :class:`~nifti.image.NiftiImage` objects can now be pickled.
 * Switched to NumPy's distutils for building the package. Cleaned and
   simplified the build procedure. Added optimization flags to SWIG call.
 * :attr:`nifti.image.NiftiImage.filename` can now also be used to assign a
   filename.
 * Introduced :data:`nifti.__version__` as canonical version string.
-* Removed `updateQFormFromQuarternion()` from the list of public methods of
+* Removed ``updateQFormFromQuarternion()`` from the list of public methods of
   :class:`~nifti.format.NiftiFormat`. This is an internal method that
   should not be used in user code. However, a redirect to the new method
   will remain in-place until PyNIfTI 1.0.
 * Bugfix: :meth:`~nifti.image.NiftiImage.getScaledData` returns a
-  unmodified data array if `slope` is set to zero (as required by the NIfTI
+  unmodified data array if ``slope`` is set to zero (as required by the NIfTI
   standard). Thanks to Thomas Ross for reporting.
 * Bugfix: Unicode filenames are now handled properly, as long as they do not
   contain pure-unicode characters (since the NIfTI library does not support
@@ -1259,9 +1404,9 @@ visiting the URL::
   Thyreau for reporting.
 * Bugfix: setPixDims() stored meaningless values.
 * Use new NumPy API and replace deprecated function calls
-  (`PyArray_FromDimsAndData`).
+  (``PyArray_FromDimsAndData``).
 * Initial support for memory mapped access to uncompressed NIfTI files
-  (`MemMappedNiftiImage`).
+  (``MemMappedNiftiImage``).
 * Add a proper Makefile and setup.cfg for compiling PyNIfTI under Windows
   with MinGW.
 * Include a minimal copy of the most recent nifticlibs (just libniftiio and

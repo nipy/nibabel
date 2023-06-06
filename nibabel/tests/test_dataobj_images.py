@@ -1,13 +1,12 @@
-""" Testing dataobj_images module
+"""Testing dataobj_images module
 """
 
 import numpy as np
 
-from nibabel.filebasedimages import FileBasedHeader
 from nibabel.dataobj_images import DataobjImage
-
-from nibabel.tests.test_image_api import DataInterfaceMixin
+from nibabel.filebasedimages import FileBasedHeader
 from nibabel.tests.test_filebasedimages import TestFBImageAPI as _TFI
+from nibabel.tests.test_image_api import DataInterfaceMixin
 
 
 class DoNumpyImage(DataobjImage):
@@ -43,7 +42,7 @@ class DoNumpyImage(DataobjImage):
 
 
 class TestDataobjAPI(_TFI, DataInterfaceMixin):
-    """ Validation for DataobjImage instances
-    """
+    """Validation for DataobjImage instances"""
+
     # A callable returning an image from ``image_maker(data, header)``
     image_maker = DoNumpyImage

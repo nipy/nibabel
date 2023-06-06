@@ -1,5 +1,4 @@
-"""
-Descriptor support for NIPY.
+"""Descriptor support for NIPY
 
 Utilities to support special Python descriptors [1,2], in particular the use of
 a useful pattern for properties we call 'one time properties'.  These are
@@ -19,6 +18,12 @@ Hettinger. https://docs.python.org/howto/descriptor.html
 
 [2] Python data model, https://docs.python.org/reference/datamodel.html
 """
+from __future__ import annotations
+
+import typing as ty
+
+InstanceT = ty.TypeVar('InstanceT')
+T = ty.TypeVar('T')
 
 from nibabel.deprecated import deprecate_with_version
 
@@ -96,26 +101,24 @@ class ResetMixin:
     10.0
     """
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all OneTimeProperty attributes that may have fired already."""
-        instdict = self.__dict__
-        classdict = self.__class__.__dict__
         # To reset them, we simply remove them from the instance dict.  At that
         # point, it's as if they had never been computed.  On the next access,
         # the accessor function from the parent class will be called, simply
         # because that's how the python descriptor protocol works.
-        for mname, mval in classdict.items():
-            if mname in instdict and isinstance(mval, OneTimeProperty):
+        for mname, mval in self.__class__.__dict__.items():
+            if mname in self.__dict__ and isinstance(mval, OneTimeProperty):
                 delattr(self, mname)
 
 
-class OneTimeProperty:
+class OneTimeProperty(ty.Generic[T]):
     """A descriptor to make special properties that become normal attributes.
 
     This is meant to be used mostly by the auto_attr decorator in this module.
     """
 
-    def __init__(self, func):
+    def __init__(self, func: ty.Callable[[InstanceT], T]) -> None:
         """Create a OneTimeProperty instance.
 
         Parameters
@@ -128,24 +131,35 @@ class OneTimeProperty:
         """
         self.getter = func
         self.name = func.__name__
+        self.__doc__ = func.__doc__
 
-    def __get__(self, obj, type=None):
+    @ty.overload
+    def __get__(
+        self, obj: None, objtype: type[InstanceT] | None = None
+    ) -> ty.Callable[[InstanceT], T]:
+        ...  # pragma: no cover
+
+    @ty.overload
+    def __get__(self, obj: InstanceT, objtype: type[InstanceT] | None = None) -> T:
+        ...  # pragma: no cover
+
+    def __get__(
+        self, obj: InstanceT | None, objtype: type[InstanceT] | None = None
+    ) -> T | ty.Callable[[InstanceT], T]:
         """This will be called on attribute access on the class or instance."""
         if obj is None:
             # Being called on the class, return the original function. This
             # way, introspection works on the class.
-            # return func
             return self.getter
 
-        # Errors in the following line are errors in setting a
-        # OneTimeProperty
+        # Errors in the following line are errors in setting a OneTimeProperty
         val = self.getter(obj)
 
-        setattr(obj, self.name, val)
+        obj.__dict__[self.name] = val
         return val
 
 
-def auto_attr(func):
+def auto_attr(func: ty.Callable[[InstanceT], T]) -> OneTimeProperty[T]:
     """Decorator to create OneTimeProperty attributes.
 
     Parameters
@@ -179,5 +193,7 @@ def auto_attr(func):
 
 # For backwards compatibility
 setattr_on_read = deprecate_with_version(
-    message="setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr",
-    since="3.2", until="5.0")(auto_attr)
+    message='setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr',
+    since='3.2',
+    until='5.0',
+)(auto_attr)

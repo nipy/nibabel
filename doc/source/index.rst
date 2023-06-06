@@ -7,6 +7,10 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+=======
+NiBabel
+=======
+
 .. include:: _long_description.inc
 
 Documentation
@@ -119,6 +123,8 @@ contributed code and discussion (in rough order of appearance):
 * Andrew Van
 * Jérôme Dockès
 * Jacob Roberts
+* Horea Christian
+* Fabian Perez
 
 License reprise
 ===============

@@ -2,17 +2,18 @@
 """Script to auto-generate our API docs.
 """
 
+import os
+import re
+
 # stdlib imports
 import sys
-import re
-import os
+
+# version comparison
+from distutils.version import LooseVersion as V
 from os.path import join as pjoin
 
 # local imports
 from apigen import ApiDocWriter
-
-# version comparison
-from distutils.version import LooseVersion as V
 
 # *****************************************************************************
 
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     try:
         __import__(package)
     except ImportError as e:
-        abort("Can not import " + package)
+        abort('Can not import ' + package)
 
     module = sys.modules[package]
 
@@ -54,8 +55,9 @@ if __name__ == '__main__':
     if os.path.exists(version_file):
         # Versioneer
         from runpy import run_path
+
         try:
-            source_version = run_path(version_file)['get_versions']()['version']
+            source_version = run_path(version_file)['version']
         except (FileNotFoundError, KeyError):
             pass
         if source_version == '0+unknown':
@@ -64,26 +66,30 @@ if __name__ == '__main__':
         # Legacy fall-back
         info_file = pjoin('..', package, 'info.py')
         info_lines = open(info_file).readlines()
-        source_version = '.'.join([v.split('=')[1].strip(" '\n.")
-                                   for v in info_lines if re.match(
-                                           '^_version_(major|minor|micro|extra)', v
-                                           )])
+        source_version = '.'.join(
+            [
+                v.split('=')[1].strip(" '\n.")
+                for v in info_lines
+                if re.match('^_version_(major|minor|micro|extra)', v)
+            ]
+        )
     print('***', source_version)
 
     if source_version != installed_version:
-        abort("Installed version does not match source version")
+        abort('Installed version does not match source version')
 
-    docwriter = ApiDocWriter(package, rst_extension='.rst',
-                             other_defines=other_defines)
-    docwriter.package_skip_patterns += [r'\.fixes$',
-                                        r'\.fixes.*$',
-                                        r'\.externals$',
-                                        r'\.externals.*$',
-                                        r'.*test.*$',
-                                        r'\.info.*$',
-                                        r'\.pkg_info.*$',
-                                        r'\.py3k.*$',
-                                        ]
+    docwriter = ApiDocWriter(package, rst_extension='.rst', other_defines=other_defines)
+    docwriter.package_skip_patterns += [
+        r'\.fixes$',
+        r'\.fixes.*$',
+        r'\.externals$',
+        r'\.externals.*$',
+        r'.*test.*$',
+        r'\.info.*$',
+        r'\.pkg_info.*$',
+        r'\.py3k.*$',
+        r'\._version.*$',
+    ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'index', relative_to=outdir)
     print('%d files written' % len(docwriter.written_modules))

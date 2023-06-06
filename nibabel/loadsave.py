@@ -7,22 +7,36 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
-""" Utilities to load and save image objects """
+"""Utilities to load and save image objects"""
+from __future__ import annotations
 
 import os
+import typing as ty
+
 import numpy as np
 
-from .filename_parser import splitext_addext, _stringify_path
-from .openers import ImageOpener
-from .filebasedimages import ImageFileError
-from .imageclasses import all_image_classes
 from .arrayproxy import is_proxy
 from .deprecated import deprecate_with_version
+from .filebasedimages import ImageFileError
+from .filename_parser import _stringify_path, splitext_addext
+from .imageclasses import all_image_classes
+from .openers import ImageOpener
 
 _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
 
-def _signature_matches_extension(filename):
+if ty.TYPE_CHECKING:  # pragma: no cover
+    from .filebasedimages import FileBasedImage
+    from .filename_parser import FileSpec
+
+    P = ty.ParamSpec('P')
+
+    class Signature(ty.TypedDict):
+        signature: bytes
+        format_name: str
+
+
+def _signature_matches_extension(filename: FileSpec) -> tuple[bool, str]:
     """Check if signature aka magic number matches filename extension.
 
     Parameters
@@ -42,30 +56,30 @@ def _signature_matches_extension(filename):
        the empty string otherwise.
 
     """
-    signatures = {
-        ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
-        ".bz2": {"signature": b"BZh", "format_name": "bzip2"},
-        ".zst": {"signature": b"\x28\xb5\x2f\xfd", "format_name": "ztsd"},
+    signatures: dict[str, Signature] = {
+        '.gz': {'signature': b'\x1f\x8b', 'format_name': 'gzip'},
+        '.bz2': {'signature': b'BZh', 'format_name': 'bzip2'},
+        '.zst': {'signature': b'\x28\xb5\x2f\xfd', 'format_name': 'ztsd'},
     }
     filename = _stringify_path(filename)
     *_, ext = splitext_addext(filename)
     ext = ext.lower()
     if ext not in signatures:
-        return True, ""
-    expected_signature = signatures[ext]["signature"]
+        return True, ''
+    expected_signature = signatures[ext]['signature']
     try:
-        with open(filename, "rb") as fh:
+        with open(filename, 'rb') as fh:
             sniff = fh.read(len(expected_signature))
     except OSError:
-        return False, f"Could not read file: {filename}"
+        return False, f'Could not read file: {filename}'
     if sniff.startswith(expected_signature):
-        return True, ""
-    format_name = signatures[ext]["format_name"]
-    return False, f"File {filename} is not a {format_name} file"
+        return True, ''
+    format_name = signatures[ext]['format_name']
+    return False, f'File {filename} is not a {format_name} file'
 
 
-def load(filename, **kwargs):
-    r""" Load file given filename, guessing at file type
+def load(filename: FileSpec, **kwargs) -> FileBasedImage:
+    r"""Load file given filename, guessing at file type
 
     Parameters
     ----------
@@ -105,7 +119,7 @@ def load(filename, **kwargs):
 
 @deprecate_with_version('guessed_image_type deprecated.', '3.2', '5.0')
 def guessed_image_type(filename):
-    """ Guess image type from file `filename`
+    """Guess image type from file `filename`
 
     Parameters
     ----------
@@ -126,8 +140,8 @@ def guessed_image_type(filename):
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
-def save(img, filename, **kwargs):
-    r""" Save an image to file adapting format to `filename`
+def save(img: FileBasedImage, filename: FileSpec, **kwargs) -> None:
+    r"""Save an image to file adapting format to `filename`
 
     Parameters
     ----------
@@ -161,20 +175,17 @@ def save(img, filename, **kwargs):
     from .nifti1 import Nifti1Image, Nifti1Pair
     from .nifti2 import Nifti2Image, Nifti2Pair
 
-    klass = None
-    converted = None
-
+    converted: FileBasedImage
     if type(img) == Nifti1Image and lext in ('.img', '.hdr'):
-        klass = Nifti1Pair
+        converted = Nifti1Pair.from_image(img)
     elif type(img) == Nifti2Image and lext in ('.img', '.hdr'):
-        klass = Nifti2Pair
+        converted = Nifti2Pair.from_image(img)
     elif type(img) == Nifti1Pair and lext == '.nii':
-        klass = Nifti1Image
+        converted = Nifti1Image.from_image(img)
     elif type(img) == Nifti2Pair and lext == '.nii':
-        klass = Nifti2Image
+        converted = Nifti2Image.from_image(img)
     else:  # arbitrary conversion
-        valid_klasses = [klass for klass in all_image_classes
-                         if ext in klass.valid_exts]
+        valid_klasses = [klass for klass in all_image_classes if lext in klass.valid_exts]
         if not valid_klasses:  # if list is empty
             raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
@@ -187,22 +198,19 @@ def save(img, filename, **kwargs):
                 break
             except Exception as e:
                 err = e
-        # ... and if none of them work, raise an error.
-        if converted is None:
+        else:
             raise err
 
-    # Here, we either have a klass or a converted image.
-    if converted is None:
-        converted = klass.from_image(img)
     converted.to_filename(filename, **kwargs)
 
 
-@deprecate_with_version('read_img_data deprecated. '
-                        'Please use ``img.dataobj.get_unscaled()`` instead.',
-                        '3.2',
-                        '5.0')
+@deprecate_with_version(
+    'read_img_data deprecated. Please use ``img.dataobj.get_unscaled()`` instead.',
+    '3.2',
+    '5.0',
+)
 def read_img_data(img, prefer='scaled'):
-    """ Read data from image associated with files
+    """Read data from image associated with files
 
     If you want unscaled data, please use ``img.dataobj.get_unscaled()``
     instead.  If you want scaled data, use ``img.get_fdata()`` (which will cache
@@ -257,12 +265,11 @@ def read_img_data(img, prefer='scaled'):
     if not hasattr(hdr, 'raw_data_from_fileobj'):
         # We can only do scaled
         if prefer == 'unscaled':
-            raise ValueError("Can only do unscaled for Analyze types")
+            raise ValueError('Can only do unscaled for Analyze types')
         return np.array(img.dataobj)
     # Analyze types
     img_fh = img.file_map['image']
-    img_file_like = (img_fh.filename if img_fh.fileobj is None
-                     else img_fh.fileobj)
+    img_file_like = img_fh.filename if img_fh.fileobj is None else img_fh.fileobj
     if img_file_like is None:
         raise ImageFileError('No image file specified for this image')
     # Check the consumable values in the header
@@ -282,45 +289,3 @@ def read_img_data(img, prefer='scaled'):
         if prefer == 'scaled':
             return hdr.data_from_fileobj(fileobj)
         return hdr.raw_data_from_fileobj(fileobj)
-
-
-@deprecate_with_version('which_analyze_type deprecated.', '3.2', '4.0')
-def which_analyze_type(binaryblock):
-    """ Is `binaryblock` from NIfTI1, NIfTI2 or Analyze header?
-
-    Parameters
-    ----------
-    binaryblock : bytes
-        The `binaryblock` is 348 bytes that might be NIfTI1, NIfTI2, Analyze,
-        or None of the the above.
-
-    Returns
-    -------
-    hdr_type : str
-        * a nifti1 header (pair or single) -> return 'nifti1'
-        * a nifti2 header (pair or single) -> return 'nifti2'
-        * an Analyze header -> return 'analyze'
-        * None of the above -> return None
-
-    Notes
-    -----
-    Algorithm:
-
-    * read in the first 4 bytes from the file as 32-bit int ``sizeof_hdr``
-    * if ``sizeof_hdr`` is 540 or byteswapped 540 -> assume nifti2
-    * Check for 'ni1', 'n+1' magic -> assume nifti1
-    * if ``sizeof_hdr`` is 348 or byteswapped 348 assume Analyze
-    * Return None
-    """
-    from .nifti1 import header_dtype
-    hdr_struct = np.ndarray(shape=(), dtype=header_dtype, buffer=binaryblock)
-    bs_hdr_struct = hdr_struct.byteswap()
-    sizeof_hdr = hdr_struct['sizeof_hdr']
-    bs_sizeof_hdr = bs_hdr_struct['sizeof_hdr']
-    if 540 in (sizeof_hdr, bs_sizeof_hdr):
-        return 'nifti2'
-    if hdr_struct['magic'] in (b'ni1', b'n+1'):
-        return 'nifti1'
-    if 348 in (sizeof_hdr, bs_sizeof_hdr):
-        return 'analyze'
-    return None

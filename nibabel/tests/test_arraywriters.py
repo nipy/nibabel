@@ -1,24 +1,28 @@
-""" Testing array writer objects
+"""Testing array writer objects
 
 See docstring of :mod:`nibabel.arraywriters` for API.
 """
 
-from platform import python_compiler, machine
 import itertools
-import numpy as np
-
 from io import BytesIO
-from ..arraywriters import (SlopeInterArrayWriter, SlopeArrayWriter,
-                            WriterError, ScalingError, ArrayWriter,
-                            make_array_writer, get_slope_inter)
-from ..casting import int_abs, type_info, shared_range, on_powerpc
-from ..volumeutils import array_from_file, apply_read_scaling, _dt_min_max
-from ..deprecator import ExpiredDeprecationError
+from platform import machine, python_compiler
 
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+import numpy as np
 import pytest
-from ..testing import assert_allclose_safely, suppress_warnings
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from ..arraywriters import (
+    ArrayWriter,
+    ScalingError,
+    SlopeArrayWriter,
+    SlopeInterArrayWriter,
+    WriterError,
+    get_slope_inter,
+    make_array_writer,
+)
+from ..casting import int_abs, on_powerpc, shared_range, type_info
+from ..testing import assert_allclose_safely, suppress_warnings
+from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 
 FLOAT_TYPES = np.sctypes['float']
 COMPLEX_TYPES = np.sctypes['complex']
@@ -102,13 +106,11 @@ def test_arraywriter_check_scaling():
 def test_no_scaling():
     # Test arraywriter when writing different types without scaling
     for in_dtype, out_dtype, awt in itertools.product(
-            NUMERIC_TYPES,
-            NUMERIC_TYPES,
-            (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
+        NUMERIC_TYPES, NUMERIC_TYPES, (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)
+    ):
         mn_in, mx_in = _dt_min_max(in_dtype)
         arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)
-        kwargs = (dict(check_scaling=False) if awt == ArrayWriter
-                  else dict(calc_scale=False))
+        kwargs = dict(check_scaling=False) if awt == ArrayWriter else dict(calc_scale=False)
         aw = awt(arr, out_dtype, **kwargs)
         with suppress_warnings():
             back_arr = round_trip(aw)
@@ -128,8 +130,7 @@ def test_no_scaling():
                     exp_back = np.clip(exp_back, 0, 1)
                 else:
                     # Clip to shared range of working precision
-                    exp_back = np.clip(exp_back,
-                                       *shared_range(float, out_dtype))
+                    exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
             else:  # iu input and output type
                 # No scaling, never gets converted to float.
                 # Does get clipped to range of output type
@@ -137,9 +138,7 @@ def test_no_scaling():
                 if (mn_in, mx_in) != (mn_out, mx_out):
                     # Use smaller of input, output range to avoid np.clip
                     # upcasting the array because of large clip limits.
-                    exp_back = np.clip(exp_back,
-                                       max(mn_in, mn_out),
-                                       min(mx_in, mx_out))
+                    exp_back = np.clip(exp_back, max(mn_in, mn_out), min(mx_in, mx_out))
         elif in_dtype in COMPLEX_TYPES:
             # always cast to real from complex
             with suppress_warnings():
@@ -245,16 +244,14 @@ def test_special_rt():
                 ArrayWriter(in_arr, out_dtt)
             aw = ArrayWriter(in_arr, out_dtt, check_scaling=False)
             mn, mx = shared_range(float, out_dtt)
-            assert np.allclose(round_trip(aw).astype(float),
-                                    [mx, 0, mn])
+            assert np.allclose(round_trip(aw).astype(float), [mx, 0, mn])
             for klass in (SlopeArrayWriter, SlopeInterArrayWriter):
                 aw = klass(in_arr, out_dtt)
                 assert get_slope_inter(aw) == (1, 0)
                 assert_array_equal(round_trip(aw), 0)
     for in_dtt, out_dtt, awt in itertools.product(
-            FLOAT_TYPES,
-            IUINT_TYPES,
-            (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)):
+        FLOAT_TYPES, IUINT_TYPES, (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)
+    ):
         arr = np.zeros((3,), dtype=in_dtt)
         aw = awt(arr, out_dtt)
         assert get_slope_inter(aw) == (1, 0)
@@ -366,8 +363,10 @@ def test_calculate_scale():
 
 def test_resets():
     # Test reset of values, caching of scales
-    for klass, inp, outp in ((SlopeInterArrayWriter, (1, 511), (2.0, 1.0)),
-                             (SlopeArrayWriter, (0, 510), (2.0, 0.0))):
+    for klass, inp, outp in (
+        (SlopeInterArrayWriter, (1, 511), (2.0, 1.0)),
+        (SlopeArrayWriter, (0, 510), (2.0, 0.0)),
+    ):
         arr = np.array(inp)
         outp = np.array(outp)
         aw = klass(arr, np.uint8)
@@ -391,13 +390,15 @@ def test_no_offset_scale():
     # Specific tests of no-offset scaling
     SAW = SlopeArrayWriter
     # Floating point
-    for data in ((-128, 127),
-                 (-128, 126),
-                 (-128, -127),
-                 (-128, 0),
-                 (-128, -1),
-                 (126, 127),
-                 (-127, 127)):
+    for data in (
+        (-128, 127),
+        (-128, 126),
+        (-128, -127),
+        (-128, 0),
+        (-128, -1),
+        (126, 127),
+        (-127, 127),
+    ):
         aw = SAW(np.array(data, dtype=np.float32), np.int8)
         assert aw.slope == 1.0
     aw = SAW(np.array([-126, 127 * 2.0], dtype=np.float32), np.int8)
@@ -405,7 +406,7 @@ def test_no_offset_scale():
     aw = SAW(np.array([-128 * 2.0, 127], dtype=np.float32), np.int8)
     assert aw.slope == 2
     # Test that nasty abs behavior does not upset us
-    n = -2**15
+    n = -(2**15)
     aw = SAW(np.array([n, n], dtype=np.int16), np.uint8)
     assert_array_almost_equal(aw.slope, n / 255.0, 5)
 
@@ -432,22 +433,17 @@ def test_io_scaling():
     # and from float to integer.
     bio = BytesIO()
     for in_type, out_type in itertools.product(
-            (np.int16, np.uint16, np.float32),
-            (np.int8, np.uint8, np.int16, np.uint16)):
+        (np.int16, np.uint16, np.float32), (np.int8, np.uint8, np.int16, np.uint16)
+    ):
         out_dtype = np.dtype(out_type)
         info = type_info(in_type)
         imin, imax = info['min'], info['max']
         if imin == 0:  # unsigned int
-            val_tuples = ((0, imax),
-                          (100, imax))
+            val_tuples = ((0, imax), (100, imax))
         else:
-            val_tuples = ((imin, 0, imax),
-                          (imin, 0),
-                          (0, imax),
-                          (imin, 100, imax))
+            val_tuples = ((imin, 0, imax), (imin, 0), (0, imax), (imin, 100, imax))
         if imin != 0:
-            val_tuples += ((imin, 0),
-                           (0, imax))
+            val_tuples += ((imin, 0), (0, imax))
         for vals in val_tuples:
             arr = np.array(vals, dtype=in_type)
             aw = SlopeInterArrayWriter(arr, out_dtype)
@@ -456,7 +452,7 @@ def test_io_scaling():
             arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
             # Max rounding error for integer type
             # Slope might be negative
-            max_miss = np.abs(aw.slope) / 2.
+            max_miss = np.abs(aw.slope) / 2.0
             abs_err = np.abs(arr - arr3)
             assert np.all(abs_err <= max_miss)
             if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
@@ -472,16 +468,14 @@ def test_input_ranges():
     bio = BytesIO()
     working_type = np.float32
     work_eps = np.finfo(working_type).eps
-    for out_type, offset in itertools.product(
-            IUINT_TYPES,
-            range(-1000, 1000, 100)):
+    for out_type, offset in itertools.product(IUINT_TYPES, range(-1000, 1000, 100)):
         aw = SlopeInterArrayWriter(arr, out_type)
         aw.to_fileobj(bio)
         arr2 = array_from_file(arr.shape, out_type, bio)
         arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
         # Max rounding error for integer type
         # Slope might be negative
-        max_miss = np.abs(aw.slope) / working_type(2.) + work_eps * 10
+        max_miss = np.abs(aw.slope) / working_type(2.0) + work_eps * 10
         abs_err = np.abs(arr - arr3)
         max_err = np.abs(arr) * work_eps + max_miss
         assert np.all(abs_err <= max_err)
@@ -497,23 +491,17 @@ def test_nan2zero():
     # nan2zero as argument to `to_fileobj` deprecated, raises error if not the
     # same as input nan2zero - meaning that by default, nan2zero of False will
     # raise an error.
-    arr = np.array([np.nan, 99.], dtype=np.float32)
-    for awt, kwargs in ((ArrayWriter, dict(check_scaling=False)),
-                        (SlopeArrayWriter, dict(calc_scale=False)),
-                        (SlopeInterArrayWriter, dict(calc_scale=False))):
+    arr = np.array([np.nan, 99.0], dtype=np.float32)
+    for awt, kwargs in (
+        (ArrayWriter, dict(check_scaling=False)),
+        (SlopeArrayWriter, dict(calc_scale=False)),
+        (SlopeInterArrayWriter, dict(calc_scale=False)),
+    ):
         # nan2zero default is True
         # nan2zero ignored for floats
         aw = awt(arr, np.float32, **kwargs)
         data_back = round_trip(aw)
         assert_array_equal(np.isnan(data_back), [True, False])
-        # Expired deprecation error for nan2zero as argument to `to_fileobj`
-        with pytest.raises(ExpiredDeprecationError):
-            aw.to_fileobj(BytesIO(), 'F', True)
-        with pytest.raises(ExpiredDeprecationError):
-            aw.to_fileobj(BytesIO(), 'F', nan2zero=True)
-        # Error if nan2zero is not the value set at initialization
-        with pytest.raises(WriterError):
-            aw.to_fileobj(BytesIO(), 'F', False)
         # set explicitly
         aw = awt(arr, np.float32, nan2zero=True, **kwargs)
         data_back = round_trip(aw)
@@ -527,14 +515,6 @@ def test_nan2zero():
         data_back = round_trip(aw)
         astype_res = np.array(np.nan).astype(np.int32)
         assert_array_equal(data_back, [astype_res, 99])
-        # Expired deprecation error for nan2zero as argument to `to_fileobj`
-        with pytest.raises(ExpiredDeprecationError):
-            aw.to_fileobj(BytesIO(), 'F', False)
-        with pytest.raises(ExpiredDeprecationError):
-            aw.to_fileobj(BytesIO(), 'F', nan2zero=False)
-        # Error if nan2zero is not the value set at initialization
-        with pytest.raises(WriterError):
-            aw.to_fileobj(BytesIO(), 'F', True)
 
 
 def test_byte_orders():
@@ -544,8 +524,7 @@ def test_byte_orders():
         dt = np.dtype(tp)
         for code in '<>':
             ndt = dt.newbyteorder(code)
-            for klass in (SlopeInterArrayWriter, SlopeArrayWriter,
-                          ArrayWriter):
+            for klass in (SlopeInterArrayWriter, SlopeArrayWriter, ArrayWriter):
                 aw = klass(arr, ndt)
                 data_back = round_trip(aw)
                 assert_array_almost_equal(arr, data_back)
@@ -585,8 +564,7 @@ def test_to_float():
         arr[-1] = mx
         for out_type in CFLOAT_TYPES:
             out_info = type_info(out_type)
-            for klass in (SlopeInterArrayWriter, SlopeArrayWriter,
-                          ArrayWriter):
+            for klass in (SlopeInterArrayWriter, SlopeArrayWriter, ArrayWriter):
                 if in_type in COMPLEX_TYPES and out_type in FLOAT_TYPES:
                     with pytest.raises(WriterError):
                         klass(arr, out_type)
@@ -695,8 +673,7 @@ def test_int_int_slope():
             if kinds in ('ii', 'uu', 'ui'):
                 arrs = (np.array([iinf.min, iinf.max], dtype=in_dt),)
             elif kinds == 'iu':
-                arrs = (np.array([iinf.min, 0], dtype=in_dt),
-                        np.array([0, iinf.max], dtype=in_dt))
+                arrs = (np.array([iinf.min, 0], dtype=in_dt), np.array([0, iinf.max], dtype=in_dt))
             for arr in arrs:
                 try:
                     aw = SlopeArrayWriter(arr, out_dt)
@@ -713,17 +690,14 @@ def test_int_int_slope():
 def test_float_int_spread():
     # Test rounding error for spread of values
     powers = np.arange(-10, 10, 0.5)
-    arr = np.concatenate((-10**powers, 10**powers))
+    arr = np.concatenate((-(10**powers), 10**powers))
     for in_dt in (np.float32, np.float64):
         arr_t = arr.astype(in_dt)
         for out_dt in IUINT_TYPES:
             aw = SlopeInterArrayWriter(arr_t, out_dt)
             arr_back_sc = round_trip(aw)
             # Get estimate for error
-            max_miss = rt_err_estimate(arr_t,
-                                       arr_back_sc.dtype,
-                                       aw.slope,
-                                       aw.inter)
+            max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, aw.slope, aw.inter)
             # Simulate allclose test with large atol
             diff = np.abs(arr_t - arr_back_sc)
             rdiff = diff / np.abs(arr_t)
@@ -734,7 +708,7 @@ def rt_err_estimate(arr_t, out_dtype, slope, inter):
     # Error attributable to rounding
     slope = 1 if slope is None else slope
     inter = 1 if inter is None else inter
-    max_int_miss = slope / 2.
+    max_int_miss = slope / 2.0
     # Estimate error attributable to floating point slope / inter;
     # Remove inter / slope, put in a float type to simulate the type
     # promotion for the multiplication, apply slope / inter
@@ -758,10 +732,7 @@ def test_rt_bias():
             arr_back_sc = round_trip(aw)
             bias = np.mean(arr_t - arr_back_sc)
             # Get estimate for error
-            max_miss = rt_err_estimate(arr_t,
-                                       arr_back_sc.dtype,
-                                       aw.slope,
-                                       aw.inter)
+            max_miss = rt_err_estimate(arr_t, arr_back_sc.dtype, aw.slope, aw.inter)
             # Hokey use of max_miss as a std estimate
             bias_thresh = np.max([max_miss / np.sqrt(count), eps])
             assert np.abs(bias) < bias_thresh
@@ -791,7 +762,7 @@ def test_nan2zero_scaling():
         # Skip impossible combinations
         if in_info['min'] == 0 and sign == -1:
             continue
-        mx = min(in_info['max'], out_info['max'] * 2., 2**32)
+        mx = min(in_info['max'], out_info['max'] * 2.0, 2**32)
         vals = [np.nan] + [100, mx]
         nan_arr = np.array(vals, dtype=in_dt) * sign
         # Check that nan scales to same value as zero within same array
@@ -831,16 +802,18 @@ def test_finite_range_nan():
         ([[], []], (np.inf, -np.inf)),  # empty array
         (np.array([[-3, 0, 1], [2, -1, 4]], dtype=int), (-3, 4)),
         (np.array([[1, 0, 1], [2, 3, 4]], dtype=np.uint), (0, 4)),
-        ([0., 1, 2, 3], (0, 3)),
+        ([0.0, 1, 2, 3], (0, 3)),
         # Complex comparison works as if they are floats
         ([[np.nan, -1 - 100j, 2], [-2, np.nan, 1 + 100j]], (-2, 2)),
         ([[np.nan, -1, 2 - 100j], [-2 + 100j, np.nan, 1]], (-2 + 100j, 2 - 100j)),
     ):
-        for awt, kwargs in ((ArrayWriter, dict(check_scaling=False)),
-                            (SlopeArrayWriter, {}),
-                            (SlopeArrayWriter, dict(calc_scale=False)),
-                            (SlopeInterArrayWriter, {}),
-                            (SlopeInterArrayWriter, dict(calc_scale=False))):
+        for awt, kwargs in (
+            (ArrayWriter, dict(check_scaling=False)),
+            (SlopeArrayWriter, {}),
+            (SlopeArrayWriter, dict(calc_scale=False)),
+            (SlopeInterArrayWriter, {}),
+            (SlopeInterArrayWriter, dict(calc_scale=False)),
+        ):
             for out_type in NUMERIC_TYPES:
                 has_nan = np.any(np.isnan(in_arr))
                 try:
@@ -866,7 +839,7 @@ def test_finite_range_nan():
                     assert aw.has_nan == has_nan
                     assert aw.finite_range() == res
             # Structured type cannot be nan and we can test this
-            a = np.array([[1., 0, 1], [2, 3, 4]]).view([('f1', 'f')])
+            a = np.array([[1.0, 0, 1], [2, 3, 4]]).view([('f1', 'f')])
             aw = awt(a, a.dtype, **kwargs)
             with pytest.raises(TypeError):
                 aw.finite_range()

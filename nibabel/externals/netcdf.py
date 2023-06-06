@@ -871,6 +871,7 @@ class netcdf_variable:
             pass
         self.__dict__[attr] = value
 
+    @property
     def isrec(self):
         """Returns whether the variable has a record dimension or not.
 
@@ -881,8 +882,8 @@ class netcdf_variable:
 
         """
         return bool(self.data.shape) and not self._shape[0]
-    isrec = property(isrec)
 
+    @property
     def shape(self):
         """Returns the shape tuple of the data variable.
 
@@ -890,7 +891,6 @@ class netcdf_variable:
         same manner of other numpy arrays.
         """
         return self.data.shape
-    shape = property(shape)
 
     def getValue(self):
         """
