@@ -27,7 +27,7 @@ from ..testing import assert_data_similar, assert_dt_equal, assert_re_in
 from ..tmpdirs import InTemporaryDirectory
 from .nibabel_data import needs_nibabel_data
 from .scriptrunner import ScriptRunner
-from .test_parrec import DTI_PAR_BVALS, DTI_PAR_BVECS
+from .test_parrec import DTI_PAR_BVALS, DTI_PAR_BVALS_SORT_IDCS, DTI_PAR_BVECS
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLES
 from .test_parrec_data import AFF_OFF, BALLS
 
@@ -418,7 +418,7 @@ def test_parrec2nii_with_data():
         assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
         img = load('DTI.nii')
         data_sorted = img.get_fdata()
-        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
+        assert_almost_equal(data[..., DTI_PAR_BVALS_SORT_IDCS], data_sorted)
         del img
 
         # Writes .ordering.csv if requested

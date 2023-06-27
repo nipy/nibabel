@@ -173,6 +173,8 @@ DTI_PAR_BVECS = np.array(
 
 # DTI.PAR values for bvecs
 DTI_PAR_BVALS = [1000] * 6 + [0, 1000]
+# Numpy's argsort can be unstable so write indices manually
+DTI_PAR_BVALS_SORT_IDCS = [6, 0, 1, 2, 3, 4, 5, 7]
 
 EXAMPLE_IMAGES = [
     # Parameters come from load of Philips' conversion to NIfTI
@@ -190,15 +192,6 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     )
 ]
-
-
-def _shuffle(arr):
-    """Return a copy of the array with entries shuffled.
-
-    Needed to avoid a bug in np.random.shuffle for numpy 1.7.
-    see:  numpy/numpy#4286
-    """
-    return arr[np.argsort(np.random.randn(len(arr)))]
 
 
 def test_top_level_load():
@@ -332,7 +325,7 @@ def test_sorting_dual_echo_T1():
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    t1_hdr.image_defs = _shuffle(t1_hdr.image_defs)
+    np.random.shuffle(t1_hdr.image_defs)
 
     sorted_indices = t1_hdr.get_sorted_slice_indices()
     sorted_echos = t1_hdr.image_defs['echo number'][sorted_indices]
@@ -363,7 +356,7 @@ def test_sorting_multiple_echos_and_contrasts():
         t1_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    t1_hdr.image_defs = _shuffle(t1_hdr.image_defs)
+    np.random.shuffle(t1_hdr.image_defs)
 
     sorted_indices = t1_hdr.get_sorted_slice_indices()
     sorted_slices = t1_hdr.image_defs['slice number'][sorted_indices]
@@ -402,7 +395,7 @@ def test_sorting_multiecho_ASL():
         asl_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    asl_hdr.image_defs = _shuffle(asl_hdr.image_defs)
+    np.random.shuffle(asl_hdr.image_defs)
 
     sorted_indices = asl_hdr.get_sorted_slice_indices()
     sorted_slices = asl_hdr.image_defs['slice number'][sorted_indices]
@@ -524,7 +517,7 @@ def test_diffusion_parameters_strict_sort():
         dti_hdr = PARRECHeader.from_fileobj(fobj, strict_sort=True)
 
     # should get the correct order even if we randomly shuffle the order
-    dti_hdr.image_defs = _shuffle(dti_hdr.image_defs)
+    np.random.shuffle(dti_hdr.image_defs)
 
     assert dti_hdr.get_data_shape() == (80, 80, 10, 8)
     assert dti_hdr.general_info['diffusion'] == 1
@@ -533,7 +526,7 @@ def test_diffusion_parameters_strict_sort():
     # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
     # Permute to match bvec directions to acquisition directions
     # note that bval sorting occurs prior to bvec sorting
-    assert_almost_equal(bvecs, DTI_PAR_BVECS[np.ix_(np.argsort(DTI_PAR_BVALS), [2, 0, 1])])
+    assert_almost_equal(bvecs, DTI_PAR_BVECS[np.ix_(DTI_PAR_BVALS_SORT_IDCS, [2, 0, 1])])
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
 
