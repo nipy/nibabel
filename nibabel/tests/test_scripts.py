@@ -418,7 +418,7 @@ def test_parrec2nii_with_data():
         assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
         img = load('DTI.nii')
         data_sorted = img.get_fdata()
-        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
+        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS, kind='stable')], data_sorted)
         del img
 
         # Writes .ordering.csv if requested
