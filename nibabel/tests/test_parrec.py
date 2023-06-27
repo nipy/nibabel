@@ -173,8 +173,6 @@ DTI_PAR_BVECS = np.array(
 
 # DTI.PAR values for bvecs
 DTI_PAR_BVALS = [1000] * 6 + [0, 1000]
-# Numpy's argsort can be unstable so write indices manually
-DTI_PAR_BVALS_SORT_IDCS = [6, 0, 1, 2, 3, 4, 5, 7]
 
 EXAMPLE_IMAGES = [
     # Parameters come from load of Philips' conversion to NIfTI
@@ -526,7 +524,10 @@ def test_diffusion_parameters_strict_sort():
     # DTI_PAR_BVECS gives bvecs copied from first slice each vol in DTI.PAR
     # Permute to match bvec directions to acquisition directions
     # note that bval sorting occurs prior to bvec sorting
-    assert_almost_equal(bvecs, DTI_PAR_BVECS[np.ix_(DTI_PAR_BVALS_SORT_IDCS, [2, 0, 1])])
+    assert_almost_equal(
+        bvecs,
+        DTI_PAR_BVECS[np.ix_(np.argsort(DTI_PAR_BVALS, kind='stable'), [2, 0, 1])],
+    )
     # Check q vectors
     assert_almost_equal(dti_hdr.get_q_vectors(), bvals[:, None] * bvecs)
 
