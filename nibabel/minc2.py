@@ -59,11 +59,12 @@ class Minc2File(Minc1File):
         # We don't currently support irregular spacing
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
         for dim in self._dims:
-            if hasattr(dim, 'spacing'):
-                if dim.spacing == b'irregular':
-                    raise ValueError('Irregular spacing not supported')
-                elif dim.spacing != b'regular__':
-                    warnings.warn(f'Invalid spacing declaration: {dim.spacing}; assuming regular')
+            # "If this attribute is absent, a value of regular__ should be assumed."
+            spacing = getattr(dim, 'spacing', b'regular__')
+            if spacing == b'irregular':
+                raise ValueError('Irregular spacing not supported')
+            elif spacing != b'regular__':
+                warnings.warn(f'Invalid spacing declaration: {spacing}; assuming regular')
 
         self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
         self._image_max = image['image-max']
