@@ -10,6 +10,7 @@
 from os.path import join as pjoin
 
 import numpy as np
+import pytest
 
 from .. import minc2
 from ..minc2 import Minc2File, Minc2Image
@@ -121,3 +122,12 @@ if have_h5py:
         image_class = Minc2Image
         eg_images = (pjoin(data_path, 'small.mnc'),)
         module = minc2
+
+
+def test_bad_diminfo():
+    fname = pjoin(data_path, 'minc2_baddim.mnc')
+    # File has a bad spacing field 'xspace' when it should be
+    # `irregular`, `regular__` or absent (default to regular__).
+    # We interpret an invalid spacing as absent, but warn.
+    with pytest.warns(UserWarning) as w:
+        Minc2Image.from_filename(fname)
