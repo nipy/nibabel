@@ -71,6 +71,7 @@ test = [
   "pytest-doctestplus",
   "pytest-httpserver",
   "pytest-xdist",
+  "looseversion",
 ]
 typing = [
   "mypy",
