@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86']
         install: ['pip']
         check: ['test']
@@ -54,6 +54,8 @@ jobs:
             architecture: x86
           - os: macos-latest
             architecture: x86
+          - python-version: '3.12'
+            architecture: x86
 
     env:
       DEPENDS: ${{ matrix.depends }}
@@ -72,6 +74,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Create virtual environment
