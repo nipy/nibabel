@@ -2,10 +2,10 @@
 
 import os
 from configparser import ConfigParser
-from distutils import log
-from distutils.command.build_py import build_py
-from distutils.command.install_scripts import install_scripts
-from distutils.version import LooseVersion
+import logging as log
+from setuptools.command.build_py import build_py
+from setuptools.command.install_scripts import install_scripts
+from setuptools._distutils.version import LooseVersion
 from os.path import join as pjoin
 from os.path import split as psplit
 from os.path import splitext
@@ -121,7 +121,7 @@ def package_check(
        giving the feature name for the ``extras_require`` argument to setup.
     checker : callable, optional
        callable with which to return comparable thing from version
-       string.  Default is ``distutils.version.LooseVersion``
+       string.  Default is ``setuptools._distutils.version.LooseVersion``
     version_getter : {None, callable}:
        Callable that takes `pkg_name` as argument, and returns the
        package version string - as in::
