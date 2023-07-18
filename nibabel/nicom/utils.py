@@ -1,8 +1,6 @@
 """Utilities for working with DICOM datasets
 """
 
-from nibabel.casting import asstr
-
 
 def find_private_section(dcm_data, group_no, creator):
     """Return start element in group `group_no` given creator name `creator`
@@ -19,10 +17,10 @@ def find_private_section(dcm_data, group_no, creator):
         ``tag``, ``VR``, ``value``
     group_no : int
         Group number in which to search
-    creator : str or bytes or regex
-        Name of section - e.g. 'SIEMENS CSA HEADER' - or regex to search for
+    creator : bytes or regex
+        Name of section - e.g. b'SIEMENS CSA HEADER' - or regex to search for
         section name.  Regex used via ``creator.search(element_value)`` where
-        ``element_value`` is the value of the data element.
+        ``element_value`` is the decoded value of the data element.
 
     Returns
     -------
@@ -31,8 +29,9 @@ def find_private_section(dcm_data, group_no, creator):
     """
     if hasattr(creator, 'search'):
         match_func = creator.search
-    else:  # assume string / bytes
-        match_func = asstr(creator).__eq__
+    else:  # assume bytes
+        creator = creator.decode('latin-1')
+        match_func = creator.__eq__
     # Group elements assumed ordered by tag (groupno, elno)
     for element in dcm_data.group_dataset(group_no):
         elno = element.tag.elem
@@ -40,6 +39,7 @@ def find_private_section(dcm_data, group_no, creator):
             break
         if element.VR not in ('LO', 'OB'):
             continue
-        if match_func(asstr(element.value)):
+        val = element.value.decode('latin-1')
+        if match_func(val):
             return elno * 0x100
     return None

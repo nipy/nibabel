@@ -9,7 +9,6 @@ import warnings
 import numpy as np
 
 import nibabel as nib
-from nibabel.casting import asstr
 from nibabel.openers import Opener
 from nibabel.orientations import aff2axcodes, axcodes2ornt
 from nibabel.volumeutils import endian_codes, native_code, swapped_code
@@ -180,7 +179,7 @@ def decode_value_from_name(encoded_name):
     value : int
         Value decoded from the name.
     """
-    encoded_name = asstr(encoded_name)
+    encoded_name = encoded_name.decode('latin1')
     if len(encoded_name) == 0:
         return encoded_name, 0
 
@@ -740,14 +739,25 @@ class TrkFile(TractogramFile):
                     vars[attr] = vars[hdr_field]
 
         nb_scalars = self.header[Field.NB_SCALARS_PER_POINT]
-        scalar_names = [asstr(s) for s in vars['scalar_name'][:nb_scalars] if len(s) > 0]
+        scalar_names = [
+            s.decode('latin-1')
+            for s in vars['scalar_name'][:nb_scalars]
+            if len(s) > 0
+        ]
         vars['scalar_names'] = '\n  '.join(scalar_names)
         nb_properties = self.header[Field.NB_PROPERTIES_PER_STREAMLINE]
-        property_names = [asstr(s) for s in vars['property_name'][:nb_properties] if len(s) > 0]
+        property_names = [
+            s.decode('latin-1')
+            for s in vars['property_name'][:nb_properties]
+            if len(s) > 0
+        ]
         vars['property_names'] = '\n  '.join(property_names)
         # Make all byte strings into strings
         # Fixes recursion error on Python 3.3
-        vars = {k: asstr(v) if hasattr(v, 'decode') else v for k, v in vars.items()}
+        vars = {
+            k: v.decode('latin-1') if hasattr(v, 'decode') else v
+            for k, v in vars.items()
+        }
         return """\
 MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}

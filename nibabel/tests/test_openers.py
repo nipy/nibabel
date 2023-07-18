@@ -19,7 +19,6 @@ from unittest import mock
 import pytest
 from packaging.version import Version
 
-from ..casting import asstr
 from ..deprecator import ExpiredDeprecationError
 from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
 from ..optpkg import optional_package
@@ -345,7 +344,7 @@ virginia
                     fobj.write(bytes(line + os.linesep, 'ascii'))
             with Opener(input, 'rb') as fobj:
                 for back_line, line in zip(fobj, lines):
-                    assert asstr(back_line).rstrip() == line
+                    assert back_line.decode('latin-1').rstrip() == line
             if not does_t:
                 continue
             with Opener(input, 'rt') as fobj:
