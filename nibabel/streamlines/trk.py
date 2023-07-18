@@ -7,9 +7,9 @@ import struct
 import warnings
 
 import numpy as np
-from numpy.compat.py3k import asstr
 
 import nibabel as nib
+from nibabel.casting import asstr
 from nibabel.openers import Opener
 from nibabel.orientations import aff2axcodes, axcodes2ornt
 from nibabel.volumeutils import endian_codes, native_code, swapped_code

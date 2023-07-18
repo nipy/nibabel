@@ -17,12 +17,11 @@ from io import BytesIO
 
 import numpy as np
 import numpy.linalg as npl
-from numpy.compat.py3k import asstr
 
 from . import analyze  # module import
 from .arrayproxy import get_obj_dtype
 from .batteryrunners import Report
-from .casting import have_binary128
+from .casting import have_binary128, asstr
 from .deprecated import alert_future_error
 from .filebasedimages import ImageFileError, SerializableImage
 from .optpkg import optional_package

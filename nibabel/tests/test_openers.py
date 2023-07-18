@@ -17,9 +17,9 @@ from io import BytesIO, UnsupportedOperation
 from unittest import mock
 
 import pytest
-from numpy.compat.py3k import asbytes, asstr
 from packaging.version import Version
 
+from ..casting import asstr
 from ..deprecator import ExpiredDeprecationError
 from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
 from ..optpkg import optional_package
@@ -342,7 +342,7 @@ virginia
         for input, does_t in files_to_test:
             with Opener(input, 'wb') as fobj:
                 for line in lines:
-                    fobj.write(asbytes(line + os.linesep))
+                    fobj.write(bytes(line + os.linesep, 'ascii'))
             with Opener(input, 'rb') as fobj:
                 for back_line, line in zip(fobj, lines):
                     assert asstr(back_line).rstrip() == line

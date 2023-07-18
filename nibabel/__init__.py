@@ -39,7 +39,7 @@ For more detailed information see the :ref:`manual`.
 
 # module imports
 from . import analyze as ana
-from . import ecat, imagestats, mriutils
+from . import ecat, imagestats, mriutils, orientations
 from . import nifti1 as ni1
 from . import spm2analyze as spm2
 from . import spm99analyze as spm99

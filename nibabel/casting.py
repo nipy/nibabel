@@ -796,3 +796,10 @@ def ulp(val=np.float64(1.0)):
         fl2 = info['minexp']
     # 'nmant' value does not include implicit first bit
     return 2 ** (fl2 - info['nmant'])
+
+
+# Ported from np.compat
+def asstr(s):
+    if isinstance(s, bytes):
+        return s.decode('latin1')
+    return str(s)
