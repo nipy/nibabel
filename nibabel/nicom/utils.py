@@ -17,7 +17,7 @@ def find_private_section(dcm_data, group_no, creator):
         ``tag``, ``VR``, ``value``
     group_no : int
         Group number in which to search
-    creator : bytes or regex
+    creator : str or regex
         Name of section - e.g. b'SIEMENS CSA HEADER' - or regex to search for
         section name.  Regex used via ``creator.search(element_value)`` where
         ``element_value`` is the decoded value of the data element.
@@ -29,8 +29,7 @@ def find_private_section(dcm_data, group_no, creator):
     """
     if hasattr(creator, 'search'):
         match_func = creator.search
-    else:  # assume bytes
-        creator = creator.decode('latin-1')
+    else:  # assume str
         match_func = creator.__eq__
     # Group elements assumed ordered by tag (groupno, elno)
     for element in dcm_data.group_dataset(group_no):
@@ -39,7 +38,7 @@ def find_private_section(dcm_data, group_no, creator):
             break
         if element.VR not in ('LO', 'OB'):
             continue
-        val = element.value.decode('latin-1')
+        val = element.value
         if match_func(val):
             return elno * 0x100
     return None
