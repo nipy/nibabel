@@ -1169,7 +1169,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
             assert img.get_data_dtype() == alias
             img_rt = bytesio_round_trip(img)
             assert img_rt.get_data_dtype() == effective_dt
-            # Seralizing does not finalize the source image
+            # Serializing does not finalize the source image
             assert img.get_data_dtype() == alias
 
     def test_static_dtype_aliases(self):

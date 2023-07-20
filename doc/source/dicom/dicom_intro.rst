@@ -228,22 +228,22 @@ Here is the start of the relevant section from PS 3.5:
 
   7.8.1 PRIVATE DATA ELEMENT TAGS
 
-  It is possible that multiple implementors may define Private Elements with the
+  It is possible that multiple implementers may define Private Elements with the
   same (odd) group number.  To avoid conflicts, Private Elements shall be
   assigned Private Data Element Tags according to the following rules.
 
   a) Private Creator Data Elements numbered (gggg,0010-00FF) (gggg is odd) shall
   be used to reserve a block of Elements with Group Number gggg for use by an
-  individual implementor.  The implementor shall insert an identification code
+  individual implementer.  The implementer shall insert an identification code
   in the first unused (unassigned) Element in this series to reserve a block of
   Private Elements. The VR of the private identification code shall be LO (Long
   String) and the VM shall be equal to 1.
 
   b) Private Creator Data Element (gggg,0010), is a Type 1 Data Element that
-  identifies the implementor reserving element (gggg,1000-10FF), Private Creator
-  Data Element (gggg,0011) identifies the implementor reserving elements
+  identifies the implementer reserving element (gggg,1000-10FF), Private Creator
+  Data Element (gggg,0011) identifies the implementer reserving elements
   (gggg,1100-11FF), and so on, until Private Creator Data Element (gggg,00FF)
-  identifies the implementor reserving elements (gggg,FF00- FFFF).
+  identifies the implementer reserving elements (gggg,FF00- FFFF).
 
   c) Encoders of Private Data Elements shall be able to dynamically assign
   private data to any available (unreserved) block(s) within the Private group,

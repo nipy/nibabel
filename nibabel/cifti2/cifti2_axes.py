@@ -59,7 +59,7 @@ We can create brain models covering the left cortex and left thalamus using:
 In this very simple case ``bm_cortex`` describes a left cortical surface skipping the second
 out of four vertices. ``bm_thal`` contains all voxels in a 2x2x2 volume.
 
-Brain structure names automatically get converted to valid CIFTI-2 indentifiers using
+Brain structure names automatically get converted to valid CIFTI-2 identifiers using
 :meth:`BrainModelAxis.to_cifti_brain_structure_name`.
 A 1-dimensional mask will be automatically interpreted as a surface element and a 3-dimensional
 mask as a volume element.

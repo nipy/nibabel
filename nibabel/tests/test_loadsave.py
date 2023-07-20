@@ -192,7 +192,7 @@ def test_read_img_data_nifti():
                 assert_array_equal(actual_unscaled, read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
-            # Delete arrays still pointing to file, so Windows can re-use
+            # Delete arrays still pointing to file, so Windows can reuse
             del actual_unscaled, unscaled_back
             img.to_file_map()
             # Write an integer of zeros after
