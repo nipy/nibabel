@@ -1740,8 +1740,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         magic = hdr['magic'].item()
         if magic in (hdr.pair_magic, hdr.single_magic):
             return hdr, rep
-        magic = magic.decode('latin-1')
-        rep.problem_msg = f'magic string "{magic}" is not valid'
+        rep.problem_msg = f'magic string {magic.decode("latin1")!r} is not valid'
         rep.problem_level = 45
         if fix:
             rep.fix_msg = 'leaving as is, but future errors are likely'
