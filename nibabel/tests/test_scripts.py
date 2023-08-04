@@ -228,7 +228,7 @@ def test_nib_nifti_dx():
     expected = f"""Picky header check output for "{dirty_hdr}"
 
 pixdim[0] (qfac) should be 1 (default) or -1
-magic string "" is not valid
+magic string '' is not valid
 sform_code 11776 not valid"""
     # Split strings to remove line endings
     assert stdout == expected

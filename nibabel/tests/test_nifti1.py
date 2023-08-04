@@ -251,7 +251,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         fhdr, message, raiser = self.log_chk(hdr, 45)
         assert fhdr['magic'] == b'ooh'
         assert (
-            message == 'magic string "ooh" is not valid; '
+            message == "magic string 'ooh' is not valid; "
             'leaving as is, but future errors are likely'
         )
         # For pairs, any offset is OK, but should be divisible by 16
