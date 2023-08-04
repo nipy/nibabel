@@ -740,24 +740,17 @@ class TrkFile(TractogramFile):
 
         nb_scalars = self.header[Field.NB_SCALARS_PER_POINT]
         scalar_names = [
-            s.decode('latin-1')
-            for s in vars['scalar_name'][:nb_scalars]
-            if len(s) > 0
+            s.decode('latin-1') for s in vars['scalar_name'][:nb_scalars] if len(s) > 0
         ]
         vars['scalar_names'] = '\n  '.join(scalar_names)
         nb_properties = self.header[Field.NB_PROPERTIES_PER_STREAMLINE]
         property_names = [
-            s.decode('latin-1')
-            for s in vars['property_name'][:nb_properties]
-            if len(s) > 0
+            s.decode('latin-1') for s in vars['property_name'][:nb_properties] if len(s) > 0
         ]
         vars['property_names'] = '\n  '.join(property_names)
         # Make all byte strings into strings
         # Fixes recursion error on Python 3.3
-        vars = {
-            k: v.decode('latin-1') if hasattr(v, 'decode') else v
-            for k, v in vars.items()
-        }
+        vars = {k: v.decode('latin-1') if hasattr(v, 'decode') else v for k, v in vars.items()}
         return """\
 MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}
