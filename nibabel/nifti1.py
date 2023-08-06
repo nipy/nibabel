@@ -17,7 +17,6 @@ from io import BytesIO
 
 import numpy as np
 import numpy.linalg as npl
-from numpy.compat.py3k import asstr
 
 from . import analyze  # module import
 from .arrayproxy import get_obj_dtype
@@ -1405,7 +1404,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code]) if known_intent else 0
         params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
-        name = asstr(hdr['intent_name'].item())
+        name = hdr['intent_name'].item().decode('latin-1')
         return label, tuple(params), name
 
     def set_intent(self, code, params=(), name='', allow_unknown=False):
@@ -1741,7 +1740,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         magic = hdr['magic'].item()
         if magic in (hdr.pair_magic, hdr.single_magic):
             return hdr, rep
-        rep.problem_msg = f'magic string "{asstr(magic)}" is not valid'
+        rep.problem_msg = f'magic string {magic.decode("latin1")!r} is not valid'
         rep.problem_level = 45
         if fix:
             rep.fix_msg = 'leaving as is, but future errors are likely'

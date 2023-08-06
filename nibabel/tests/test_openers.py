@@ -17,7 +17,6 @@ from io import BytesIO, UnsupportedOperation
 from unittest import mock
 
 import pytest
-from numpy.compat.py3k import asbytes, asstr
 from packaging.version import Version
 
 from ..deprecator import ExpiredDeprecationError
@@ -342,10 +341,10 @@ virginia
         for input, does_t in files_to_test:
             with Opener(input, 'wb') as fobj:
                 for line in lines:
-                    fobj.write(asbytes(line + os.linesep))
+                    fobj.write(str.encode(line + os.linesep))
             with Opener(input, 'rb') as fobj:
                 for back_line, line in zip(fobj, lines):
-                    assert asstr(back_line).rstrip() == line
+                    assert back_line.decode().rstrip() == line
             if not does_t:
                 continue
             with Opener(input, 'rt') as fobj:

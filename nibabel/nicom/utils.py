@@ -1,8 +1,6 @@
 """Utilities for working with DICOM datasets
 """
 
-from numpy.compat.py3k import asstr
-
 
 def find_private_section(dcm_data, group_no, creator):
     """Return start element in group `group_no` given creator name `creator`
@@ -31,8 +29,10 @@ def find_private_section(dcm_data, group_no, creator):
     """
     if hasattr(creator, 'search'):
         match_func = creator.search
-    else:  # assume string / bytes
-        match_func = asstr(creator).__eq__
+    else:
+        if isinstance(creator, bytes):
+            creator = creator.decode('latin-1')
+        match_func = creator.__eq__
     # Group elements assumed ordered by tag (groupno, elno)
     for element in dcm_data.group_dataset(group_no):
         elno = element.tag.elem
@@ -40,6 +40,9 @@ def find_private_section(dcm_data, group_no, creator):
             break
         if element.VR not in ('LO', 'OB'):
             continue
-        if match_func(asstr(element.value)):
+        val = element.value
+        if isinstance(val, bytes):
+            val = val.decode('latin-1')
+        if match_func(val):
             return elno * 0x100
     return None
