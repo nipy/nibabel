@@ -25,6 +25,7 @@ What is the image API?
 
 import io
 import pathlib
+import sys
 import warnings
 from functools import partial
 from itertools import product
@@ -579,6 +580,10 @@ class SerializeMixin:
         del img
         del rt_img
 
+    @pytest.mark.xfail(
+        sys.version_info >= (3, 12),
+        reason='Response type for file: urls is not a stream in Python 3.12',
+    )
     def validate_from_file_url(self, imaker, params):
         tmp_path = self.tmp_path
 
