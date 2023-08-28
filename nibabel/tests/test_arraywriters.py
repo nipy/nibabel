@@ -20,7 +20,7 @@ from ..arraywriters import (
     get_slope_inter,
     make_array_writer,
 )
-from ..casting import int_abs, on_powerpc, shared_range, type_info
+from ..casting import int_abs, shared_range, type_info
 from ..testing import assert_allclose_safely, suppress_warnings
 from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 

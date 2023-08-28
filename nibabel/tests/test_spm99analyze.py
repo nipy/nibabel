@@ -24,7 +24,7 @@ _, have_scipy, _ = optional_package('scipy')
 needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
 from ..casting import shared_range, type_info
-from ..spatialimages import HeaderDataError, supported_np_types
+from ..spatialimages import HeaderDataError
 from ..spm99analyze import HeaderTypeError, Spm99AnalyzeHeader, Spm99AnalyzeImage
 from ..testing import (
     assert_allclose_safely,
