@@ -146,7 +146,9 @@ class _TestProxyAPI(ValidateAPI):
             context.__enter__()
             warnings.simplefilter('ignore', np.ComplexWarning)
 
-        for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
+        for dtype in (
+            np.core.sctypes["float"] + np.core.sctypes["int"] + np.core.sctypes["uint"]
+        ):
             # Directly coerce with a dtype
             direct = dtype(prox)
             # Half-precision is imprecise. Obviously. It's a bad idea, but don't break

@@ -24,10 +24,10 @@ from ..casting import int_abs, on_powerpc, shared_range, type_info
 from ..testing import assert_allclose_safely, suppress_warnings
 from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
-INT_TYPES = np.sctypes['int']
-UINT_TYPES = np.sctypes['uint']
+FLOAT_TYPES = np.core.sctypes['float']
+COMPLEX_TYPES = np.core.sctypes['complex']
+INT_TYPES = np.core.sctypes['int']
+UINT_TYPES = np.core.sctypes['uint']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES

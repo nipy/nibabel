@@ -403,7 +403,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             return
         # Return original array from get_fdata only if the input array is the
         # requested dtype.
-        float_types = np.sctypes['float']
+        float_types = np.core.sctypes['float']
         if arr_dtype not in float_types:
             return
         for float_type in float_types:

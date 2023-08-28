@@ -714,7 +714,7 @@ def ok_floats():
     Remove longdouble if it has no higher precision than float64
     """
     # copy float list so we don't change the numpy global
-    floats = np.sctypes['float'][:]
+    floats = np.core.sctypes['float'][:]
     if best_float() != np.longdouble and np.longdouble in floats:
         floats.remove(np.longdouble)
     return sorted(floats, key=lambda f: type_info(f)['nmant'])
@@ -750,10 +750,10 @@ def able_int_type(values):
     mn = min(values)
     mx = max(values)
     if mn >= 0:
-        for ityp in np.sctypes['uint']:
+        for ityp in np.core.sctypes['uint']:
             if mx <= np.iinfo(ityp).max:
                 return ityp
-    for ityp in np.sctypes['int']:
+    for ityp in np.core.sctypes['int']:
         info = np.iinfo(ityp)
         if mn >= info.min and mx <= info.max:
             return ityp

@@ -60,11 +60,11 @@ from ..volumeutils import (
 pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 
 #: convenience variables for numpy types
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
+FLOAT_TYPES = np.core.sctypes['float']
+COMPLEX_TYPES = np.core.sctypes['complex']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
-INT_TYPES = np.sctypes['int']
-IUINT_TYPES = INT_TYPES + np.sctypes['uint']
+INT_TYPES = np.core.sctypes['int']
+IUINT_TYPES = INT_TYPES + np.core.sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 FP_RUNTIME_WARN = Version(np.__version__) >= Version('1.24.0.dev0+239')
@@ -597,7 +597,7 @@ def test_a2f_nanpos():
 
 def test_a2f_bad_scaling():
     # Test that pathological scalers raise an error
-    NUMERICAL_TYPES = sum([np.sctypes[key] for key in ['int', 'uint', 'float', 'complex']], [])
+    NUMERICAL_TYPES = sum([np.core.sctypes[key] for key in ['int', 'uint', 'float', 'complex']], [])
     for in_type, out_type, slope, inter in itertools.product(
         NUMERICAL_TYPES,
         NUMERICAL_TYPES,
@@ -830,10 +830,10 @@ def test_better_float():
         return f1 if FLOAT_TYPES.index(f1) >= FLOAT_TYPES.index(f2) else f2
 
     for first in FLOAT_TYPES:
-        for other in IUINT_TYPES + np.sctypes['complex']:
+        for other in IUINT_TYPES + np.core.sctypes['complex']:
             assert better_float_of(first, other) == first
             assert better_float_of(other, first) == first
-            for other2 in IUINT_TYPES + np.sctypes['complex']:
+            for other2 in IUINT_TYPES + np.core.sctypes['complex']:
                 assert better_float_of(other, other2) == np.float32
                 assert better_float_of(other, other2, np.float64) == np.float64
         for second in FLOAT_TYPES:

@@ -177,8 +177,8 @@ def test_array_file_scales(in_type, out_type):
     ],
 )
 def test_scaling_in_abstract(category0, category1, overflow):
-    for in_type in np.sctypes[category0]:
-        for out_type in np.sctypes[category1]:
+    for in_type in np.core.sctypes[category0]:
+        for out_type in np.core.sctypes[category1]:
             if overflow:
                 with suppress_warnings():
                     check_int_a2f(in_type, out_type)
@@ -191,7 +191,7 @@ def check_int_a2f(in_type, out_type):
     big_floater = np.maximum_sctype(np.float64)
     info = type_info(in_type)
     this_min, this_max = info['min'], info['max']
-    if not in_type in np.sctypes['complex']:
+    if not in_type in np.core.sctypes['complex']:
         data = np.array([this_min, this_max], in_type)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(data)):

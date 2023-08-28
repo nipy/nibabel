@@ -36,7 +36,7 @@ from ..spatialimages import HeaderDataError
 from ..volumeutils import Recoder, native_code, swapped_code
 from ..wrapstruct import LabeledWrapStruct, WrapStruct, WrapStructError
 
-INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
+INTEGER_TYPES = np.core.sctypes['int'] + np.core.sctypes['uint']
 
 
 def log_chk(hdr, level):

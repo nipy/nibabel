@@ -35,7 +35,7 @@ from ..testing import (
 from ..volumeutils import _dt_min_max, apply_read_scaling
 from . import test_analyze
 
-# np.sctypes values are lists of types with unique sizes
+# np.core.sctypes values are lists of types with unique sizes
 # For testing, we want all concrete classes of a type
 # Key on kind, rather than abstract base classes, since timedelta64 is a signedinteger
 sctypes = {}

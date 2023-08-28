@@ -102,7 +102,7 @@ def test_round_trip():
     rng = np.random.RandomState(20111121)
     N = 10000
     sd_10s = range(-20, 51, 5)
-    iuint_types = np.sctypes['int'] + np.sctypes['uint']
+    iuint_types = np.core.sctypes['int'] + np.core.sctypes['uint']
     # Remove types which cannot be set into nifti header datatype
     nifti_supported = supported_np_types(Nifti1Header())
     iuint_types = [t for t in iuint_types if t in nifti_supported]
