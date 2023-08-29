@@ -17,6 +17,7 @@ from ..casting import (
     int_abs,
     int_to_float,
     longdouble_precision_improved,
+    sctypes,
     shared_range,
     ulp,
 )
@@ -24,8 +25,8 @@ from ..testing import suppress_warnings
 
 
 def test_shared_range():
-    for ft in np.core.sctypes['float']:
-        for it in np.core.sctypes['int'] + np.core.sctypes['uint']:
+    for ft in sctypes['float']:
+        for it in sctypes['int'] + sctypes['uint']:
             # Test that going a bit above or below the calculated min and max
             # either generates the same number when cast, or the max int value
             # (if this system generates that) or something smaller (because of
@@ -54,7 +55,7 @@ def test_shared_range():
                 assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
                 assert np.all(bit_bigger <= casted_mx)
-            if it in np.core.sctypes['uint']:
+            if it in sctypes['uint']:
                 assert mn == 0
                 continue
             # And something larger for the minimum
@@ -90,8 +91,8 @@ def test_shared_range_inputs():
 
 
 def test_casting():
-    for ft in np.core.sctypes['float']:
-        for it in np.core.sctypes['int'] + np.core.sctypes['uint']:
+    for ft in sctypes['float']:
+        for it in sctypes['int'] + sctypes['uint']:
             ii = np.iinfo(it)
             arr = [ii.min - 1, ii.max + 1, -np.inf, np.inf, np.nan, 0.2, 10.6]
             farr_orig = np.array(arr, dtype=ft)
@@ -140,7 +141,7 @@ def test_casting():
 
 
 def test_int_abs():
-    for itype in np.core.sctypes['int']:
+    for itype in sctypes['int']:
         info = np.iinfo(itype)
         in_arr = np.array([info.min, info.max], dtype=itype)
         idtype = np.dtype(itype)
@@ -188,7 +189,7 @@ def test_able_int_type():
 
 def test_able_casting():
     # Check the able_int_type function guesses numpy out type
-    types = np.core.sctypes['int'] + np.core.sctypes['uint']
+    types = sctypes['int'] + sctypes['uint']
     for in_type in types:
         in_info = np.iinfo(in_type)
         in_mn, in_mx = in_info.min, in_info.max

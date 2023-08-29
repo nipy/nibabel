@@ -41,8 +41,8 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equ
 from .. import ecat, minc1, minc2, parrec
 from ..analyze import AnalyzeHeader
 from ..arrayproxy import ArrayProxy, is_proxy
-from ..casting import have_binary128
 from ..deprecator import ExpiredDeprecationError
+from ..casting import have_binary128, sctypes
 from ..externals.netcdf import netcdf_file
 from ..freesurfer.mghformat import MGHHeader
 from ..nifti1 import Nifti1Header
@@ -146,7 +146,7 @@ class _TestProxyAPI(ValidateAPI):
             context.__enter__()
             warnings.simplefilter('ignore', np.ComplexWarning)
 
-        for dtype in np.core.sctypes['float'] + np.core.sctypes['int'] + np.core.sctypes['uint']:
+        for dtype in sctypes['float'] + sctypes['int'] + sctypes['uint']:
             # Directly coerce with a dtype
             direct = dtype(prox)
             # Half-precision is imprecise. Obviously. It's a bad idea, but don't break

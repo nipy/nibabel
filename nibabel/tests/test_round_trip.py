@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 
 from .. import Nifti1Header, Nifti1Image
 from ..arraywriters import ScalingError
-from ..casting import best_float, type_info, ulp
+from ..casting import best_float, sctypes, type_info, ulp
 from ..spatialimages import HeaderDataError, supported_np_types
 
 DEBUG = False
@@ -102,7 +102,7 @@ def test_round_trip():
     rng = np.random.RandomState(20111121)
     N = 10000
     sd_10s = range(-20, 51, 5)
-    iuint_types = np.core.sctypes['int'] + np.core.sctypes['uint']
+    iuint_types = sctypes['int'] + sctypes['uint']
     # Remove types which cannot be set into nifti header datatype
     nifti_supported = supported_np_types(Nifti1Header())
     iuint_types = [t for t in iuint_types if t in nifti_supported]

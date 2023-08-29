@@ -18,6 +18,7 @@ from ..casting import (
     longdouble_precision_improved,
     ok_floats,
     on_powerpc,
+    sctypes,
     type_info,
 )
 from ..testing import suppress_warnings
@@ -43,7 +44,7 @@ def dtt2dict(dtt):
 
 def test_type_info():
     # Test routine to get min, max, nmant, nexp
-    for dtt in np.core.sctypes['int'] + np.core.sctypes['uint']:
+    for dtt in sctypes['int'] + sctypes['uint']:
         info = np.iinfo(dtt)
         infod = type_info(dtt)
         assert infod == dict(
@@ -212,7 +213,7 @@ def test_int_to_float():
 def test_as_int_np_fix():
     # Test as_int works for integers.  We need as_int for integers because of a
     # numpy 1.4.1 bug such that int(np.uint32(2**32-1) == -1
-    for t in np.core.sctypes['int'] + np.core.sctypes['uint']:
+    for t in sctypes['int'] + sctypes['uint']:
         info = np.iinfo(t)
         mn, mx = np.array([info.min, info.max], dtype=t)
         assert (mn, mx) == (as_int(mn), as_int(mx))

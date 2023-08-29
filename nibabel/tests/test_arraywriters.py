@@ -20,14 +20,14 @@ from ..arraywriters import (
     get_slope_inter,
     make_array_writer,
 )
-from ..casting import int_abs, shared_range, type_info
+from ..casting import int_abs, sctypes, shared_range, type_info
 from ..testing import assert_allclose_safely, suppress_warnings
 from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 
-FLOAT_TYPES = np.core.sctypes['float']
-COMPLEX_TYPES = np.core.sctypes['complex']
-INT_TYPES = np.core.sctypes['int']
-UINT_TYPES = np.core.sctypes['uint']
+FLOAT_TYPES = sctypes['float']
+COMPLEX_TYPES = sctypes['complex']
+INT_TYPES = sctypes['int']
+UINT_TYPES = sctypes['uint']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES

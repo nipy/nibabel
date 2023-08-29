@@ -23,6 +23,15 @@ class CastingError(Exception):
 _test_val = 2**63 + 2**11  # Should be exactly representable in float64
 TRUNC_UINT64 = np.float64(_test_val).astype(np.uint64) != _test_val
 
+# np.sctypes is deprecated in numpy 2.0 and np.core.sctypes should not be used instead.
+sctypes = {
+    "int": [np.int8, np.int16, np.int32, np.int64],
+    "uint": [np.uint8, np.uint16, np.uint32, np.uint64],
+    "float": [np.float16, np.float32, np.float64, np.float128],
+    "complex": [np.complex64, np.complex128, np.complex256],
+    "others": [bool, object, bytes, str, np.void],
+}
+
 
 def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     """Convert floating point array `arr` to type `int_type`
@@ -714,7 +723,7 @@ def ok_floats():
     Remove longdouble if it has no higher precision than float64
     """
     # copy float list so we don't change the numpy global
-    floats = np.core.sctypes['float'][:]
+    floats = sctypes['float'][:]
     if best_float() != np.longdouble and np.longdouble in floats:
         floats.remove(np.longdouble)
     return sorted(floats, key=lambda f: type_info(f)['nmant'])
@@ -750,10 +759,10 @@ def able_int_type(values):
     mn = min(values)
     mx = max(values)
     if mn >= 0:
-        for ityp in np.core.sctypes['uint']:
+        for ityp in sctypes['uint']:
             if mx <= np.iinfo(ityp).max:
                 return ityp
-    for ityp in np.core.sctypes['int']:
+    for ityp in sctypes['int']:
         info = np.iinfo(ityp)
         if mn >= info.min and mx <= info.max:
             return ityp
