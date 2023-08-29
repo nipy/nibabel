@@ -25,11 +25,11 @@ TRUNC_UINT64 = np.float64(_test_val).astype(np.uint64) != _test_val
 
 # np.sctypes is deprecated in numpy 2.0 and np.core.sctypes should not be used instead.
 sctypes = {
-    "int": [np.int8, np.int16, np.int32, np.int64],
-    "uint": [np.uint8, np.uint16, np.uint32, np.uint64],
-    "float": [np.float16, np.float32, np.float64, np.float128],
-    "complex": [np.complex64, np.complex128, np.complex256],
-    "others": [bool, object, bytes, str, np.void],
+    'int': [np.int8, np.int16, np.int32, np.int64],
+    'uint': [np.uint8, np.uint16, np.uint32, np.uint64],
+    'float': [np.float16, np.float32, np.float64, np.float128],
+    'complex': [np.complex64, np.complex128, np.complex256],
+    'others': [bool, object, bytes, str, np.void],
 }
 
 
