@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 import pytest
 
+from ..casting import sctypes
 from ..testing import (
     assert_allclose_safely,
     assert_re_in,
