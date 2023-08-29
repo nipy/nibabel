@@ -39,7 +39,7 @@ _, have_h5py, _ = optional_package('h5py')
 import unittest
 
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal, assert_warns
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
 
 from nibabel.arraywriters import WriterError
 from nibabel.testing import (
@@ -69,7 +69,7 @@ from .. import (
     minc2,
     parrec,
 )
-from ..deprecator import ExpiredDeprecationError
+from ..casting import sctypes
 from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
 from .test_api_validators import ValidateAPI

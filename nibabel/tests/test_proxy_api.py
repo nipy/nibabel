@@ -36,12 +36,11 @@ from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import ecat, minc1, minc2, parrec
 from ..analyze import AnalyzeHeader
 from ..arrayproxy import ArrayProxy, is_proxy
-from ..deprecator import ExpiredDeprecationError
 from ..casting import have_binary128, sctypes
 from ..externals.netcdf import netcdf_file
 from ..freesurfer.mghformat import MGHHeader
