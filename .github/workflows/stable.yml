@@ -40,8 +40,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v4
         with:
-          # Bug in 3.11.4 tarfile extraction can break python -m build
-          python-version: '>=3, != 3.11.4'
+          python-version: 3
       - run: pip install --upgrade build twine
       - name: Build sdist and wheel
         run: python -m build
@@ -80,8 +79,7 @@ jobs:
           path: archive/
       - uses: actions/setup-python@v4
         with:
-          # Bug in 3.11.4 tarfile extraction may break sdist installation
-          python-version: '>=3, != 3.11.4'
+          python-version: 3
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Update pip
