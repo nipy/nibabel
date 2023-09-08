@@ -566,6 +566,7 @@ class SpatialImage(DataobjImage):
 
     def _affine2header(self) -> None:
         """Unconditionally set affine into the header"""
+        assert self._affine is not None
         RZS = self._affine[:3, :3]
         vox = np.sqrt(np.sum(RZS * RZS, axis=0))
         hdr = self._header
