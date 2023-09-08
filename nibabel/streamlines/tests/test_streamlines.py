@@ -84,7 +84,7 @@ def setup():
     )
 
 
-def test_is_supported_detect_format():
+def test_is_supported_detect_format(tmp_path):
     # Test is_supported and detect_format functions
     # Empty file/string
     f = BytesIO()
@@ -103,7 +103,8 @@ def test_is_supported_detect_format():
 
     # Wrong extension but right magic number
     for tfile_cls in FORMATS.values():
-        with tempfile.TemporaryFile(mode='w+b', suffix='.txt') as f:
+        fpath = tmp_path / 'test.txt'
+        with open(fpath, 'w+b') as f:
             f.write(asbytes(tfile_cls.MAGIC_NUMBER))
             f.seek(0, os.SEEK_SET)
             assert nib.streamlines.is_supported(f)
@@ -111,7 +112,8 @@ def test_is_supported_detect_format():
 
     # Good extension but wrong magic number
     for ext, tfile_cls in FORMATS.items():
-        with tempfile.TemporaryFile(mode='w+b', suffix=ext) as f:
+        fpath = tmp_path / f'test{ext}'
+        with open(fpath, 'w+b') as f:
             f.write(b'pass')
             f.seek(0, os.SEEK_SET)
             assert not nib.streamlines.is_supported(f)
