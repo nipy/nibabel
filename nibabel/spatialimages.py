@@ -481,7 +481,7 @@ class SpatialImage(DataobjImage):
     def __init__(
         self,
         dataobj: ArrayLike,
-        affine: np.ndarray,
+        affine: np.ndarray | None,
         header: FileBasedHeader | ty.Mapping | None = None,
         extra: ty.Mapping | None = None,
         file_map: FileMap | None = None,
