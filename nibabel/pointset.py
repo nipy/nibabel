@@ -19,7 +19,15 @@ class Pointset:
         return self.get_coords().shape[0]
 
     def get_coords(self, name=None):
-        """Nx3 array of coordinates in RAS+ space"""
+        """Nx3 array of coordinates.
+        
+        Parameters
+        ----------
+        name : :obj:`str`
+            Select a particular coordinate system if more than one may exist.
+            By default, `None` is equivalent to `"world"` and corresponds to
+            an RAS+ coordinate system.
+        """
         return self._coords
 
 
