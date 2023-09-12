@@ -31,7 +31,7 @@ import numpy as np
 
 from .casting import sctypes
 
-MAX_FLOAT = sctypes["float"][-1]
+MAX_FLOAT = sctypes['float'][-1]
 FLOAT_EPS = np.finfo(float).eps
 
 

@@ -188,7 +188,7 @@ def test_scaling_in_abstract(category0, category1, overflow):
 
 def check_int_a2f(in_type, out_type):
     # Check that array to / from file returns roughly the same as input
-    big_floater = sctypes["float"][-1]
+    big_floater = sctypes['float'][-1]
     info = type_info(in_type)
     this_min, this_max = info['min'], info['max']
     if not in_type in sctypes['complex']:
