@@ -9,7 +9,6 @@
 """Testing spatialimages
 """
 
-import warnings
 from io import BytesIO
 
 import numpy as np
@@ -21,10 +20,8 @@ from ..imageclasses import spatial_axes_first
 from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
 from ..testing import (
     bytesio_round_trip,
-    clear_and_catch_warnings,
     expires,
     memmap_after_ufunc,
-    suppress_warnings,
 )
 from ..tmpdirs import InTemporaryDirectory
 

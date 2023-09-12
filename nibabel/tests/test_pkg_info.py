@@ -2,7 +2,6 @@
 """
 
 import pytest
-from packaging.version import Version
 
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
