@@ -23,7 +23,7 @@ _, have_scipy, _ = optional_package('scipy')
 # files
 needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
-from ..casting import shared_range, type_info
+from ..casting import sctypes_named, shared_range, type_info
 from ..spatialimages import HeaderDataError
 from ..spm99analyze import HeaderTypeError, Spm99AnalyzeHeader, Spm99AnalyzeImage
 from ..testing import (
@@ -39,7 +39,7 @@ from . import test_analyze
 # For testing, we want all concrete classes of a type
 # Key on kind, rather than abstract base classes, since timedelta64 is a signedinteger
 sctypes = {}
-for sctype in set(np.sctypeDict.values()):
+for sctype in sctypes_named:
     sctypes.setdefault(np.dtype(sctype).kind, []).append(sctype)
 
 # Sort types to ensure that xdist doesn't complain about test order when we parametrize

@@ -45,7 +45,22 @@ sctypes = {
     ],
     'others': [bool, object, bytes, str, np.void],
 }
-
+# fmt: off
+sctypes_named = {
+    getattr(np, dtype)
+    for dtype in (
+        'int8', 'byte', 'int16', 'short', 'int32', 'intc', 'int_', 'int64', 'longlong',
+        'uint8', 'ubyte', 'uint16', 'ushort', 'uint32', 'uintc', 'uint', 'uint64', 'ulonglong',  # noqa: E501
+        'float16', 'half', 'float32', 'single', 'float64', 'double', 'float96', 'float128', 'longdouble',  # noqa: E501
+        'complex64', 'csingle', 'complex128', 'cdouble', 'complex192', 'complex256', 'clongdouble',  # noqa: E501
+        # other names of the built-in scalar types
+        'int_', 'float_', 'complex_', 'bytes_', 'str_', 'bool_', 'datetime64', 'timedelta64',  # noqa: E501
+        # other
+        'object_', 'void',
+    )
+    if hasattr(np, dtype)
+}
+# fmt: on
 
 def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     """Convert floating point array `arr` to type `int_type`

@@ -139,6 +139,7 @@ from typing import Literal
 import numpy as np
 
 from .arrayproxy import ArrayLike
+from .casting import sctypes_named
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage
 from .fileholders import FileMap
@@ -333,7 +334,7 @@ def _supported_np_types(klass: type[HasDtype]) -> set[type[np.generic]]:
         else:
             raise e
     supported = set()
-    for np_type in set(np.sctypeDict.values()):
+    for np_type in sctypes_named:
         try:
             obj.set_data_dtype(np_type)
         except HeaderDataError:
