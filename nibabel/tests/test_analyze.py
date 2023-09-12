@@ -27,7 +27,6 @@ from .. import imageglobals
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..arraywriters import WriterError
 from ..casting import as_int
-from ..loadsave import read_img_data
 from ..nifti1 import Nifti1Header
 from ..optpkg import optional_package
 from ..spatialimages import HeaderDataError, HeaderTypeError, supported_np_types
