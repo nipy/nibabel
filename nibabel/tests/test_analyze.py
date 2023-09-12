@@ -26,7 +26,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from .. import imageglobals
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..arraywriters import WriterError
-from ..casting import as_int, sctypes_named
+from ..casting import as_int, sctypes_aliases
 from ..nifti1 import Nifti1Header
 from ..optpkg import optional_package
 from ..spatialimages import HeaderDataError, HeaderTypeError, supported_np_types
@@ -52,7 +52,7 @@ def add_duplicate_types(supported_np_types):
     # Update supported numpy types with named scalar types that map to the same set of dtypes
     dtypes = {np.dtype(t) for t in supported_np_types}
     supported_np_types.update(
-        scalar for scalar in sctypes_named if np.dtype(scalar) in dtypes
+        scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes
     )
 
 

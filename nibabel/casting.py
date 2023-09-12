@@ -46,7 +46,7 @@ sctypes = {
     'others': [bool, object, bytes, str, np.void],
 }
 # fmt: off
-sctypes_named = {
+sctypes_aliases = {
     getattr(np, dtype)
     for dtype in (
         'int8', 'byte', 'int16', 'short', 'int32', 'intc', 'int_', 'int64', 'longlong',
