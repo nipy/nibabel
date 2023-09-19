@@ -144,64 +144,6 @@ class Pointset:
         return coords
 
 
-class TriangularMesh(Pointset):
-    def __init__(self, mesh):
-        if isinstance(mesh, tuple) and len(mesh) == 2:
-            coords, self._triangles = mesh
-        elif hasattr(mesh, 'coords') and hasattr(mesh, 'triangles'):
-            coords = mesh.coords
-            self._triangles = mesh.triangles
-        elif hasattr(mesh, 'get_mesh'):
-            coords, self._triangles = mesh.get_mesh()
-        else:
-            raise ValueError('Cannot interpret input as triangular mesh')
-        super().__init__(coords)
-
-    @property
-    def n_triangles(self):
-        """Number of faces
-
-        Subclasses should override with more efficient implementations.
-        """
-        return self._triangles.shape[0]
-
-    def get_triangles(self):
-        """Mx3 array of indices into coordinate table"""
-        return self._triangles
-
-    def get_mesh(self, name=None):
-        return self.get_coords(name=name), self.get_triangles()
-
-    def get_names(self):
-        """List of surface names that can be passed to
-        ``get_{coords,triangles,mesh}``
-        """
-        raise NotImplementedError
-
-
-class TriMeshFamily(TriangularMesh):
-    def __init__(self, mapping, default=None):
-        self._triangles = None
-        self._coords = {}
-        for name, mesh in dict(mapping).items():
-            coords, triangles = TriangularMesh(mesh).get_mesh()
-            if self._triangles is None:
-                self._triangles = triangles
-            self._coords[name] = coords
-
-        if default is None:
-            default = next(iter(self._coords))
-        self._default = default
-
-    def get_names(self):
-        return list(self._coords)
-
-    def get_coords(self, name=None):
-        if name is None:
-            name = self._default
-        return self._coords[name]
-
-
 class Grid(Pointset):
     r"""A regularly-spaced collection of coordinates
 
