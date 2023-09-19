@@ -520,7 +520,7 @@ class BrainModelAxis(Axis):
         ValueError: raised if the input name does not match a known anatomical structure in CIFTI-2
         """
         if name in cifti2.CIFTI_BRAIN_STRUCTURES:
-            return name
+            return cifti2.CIFTI_BRAIN_STRUCTURES.ciftiname[name]
         if not isinstance(name, str):
             if len(name) == 1:
                 structure = name[0]
@@ -554,10 +554,10 @@ class BrainModelAxis(Axis):
             proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}'
         else:
             proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}_{orientation.upper()}'
-        if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES:
+        if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES.ciftiname:
             raise ValueError(
-                f'{name} was interpreted as {proposed_name}, which is not '
-                'a valid CIFTI brain structure'
+                f'{name} was interpreted as {proposed_name}, '
+                'which is not a valid CIFTI brain structure'
             )
         return proposed_name
 
