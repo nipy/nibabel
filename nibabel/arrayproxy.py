@@ -217,6 +217,15 @@ class ArrayProxy(ArrayLike):
         )
         self._lock = RLock()
 
+    def copy(self):
+        spec = self._shape, self._dtype, self._offset, self._slope, self._inter
+        return ArrayProxy(
+            self.file_like,
+            spec,
+            mmap=self._mmap,
+            keep_file_open=self._keep_file_open,
+        )
+
     def __del__(self):
         """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
         the open file object is closed if necessary.
