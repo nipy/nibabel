@@ -224,9 +224,9 @@ class Grid(Pointset):
 
     def to_mask(self, shape=None) -> SpatialImage:
         if shape is None:
-            shape = tuple(np.max(self.coordinates, axis=1)[: self.dim])
+            shape = tuple(np.max(self.coordinates, axis=0)[: self.dim] + 1)
         mask_arr = np.zeros(shape, dtype='bool')
-        mask_arr[np.asanyarray(self.coordinates)[:, : self.dim]] = True
+        mask_arr[tuple(np.asanyarray(self.coordinates)[:, : self.dim].T)] = True
         return SpatialImage(mask_arr, self.affine)
 
 
