@@ -19,10 +19,10 @@ if [ -n "$EXTRA_PIP_FLAGS" ]; then
 fi
 
 if [ -n "$DEPENDS" ]; then
-    pip install ${EXTRA_PIP_FLAGS} --prefer-binary ${!DEPENDS}
+    pip install ${EXTRA_PIP_FLAGS} --only-binary :all: ${!DEPENDS}
     if [ -n "$OPTIONAL_DEPENDS" ]; then
         for DEP in ${!OPTIONAL_DEPENDS}; do
-            pip install ${EXTRA_PIP_FLAGS} --prefer-binary $DEP || true
+            pip install ${EXTRA_PIP_FLAGS} --only-binary :all: $DEP || true
 	done
     fi
 fi
