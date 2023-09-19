@@ -48,6 +48,11 @@ class CoordinateArray(ty.Protocol):
         ...  # pragma: no cover
 
 
+class HasMeshAttrs(ty.Protocol):
+    coordinates: CoordinateArray
+    triangles: CoordinateArray
+
+
 @dataclass
 class Pointset:
     """A collection of points described by coordinates.
@@ -142,6 +147,71 @@ class Pointset:
         if not as_homogeneous:
             coords = coords[:, :-1]
         return coords
+
+
+class TriangularMesh(Pointset):
+    triangles: CoordinateArray
+
+    def __init__(
+        self,
+        coordinates: CoordinateArray,
+        triangles: CoordinateArray,
+        affine: np.ndarray | None = None,
+        homogeneous: bool = False,
+    ):
+        super().__init__(coordinates, affine=affine, homogeneous=homogeneous)
+        self.triangles = triangles
+
+    @classmethod
+    def from_tuple(
+        cls,
+        mesh: tuple[CoordinateArray, CoordinateArray],
+        affine: np.ndarray | None = None,
+        homogeneous: bool = False,
+    ) -> Self:
+        return cls(mesh[0], mesh[1], affine=affine, homogeneous=homogeneous)
+
+    @classmethod
+    def from_object(
+        cls,
+        mesh: HasMeshAttrs,
+        affine: np.ndarray | None = None,
+        homogeneous: bool = False,
+    ) -> Self:
+        return cls(mesh.coordinates, mesh.triangles, affine=affine, homogeneous=homogeneous)
+
+    @property
+    def n_triangles(self):
+        """Number of faces
+
+        Subclasses should override with more efficient implementations.
+        """
+        return self.triangles.shape[0]
+
+    def get_triangles(self):
+        """Mx3 array of indices into coordinate table"""
+        return np.asanyarray(self.triangles)
+
+    def get_mesh(self, *, as_homogeneous: bool = False):
+        return self.get_coords(as_homogeneous=as_homogeneous), self.get_triangles()
+
+
+class CoordinateFamilyMixin(Pointset):
+    def __init__(self, *args, **kwargs):
+        self._coords = {}
+        super().__init__(*args, **kwargs)
+
+    def get_names(self):
+        """List of surface names that can be passed to :meth:`with_name`"""
+        return list(self._coords)
+
+    def with_name(self, name: str) -> Self:
+        new = replace(self, coordinates=self._coords[name])
+        new._coords = self._coords
+        return new
+
+    def add_coordinates(self, name, coordinates):
+        self._coords[name] = coordinates
 
 
 class Grid(Pointset):
