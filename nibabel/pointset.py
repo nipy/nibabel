@@ -66,7 +66,8 @@ class Pointset:
     coordinates: CoordinateArray
     affine: np.ndarray
     homogeneous: bool = False
-    ndim = 2
+
+    # Force use of __rmatmul__ with numpy arrays
     __array_priority__ = 99
 
     def __init__(
@@ -87,11 +88,6 @@ class Pointset:
             raise ValueError(f'Invalid affine for {self.dim}D coordinates:\n{self.affine}')
         if np.any(self.affine[-1, :-1] != 0) or self.affine[-1, -1] != 1:
             raise ValueError(f'Invalid affine matrix:\n{self.affine}')
-
-    @property
-    def shape(self) -> tuple[int, int]:
-        """The shape of the coordinate array"""
-        return self.coordinates.shape
 
     @property
     def n_coords(self) -> int:

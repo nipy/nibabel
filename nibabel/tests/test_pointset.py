@@ -30,23 +30,15 @@ class TestPointsets:
         if homogeneous:
             coords = np.column_stack([coords, np.ones(shape[0])])
 
-        expected_shape = (shape[0], shape[1] + homogeneous)
-
         points = ps.Pointset(coords, homogeneous=homogeneous)
-        assert points.shape == expected_shape
         assert np.allclose(points.affine, np.eye(shape[1] + 1))
         assert points.homogeneous is homogeneous
-        assert points.ndim == 2
-        assert points.n_coords == shape[0]
-        assert points.dim == shape[1]
+        assert (points.n_coords, points.dim) == shape
 
         points = ps.Pointset(coords, affine=np.diag([2] * shape[1] + [1]), homogeneous=homogeneous)
-        assert points.shape == expected_shape
         assert np.allclose(points.affine, np.diag([2] * shape[1] + [1]))
         assert points.homogeneous is homogeneous
-        assert points.ndim == 2
-        assert points.n_coords == shape[0]
-        assert points.dim == shape[1]
+        assert (points.n_coords, points.dim) == shape
 
         # Badly shaped affine
         with pytest.raises(ValueError):
@@ -148,7 +140,8 @@ class TestGrids(TestPointsets):
         grid = ps.Grid.from_image(img)
         grid_coords = grid.get_coords()
 
-        assert grid.shape == (prod(shape[:3]), 3)
+        assert grid.n_coords == prod(shape[:3])
+        assert grid.dim == 3
         assert np.allclose(grid.affine, affine)
 
         assert np.allclose(grid_coords[0], [0, 0, 0])
@@ -164,7 +157,8 @@ class TestGrids(TestPointsets):
         grid = ps.Grid.from_mask(img)
         grid_coords = grid.get_coords()
 
-        assert grid.shape == (1, 3)
+        assert grid.n_coords == 1
+        assert grid.dim == 3
         assert np.array_equal(grid_coords, [[2, 3, 4]])
 
     def test_to_mask(self):
