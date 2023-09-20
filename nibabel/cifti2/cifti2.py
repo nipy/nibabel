@@ -81,7 +81,7 @@ CIFTI_SERIESUNIT_TYPES = (
 )
 
 
-def _full_structure(struct):
+def _full_structure(struct: str):
     """Expands STRUCT_NAME into:
 
     STRUCT_NAME, CIFTI_STRUCTURE_STRUCT_NAME, StructName
