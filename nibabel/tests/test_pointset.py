@@ -1,3 +1,4 @@
+from collections import namedtuple
 from math import prod
 from pathlib import Path
 from unittest import skipUnless
@@ -184,8 +185,47 @@ class TestGrids(TestPointsets):
         assert np.array_equal(mask_img.affine, np.eye(4))
 
 
-class TestTriangularMeshes(TestPointsets):
-    ...
+class TestTriangularMeshes:
+    def test_init(self):
+        # Tetrahedron
+        coords = np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 1.0, 0.0],
+                [1.0, 0.0, 0.0],
+            ]
+        )
+        triangles = np.array(
+            [
+                [0, 2, 1],
+                [0, 3, 2],
+                [0, 1, 3],
+                [1, 2, 3],
+            ]
+        )
+
+        mesh = namedtuple('mesh', ('coordinates', 'triangles'))(coords, triangles)
+
+        tm1 = ps.TriangularMesh(coords, triangles)
+        tm2 = ps.TriangularMesh.from_tuple(mesh)
+        tm3 = ps.TriangularMesh.from_object(mesh)
+
+        assert np.allclose(tm1.affine, np.eye(4))
+        assert np.allclose(tm2.affine, np.eye(4))
+        assert np.allclose(tm3.affine, np.eye(4))
+
+        assert tm1.homogeneous is False
+        assert tm2.homogeneous is False
+        assert tm3.homogeneous is False
+
+        assert (tm1.n_coords, tm1.dim) == (4, 3)
+        assert (tm2.n_coords, tm2.dim) == (4, 3)
+        assert (tm3.n_coords, tm3.dim) == (4, 3)
+
+        assert tm1.n_triangles == 4
+        assert tm2.n_triangles == 4
+        assert tm3.n_triangles == 4
 
 
 class H5ArrayProxy:

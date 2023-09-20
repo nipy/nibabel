@@ -53,7 +53,7 @@ class HasMeshAttrs(ty.Protocol):
     triangles: CoordinateArray
 
 
-@dataclass
+@dataclass(init=False)
 class Pointset:
     """A collection of points described by coordinates.
 
@@ -70,7 +70,7 @@ class Pointset:
 
     coordinates: CoordinateArray
     affine: np.ndarray
-    homogeneous: bool = False
+    homogeneous: bool
 
     # Force use of __rmatmul__ with numpy arrays
     __array_priority__ = 99
@@ -149,6 +149,7 @@ class Pointset:
         return coords
 
 
+@dataclass(init=False)
 class TriangularMesh(Pointset):
     triangles: CoordinateArray
 
