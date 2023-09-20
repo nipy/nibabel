@@ -262,19 +262,21 @@ class H5ArrayProxy:
             return h5f[self.dataset_name][slicer]
 
 
-class H5Geometry(ps.TriMeshFamily):
+class H5Geometry(ps.TriangularMesh, ps.CoordinateFamilyMixin):
     """Simple Geometry file structure that combines a single topology
     with one or more coordinate sets
     """
 
     @classmethod
     def from_filename(klass, pathlike):
-        meshes = {}
+        coords = {}
         with h5.File(pathlike, 'r') as h5f:
             triangles = H5ArrayProxy(pathlike, '/topology')
             for name in h5f['coordinates']:
-                meshes[name] = (H5ArrayProxy(pathlike, f'/coordinates/{name}'), triangles)
-        return klass(meshes)
+                coords[name] = H5ArrayProxy(pathlike, f'/coordinates/{name}')
+        self = klass(next(iter(coords.values())), triangles)
+        self._coords.update(coords)
+        return self
 
     def to_filename(self, pathlike):
         with h5.File(pathlike, 'w') as h5f:
@@ -334,11 +336,13 @@ class FSGeometryProxy:
         )
 
 
-class FreeSurferHemisphere(ps.TriMeshFamily):
+class FreeSurferHemisphere(ps.TriangularMesh, ps.CoordinateFamilyMixin):
     @classmethod
     def from_filename(klass, pathlike):
         path = Path(pathlike)
         hemi, default = path.name.split('.')
+        self = klass.from_object(FSGeometryProxy(path))
+        self._coords[default] = self.coordinates
         mesh_names = (
             'orig',
             'white',
@@ -349,16 +353,11 @@ class FreeSurferHemisphere(ps.TriMeshFamily):
             'midthickness',
             'graymid',
         )  # Often created
-        if default not in mesh_names:
-            mesh_names.append(default)
-        meshes = {}
         for mesh in mesh_names:
             fpath = path.parent / f'{hemi}.{mesh}'
-            if fpath.exists():
-                meshes[mesh] = FSGeometryProxy(fpath)
-        hemi = klass(meshes)
-        hemi._default = default
-        return hemi
+            if mesh not in self._coords and fpath.exists():
+                self.add_coordinates(mesh, FSGeometryProxy(fpath).coordinates)
+        return self
 
 
 def test_FreeSurferHemisphere():
@@ -370,10 +369,14 @@ def test_FreeSurferHemisphere():
 @skipUnless(has_h5py, reason='Test requires h5py')
 def test_make_H5Geometry(tmp_path):
     lh = FreeSurferHemisphere.from_filename(FS_DATA / 'fsaverage/surf/lh.white')
-    h5geo = H5Geometry({name: lh.get_mesh(name) for name in ('white', 'pial')})
+    h5geo = H5Geometry.from_object(lh)
+    for name in ('white', 'pial'):
+        h5geo.add_coordinates(name, lh.with_name(name).coordinates)
     h5geo.to_filename(tmp_path / 'geometry.h5')
 
     rt_h5geo = H5Geometry.from_filename(tmp_path / 'geometry.h5')
     assert set(h5geo._coords) == set(rt_h5geo._coords)
-    assert np.array_equal(lh.get_coords('white'), rt_h5geo.get_coords('white'))
+    assert np.array_equal(
+        lh.with_name('white').get_coords(), rt_h5geo.with_name('white').get_coords()
+    )
     assert np.array_equal(lh.get_triangles(), rt_h5geo.get_triangles())
