@@ -322,17 +322,16 @@ class FSGeometryProxy:
         return self._offset
 
     @auto_attr
-    def coords(self):
-        ap = ArrayProxy(self._file_like, ((self.vnum, 3), '>f4', self.offset))
-        ap.order = 'C'
-        return ap
+    def coordinates(self):
+        return ArrayProxy(self._file_like, ((self.vnum, 3), '>f4', self.offset), order='C')
 
     @auto_attr
     def triangles(self):
-        offset = self.offset + 12 * self.vnum
-        ap = ArrayProxy(self._file_like, ((self.fnum, 3), '>i4', offset))
-        ap.order = 'C'
-        return ap
+        return ArrayProxy(
+            self._file_like,
+            ((self.fnum, 3), '>i4', self.offset + 12 * self.vnum),
+            order='C',
+        )
 
 
 class FreeSurferHemisphere(ps.TriMeshFamily):
