@@ -13,7 +13,7 @@ from nibabel.fileslice import strided_scalar
 from nibabel.onetime import auto_attr
 from nibabel.optpkg import optional_package
 from nibabel.spatialimages import SpatialImage
-from nibabel.tests.nibabel_data import get_nibabel_data
+from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 
 h5, has_h5py, _ = optional_package('h5py')
 
@@ -360,6 +360,7 @@ class FreeSurferHemisphere(ps.TriangularMesh, ps.CoordinateFamilyMixin):
         return self
 
 
+@needs_nibabel_data('nitest-freesurfer')
 def test_FreeSurferHemisphere():
     lh = FreeSurferHemisphere.from_filename(FS_DATA / 'fsaverage/surf/lh.white')
     assert lh.n_coords == 163842
@@ -367,6 +368,7 @@ def test_FreeSurferHemisphere():
 
 
 @skipUnless(has_h5py, reason='Test requires h5py')
+@needs_nibabel_data('nitest-freesurfer')
 def test_make_H5Geometry(tmp_path):
     lh = FreeSurferHemisphere.from_filename(FS_DATA / 'fsaverage/surf/lh.white')
     h5geo = H5Geometry.from_object(lh)
