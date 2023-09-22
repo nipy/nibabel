@@ -169,8 +169,9 @@ class TriangularMesh(Pointset):
         mesh: tuple[CoordinateArray, CoordinateArray],
         affine: np.ndarray | None = None,
         homogeneous: bool = False,
+        **kwargs,
     ) -> Self:
-        return cls(mesh[0], mesh[1], affine=affine, homogeneous=homogeneous)
+        return cls(mesh[0], mesh[1], affine=affine, homogeneous=homogeneous, **kwargs)
 
     @classmethod
     def from_object(
@@ -178,8 +179,11 @@ class TriangularMesh(Pointset):
         mesh: HasMeshAttrs,
         affine: np.ndarray | None = None,
         homogeneous: bool = False,
+        **kwargs,
     ) -> Self:
-        return cls(mesh.coordinates, mesh.triangles, affine=affine, homogeneous=homogeneous)
+        return cls(
+            mesh.coordinates, mesh.triangles, affine=affine, homogeneous=homogeneous, **kwargs
+        )
 
     @property
     def n_triangles(self):
@@ -198,9 +202,10 @@ class TriangularMesh(Pointset):
 
 
 class CoordinateFamilyMixin(Pointset):
-    def __init__(self, *args, **kwargs):
-        self._coords = {}
+    def __init__(self, *args, name='original', **kwargs):
+        mapping = kwargs.pop('mapping', {})
         super().__init__(*args, **kwargs)
+        self._coords = {name: self.coordinates, **mapping}
 
     def get_names(self):
         """List of surface names that can be passed to :meth:`with_name`"""

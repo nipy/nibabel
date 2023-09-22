@@ -262,7 +262,7 @@ class H5ArrayProxy:
             return h5f[self.dataset_name][slicer]
 
 
-class H5Geometry(ps.TriangularMesh, ps.CoordinateFamilyMixin):
+class H5Geometry(ps.CoordinateFamilyMixin, ps.TriangularMesh):
     """Simple Geometry file structure that combines a single topology
     with one or more coordinate sets
     """
@@ -274,8 +274,7 @@ class H5Geometry(ps.TriangularMesh, ps.CoordinateFamilyMixin):
             triangles = H5ArrayProxy(pathlike, '/topology')
             for name in h5f['coordinates']:
                 coords[name] = H5ArrayProxy(pathlike, f'/coordinates/{name}')
-        self = klass(next(iter(coords.values())), triangles)
-        self._coords.update(coords)
+        self = klass(next(iter(coords.values())), triangles, mapping=coords)
         return self
 
     def to_filename(self, pathlike):
@@ -336,13 +335,12 @@ class FSGeometryProxy:
         )
 
 
-class FreeSurferHemisphere(ps.TriangularMesh, ps.CoordinateFamilyMixin):
+class FreeSurferHemisphere(ps.CoordinateFamilyMixin, ps.TriangularMesh):
     @classmethod
     def from_filename(klass, pathlike):
         path = Path(pathlike)
         hemi, default = path.name.split('.')
-        self = klass.from_object(FSGeometryProxy(path))
-        self._coords[default] = self.coordinates
+        self = klass.from_object(FSGeometryProxy(path), name=default)
         mesh_names = (
             'orig',
             'white',
@@ -353,10 +351,12 @@ class FreeSurferHemisphere(ps.TriangularMesh, ps.CoordinateFamilyMixin):
             'midthickness',
             'graymid',
         )  # Often created
+
         for mesh in mesh_names:
-            fpath = path.parent / f'{hemi}.{mesh}'
-            if mesh not in self._coords and fpath.exists():
-                self.add_coordinates(mesh, FSGeometryProxy(fpath).coordinates)
+            if mesh != default:
+                fpath = path.parent / f'{hemi}.{mesh}'
+                if fpath.exists():
+                    self.add_coordinates(mesh, FSGeometryProxy(fpath).coordinates)
         return self
 
 
