@@ -186,7 +186,7 @@ class TestGrids(TestPointsets):
 
 
 class TestTriangularMeshes:
-    def test_init(self):
+    def test_api(self):
         # Tetrahedron
         coords = np.array(
             [
@@ -226,6 +226,36 @@ class TestTriangularMeshes:
         assert tm1.n_triangles == 4
         assert tm2.n_triangles == 4
         assert tm3.n_triangles == 4
+
+        out_coords, out_tris = tm1.get_mesh()
+        # Currently these are the exact arrays, but I don't think we should
+        # bake that assumption into the tests
+        assert np.allclose(out_coords, coords)
+        assert np.allclose(out_tris, triangles)
+
+
+class TestCoordinateFamilyMixin(TestPointsets):
+    def test_names(self):
+        coords = np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 1.0, 0.0],
+                [1.0, 0.0, 0.0],
+            ]
+        )
+        cfm = ps.CoordinateFamilyMixin(coords)
+
+        assert cfm.get_names() == ['original']
+        assert np.allclose(cfm.with_name('original').coordinates, coords)
+
+        cfm.add_coordinates('shifted', coords + 1)
+        assert cfm.get_names() == ['original', 'shifted']
+        shifted = cfm.with_name('shifted')
+        assert np.allclose(shifted.coordinates, coords + 1)
+        assert shifted.get_names() == ['original', 'shifted']
+        original = shifted.with_name('original')
+        assert np.allclose(original.coordinates, coords)
 
 
 class H5ArrayProxy:
