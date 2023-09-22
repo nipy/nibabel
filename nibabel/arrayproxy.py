@@ -58,6 +58,7 @@ KEEP_FILE_OPEN_DEFAULT = False
 
 if ty.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
+    from typing_extensions import Self  # PY310
 
     # Taken from numpy/__init__.pyi
     _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
@@ -212,19 +213,29 @@ class ArrayProxy(ArrayLike):
         self.order = order
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
-        self._keep_file_open, self._persist_opener = self._should_keep_file_open(
-            file_like, keep_file_open
-        )
+        self._keep_file_open, self._persist_opener = self._should_keep_file_open(keep_file_open)
         self._lock = RLock()
 
-    def copy(self):
+    def _has_fh(self) -> bool:
+        """Determine if our file-like is a filehandle or path"""
+        return hasattr(self.file_like, 'read') and hasattr(self.file_like, 'seek')
+
+    def copy(self) -> Self:
+        """Create a new ArrayProxy for the same file and parameters
+
+        If the proxied file is an open file handle, the new ArrayProxy
+        will share a lock with the old one.
+        """
         spec = self._shape, self._dtype, self._offset, self._slope, self._inter
-        return ArrayProxy(
+        new = self.__class__(
             self.file_like,
             spec,
             mmap=self._mmap,
             keep_file_open=self._keep_file_open,
         )
+        if self._has_fh():
+            new._lock = self._lock
+        return new
 
     def __del__(self):
         """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
@@ -245,13 +256,13 @@ class ArrayProxy(ArrayLike):
         self.__dict__.update(state)
         self._lock = RLock()
 
-    def _should_keep_file_open(self, file_like, keep_file_open):
+    def _should_keep_file_open(self, keep_file_open):
         """Called by ``__init__``.
 
         This method determines how to manage ``ImageOpener`` instances,
         and the underlying file handles - the behaviour depends on:
 
-         - whether ``file_like`` is an an open file handle, or a path to a
+         - whether ``self.file_like`` is an an open file handle, or a path to a
            ``'.gz'`` file, or a path to a non-gzip file.
          - whether ``indexed_gzip`` is present (see
            :attr:`.openers.HAVE_INDEXED_GZIP`).
@@ -270,24 +281,24 @@ class ArrayProxy(ArrayLike):
             and closed on each file access.
 
         The internal ``_keep_file_open`` flag is only relevant if
-        ``file_like`` is a ``'.gz'`` file, and the ``indexed_gzip`` library is
+        ``self.file_like`` is a ``'.gz'`` file, and the ``indexed_gzip`` library is
         present.
 
         This method returns the values to be used for the internal
         ``_persist_opener`` and ``_keep_file_open`` flags; these values are
         derived according to the following rules:
 
-        1. If ``file_like`` is a file(-like) object, both flags are set to
+        1. If ``self.file_like`` is a file(-like) object, both flags are set to
         ``False``.
 
         2. If ``keep_file_open`` (as passed to :meth:``__init__``) is
            ``True``, both internal flags are set to ``True``.
 
-        3. If ``keep_file_open`` is ``False``, but ``file_like`` is not a path
+        3. If ``keep_file_open`` is ``False``, but ``self.file_like`` is not a path
            to a ``.gz`` file or ``indexed_gzip`` is not present, both flags
            are set to ``False``.
 
-        4. If ``keep_file_open`` is ``False``, ``file_like`` is a path to a
+        4. If ``keep_file_open`` is ``False``, ``self.file_like`` is a path to a
            ``.gz`` file, and ``indexed_gzip`` is present, ``_persist_opener``
            is set to ``True``, and ``_keep_file_open`` is set to ``False``.
            In this case, file handle management is delegated to the
@@ -296,8 +307,6 @@ class ArrayProxy(ArrayLike):
         Parameters
         ----------
 
-        file_like : object
-            File-like object or filename, as passed to ``__init__``.
         keep_file_open : { True, False }
             Flag as passed to ``__init__``.
 
@@ -320,10 +329,10 @@ class ArrayProxy(ArrayLike):
             raise ValueError('keep_file_open must be one of {None, True, False}')
 
         # file_like is a handle - keep_file_open is irrelevant
-        if hasattr(file_like, 'read') and hasattr(file_like, 'seek'):
+        if self._has_fh():
             return False, False
         # if the file is a gzip file, and we have_indexed_gzip,
-        have_igzip = openers.HAVE_INDEXED_GZIP and file_like.endswith('.gz')
+        have_igzip = openers.HAVE_INDEXED_GZIP and self.file_like.endswith('.gz')
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener

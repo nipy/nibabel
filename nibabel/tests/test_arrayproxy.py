@@ -554,12 +554,13 @@ def test_keep_file_open_true_false_invalid():
                     ArrayProxy(fname, ((10, 10, 10), dtype))
 
 
+def islock(l):
+    # isinstance doesn't work on threading.Lock?
+    return hasattr(l, 'acquire') and hasattr(l, 'release')
+
+
 def test_pickle_lock():
     # Test that ArrayProxy can be pickled, and that thread lock is created
-
-    def islock(l):
-        # isinstance doesn't work on threading.Lock?
-        return hasattr(l, 'acquire') and hasattr(l, 'release')
 
     proxy = ArrayProxy('dummyfile', ((10, 10, 10), np.float32))
     assert islock(proxy._lock)
@@ -567,3 +568,22 @@ def test_pickle_lock():
     unpickled = pickle.loads(pickled)
     assert islock(unpickled._lock)
     assert proxy._lock is not unpickled._lock
+
+
+def test_copy():
+    # Test copying array proxies
+
+    # If the file-like is a file name, get a new lock
+    proxy = ArrayProxy('dummyfile', ((10, 10, 10), np.float32))
+    assert islock(proxy._lock)
+    copied = proxy.copy()
+    assert islock(copied._lock)
+    assert proxy._lock is not copied._lock
+
+    # If an open filehandle, the lock should be shared to
+    # avoid changing filehandle state in critical sections
+    proxy = ArrayProxy(BytesIO(), ((10, 10, 10), np.float32))
+    assert islock(proxy._lock)
+    copied = proxy.copy()
+    assert islock(copied._lock)
+    assert proxy._lock is copied._lock
