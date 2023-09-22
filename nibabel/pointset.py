@@ -212,7 +212,12 @@ class CoordinateFamilyMixin(Pointset):
         return list(self._coords)
 
     def with_name(self, name: str) -> Self:
-        new = replace(self, coordinates=self._coords[name])
+        new_coords = self._coords[name]
+        if new_coords is self.coordinates:
+            return self
+        # Make a copy, preserving all dataclass fields
+        new = replace(self, coordinates=new_coords)
+        # Conserve exact _coords mapping
         new._coords = self._coords
         return new
 

@@ -250,12 +250,27 @@ class TestCoordinateFamilyMixin(TestPointsets):
         assert np.allclose(cfm.with_name('original').coordinates, coords)
 
         cfm.add_coordinates('shifted', coords + 1)
-        assert cfm.get_names() == ['original', 'shifted']
+        assert set(cfm.get_names()) == {'original', 'shifted'}
         shifted = cfm.with_name('shifted')
         assert np.allclose(shifted.coordinates, coords + 1)
-        assert shifted.get_names() == ['original', 'shifted']
+        assert set(shifted.get_names()) == {'original', 'shifted'}
         original = shifted.with_name('original')
         assert np.allclose(original.coordinates, coords)
+
+        # Avoid duplicating objects
+        assert original.with_name('original') is original
+        # But don't try too hard
+        assert original.with_name('original') is not cfm
+
+        # with_name() preserves the exact coordinate mapping of the source object.
+        # Modifications of one are immediately available to all others.
+        # This is currently an implementation detail, and the expectation is that
+        # a family will be created once and then queried, but this behavior could
+        # potentially become confusing or relied upon.
+        # Change with care.
+        shifted.add_coordinates('shifted-again', coords + 2)
+        shift2 = shifted.with_name('shifted-again')
+        shift3 = cfm.with_name('shifted-again')
 
 
 class H5ArrayProxy:
