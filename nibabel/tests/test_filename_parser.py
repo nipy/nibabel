@@ -141,7 +141,3 @@ def test__stringify_path():
     assert res == 'fname.ext.gz'
     res = _stringify_path(pathlib.Path('../fname.ext.gz'))
     assert res == '../fname.ext.gz'
-    
-
-
-
