@@ -128,21 +128,19 @@ def test_splitext_addext():
 
 def test__stringify_path():
     current_directory = pathlib.Path.cwd()
-    res = _stringify_path('')
-    assert res == str(current_directory)
     res = _stringify_path('fname.ext.gz')
-    assert res == str(current_directory / 'fname.ext.gz')
+    assert res == 'fname.ext.gz'
     res = _stringify_path(pathlib.Path('fname.ext.gz'))
-    assert res == str(current_directory / 'fname.ext.gz')
+    assert res == 'fname.ext.gz'
 
     home = pathlib.Path.home()
     res = _stringify_path(pathlib.Path('~/fname.ext.gz'))
     assert res == str(home) + '/fname.ext.gz'
 
     res = _stringify_path(pathlib.Path('./fname.ext.gz'))
-    assert res == str(current_directory / 'fname.ext.gz')
+    assert res == 'fname.ext.gz'
     res = _stringify_path(pathlib.Path('../fname.ext.gz'))
-    assert res == str(current_directory.parent / 'fname.ext.gz')
+    assert res == '../fname.ext.gz'
     
 
 
