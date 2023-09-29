@@ -38,8 +38,7 @@ def _stringify_path(filepath_or_buffer: FileSpec) -> str:
     Adapted from:
     https://github.com/pandas-dev/pandas/blob/325dd68/pandas/io/common.py#L131-L160
     """
-    full_path = pathlib.Path(filepath_or_buffer).expanduser()
-    return str(full_path)
+    return pathlib.Path(filepath_or_buffer).expanduser().as_posix()
 
 
 def types_filenames(
