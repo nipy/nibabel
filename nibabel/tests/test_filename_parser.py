@@ -7,10 +7,11 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for filename container"""
+import pathlib
 
 import pytest
 
-from ..filename_parser import TypesFilenamesError, parse_filename, splitext_addext, types_filenames
+from ..filename_parser import TypesFilenamesError, parse_filename, splitext_addext, types_filenames, _stringify_path
 
 
 def test_filenames():
@@ -123,3 +124,26 @@ def test_splitext_addext():
     assert res == ('..', '', '')
     res = splitext_addext('...')
     assert res == ('...', '', '')
+
+
+def test__stringify_path():
+    current_directory = pathlib.Path.cwd()
+    res = _stringify_path('')
+    assert res == str(current_directory)
+    res = _stringify_path('fname.ext.gz')
+    assert res == str(current_directory / 'fname.ext.gz')
+    res = _stringify_path(pathlib.Path('fname.ext.gz'))
+    assert res == str(current_directory / 'fname.ext.gz')
+
+    home = pathlib.Path.home()
+    res = _stringify_path(pathlib.Path('~/fname.ext.gz'))
+    assert res == str(home) + '/fname.ext.gz'
+
+    res = _stringify_path(pathlib.Path('./fname.ext.gz'))
+    assert res == str(current_directory / 'fname.ext.gz')
+    res = _stringify_path(pathlib.Path('../fname.ext.gz'))
+    assert res == str(current_directory.parent / 'fname.ext.gz')
+    
+
+
+
