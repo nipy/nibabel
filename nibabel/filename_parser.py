@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import typing as ty
 
 if ty.TYPE_CHECKING:  # pragma: no cover
@@ -37,9 +38,7 @@ def _stringify_path(filepath_or_buffer: FileSpec) -> str:
     Adapted from:
     https://github.com/pandas-dev/pandas/blob/325dd68/pandas/io/common.py#L131-L160
     """
-    if isinstance(filepath_or_buffer, os.PathLike):
-        return filepath_or_buffer.__fspath__()
-    return filepath_or_buffer
+    return pathlib.Path(filepath_or_buffer).expanduser().as_posix()
 
 
 def types_filenames(
