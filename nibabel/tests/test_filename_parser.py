@@ -127,7 +127,6 @@ def test_splitext_addext():
 
 
 def test__stringify_path():
-    current_directory = pathlib.Path.cwd().as_posix()
     res = _stringify_path('fname.ext.gz')
     assert res == 'fname.ext.gz'
     res = _stringify_path(pathlib.Path('fname.ext.gz'))
