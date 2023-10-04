@@ -135,7 +135,7 @@ def test__stringify_path():
 
     home = pathlib.Path.home().as_posix()
     res = _stringify_path(pathlib.Path('~/fname.ext.gz'))
-    assert res == str(home) + '/fname.ext.gz'
+    assert res == f'{home}/fname.ext.gz'
 
     res = _stringify_path(pathlib.Path('./fname.ext.gz'))
     assert res == 'fname.ext.gz'
