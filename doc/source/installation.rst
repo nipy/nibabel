@@ -84,7 +84,7 @@ Requirements
 .. check these against pyproject.toml
 
 *  Python_ 3.8 or greater
-*  NumPy_ 1.19 or greater
+*  NumPy_ 1.20 or greater
 *  Packaging_ 17.0 or greater
 *  importlib-resources_ 1.3 or greater (or Python 3.9+)
 *  SciPy_ (optional, for full SPM-ANALYZE support)
