@@ -94,8 +94,8 @@ jobs:
         if: matrix.package == 'archive'
         run: pip install archive/nibabel-archive.tgz
       - run: python -c 'import nibabel; print(nibabel.__version__)'
-      - name: Install test extras
-        run: pip install nibabel[test]
+      - name: Install minimum test dependencies
+        run: pip install pytest pytest-doctest-plus
       - name: Run tests
         run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel
 
@@ -107,57 +107,24 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86']
-        install: ['pip']
-        check: ['test']
-        pip-flags: ['']
-        depends: ['REQUIREMENTS']
-        optional-depends: ['DEFAULT_OPT_DEPENDS']
+        dependencies: ['full']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
             python-version: 3.8
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: REQUIREMENTS
-            optional-depends: ''
+            dependencies: ''
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: 3.8
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: MIN_REQUIREMENTS
-            optional-depends: ''
-          # Absolute minimum dependencies plus old MPL, Pydicom, Pillow
-          - os: ubuntu-latest
-            python-version: 3.8
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: MIN_REQUIREMENTS
-            optional-depends: MIN_OPT_DEPENDS
-          # Clean install imports only with package-declared dependencies
-          - os: ubuntu-latest
-            python-version: 3.8
-            install: pip
-            check: skiptests
-            pip-flags: ''
-            depends: ''
+            dependencies: 'min'
         exclude:
           - os: ubuntu-latest
             architecture: x86
           - os: macos-latest
             architecture: x86
-    env:
-      DEPENDS: ${{ matrix.depends }}
-      OPTIONAL_DEPENDS: ${{ matrix.optional-depends }}
-      INSTALL_TYPE: ${{ matrix.install }}
-      CHECK_TYPE: ${{ matrix.check }}
-      EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
@@ -166,31 +133,27 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Create virtual environment
-        run: tools/ci/create_venv.sh
-      - name: Build archive
+      - name: Install tox
         run: |
-          source tools/ci/build_archive.sh
-          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
-      - name: Install dependencies
-        run: tools/ci/install_dependencies.sh
-      - name: Install NiBabel
-        run: tools/ci/install.sh
-      - name: Run tests
-        if: ${{ matrix.check != 'skiptests' }}
-        run: tools/ci/check.sh
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      - name: Run tox
+        run: tox
+        env:
+          DEPENDS: ${{ matrix.dependencies }}
       - uses: codecov/codecov-action@v3
         if: ${{ always() }}
         with:
           files: cov.xml
       - name: Upload pytest test results
-        if: ${{ always() && matrix.check == 'test' }}
         uses: actions/upload-artifact@v3
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
-          path: for_testing/test-results.xml
+          path: test-results.xml
+        if: ${{ always() }}
 
   publish:
     runs-on: ubuntu-latest
