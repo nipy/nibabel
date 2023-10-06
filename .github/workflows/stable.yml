@@ -103,6 +103,7 @@ jobs:
     # Check each OS, all supported Python, minimum versions and latest releases
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         python-version: [3.8, 3.9, "3.10", "3.11"]  # Waiting on H5Py: , "3.12"]
