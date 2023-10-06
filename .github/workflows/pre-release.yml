@@ -35,20 +35,7 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86']
-        install: ['pip']
-        check: ['test']
-        pip-flags: ['PRE_PIP_FLAGS']
-        depends: ['REQUIREMENTS']
-        optional-depends: ['DEFAULT_OPT_DEPENDS']
-        include:
-          # Pydicom master
-          - os: ubuntu-latest
-            python-version: "3.11"
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: REQUIREMENTS
-            optional-depends: PYDICOM_MASTER
+        dependencies: ['pre']
         exclude:
           - os: ubuntu-latest
             architecture: x86
@@ -56,13 +43,6 @@ jobs:
             architecture: x86
           - python-version: '3.12'
             architecture: x86
-
-    env:
-      DEPENDS: ${{ matrix.depends }}
-      OPTIONAL_DEPENDS: ${{ matrix.optional-depends }}
-      INSTALL_TYPE: ${{ matrix.install }}
-      CHECK_TYPE: ${{ matrix.check }}
-      EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
 
     steps:
       - uses: actions/checkout@v3
@@ -77,19 +57,14 @@ jobs:
           allow-prereleases: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Create virtual environment
-        run: tools/ci/create_venv.sh
-      - name: Build archive
+      - name: Install tox
         run: |
-          source tools/ci/build_archive.sh
-          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
-      - name: Install dependencies
-        run: tools/ci/install_dependencies.sh
-      - name: Install NiBabel
-        run: tools/ci/install.sh
-      - name: Run tests
-        run: tools/ci/check.sh
-        if: ${{ matrix.check != 'skiptests' }}
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      - name: Run tox
+        run: tox
+        env:
+          DEPENDS: ${{ matrix.dependencies }}
       - uses: codecov/codecov-action@v3
         if: ${{ always() }}
         with:
@@ -98,5 +73,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
-          path: for_testing/test-results.xml
-        if: ${{ always() && matrix.check == 'test' }}
+          path: test-results.xml
+        if: ${{ always() }}
