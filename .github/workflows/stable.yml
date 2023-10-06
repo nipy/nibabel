@@ -105,7 +105,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
+        python-version: [3.8, 3.9, "3.10", "3.11"]  # Waiting on H5Py: , "3.12"]
         architecture: ['x64', 'x86']
         dependencies: ['full']
         include:
@@ -117,10 +117,21 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.8
             dependencies: 'min'
+          - os: ubuntu-latest
+            python-version: 3.12
+            dependencies: ''
+          - os: windows-latest
+            python-version: 3.12
+            dependencies: ''
+          - os: macos-latest
+            python-version: 3.12
+            dependencies: ''
         exclude:
           - os: ubuntu-latest
             architecture: x86
           - os: macos-latest
+            architecture: x86
+          - python-version: '3.12'
             architecture: x86
 
     steps:
