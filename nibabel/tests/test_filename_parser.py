@@ -11,7 +11,13 @@ import pathlib
 
 import pytest
 
-from ..filename_parser import TypesFilenamesError, parse_filename, splitext_addext, types_filenames, _stringify_path
+from ..filename_parser import (
+    TypesFilenamesError,
+    _stringify_path,
+    parse_filename,
+    splitext_addext,
+    types_filenames,
+)
 
 
 def test_filenames():
