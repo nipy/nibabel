@@ -49,39 +49,20 @@ nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
 
 [project.optional-dependencies]
-all = ["nibabel[dicomfs,dev,doc,minc2,spm,style,test,zstd]"]
-dev = ["gitpython", "twine", "nibabel[style]"]
+all = ["nibabel[dicomfs,minc2,spm,zstd]"]
+# Features
 dicom = ["pydicom >=1.0.0"]
 dicomfs = ["nibabel[dicom]", "pillow"]
-doc = [
-  "matplotlib >= 1.5.3",
-  "numpydoc",
-  "sphinx ~= 5.3",
-  "texext",
-  "tomli; python_version < \"3.11\"",
-]
-doctest = ["nibabel[doc,test]"]
 minc2 = ["h5py"]
 spm = ["scipy"]
-style = ["flake8", "blue", "isort"]
-test = [
-  "coverage",
-  "pytest !=5.3.4",
-  "pytest-cov",
-  "pytest-doctestplus",
-  "pytest-httpserver",
-  "pytest-xdist",
-]
-typing = [
-  "mypy",
-  "importlib_resources",
-  "pydicom",
-  "pytest",
-  "pyzstd",
-  "types-setuptools",
-  "types-Pillow",
-]
 zstd = ["pyzstd >= 0.14.3"]
+# Dev dependencies: Move to tox, keep aliases to avoid breaking workflows
+dev = ["tox"]
+doc = ["tox"]
+doctest = ["tox"]
+style = ["tox"]
+test = ["tox"]
+typing = ["tox"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
