@@ -95,9 +95,9 @@ jobs:
         run: pip install archive/nibabel-archive.tgz
       - run: python -c 'import nibabel; print(nibabel.__version__)'
       - name: Install minimum test dependencies
-        run: pip install pytest pytest-doctest-plus
+        run: pip install pytest pytest-doctestplus pytest-xdist
       - name: Run tests
-        run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel
+        run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel -n auto
 
   stable:
     # Check each OS, all supported Python, minimum versions and latest releases
