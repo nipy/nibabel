@@ -113,20 +113,20 @@ jobs:
           # Basic dependencies only
           - os: ubuntu-latest
             python-version: 3.8
-            dependencies: ''
+            dependencies: 'none'
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: 3.8
             dependencies: 'min'
           - os: ubuntu-latest
             python-version: 3.12
-            dependencies: ''
+            dependencies: 'none'
           - os: windows-latest
             python-version: 3.12
-            dependencies: ''
+            dependencies: 'none'
           - os: macos-latest
             python-version: 3.12
-            dependencies: ''
+            dependencies: 'none'
         exclude:
           - os: ubuntu-latest
             architecture: x86
