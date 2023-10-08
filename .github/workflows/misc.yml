@@ -32,5 +32,9 @@ jobs:
           python-version: 3
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
+      - name: Show tox config
+        run: pipx run tox c
+      - name: Show tox config (this call)
+        run: pipx run tox c -e ${{ matrix.check }}
       - name: Run check
         run: pipx run tox -e ${{ matrix.check }}
