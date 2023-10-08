@@ -137,7 +137,7 @@ jobs:
 
     env:
       DEPENDS: ${{ matrix.dependencies }}
-      ARCH: ${{ ! contains(['none', 'min'], matrix.dependencies) && matrix.architecture }}
+      ARCH: ${{ !contains(fromJSON('["none", "min"]'), matrix.dependencies) && matrix.architecture }}
 
     steps:
       - uses: actions/checkout@v3
