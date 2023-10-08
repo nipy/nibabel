@@ -135,6 +135,10 @@ jobs:
           - python-version: '3.12'
             architecture: x86
 
+    env:
+      DEPENDS: ${{ matrix.dependencies }}
+      ARCH: ${{ ! contains(['none', 'min'], matrix.dependencies) && matrix.architecture }}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -154,12 +158,8 @@ jobs:
           python -m pip install tox tox-gh-actions
       - name: Show tox config
         run: pipx run tox c
-        env:
-          DEPENDS: ${{ matrix.dependencies }}
       - name: Run tox
         run: tox
-        env:
-          DEPENDS: ${{ matrix.dependencies }}
       - uses: codecov/codecov-action@v3
         if: ${{ always() }}
         with:
