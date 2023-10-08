@@ -106,7 +106,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: [3.8, 3.9, "3.10", "3.11"]  # Waiting on H5Py: , "3.12"]
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86']
         dependencies: ['full']
         include:
@@ -118,15 +118,6 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.8
             dependencies: 'min'
-          - os: ubuntu-latest
-            python-version: 3.12
-            dependencies: 'none'
-          - os: windows-latest
-            python-version: 3.12
-            dependencies: 'none'
-          - os: macos-latest
-            python-version: 3.12
-            dependencies: 'none'
         exclude:
           - os: ubuntu-latest
             architecture: x86
