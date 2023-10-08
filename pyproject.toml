@@ -56,12 +56,26 @@ dicomfs = ["nibabel[dicom]", "pillow"]
 minc2 = ["h5py"]
 spm = ["scipy"]
 zstd = ["pyzstd >= 0.14.3"]
-# Dev dependencies: Move to tox, keep aliases to avoid breaking workflows
+# For doc and test, make easy to use outside of tox
+# tox should use these with extras instead of duplicating
+doc = [
+  "sphinx",
+  "matplotlib>=1.5.3",
+  "numpydoc",
+  "texext",
+  "tomli; python_version < '3.11'",
+]
+test = [
+  "pytest",
+  "pytest-doctestplus",
+  "pytest-cov",
+  "pytest-httpserver",
+  "pytest-xdist",
+]
+# Remaining: Simpler to centralize in tox
 dev = ["tox"]
-doc = ["tox"]
 doctest = ["tox"]
 style = ["tox"]
-test = ["tox"]
 typing = ["tox"]
 
 [tool.hatch.build.targets.sdist]
