@@ -151,7 +151,7 @@ jobs:
       - name: Show tox config
         run: pipx run tox c
       - name: Run tox
-        run: tox --exit-and-dump-after 1200
+        run: tox -v --exit-and-dump-after 1200
       - uses: codecov/codecov-action@v3
         if: ${{ always() }}
         with:
