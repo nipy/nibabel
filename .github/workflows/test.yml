@@ -1,4 +1,4 @@
-name: Stable tests
+name: Build and test
 
 # This file tests the claimed support range of NiBabel including
 #
@@ -99,16 +99,17 @@ jobs:
       - name: Run tests
         run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel -n auto
 
-  stable:
+  test:
     # Check each OS, all supported Python, minimum versions and latest releases
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.dependencies == 'pre' }}
     strategy:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86']
-        dependencies: ['full']
+        dependencies: ['full', 'pre']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
@@ -165,7 +166,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: "Package deployment"
-    needs: [stable, test-package]
+    needs: [test, test-package]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v3
