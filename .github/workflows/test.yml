@@ -163,6 +163,28 @@ jobs:
           path: test-results.xml
         if: ${{ always() }}
 
+  checks:
+    runs-on: 'ubuntu-latest'
+    continue-on-error: true
+    strategy:
+      matrix:
+        check: ['style', 'doctest', 'typecheck']
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Show tox config
+        run: pipx run tox c
+      - name: Show tox config (this call)
+        run: pipx run tox c -e ${{ matrix.check }}
+      - name: Run check
+        run: pipx run tox -e ${{ matrix.check }}
+
   publish:
     runs-on: ubuntu-latest
     environment: "Package deployment"
