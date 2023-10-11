@@ -132,7 +132,7 @@ jobs:
       ARCH: ${{ !contains(fromJSON('["none", "min"]'), matrix.dependencies) && matrix.architecture }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -171,7 +171,7 @@ jobs:
         check: ['style', 'doctest', 'typecheck']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
