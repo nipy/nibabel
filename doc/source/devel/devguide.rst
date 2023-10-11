@@ -95,6 +95,50 @@ advise that you enable merge summaries within git:
 
 See :ref:`configure-git` for more detail.
 
+Pre-commit hooks
+----------------
+
+NiBabel uses pre-commit_ to help committers validate their changes
+before committing. To enable these, you can use pipx_::
+
+    pipx run pre-commit install
+
+Or install and run::
+
+    python -m pip install pre-commit
+    pre-commit install
+
+
+Testing
+=======
+
+NiBabel uses tox_ to organize our testing and development workflows.
+tox runs tests in isolated environments that we specify,
+ensuring that we are able to test across many different environments,
+and those environments do not depend on our local configurations.
+
+If you have the pipx_ tool installed, then you may simply::
+
+    pipx run tox
+
+Alternatively, you can install tox and run it::
+
+    python -m pip install tox
+    tox
+
+This will run the tests in several configurations, with multiple sets of
+optional dependencies.
+If you have multiple versions of Python installed in your path, it will
+repeat the process for each version of Python iin our supported range.
+It may be useful to pick a particular version for rapid development::
+
+    tox -e py311-full-x64
+
+This will run the environment using the Python 3.11 interpreter, with the
+full set of optional dependencies that are available for 64-bit
+interpreters. If you are using 32-bit Python, replace ``-x64`` with ``-x86``.
+
+
 Changelog
 =========
 
@@ -123,3 +167,7 @@ Community guidelines
 Please see `our community guidelines
 <https://github.com/nipy/nibabel/blob/master/.github/CODE_OF_CONDUCT.md>`_.
 Other projects call these guidelines the "code of conduct".
+
+.. _tox: https://tox.wiki
+.. _pipx: https://pypa.github.io/pipx/
+.. _precommit: https://pre-commit.com/
