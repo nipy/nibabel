@@ -22,7 +22,7 @@ NiBabel's API gives full or selective access to header information (metadata),
 and image data is made available via NumPy arrays. For more information, see
 NiBabel's `documentation site`_ and `API reference`_.
 
-.. _API reference: https://nipy.org/nibabel/api.html
+.. _API reference: ./api.html
 .. _AFNI BRIK/HEAD: https://afni.nimh.nih.gov/pub/dist/src/README.attributes
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _CIFTI-2: https://www.nitrc.org/projects/cifti/
@@ -58,26 +58,39 @@ When working on NiBabel itself, it may be useful to install in "editable" mode::
 For more information on previous releases, see the `release archive`_ or
 `development changelog`_.
 
+Please find detailed `download and installation instructions`_ in the manual.
+
 .. _current release: https://pypi.python.org/pypi/NiBabel
+.. _development changelog: ./changelog.html
+.. _download and installation instructions: ./installation.html#installation
 .. _release archive: https://github.com/nipy/NiBabel/releases
-.. _development changelog: https://nipy.org/nibabel/changelog.html
 
-Mailing List
-============
+Support
+=======
 
-Please send any questions or suggestions to the `neuroimaging mailing list
-<https://mail.python.org/mailman/listinfo/neuroimaging>`_.
+If you have problems installing the software or questions about usage,
+documentation or anything else related to NiBabel, you can post to the NiPy
+mailing list: neuroimaging@python.org [subscription_, archive_]
+
+The mailing list is the preferred way to announce changes and additions to the
+project. You can also search the mailing list archive using the mailing list
+archive search located in the sidebar of the NiBabel home page.
+We recommend that anyone using NiBabel subscribes to the mailing list.
+
+.. _subscription: https://mail.python.org/mailman/listinfo/neuroimaging
+.. _archive: https://mail.python.org/pipermail/neuroimaging
 
 License
 =======
 
-NiBabel is licensed under the terms of the `MIT license
-<https://github.com/nipy/nibabel/blob/master/COPYING#nibabel>`__.
-Some code included with NiBabel is licensed under the `BSD license`_.
-For more information, please see the COPYING_ file.
+NiBabel is free-software (beer and speech) and covered by the
+`MIT License <mit>`_. This applies to all source code, documentation,
+examples and snippets inside the source distribution (including this website).
+Please see the `appendix of the manual <license>`_ for the copyright statement
+and the full text of the license.
 
-.. _BSD license: https://opensource.org/licenses/BSD-3-Clause
-.. _COPYING: https://github.com/nipy/nibabel/blob/master/COPYING
+.. _license: ./legal.html#license
+.. _mit: https://opensource.org/license17s/MIT
 
 Citation
 ========
