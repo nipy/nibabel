@@ -1246,7 +1246,7 @@ Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 * Very preliminary, limited and highly experimental DICOM reading support (MB,
   Ian Nimmo Smith).
 * Some functions (:py:mod:`nibabel.funcs`) for basic image shape changes, including
-  the ability to transform to the image with data closest to the cononical
+  the ability to transform to the image with data closest to the canonical
   image orientation (first axis left-to-right, second back-to-front, third
   down-to-up) (MB, Jonathan Taylor)
 * Gifti format read and write support (preliminary) (Stephen Gerhard)

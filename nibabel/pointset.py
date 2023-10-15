@@ -126,7 +126,7 @@ class Pointset:
         ----------
         as_homogeneous : :class:`bool`
             Return homogeneous coordinates if ``True``, or Cartesian
-            coordiantes if ``False``.
+            coordinates if ``False``.
 
         name : :class:`str`
             Select a particular coordinate system if more than one may exist.
