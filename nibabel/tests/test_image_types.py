@@ -15,19 +15,14 @@ from os.path import join as pjoin
 import numpy as np
 
 from .. import (
-    AnalyzeHeader,
-    AnalyzeImage,
     MGHImage,
     Minc1Image,
     Minc2Image,
-    Nifti1Header,
     Nifti1Image,
     Nifti1Pair,
-    Nifti2Header,
     Nifti2Image,
     Nifti2Pair,
     Spm2AnalyzeImage,
-    Spm99AnalyzeImage,
     all_image_classes,
 )
 

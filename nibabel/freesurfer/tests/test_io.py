@@ -4,13 +4,12 @@ import os
 import struct
 import time
 import unittest
-import warnings
 from os.path import isdir
 from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose
 
 from ...fileslice import strided_scalar
 from ...testing import clear_and_catch_warnings
