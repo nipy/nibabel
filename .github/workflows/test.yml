@@ -119,6 +119,10 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.8
             dependencies: 'min'
+          # NumPy 2.0
+          - os: ubuntu-latest
+            python-version: '3.12'
+            dependencies: 'dev'
         exclude:
           - os: ubuntu-latest
             architecture: x86
