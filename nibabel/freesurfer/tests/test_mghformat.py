@@ -10,6 +10,7 @@
 
 import io
 import os
+import pathlib
 
 import numpy as np
 import pytest
@@ -291,7 +292,7 @@ def test_mgh_load_fileobj():
     # pass the filename to the array proxy, please feel free to change this
     # test.
     img = MGHImage.load(MGZ_FNAME)
-    assert img.dataobj.file_like == MGZ_FNAME
+    assert pathlib.Path(img.dataobj.file_like) == pathlib.Path(MGZ_FNAME)
     # Check fileobj also passed into dataobj
     with ImageOpener(MGZ_FNAME) as fobj:
         contents = fobj.read()

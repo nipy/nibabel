@@ -1,4 +1,4 @@
-name: Stable tests
+name: Build and test
 
 # This file tests the claimed support range of NiBabel including
 #
@@ -35,7 +35,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v4
@@ -94,70 +94,49 @@ jobs:
         if: matrix.package == 'archive'
         run: pip install archive/nibabel-archive.tgz
       - run: python -c 'import nibabel; print(nibabel.__version__)'
-      - name: Install test extras
+      - name: Install minimum test dependencies
         run: pip install nibabel[test]
       - name: Run tests
-        run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel
+        run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel -n auto
 
-  stable:
+  test:
     # Check each OS, all supported Python, minimum versions and latest releases
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.dependencies == 'pre' }}
     strategy:
+      fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-        python-version: [3.8, 3.9, "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86']
-        install: ['pip']
-        check: ['test']
-        pip-flags: ['']
-        depends: ['REQUIREMENTS']
-        optional-depends: ['DEFAULT_OPT_DEPENDS']
+        dependencies: ['full', 'pre']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
             python-version: 3.8
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: REQUIREMENTS
-            optional-depends: ''
+            dependencies: 'none'
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: 3.8
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: MIN_REQUIREMENTS
-            optional-depends: ''
-          # Absolute minimum dependencies plus old MPL, Pydicom, Pillow
+            dependencies: 'min'
+          # NumPy 2.0
           - os: ubuntu-latest
-            python-version: 3.8
-            install: pip
-            check: test
-            pip-flags: ''
-            depends: MIN_REQUIREMENTS
-            optional-depends: MIN_OPT_DEPENDS
-          # Clean install imports only with package-declared dependencies
-          - os: ubuntu-latest
-            python-version: 3.8
-            install: pip
-            check: skiptests
-            pip-flags: ''
-            depends: ''
+            python-version: '3.12'
+            dependencies: 'dev'
         exclude:
           - os: ubuntu-latest
             architecture: x86
           - os: macos-latest
             architecture: x86
+          - python-version: '3.12'
+            architecture: x86
+
     env:
-      DEPENDS: ${{ matrix.depends }}
-      OPTIONAL_DEPENDS: ${{ matrix.optional-depends }}
-      INSTALL_TYPE: ${{ matrix.install }}
-      CHECK_TYPE: ${{ matrix.check }}
-      EXTRA_PIP_FLAGS: ${{ matrix.pip-flags }}
+      DEPENDS: ${{ matrix.dependencies }}
+      ARCH: ${{ !contains(fromJSON('["none", "min"]'), matrix.dependencies) && matrix.architecture }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -166,36 +145,54 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Create virtual environment
-        run: tools/ci/create_venv.sh
-      - name: Build archive
+      - name: Install tox
         run: |
-          source tools/ci/build_archive.sh
-          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
-      - name: Install dependencies
-        run: tools/ci/install_dependencies.sh
-      - name: Install NiBabel
-        run: tools/ci/install.sh
-      - name: Run tests
-        if: ${{ matrix.check != 'skiptests' }}
-        run: tools/ci/check.sh
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      - name: Show tox config
+        run: tox c
+      - name: Run tox
+        run: tox -v --exit-and-dump-after 1200
       - uses: codecov/codecov-action@v3
         if: ${{ always() }}
         with:
           files: cov.xml
       - name: Upload pytest test results
-        if: ${{ always() && matrix.check == 'test' }}
         uses: actions/upload-artifact@v3
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}
-          path: for_testing/test-results.xml
+          path: test-results.xml
+        if: ${{ always() }}
+
+  checks:
+    runs-on: 'ubuntu-latest'
+    continue-on-error: true
+    strategy:
+      matrix:
+        check: ['style', 'doctest', 'typecheck']
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Show tox config
+        run: pipx run tox c
+      - name: Show tox config (this call)
+        run: pipx run tox c -e ${{ matrix.check }}
+      - name: Run check
+        run: pipx run tox -e ${{ matrix.check }}
 
   publish:
     runs-on: ubuntu-latest
     environment: "Package deployment"
-    needs: [stable, test-package]
+    needs: [test, test-package]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v3

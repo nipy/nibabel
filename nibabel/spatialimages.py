@@ -482,7 +482,7 @@ class SpatialImage(DataobjImage):
     def __init__(
         self,
         dataobj: ArrayLike,
-        affine: np.ndarray,
+        affine: np.ndarray | None,
         header: FileBasedHeader | ty.Mapping | None = None,
         extra: ty.Mapping | None = None,
         file_map: FileMap | None = None,
@@ -567,6 +567,7 @@ class SpatialImage(DataobjImage):
 
     def _affine2header(self) -> None:
         """Unconditionally set affine into the header"""
+        assert self._affine is not None
         RZS = self._affine[:3, :3]
         vox = np.sqrt(np.sum(RZS * RZS, axis=0))
         hdr = self._header
