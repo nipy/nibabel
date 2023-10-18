@@ -48,7 +48,9 @@ dist/
 *.egg-info/
 .shelf
 .tox/
-.coverage
+.coverage*
+cov.xml
+test-results.xml
 .ropeproject/
 htmlcov/
 .*_cache/

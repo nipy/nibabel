@@ -8,8 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import os
-import pathlib
 import warnings
+from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
@@ -184,8 +184,8 @@ class TestEcatImage(TestCase):
     img = image_class.load(example_file)
 
     def test_file(self):
-        assert pathlib.Path(self.img.file_map['header'].filename) == pathlib.Path(self.example_file)
-        assert pathlib.Path(self.img.file_map['image'].filename) == pathlib.Path(self.example_file)
+        assert Path(self.img.file_map['header'].filename) == Path(self.example_file)
+        assert Path(self.img.file_map['image'].filename) == Path(self.example_file)
 
     def test_save(self):
         tmp_file = 'tinypet_tmp.v'
