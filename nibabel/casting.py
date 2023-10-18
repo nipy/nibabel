@@ -62,6 +62,7 @@ sctypes_aliases = {
 }
 # fmt: on
 
+
 def float_to_int(arr, int_type, nan2zero=True, infmax=False):
     """Convert floating point array `arr` to type `int_type`
 

@@ -51,9 +51,7 @@ PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 def add_duplicate_types(supported_np_types):
     # Update supported numpy types with named scalar types that map to the same set of dtypes
     dtypes = {np.dtype(t) for t in supported_np_types}
-    supported_np_types.update(
-        scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes
-    )
+    supported_np_types.update(scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes)
 
 
 class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
