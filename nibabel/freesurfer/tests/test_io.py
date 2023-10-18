@@ -7,6 +7,7 @@ import unittest
 import warnings
 from os.path import isdir
 from os.path import join as pjoin
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -44,14 +45,6 @@ else:
 freesurfer_test = unittest.skipUnless(
     have_freesurfer, f'cannot find freesurfer {DATA_SDIR} directory'
 )
-
-
-def _hash_file_content(fname):
-    hasher = hashlib.md5()
-    with open(fname, 'rb') as afile:
-        buf = afile.read()
-        hasher.update(buf)
-    return hasher.hexdigest()
 
 
 @freesurfer_test
@@ -179,7 +172,6 @@ def test_annot():
     annots = ['aparc', 'aparc.a2005s']
     for a in annots:
         annot_path = pjoin(data_path, 'label', f'lh.{a}.annot')
-        hash_ = _hash_file_content(annot_path)
 
         labels, ctab, names = read_annot(annot_path)
         assert labels.shape == (163842,)
@@ -190,9 +182,10 @@ def test_annot():
             labels_orig, _, _ = read_annot(annot_path, orig_ids=True)
             np.testing.assert_array_equal(labels == -1, labels_orig == 0)
             # Handle different version of fsaverage
-            if hash_ == 'bf0b488994657435cdddac5f107d21e8':
+            content_hash = hashlib.md5(Path(annot_path).read_bytes()).hexdigest()
+            if content_hash == 'bf0b488994657435cdddac5f107d21e8':
                 assert np.sum(labels_orig == 0) == 13887
-            elif hash_ == 'd4f5b7cbc2ed363ac6fcf89e19353504':
+            elif content_hash == 'd4f5b7cbc2ed363ac6fcf89e19353504':
                 assert np.sum(labels_orig == 1639705) == 13327
             else:
                 raise RuntimeError(
