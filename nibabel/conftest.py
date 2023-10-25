@@ -8,4 +8,5 @@ with pytest.warns(UserWarning):
 
 def pytest_configure(config):
     """Configure pytest options."""
-    np.set_printoptions(legacy=125)
+    if int(np.__version__[0]) >= 2:
+        np.set_printoptions(legacy=125)
