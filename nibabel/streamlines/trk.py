@@ -1,4 +1,4 @@
-# Definition of trackvis header structure:
++# Definition of trackvis header structure:
 # http://www.trackvis.org/docs/?subsect=fileformat
 
 import os
@@ -577,7 +577,7 @@ class TrkFile(TractogramFile):
                 endianness = swapped_code
 
                 # Swap byte order
-                header_rec = header_rec.newbyteorder()
+                header_rec = header_rec.view(header_rec.dtype.newbyteorder())
                 if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
                     msg = (
                         f"Invalid hdr_size: {header_rec['hdr_size']} "
