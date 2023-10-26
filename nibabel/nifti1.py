@@ -2443,18 +2443,18 @@ def _get_analyze_compat_dtype(arr):
         return np.dtype('int16' if arr.max() <= np.iinfo(np.int16).max else 'int32')
 
     mn, mx = arr.min(), arr.max()
-    if np.can_cast(mn, np.int32) and np.can_cast(mx, np.int32):
-        return np.dtype('int32')
-    elif isinstance(mn, int) and isinstance(mx, int):
+    if isinstance(mn, int) and isinstance(mx, int):
         info = np.finfo('int32')
         if mn >= info.min and mx <= info.max:
             return np.dtype('int32')
-    if np.can_cast(mn, np.float32) and np.can_cast(mx, np.float32):
-        return np.dtype('float32')
     elif isinstance(mn, float) and isinstance(mx, float):
         info = np.finfo('float32')
         if mn >= info.min and mx <= info.max:
             return np.dtype('float32')
+    elif np.can_cast(mn, np.int32) and np.can_cast(mx, np.int32):
+        return np.dtype('int32')
+    elif np.can_cast(mn, np.float32) and np.can_cast(mx, np.float32):
+        return np.dtype('float32')
 
     raise ValueError(
         f'Cannot find analyze-compatible dtype for array with dtype={dtype} (min={mn}, max={mx})'
