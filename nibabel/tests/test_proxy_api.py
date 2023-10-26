@@ -59,7 +59,7 @@ h5py, have_h5py, _ = optional_package('h5py')
 
 try:
     from numpy.exceptions import ComplexWarning
-except ImportError:  # NumPy < 1.25
+except ModuleNotFoundError:  # NumPy < 1.25
     from numpy import ComplexWarning
 
 
