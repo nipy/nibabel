@@ -172,7 +172,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        check: ['style', 'doctest', 'typecheck']
+        check: ['style', 'doctest', 'typecheck', 'spellcheck']
 
     steps:
       - uses: actions/checkout@v4

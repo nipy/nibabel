@@ -77,7 +77,7 @@ and run pytest_::
     pip install nibabel[test]
     pytest --pyargs nibabel
 
-For more inforation, consult the `developer guidelines`_.
+For more information, consult the `developer guidelines`_.
 
 .. _tox: https://tox.wiki
 .. _pytest: https://docs.pytest.org

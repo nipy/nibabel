@@ -95,20 +95,6 @@ advise that you enable merge summaries within git:
 
 See :ref:`configure-git` for more detail.
 
-Pre-commit hooks
-----------------
-
-NiBabel uses pre-commit_ to help committers validate their changes
-before committing. To enable these, you can use pipx_::
-
-    pipx run pre-commit install
-
-Or install and run::
-
-    python -m pip install pre-commit
-    pre-commit install
-
-
 Testing
 =======
 
@@ -137,6 +123,55 @@ It may be useful to pick a particular version for rapid development::
 This will run the environment using the Python 3.11 interpreter, with the
 full set of optional dependencies that are available for 64-bit
 interpreters. If you are using 32-bit Python, replace ``-x64`` with ``-x86``.
+
+
+Style guide
+===========
+
+To ensure code consistency and readability, NiBabel has adopted the following
+tools:
+
+* blue_ - An auto-formatter that aims to reduce diffs to relevant lines
+* isort_ - An import sorter that groups stdlib, third-party and local imports.
+* flake8_ - A style checker that can catch (but generally not fix) common
+  errors in code.
+* codespell_ - A spell checker targeted at source code.
+* pre-commit_ - A pre-commit hook manager that runs the above and various
+  other checks/fixes.
+
+While some amount of personal preference is involved in selecting and
+configuring auto-formatters, their value lies in largely eliminating the
+need to think or argue about style.
+With pre-commit turned on, you can write in the style that works for you,
+and the NiBabel style will be adopted prior to the commit.
+
+To apply our style checks uniformly, simply run::
+
+    tox -e style,spellcheck
+
+To fix any issues found::
+
+    tox -e style-fix
+    tox -e spellcheck -- -w
+
+Occasionally, codespell has a false positive. To ignore the suggestion, add
+the intended word to ``tool.codespell.ignore-words-list`` in ``pyproject.toml``.
+However, the ignore list is a blunt instrument and could cause a legitimate
+misspelling to be missed. Consider choosing a word that does not trigger
+codespell before adding it to the ignore list.
+
+Pre-commit hooks
+----------------
+
+NiBabel uses pre-commit_ to help committers validate their changes
+before committing. To enable these, you can use pipx_::
+
+    pipx run pre-commit install
+
+Or install and run::
+
+    python -m pip install pre-commit
+    pre-commit install
 
 
 Changelog
@@ -168,6 +203,9 @@ Please see `our community guidelines
 <https://github.com/nipy/nibabel/blob/master/.github/CODE_OF_CONDUCT.md>`_.
 Other projects call these guidelines the "code of conduct".
 
-.. _tox: https://tox.wiki
+.. _blue: https://blue.readthedocs.io/
+.. _codespell: https://github.com/codespell-project/codespell
+.. _flake8: https://flake8.pycqa.org/
 .. _pipx: https://pypa.github.io/pipx/
 .. _precommit: https://pre-commit.com/
+.. _tox: https://tox.wiki/
