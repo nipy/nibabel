@@ -607,7 +607,7 @@ def test_truncations():
         PARRECHeader(gen_info, slice_info)
     gen_info['max_echoes'] = 1
     hdr = PARRECHeader(gen_info, slice_info)
-    # dyamics
+    # dynamics
     gen_info['max_dynamics'] = 3
     with pytest.raises(PARRECError):
         PARRECHeader(gen_info, slice_info)
