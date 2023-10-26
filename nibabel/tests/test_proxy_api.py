@@ -57,6 +57,11 @@ from .test_parrec import EG_REC, VARY_REC
 
 h5py, have_h5py, _ = optional_package('h5py')
 
+try:
+    from numpy.exceptions import ComplexWarning
+except ImportError:  # NumPy < 1.25
+    from numpy import ComplexWarning
+
 
 def _some_slicers(shape):
     ndim = len(shape)
@@ -143,7 +148,7 @@ class _TestProxyAPI(ValidateAPI):
         if np.issubdtype(orig.dtype, np.complexfloating):
             context = clear_and_catch_warnings()
             context.__enter__()
-            warnings.simplefilter('ignore', np.ComplexWarning)
+            warnings.simplefilter('ignore', ComplexWarning)
 
         for dtype in sctypes['float'] + sctypes['int'] + sctypes['uint']:
             # Directly coerce with a dtype

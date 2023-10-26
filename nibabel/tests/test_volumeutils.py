@@ -69,6 +69,11 @@ NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 FP_RUNTIME_WARN = Version(np.__version__) >= Version('1.24.0.dev0+239')
 
+try:
+    from numpy.exceptions import ComplexWarning
+except ModuleNotFoundError:  # NumPy < 1.25
+    from numpy import ComplexWarning
+
 
 def test__is_compressed_fobj():
     # _is_compressed helper function
@@ -610,7 +615,7 @@ def test_a2f_bad_scaling():
         if np.issubdtype(in_type, np.complexfloating) and not np.issubdtype(
             out_type, np.complexfloating
         ):
-            cm = pytest.warns(np.ComplexWarning)
+            cm = pytest.warns(ComplexWarning)
         if (slope, inter) == (1, 0):
             with cm:
                 assert_array_equal(
@@ -650,7 +655,7 @@ def test_a2f_nan2zero_range():
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
         # Error occurs for arrays without nans too
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
-        complex_warn = (np.ComplexWarning,) if np.issubdtype(dt, np.complexfloating) else ()
+        complex_warn = (ComplexWarning,) if np.issubdtype(dt, np.complexfloating) else ()
         # Casting nan to int will produce a RuntimeWarning in numpy 1.24
         nan_warn = (RuntimeWarning,) if FP_RUNTIME_WARN else ()
         c_and_n_warn = complex_warn + nan_warn
