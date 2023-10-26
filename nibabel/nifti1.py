@@ -89,7 +89,7 @@ header_dtype = np.dtype(header_dtd)
 if have_binary128():
     # Only enable 128 bit floats if we really have IEEE binary 128 longdoubles
     _float128t: type[np.generic] = np.longdouble
-    _complex256t: type[np.generic] = np.longcomplex
+    _complex256t: type[np.generic] = np.clongdouble
 else:
     _float128t = np.void
     _complex256t = np.void

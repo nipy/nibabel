@@ -79,7 +79,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         (np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
     )
     if have_binary128():
-        supported_np_types = supported_np_types.union((np.longdouble, np.longcomplex))
+        supported_np_types = supported_np_types.union((np.longdouble, np.clongdouble))
     tana.add_duplicate_types(supported_np_types)
 
     def test_empty(self):

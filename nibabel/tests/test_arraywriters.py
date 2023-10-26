@@ -61,7 +61,8 @@ def test_arraywriters():
             assert aw.out_dtype == arr.dtype
             assert_array_equal(arr, round_trip(aw))
             # Byteswapped should be OK
-            bs_arr = arr.byteswap().newbyteorder('S')
+            bs_arr = arr.byteswap()
+            bs_arr = bs_arr.view(bs_arr.dtype.newbyteorder('S'))
             bs_aw = klass(bs_arr)
             bs_aw_rt = round_trip(bs_aw)
             # assert against original array because POWER7 was running into

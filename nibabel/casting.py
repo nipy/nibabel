@@ -291,7 +291,7 @@ def type_info(np_type):
         return ret
     info_64 = np.finfo(np.float64)
     if dt.kind == 'c':
-        assert np_type is np.longcomplex
+        assert np_type is np.clongdouble
         vals = (nmant, nexp, width / 2)
     else:
         assert np_type is np.longdouble
@@ -319,7 +319,7 @@ def type_info(np_type):
     # Oh dear, we don't recognize the type information.  Try some known types
     # and then give up. At this stage we're expecting exotic longdouble or
     # their complex equivalent.
-    if np_type not in (np.longdouble, np.longcomplex) or width not in (16, 32):
+    if np_type not in (np.longdouble, np.clongdouble) or width not in (16, 32):
         raise FloatingError(f'We had not expected type {np_type}')
     if vals == (1, 1, 16) and on_powerpc() and _check_maxexp(np.longdouble, 1024):
         # double pair on PPC.  The _check_nmant routine does not work for this
@@ -329,13 +329,13 @@ def type_info(np_type):
         # Got float64 despite everything
         pass
     elif _check_nmant(np.longdouble, 112) and _check_maxexp(np.longdouble, 16384):
-        # binary 128, but with some busted type information. np.longcomplex
+        # binary 128, but with some busted type information. np.clongdouble
         # seems to break here too, so we need to use np.longdouble and
         # complexify
         two = np.longdouble(2)
         # See: https://matthew-brett.github.io/pydagogue/floating_point.html
         max_val = (two**113 - 1) / (two**112) * two**16383
-        if np_type is np.longcomplex:
+        if np_type is np.clongdouble:
             max_val += 0j
         ret = dict(
             min=-max_val,
