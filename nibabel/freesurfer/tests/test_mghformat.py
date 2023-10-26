@@ -345,7 +345,7 @@ def test_mghheader_default_structarr():
     for endianness in (None,) + BIG_CODES:
         hdr2 = MGHHeader.default_structarr(endianness=endianness)
         assert hdr2 == hdr
-        assert hdr2.newbyteorder('>') == hdr
+        assert hdr2.view(hdr2.dtype.newbyteorder('>')) == hdr
 
     for endianness in LITTLE_CODES:
         with pytest.raises(ValueError):
