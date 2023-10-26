@@ -328,7 +328,8 @@ class ImageScalingMixin:
         inter = 10 if hdr.has_data_intercept else 0
 
         mn_in, mx_in = _dt_min_max(in_dtype)
-        arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
+        mn = -1 if np.dtype(in_dtype).kind != 'u' else 0
+        arr = np.array([mn_in, mn, 0, 1, 10, mx_in], dtype=in_dtype)
         img = img_class(arr, np.eye(4), hdr)
         img.set_data_dtype(supported_dtype)
         # Setting the scaling means we don't calculate it later

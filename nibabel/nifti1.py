@@ -2443,7 +2443,7 @@ def _get_analyze_compat_dtype(arr):
         return np.dtype('int16' if arr.max() <= np.iinfo(np.int16).max else 'int32')
 
     mn, mx = arr.min(), arr.max()
-    if arr.dtype.kind == 'i':
+    if arr.dtype.kind in 'iu':
         info = np.iinfo('int32')
         if mn >= info.min and mx <= info.max:
             return np.dtype('int32')
