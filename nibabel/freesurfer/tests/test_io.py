@@ -111,8 +111,10 @@ def test_geometry():
     assert np.array_equal(faces, faces2)
 
     # Validate byte ordering
-    coords_swapped = coords.byteswap().newbyteorder()
-    faces_swapped = faces.byteswap().newbyteorder()
+    coords_swapped = coords.byteswap()
+    coords_swapped = coords_swapped.view(coords_swapped.dtype.newbyteorder())
+    faces_swapped = faces.byteswap()
+    faces_swapped = faces_swapped.view(faces_swapped.dtype.newbyteorder())
     assert np.array_equal(coords_swapped, coords)
     assert np.array_equal(faces_swapped, faces)
 

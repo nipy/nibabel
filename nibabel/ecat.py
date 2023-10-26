@@ -923,7 +923,7 @@ class EcatImage(SpatialImage):
             endianness = native_code
 
         stream.seek(pos)
-        make_array_writer(data.newbyteorder(endianness), dtype).to_fileobj(stream)
+        make_array_writer(data.view(data.dtype.newbyteorder(endianness)), dtype).to_fileobj(stream)
 
     def to_file_map(self, file_map=None):
         """Write ECAT7 image to `file_map` or contained ``self.file_map``
