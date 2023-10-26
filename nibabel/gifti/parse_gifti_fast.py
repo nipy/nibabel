@@ -333,7 +333,7 @@ class GiftiImageParser(XmlParser):
             self.fsm_state.pop()
             self.coordsys = None
 
-        elif name in ['DataSpace', 'TransformedSpace', 'MatrixData', 'Name', 'Value', 'Data']:
+        elif name in ('DataSpace', 'TransformedSpace', 'MatrixData', 'Name', 'Value', 'Data'):
             self.write_to = None
 
         elif name == 'Label':

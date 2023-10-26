@@ -968,13 +968,13 @@ class Cifti2BrainModel(xml.XmlSerializable):
     def _to_xml_element(self):
         brain_model = xml.Element('BrainModel')
 
-        for key in [
+        for key in (
             'IndexOffset',
             'IndexCount',
             'ModelType',
             'BrainStructure',
             'SurfaceNumberOfVertices',
-        ]:
+        ):
             attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
@@ -1157,14 +1157,14 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
         mat_ind_map = xml.Element('MatrixIndicesMap')
         dims_as_strings = [str(dim) for dim in self.applies_to_matrix_dimension]
         mat_ind_map.attrib['AppliesToMatrixDimension'] = ','.join(dims_as_strings)
-        for key in [
+        for key in (
             'IndicesMapToDataType',
             'NumberOfSeriesPoints',
             'SeriesExponent',
             'SeriesStart',
             'SeriesStep',
             'SeriesUnit',
-        ]:
+        ):
             attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
