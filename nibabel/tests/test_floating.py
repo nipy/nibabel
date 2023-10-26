@@ -1,9 +1,11 @@
 """Test floating point deconstructions and floor methods
 """
 import sys
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 from ..casting import (
     FloatingError,
@@ -26,6 +28,8 @@ from ..testing import suppress_warnings
 IEEE_floats = [np.float16, np.float32, np.float64]
 
 LD_INFO = type_info(np.longdouble)
+
+FP_OVERFLOW_WARN = Version(np.__version__) <= Version('2.0.0.dev0')
 
 
 def dtt2dict(dtt):
@@ -149,9 +153,14 @@ def test_as_int():
     nexp64 = floor_log2(type_info(np.float64)['max'])
     with np.errstate(over='ignore'):
         val = np.longdouble(2**nexp64) * 2  # outside float64 range
-    with pytest.raises(OverflowError):
+    assert val > np.finfo('float64').max
+    if FP_OVERFLOW_WARN:
+        ctx = pytest.raises(OverflowError)
+    else:
+        ctx = nullcontext()
+    with ctx:
         as_int(val)
-    with pytest.raises(OverflowError):
+    with ctx:
         as_int(-val)
 
 
