@@ -495,6 +495,7 @@ def int_to_float(val, flt_type):
     # -1
     if not isinstance(val, Integral):
         val = int(str(val))
+    val = int(val)
     faval = np.longdouble(0)
     while val != 0:
         f64 = np.float64(val)

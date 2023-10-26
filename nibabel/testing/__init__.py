@@ -82,7 +82,7 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
         a = a.astype(float)
     if b.dtype.kind in 'ui':
         b = b.astype(float)
-    assert np.allclose(a, b, rtol=rtol, atol=atol)
+    np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
 
 
 def assert_arrays_equal(arrays1, arrays2):
