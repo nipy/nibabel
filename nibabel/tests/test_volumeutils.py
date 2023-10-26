@@ -544,7 +544,8 @@ def test_a2f_scaled_unscaled():
     ):
         mn_in, mx_in = _dt_min_max(in_dtype)
         nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
-        arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
+        mn = 0 if np.dtype(in_dtype).kind == "u" else 1
+        arr = np.array([mn_in, mn, 0, 1, mx_in, nan_val], dtype=in_dtype)
         mn_out, mx_out = _dt_min_max(out_dtype)
         # 0 when scaled to output will also be the output value for NaN
         nan_fill = -intercept / divslope
@@ -738,9 +739,10 @@ def test_apply_scaling():
     f32_arr = np.zeros((1,), dtype=f32)
     i16_arr = np.zeros((1,), dtype=np.int16)
     # Check float upcast (not the normal numpy scalar rule)
-    # This is the normal rule - no upcast from scalar
-    assert (f32_arr * f64(1)).dtype == np.float32
-    assert (f32_arr + f64(1)).dtype == np.float32
+    # This is the normal rule - no upcast from Python scalar
+    # (on NumPy 2.0 it *will* upcast from a np.float64 scalar!)
+    assert (f32_arr * 1.).dtype == np.float32
+    assert (f32_arr + 1.).dtype == np.float32
     # The function does upcast though
     ret = apply_read_scaling(np.float32(0), np.float64(2))
     assert ret.dtype == np.float64

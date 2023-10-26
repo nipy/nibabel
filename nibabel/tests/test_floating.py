@@ -154,6 +154,7 @@ def test_as_int():
     with np.errstate(over='ignore'):
         val = np.longdouble(2**nexp64) * 2  # outside float64 range
     assert val > np.finfo('float64').max
+    # TODO: Should this actually still overflow? Does it matter?
     if FP_OVERFLOW_WARN:
         ctx = pytest.raises(OverflowError)
     else:
