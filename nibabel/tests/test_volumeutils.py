@@ -744,8 +744,8 @@ def test_apply_scaling():
     # Check float upcast (not the normal numpy scalar rule)
     # This is the normal rule - no upcast from Python scalar
     # (on NumPy 2.0 it *will* upcast from a np.float64 scalar!)
-    assert (f32_arr * 1.).dtype == np.float32
-    assert (f32_arr + 1.).dtype == np.float32
+    assert (f32_arr * 1.0).dtype == np.float32
+    assert (f32_arr + 1.0).dtype == np.float32
     # The function does upcast though
     ret = apply_read_scaling(np.float32(0), np.float64(2))
     assert ret.dtype == np.float64

@@ -18,11 +18,7 @@ from numpy.testing import assert_array_almost_equal
 from .. import load as top_load
 from ..imageclasses import spatial_axes_first
 from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
-from ..testing import (
-    bytesio_round_trip,
-    expires,
-    memmap_after_ufunc,
-)
+from ..testing import bytesio_round_trip, expires, memmap_after_ufunc
 from ..tmpdirs import InTemporaryDirectory
 
 
