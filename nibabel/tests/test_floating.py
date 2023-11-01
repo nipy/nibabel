@@ -29,7 +29,7 @@ IEEE_floats = [np.float16, np.float32, np.float64]
 
 LD_INFO = type_info(np.longdouble)
 
-FP_OVERFLOW_WARN = Version(np.__version__) <= Version('2.0.0.dev0')
+FP_OVERFLOW_WARN = Version(np.__version__) < Version('2.0.0.dev0')
 
 
 def dtt2dict(dtt):
