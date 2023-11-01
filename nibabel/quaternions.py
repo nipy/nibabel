@@ -29,7 +29,9 @@ import math
 
 import numpy as np
 
-MAX_FLOAT = np.finfo(float).max
+from .casting import sctypes
+
+MAX_FLOAT = sctypes['float'][-1]
 FLOAT_EPS = np.finfo(float).eps
 
 

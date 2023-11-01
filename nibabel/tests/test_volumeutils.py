@@ -543,9 +543,12 @@ def test_a2f_scaled_unscaled():
         NUMERIC_TYPES, NUMERIC_TYPES, (0, 0.5, -1, 1), (1, 0.5, 2)
     ):
         mn_in, mx_in = _dt_min_max(in_dtype)
-        nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
-        mn = 0 if np.dtype(in_dtype).kind == "u" else 1
-        arr = np.array([mn_in, mn, 0, 1, mx_in, nan_val], dtype=in_dtype)
+        vals = [mn_in, 0, 1, mx_in]
+        if np.dtype(in_dtype).kind != 'u':
+            vals.append(-1)
+        if in_dtype in CFLOAT_TYPES:
+            vals.append(np.nan)
+        arr = np.array(vals, dtype=in_dtype)
         mn_out, mx_out = _dt_min_max(out_dtype)
         # 0 when scaled to output will also be the output value for NaN
         nan_fill = -intercept / divslope

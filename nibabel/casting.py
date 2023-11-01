@@ -45,7 +45,6 @@ sctypes = {
     ],
     'others': [bool, object, bytes, str, np.void],
 }
-# fmt: off
 sctypes_aliases = {
     getattr(np, dtype)
     for dtype in (
@@ -59,8 +58,7 @@ sctypes_aliases = {
         'object_', 'void',
     )
     if hasattr(np, dtype)
-}
-# fmt: on
+}  # fmt:skip
 
 
 def float_to_int(arr, int_type, nan2zero=True, infmax=False):
@@ -492,9 +490,6 @@ def int_to_float(val, flt_type):
         return flt_type(val)
     # The following works around a nasty numpy 1.4.1 bug such that:
     # >>> int(np.uint32(2**32-1)
-    # -1
-    if not isinstance(val, Integral):
-        val = int(str(val))
     val = int(val)
     faval = np.longdouble(0)
     while val != 0:
