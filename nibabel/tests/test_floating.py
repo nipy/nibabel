@@ -159,10 +159,15 @@ def test_as_int():
         ctx = pytest.raises(OverflowError)
     else:
         ctx = nullcontext()
+    out_val = None
     with ctx:
-        as_int(val)
+        out_val = as_int(val)
+    if out_val is not None:
+        assert out_val == val
     with ctx:
-        as_int(-val)
+        out_val = as_int(-val)
+    if out_val is not None:
+        assert out_val == -val
 
 
 def test_int_to_float():

@@ -68,6 +68,7 @@ IUINT_TYPES = INT_TYPES + sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 FP_RUNTIME_WARN = Version(np.__version__) >= Version('1.24.0.dev0+239')
+NP_2 = Version(np.__version__) >= Version('2.0.0.dev0')
 
 try:
     from numpy.exceptions import ComplexWarning
@@ -743,9 +744,13 @@ def test_apply_scaling():
     i16_arr = np.zeros((1,), dtype=np.int16)
     # Check float upcast (not the normal numpy scalar rule)
     # This is the normal rule - no upcast from Python scalar
-    # (on NumPy 2.0 it *will* upcast from a np.float64 scalar!)
     assert (f32_arr * 1.0).dtype == np.float32
     assert (f32_arr + 1.0).dtype == np.float32
+    # This is the normal rule - no upcast from scalar
+    # before NumPy 2.0, after 2.0, it upcasts
+    want_dtype = np.float64 if NP_2 else np.float32
+    assert (f32_arr * f64(1)).dtype == want_dtype
+    assert (f32_arr + f64(1)).dtype == want_dtype
     # The function does upcast though
     ret = apply_read_scaling(np.float32(0), np.float64(2))
     assert ret.dtype == np.float64
