@@ -26,7 +26,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from .. import imageglobals
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..arraywriters import WriterError
-from ..casting import as_int, sctypes_aliases
+from ..casting import sctypes_aliases
 from ..nifti1 import Nifti1Header
 from ..optpkg import optional_package
 from ..spatialimages import HeaderDataError, HeaderTypeError, supported_np_types
@@ -308,8 +308,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             assert hdr.get_data_shape() == shape
         # Check max works, but max+1 raises error
         dim_dtype = hdr.structarr['dim'].dtype
-        # as_int for safety to deal with numpy 1.4.1 int conversion errors
-        mx = as_int(np.iinfo(dim_dtype).max)
+        mx = int(np.iinfo(dim_dtype).max)
         shape = (mx,)
         hdr.set_data_shape(shape)
         assert hdr.get_data_shape() == shape

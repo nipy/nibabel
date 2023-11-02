@@ -11,7 +11,6 @@ from ..casting import (
     FloatingError,
     _check_maxexp,
     _check_nmant,
-    as_int,
     ceil_exact,
     floor_exact,
     floor_log2,
@@ -128,48 +127,6 @@ def test_check_nmant_nexp():
             assert _check_maxexp(t, ti['maxexp'])
 
 
-def test_as_int():
-    # Integer representation of number
-    assert as_int(2.0) == 2
-    assert as_int(-2.0) == -2
-    with pytest.raises(FloatingError):
-        as_int(2.1)
-    with pytest.raises(FloatingError):
-        as_int(-2.1)
-    assert as_int(2.1, False) == 2
-    assert as_int(-2.1, False) == -2
-    v = np.longdouble(2**64)
-    assert as_int(v) == 2**64
-    # Have all long doubles got 63+1 binary bits of precision?  Windows 32-bit
-    # longdouble appears to have 52 bit precision, but we avoid that by checking
-    # for known precisions that are less than that required
-    try:
-        nmant = type_info(np.longdouble)['nmant']
-    except FloatingError:
-        nmant = 63  # Unknown precision, let's hope it's at least 63
-    v = np.longdouble(2) ** (nmant + 1) - 1
-    assert as_int(v) == 2 ** (nmant + 1) - 1
-    # Check for predictable overflow
-    nexp64 = floor_log2(type_info(np.float64)['max'])
-    with np.errstate(over='ignore'):
-        val = np.longdouble(2**nexp64) * 2  # outside float64 range
-    assert val > np.finfo('float64').max
-    # TODO: Should this actually still overflow? Does it matter?
-    if FP_OVERFLOW_WARN:
-        ctx = pytest.raises(OverflowError)
-    else:
-        ctx = nullcontext()
-    out_val = None
-    with ctx:
-        out_val = as_int(val)
-    if out_val is not None:
-        assert out_val == val
-    with ctx:
-        out_val = as_int(-val)
-    if out_val is not None:
-        assert out_val == -val
-
-
 def test_int_to_float():
     # Convert python integer to floating point
     # Standard float types just return cast value
@@ -215,23 +172,24 @@ def test_int_to_float():
         return
     # test we recover precision just above nmant
     i = 2 ** (nmant + 1) - 1
-    assert as_int(int_to_float(i, LD)) == i
-    assert as_int(int_to_float(-i, LD)) == -i
+    assert int(int_to_float(i, LD)) == i
+    assert int(int_to_float(-i, LD)) == -i
     # If longdouble can cope with 2**64, test
     if nmant >= 63:
         # Check conversion to int; the line below causes an error subtracting
         # ints / uint64 values, at least for Python 3.3 and numpy dev 1.8
         big_int = np.uint64(2**64 - 1)
-        assert as_int(int_to_float(big_int, LD)) == big_int
+        assert int(int_to_float(big_int, LD)) == big_int
 
 
-def test_as_int_np_fix():
-    # Test as_int works for integers.  We need as_int for integers because of a
+def test_int_np_regression():
+    # Test int works as expected for integers.
+    # We previously used a custom as_int() for integers because of a
     # numpy 1.4.1 bug such that int(np.uint32(2**32-1) == -1
     for t in sctypes['int'] + sctypes['uint']:
         info = np.iinfo(t)
         mn, mx = np.array([info.min, info.max], dtype=t)
-        assert (mn, mx) == (as_int(mn), as_int(mx))
+        assert (mn, mx) == (int(mn), int(mx))
 
 
 def test_floor_exact_16():
@@ -264,8 +222,8 @@ def test_floor_exact():
         to_test.append(np.longdouble)
     # When numbers go above int64 - I believe, numpy comparisons break down,
     # so we have to cast to int before comparison
-    int_flex = lambda x, t: as_int(floor_exact(x, t))
-    int_ceex = lambda x, t: as_int(ceil_exact(x, t))
+    int_flex = lambda x, t: int(floor_exact(x, t))
+    int_ceex = lambda x, t: int(ceil_exact(x, t))
     for t in to_test:
         # A number bigger than the range returns the max
         info = type_info(t)
@@ -302,7 +260,7 @@ def test_floor_exact():
         for i in range(5):
             iv = 2 ** (nmant + 1 + i)
             gap = 2 ** (i + 1)
-            assert as_int(t(iv) + t(gap)) == iv + gap
+            assert int(t(iv) + t(gap)) == iv + gap
             for j in range(1, gap):
                 assert int_flex(iv + j, t) == iv
                 assert int_flex(iv + gap + j, t) == iv + gap
