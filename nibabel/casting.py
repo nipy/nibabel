@@ -445,6 +445,7 @@ def as_int(x, check=True):
     return ix
 
 
+@deprecate_with_version('int_to_float(..., dt) is deprecated. Use dt() instead.', '5.2.0', '7.0.0')
 def int_to_float(val, flt_type):
     """Convert integer `val` to floating point type `flt_type`
 
@@ -467,17 +468,7 @@ def int_to_float(val, flt_type):
     f : numpy scalar
         of type `flt_type`
     """
-    if flt_type is not np.longdouble:
-        return flt_type(val)
-    # The following works around a nasty numpy 1.4.1 bug such that:
-    # >>> int(np.uint32(2**32-1)
-    val = int(val)
-    faval = np.longdouble(0)
-    while val != 0:
-        f64 = np.float64(val)
-        faval += f64
-        val -= int(f64)
-    return faval
+    return flt_type(val)
 
 
 def floor_exact(val, flt_type):
@@ -524,8 +515,8 @@ def floor_exact(val, flt_type):
     val = int(val)
     flt_type = np.dtype(flt_type).type
     sign = 1 if val > 0 else -1
-    try:  # int_to_float deals with longdouble safely
-        fval = int_to_float(val, flt_type)
+    try:
+        fval = flt_type(val)
     except OverflowError:
         return sign * np.inf
     if not np.isfinite(fval):

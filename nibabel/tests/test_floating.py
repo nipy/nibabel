@@ -15,7 +15,6 @@ from ..casting import (
     floor_exact,
     floor_log2,
     have_binary128,
-    int_to_float,
     longdouble_precision_improved,
     ok_floats,
     on_powerpc,
@@ -127,59 +126,21 @@ def test_check_nmant_nexp():
             assert _check_maxexp(t, ti['maxexp'])
 
 
-def test_int_to_float():
-    # Convert python integer to floating point
-    # Standard float types just return cast value
-    for ie3 in IEEE_floats:
-        nmant = type_info(ie3)['nmant']
-        for p in range(nmant + 3):
-            i = 2**p + 1
-            assert int_to_float(i, ie3) == ie3(i)
-            assert int_to_float(-i, ie3) == ie3(-i)
-        # IEEEs in this case are binary formats only
-        nexp = floor_log2(type_info(ie3)['max'])
-        # Values too large for the format
-        smn, smx = -(2 ** (nexp + 1)), 2 ** (nexp + 1)
-        if ie3 is np.float64:
-            with pytest.raises(OverflowError):
-                int_to_float(smn, ie3)
-            with pytest.raises(OverflowError):
-                int_to_float(smx, ie3)
-        else:
-            assert int_to_float(smn, ie3) == ie3(smn)
-            assert int_to_float(smx, ie3) == ie3(smx)
-    # Longdoubles do better than int, we hope
-    LD = np.longdouble
-    # up to integer precision of float64 nmant, we get the same result as for
-    # casting directly
+def test_int_longdouble_np_regression():
+    # Test longdouble conversion from int works as expected
+    # Previous versions of numpy would fail, and we used a custom int_to_float()
+    # function. This test remains to ensure we don't need to bring it back.
     nmant = type_info(np.float64)['nmant']
-    for p in range(nmant + 2):  # implicit
-        i = 2**p - 1
-        assert int_to_float(i, LD) == LD(i)
-        assert int_to_float(-i, LD) == LD(-i)
-    # Above max of float64, we're hosed
-    nexp64 = floor_log2(type_info(np.float64)['max'])
-    smn64, smx64 = -(2 ** (nexp64 + 1)), 2 ** (nexp64 + 1)
-    # The algorithm here implemented goes through float64, so supermax and
-    # supermin will cause overflow errors
-    with pytest.raises(OverflowError):
-        int_to_float(smn64, LD)
-    with pytest.raises(OverflowError):
-        int_to_float(smx64, LD)
-    try:
-        nmant = type_info(np.longdouble)['nmant']
-    except FloatingError:  # don't know where to test
-        return
     # test we recover precision just above nmant
     i = 2 ** (nmant + 1) - 1
-    assert int(int_to_float(i, LD)) == i
-    assert int(int_to_float(-i, LD)) == -i
+    assert int(np.longdouble(i)) == i
+    assert int(np.longdouble(-i)) == -i
     # If longdouble can cope with 2**64, test
     if nmant >= 63:
         # Check conversion to int; the line below causes an error subtracting
         # ints / uint64 values, at least for Python 3.3 and numpy dev 1.8
         big_int = np.uint64(2**64 - 1)
-        assert int(int_to_float(big_int, LD)) == big_int
+        assert int(np.longdouble(big_int)) == big_int
 
 
 def test_int_np_regression():

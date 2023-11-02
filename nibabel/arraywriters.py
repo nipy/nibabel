@@ -30,7 +30,7 @@ larger ints and smaller.
 """
 import numpy as np
 
-from .casting import best_float, floor_exact, int_abs, int_to_float, shared_range, type_info
+from .casting import best_float, floor_exact, int_abs, shared_range, type_info
 from .volumeutils import array_to_file, finite_range
 
 
@@ -418,7 +418,7 @@ class SlopeArrayWriter(ArrayWriter):
             # not lose precision because min/max are of fp type.
             out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         else:  # (u)int
-            out_min, out_max = (int_to_float(v, big_float) for v in (out_min, out_max))
+            out_min, out_max = (big_float(v) for v in (out_min, out_max))
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
                 raise WriterError(
@@ -584,14 +584,13 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_min, in_max = np.array([in_min, in_max], dtype=big_float)
             in_range = np.diff([in_min, in_max])
         else:  # max possible (u)int range is 2**64-1 (int64, uint64)
-            # int_to_float covers this range.  On windows longdouble is the
-            # same as double so in_range will be 2**64 - thus overestimating
-            # slope slightly.  Casting to int needed to allow in_max-in_min to
-            # be larger than the largest (u)int value
+            # On windows longdouble is the same as double so in_range will be 2**64 -
+            # thus overestimating slope slightly.  Casting to int needed to allow
+            # in_max-in_min to be larger than the largest (u)int value
             in_min, in_max = int(in_min), int(in_max)
-            in_range = int_to_float(in_max - in_min, big_float)
+            in_range = big_float(in_max - in_min)
             # Cast to float for later processing.
-            in_min, in_max = (int_to_float(v, big_float) for v in (in_min, in_max))
+            in_min, in_max = (big_float(v) for v in (in_min, in_max))
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)

@@ -14,7 +14,6 @@ from ..casting import (
     float_to_int,
     floor_log2,
     int_abs,
-    int_to_float,
     longdouble_precision_improved,
     sctypes,
     shared_range,
@@ -41,7 +40,7 @@ def test_shared_range():
             if casted_mx != imax:
                 # The shared_range have told us that they believe the imax does
                 # not have an exact representation.
-                fimax = int_to_float(imax, ft)
+                fimax = ft(imax)
                 if np.isfinite(fimax):
                     assert int(fimax) != imax
                 # Therefore the imax, cast back to float, and to integer, will
@@ -67,7 +66,7 @@ def test_shared_range():
             if casted_mn != imin:
                 # The shared_range have told us that they believe the imin does
                 # not have an exact representation.
-                fimin = int_to_float(imin, ft)
+                fimin = ft(imin)
                 if np.isfinite(fimin):
                     assert int(fimin) != imin
                 # Therefore the imin, cast back to float, and to integer, will
