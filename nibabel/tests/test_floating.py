@@ -172,7 +172,9 @@ def test_floor_exact_64():
         assert floor_exact(test_val, np.float64) == 2 ** (e + 1) - int(gap)
 
 
-def test_floor_exact():
+def test_floor_exact(max_digits):
+    max_digits(4950)  # max longdouble is ~10**4932
+
     to_test = IEEE_floats + [float]
     try:
         type_info(np.longdouble)['nmant']
@@ -188,11 +190,11 @@ def test_floor_exact():
     for t in to_test:
         # A number bigger than the range returns the max
         info = type_info(t)
-        assert floor_exact(2**5000, t) == np.inf
-        assert ceil_exact(2**5000, t) == np.inf
+        assert floor_exact(10**4933, t) == np.inf
+        assert ceil_exact(10**4933, t) == np.inf
         # A number more negative returns -inf
-        assert floor_exact(-(2**5000), t) == -np.inf
-        assert ceil_exact(-(2**5000), t) == -np.inf
+        assert floor_exact(-(10**4933), t) == -np.inf
+        assert ceil_exact(-(10**4933), t) == -np.inf
         # Check around end of integer precision
         nmant = info['nmant']
         for i in range(nmant + 1):
