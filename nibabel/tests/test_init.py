@@ -4,9 +4,9 @@ from unittest import mock
 import pytest
 
 try:
-    from importlib.resources import as_file, files
+    from importlib.resources import files
 except ImportError:
-    from importlib_resources import as_file, files
+    from importlib_resources import files
 
 import nibabel as nib
 

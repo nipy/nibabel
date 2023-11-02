@@ -89,7 +89,7 @@ header_dtype = np.dtype(header_dtd)
 if have_binary128():
     # Only enable 128 bit floats if we really have IEEE binary 128 longdoubles
     _float128t: type[np.generic] = np.longdouble
-    _complex256t: type[np.generic] = np.longcomplex
+    _complex256t: type[np.generic] = np.clongdouble
 else:
     _float128t = np.void
     _complex256t = np.void
@@ -2443,10 +2443,14 @@ def _get_analyze_compat_dtype(arr):
         return np.dtype('int16' if arr.max() <= np.iinfo(np.int16).max else 'int32')
 
     mn, mx = arr.min(), arr.max()
-    if np.can_cast(mn, np.int32) and np.can_cast(mx, np.int32):
-        return np.dtype('int32')
-    if np.can_cast(mn, np.float32) and np.can_cast(mx, np.float32):
-        return np.dtype('float32')
+    if arr.dtype.kind in 'iu':
+        info = np.iinfo('int32')
+        if mn >= info.min and mx <= info.max:
+            return np.dtype('int32')
+    elif arr.dtype.kind == 'f':
+        info = np.finfo('float32')
+        if mn >= info.min and mx <= info.max:
+            return np.dtype('float32')
 
     raise ValueError(
         f'Cannot find analyze-compatible dtype for array with dtype={dtype} (min={mn}, max={mx})'

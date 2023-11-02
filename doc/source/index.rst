@@ -125,6 +125,7 @@ contributed code and discussion (in rough order of appearance):
 * Jacob Roberts
 * Horea Christian
 * Fabian Perez
+* Mathieu Scheltienne
 
 License reprise
 ===============

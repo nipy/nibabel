@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 import pytest
 
+from ..casting import sctypes
 from ..testing import (
     assert_allclose_safely,
     assert_re_in,
@@ -48,7 +49,7 @@ def test_assert_allclose_safely():
     with pytest.raises(AssertionError):
         assert_allclose_safely(a, b)
     # Test allcloseness of inf, especially np.float128 infs
-    for dtt in np.sctypes['float']:
+    for dtt in sctypes['float']:
         a = np.array([-np.inf, 1, np.inf], dtype=dtt)
         b = np.array([-np.inf, 1, np.inf], dtype=dtt)
         assert_allclose_safely(a, b)

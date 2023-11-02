@@ -13,9 +13,9 @@ from io import BytesIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_equal
 
-from ..casting import type_info
+from ..casting import sctypes, type_info
 from ..testing import suppress_warnings
 from ..volumeutils import apply_read_scaling, array_from_file, array_to_file, finite_range
 from .test_volumeutils import _calculate_scale
@@ -177,8 +177,8 @@ def test_array_file_scales(in_type, out_type):
     ],
 )
 def test_scaling_in_abstract(category0, category1, overflow):
-    for in_type in np.sctypes[category0]:
-        for out_type in np.sctypes[category1]:
+    for in_type in sctypes[category0]:
+        for out_type in sctypes[category1]:
             if overflow:
                 with suppress_warnings():
                     check_int_a2f(in_type, out_type)
@@ -188,10 +188,10 @@ def test_scaling_in_abstract(category0, category1, overflow):
 
 def check_int_a2f(in_type, out_type):
     # Check that array to / from file returns roughly the same as input
-    big_floater = np.maximum_sctype(np.float64)
+    big_floater = sctypes['float'][-1]
     info = type_info(in_type)
     this_min, this_max = info['min'], info['max']
-    if not in_type in np.sctypes['complex']:
+    if not in_type in sctypes['complex']:
         data = np.array([this_min, this_max], in_type)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(data)):

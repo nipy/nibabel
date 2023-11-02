@@ -20,14 +20,14 @@ from ..arraywriters import (
     get_slope_inter,
     make_array_writer,
 )
-from ..casting import int_abs, on_powerpc, shared_range, type_info
+from ..casting import int_abs, sctypes, shared_range, type_info
 from ..testing import assert_allclose_safely, suppress_warnings
 from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
-INT_TYPES = np.sctypes['int']
-UINT_TYPES = np.sctypes['uint']
+FLOAT_TYPES = sctypes['float']
+COMPLEX_TYPES = sctypes['complex']
+INT_TYPES = sctypes['int']
+UINT_TYPES = sctypes['uint']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
@@ -61,7 +61,8 @@ def test_arraywriters():
             assert aw.out_dtype == arr.dtype
             assert_array_equal(arr, round_trip(aw))
             # Byteswapped should be OK
-            bs_arr = arr.byteswap().newbyteorder('S')
+            bs_arr = arr.byteswap()
+            bs_arr = bs_arr.view(bs_arr.dtype.newbyteorder('S'))
             bs_aw = klass(bs_arr)
             bs_aw_rt = round_trip(bs_aw)
             # assert against original array because POWER7 was running into

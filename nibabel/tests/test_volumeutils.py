@@ -32,7 +32,7 @@ from nibabel.testing import (
     suppress_warnings,
 )
 
-from ..casting import OK_FLOATS, floor_log2, shared_range, type_info
+from ..casting import OK_FLOATS, floor_log2, sctypes, shared_range, type_info
 from ..openers import BZ2File, ImageOpener, Opener
 from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
@@ -59,15 +59,21 @@ from ..volumeutils import (
 
 pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 
-#: convenience variables for numpy types
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
+# convenience variables for numpy types
+FLOAT_TYPES = sctypes['float']
+COMPLEX_TYPES = sctypes['complex']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
-INT_TYPES = np.sctypes['int']
-IUINT_TYPES = INT_TYPES + np.sctypes['uint']
+INT_TYPES = sctypes['int']
+IUINT_TYPES = INT_TYPES + sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 FP_RUNTIME_WARN = Version(np.__version__) >= Version('1.24.0.dev0+239')
+NP_2 = Version(np.__version__) >= Version('2.0.0.dev0')
+
+try:
+    from numpy.exceptions import ComplexWarning
+except ModuleNotFoundError:  # NumPy < 1.25
+    from numpy import ComplexWarning
 
 
 def test__is_compressed_fobj():
@@ -538,8 +544,12 @@ def test_a2f_scaled_unscaled():
         NUMERIC_TYPES, NUMERIC_TYPES, (0, 0.5, -1, 1), (1, 0.5, 2)
     ):
         mn_in, mx_in = _dt_min_max(in_dtype)
-        nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
-        arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
+        vals = [mn_in, 0, 1, mx_in]
+        if np.dtype(in_dtype).kind != 'u':
+            vals.append(-1)
+        if in_dtype in CFLOAT_TYPES:
+            vals.append(np.nan)
+        arr = np.array(vals, dtype=in_dtype)
         mn_out, mx_out = _dt_min_max(out_dtype)
         # 0 when scaled to output will also be the output value for NaN
         nan_fill = -intercept / divslope
@@ -597,7 +607,7 @@ def test_a2f_nanpos():
 
 def test_a2f_bad_scaling():
     # Test that pathological scalers raise an error
-    NUMERICAL_TYPES = sum([np.sctypes[key] for key in ['int', 'uint', 'float', 'complex']], [])
+    NUMERICAL_TYPES = sum([sctypes[key] for key in ['int', 'uint', 'float', 'complex']], [])
     for in_type, out_type, slope, inter in itertools.product(
         NUMERICAL_TYPES,
         NUMERICAL_TYPES,
@@ -610,7 +620,7 @@ def test_a2f_bad_scaling():
         if np.issubdtype(in_type, np.complexfloating) and not np.issubdtype(
             out_type, np.complexfloating
         ):
-            cm = pytest.warns(np.ComplexWarning)
+            cm = pytest.warns(ComplexWarning)
         if (slope, inter) == (1, 0):
             with cm:
                 assert_array_equal(
@@ -650,7 +660,7 @@ def test_a2f_nan2zero_range():
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
         # Error occurs for arrays without nans too
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
-        complex_warn = (np.ComplexWarning,) if np.issubdtype(dt, np.complexfloating) else ()
+        complex_warn = (ComplexWarning,) if np.issubdtype(dt, np.complexfloating) else ()
         # Casting nan to int will produce a RuntimeWarning in numpy 1.24
         nan_warn = (RuntimeWarning,) if FP_RUNTIME_WARN else ()
         c_and_n_warn = complex_warn + nan_warn
@@ -733,9 +743,14 @@ def test_apply_scaling():
     f32_arr = np.zeros((1,), dtype=f32)
     i16_arr = np.zeros((1,), dtype=np.int16)
     # Check float upcast (not the normal numpy scalar rule)
+    # This is the normal rule - no upcast from Python scalar
+    assert (f32_arr * 1.0).dtype == np.float32
+    assert (f32_arr + 1.0).dtype == np.float32
     # This is the normal rule - no upcast from scalar
-    assert (f32_arr * f64(1)).dtype == np.float32
-    assert (f32_arr + f64(1)).dtype == np.float32
+    # before NumPy 2.0, after 2.0, it upcasts
+    want_dtype = np.float64 if NP_2 else np.float32
+    assert (f32_arr * f64(1)).dtype == want_dtype
+    assert (f32_arr + f64(1)).dtype == want_dtype
     # The function does upcast though
     ret = apply_read_scaling(np.float32(0), np.float64(2))
     assert ret.dtype == np.float64
@@ -830,10 +845,10 @@ def test_better_float():
         return f1 if FLOAT_TYPES.index(f1) >= FLOAT_TYPES.index(f2) else f2
 
     for first in FLOAT_TYPES:
-        for other in IUINT_TYPES + np.sctypes['complex']:
+        for other in IUINT_TYPES + sctypes['complex']:
             assert better_float_of(first, other) == first
             assert better_float_of(other, first) == first
-            for other2 in IUINT_TYPES + np.sctypes['complex']:
+            for other2 in IUINT_TYPES + sctypes['complex']:
                 assert better_float_of(other, other2) == np.float32
                 assert better_float_of(other, other2, np.float64) == np.float64
         for second in FLOAT_TYPES:

@@ -36,13 +36,12 @@ from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import ecat, minc1, minc2, parrec
 from ..analyze import AnalyzeHeader
 from ..arrayproxy import ArrayProxy, is_proxy
-from ..casting import have_binary128
-from ..deprecator import ExpiredDeprecationError
+from ..casting import have_binary128, sctypes
 from ..externals.netcdf import netcdf_file
 from ..freesurfer.mghformat import MGHHeader
 from ..nifti1 import Nifti1Header
@@ -57,6 +56,11 @@ from .test_api_validators import ValidateAPI
 from .test_parrec import EG_REC, VARY_REC
 
 h5py, have_h5py, _ = optional_package('h5py')
+
+try:
+    from numpy.exceptions import ComplexWarning
+except ModuleNotFoundError:  # NumPy < 1.25
+    from numpy import ComplexWarning
 
 
 def _some_slicers(shape):
@@ -144,9 +148,9 @@ class _TestProxyAPI(ValidateAPI):
         if np.issubdtype(orig.dtype, np.complexfloating):
             context = clear_and_catch_warnings()
             context.__enter__()
-            warnings.simplefilter('ignore', np.ComplexWarning)
+            warnings.simplefilter('ignore', ComplexWarning)
 
-        for dtype in np.sctypes['float'] + np.sctypes['int'] + np.sctypes['uint']:
+        for dtype in sctypes['float'] + sctypes['int'] + sctypes['uint']:
             # Directly coerce with a dtype
             direct = dtype(prox)
             # Half-precision is imprecise. Obviously. It's a bad idea, but don't break

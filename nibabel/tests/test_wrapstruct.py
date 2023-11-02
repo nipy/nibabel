@@ -32,11 +32,12 @@ from numpy.testing import assert_array_equal
 
 from .. import imageglobals
 from ..batteryrunners import Report
+from ..casting import sctypes
 from ..spatialimages import HeaderDataError
 from ..volumeutils import Recoder, native_code, swapped_code
 from ..wrapstruct import LabeledWrapStruct, WrapStruct, WrapStructError
 
-INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
+INTEGER_TYPES = sctypes['int'] + sctypes['uint']
 
 
 def log_chk(hdr, level):

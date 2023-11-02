@@ -12,7 +12,6 @@
 import contextlib
 import gzip
 import pickle
-import warnings
 from io import BytesIO
 from unittest import mock
 

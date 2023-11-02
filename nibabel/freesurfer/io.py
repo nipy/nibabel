@@ -31,7 +31,7 @@ def _fread3(fobj):
     n : int
         A 3 byte int
     """
-    b1, b2, b3 = np.fromfile(fobj, '>u1', 3)
+    b1, b2, b3 = np.fromfile(fobj, '>u1', 3).astype(np.int64)
     return (b1 << 16) + (b2 << 8) + b3
 
 
