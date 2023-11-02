@@ -467,6 +467,11 @@ def int_to_float(val, flt_type):
     -------
     f : numpy scalar
         of type `flt_type`
+
+    Examples
+    --------
+    >>> int_to_float(1, np.float32)
+    1.0
     """
     return flt_type(val)
 
