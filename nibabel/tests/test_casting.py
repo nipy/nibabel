@@ -10,12 +10,10 @@ from numpy.testing import assert_array_equal
 from ..casting import (
     CastingError,
     able_int_type,
-    as_int,
     best_float,
     float_to_int,
     floor_log2,
     int_abs,
-    int_to_float,
     longdouble_precision_improved,
     sctypes,
     shared_range,
@@ -42,7 +40,7 @@ def test_shared_range():
             if casted_mx != imax:
                 # The shared_range have told us that they believe the imax does
                 # not have an exact representation.
-                fimax = int_to_float(imax, ft)
+                fimax = ft(imax)
                 if np.isfinite(fimax):
                     assert int(fimax) != imax
                 # Therefore the imax, cast back to float, and to integer, will
@@ -68,7 +66,7 @@ def test_shared_range():
             if casted_mn != imin:
                 # The shared_range have told us that they believe the imin does
                 # not have an exact representation.
-                fimin = int_to_float(imin, ft)
+                fimin = ft(imin)
                 if np.isfinite(fimin):
                     assert int(fimin) != imin
                 # Therefore the imin, cast back to float, and to integer, will
@@ -101,11 +99,6 @@ def test_casting():
             mn, mx = shared_range(ft, it)
             with np.errstate(invalid='ignore'):
                 iarr = float_to_int(farr, it)
-            # Dammit - for long doubles we need to jump through some hoops not
-            # to round to numbers outside the range
-            if ft is np.longdouble:
-                mn = as_int(mn)
-                mx = as_int(mx)
             exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11], dtype=it)
             assert_array_equal(iarr, exp_arr)
             # Now test infmax version
@@ -149,7 +142,7 @@ def test_int_abs():
         assert udtype.kind == 'u'
         assert idtype.itemsize == udtype.itemsize
         mn, mx = in_arr
-        e_mn = as_int(mx) + 1  # as_int needed for numpy 1.4.1 casting
+        e_mn = int(mx) + 1
         assert int_abs(mx) == mx
         assert int_abs(mn) == e_mn
         assert_array_equal(int_abs(in_arr), [e_mn, mx])

@@ -17,6 +17,8 @@ OBJECT_SCHEDULE = [
     (
         '8.0.0',
         [
+            ('nibabel.casting', 'as_int'),
+            ('nibabel.casting', 'int_to_float'),
             ('nibabel.tmpdirs', 'TemporaryDirectory'),
         ],
     ),

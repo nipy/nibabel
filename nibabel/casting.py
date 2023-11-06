@@ -10,6 +10,8 @@ from platform import machine, processor
 
 import numpy as np
 
+from .deprecated import deprecate_with_version
+
 
 class CastingError(Exception):
     pass
@@ -402,6 +404,7 @@ def _check_maxexp(np_type, maxexp):
         return np.isfinite(two ** (maxexp - 1)) and not np.isfinite(two**maxexp)
 
 
+@deprecate_with_version('as_int() is deprecated. Use int() instead.', '5.2.0', '7.0.0')
 def as_int(x, check=True):
     """Return python integer representation of number
 
@@ -410,9 +413,6 @@ def as_int(x, check=True):
 
     It is also useful to work around a numpy 1.4.1 bug in conversion of uints
     to python ints.
-
-    This routine will still raise an OverflowError for values that are outside
-    the range of float64.
 
     Parameters
     ----------
@@ -439,30 +439,13 @@ def as_int(x, check=True):
     >>> as_int(2.1, check=False)
     2
     """
-    x = np.array(x)
-    if x.dtype.kind in 'iu':
-        # This works around a nasty numpy 1.4.1 bug such that:
-        # >>> int(np.uint32(2**32-1)
-        # -1
-        return int(str(x))
     ix = int(x)
-    if ix == x:
-        return ix
-    fx = np.floor(x)
-    if check and fx != x:
+    if check and ix != x:
         raise FloatingError(f'Not an integer: {x}')
-    if not fx.dtype.type == np.longdouble:
-        return int(x)
-    # Subtract float64 chunks until we have all of the number. If the int is
-    # too large, it will overflow
-    ret = 0
-    while fx != 0:
-        f64 = np.float64(fx)
-        fx -= f64
-        ret += int(f64)
-    return ret
+    return ix
 
 
+@deprecate_with_version('int_to_float(..., dt) is deprecated. Use dt() instead.', '5.2.0', '7.0.0')
 def int_to_float(val, flt_type):
     """Convert integer `val` to floating point type `flt_type`
 
@@ -484,18 +467,13 @@ def int_to_float(val, flt_type):
     -------
     f : numpy scalar
         of type `flt_type`
+
+    Examples
+    --------
+    >>> int_to_float(1, np.float32)
+    1.0
     """
-    if flt_type is not np.longdouble:
-        return flt_type(val)
-    # The following works around a nasty numpy 1.4.1 bug such that:
-    # >>> int(np.uint32(2**32-1)
-    val = int(val)
-    faval = np.longdouble(0)
-    while val != 0:
-        f64 = np.float64(val)
-        faval += f64
-        val -= int(f64)
-    return faval
+    return flt_type(val)
 
 
 def floor_exact(val, flt_type):
@@ -542,14 +520,14 @@ def floor_exact(val, flt_type):
     val = int(val)
     flt_type = np.dtype(flt_type).type
     sign = 1 if val > 0 else -1
-    try:  # int_to_float deals with longdouble safely
-        fval = int_to_float(val, flt_type)
+    try:
+        fval = flt_type(val)
     except OverflowError:
         return sign * np.inf
     if not np.isfinite(fval):
         return fval
     info = type_info(flt_type)
-    diff = val - as_int(fval)
+    diff = val - int(fval)
     if diff >= 0:  # floating point value <= val
         return fval
     # Float casting made the value go up

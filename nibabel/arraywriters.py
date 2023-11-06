@@ -30,15 +30,7 @@ larger ints and smaller.
 """
 import numpy as np
 
-from .casting import (
-    as_int,
-    best_float,
-    floor_exact,
-    int_abs,
-    int_to_float,
-    shared_range,
-    type_info,
-)
+from .casting import best_float, floor_exact, int_abs, shared_range, type_info
 from .volumeutils import array_to_file, finite_range
 
 
@@ -152,9 +144,8 @@ class ArrayWriter:
         # No scaling needed if data already fits in output type
         # But note - we need to convert to ints, to avoid conversion to float
         # during comparisons, and therefore int -> float conversions which are
-        # not exact.  Only a problem for uint64 though.  We need as_int here to
-        # work around a numpy 1.4.1 bug in uint conversion
-        if as_int(mn) >= as_int(info.min) and as_int(mx) <= as_int(info.max):
+        # not exact.  Only a problem for uint64 though.
+        if int(mn) >= int(info.min) and int(mx) <= int(info.max):
             return False
         return True
 
@@ -392,7 +383,7 @@ class SlopeArrayWriter(ArrayWriter):
         out_max, out_min = info.max, info.min
         # If left as int64, uint64, comparisons will default to floats, and
         # these are inexact for > 2**53 - so convert to int
-        if as_int(mx) <= as_int(out_max) and as_int(mn) >= as_int(out_min):
+        if int(mx) <= int(out_max) and int(mn) >= int(out_min):
             # already in range
             return
         # (u)int to (u)int scaling
@@ -410,7 +401,7 @@ class SlopeArrayWriter(ArrayWriter):
             # that deals with max neg ints. abs problem only arises when all
             # the data is set to max neg integer value
             o_min, o_max = shared_range(self.scaler_dtype, out_dt)
-            if mx <= 0 and int_abs(mn) <= as_int(o_max):  # sign flip enough?
+            if mx <= 0 and int_abs(mn) <= int(o_max):  # sign flip enough?
                 # -1.0 * arr will be in scaler_dtype precision
                 self.slope = -1.0
                 return
@@ -427,7 +418,7 @@ class SlopeArrayWriter(ArrayWriter):
             # not lose precision because min/max are of fp type.
             out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         else:  # (u)int
-            out_min, out_max = (int_to_float(v, big_float) for v in (out_min, out_max))
+            out_min, out_max = (big_float(v) for v in (out_min, out_max))
         if self._out_dtype.kind == 'u':
             if in_min < 0 and in_max > 0:
                 raise WriterError(
@@ -546,14 +537,13 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
 
     def _iu2iu(self):
         # (u)int to (u)int
-        mn, mx = (as_int(v) for v in self.finite_range())
+        mn, mx = (int(v) for v in self.finite_range())
         # range may be greater than the largest integer for this type.
-        # as_int needed to work round numpy 1.4.1 int casting bug
         out_dtype = self._out_dtype
         # Options in this method are scaling using intercept only.  These will
         # have to pass through ``self.scaler_dtype`` (because the intercept is
         # in this type).
-        o_min, o_max = (as_int(v) for v in shared_range(self.scaler_dtype, out_dtype))
+        o_min, o_max = (int(v) for v in shared_range(self.scaler_dtype, out_dtype))
         type_range = o_max - o_min
         mn2mx = mx - mn
         if mn2mx <= type_range:  # might offset be enough?
@@ -565,12 +555,12 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             else:  # int output - take midpoint to 0
                 # ceil below increases inter, pushing scale up to 0.5 towards
                 # -inf, because ints have abs min == abs max + 1
-                midpoint = mn + as_int(np.ceil(mn2mx / 2.0))
+                midpoint = mn + int(np.ceil(mn2mx / 2.0))
                 # Floor exact decreases inter, so pulling scaled values more
                 # positive. This may make mx - inter > t_max
                 inter = floor_exact(midpoint, self.scaler_dtype)
             # Need to check still in range after floor_exact-ing
-            int_inter = as_int(inter)
+            int_inter = int(inter)
             assert mn - int_inter >= o_min
             if mx - int_inter <= o_max:
                 self.inter = inter
@@ -594,14 +584,13 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_min, in_max = np.array([in_min, in_max], dtype=big_float)
             in_range = np.diff([in_min, in_max])
         else:  # max possible (u)int range is 2**64-1 (int64, uint64)
-            # int_to_float covers this range.  On windows longdouble is the
-            # same as double so in_range will be 2**64 - thus overestimating
-            # slope slightly.  Casting to int needed to allow in_max-in_min to
-            # be larger than the largest (u)int value
-            in_min, in_max = as_int(in_min), as_int(in_max)
-            in_range = int_to_float(in_max - in_min, big_float)
+            # On windows longdouble is the same as double so in_range will be 2**64 -
+            # thus overestimating slope slightly.  Casting to int needed to allow
+            # in_max-in_min to be larger than the largest (u)int value
+            in_min, in_max = int(in_min), int(in_max)
+            in_range = big_float(in_max - in_min)
             # Cast to float for later processing.
-            in_min, in_max = (int_to_float(v, big_float) for v in (in_min, in_max))
+            in_min, in_max = (big_float(v) for v in (in_min, in_max))
         if out_dtype.kind == 'f':
             # Type range, these are also floats
             info = type_info(out_dtype)
