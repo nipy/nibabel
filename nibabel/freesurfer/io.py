@@ -63,7 +63,7 @@ def _read_volume_info(fobj):
             return volume_info
 
     volume_info['head'] = head
-    for key in ['valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras']:
+    for key in ('valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras'):
         pair = fobj.readline().decode('utf-8').split('=')
         if pair[0].strip() != key or len(pair) != 2:
             raise OSError('Error parsing volume info.')

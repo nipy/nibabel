@@ -1636,10 +1636,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         labels = so_recoder.value_set('label')
         labels.remove('unknown')
 
-        matching_labels = []
-        for label in labels:
-            if np.all(st_order == self._slice_time_order(label, n_timed)):
-                matching_labels.append(label)
+        matching_labels = [
+            label
+            for label in labels
+            if np.all(st_order == self._slice_time_order(label, n_timed))
+        ]
 
         if not matching_labels:
             raise HeaderDataError(f'slice ordering of {st_order} fits with no known scheme')

@@ -501,7 +501,7 @@ class OrthoSlicer3D:
         """Handle mpl keypress events"""
         if event.key is not None and 'escape' in event.key:
             self.close()
-        elif event.key in ['=', '+']:
+        elif event.key in ('=', '+'):
             # increment volume index
             new_idx = min(self._data_idx[3] + 1, self.n_volumes)
             self._set_volume_index(new_idx, update_slices=True)

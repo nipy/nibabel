@@ -72,7 +72,7 @@ def _define_operators(cls):
         fn.__name__ = op
         fn.__doc__ = getattr(np.ndarray, op).__doc__
 
-    for op in [
+    for op in (
         '__add__',
         '__sub__',
         '__mul__',
@@ -85,14 +85,14 @@ def _define_operators(cls):
         '__or__',
         '__and__',
         '__xor__',
-    ]:
+    ):
         _wrap(cls, op=op, inplace=False)
         _wrap(cls, op=f"__i{op.strip('_')}__", inplace=True)
 
-    for op in ['__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__']:
+    for op in ('__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__'):
         _wrap(cls, op)
 
-    for op in ['__neg__', '__abs__', '__invert__']:
+    for op in ('__neg__', '__abs__', '__invert__'):
         _wrap(cls, op, unary=True)
 
     return cls

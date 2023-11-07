@@ -228,7 +228,7 @@ class GiftiLabelTable(xml.XmlSerializable):
             label = xml.SubElement(labeltable, 'Label')
             label.attrib['Key'] = str(ele.key)
             label.text = ele.label
-            for attr in ['Red', 'Green', 'Blue', 'Alpha']:
+            for attr in ('Red', 'Green', 'Blue', 'Alpha'):
                 if getattr(ele, attr.lower(), None) is not None:
                     label.attrib[attr] = str(getattr(ele, attr.lower()))
         return labeltable
