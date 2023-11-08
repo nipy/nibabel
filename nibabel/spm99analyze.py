@@ -22,10 +22,10 @@ have_scipy = optional_package('scipy')[1]
 """ Support subtle variations of SPM version of Analyze """
 header_key_dtd = analyze.header_key_dtd
 # funused1 in dime subfield is scalefactor
-image_dimension_dtd = analyze.image_dimension_dtd[:]
+image_dimension_dtd = analyze.image_dimension_dtd.copy()
 image_dimension_dtd[image_dimension_dtd.index(('funused1', 'f4'))] = ('scl_slope', 'f4')
 # originator text field used as image origin (translations)
-data_history_dtd = analyze.data_history_dtd[:]
+data_history_dtd = analyze.data_history_dtd.copy()
 data_history_dtd[data_history_dtd.index(('originator', 'S10'))] = ('origin', 'i2', (5,))
 
 # Full header numpy dtype combined across sub-fields
