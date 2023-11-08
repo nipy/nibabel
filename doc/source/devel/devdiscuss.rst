@@ -21,7 +21,6 @@ progress.
 
     spm_use
     modified_images
-    data_pkg_design
     data_pkg_discuss
     data_pkg_uses
     scaling
