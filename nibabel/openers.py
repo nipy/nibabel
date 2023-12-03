@@ -78,12 +78,6 @@ class DeterministicGzipFile(gzip.GzipFile):
             mtime=mtime,
         )
 
-    def seek(self, pos: int, whence: int = 0, /) -> int:
-        # Work around bug (gh-180111) in Python 3.12rc1, where seeking without
-        # flushing can cause write of excess null bytes
-        self.flush()
-        return super().seek(pos, whence)
-
 
 def _gzip_open(
     filename: str,
