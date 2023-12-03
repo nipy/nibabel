@@ -35,7 +35,7 @@ Sequence: type | None = None
 if have_dicom:
     # Values not imported by default
     import pydicom.values  # type: ignore
-    from pydicom.dicomio import read_file  # noqa:F401
+    from pydicom.dicomio import dcmread as read_file  # noqa:F401
     from pydicom.sequence import Sequence  # noqa:F401
 
     tag_for_keyword = pydicom.datadict.tag_for_keyword

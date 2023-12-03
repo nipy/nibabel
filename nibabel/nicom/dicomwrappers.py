@@ -44,9 +44,9 @@ def wrapper_from_file(file_like, *args, **kwargs):
        filename string or file-like object, pointing to a valid DICOM
        file readable by ``pydicom``
     \*args : positional
-        args to ``dicom.read_file`` command.
+        args to ``dicom.dcmread`` command.
     \*\*kwargs : keyword
-        args to ``dicom.read_file`` command.  ``force=True`` might be a
+        args to ``dicom.dcmread`` command.  ``force=True`` might be a
         likely keyword argument.
 
     Returns
@@ -55,7 +55,7 @@ def wrapper_from_file(file_like, *args, **kwargs):
        DICOM wrapper corresponding to DICOM data type
     """
     with ImageOpener(file_like) as fobj:
-        dcm_data = pydicom.read_file(fobj, *args, **kwargs)
+        dcm_data = pydicom.dcmread(fobj, *args, **kwargs)
     return wrapper_from_data(dcm_data)
 
 
