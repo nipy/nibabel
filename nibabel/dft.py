@@ -238,7 +238,7 @@ class _StorageInstance:
         return val
 
     def dicom(self):
-        return pydicom.read_file(self.files[0])
+        return pydicom.dcmread(self.files[0])
 
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
@@ -347,7 +347,7 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = pydicom.read_file(f'{path}/{fname}')
+        do = pydicom.dcmread(f'{path}/{fname}')
     except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None
