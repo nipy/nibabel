@@ -21,10 +21,18 @@ A deprecated copy is available here for backward compatibility.
 """
 from __future__ import annotations
 
+import warnings
 from typing import Callable
 
 from .deprecated import deprecate_with_version
 from .optpkg import optional_package
+
+warnings.warn(
+    "We will remove the 'pydicom_compat' module from nibabel 7.0. "
+    "Please consult pydicom's documentation for any future needs.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 pydicom, have_dicom, _ = optional_package('pydicom')
 
