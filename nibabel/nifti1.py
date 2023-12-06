@@ -1637,9 +1637,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         labels.remove('unknown')
 
         matching_labels = [
-            label
-            for label in labels
-            if np.all(st_order == self._slice_time_order(label, n_timed))
+            label for label in labels if np.all(st_order == self._slice_time_order(label, n_timed))
         ]
 
         if not matching_labels:
