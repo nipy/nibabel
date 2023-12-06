@@ -199,6 +199,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: "Package deployment"
     needs: [test, test-package]
+    permissions:
+      # Required for trusted publishing
+      id-token: write
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v3
@@ -206,6 +209,3 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
