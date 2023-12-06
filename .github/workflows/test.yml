@@ -19,6 +19,8 @@ on:
       - maint/*
   schedule:
     - cron: '0 0 * * 1'
+  # Allow job to be triggered manually from GitHub interface
+  workflow_dispatch:
 
 defaults:
   run:
