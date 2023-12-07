@@ -23,8 +23,8 @@ IO_DATA_PATH = pjoin(dirname(__file__), 'data')
 DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
 DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, 'philips_mprage.dcm.gz')
 if have_dicom:
-    DATA = pydicom.read_file(gzip.open(DATA_FILE))
-    DATA_PHILIPS = pydicom.read_file(gzip.open(DATA_FILE_PHILIPS))
+    DATA = pydicom.dcmread(gzip.open(DATA_FILE))
+    DATA_PHILIPS = pydicom.dcmread(gzip.open(DATA_FILE_PHILIPS))
 else:
     DATA = None
     DATA_PHILIPS = None
@@ -170,7 +170,7 @@ def test_wrapper_from_data():
 
 @dicom_test
 def test_wrapper_args_kwds():
-    # Test we can pass args, kwargs to read_file
+    # Test we can pass args, kwargs to dcmread
     dcm = didw.wrapper_from_file(DATA_FILE)
     data = dcm.get_data()
     # Passing in non-default arg for defer_size

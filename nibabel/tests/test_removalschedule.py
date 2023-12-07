@@ -6,6 +6,7 @@ import pytest
 from ..pkg_info import cmp_pkg_version
 
 MODULE_SCHEDULE = [
+    ('7.0.0', ['nibabel.pydicom_compat']),
     ('5.0.0', ['nibabel.keywordonly', 'nibabel.py3k']),
     ('4.0.0', ['nibabel.trackvis']),
     ('3.0.0', ['nibabel.minc', 'nibabel.checkwarns']),

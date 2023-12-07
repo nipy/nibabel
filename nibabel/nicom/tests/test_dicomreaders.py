@@ -41,7 +41,7 @@ def test_passing_kwds():
         # This should not raise an error
         data2, aff2, bs2, gs2 = func(IO_DATA_PATH, dwi_glob, dicom_kwargs=dict(force=True))
         assert_array_equal(data, data2)
-        # This should raise an error in pydicom.dicomio.read_file
+        # This should raise an error in pydicom.filereader.dcmread
         with pytest.raises(TypeError):
             func(IO_DATA_PATH, dwi_glob, dicom_kwargs=dict(not_a_parameter=True))
         # These are invalid dicoms, so will raise an error unless force=True
