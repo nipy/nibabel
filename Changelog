@@ -25,6 +25,79 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.2.0 (Monday 11 December 2023)
+===============================
+
+New feature release in the 5.2.x series.
+
+This release requires a minimum Python of 3.8 and NumPy 1.20, and has been
+tested up to Python 3.12 and NumPy 1.26.
+
+New features
+------------
+* Add generic :class:`~nibabel.pointset.Pointset` and regularly spaced
+  :class:`~nibabel.pointset.NDGrid` data structures in preparation for coordinate
+  transformation and resampling (pr/1251) (CM, reviewed by Oscar Esteban)
+
+Enhancements
+------------
+* Add :meth:`~nibabel.arrayproxy.ArrayProxy.copy` method to
+  :class:`~nibabel.arrayproxy.ArrayProxy` (pr/1255) (CM, reviewed by Paul McCarthy)
+* Permit :meth:`~nibabel.xmlutils.XmlSerializable.to_xml` to pass keyword
+  arguments to :meth:`~xml.etree.ElementTree.ElementTree.tostring` (pr/1258)
+  (CM)
+* Allow user expansion (e.g., ``~/...``) in strings passed to functions that
+  accept paths (pr/1260) (Reinder Vos de Wael, reviewed by CM)
+* Expand CIFTI-2 brain structures to permit synonyms (pr/1256) (CM, reviewed
+  by Mathias Goncalves)
+* Annotate :class:`~nibabel.spatialimages.SpatialImage` as accepting
+  ``affine=None`` argument (pr/1253) (Blake Dewey, reviewed by CM)
+* Warn on invalid MINC2 spacing declarations, treat as missing (pr/1237)
+  (Peter Suter, reviewed by CM)
+* Refactor :func:`~nibabel.nicom.utils.find_private_element` for improved
+  readability and maintainability (pr/1228) (MB, reviewed by CM)
+
+Bug fixes
+---------
+* Resolve test failure related to randomly generated invalid case (pr/1221) (CM)
+
+Documentation
+-------------
+* Remove references to NiPy data packages from documentation (pr/1275)
+  (Dimitri Papadopoulos, reviewed by CM, MB)
+
+Maintenance
+-----------
+* Quality of life improvements for CI, including color output and OIDC publishing
+  (pr/1282) (CM)
+* Patch for NumPy 2.0 pre-release compatibility (pr/1250) (Mathieu
+  Scheltienne and EL, reviewed by CM)
+* Add spellchecking to tox, CI and pre-commit (pr/1266) (CM)
+* Add py312-dev-x64 environment to Tox to test NumPy 2.0 pre-release
+  compatibility (pr/1267) (CM, reviewed by EL)
+* Resurrect tox configuration to cover development workflows and CI checks
+  (pr/1262) (CM)
+* Updates for Python 3.12 support (pr/1247, pr/1261, pr/1273) (CM)
+* Remove uses of deprecated ``numpy.compat.py3k`` module (pr/1243) (Eric
+  Larson, reviewed by CM)
+* Various fixes for typos and style issues detected by Codespell, pyupgrade and
+  refurb (pr/1263, pr/1269, pr/1270, pr/1271, pr/1276) (Dimitri Papadopoulos,
+  reviewed by CM)
+* Use stable argsorts in PARREC tests to ensure consistent behavior on systems
+  with AVX512 SIMD instructions and numpy 1.25 (pr/1234) (CM)
+* Resolve CodeCov submission failures (pr/1224) (CM)
+* Link to logo with full URL to avoid broken links in PyPI (pr/1218) (CM,
+  reviewed by Zvi Baratz)
+
+API changes and deprecations
+----------------------------
+* The :mod:`nibabel.pydicom_compat` module is deprecated and will be removed
+  in NiBabel 7.0. (pr/1280)
+* The :func:`~nibabel.casting.int_to_float` and :func:`~nibabel.casting.as_int`
+  functions are no longer needed to work around NumPy deficiencies and have been
+  deprecated (pr/1272) (CM, reviewed by EL)
+
+
 5.1.0 (Monday 3 April 2023)
 ===========================
 
