@@ -1,0 +1,38 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`tmpdirs`
+==============
+.. automodule:: nibabel.tmpdirs
+
+.. currentmodule:: nibabel.tmpdirs
+.. autosummary::
+
+   TemporaryDirectory
+   InGivenDirectory
+   InTemporaryDirectory
+
+
+.. currentmodule:: nibabel.tmpdirs
+
+
+:class:`TemporaryDirectory`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: TemporaryDirectory
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+InGivenDirectory
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: InGivenDirectory
+
+InTemporaryDirectory
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: InTemporaryDirectory
+

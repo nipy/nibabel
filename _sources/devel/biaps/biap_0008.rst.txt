@@ -1,0 +1,158 @@
+.. _biap8:
+
+################################################
+BIAP8 - Always load image data as floating point
+################################################
+
+:Author: Matthew Brett
+:Status: Accepted
+:Type: Standards
+:Created: 2018-04-18
+
+``get_fdata`` shipped as of nibabel 2.2.0.
+
+See `this mailing list thread <https://mail.python.org/pipermail/neuroimaging/2015-July/thread.html#21>`_ for discussion on an earlier version of this proposal.
+
+**********
+Background
+**********
+
+Summary
+=======
+
+The problem with our current ``get_data`` method is that the returned data
+type is difficult to predict, and can switch between integer and floating
+point types depending on values in the image header.
+
+The underlying problem is that the author and the user of a given NIfTI image
+would be unlikely to expect that the scalefactors of the NIfTI header (which
+the user will probably not be aware of) will affect the calculations done on
+the image data after loading into memory.
+
+In detail
+=========
+
+At the moment, if you do this:
+
+.. code:: python
+
+    img = nib.load('my_image.nii')
+    data = img.get_data()
+
+then the data type (dtype) of the returned data array depends on the values in
+the header of ``my_image.nii``.   Specifically, if the raw on-disk data type
+is ``np.int16`` (it often is) and the header scalefactor values are default (1
+for slope, 0 for intercept) then you will get back an array of the on-disk
+data type - here ``np.int16``.
+
+This is very efficient in terms of memory, but it can be a real trap unless
+you are careful.
+
+For example, let's say you had a pipeline where you did this:
+
+.. code:: python
+
+    sum = img.get_data().sum()
+
+That would work fine most of the time, when the data on disk is
+floating point, or the scalefactors are not default (1, 0).   Then one
+day, you get an image with ``int16`` data type on disk and (1, 0)
+scalefactors, and your `sum` calculation is now being done in int16, and
+silently overflows.  I (MB) ran into this when teaching - I had to cast some
+image arrays to floating point to get sensible answers.
+
+Current implementation
+======================
+
+``get_data`` has the following implementation, at time of writing:
+
+.. code:: python
+
+    def get_data(self):
+        """ Return image data from image with any necessary scalng applied
+
+        If the image data is a array proxy (data not yet read from disk) then
+        read the data, and store in an internal cache.  Future calls to
+        ``get_data`` will return the cached copy.
+
+        Returns
+        -------
+        data : array
+            array of image data
+        """
+        if self._data_cache is None:
+            self._data_cache = np.asanyarray(self._dataobj)
+        return self._data_cache
+
+Note that:
+
+* ``self._dataobj`` may well be an array proxy object;
+* ``np.asanyarray`` forces the read of an array proxy object into a numpy
+  array;
+* the read also fills an internal cache.
+
+*******************************************
+Proposal - add, prefer ``get_fdata`` method
+*******************************************
+
+The future default behavior of nibabel should be to do the thing least likely
+to trip you up by accident.  But - we do not want the result of ``get_data``
+to change silently between nibabel versions.
+
+* step 1: now - add ``get_fdata`` method:
+
+  .. code:: python
+
+      def get_fdata(self, dtype=np.float64):
+          """ Return floating point image data with necessary scalng applied.
+
+          If the image data is an array proxy (data not yet read from disk) then
+          read the data from file, and retain the result in an internal cache.
+          Future calls to ``get_fdata`` on the same image instance will return
+          the cached copy.
+
+          Parameters
+          ----------
+          dtype : numpy dtype specifier
+              A numpy dtype specifier specifying a floating point type.  Data is
+              returned as this floating point type.  Default is ``np.float64``.
+
+          Returns
+          -------
+          fdata : array
+              Array of image data of data type `dtype`.
+          """
+          dtype = np.dtype(dtype)
+          if not issubclass(dtype, np.inexact):
+              raise ValueError('{} should be floating point type'.format(dtype))
+          if self._fdata_cache is None:
+              self._fdata_cache = np.asanyarray(self._dataobj).astype(dtype)
+          return self._fdata_cache
+
+  Change all instances of ``get_data`` in documentation to ``get_fdata``.
+
+  Add warning about pending deprecation in ``get_data`` method, with
+  suggestion to use ``get_fdata`` or ``np.asanyarray(img.dataobj)`` if you
+  want the previous behavior, on the lines of::
+
+    We recommend you use the ``get_fdata`` method instead of the ``get_data``
+    method, because it is easier to predict the return data type.  We will
+    deprecate the ``get_data`` method around April 2018, and remove it around
+    April 2020.
+
+    If you don't care about the predictability of the return data type, and
+    you want the minimum possible data size in memory, you can replicate the
+    array that would be returned by ``img.get_data()`` by using
+    ``np.asanyarray(img.dataobj)``.
+
+  Add floating point cache ``self._fdata_cache`` to cache cleared by
+  ``uncache`` method.
+
+* step 2: around one year from now - deprecate ``get_data`` method;
+
+* step 3: around three years from now - make ``get_data`` method raise an
+  error such as ``NotImplementedError`` with a helpful message, and remove
+  associated ``self._data_cache`` attribute.  Leave this error in place for
+  a long time, to help people porting older code.
+
+.. vim: ft=rst

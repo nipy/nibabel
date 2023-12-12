@@ -1,0 +1,299 @@
+.. _biap1:
+
+################################
+BIAP1 - Towards immutable images
+################################
+
+:Author: Matthew Brett
+:Status: Rejected
+:Type: Standards
+:Created: 2011-03-23
+
+**********
+Resolution
+**********
+
+Retired as of nibabel 2.0 in favor of exposed `dataobj` property.  See:
+
+* http://nipy.org/nibabel/nibabel_images.html#the-image-data-array
+* http://nipy.org/nibabel/images_and_memory.html
+
+See image `in_memory` attribute and `uncache` method.
+
+We haven't implemented an `is_as_loaded` attribute yet.
+
+**********
+Background
+**********
+
+Nibabel implicitly has two types of images
+
+* array images
+* proxy images
+
+Array images
+============
+
+Array images are the images you get from a typical constructor call::
+
+    import numpy as np
+    import nibabel as nib
+    arr = np.arange(24).reshape((2,3,4))
+    img = nib.Nifti1Image(arr, np.eye(4))
+
+``img`` here is an array image, that is to say that, internally, the private
+``img._data`` attribute is reference to ``arr`` above.  ``img.get_data()`` just
+returns ``img._data``.   If you modify ``arr``, you will modify the result of
+``img.get_data()``.
+
+Proxy images
+============
+
+Proxy images are what you get from a call to ``load``::
+
+    px_img = nib.load('test.nii')
+
+It's a proxy image in the sense that, internally, ``px_arr._data`` is a proxy
+object that does not yet contain an array, but can get an array by the
+application of::
+
+    actual_arr = np.asarray(px_img._data)
+
+This is in fact what ``px_img.get_data()`` does.  Actually,
+``px_img.get_data()`` also stores the read array in ``px_img._data``, so that::
+
+    px_img = nib.load('test.nii')
+    assert not isinstance(px_img._data, np.ndarray) # it's a proxy
+    actual_arr = px_img.get_data()
+    assert isinstance(px_img._data, np.ndarray) # it's an array now
+
+So, at this point, if you change ``actual_arr`` you'll also be changing
+``px_img._data`` and therefore the result of ``px_img.get_data()``.
+
+In other words, ``actual_arr = px_img.get_data()`` turns the proxy image into an
+array image.
+
+Issues for design
+=================
+
+The code at the moment is a little bit confusing because:
+
+* there isn't an explicit API to check if you have an array image or a proxy
+  image and
+* there isn't anywhere in the docs that you can go and see this distinction.
+
+Use cases
+=========
+
+Loading images, minimizing memory
+---------------------------------
+
+I want to load lots of images, or several large images.  I'm going to do
+something with the image data.  I want to minimize memory use.  This tempts me
+to do something like this::
+
+    large_img1 = nib.load('large1.nii')
+    large_img2 = nib.load('large2.nii')
+    li1_mean = large_img1.get_data().mean()
+    li2_mean = large_img2.get_data().mean()
+
+The problem with the current design is that, after the ``li1_mean =`` line,
+``large_img1`` got unproxied, and there's a huge array inside it.
+
+Loading images, maximizing speed
+--------------------------------
+
+On the other hand, I might want to do the same thing, but each call to unproxy
+the data (loading off disk, applying scalefactors) will be expensive.  So, when
+I do ``li1_mean = large_img1.get_data().mean()`` I want any subsequent call to
+to ``large_img1.get_data()`` to be much faster.  This is the case at the moment,
+at the expense of the memory hit above.
+
+Loading images, assert not modified
+-----------------------------------
+
+In pipelines in particular, we frequently want to load images, maybe have a
+look at some parameters, and then pass that image *filename* to some other
+program such as SPM or FSL.  At the moment we've got a problem::
+
+    img = nib.load('test.nii')
+    # do stuff
+    run_spm_thing_on(img) # is 'img' the same as test.nii?
+
+The problem is that when the routine ``run_spn_thing`` receives ``img``, it
+can know that ``img`` has a filename, ``test.nii``, but it can't currently
+know if ``img`` is the same object that it was when it was loaded.  That is,
+it can't know whether ``test.img`` still corresponds to ``img`` or not.  In
+practice that means that ``run_spm_thing`` will need to save every ``img`` to
+another file before passing that filename to the SPM routine, just in case
+``img`` has been modified.  So, we would like a *dirty bit* for the image,
+something like::
+
+    # Not implemented yet
+    if not img.is_as_loaded():
+        save(img, 'some_filename.nii')
+
+The last line, like it or not, modifies ``img`` in-place.
+
+Array images, proxy images, copy, view
+======================================
+
+With thanks to Roberto Viviani for some clarifying thoughts on the nipy
+mailing list.
+
+At the moment, ``img.get_data()`` always returns a reference to an array.
+That is, whenever you call::
+
+    data = img.get_data()
+
+Then, if you modify ``data`` you will modify the next result of
+``img.get_data()``.
+
+In particular, the interface currently intends that there should be no
+functional difference between proxied images and non-proxied images.  The
+proposal below exposes a functional difference between them.
+
+When do you want a copy and when do you want a view?
+----------------------------------------------------
+
+This is a discussion of this proposal::
+
+    img.get_data(copy=True|False)
+
+compared to::
+
+    img.get_data(unproxy=True|False)
+
+Summary:
+
+* array images - you nearly always want a view
+* proxy images - you may want a copy, but you want a copy only because you
+  want to leave the image as a proxy. You might want to leave the image as a
+  proxy because you want to be sure the image corresponds to the file, or save
+  memory.
+
+For array images, it doesn't make sense to return a copy from
+``img.get_data()``, because it buys you nothing that you would not get from
+``data = img.get_data().copy()``.  This is because you can't save memory (the
+image already contains the whole array), and it won't help you be sure that
+the image has not been modified compared to the original array, because there
+may be references to the array that existed before the image was made, that
+can be used to modify the data.  So, for array images, you always want a
+reference, or you want to do a manual copy, as above.
+
+For proxied images, it does make sense to get a copy, because a) you want to
+preserve memory by not unproxying the image, and / or b) you want to be able
+to be sure that the file associated with the image still corresponds to the
+data.
+
+For the ``img.get_data(copy=False)`` proposal, on a proxied image, the
+``copy=False`` call, in order to return a view, must *implicitly* unproxy the
+image.
+
+Similarly, ``img.get_data(unproxy=False)`` must *implicitly* copy the image.
+
+It seems to me (MB) that an implicit copy is familiar to a numpy user, but the
+implicit unproxying may be less obvious.
+
+My (MBs) reasons then for preferring 'unproxy' to 'copy=True' or 'copy=False'
+or get_data_copy() is that 'unproxy' is closer to how I think the user would
+think about deciding what they wanted to do.
+
+The ``unproxy=False`` case covers the situation where you want to preserve
+memory.  It doesn't fully cover the cases where we want to keep track of when
+the image data has been modified.
+
+Here there are three cases:
+
+* array image, instantiated with an array; the image data can be modified
+  using the array reference passed into the image - we can't know whether the
+  data has been modified without doing hashing or similar.
+* proxy image; the array data is still in the file, so we know it corresponds
+  to the file.
+* proxy images that have been converted to array images, but have not passed
+  out a reference to the data.  Let's call these *shy unproxied* images.  For
+  example, with an API like this::
+
+    img = load('test.nii')
+    data = img.get_data(copy=True)
+
+  the ``img`` is now an array image, but there's no public reference to the
+  internal array object.  Someone could get one by cheating with ``ref =
+  img._data``, but, we don't need to worry about that - following Python's "mess
+  around if you like but take the consequences" philosophy.
+
+Proposal
+========
+
+An ``is_proxy`` property::
+
+    img.is_proxy
+
+This is just for clarity.
+
+Allow the user to specify what unproxying they want with a kwarg to
+``get_data()``::
+
+    arr = large_img1.get_data(unproxy=False)
+
+* for proxied images, ``unproxy=False`` would leave the underlying array data
+  as a pointer to the file.  The returned ``arr`` would be therefore a copy of
+  the data as loaded from file, and ``arr[0] = 99`` would have no effect on
+  the data in the image.  ``unproxy=True`` would convert the proxy image into
+  an array image (load the data into memory, return reference).  Here ``arr[0]
+  = 99`` would affect the data in the image
+* for array images, ``unproxy`` would always be ignored.
+
+Thus ``unproxy=True`` in fact means,
+``unproxy_if_this_is_a_proxy_do_nothing_otherwise``.
+
+The default would continue to be ``unproxy=True`` so that the proxied image
+would continue, by default, to behave the same way as an unproxied image
+(``get_data`` returns a view).
+
+If ``img.is_proxy`` is True, then we know that the array data has not changed.
+We then need to be sure that the ``header`` and ``affine`` data haven't
+changed. We might be able to do this with default ``copy`` kwargs to the
+``get_header`` and ``get_affine`` methods::
+
+    hdr = img.get_header(copy=True) # will be default
+    aff = img.get_affine(copy=True) # will be default
+
+We could also do that by caching the original header and affine, but the
+header in particular can be rather large.
+
+For the next version of nibabel, for backwards compatibility, we'll set
+``copy=False`` to be the default, but warn about the upcoming change.  After
+that we'll set ``copy=True`` as the default.
+
+Now we can know whether the image has been modified, because if ``get_header``
+and ``get_affine`` have only been called with ``copy=True`` and ``img.is_proxy
+== True`` - then it must be the same as when loaded.
+
+This leads to an ``is_as_loaded`` property::
+
+    if img.is_as_loaded:
+        fname = img.get_filename()
+    else:
+        fname = 'tempname.nii'
+        save(img, 'tempname.nii')
+
+Questions
+=========
+
+Should there also be a ``set_header`` and ``set_affine`` method?
+
+The header may conflict with the affine.  So, would we need something like::
+
+    img.set_header(hdr, hdr_affine_from='affine')
+
+or some other nasty syntax.  Or can we avoid this and just do::
+
+    img2 = nib.Nifti1Image(img.get_data(), new_affine, new_header)
+
+?
+
+How about the names in the proposal?  ``is_proxy``; ``unproxy=True``?
+
+
+.. vim: ft=rst

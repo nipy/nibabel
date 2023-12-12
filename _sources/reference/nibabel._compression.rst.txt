@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`_compression`
+===================
+.. automodule:: nibabel._compression
+
+.. currentmodule:: nibabel._compression
+.. autosummary::
+
+
+
+.. currentmodule:: nibabel._compression
+

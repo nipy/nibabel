@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.3.0.dev5+g773e3c40 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=3b25ab7f"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="openers" href="nibabel.openers.html" />
+    <link rel="prev" title="fileslice" href="nibabel.fileslice.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.openers.html" title="openers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.fileslice.html" title="fileslice"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a><ul>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#onetimeproperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">OneTimeProperty</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.OneTimeProperty"><code class="docutils literal notranslate"><span class="pre">OneTimeProperty</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.OneTimeProperty.__init__"><code class="docutils literal notranslate"><span class="pre">OneTimeProperty.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#resetmixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResetMixin</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.ResetMixin"><code class="docutils literal notranslate"><span class="pre">ResetMixin</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.ResetMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ResetMixin.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.onetime.ResetMixin.reset"><code class="docutils literal notranslate"><span class="pre">ResetMixin.reset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#auto-attr">auto_attr</a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.auto_attr"><code class="docutils literal notranslate"><span class="pre">auto_attr()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#setattr-on-read">setattr_on_read</a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.setattr_on_read"><code class="docutils literal notranslate"><span class="pre">setattr_on_read()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.fileslice.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.openers.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.onetime.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.onetime">
+<span id="onetime"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code><a class="headerlink" href="#module-nibabel.onetime" title="Link to this heading">¶</a></h1>
+<p>Descriptor support for NIPY</p>
+<p>Utilities to support special Python descriptors [1,2], in particular the use of
+a useful pattern for properties we call ‘one time properties’.  These are
+object attributes which are declared as properties, but become regular
+attributes once they’ve been read the first time.  They can thus be evaluated
+later in the object’s life cycle, but once evaluated they become normal, static
+attributes with no function call overhead on access or any other constraints.</p>
+<p>A special ResetMixin class is provided to add a .reset() method to users who
+may want to have their objects capable of resetting these computed properties
+to their ‘untriggered’ state.</p>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>[1] How-To Guide for Descriptors, Raymond
+Hettinger. <a class="reference external" href="https://docs.python.org/howto/descriptor.html">https://docs.python.org/howto/descriptor.html</a></p>
+<p>[2] Python data model, <a class="reference external" href="https://docs.python.org/reference/datamodel.html">https://docs.python.org/reference/datamodel.html</a></p>
+</section>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.onetime.OneTimeProperty" title="nibabel.onetime.OneTimeProperty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OneTimeProperty</span></code></a>(func)</p></td>
+<td><p>A descriptor to make special properties that become normal attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.onetime.ResetMixin" title="nibabel.onetime.ResetMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResetMixin</span></code></a>()</p></td>
+<td><p>A Mixin class to add a .reset() method to users of OneTimeProperty.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.onetime.auto_attr" title="nibabel.onetime.auto_attr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_attr</span></code></a>(func)</p></td>
+<td><p>Decorator to create OneTimeProperty attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.onetime.setattr_on_read" title="nibabel.onetime.setattr_on_read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setattr_on_read</span></code></a>(func)</p></td>
+<td><p>Decorator to create OneTimeProperty attributes.</p></td>
+</tr>
+</tbody>
+</table>
+<section id="onetimeproperty">
+<h2><a class="reference internal" href="#nibabel.onetime.OneTimeProperty" title="nibabel.onetime.OneTimeProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">OneTimeProperty</span></code></a><a class="headerlink" href="#onetimeproperty" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.onetime.OneTimeProperty">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.onetime.</span></span><span class="sig-name descname"><span class="pre">OneTimeProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">InstanceT</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.onetime.OneTimeProperty" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code>]</p>
+<p>A descriptor to make special properties that become normal attributes.</p>
+<p>This is meant to be used mostly by the auto_attr decorator in this module.</p>
+<p>Create a OneTimeProperty instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>func</strong><span class="classifier">method</span></dt><dd></dd>
+<dt><strong>The method that will be called the first time to compute a value.</strong></dt><dd></dd>
+<dt><strong>Afterwards, the method’s name will be a standard attribute holding</strong></dt><dd></dd>
+<dt><strong>the value of this computation.</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.onetime.OneTimeProperty.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">InstanceT</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.onetime.OneTimeProperty.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Create a OneTimeProperty instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>func</strong><span class="classifier">method</span></dt><dd></dd>
+<dt><strong>The method that will be called the first time to compute a value.</strong></dt><dd></dd>
+<dt><strong>Afterwards, the method’s name will be a standard attribute holding</strong></dt><dd></dd>
+<dt><strong>the value of this computation.</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="resetmixin">
+<h2><a class="reference internal" href="#nibabel.onetime.ResetMixin" title="nibabel.onetime.ResetMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResetMixin</span></code></a><a class="headerlink" href="#resetmixin" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.onetime.ResetMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.onetime.</span></span><span class="sig-name descname"><span class="pre">ResetMixin</span></span><a class="headerlink" href="#nibabel.onetime.ResetMixin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A Mixin class to add a .reset() method to users of OneTimeProperty.</p>
+<p>By default, auto attributes once computed, become static.  If they happen
+to depend on other parts of an object and those parts change, their values
+may now be invalid.</p>
+<p>This class offers a .reset() method that users can call <em>explicitly</em> when
+they know the state of their objects may have changed and they want to
+ensure that <em>all</em> their special attributes should be invalidated.  Once
+reset() is called, all their auto attributes are reset to their
+OneTimeProperty descriptors, and their accessor functions will be triggered
+again.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If a class has a set of attributes that are OneTimeProperty, but that
+can be initialized from any one of them, do NOT use this mixin!  For
+instance, UniformTimeSeries can be initialized with only sampling_rate
+and t0, sampling_interval and time are auto-computed.  But if you were
+to reset() a UniformTimeSeries, it would lose all 4, and there would be
+then no way to break the circular dependency chains.</p>
+<p>If this becomes a problem in practice (for our analyzer objects it
+isn’t, as they don’t have the above pattern), we can extend reset() to
+check for a _no_reset set of names in the instance which are meant to be
+kept protected.  But for now this is NOT done, so caveat emptor.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">ResetMixin</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@auto_attr</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*** y computation executed ***&#39;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">/</span> <span class="mf">2.0</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>About to access y twice, the second time no computation is done:
+&gt;&gt;&gt; a.y
+<strong>* y computation executed *</strong>
+5.0
+&gt;&gt;&gt; a.y
+5.0</p>
+<p>Changing x
+&gt;&gt;&gt; a.x = 20</p>
+<p>a.y doesn’t change to 10, since it is a static attribute:
+&gt;&gt;&gt; a.y
+5.0</p>
+<p>We now reset a, and this will then force all auto attributes to recompute
+the next time we access them:
+&gt;&gt;&gt; a.reset()</p>
+<p>About to access y twice again after reset():
+&gt;&gt;&gt; a.y
+<strong>* y computation executed *</strong>
+10.0
+&gt;&gt;&gt; a.y
+10.0</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.onetime.ResetMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.onetime.ResetMixin.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.onetime.ResetMixin.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.onetime.ResetMixin.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Reset all OneTimeProperty attributes that may have fired already.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="auto-attr">
+<h2>auto_attr<a class="headerlink" href="#auto-attr" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.onetime.auto_attr">
+<span class="sig-prename descclassname"><span class="pre">nibabel.onetime.</span></span><span class="sig-name descname"><span class="pre">auto_attr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">InstanceT</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nibabel.onetime.OneTimeProperty" title="nibabel.onetime.OneTimeProperty"><span class="pre">OneTimeProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.onetime.auto_attr" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to create OneTimeProperty attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>func</strong><span class="classifier">method</span></dt><dd><p>The method that will be called the first time to compute a value.
+Afterwards, the method’s name will be a standard attribute holding the
+value of this computation.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MagicProp</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nd">@auto_attr</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">a</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="mi">99</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">MagicProp</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="vm">__dict__</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">a</span>
+<span class="go">99</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="vm">__dict__</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="setattr-on-read">
+<h2>setattr_on_read<a class="headerlink" href="#setattr-on-read" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.onetime.setattr_on_read">
+<span class="sig-prename descclassname"><span class="pre">nibabel.onetime.</span></span><span class="sig-name descname"><span class="pre">setattr_on_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">InstanceT</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nibabel.onetime.OneTimeProperty" title="nibabel.onetime.OneTimeProperty"><span class="pre">OneTimeProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.onetime.setattr_on_read" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to create OneTimeProperty attributes.</p>
+<p>setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr</p>
+<ul class="simple">
+<li><p>deprecated from version: 3.2</p></li>
+<li><p>Raises &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 5.0</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006-2023, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,435 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`nicom`
+============
+.. automodule:: nibabel.nicom
+
+.. currentmodule:: nibabel.nicom
+.. autosummary::
+
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.ascconv`
+----------------------------
+.. automodule:: nibabel.nicom.ascconv
+
+.. currentmodule:: nibabel.nicom.ascconv
+.. autosummary::
+
+   AscconvParseError
+   Atom
+   NoValue
+   assign2atoms
+   obj_from_atoms
+   parse_ascconv
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.csareader`
+------------------------------
+.. automodule:: nibabel.nicom.csareader
+
+.. currentmodule:: nibabel.nicom.csareader
+.. autosummary::
+
+   CSAError
+   CSAReadError
+   get_acq_mat_txt
+   get_b_matrix
+   get_b_value
+   get_csa_header
+   get_g_vector
+   get_ice_dims
+   get_n_mosaic
+   get_scalar
+   get_slice_normal
+   get_vector
+   is_mosaic
+   nt_str
+   read
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.dicomreaders`
+---------------------------------
+.. automodule:: nibabel.nicom.dicomreaders
+
+.. currentmodule:: nibabel.nicom.dicomreaders
+.. autosummary::
+
+   DicomReadError
+   mosaic_to_nii
+   read_mosaic_dir
+   read_mosaic_dwi_dir
+   slices_to_series
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.dicomwrappers`
+----------------------------------
+.. automodule:: nibabel.nicom.dicomwrappers
+
+.. currentmodule:: nibabel.nicom.dicomwrappers
+.. autosummary::
+
+   MosaicWrapper
+   MultiframeWrapper
+   SiemensWrapper
+   Wrapper
+   WrapperError
+   WrapperPrecisionError
+   none_or_close
+   wrapper_from_data
+   wrapper_from_file
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.dwiparams`
+------------------------------
+.. automodule:: nibabel.nicom.dwiparams
+
+.. currentmodule:: nibabel.nicom.dwiparams
+.. autosummary::
+
+   B2q
+   nearest_pos_semi_def
+   q2bg
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.structreader`
+---------------------------------
+.. automodule:: nibabel.nicom.structreader
+
+.. currentmodule:: nibabel.nicom.structreader
+.. autosummary::
+
+   Unpacker
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`nicom.utils`
+--------------------------
+.. automodule:: nibabel.nicom.utils
+
+.. currentmodule:: nibabel.nicom.utils
+.. autosummary::
+
+   find_private_section
+
+
+.. currentmodule:: nibabel.nicom
+
+
+.. currentmodule:: nibabel.nicom.ascconv
+
+
+:class:`AscconvParseError`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: AscconvParseError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`Atom`
+~~~~~~~~~~~~~
+
+
+.. autoclass:: Atom
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`NoValue`
+~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: NoValue
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+assign2atoms
+~~~~~~~~~~~~
+
+.. autofunction:: assign2atoms
+
+obj_from_atoms
+~~~~~~~~~~~~~~
+
+.. autofunction:: obj_from_atoms
+
+parse_ascconv
+~~~~~~~~~~~~~
+
+.. autofunction:: parse_ascconv
+
+
+.. currentmodule:: nibabel.nicom.csareader
+
+
+:class:`CSAError`
+~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CSAError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`CSAReadError`
+~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CSAReadError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+get_acq_mat_txt
+~~~~~~~~~~~~~~~
+
+.. autofunction:: get_acq_mat_txt
+
+get_b_matrix
+~~~~~~~~~~~~
+
+.. autofunction:: get_b_matrix
+
+get_b_value
+~~~~~~~~~~~
+
+.. autofunction:: get_b_value
+
+get_csa_header
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_csa_header
+
+get_g_vector
+~~~~~~~~~~~~
+
+.. autofunction:: get_g_vector
+
+get_ice_dims
+~~~~~~~~~~~~
+
+.. autofunction:: get_ice_dims
+
+get_n_mosaic
+~~~~~~~~~~~~
+
+.. autofunction:: get_n_mosaic
+
+get_scalar
+~~~~~~~~~~
+
+.. autofunction:: get_scalar
+
+get_slice_normal
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_slice_normal
+
+get_vector
+~~~~~~~~~~
+
+.. autofunction:: get_vector
+
+is_mosaic
+~~~~~~~~~
+
+.. autofunction:: is_mosaic
+
+nt_str
+~~~~~~
+
+.. autofunction:: nt_str
+
+read
+~~~~
+
+.. autofunction:: read
+
+
+.. currentmodule:: nibabel.nicom.dicomreaders
+
+
+:class:`DicomReadError`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: DicomReadError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+mosaic_to_nii
+~~~~~~~~~~~~~
+
+.. autofunction:: mosaic_to_nii
+
+read_mosaic_dir
+~~~~~~~~~~~~~~~
+
+.. autofunction:: read_mosaic_dir
+
+read_mosaic_dwi_dir
+~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: read_mosaic_dwi_dir
+
+slices_to_series
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: slices_to_series
+
+
+.. currentmodule:: nibabel.nicom.dicomwrappers
+
+
+:class:`MosaicWrapper`
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: MosaicWrapper
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`MultiframeWrapper`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: MultiframeWrapper
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`SiemensWrapper`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: SiemensWrapper
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`Wrapper`
+~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: Wrapper
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`WrapperError`
+~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: WrapperError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`WrapperPrecisionError`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: WrapperPrecisionError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+none_or_close
+~~~~~~~~~~~~~
+
+.. autofunction:: none_or_close
+
+wrapper_from_data
+~~~~~~~~~~~~~~~~~
+
+.. autofunction:: wrapper_from_data
+
+wrapper_from_file
+~~~~~~~~~~~~~~~~~
+
+.. autofunction:: wrapper_from_file
+
+
+.. currentmodule:: nibabel.nicom.dwiparams
+
+B2q
+~~~
+
+.. autofunction:: B2q
+
+nearest_pos_semi_def
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: nearest_pos_semi_def
+
+q2bg
+~~~~
+
+.. autofunction:: q2bg
+
+
+.. currentmodule:: nibabel.nicom.structreader
+
+
+:class:`Unpacker`
+~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: Unpacker
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+.. currentmodule:: nibabel.nicom.utils
+
+find_private_section
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: find_private_section
+

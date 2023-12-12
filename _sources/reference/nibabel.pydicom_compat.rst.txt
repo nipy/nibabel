@@ -1,0 +1,19 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`pydicom_compat`
+=====================
+.. automodule:: nibabel.pydicom_compat
+
+.. currentmodule:: nibabel.pydicom_compat
+.. autosummary::
+
+   dicom_test
+
+
+.. currentmodule:: nibabel.pydicom_compat
+
+dicom_test
+~~~~~~~~~~
+
+.. autofunction:: dicom_test
+

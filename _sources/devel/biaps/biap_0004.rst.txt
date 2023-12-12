@@ -1,0 +1,235 @@
+.. _biap4:
+
+####################################
+BIAP4 - Merging nibabel and dcmstack
+####################################
+
+:Author: Brendan Moloney, Matthew Brett
+:Status: Draft
+:Type: Standards
+:Created: 2012-11-21
+
+In which we set out what dcmstack_ does and how it might integrate with the
+nibabel objects and functions.
+
+**********
+Motivation
+**********
+
+It is very common to convert source DICOM images to another format, typically
+Nifti, before doing any image processing. The Nifti format is significantly
+easier to work with and has wide spread compatibility. However, the vast
+amount of meta data stored in the source DICOM files will be lost.
+
+After implementing this proposal, users will be able to preserve all of the
+meta data from the DICOM files during conversion, including meta data from
+private elements. The meta data will then be easily accessible through the
+`SpatialImage` API::
+
+    >>> nii = nb.load('input.nii')
+    >>> data = nii.get_data()
+    >>> print data.shape
+    (256, 256, 24, 8)
+    >>> print nii.get_meta('RepetitionTime')
+    3500.0
+    >>> echo_times = [nii.get_meta('EchoTime', (0, 0, 0, idx))
+                      for idx in xrange(data.shape[-1])]
+    >>> print echo_times
+    [16.4, 32.8, 49.2, 65.6, 82.0, 98.4, 114.8, 131.2]
+    >>> print nii.get_meta('AcquisitionTime', (0, 0, 1, 0))
+    110455.370000
+    >>> print nii.get_meta('AcquisitionTime', (0, 0, 2, 0))
+    110457.272500
+    >>> print nii.get_meta('AcquisitionTime', (0, 0, 1, 1))
+    110455.387500
+
+
+
+********
+Overview
+********
+
+dcmstack reads a series of DICOM images, works out their relationship in terms
+of slices and volumes, and compiles them into multidimensional volumes. It can
+produce the corresponding data volume and affine, or a Nifti image (with any
+additional header information set appropriately).
+
+In the course of the read, dcmstack creates a `DcmMeta` object for
+each input file. This object is an ordered mapping that can contain a copy
+of all the meta data in the DICOM header. By default some filtering is
+applied to reduce the chance of including PHI. The set of DcmMeta objects are
+then merged together in the same order as the image data to create a single
+DcmMeta object that summarizes all of the meta data for the series.
+
+To summarize the meta data, each element is classified based on how the values
+repeat (e.g. const, per_slice, per_volume, etc.). Each element has a name (the
+keyword from the DICOM standard) and one or more values (the number of values
+depends on the classification and the shape of the image). Each classification's
+meta data is stored stored in a separate nested dictionary.
+
+While creating the Nifti image output, the `DcmMeta` is stored in a
+`DcmMetaExtension` which can be added as a header extension. This extension
+simply does a JSON encoding directly on the `DcmMeta` object.
+
+When working with these images, it's possible to keep track of the
+meta-information in the `DcmMetaExtension`.   For example, when taking slice out
+of a 3D volume, we keep track of the information specific to the chosen
+slice, and remove information for other slices. Or when merging 3D volumes to
+a 4D time series, we want to merge together the meta data too.
+
+At the moment, dcmstack only creates Nifti images.  There's no reason that this
+should be so, and the relationship of dcmstack to other spatial images should be
+more flexible.
+
+******
+Issues
+******
+
+`DcmMetaExtension` tied to `NiftiExtension`
+===========================================
+
+At the moment, `DcmMetaExtension` inherits from the `NiftiExtension`, allowing
+the data to be dumped out to JSON when writing into the extension part of a
+Nifti header.
+
+There's no reason that the `DcmMetaExtension` should be tied to the Nifti
+format.
+
+Plan
+----
+
+Refactor `DcmMetaExtension` to inherit from `object`.  Maybe rename `DcmMeta` or
+something.  Make a `NiftiExtension` object when needed with a new object
+wrapping the `DcmMeta` in the Extension API?
+
+Status
+------
+
+Resolved. We now have a separate `DcmMeta` object which inherits from
+`OrderedDict` and contains all of the functionality previously in
+`DcmMetaExtension` except those related to acting as a Nifti1Extension.
+The `DcmMetaExtension` now provides just the functionality for being
+a Nifti1Extension.
+
+Keeping track of metadata when manipulating images
+==================================================
+
+When slicing images, it is good to be able to keep track of the relevant DICOM
+metadata for the particular slice.  Or when merging images, it is good to be
+able to compile the metadata across slices into the (e.g) volume metadata. Or,
+say, when coregistering an image, it is good to be able to know that the
+metadata that is per-slice no longer directly corresponds to a slice of the
+data array.
+
+At the moment, dcmstack deals with this by wrapping the image with DICOM meta
+information in `NiftiWrapper` object : see
+https://github.com/moloney/dcmstack/blob/d157741/src/dcmstack/dcmmeta.py#L1232.
+This object accepts a Nifti image as input, that usually contains a
+`DcmMetaExtension`, and has methods `get_meta` (to get metadata from extension),
+`split` (for taking slice specific metadata into the split parts), `meta_valid`
+to check the metadata against the Nifti information, and methods to remove /
+replace the extension, save to a filename, and create the object with various
+alternative classmethod constructors.
+
+In particular, the `meta_valid` method needs to know about both the enclosed
+image, and the enclosed meta data.
+
+Can we put this stuff into the `SpatialImage` image object of nibabel, so we
+don't need this wrapper object?
+
+Plan
+----
+
+Put the `DcmMeta` data into the `extra` object that is input to the
+`SpatialImage` and all other nibabel image types.
+
+Add a `get_meta` method to `SpatialImage` that uses the to-be-defined API of the
+`extra` object.  Maybe, by default, this would just get keys out of the mapping.
+
+Define an API for the `extra` object to give back metadata that is potentially
+varying (per slice or volume). We also need a way to populate the `extra` object
+when loading an image that has an associated `DcmMeta` object.
+
+Use this API to get metadata.  Try and make this work with functions outside the
+`SpatialImage` such as `four_to_three` and `three_to_four` in `nibabel.funcs`.
+These functions could use the `extra` API to get varying meta-information.
+
+** TODO : specific proposal for `SpatialImage` and `extra` API changes **
+
+Detecting slice or volume-specific data difficult for 3D and 4D DICOMS
+======================================================================
+
+The `DcmMeta` object needs to be able to identify slice and volume specific
+information when reading the DICOM, so that it can correctly split the resulting
+metadata, or merge it.
+
+This is easy for slice-by-slice DICOM files because anything that differs
+between the slices is by definition slice-specific.  For 3D and 4D data, such as
+Siemens Mosaic, some of the fields in the private headers contains
+slice-by-slice information for the volume contained.  There's not automatic way
+of detecting slice-by-slice information in this case, so we have to specify
+which fields are slice-by-slice when reading.  That is, we need to specialize
+the DICOM read for each type of volume-containing DICOM - such as Mosaic or the
+Philips multi-frame format.
+
+Plan
+----
+
+Add `create_dcmmeta` method to the nibabel DICOM wrapper objects, that can be
+specialized for each known DICOM format variation.  Put the rules for slice
+information etc into each class.
+
+For the Siemens files, we will need to make a list of elements from the private
+CSA headers that are known to be slice specific. For the multiframe DICOM files
+we should be able to do this in a programmatic manner, since the varying data
+should live in the PerFrameFunctionalSequence DICOM element. Each element that
+is reclassified should be simplified with the `DcmMeta.simplify` method so that
+it can be classified appropriately.
+
+Meta data in nested DICOM sequences can not be independently classified
+=======================================================================
+
+The code for summarizing meta data only works on the top level of key/value
+pairs. Any value that is a nested dataset is treated as a single entity,
+which prevents us from classifying its individual elements differently.
+
+In a DICOM data set, any element that is a sequence contains one or more
+nested DICOM data sets. For most MRI images this is not an issue since
+they rarely contain many sequences, and the ones they do are usually small
+and relatively unimportant. However in multiframe DICOM files make heavy
+use of nested sequences to store data.
+
+Plan
+----
+This same issue was solved for the translated Siemens CSA sub headers by
+unpacking each nested dataset by joining the keys from each level with a
+dotted notation. For example, in the `CsaSeries` subheader there is a nested
+`MrPhoenixProtocol` dataset which has an element `ulVersion` so the key we
+use after unpacking is `CsaSeries.MrPhoenixProtocol.ulVersion`.
+
+We can take the same approach for DICOM sequence elements. One additional
+consideration is that each of these element is actually a list of data sets,
+so we would need to add an index number to the key somehow.
+
+The alternative is to handle nested data sets recursively in the meta data
+summarizing code. This would be fairly complex and you would no longer be
+able to refer to each element with a single string, at least not without
+some mini-language for traversing the nested datasets.
+
+Improving access to varying meta data through the Nifti
+=======================================================
+
+Currently, when accessing varying meta data through the `get_meta` method
+you can only get one value at a time::
+
+    >>> echo_times = [nii.get_meta('EchoTime', (0, 0, 0, idx))
+                      for idx in xrange(data.shape[-1])]
+
+You can easily get multiple values from the `DcmMeta` object itself, but
+then you lose the capability to automatically check if the meta data is
+valid in relation to the current image.
+
+
+.. _dcmstack : https://github.com/moloney/dcmstack
+.. _DcmMetaExtension : https://github.com/moloney/dcmstack/blob/d157741/src/dcmstack/dcmmeta.py#L112
+.. vim: ft=rst
