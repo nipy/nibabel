@@ -36,7 +36,7 @@ tested up to Python 3.12 and NumPy 1.26.
 New features
 ------------
 * Add generic :class:`~nibabel.pointset.Pointset` and regularly spaced
-  :class:`~nibabel.pointset.NDGrid` data structures in preparation for coordinate
+  :class:`~nibabel.pointset.Grid` data structures in preparation for coordinate
   transformation and resampling (pr/1251) (CM, reviewed by Oscar Esteban)
 
 Enhancements
@@ -44,7 +44,7 @@ Enhancements
 * Add :meth:`~nibabel.arrayproxy.ArrayProxy.copy` method to
   :class:`~nibabel.arrayproxy.ArrayProxy` (pr/1255) (CM, reviewed by Paul McCarthy)
 * Permit :meth:`~nibabel.xmlutils.XmlSerializable.to_xml` to pass keyword
-  arguments to :meth:`~xml.etree.ElementTree.ElementTree.tostring` (pr/1258)
+  arguments to :meth:`~xml.etree.ElementTree.tostring` (pr/1258)
   (CM)
 * Allow user expansion (e.g., ``~/...``) in strings passed to functions that
   accept paths (pr/1260) (Reinder Vos de Wael, reviewed by CM)
@@ -54,7 +54,7 @@ Enhancements
   ``affine=None`` argument (pr/1253) (Blake Dewey, reviewed by CM)
 * Warn on invalid MINC2 spacing declarations, treat as missing (pr/1237)
   (Peter Suter, reviewed by CM)
-* Refactor :func:`~nibabel.nicom.utils.find_private_element` for improved
+* Refactor :func:`~nibabel.nicom.utils.find_private_section` for improved
   readability and maintainability (pr/1228) (MB, reviewed by CM)
 
 Bug fixes
