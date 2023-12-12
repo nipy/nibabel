@@ -280,7 +280,12 @@ latex_documents = [('index', 'nibabel.tex', 'NiBabel Documentation', 'NiBabel Au
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/3/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy', None),
+    'matplotlib': ('https://matplotlib.org/stable', None),
+}
 
 # Config of plot_directive
 plot_include_source = True

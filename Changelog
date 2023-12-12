@@ -43,8 +43,8 @@ Enhancements
 ------------
 * Add :meth:`~nibabel.arrayproxy.ArrayProxy.copy` method to
   :class:`~nibabel.arrayproxy.ArrayProxy` (pr/1255) (CM, reviewed by Paul McCarthy)
-* Permit :meth:`~nibabel.xmlutils.XmlSerializable.to_xml` to pass keyword
-  arguments to :meth:`~xml.etree.ElementTree.tostring` (pr/1258)
+* Permit :meth:`~nibabel.xmlutils.XmlSerializable.to_xml` methods to pass keyword
+  arguments to :func:`xml.etree.ElementTree.tostring` (pr/1258)
   (CM)
 * Allow user expansion (e.g., ``~/...``) in strings passed to functions that
   accept paths (pr/1260) (Reinder Vos de Wael, reviewed by CM)
