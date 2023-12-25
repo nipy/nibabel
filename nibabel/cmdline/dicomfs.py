@@ -25,7 +25,7 @@ class dummy_fuse:
 
 
 try:
-    import fuse  # type: ignore
+    import fuse  # type: ignore[import-not-found]
 
     uid = os.getuid()
     gid = os.getgid()

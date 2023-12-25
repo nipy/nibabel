@@ -111,7 +111,7 @@ __version_tuple__ = version_tuple = {version_tuple!r}
 
 [tool.blue]
 line_length = 99
-target-version = ["py37"]
+target-version = ["py38"]
 force-exclude = """
 (
   _version.py
@@ -130,6 +130,8 @@ python_version = "3.11"
 exclude = [
   "/tests",
 ]
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 
 [tool.codespell]
 skip = "*/data/*,./nibabel-data"

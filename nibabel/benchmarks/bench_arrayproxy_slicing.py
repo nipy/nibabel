@@ -26,7 +26,7 @@ from .butils import print_git_title
 
 # if memory_profiler is installed, we get memory usage results
 try:
-    from memory_profiler import memory_usage  # type: ignore
+    from memory_profiler import memory_usage  # type: ignore[import-not-found]
 except ImportError:
     memory_usage = None
 

@@ -42,7 +42,7 @@ Sequence: type | None = None
 
 if have_dicom:
     # Values not imported by default
-    import pydicom.values  # type: ignore
+    import pydicom.values  # type: ignore[import-not-found]
     from pydicom.dicomio import dcmread as read_file  # noqa:F401
     from pydicom.sequence import Sequence  # noqa:F401
 
