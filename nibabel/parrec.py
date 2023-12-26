@@ -1338,7 +1338,7 @@ class PARRECImage(SpatialImage):
             strict_sort=strict_sort,
         )
 
-    load = from_filename  # type: ignore
+    load = from_filename  # type: ignore[assignment]
 
 
 load = PARRECImage.from_filename

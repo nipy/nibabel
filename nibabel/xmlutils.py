@@ -32,7 +32,7 @@ class XmlSerializable:
             Additional keyword arguments to :func:`xml.etree.ElementTree.tostring`.
         """
         ele = self._to_xml_element()
-        return b'' if ele is None else tostring(ele, enc, **kwargs)
+        return tostring(ele, enc, **kwargs)
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
