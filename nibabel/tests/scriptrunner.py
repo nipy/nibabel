@@ -14,9 +14,8 @@ Then, in the tests, something like::
 """
 import os
 import sys
-from os.path import dirname, isdir, isfile
+from os.path import dirname, isdir, isfile, pathsep, realpath
 from os.path import join as pjoin
-from os.path import pathsep, realpath
 from subprocess import PIPE, Popen
 
 MY_PACKAGE = __package__

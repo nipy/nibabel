@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Testing for orientations module"""
 
-import warnings
 
 import numpy as np
 import pytest
@@ -185,7 +184,6 @@ def test_apply():
         apply_orientation(a[:, :, 1], ornt)
     with pytest.raises(OrientationError):
         apply_orientation(a, [[0, 1], [np.nan, np.nan], [2, 1]])
-    shape = np.array(a.shape)
     for ornt in ALL_ORNTS:
         t_arr = apply_orientation(a, ornt)
         assert_array_equal(a.shape, np.array(t_arr.shape)[np.array(ornt)[:, 0]])

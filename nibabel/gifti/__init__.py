@@ -16,6 +16,8 @@
    gifti
 """
 
+# ruff: noqa: F401
+
 from .gifti import (
     GiftiCoordSystem,
     GiftiDataArray,

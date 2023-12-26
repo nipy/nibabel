@@ -27,7 +27,7 @@ def main():
                 if in_release_notes:
                     break
                 in_release_notes = match.group(1) == version
-                next(f)   # Skip the underline
+                next(f)  # Skip the underline
                 continue
 
             if in_release_notes:

@@ -8,7 +8,6 @@ from ..tractogram_file import TractogramFile
 
 
 def test_subclassing_tractogram_file():
-
     # Missing 'save' method
     class DummyTractogramFile(TractogramFile):
         @classmethod

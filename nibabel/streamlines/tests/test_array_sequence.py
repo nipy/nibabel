@@ -1,6 +1,5 @@
 import itertools
 import os
-import sys
 import tempfile
 import unittest
 
@@ -220,7 +219,7 @@ class TestArraySequence(unittest.TestCase):
             seq.extend(data)
 
         # Extend after extracting some slice
-        working_slice = seq[:2]
+        _ = seq[:2]
         seq.extend(ArraySequence(new_data))
 
     def test_arraysequence_getitem(self):

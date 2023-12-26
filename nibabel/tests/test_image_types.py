@@ -88,7 +88,6 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
             irrelevant=b'a' * (sizeof_hdr - 1),  # A too-small sniff, query
             bad_sniff=b'a' * sizeof_hdr,  # Bad sniff, should fail
         ).items():
-
             for klass in img_klasses:
                 if klass == expected_img_klass:
                     # Class will load unless you pass a bad sniff,

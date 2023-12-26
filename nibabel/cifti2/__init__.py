@@ -6,6 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+# ruff: noqa: F401
 """CIFTI-2 format IO
 
 .. currentmodule:: nibabel.cifti2

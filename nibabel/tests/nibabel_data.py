@@ -3,9 +3,8 @@
 
 import unittest
 from os import environ, listdir
-from os.path import dirname, exists, isdir
+from os.path import dirname, exists, isdir, realpath
 from os.path import join as pjoin
-from os.path import realpath
 
 
 def get_nibabel_data():

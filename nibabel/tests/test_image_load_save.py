@@ -24,7 +24,6 @@ from .. import (
     MGHImage,
     Minc1Image,
     Minc2Image,
-    Nifti1Header,
     Nifti1Image,
     Nifti1Pair,
     Nifti2Image,
@@ -131,7 +130,7 @@ def test_save_load():
     affine[:3, 3] = [3, 2, 1]
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
-    with InTemporaryDirectory() as pth:
+    with InTemporaryDirectory() as _:
         nifn = 'an_image.nii'
         sifn = 'another_image.img'
         ni1.save(img, nifn)

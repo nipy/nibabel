@@ -161,7 +161,7 @@ class _Series:
         data = numpy.ndarray(
             (len(self.storage_instances), self.rows, self.columns), dtype=numpy.int16
         )
-        for (i, si) in enumerate(self.storage_instances):
+        for i, si in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
             logger.info('reading %d/%d' % (i + 1, len(self.storage_instances)))
@@ -243,7 +243,7 @@ class _StorageInstance:
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=followlinks):
+    for dirpath, dirnames, filenames in os.walk(base_dir, followlinks=followlinks):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError(f'link cycle detected under {base_dir}')

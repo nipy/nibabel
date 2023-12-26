@@ -1,10 +1,8 @@
 """Test floating point deconstructions and floor methods
 """
 import sys
-from contextlib import nullcontext
 
 import numpy as np
-import pytest
 from packaging.version import Version
 
 from ..casting import (
@@ -13,7 +11,6 @@ from ..casting import (
     _check_nmant,
     ceil_exact,
     floor_exact,
-    floor_log2,
     have_binary128,
     longdouble_precision_improved,
     ok_floats,

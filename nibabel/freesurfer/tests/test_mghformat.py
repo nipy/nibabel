@@ -460,6 +460,7 @@ class TestMGHHeader(tws._TestLabeledWrapStruct):
         for endianness in (None,) + LITTLE_CODES:
             with pytest.raises(ValueError):
                 hdr.as_byteswapped(endianness)
+
         # Note that contents is not rechecked on swap / copy
         class DC(self.header_class):
             def check_fix(self, *args, **kwargs):

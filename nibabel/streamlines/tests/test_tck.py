@@ -8,7 +8,6 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from ...testing import data_path, error_warnings
-from .. import tck as tck_module
 from ..array_sequence import ArraySequence
 from ..tck import TckFile
 from ..tractogram import Tractogram
@@ -138,7 +137,7 @@ class TestTCK(unittest.TestCase):
 
         # Simulate a TCK file with no `file` field.
         new_tck_file = tck_file.replace(b'\nfile: . 67', b'')
-        with pytest.warns(HeaderWarning, match="Missing 'file'") as w:
+        with pytest.warns(HeaderWarning, match="Missing 'file'") as _:
             tck = TckFile.load(BytesIO(new_tck_file))
         assert_array_equal(tck.header['file'], '. 56')
 

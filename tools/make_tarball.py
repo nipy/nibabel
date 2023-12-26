@@ -5,7 +5,7 @@
 import os
 
 import commands
-from toollib import *
+from toollib import c, cd
 
 tag = commands.getoutput('git describe')
 base_name = f'nibabel-{tag}'

@@ -56,7 +56,6 @@ else:
 
 
 def bench_arrayproxy_slicing():
-
     print_git_title('\nArrayProxy gzip slicing')
 
     # each test is a tuple containing
@@ -100,7 +99,6 @@ def bench_arrayproxy_slicing():
         return f"[{', '.join(slcstr)}]"
 
     with InTemporaryDirectory():
-
         print(f'Generating test data... ({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')
 
         data = np.array(np.random.random(SHAPE), dtype=np.float32)
@@ -128,7 +126,6 @@ def bench_arrayproxy_slicing():
         seeds = [np.random.randint(0, 2**32) for s in SLICEOBJS]
 
         for ti, test in enumerate(tests):
-
             label = get_test_label(test)
             have_igzip, keep_open, sliceobj = test
             seed = seeds[SLICEOBJS.index(sliceobj)]

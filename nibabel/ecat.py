@@ -513,7 +513,6 @@ def read_subheaders(fileobj, mlist, endianness):
 
 
 class EcatSubHeader:
-
     _subhdrdtype = subhdr_dtype
     _data_type_codes = data_type_codes
 

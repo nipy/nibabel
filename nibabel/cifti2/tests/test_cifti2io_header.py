@@ -7,7 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import io
 from os.path import dirname
 from os.path import join as pjoin
 
@@ -38,7 +37,7 @@ datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
 def test_space_separated_affine():
-    img = ci.Cifti2Image.from_filename(pjoin(NIBABEL_TEST_DATA, 'row_major.dconn.nii'))
+    _ = ci.Cifti2Image.from_filename(pjoin(NIBABEL_TEST_DATA, 'row_major.dconn.nii'))
 
 
 def test_read_nifti2():
