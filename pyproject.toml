@@ -87,7 +87,7 @@ exclude = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["nibabel", "nisext"]
+packages = ["nibabel"]
 exclude = [
   # 56MB test file does not need to be installed everywhere
   "nibabel/nicom/tests/data/4d_multiframe_test.dcm",
