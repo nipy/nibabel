@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = nibabel, nisext
-include = */nibabel/*, */nisext/*
+source = nibabel
+include = */nibabel/*
 omit =
     */externals/*
     */benchmarks/*
