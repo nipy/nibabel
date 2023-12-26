@@ -109,21 +109,32 @@ __version__ = version = {version!r}
 __version_tuple__ = version_tuple = {version_tuple!r}
 '''
 
-[tool.blue]
-line_length = 99
-target-version = ["py38"]
-force-exclude = """
-(
-  _version.py
-  | nibabel/externals/
-  | versioneer.py
-)
-"""
+[tool.ruff]
+line-length = 99
+exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
 
-[tool.isort]
-profile = "black"
-line_length = 99
-extend_skip = ["_version.py", "externals"]
+[tool.ruff.lint]
+select = ["F", "I", "Q"]
+ignore = [
+    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "COM812",
+    "COM819",
+    "ISC001",
+    "ISC002",
+]
+
+[tool.ruff.format]
+quote-style = "single"
 
 [tool.mypy]
 python_version = "3.11"
