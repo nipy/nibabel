@@ -1,15 +1,12 @@
 from math import prod
 from pathlib import Path
-from unittest import skipUnless
 
 import numpy as np
 import pytest
 
 from nibabel import pointset as ps
 from nibabel.affines import apply_affine
-from nibabel.arrayproxy import ArrayProxy
 from nibabel.fileslice import strided_scalar
-from nibabel.onetime import auto_attr
 from nibabel.optpkg import optional_package
 from nibabel.spatialimages import SpatialImage
 from nibabel.tests.nibabel_data import get_nibabel_data

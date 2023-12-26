@@ -1,7 +1,6 @@
 """Testing Siemens CSA header reader
 """
 import gzip
-import sys
 from copy import deepcopy
 from os.path import join as pjoin
 

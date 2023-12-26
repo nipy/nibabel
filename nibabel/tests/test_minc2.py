@@ -129,5 +129,5 @@ def test_bad_diminfo():
     # File has a bad spacing field 'xspace' when it should be
     # `irregular`, `regular__` or absent (default to regular__).
     # We interpret an invalid spacing as absent, but warn.
-    with pytest.warns(UserWarning) as w:
+    with pytest.warns(UserWarning) as _:
         Minc2Image.from_filename(fname)

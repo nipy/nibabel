@@ -8,7 +8,6 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import os
-import warnings
 from pathlib import Path
 from unittest import TestCase
 

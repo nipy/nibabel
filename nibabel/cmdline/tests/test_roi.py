@@ -1,5 +1,4 @@
 import os
-import unittest
 from unittest import mock
 
 import numpy as np
@@ -140,7 +139,7 @@ def test_entrypoint(capsys):
     # Check that we handle missing args as expected
     with mock.patch('sys.argv', ['nib-roi', '--help']):
         try:
-            retval = main()
+            main()
         except SystemExit:
             pass
         else:

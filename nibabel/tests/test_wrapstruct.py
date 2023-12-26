@@ -435,15 +435,6 @@ class TestMyWrapStruct(_TestWrapStructBase):
         self._set_something_into_hdr(hdr2)
         assert hdr == hdr2
 
-    def test_copy(self):
-        hdr = self.header_class()
-        hdr2 = hdr.copy()
-        assert hdr == hdr2
-        self._set_something_into_hdr(hdr)
-        assert hdr != hdr2
-        self._set_something_into_hdr(hdr2)
-        assert hdr == hdr2
-
     def test_checks(self):
         # Test header checks
         hdr_t = self.header_class()

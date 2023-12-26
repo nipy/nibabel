@@ -119,7 +119,7 @@ def test_convert_imgtype(tmp_path, ext, img_class):
 
 def test_convert_nifti_int_fail(tmp_path):
     infile = get_test_data(fname='anatomical.nii')
-    outfile = tmp_path / f'output.nii'
+    outfile = tmp_path / 'output.nii'
 
     orig = nib.load(infile)
     assert not outfile.exists()

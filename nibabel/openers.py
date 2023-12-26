@@ -86,7 +86,6 @@ def _gzip_open(
     mtime: int = 0,
     keep_open: bool = False,
 ) -> gzip.GzipFile:
-
     if not HAVE_INDEXED_GZIP or mode != 'rb':
         gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
@@ -129,6 +128,7 @@ class Opener:
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
+
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))

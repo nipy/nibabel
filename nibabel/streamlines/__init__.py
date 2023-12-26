@@ -1,5 +1,7 @@
 """Multiformat-capable streamline format read / write interface
 """
+# ruff: noqa: F401
+
 import os
 import warnings
 

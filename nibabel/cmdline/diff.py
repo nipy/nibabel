@@ -231,7 +231,6 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
         diffs1 = [None] * (i + 1)
 
         for j, d2 in enumerate(data[i + 1 :], i + 1):
-
             if d1.shape == d2.shape:
                 abs_diff = np.abs(d1 - d2)
                 mean_abs = (np.abs(d1) + np.abs(d2)) * 0.5
@@ -255,7 +254,6 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
                     max_rel_diff = 0
 
                 if np.any(candidates):
-
                     diff_rec = OrderedDict()  # so that abs goes before relative
 
                     diff_rec['abs'] = max_abs_diff.astype(dtype)
@@ -268,7 +266,6 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
                 diffs1.append({'CMP': 'incompat'})
 
         if any(diffs1):
-
             diffs['DATA(diff %d:)' % (i + 1)] = diffs1
 
     return diffs
