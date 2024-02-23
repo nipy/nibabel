@@ -1,12 +1,12 @@
 import pytest
 
 from nibabel.onetime import auto_attr, setattr_on_read
-from nibabel.testing import expires
+from nibabel.testing import deprecated_to, expires
 
 
 @expires('5.0.0')
 def test_setattr_on_read():
-    with pytest.deprecated_call():
+    with deprecated_to('5.0.0'):
 
         class MagicProp:
             @setattr_on_read
