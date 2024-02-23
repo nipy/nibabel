@@ -41,7 +41,16 @@ DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 DATA_FILE7 = pjoin(IO_DATA_PATH, 'external.gii')
 DATA_FILE8 = pjoin(IO_DATA_PATH, 'ascii_flat_data.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6, DATA_FILE7, DATA_FILE8]
+datafiles = [
+    DATA_FILE1,
+    DATA_FILE2,
+    DATA_FILE3,
+    DATA_FILE4,
+    DATA_FILE5,
+    DATA_FILE6,
+    DATA_FILE7,
+    DATA_FILE8,
+]
 numDA = [2, 1, 1, 1, 2, 1, 2, 2]
 
 DATA_FILE1_darr1 = np.array(
@@ -51,7 +60,7 @@ DATA_FILE1_darr1 = np.array(
         [-17.614349, -65.401642, 21.071466],
     ]
 )
-DATA_FILE1_darr2 = np.array([0, 1, 2])
+DATA_FILE1_darr2 = np.array([[0, 1, 2]])
 
 DATA_FILE2_darr1 = np.array(
     [
