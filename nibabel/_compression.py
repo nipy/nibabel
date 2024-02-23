@@ -17,7 +17,7 @@ import typing as ty
 from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:  # pragma: no cover
-    import indexed_gzip  # type: ignore[import-not-found]
+    import indexed_gzip  # type: ignore[import]
     import pyzstd
 
     HAVE_INDEXED_GZIP = True
