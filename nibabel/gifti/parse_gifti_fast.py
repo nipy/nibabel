@@ -74,6 +74,10 @@ def read_data_block(darray, fname, data, mmap):
         # GIFTI_ENCODING_ASCII
         c = StringIO(data)
         da = np.loadtxt(c, dtype=dtype)
+        # Reshape to dims specified in GiftiDataArray attributes, but preserve
+        # existing behaviour of loading as 1D for arrays with a dimension of
+        # length 1
+        da = da.reshape(darray.dims).squeeze()
         return da  # independent of the endianness
     elif enclabel not in ('B64BIN', 'B64GZ', 'External'):
         return 0
