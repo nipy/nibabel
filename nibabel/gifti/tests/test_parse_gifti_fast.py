@@ -39,9 +39,10 @@ DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
 DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 DATA_FILE7 = pjoin(IO_DATA_PATH, 'external.gii')
+DATA_FILE8 = pjoin(IO_DATA_PATH, 'ascii_flat_data.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6, DATA_FILE7]
-numDA = [2, 1, 1, 1, 2, 1, 2]
+datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6, DATA_FILE7, DATA_FILE8]
+numDA = [2, 1, 1, 1, 2, 1, 2, 2]
 
 DATA_FILE1_darr1 = np.array(
     [
@@ -151,6 +152,10 @@ DATA_FILE7_darr2 = np.array(
     ],
     dtype=np.int32,
 )
+
+DATA_FILE8_darr1 = np.copy(DATA_FILE5_darr1)
+
+DATA_FILE8_darr2 = np.copy(DATA_FILE5_darr2)
 
 
 def assert_default_types(loaded):
@@ -448,3 +453,9 @@ def test_load_compressed():
         img7 = load(fn)
         assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
         assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_load_flat_ascii_data():
+    img = load(DATA_FILE8)
+    assert_array_almost_equal(img.darrays[0].data, DATA_FILE8_darr1)
+    assert_array_almost_equal(img.darrays[1].data, DATA_FILE8_darr2)
