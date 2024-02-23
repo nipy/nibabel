@@ -233,3 +233,15 @@ def expires(version):
         return lambda x: x
 
     return pytest.mark.xfail(raises=ExpiredDeprecationError)
+
+
+def deprecated_to(version):
+    """Context manager to expect DeprecationWarnings until a given version"""
+    from packaging.version import Version
+
+    from nibabel import __version__ as nbver
+
+    if Version(nbver) < Version(version):
+        return pytest.deprecated_call()
+
+    return nullcontext()
