@@ -68,21 +68,21 @@ def read_data_block(darray, fname, data, mmap):
     if mmap is True:
         mmap = 'c'
     enclabel = gifti_encoding_codes.label[darray.encoding]
-    dtype = data_type_codes.type[darray.datatype]
 
+    if enclabel not in ('ASCII', 'B64BIN', 'B64GZ', 'External'):
+        raise GiftiParseError(f'Unknown encoding {darray.encoding}')
+
+    # Encode the endianness in the dtype
+    byteorder = gifti_endian_codes.byteorder[darray.endian]
+    dtype = data_type_codes.dtype[darray.datatype].newbyteorder(byteorder)
+
+    shape = tuple(darray.dims)
+    order = array_index_order_codes.npcode[darray.ind_ord]
+
+    # GIFTI_ENCODING_ASCII
     if enclabel == 'ASCII':
-        # GIFTI_ENCODING_ASCII
-        c = StringIO(data)
-        da = np.loadtxt(c, dtype=dtype)
-        # Reshape to dims specified in GiftiDataArray attributes, but preserve
-        # existing behaviour of loading as 1D for arrays with a dimension of
-        # length 1
-        da = da.reshape(darray.dims).squeeze()
-        return da  # independent of the endianness
-    elif enclabel not in ('B64BIN', 'B64GZ', 'External'):
-        return 0
+        return np.loadtxt(StringIO(data), dtype=dtype, ndmin=1).reshape(shape, order=order)
 
-    # GIFTI_ENCODING_EXTBIN
     # We assume that the external data file is raw uncompressed binary, with
     # the data type/endianness/ordering specified by the other DataArray
     # attributes
@@ -98,12 +98,13 @@ def read_data_block(darray, fname, data, mmap):
         newarr = None
         if mmap:
             try:
-                newarr = np.memmap(
+                return np.memmap(
                     ext_fname,
                     dtype=dtype,
                     mode=mmap,
                     offset=darray.ext_offset,
-                    shape=tuple(darray.dims),
+                    shape=shape,
+                    order=order,
                 )
             # If the memmap fails, we ignore the error and load the data into
             # memory below
@@ -111,13 +112,12 @@ def read_data_block(darray, fname, data, mmap):
                 pass
         # mmap=False or np.memmap failed
         if newarr is None:
-            # We can replace this with a call to np.fromfile in numpy>=1.17,
-            # as an "offset" parameter was added in that version.
-            with open(ext_fname, 'rb') as f:
-                f.seek(darray.ext_offset)
-                nbytes = np.prod(darray.dims) * dtype().itemsize
-                buff = f.read(nbytes)
-                newarr = np.frombuffer(buff, dtype=dtype)
+            return np.fromfile(
+                ext_fname,
+                dtype=dtype,
+                count=np.prod(darray.dims),
+                offset=darray.ext_offset,
+            ).reshape(shape, order=order)
 
     # Numpy arrays created from bytes objects are read-only.
     # Neither b64decode nor decompress will return bytearrays, and there
@@ -125,26 +125,14 @@ def read_data_block(darray, fname, data, mmap):
     # there is not a simple way to avoid making copies.
     # If this becomes a problem, we should write a decoding interface with
     # a tunable chunk size.
+    dec = base64.b64decode(data.encode('ascii'))
+    if enclabel == 'B64BIN':
+        buff = bytearray(dec)
     else:
-        dec = base64.b64decode(data.encode('ascii'))
-        if enclabel == 'B64BIN':
-            # GIFTI_ENCODING_B64BIN
-            buff = bytearray(dec)
-        else:
-            # GIFTI_ENCODING_B64GZ
-            buff = bytearray(zlib.decompress(dec))
-        del dec
-        newarr = np.frombuffer(buff, dtype=dtype)
-
-    sh = tuple(darray.dims)
-    if len(newarr.shape) != len(sh):
-        newarr = newarr.reshape(sh, order=array_index_order_codes.npcode[darray.ind_ord])
-
-    # check if we need to byteswap
-    required_byteorder = gifti_endian_codes.byteorder[darray.endian]
-    if required_byteorder in ('big', 'little') and required_byteorder != sys.byteorder:
-        newarr = newarr.byteswap()
-    return newarr
+        # GIFTI_ENCODING_B64GZ
+        buff = bytearray(zlib.decompress(dec))
+    del dec
+    return np.frombuffer(buff, dtype=dtype).reshape(shape, order=order)
 
 
 def _str2int(in_str):
