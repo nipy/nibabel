@@ -25,6 +25,28 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.2.1 (Monday 26 February 2024)
+===============================
+
+Bug-fix release in the 5.2.x series.
+
+Enhancements
+------------
+* Support "flat" ASCII-encoded GIFTI DataArrays (pr/1298) (PM, reviewed by CM)
+
+Bug fixes
+---------
+* Tolerate missing ``git`` when reporting version info (pr/1286) (CM, reviewed by
+  Yuri Victorovich)
+* Handle Siemens XA30 derived DWI DICOMs (pr/1296) (CM, reviewed by YOH and
+  Mathias Goncalves)
+
+Maintenance
+-----------
+* Add tool for generating GitHub-friendly release notes (pr/1284) (CM)
+* Accommodate pytest 8 changes (pr/1297) (CM)
+
+
 5.2.0 (Monday 11 December 2023)
 ===============================
 
