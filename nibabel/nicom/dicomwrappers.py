@@ -565,8 +565,12 @@ class MultiframeWrapper(Wrapper):
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
         shape = (rows, cols) + tuple(ns_unique)
         n_vols = np.prod(shape[3:])
-        if n_frames != n_vols * shape[2]:
-            raise WrapperError('Calculated shape does not match number of frames.')
+        n_frames_calc = n_vols * shape[2]
+        if n_frames != n_frames_calc:
+            raise WrapperError(
+                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
+                f'of shape {shape} does not match NumberOfFrames {n_frames}.'
+            )
         return tuple(shape)
 
     @one_time
