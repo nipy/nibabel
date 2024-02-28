@@ -568,8 +568,9 @@ class MultiframeWrapper(Wrapper):
         n_frames_calc = n_vols * shape[2]
         if n_frames != n_frames_calc:
             raise WrapperError(
-                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) of shape {shape} does not '
-                f'match NumberOfFrames {n_frames}.')
+                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
+                f'of shape {shape} does not match NumberOfFrames {n_frames}.'
+            )
         return tuple(shape)
 
     @one_time
