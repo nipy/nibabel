@@ -79,12 +79,12 @@ class ArrayLike(ty.Protocol):
 
     # If no dtype is passed, any dtype might be returned, depending on the array-like
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
+    def __array__(self, dtype: None = ..., /, copy: bool=False) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
         ...  # pragma: no cover
 
     # Any dtype might be passed, and *that* dtype must be returned
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
+    def __array__(self, dtype: _DType, /, copy: bool=False) -> np.ndarray[ty.Any, _DType]:
         ...  # pragma: no cover
 
     def __getitem__(self, key, /) -> npt.NDArray:
@@ -433,7 +433,7 @@ class ArrayProxy(ArrayLike):
         """
         return self._get_unscaled(slicer=())
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, *, copy=False):
         """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype of the returned array is the
@@ -456,7 +456,7 @@ class ArrayProxy(ArrayLike):
         """
         arr = self._get_scaled(dtype=dtype, slicer=())
         if dtype is not None:
-            arr = arr.astype(dtype, copy=False)
+            arr = arr.astype(dtype, copy=copy)
         return arr
 
     def __getitem__(self, slicer):
