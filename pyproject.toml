@@ -67,7 +67,7 @@ doc = [
   "tomli; python_version < '3.11'",
 ]
 test = [
-  "pytest",
+  "pytest<8.1",  # relax once pytest-doctestplus releases 1.2.0
   "pytest-doctestplus",
   "pytest-cov",
   "pytest-httpserver",
