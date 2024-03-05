@@ -1,5 +1,4 @@
-"""Reading functions for freesurfer files
-"""
+"""Reading functions for freesurfer files"""
 
 # ruff: noqa: F401
 

@@ -118,6 +118,7 @@ like:
 ...                                     bm_cortex)))
 <class 'nibabel.cifti2.cifti2.Cifti2Header'>
 """
+
 import abc
 from operator import xor
 

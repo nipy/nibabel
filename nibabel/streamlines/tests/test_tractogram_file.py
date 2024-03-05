@@ -1,5 +1,4 @@
-"""Test tractogramFile base class
-"""
+"""Test tractogramFile base class"""
 
 import pytest
 

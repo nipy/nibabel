@@ -3,6 +3,7 @@
 """
 Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 """
+
 import ast
 import re
 from collections import OrderedDict

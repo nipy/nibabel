@@ -1,5 +1,4 @@
-"""Test printable table
-"""
+"""Test printable table"""
 
 import numpy as np
 import pytest

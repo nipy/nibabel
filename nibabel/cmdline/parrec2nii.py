@@ -1,5 +1,4 @@
-"""Code for PAR/REC to NIfTI converter command
-"""
+"""Code for PAR/REC to NIfTI converter command"""
 
 import csv
 import os

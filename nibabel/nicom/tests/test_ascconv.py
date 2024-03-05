@@ -1,5 +1,4 @@
-"""Testing Siemens "ASCCONV" parser
-"""
+"""Testing Siemens "ASCCONV" parser"""
 
 from collections import OrderedDict
 from os.path import dirname

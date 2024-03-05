@@ -1,5 +1,4 @@
-"""Testing deprecator module / Deprecator class
-"""
+"""Testing deprecator module / Deprecator class"""
 
 import sys
 import warnings

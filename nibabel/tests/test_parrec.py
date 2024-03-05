@@ -1,5 +1,4 @@
-"""Testing parrec module
-"""
+"""Testing parrec module"""
 
 from glob import glob
 from os.path import basename, dirname

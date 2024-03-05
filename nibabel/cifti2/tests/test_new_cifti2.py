@@ -6,6 +6,7 @@ types (i.e. BRAIN_MODELS, PARCELS, SCALARS, LABELS, and SERIES).
 These functions are used in the tests to generate most CIFTI file types from
 scratch.
 """
+
 import numpy as np
 import pytest
 

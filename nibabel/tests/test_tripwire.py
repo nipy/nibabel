@@ -1,5 +1,4 @@
-"""Testing tripwire module
-"""
+"""Testing tripwire module"""
 
 import pytest
 

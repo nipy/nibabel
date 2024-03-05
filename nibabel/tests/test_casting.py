@@ -1,5 +1,5 @@
-"""Test casting utilities
-"""
+"""Test casting utilities"""
+
 import os
 from platform import machine
 

@@ -1,5 +1,5 @@
-"""Testing Siemens CSA header reader
-"""
+"""Testing Siemens CSA header reader"""
+
 import struct
 import sys
 

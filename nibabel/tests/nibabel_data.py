@@ -1,5 +1,4 @@
-"""Functions / decorators for finding / requiring nibabel-data directory
-"""
+"""Functions / decorators for finding / requiring nibabel-data directory"""
 
 import unittest
 from os import environ, listdir

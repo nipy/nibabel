@@ -129,6 +129,7 @@ work:
     >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 """
+
 from __future__ import annotations
 
 import io
@@ -161,23 +162,18 @@ SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')
 
 
 class HasDtype(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype:
-        ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...  # pragma: no cover
 
-    def set_data_dtype(self, dtype: npt.DTypeLike) -> None:
-        ...  # pragma: no cover
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None: ...  # pragma: no cover
 
 
 @ty.runtime_checkable
 class SpatialProtocol(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype:
-        ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...  # pragma: no cover
 
-    def get_data_shape(self) -> ty.Tuple[int, ...]:
-        ...  # pragma: no cover
+    def get_data_shape(self) -> ty.Tuple[int, ...]: ...  # pragma: no cover
 
-    def get_zooms(self) -> ty.Tuple[float, ...]:
-        ...  # pragma: no cover
+    def get_zooms(self) -> ty.Tuple[float, ...]: ...  # pragma: no cover
 
 
 class HeaderDataError(Exception):

@@ -50,7 +50,6 @@ from nibabel.testing import (
     clear_and_catch_warnings,
     deprecated_to,
     expires,
-    nullcontext,
 )
 
 from .. import (

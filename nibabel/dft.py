@@ -9,7 +9,6 @@
 # Copyright (C) 2011 Christian Haselgrove
 """DICOM filesystem tools"""
 
-
 import contextlib
 import getpass
 import logging
@@ -44,7 +43,6 @@ class VolumeError(DFTError):
 
 
 class InstanceStackError(DFTError):
-
     """bad series of instance numbers"""
 
     def __init__(self, series, i, si):

@@ -25,6 +25,7 @@ and compare against command line output of::
 
     mincstats my_funny.mnc
 """
+
 import warnings
 
 import numpy as np

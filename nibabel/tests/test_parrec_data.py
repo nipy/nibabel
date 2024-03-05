@@ -1,5 +1,4 @@
-"""Test we can correctly import example PARREC files
-"""
+"""Test we can correctly import example PARREC files"""
 
 import unittest
 from glob import glob

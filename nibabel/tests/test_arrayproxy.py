@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Tests for arrayproxy module
-"""
+"""Tests for arrayproxy module"""
 
 import contextlib
 import gzip

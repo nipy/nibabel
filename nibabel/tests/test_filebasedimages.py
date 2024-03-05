@@ -1,5 +1,4 @@
-"""Testing filebasedimages module
-"""
+"""Testing filebasedimages module"""
 
 import warnings
 from itertools import product

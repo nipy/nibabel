@@ -1,5 +1,5 @@
-"""CSA header reader from SPM spec
-"""
+"""CSA header reader from SPM spec"""
+
 import numpy as np
 
 from .structreader import Unpacker

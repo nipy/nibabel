@@ -6,5 +6,4 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Functionality to be exposed in the command line
-"""
+"""Functionality to be exposed in the command line"""

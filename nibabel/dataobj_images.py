@@ -7,6 +7,7 @@ This can either be an actual numpy array, or an object that:
 * returns an array from ``numpy.asanyarray(obj)``;
 * has an attribute or property ``shape``.
 """
+
 from __future__ import annotations
 
 import typing as ty

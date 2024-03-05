@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing filesets - a draft
-"""
+"""Testing filesets - a draft"""
 
 from io import BytesIO
 

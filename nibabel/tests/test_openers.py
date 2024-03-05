@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for openers module"""
+
 import contextlib
 import hashlib
 import os

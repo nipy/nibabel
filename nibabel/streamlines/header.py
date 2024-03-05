@@ -1,5 +1,4 @@
-"""Field class defining common header fields in tractogram files
-"""
+"""Field class defining common header fields in tractogram files"""
 
 
 class Field:

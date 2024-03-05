@@ -1,5 +1,4 @@
-"""Tests for warnings context managers
-"""
+"""Tests for warnings context managers"""
 
 import os
 import sys

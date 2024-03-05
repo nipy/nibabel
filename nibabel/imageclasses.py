@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Define supported image classes and names"""
+
 from __future__ import annotations
 
 from .analyze import AnalyzeImage

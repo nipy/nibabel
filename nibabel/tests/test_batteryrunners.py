@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Tests for BatteryRunner and Report objects
-"""
+"""Tests for BatteryRunner and Report objects"""
 
 import logging
 from io import StringIO

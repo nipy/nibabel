@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Constants and types for dealing transparently with compression"""
+
 from __future__ import annotations
 
 import bz2
