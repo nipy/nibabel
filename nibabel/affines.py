@@ -365,7 +365,7 @@ def rescale_affine(affine, shape, zooms, new_shape=None):
         A new affine transform with the specified voxel sizes
 
     """
-    shape = np.array(shape, copy=False)
+    shape = np.asarray(shape)
     new_shape = np.array(new_shape if new_shape is not None else shape)
 
     s = voxel_sizes(affine)
