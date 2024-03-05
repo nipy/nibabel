@@ -1,5 +1,5 @@
-"""Testing Siemens CSA header reader
-"""
+"""Testing Siemens CSA header reader"""
+
 import gzip
 from copy import deepcopy
 from os.path import join as pjoin

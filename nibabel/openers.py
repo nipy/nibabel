@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Context manager openers for various fileobject types"""
+
 from __future__ import annotations
 
 import gzip
@@ -35,11 +36,9 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
 @ty.runtime_checkable
 class Fileish(ty.Protocol):
-    def read(self, size: int = -1, /) -> bytes:
-        ...  # pragma: no cover
+    def read(self, size: int = -1, /) -> bytes: ...  # pragma: no cover
 
-    def write(self, b: bytes, /) -> int | None:
-        ...  # pragma: no cover
+    def write(self, b: bytes, /) -> int | None: ...  # pragma: no cover
 
 
 class DeterministicGzipFile(gzip.GzipFile):

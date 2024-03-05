@@ -25,6 +25,7 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+
 from __future__ import annotations
 
 import typing as ty
@@ -74,21 +75,19 @@ class ArrayLike(ty.Protocol):
     shape: tuple[int, ...]
 
     @property
-    def ndim(self) -> int:
-        ...  # pragma: no cover
+    def ndim(self) -> int: ...  # pragma: no cover
 
     # If no dtype is passed, any dtype might be returned, depending on the array-like
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
-        ...  # pragma: no cover
+    def __array__(
+        self, dtype: None = ..., /
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...  # pragma: no cover
 
     # Any dtype might be passed, and *that* dtype must be returned
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
-        ...  # pragma: no cover
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...  # pragma: no cover
 
-    def __getitem__(self, key, /) -> npt.NDArray:
-        ...  # pragma: no cover
+    def __getitem__(self, key, /) -> npt.NDArray: ...  # pragma: no cover
 
 
 class ArrayProxy(ArrayLike):

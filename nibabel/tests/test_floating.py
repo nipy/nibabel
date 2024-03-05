@@ -1,5 +1,5 @@
-"""Test floating point deconstructions and floor methods
-"""
+"""Test floating point deconstructions and floor methods"""
+
 import sys
 
 import numpy as np

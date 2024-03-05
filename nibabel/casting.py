@@ -3,6 +3,7 @@
 Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
 """
+
 from __future__ import annotations
 
 import warnings

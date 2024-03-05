@@ -1,4 +1,5 @@
 """Utilities for getting array slices out of file-like objects"""
+
 import operator
 from functools import reduce
 from mmap import mmap

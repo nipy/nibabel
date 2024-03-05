@@ -1,5 +1,4 @@
-"""Testing package info
-"""
+"""Testing package info"""
 
 import pytest
 

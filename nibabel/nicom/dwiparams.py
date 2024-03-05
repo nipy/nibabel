@@ -18,6 +18,7 @@ The B matrix ``B`` is a symmetric positive semi-definite matrix.  If
 
    B ~ (q_est . q_est.T) / norm(q_est)
 """
+
 import numpy as np
 import numpy.linalg as npl
 

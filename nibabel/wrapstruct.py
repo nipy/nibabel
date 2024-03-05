@@ -109,6 +109,7 @@ The same for logging::
 
    nib.imageglobals.logger = logger
 """
+
 from __future__ import annotations
 
 import numpy as np

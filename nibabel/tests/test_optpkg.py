@@ -1,5 +1,4 @@
-"""Testing optpkg module
-"""
+"""Testing optpkg module"""
 
 import builtins
 import sys

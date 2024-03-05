@@ -1,5 +1,4 @@
-"""Testing DICOM wrappers
-"""
+"""Testing DICOM wrappers"""
 
 import gzip
 from copy import copy

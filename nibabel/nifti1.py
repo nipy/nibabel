@@ -10,6 +10,7 @@
 
 NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 """
+
 from __future__ import annotations
 
 import warnings

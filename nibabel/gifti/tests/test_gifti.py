@@ -1,5 +1,5 @@
-"""Testing gifti objects
-"""
+"""Testing gifti objects"""
+
 import itertools
 import sys
 from io import BytesIO

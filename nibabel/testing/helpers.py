@@ -1,5 +1,5 @@
-"""Helper functions for tests
-"""
+"""Helper functions for tests"""
+
 from io import BytesIO
 
 import numpy as np

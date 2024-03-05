@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing spatialimages
-"""
+"""Testing spatialimages"""
 
 from io import BytesIO
 

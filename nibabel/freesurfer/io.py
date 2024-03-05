@@ -1,5 +1,4 @@
-"""Read / write FreeSurfer geometry, morphometry, label, annotation formats
-"""
+"""Read / write FreeSurfer geometry, morphometry, label, annotation formats"""
 
 import getpass
 import time

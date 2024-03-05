@@ -1,5 +1,5 @@
-"""Metaclass and class for validating instance APIs
-"""
+"""Metaclass and class for validating instance APIs"""
+
 import os
 
 import pytest

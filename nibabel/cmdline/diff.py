@@ -246,9 +246,9 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
                         sub_thr = rel_diff <= max_rel
                         # Since we operated on sub-selected values already, we need
                         # to plug them back in
-                        candidates[
-                            tuple(indexes[sub_thr] for indexes in np.where(candidates))
-                        ] = False
+                        candidates[tuple(indexes[sub_thr] for indexes in np.where(candidates))] = (
+                            False
+                        )
                     max_rel_diff = np.max(rel_diff)
                 else:
                     max_rel_diff = 0

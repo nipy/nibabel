@@ -12,6 +12,7 @@ Then, in the tests, something like::
     assert_equal(code, 0)
     assert_equal(stdout, b'This script ran OK')
 """
+
 import os
 import sys
 from os.path import dirname, isdir, isfile, pathsep, realpath

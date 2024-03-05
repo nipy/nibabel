@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read / write access to SPM99 version of analyze image format"""
+
 import warnings
 from io import BytesIO
 

@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read / write access to SPM2 version of analyze image format"""
+
 import numpy as np
 
 from . import spm99analyze as spm99  # module import

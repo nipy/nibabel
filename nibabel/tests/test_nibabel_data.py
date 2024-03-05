@@ -1,5 +1,4 @@
-"""Tests for ``get_nibabel_data``
-"""
+"""Tests for ``get_nibabel_data``"""
 
 import os
 from os.path import dirname, isdir, realpath
