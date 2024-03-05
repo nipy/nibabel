@@ -611,7 +611,7 @@ def int_abs(arr):
     >>> int_abs(np.array([-128, 127], dtype=np.float32))
     array([128., 127.], dtype=float32)
     """
-    arr = np.array(arr, copy=False)
+    arr = np.asarray(arr)
     dt = arr.dtype
     if dt.kind == 'u':
         return arr
