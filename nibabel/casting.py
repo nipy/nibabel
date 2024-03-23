@@ -6,7 +6,7 @@ casting.  Others work round numpy casting to and from python ints
 from __future__ import annotations
 
 import warnings
-from platform import machine, processor, uname
+from platform import machine, processor
 
 import numpy as np
 
@@ -275,12 +275,10 @@ def type_info(np_type):
             width=width,
         )
     # Mitigate warning from WSL1 when checking `np.longdouble` (#1309)
-    # src for '-Microsoft': https://github.com/microsoft/WSL/issues/4555#issuecomment-536862561
     with warnings.catch_warnings():
-        if uname().release.endswith('-Microsoft'):
-            warnings.filterwarnings(
-                action='ignore', category=UserWarning, message='Signature.*numpy.longdouble'
-            )
+        warnings.filterwarnings(
+            action='ignore', category=UserWarning, message='Signature.*numpy.longdouble'
+        )
         info = np.finfo(dt)
 
     # Trust the standard IEEE types
