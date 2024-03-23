@@ -35,6 +35,11 @@ DATA_FILE_4D = pjoin(IO_DATA_PATH, '4d_multiframe_test.dcm')
 DATA_FILE_EMPTY_ST = pjoin(IO_DATA_PATH, 'slicethickness_empty_string.dcm')
 DATA_FILE_4D_DERIVED = pjoin(get_nibabel_data(), 'nitest-dicom', '4d_multiframe_with_derived.dcm')
 DATA_FILE_CT = pjoin(get_nibabel_data(), 'nitest-dicom', 'siemens_ct_header_csa.dcm')
+DATA_FILE_SIEMENS_TRACE = pjoin(
+    get_nibabel_data(),
+    'dcm_qa_xa30',
+    'In/20_DWI_dir80_AP/0001_1.3.12.2.1107.5.2.43.67093.2022071112140611403312307.dcm',
+)
 
 # This affine from our converted image was shown to match our image spatially
 # with an image from SPM DICOM conversion. We checked the matching with SPM
@@ -655,6 +660,13 @@ class TestMultiFrameWrapper(TestCase):
         dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
         with pytest.warns(UserWarning, match='Derived images found and removed'):
             assert dw.image_shape == (96, 96, 60, 33)
+
+    @dicom_test
+    @needs_nibabel_data('dcm_qa_xa30')
+    def test_data_trace(self):
+        # Test that a standalone trace volume is found and not dropped
+        dw = didw.wrapper_from_file(DATA_FILE_SIEMENS_TRACE)
+        assert dw.image_shape == (72, 72, 39, 1)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')

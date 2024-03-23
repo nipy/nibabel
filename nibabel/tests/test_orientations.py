@@ -26,7 +26,7 @@ from ..orientations import (
     ornt2axcodes,
     ornt_transform,
 )
-from ..testing import expires
+from ..testing import deprecated_to, expires
 
 IN_ARRS = [
     np.eye(4),
@@ -407,6 +407,6 @@ def test_inv_ornt_aff():
 def test_flip_axis_deprecation():
     a = np.arange(24).reshape((2, 3, 4))
     axis = 1
-    with pytest.deprecated_call():
+    with deprecated_to('5.0.0'):
         a_flipped = flip_axis(a, axis)
     assert_array_equal(a_flipped, np.flip(a, axis))

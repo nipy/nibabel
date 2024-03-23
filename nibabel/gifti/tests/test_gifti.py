@@ -14,7 +14,7 @@ from nibabel.tmpdirs import InTemporaryDirectory
 from ... import load
 from ...fileholders import FileHolder
 from ...nifti1 import data_type_codes
-from ...testing import get_test_data
+from ...testing import deprecated_to, expires, get_test_data
 from .. import (
     GiftiCoordSystem,
     GiftiDataArray,
@@ -275,27 +275,29 @@ def test_labeltable():
     assert len(img.labeltable.labels) == 2
 
 
+@expires('6.0.0')
 def test_metadata():
     md = GiftiMetaData(key='value')
     # Old initialization methods
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         nvpair = GiftiNVPairs('key', 'value')
     with pytest.warns(FutureWarning) as w:
         md2 = GiftiMetaData(nvpair=nvpair)
     assert len(w) == 1
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         md3 = GiftiMetaData.from_dict({'key': 'value'})
     assert md == md2 == md3 == {'key': 'value'}
     # .data as a list of NVPairs is going away
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         assert md.data[0].name == 'key'
+    with deprecated_to('6.0.0'):
         assert md.data[0].value == 'value'
-    assert len(w) == 2
 
 
+@expires('6.0.0')
 def test_metadata_list_interface():
     md = GiftiMetaData(key='value')
-    with pytest.warns(DeprecationWarning):
+    with deprecated_to('6.0.0'):
         mdlist = md.data
     assert len(mdlist) == 1
     assert mdlist[0].name == 'key'
@@ -312,7 +314,7 @@ def test_metadata_list_interface():
     assert md['foo'] == 'bar'
 
     # Append new NVPair
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         nvpair = GiftiNVPairs('key', 'value')
     mdlist.append(nvpair)
     assert len(mdlist) == 2

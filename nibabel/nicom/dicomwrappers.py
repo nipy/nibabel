@@ -509,11 +509,14 @@ class MultiframeWrapper(Wrapper):
         if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
             # DWI image may include derived isotropic, ADC or trace volume
             try:
-                self.frames = pydicom.Sequence(
+                anisotropic = pydicom.Sequence(
                     frame
                     for frame in self.frames
                     if frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
                 )
+                # Image contains DWI volumes followed by derived images; remove derived images
+                if len(anisotropic) != 0:
+                    self.frames = anisotropic
             except IndexError:
                 # Sequence tag is found but missing items!
                 raise WrapperError('Diffusion file missing information')
@@ -562,8 +565,12 @@ class MultiframeWrapper(Wrapper):
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
         shape = (rows, cols) + tuple(ns_unique)
         n_vols = np.prod(shape[3:])
-        if n_frames != n_vols * shape[2]:
-            raise WrapperError('Calculated shape does not match number of frames.')
+        n_frames_calc = n_vols * shape[2]
+        if n_frames != n_frames_calc:
+            raise WrapperError(
+                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
+                f'of shape {shape} does not match NumberOfFrames {n_frames}.'
+            )
         return tuple(shape)
 
     @one_time

@@ -745,7 +745,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         >>> triangles_2 = surf_img.agg_data('triangle')
         >>> triangles_3 = surf_img.agg_data(1009)  # Numeric code for pointset
         >>> print(np.array2string(triangles))
-        [0 1 2]
+        [[0 1 2]]
         >>> np.array_equal(triangles, triangles_2)
         True
         >>> np.array_equal(triangles, triangles_3)
