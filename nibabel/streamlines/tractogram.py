@@ -1,6 +1,7 @@
 import copy
 import numbers
-from collections.abc import MutableMapping
+import types
+from collections.abc import Iterable, MutableMapping
 from warnings import warn
 
 import numpy as np
@@ -101,14 +102,27 @@ class PerArrayDict(SliceableDataDict):
         super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
-        value = np.asarray(list(value))
+        dtype = np.float64
+
+        if isinstance(value, types.GeneratorType):
+            value = list(value)
+
+        if isinstance(value, np.ndarray):
+            dtype = value.dtype
+        elif not all(len(v) == len(value[0]) for v in value[1:]):
+            dtype = object
+
+        value = np.asarray(value, dtype=dtype)
 
         if value.ndim == 1 and value.dtype != object:
             # Reshape without copy
             value.shape = (len(value), 1)
 
-        if value.ndim != 2:
+        if value.ndim != 2 and value.dtype != object:
             raise ValueError('data_per_streamline must be a 2D array.')
+
+        if value.dtype == object and not all(isinstance(v, Iterable) for v in value):
+            raise ValueError('data_per_streamline must be a 2D array')
 
         # We make sure there is the right amount of values
         if 0 < self.n_rows != len(value):
