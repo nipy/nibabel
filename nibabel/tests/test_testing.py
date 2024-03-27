@@ -133,7 +133,7 @@ def test_warn_ignore():
     with suppress_warnings():
         warnings.warn('Here is a warning, you will not see it')
         warnings.warn('Nor this one', DeprecationWarning)
-    with suppress_warnings() as _:
+    with suppress_warnings():
         warnings.warn('Here is a warning, you will not see it')
         warnings.warn('Nor this one', DeprecationWarning)
     assert n_warns == len(warnings.filters)
