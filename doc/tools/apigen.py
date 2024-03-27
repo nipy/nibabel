@@ -405,9 +405,7 @@ class ApiDocWriter:
 
     def write_modules_api(self, modules, outdir):
         # upper-level modules
-        ulms = [
-            '.'.join(m.split('.')[:2]) if m.count('.') >= 1 else m.split('.')[0] for m in modules
-        ]
+        ulms = ['.'.join(m.split('.')[:2]) for m in modules]
 
         from collections import OrderedDict
 
