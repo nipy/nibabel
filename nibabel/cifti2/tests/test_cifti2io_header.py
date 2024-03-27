@@ -37,7 +37,7 @@ datafiles = [DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
 
 
 def test_space_separated_affine():
-    _ = ci.Cifti2Image.from_filename(pjoin(NIBABEL_TEST_DATA, 'row_major.dconn.nii'))
+    ci.Cifti2Image.from_filename(pjoin(NIBABEL_TEST_DATA, 'row_major.dconn.nii'))
 
 
 def test_read_nifti2():
