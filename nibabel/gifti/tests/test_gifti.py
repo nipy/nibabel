@@ -336,7 +336,7 @@ def test_metadata_list_interface():
     assert md == {'key': 'value', 'foo': 'bar'}
 
     # Insertion updates list order, though we don't attempt to preserve it in the dict
-    with pytest.warns(DeprecationWarning) as _:
+    with deprecated_to('6.0'):
         lastone = GiftiNVPairs('last', 'one')
     mdlist.insert(1, lastone)
     assert len(mdlist) == 3
