@@ -7,8 +7,6 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-# ruff: noqa: F401
-
 import os
 
 from .info import long_description as __doc__
