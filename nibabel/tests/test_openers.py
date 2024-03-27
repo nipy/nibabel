@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for openers module"""
+
 import contextlib
 import hashlib
 import os
@@ -19,7 +20,6 @@ from unittest import mock
 import pytest
 from packaging.version import Version
 
-from ..deprecator import ExpiredDeprecationError
 from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
 from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory

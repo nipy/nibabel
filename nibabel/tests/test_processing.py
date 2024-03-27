@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing processing module
-"""
+"""Testing processing module"""
 
 import logging
 from os.path import dirname

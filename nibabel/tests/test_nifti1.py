@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti reading package"""
+
 import os
 import struct
 import unittest
@@ -731,7 +732,6 @@ def unshear_44(affine):
 
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):
-
     header_class = Nifti1Header
 
     def test_empty(self):

@@ -19,6 +19,7 @@ A test decorator is available in nibabel.nicom.tests:
 
 A deprecated copy is available here for backward compatibility.
 """
+
 from __future__ import annotations
 
 import warnings

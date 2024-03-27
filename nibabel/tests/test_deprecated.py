@@ -1,5 +1,4 @@
-"""Testing `deprecated` module
-"""
+"""Testing `deprecated` module"""
 
 import warnings
 

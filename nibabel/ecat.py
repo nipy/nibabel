@@ -42,6 +42,7 @@ currently ``libs/tpc/*ecat*`` and ``source/m-ecat*``.  Unfortunately XMedCon is
 GPL and some of the header files are adapted from CTI files (called CTI code
 below).  It's not clear what the licenses are for these files.
 """
+
 import warnings
 from numbers import Integral
 
@@ -513,7 +514,6 @@ def read_subheaders(fileobj, mlist, endianness):
 
 
 class EcatSubHeader:
-
     _subhdrdtype = subhdr_dtype
     _data_type_codes = data_type_codes
 

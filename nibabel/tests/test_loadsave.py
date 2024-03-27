@@ -1,5 +1,4 @@
-"""Testing loadsave module
-"""
+"""Testing loadsave module"""
 
 import pathlib
 import shutil

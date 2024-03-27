@@ -12,6 +12,7 @@ Format described here:
 
     https://www.nitrc.org/forum/message.php?msg_id=3738
 """
+
 import numpy as np
 
 from .analyze import AnalyzeHeader

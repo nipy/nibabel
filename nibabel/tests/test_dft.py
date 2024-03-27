@@ -1,5 +1,4 @@
-"""Testing dft
-"""
+"""Testing dft"""
 
 import os
 import sqlite3

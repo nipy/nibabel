@@ -1,5 +1,4 @@
-"""Reading functions for freesurfer files
-"""
+"""Reading functions for freesurfer files"""
 
 from .io import (
     read_annot,

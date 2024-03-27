@@ -23,6 +23,7 @@ use ``logger.getEffectiveLevel()`` to see what that default is.
 
 Use ``logger.level = 1`` to see all messages.
 """
+
 import logging
 
 error_level = 40

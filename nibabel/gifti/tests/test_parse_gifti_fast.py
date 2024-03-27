@@ -447,13 +447,13 @@ def test_external_file_failure_cases():
         shutil.copy(DATA_FILE7, '.')
         filename = pjoin(tmpdir, basename(DATA_FILE7))
         with pytest.raises(GiftiParseError):
-            img = load(filename)
+            _ = load(filename)
     # load from in-memory xml string (parser requires it as bytes)
     with open(DATA_FILE7, 'rb') as f:
         xmldata = f.read()
     parser = GiftiImageParser()
     with pytest.raises(GiftiParseError):
-        img = parser.parse(xmldata)
+        _ = parser.parse(xmldata)
 
 
 def test_load_compressed():

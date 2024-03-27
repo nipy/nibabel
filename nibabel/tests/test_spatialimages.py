@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing spatialimages
-"""
+"""Testing spatialimages"""
 
 from io import BytesIO
 
@@ -399,8 +398,10 @@ class TestSpatialImage:
         img_klass = self.image_class
         in_data_template = np.arange(240, dtype=np.int16)
         base_affine = np.eye(4)
-        t_axis = None
-        for dshape in ((4, 5, 6, 2), (8, 5, 6)):    # Time series      # Volume
+        for dshape in (
+            (4, 5, 6, 2),  # Time series
+            (8, 5, 6),  # Volume
+        ):
             in_data = in_data_template.copy().reshape(dshape)
             img = img_klass(in_data, base_affine.copy())
 

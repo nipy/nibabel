@@ -11,6 +11,7 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
+
 from __future__ import annotations
 
 import base64

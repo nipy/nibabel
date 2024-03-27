@@ -1,6 +1,5 @@
 import copy
 import operator
-import sys
 import unittest
 import warnings
 from collections import defaultdict
@@ -172,7 +171,6 @@ def setup_module():
 
 
 def check_tractogram_item(tractogram_item, streamline, data_for_streamline={}, data_for_points={}):
-
     assert_array_equal(tractogram_item.streamline, streamline)
 
     assert len(tractogram_item.data_for_streamline) == len(data_for_streamline)

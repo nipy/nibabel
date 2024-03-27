@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utilities for calculating and applying affine orientations"""
+
 import numpy as np
 import numpy.linalg as npl
 

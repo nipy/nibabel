@@ -1,5 +1,4 @@
-"""Testing environment settings
-"""
+"""Testing environment settings"""
 
 import os
 from os import environ as env

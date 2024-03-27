@@ -1,5 +1,4 @@
-"""Testing diffusion parameter processing
-"""
+"""Testing diffusion parameter processing"""
 
 import numpy as np
 import pytest

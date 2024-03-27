@@ -11,9 +11,8 @@ import shutil
 import sys
 import unittest
 from glob import glob
-from os.path import abspath, basename, dirname, exists
+from os.path import abspath, basename, dirname, exists, splitext
 from os.path import join as pjoin
-from os.path import splitext
 
 import numpy as np
 import pytest
@@ -197,7 +196,7 @@ def test_help():
             # needs special treatment since depends on fuse module which
             # might not be available.
             try:
-                import fuse
+                import fuse  # noqa: F401
             except Exception:
                 continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])
