@@ -328,7 +328,7 @@ def test_metadata_list_interface():
     assert len(md) == 0
 
     # Extension adds multiple keys
-    with pytest.warns(DeprecationWarning) as _:
+    with deprecated_to('6.0'):
         foobar = GiftiNVPairs('foo', 'bar')
     mdlist.extend([nvpair, foobar])
     assert len(mdlist) == 2
