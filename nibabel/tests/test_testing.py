@@ -113,7 +113,7 @@ def test_warn_error():
     with error_warnings():
         with pytest.raises(UserWarning):
             warnings.warn('A test')
-    with error_warnings() as _:
+    with error_warnings():
         with pytest.raises(UserWarning):
             warnings.warn('A test')
     assert n_warns == len(warnings.filters)
