@@ -18,7 +18,7 @@ def test_find_private_section_real():
     assert fps(DATA, 0x29, re.compile('SIEMENS CSA HEADER')) == 0x1000
     assert fps(DATA, 0x29, 'NOT A HEADER') is None
     assert fps(DATA, 0x29, 'SIEMENS MEDCOM HEADER2') == 0x1100
-    assert fps(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER') == None
+    assert fps(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER') is None
 
 
 def test_find_private_section_fake():

@@ -239,15 +239,15 @@ def test_threshold_heuristic():
     # full slice, smallest step size
     assert threshold_heuristic(slice(0, 9, 1), 9, 2, skip_thresh=2) == 'full'
     # Dropping skip thresh below step size gives None
-    assert threshold_heuristic(slice(0, 9, 1), 9, 2, skip_thresh=1) == None
+    assert threshold_heuristic(slice(0, 9, 1), 9, 2, skip_thresh=1) is None
     # As does increasing step size
-    assert threshold_heuristic(slice(0, 9, 2), 9, 2, skip_thresh=3) == None
+    assert threshold_heuristic(slice(0, 9, 2), 9, 2, skip_thresh=3) is None
     # Negative step size same as positive
     assert threshold_heuristic(slice(9, None, -1), 9, 2, skip_thresh=2) == 'full'
     # Add a gap between start and end. Now contiguous because of step size
     assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=2) == 'contiguous'
     # To not-contiguous, even with step size 1
-    assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=1) == None
+    assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=1) is None
     # Back to full when skip covers gap
     assert threshold_heuristic(slice(2, 9, 1), 9, 2, skip_thresh=4) == 'full'
     # Until it doesn't cover the gap

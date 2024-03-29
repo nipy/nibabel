@@ -145,7 +145,7 @@ class _TestWrapStructBase:
         hdr3 = hdr2.as_byteswapped()
         assert hdr2 == hdr3
         # Check comparing to funny thing says no
-        assert hdr1 != None
+        assert hdr1 is not None
         assert hdr1 != 1
 
     def test_to_from_fileobj(self):
