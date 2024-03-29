@@ -366,7 +366,7 @@ def test_metadata_list_interface():
     assert md == {'last': 'one'}
 
     # And let's remove an old pair with a new object
-    with pytest.warns(DeprecationWarning) as _:
+    with deprecated_to('6.0'):
         lastoneagain = GiftiNVPairs('last', 'one')
     mdlist.remove(lastoneagain)
     assert len(mdlist) == 0
