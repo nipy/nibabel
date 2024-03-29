@@ -85,7 +85,7 @@ def test_wrappers():
         with pytest.raises(TypeError):
             maker()
         # Check default attributes
-        if not maker is didw.MosaicWrapper:
+        if maker is not didw.MosaicWrapper:
             assert not dw.is_mosaic
         assert dw.b_matrix is None
         assert dw.q_vector is None
@@ -297,7 +297,7 @@ def test_slice_indicator():
     dw_0 = didw.wrapper_from_file(DATA_FILE_B0)
     dw_1000 = didw.wrapper_from_data(DATA)
     z = dw_0.slice_indicator
-    assert not z is None
+    assert z is not None
     assert z == dw_1000.slice_indicator
     dw_empty = didw.Wrapper({})
     assert dw_empty.slice_indicator is None

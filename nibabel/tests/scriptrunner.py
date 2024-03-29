@@ -106,7 +106,7 @@ class ScriptRunner:
             cmd = [cmd]
         else:
             cmd = list(cmd)
-        if not self.local_script_dir is None:
+        if self.local_script_dir is not None:
             # Windows can't run script files without extensions natively so we need
             # to run local scripts (no extensions) via the Python interpreter.  On
             # Unix, we might have the wrong incantation for the Python interpreter
@@ -121,7 +121,7 @@ class ScriptRunner:
         if self.debug_print:
             print(f"Running command '{cmd}'")
         env = os.environ
-        if not self.local_module_dir is None:
+        if self.local_module_dir is not None:
             # module likely comes from the current working directory. We might need
             # that directory on the path if we're running the scripts from a
             # temporary directory

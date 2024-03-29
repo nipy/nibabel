@@ -40,11 +40,11 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
             ((None, 0.0), None, (None, None), np.nan),
         ):
             hdr = self.header_class()
-            if not exp_err is None:
+            if exp_err is not None:
                 with pytest.raises(exp_err):
                     hdr.set_slope_inter(*in_tup)
                 # raw set
-                if not in_tup[0] is None:
+                if in_tup[0] is not None:
                     hdr['scl_slope'] = in_tup[0]
             else:
                 hdr.set_slope_inter(*in_tup)

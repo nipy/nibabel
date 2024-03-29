@@ -202,7 +202,7 @@ def is_mosaic(csa_dict):
     if get_acq_mat_txt(csa_dict) is None:
         return False
     n_o_m = get_n_mosaic(csa_dict)
-    return not (n_o_m is None) and n_o_m != 0
+    return n_o_m is not None and n_o_m != 0
 
 
 def get_n_mosaic(csa_dict):

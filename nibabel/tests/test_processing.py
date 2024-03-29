@@ -261,7 +261,7 @@ def test_resample_to_output(caplog):
         in_n_dim = len(in_shape)
         if in_n_dim < 3:
             in_shape = in_shape + (1,) * (3 - in_n_dim)
-            if not vox is None:
+            if vox is not None:
                 vox = vox + (1,) * (3 - in_n_dim)
             assert len(out_shape) == in_n_dim
             out_shape = out_shape + (1,) * (3 - in_n_dim)

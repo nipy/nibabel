@@ -1145,7 +1145,7 @@ def test__write_data():
         )
         arr = np.ndarray(shape, out_dtype, buffer=sio.getvalue(), order=order)
         expected = to_write.copy()
-        if have_nans and not nan_fill is None:
+        if have_nans and nan_fill is not None:
             expected[nan_positions] = nan_fill * slope + inter
         assert_array_equal(arr * slope + inter, expected)
         assert_array_equal(to_write, backup)
@@ -1189,7 +1189,7 @@ def test__write_data():
             nan_fill=nan_fill,
         )
         # Check defense against in-place modification with nans present
-        if not nan_fill is None:
+        if nan_fill is not None:
             data[1] = np.nan
             assert_rt(
                 data,

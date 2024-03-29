@@ -131,11 +131,11 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
             ((None, 0.0), None, (None, None), np.nan),
         ):
             hdr = self.header_class()
-            if not exp_err is None:
+            if exp_err is not None:
                 with pytest.raises(exp_err):
                     hdr.set_slope_inter(*in_tup)
                 # raw set
-                if not in_tup[0] is None:
+                if in_tup[0] is not None:
                     hdr['scl_slope'] = in_tup[0]
             else:
                 hdr.set_slope_inter(*in_tup)
@@ -177,9 +177,9 @@ class ImageScalingMixin:
     def assert_scale_me_scaling(self, hdr):
         # Assert that header `hdr` has "scale-me" scaling
         slope, inter = self._get_raw_scaling(hdr)
-        if not slope is None:
+        if slope is not None:
             assert np.isnan(slope)
-        if not inter is None:
+        if inter is not None:
             assert np.isnan(inter)
 
     def _get_raw_scaling(self, hdr):
@@ -188,7 +188,7 @@ class ImageScalingMixin:
     def _set_raw_scaling(self, hdr, slope, inter):
         # Brutal set of slope and inter
         hdr['scl_slope'] = slope
-        if not inter is None:
+        if inter is not None:
             raise ValueError('inter should be None')
 
     def assert_null_scaling(self, arr, slope, inter):

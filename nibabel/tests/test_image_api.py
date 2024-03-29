@@ -281,7 +281,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert img.in_memory
         # We previously got proxy_data from disk, but data, which we
         # have just fetched, is a fresh copy.
-        assert not proxy_data is data
+        assert proxy_data is not data
         # asarray on dataobj, applied above, returns same numerical
         # values.  This might not be true get_fdata operating on huge
         # integers, but lets assume that's not true here.
@@ -373,7 +373,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             img.uncache()
             assert_array_equal(get_data_func(), 42)
         else:
-            assert not data is img.dataobj
+            assert data is not img.dataobj
             assert not np.all(np.asarray(img.dataobj) == 42)
             # Uncache does have an effect
             img.uncache()

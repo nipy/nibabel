@@ -180,10 +180,10 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             ((2, 1), None, (2, 1), (2, 1)),
         ):
             hdr = self.header_class()
-            if not exp_err is None:
+            if exp_err is not None:
                 with pytest.raises(exp_err):
                     hdr.set_slope_inter(*in_tup)
-                in_list = [v if not v is None else np.nan for v in in_tup]
+                in_list = [v if v is not None else np.nan for v in in_tup]
                 hdr['scl_slope'], hdr['scl_inter'] = in_list
             else:
                 hdr.set_slope_inter(*in_tup)

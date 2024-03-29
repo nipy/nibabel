@@ -272,7 +272,7 @@ class _TestWrapStructBase:
         assert hdr.endianness == native_code
         # same code just returns a copy
         hdr2 = hdr.as_byteswapped(native_code)
-        assert not hdr is hdr2
+        assert hdr is not hdr2
         # Different code gives byteswapped copy
         hdr_bs = hdr.as_byteswapped(swapped_code)
         assert hdr_bs.endianness == swapped_code
