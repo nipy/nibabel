@@ -27,7 +27,7 @@ from .test_environment import DATA_KEY, USER_KEY, with_environment  # noqa: F401
 
 
 @pytest.fixture
-def with_nimd_env(request):
+def with_nimd_env(request, with_environment):  # noqa: F811
     DATA_FUNCS = {}
     DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
     DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
