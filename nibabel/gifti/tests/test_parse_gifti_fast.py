@@ -453,7 +453,7 @@ def test_external_file_failure_cases():
         xmldata = f.read()
     parser = GiftiImageParser()
     with pytest.raises(GiftiParseError):
-        _ = parser.parse(xmldata)
+        parser.parse(xmldata)
 
 
 def test_load_compressed():
