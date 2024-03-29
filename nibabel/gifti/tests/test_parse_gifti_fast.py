@@ -447,7 +447,7 @@ def test_external_file_failure_cases():
         shutil.copy(DATA_FILE7, '.')
         filename = pjoin(tmpdir, basename(DATA_FILE7))
         with pytest.raises(GiftiParseError):
-            _ = load(filename)
+            load(filename)
     # load from in-memory xml string (parser requires it as bytes)
     with open(DATA_FILE7, 'rb') as f:
         xmldata = f.read()
