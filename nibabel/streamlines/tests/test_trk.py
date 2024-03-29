@@ -149,7 +149,7 @@ class TestTRK(unittest.TestCase):
         # Simulate a TRK where `vox_to_ras` is invalid.
         trk_struct, trk_bytes = self.trk_with_bytes()
         trk_struct[Field.VOXEL_TO_RASMM] = np.diag([0, 0, 0, 1])
-        with clear_and_catch_warnings(record=True, modules=[trk_module]) as _:
+        with clear_and_catch_warnings(modules=[trk_module]):
             with pytest.raises(HeaderError):
                 TrkFile.load(BytesIO(trk_bytes))
 
