@@ -1,15 +1,12 @@
 """Testing imageclasses module
 """
 
-import warnings
 from os.path import dirname
 from os.path import join as pjoin
 
 import numpy as np
-import pytest
 
 import nibabel as nib
-from nibabel import imageclasses
 from nibabel.analyze import AnalyzeImage
 from nibabel.imageclasses import spatial_axes_first
 from nibabel.nifti1 import Nifti1Image

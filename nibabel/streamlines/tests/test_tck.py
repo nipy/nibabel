@@ -8,7 +8,6 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from ...testing import data_path, error_warnings
-from .. import tck as tck_module
 from ..array_sequence import ArraySequence
 from ..tck import TckFile
 from ..tractogram import Tractogram

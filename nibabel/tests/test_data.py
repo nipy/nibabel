@@ -22,7 +22,7 @@ from ..data import (
     get_data_path,
     make_datasource,
 )
-from .test_environment import DATA_KEY, USER_KEY, with_environment
+from .test_environment import DATA_KEY, USER_KEY
 
 
 @pytest.fixture

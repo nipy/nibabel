@@ -1,6 +1,5 @@
 import copy
 import operator
-import sys
 import unittest
 import warnings
 from collections import defaultdict

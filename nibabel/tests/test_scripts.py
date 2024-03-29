@@ -197,7 +197,7 @@ def test_help():
             # needs special treatment since depends on fuse module which
             # might not be available.
             try:
-                import fuse
+                import fuse  # noqa: F401
             except Exception:
                 continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])

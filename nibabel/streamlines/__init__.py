@@ -3,10 +3,8 @@
 import os
 import warnings
 
-from .array_sequence import ArraySequence
-from .header import Field
 from .tck import TckFile
-from .tractogram import LazyTractogram, Tractogram
+from .tractogram import Tractogram
 from .tractogram_file import ExtensionWarning
 from .trk import TrkFile
 

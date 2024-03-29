@@ -1,6 +1,5 @@
 """ Tests for netcdf """
 
-import os
 from os.path import join as pjoin, dirname
 from io import BytesIO
 from glob import glob

@@ -30,11 +30,11 @@ except ImportError:
 
 # Check for external Sphinx extensions we depend on
 try:
-    import numpydoc
+    import numpydoc  # noqa: F401
 except ImportError:
     raise RuntimeError('Need to install "numpydoc" package for doc build')
 try:
-    import texext
+    import texext  # noqa: F401
 except ImportError:
     raise RuntimeError('Need to install "texext" package for doc build')
 

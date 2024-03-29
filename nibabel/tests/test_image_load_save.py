@@ -24,7 +24,6 @@ from .. import (
     MGHImage,
     Minc1Image,
     Minc2Image,
-    Nifti1Header,
     Nifti1Image,
     Nifti1Pair,
     Nifti2Image,
