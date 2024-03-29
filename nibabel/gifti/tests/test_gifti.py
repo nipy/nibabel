@@ -360,7 +360,7 @@ def test_metadata_list_interface():
     assert 'completelynew' not in md
     assert md == {'foo': 'bar', 'last': 'one'}
     # Check popping from the end (last one inserted before foobar)
-    _ = mdlist.pop()
+    mdlist.pop()
     assert len(mdlist) == 1
     assert len(md) == 1
     assert md == {'last': 'one'}
