@@ -25,7 +25,7 @@ class DoNumpyImage(DataobjImage):
         with file_map['image'].get_prepare_fileobj('rb') as fobj:
             try:
                 arr = np.load(fobj, mmap=mmap)
-            except:
+            except Exception:
                 arr = np.load(fobj)
         return klass(arr)
 

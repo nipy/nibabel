@@ -58,7 +58,7 @@ def load_small_file():
     try:
         load(pjoin(DATA_PATH, 'small.mnc'))
         return True
-    except:
+    except Exception:
         return False
 
 

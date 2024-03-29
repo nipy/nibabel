@@ -108,7 +108,7 @@ def test__cfg_value():
     finally:
         try:
             os.unlink(tmpfile)
-        except:
+        except Exception:
             pass
 
 
