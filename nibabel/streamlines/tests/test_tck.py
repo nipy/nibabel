@@ -137,7 +137,7 @@ class TestTCK(unittest.TestCase):
 
         # Simulate a TCK file with no `file` field.
         new_tck_file = tck_file.replace(b'\nfile: . 67', b'')
-        with pytest.warns(HeaderWarning, match="Missing 'file'") as _:
+        with pytest.warns(HeaderWarning, match="Missing 'file'"):
             tck = TckFile.load(BytesIO(new_tck_file))
         assert_array_equal(tck.header['file'], '. 56')
 
