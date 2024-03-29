@@ -6,7 +6,6 @@ from os.path import join as pjoin
 import numpy as np
 
 import nibabel as nib
-from nibabel import imageclasses  # noqa: F401
 from nibabel.analyze import AnalyzeImage
 from nibabel.imageclasses import spatial_axes_first
 from nibabel.nifti1 import Nifti1Image
