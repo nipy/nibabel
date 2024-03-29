@@ -56,7 +56,7 @@ def chk2(obj, fix=False):
 
 def chk_warn(obj, fix=False):
     rep = Report(KeyError)
-    if not 'anotherkey' in obj:
+    if 'anotherkey' not in obj:
         rep.problem_level = 30
         rep.problem_msg = 'no "anotherkey"'
         if fix:
@@ -67,7 +67,7 @@ def chk_warn(obj, fix=False):
 
 def chk_error(obj, fix=False):
     rep = Report(KeyError)
-    if not 'thirdkey' in obj:
+    if 'thirdkey' not in obj:
         rep.problem_level = 40
         rep.problem_msg = 'no "thirdkey"'
         if fix:

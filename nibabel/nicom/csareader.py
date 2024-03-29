@@ -56,7 +56,7 @@ def get_csa_header(dcm_data, csa_type='image'):
         element_offset = 0x20
     else:
         raise ValueError(f'Invalid CSA header type "{csa_type}"')
-    if not (0x29, 0x10) in dcm_data:  # Cannot be Siemens CSA
+    if (0x29, 0x10) not in dcm_data:  # Cannot be Siemens CSA
         return None
     section_start = find_private_section(dcm_data, 0x29, 'SIEMENS CSA HEADER')
     if section_start is None:

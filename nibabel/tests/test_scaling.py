@@ -191,7 +191,7 @@ def check_int_a2f(in_type, out_type):
     big_floater = sctypes['float'][-1]
     info = type_info(in_type)
     this_min, this_max = info['min'], info['max']
-    if not in_type in sctypes['complex']:
+    if in_type not in sctypes['complex']:
         data = np.array([this_min, this_max], in_type)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(data)):

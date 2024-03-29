@@ -331,7 +331,7 @@ class _TestLabeledWrapStruct(_TestWrapStructBase):
             # No recoder at first
             with pytest.raises(ValueError):
                 hdr.get_value_label(0)
-            if not value.dtype.type in INTEGER_TYPES or not np.isscalar(value):
+            if value.dtype.type not in INTEGER_TYPES or not np.isscalar(value):
                 continue
             code = int(value)
             rec = Recoder([[code, 'fullness of heart']], ('code', 'label'))

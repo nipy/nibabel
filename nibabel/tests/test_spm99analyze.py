@@ -205,7 +205,7 @@ class ImageScalingMixin:
         # turned off).
         fm = bytesio_filemap(img)
         img_fobj = fm['image'].fileobj
-        hdr_fobj = img_fobj if not 'header' in fm else fm['header'].fileobj
+        hdr_fobj = img_fobj if 'header' not in fm else fm['header'].fileobj
         img_hdr.write_to(hdr_fobj)
         img_hdr.data_to_fileobj(arr, img_fobj, rescale=False)
         raw_rt_img = img_class.from_file_map(fm)
