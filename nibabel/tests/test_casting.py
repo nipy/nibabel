@@ -122,7 +122,7 @@ def test_casting():
             # Confirm input array is not modified
             nans = np.isnan(farr)
             assert_array_equal(nans, np.isnan(farr_orig))
-            assert_array_equal(farr[nans == False], farr_orig[nans == False])
+            assert_array_equal(farr[nans is False], farr_orig[nans is False])
     # Test scalars work and return scalars
     assert_array_equal(float_to_int(np.float32(0), np.int16), [0])
     # Test scalar nan OK
