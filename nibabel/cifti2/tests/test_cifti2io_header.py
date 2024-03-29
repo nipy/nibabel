@@ -73,7 +73,7 @@ def test_read_and_proxies():
 
 @needs_nibabel_data('nitest-cifti2')
 def test_version():
-    for i, dat in enumerate(datafiles):
+    for dat in datafiles:
         img = nib.load(dat)
         assert Version(img.header.version) == Version('2')
 
