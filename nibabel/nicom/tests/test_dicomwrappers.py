@@ -630,7 +630,7 @@ class TestMultiFrameWrapper(TestCase):
     def test_affine(self):
         # Make sure we find orientation/position/spacing info
         dw = didw.wrapper_from_file(DATA_FILE_4D)
-        _ = dw.affine
+        dw.affine
 
     @dicom_test
     @pytest.mark.xfail(reason='Not packaged in install', raises=FileNotFoundError)
