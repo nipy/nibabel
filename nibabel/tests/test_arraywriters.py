@@ -285,8 +285,8 @@ def test_slope_inter_castable():
             in_arr = arr.astype(in_dtt)
             with pytest.raises(WriterError):
                 ArrayWriter(in_arr, out_dtt)
-            _ = SlopeArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
-            _ = SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
+            SlopeArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
+            SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
     for in_dtt, out_dtt, arr, slope_only, slope_inter, neither in (
         (np.float32, np.float32, 1, True, True, True),
         (np.float64, np.float32, 1, True, True, True),
