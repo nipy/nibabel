@@ -1,5 +1,4 @@
-"""Code for PAR/REC to NIfTI converter command
-"""
+"""Code for PAR/REC to NIfTI converter command"""
 
 import csv
 import os
@@ -23,46 +22,46 @@ from nibabel.volumeutils import fname_ext_ul_case
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] <PAR files>\n\n' + __doc__,
-        version='%prog ' + nibabel.__version__,
+        usage=f"{sys.argv[0]} [OPTIONS] <PAR files>\n\n" + __doc__,
+        version="%prog " + nibabel.__version__,
     )
     p.add_option(
         Option(
-            '-v',
-            '--verbose',
-            action='store_true',
-            dest='verbose',
+            "-v",
+            "--verbose",
+            action="store_true",
+            dest="verbose",
             default=False,
             help="""Make some noise.""",
         )
     )
     p.add_option(
         Option(
-            '-o',
-            '--output-dir',
-            action='store',
-            type='string',
-            dest='outdir',
+            "-o",
+            "--output-dir",
+            action="store",
+            type="string",
+            dest="outdir",
             default=None,
-            help='Destination directory for NIfTI files. Default: current directory.',
+            help="Destination directory for NIfTI files. Default: current directory.",
         )
     )
     p.add_option(
         Option(
-            '-c',
-            '--compressed',
-            action='store_true',
-            dest='compressed',
+            "-c",
+            "--compressed",
+            action="store_true",
+            dest="compressed",
             default=False,
-            help='Whether to write compressed NIfTI files or not.',
+            help="Whether to write compressed NIfTI files or not.",
         )
     )
     p.add_option(
         Option(
-            '-p',
-            '--permit-truncated',
-            action='store_true',
-            dest='permit_truncated',
+            "-p",
+            "--permit-truncated",
+            action="store_true",
+            dest="permit_truncated",
             default=False,
             help=one_line(
                 """Permit conversion of truncated recordings. Support for
@@ -73,21 +72,21 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '-b',
-            '--bvs',
-            action='store_true',
-            dest='bvs',
+            "-b",
+            "--bvs",
+            action="store_true",
+            dest="bvs",
             default=False,
-            help='Output bvals/bvecs files in addition to NIFTI image.',
+            help="Output bvals/bvecs files in addition to NIFTI image.",
         )
     )
     p.add_option(
         Option(
-            '-d',
-            '--dwell-time',
-            action='store_true',
+            "-d",
+            "--dwell-time",
+            action="store_true",
             default=False,
-            dest='dwell_time',
+            dest="dwell_time",
             help=one_line(
                 """Calculate the scan dwell time. If supplied, the magnetic
                    field strength should also be supplied using
@@ -99,10 +98,10 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '--field-strength',
-            action='store',
-            type='float',
-            dest='field_strength',
+            "--field-strength",
+            action="store",
+            type="float",
+            dest="field_strength",
             help=one_line(
                 """The magnetic field strength of the recording, only needed
                    for --dwell-time. The field strength must be supplied
@@ -112,10 +111,10 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '-i',
-            '--volume-info',
-            action='store_true',
-            dest='vol_info',
+            "-i",
+            "--volume-info",
+            action="store_true",
+            dest="vol_info",
             default=False,
             help=one_line(
                 """Export .PAR volume labels corresponding to the fourth
@@ -131,10 +130,10 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '--origin',
-            action='store',
-            dest='origin',
-            default='scanner',
+            "--origin",
+            action="store",
+            dest="origin",
+            default="scanner",
             help=one_line(
                 """Reference point of the q-form transformation of the NIfTI
                    image. If 'scanner' the (0,0,0) coordinates will refer to
@@ -146,10 +145,10 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '--minmax',
-            action='store',
+            "--minmax",
+            action="store",
             nargs=2,
-            dest='minmax',
+            dest="minmax",
             help=one_line(
                 """Minimum and maximum settings to be stored in the NIfTI
                    header. If any of them is set to 'parse', the scaled data is
@@ -162,12 +161,12 @@ def get_opt_parser():
             ),
         )
     )
-    p.set_defaults(minmax=('parse', 'parse'))
+    p.set_defaults(minmax=("parse", "parse"))
     p.add_option(
         Option(
-            '--store-header',
-            action='store_true',
-            dest='store_header',
+            "--store-header",
+            action="store_true",
+            dest="store_header",
             default=False,
             help=one_line(
                 """If set, all information from the PAR header is stored in
@@ -177,10 +176,10 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '--scaling',
-            action='store',
-            dest='scaling',
-            default='dv',
+            "--scaling",
+            action="store",
+            dest="scaling",
+            default="dv",
             help=one_line(
                 """Choose data scaling setting. The PAR header defines two
                    different data scaling settings: 'dv' (values displayed on
@@ -195,9 +194,9 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '--keep-trace',
-            action='store_true',
-            dest='keep_trace',
+            "--keep-trace",
+            action="store_true",
+            dest="keep_trace",
             default=False,
             help=one_line(
                 """Do not discard the diagnostic Philips DTI
@@ -207,18 +206,18 @@ def get_opt_parser():
     )
     p.add_option(
         Option(
-            '--overwrite',
-            action='store_true',
-            dest='overwrite',
+            "--overwrite",
+            action="store_true",
+            dest="overwrite",
             default=False,
-            help='Overwrite file if it exists. Default: False',
+            help="Overwrite file if it exists. Default: False",
         )
     )
     p.add_option(
         Option(
-            '--strict-sort',
-            action='store_true',
-            dest='strict_sort',
+            "--strict-sort",
+            action="store_true",
+            dest="strict_sort",
             default=False,
             help=one_line(
                 """Use additional keys in determining the order
@@ -233,11 +232,11 @@ def get_opt_parser():
 
 def verbose(msg, indent=0):
     if verbose.switch:
-        print(' ' * indent + msg)
+        print(" " * indent + msg)
 
 
 def error(msg, exit_code):
-    sys.stderr.write(msg + '\n')
+    sys.stderr.write(msg + "\n")
     sys.exit(exit_code)
 
 
@@ -250,15 +249,17 @@ def proc_file(infile, opts):
 
     # prep a file
     if opts.compressed:
-        verbose('Using gzip compression')
-        outfilename = basefilename + '.nii.gz'
+        verbose("Using gzip compression")
+        outfilename = basefilename + ".nii.gz"
     else:
-        outfilename = basefilename + '.nii'
+        outfilename = basefilename + ".nii"
     if os.path.isfile(outfilename) and not opts.overwrite:
-        raise OSError(f'Output file "{outfilename}" exists, use --overwrite to overwrite it')
+        raise OSError(
+            f'Output file "{outfilename}" exists, use --overwrite to overwrite it'
+        )
 
     # load the PAR header and data
-    scaling = 'dv' if opts.scaling == 'off' else opts.scaling
+    scaling = "dv" if opts.scaling == "off" else opts.scaling
     infile = fname_ext_ul_case(infile)
     pr_img = pr.load(
         infile,
@@ -269,10 +270,10 @@ def proc_file(infile, opts):
     pr_hdr = pr_img.header
     affine = pr_hdr.get_affine(origin=opts.origin)
     slope, intercept = pr_hdr.get_data_scaling(scaling)
-    if opts.scaling != 'off':
+    if opts.scaling != "off":
         verbose(f'Using data scaling "{opts.scaling}"')
     # get original scaling, and decide if we scale in-place or not
-    if opts.scaling == 'off':
+    if opts.scaling == "off":
         slope = np.array([1.0])
         intercept = np.array([0.0])
         in_data = pr_img.dataobj.get_unscaled()
@@ -310,8 +311,8 @@ def proc_file(infile, opts):
         if bvecs is not None:
             bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
             if bad_mask.sum() > 0:
-                pl = 's' if bad_mask.sum() != 1 else ''
-                verbose(f'Removing {bad_mask.sum()} DTI trace volume{pl}')
+                pl = "s" if bad_mask.sum() != 1 else ""
+                verbose(f"Removing {bad_mask.sum()} DTI trace volume{pl}")
                 good_mask = ~bad_mask
                 in_data = in_data[..., good_mask]
                 bvals = bvals[good_mask]
@@ -325,67 +326,67 @@ def proc_file(infile, opts):
     nhdr.set_sform(affine, code=1)
     nhdr.set_qform(affine, code=1)
 
-    if 'parse' in opts.minmax:
+    if "parse" in opts.minmax:
         # need to get the scaled data
-        verbose('Loading (and scaling) the data to determine value range')
-    if opts.minmax[0] == 'parse':
-        nhdr['cal_min'] = in_data.min() * slope + intercept
+        verbose("Loading (and scaling) the data to determine value range")
+    if opts.minmax[0] == "parse":
+        nhdr["cal_min"] = in_data.min() * slope + intercept
     else:
-        nhdr['cal_min'] = float(opts.minmax[0])
-    if opts.minmax[1] == 'parse':
-        nhdr['cal_max'] = in_data.max() * slope + intercept
+        nhdr["cal_min"] = float(opts.minmax[0])
+    if opts.minmax[1] == "parse":
+        nhdr["cal_max"] = in_data.max() * slope + intercept
     else:
-        nhdr['cal_max'] = float(opts.minmax[1])
+        nhdr["cal_max"] = float(opts.minmax[1])
 
     # container for potential NIfTI1 header extensions
     if opts.store_header:
         # dump the full PAR header content into an extension
-        with open(infile, 'rb') as fobj:  # contents must be bytes
+        with open(infile, "rb") as fobj:  # contents must be bytes
             hdr_dump = fobj.read()
-            dump_ext = nifti1.Nifti1Extension('comment', hdr_dump)
+            dump_ext = nifti1.Nifti1Extension("comment", hdr_dump)
         nhdr.extensions.append(dump_ext)
 
-    verbose(f'Writing {outfilename}')
+    verbose(f"Writing {outfilename}")
     nibabel.save(nimg, outfilename)
 
     # write out bvals/bvecs if requested
     if opts.bvs:
         if bvals is None and bvecs is None:
-            verbose('No DTI volumes detected, bvals and bvecs not written')
+            verbose("No DTI volumes detected, bvals and bvecs not written")
         elif bvecs is None:
             verbose(
-                'DTI volumes detected, but no diffusion direction info was'
-                'found.  Writing .bvals file only.'
+                "DTI volumes detected, but no diffusion direction info was"
+                "found.  Writing .bvals file only."
             )
-            with open(basefilename + '.bvals', 'w') as fid:
+            with open(basefilename + ".bvals", "w") as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 for val in bvals:
-                    fid.write(f'{val} ')
-                fid.write('\n')
+                    fid.write(f"{val} ")
+                fid.write("\n")
         else:
-            verbose('Writing .bvals and .bvecs files')
+            verbose("Writing .bvals and .bvecs files")
             # Transform bvecs with reorientation affine
             orig2new = npl.inv(t_aff)
             bv_reorient = from_matvec(to_matvec(orig2new)[0], [0, 0, 0])
             bvecs = apply_affine(bv_reorient, bvecs)
-            with open(basefilename + '.bvals', 'w') as fid:
+            with open(basefilename + ".bvals", "w") as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 for val in bvals:
-                    fid.write(f'{val} ')
-                fid.write('\n')
-            with open(basefilename + '.bvecs', 'w') as fid:
+                    fid.write(f"{val} ")
+                fid.write("\n")
+            with open(basefilename + ".bvecs", "w") as fid:
                 for row in bvecs.T:
                     for val in row:
-                        fid.write(f'{val} ')
-                    fid.write('\n')
+                        fid.write(f"{val} ")
+                    fid.write("\n")
 
     # export data labels varying along the 4th dimensions if requested
     if opts.vol_info:
         labels = pr_img.header.get_volume_labels()
         if len(labels) > 0:
             vol_keys = list(labels.keys())
-            with open(basefilename + '.ordering.csv', 'w', newline='') as csvfile:
-                csvwriter = csv.writer(csvfile, delimiter=',')
+            with open(basefilename + ".ordering.csv", "w", newline="") as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=",")
                 csvwriter.writerow(vol_keys)
                 for vals in zip(*[labels[k] for k in vol_keys]):
                     csvwriter.writerow(vals)
@@ -394,17 +395,19 @@ def proc_file(infile, opts):
     if opts.dwell_time:
         try:
             dwell_time = calculate_dwell_time(
-                pr_hdr.get_water_fat_shift(), pr_hdr.get_echo_train_length(), opts.field_strength
+                pr_hdr.get_water_fat_shift(),
+                pr_hdr.get_echo_train_length(),
+                opts.field_strength,
             )
         except MRIError:
-            verbose('No EPI factors, dwell time not written')
+            verbose("No EPI factors, dwell time not written")
         else:
             verbose(
-                f'Writing dwell time ({dwell_time!r} sec) '
-                f'calculated assuming {opts.field_strength}T magnet'
+                f"Writing dwell time ({dwell_time!r} sec) "
+                f"calculated assuming {opts.field_strength}T magnet"
             )
-            with open(basefilename + '.dwell_time', 'w') as fid:
-                fid.write(f'{dwell_time!r}\n')
+            with open(basefilename + ".dwell_time", "w") as fid:
+                fid.write(f"{dwell_time!r}\n")
     # done
 
 
@@ -414,21 +417,21 @@ def main():
 
     verbose.switch = opts.verbose
 
-    if opts.origin not in ('scanner', 'fov'):
+    if opts.origin not in ("scanner", "fov"):
         error(f"Unrecognized value for --origin: '{opts.origin}'.", 1)
     if opts.dwell_time and opts.field_strength is None:
-        error('Need --field-strength for dwell time calculation', 1)
+        error("Need --field-strength for dwell time calculation", 1)
 
     # store any exceptions
     errs = []
     for infile in infiles:
-        verbose(f'Processing {infile}')
+        verbose(f"Processing {infile}")
         try:
             proc_file(infile, opts)
         except Exception as e:
-            errs.append(f'{infile}: {e}')
+            errs.append(f"{infile}: {e}")
 
     if len(errs):
-        error(f'Caught {len(errs)} exceptions. Dump follows:\n\n' + '\n'.join(errs), 1)
+        error(f"Caught {len(errs)} exceptions. Dump follows:\n\n" + "\n".join(errs), 1)
     else:
-        verbose('Done')
+        verbose("Done")

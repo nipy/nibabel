@@ -11,6 +11,7 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
+
 from __future__ import annotations
 
 import base64
@@ -26,12 +27,17 @@ from ..caret import CaretMetaData
 from ..deprecated import deprecate_with_version
 from ..filebasedimages import SerializableImage
 from ..nifti1 import data_type_codes, intent_codes, xform_codes
-from .util import KIND2FMT, array_index_order_codes, gifti_encoding_codes, gifti_endian_codes
+from .util import (
+    KIND2FMT,
+    array_index_order_codes,
+    gifti_encoding_codes,
+    gifti_endian_codes,
+)
 
 GIFTI_DTYPES = (
-    data_type_codes['NIFTI_TYPE_UINT8'],
-    data_type_codes['NIFTI_TYPE_INT32'],
-    data_type_codes['NIFTI_TYPE_FLOAT32'],
+    data_type_codes["NIFTI_TYPE_UINT8"],
+    data_type_codes["NIFTI_TYPE_INT32"],
+    data_type_codes["NIFTI_TYPE_FLOAT32"],
 )
 
 
@@ -40,7 +46,9 @@ class _GiftiMDList(list):
 
     def __init__(self, metadata):
         self._md = metadata
-        super().__init__(GiftiNVPairs._private_init(k, v, metadata) for k, v in metadata.items())
+        super().__init__(
+            GiftiNVPairs._private_init(k, v, metadata) for k, v in metadata.items()
+        )
 
     def append(self, nvpair):
         self._md[nvpair.name] = nvpair.value
@@ -101,43 +109,43 @@ class GiftiMetaData(CaretMetaData):
         # Positional arg
         dep_init |= not kwargs and len(args) == 1 and isinstance(args[0], GiftiNVPairs)
         # Keyword arg
-        dep_init |= not args and list(kwargs) == ['nvpair']
+        dep_init |= not args and list(kwargs) == ["nvpair"]
         if not dep_init:
             return args, kwargs
 
         warnings.warn(
-            'GiftiMetaData now has a dict-like interface. '
-            'See ``pydoc dict`` for initialization options. '
-            'Passing ``GiftiNVPairs()`` or using the ``nvpair`` '
-            'keyword will fail or behave unexpectedly in NiBabel 6.0.',
+            "GiftiMetaData now has a dict-like interface. "
+            "See ``pydoc dict`` for initialization options. "
+            "Passing ``GiftiNVPairs()`` or using the ``nvpair`` "
+            "keyword will fail or behave unexpectedly in NiBabel 6.0.",
             FutureWarning,
             stacklevel=3,
         )
-        pair = args[0] if args else kwargs.get('nvpair')
+        pair = args[0] if args else kwargs.get("nvpair")
         return (), {pair.name: pair.value}
 
     @property
     @deprecate_with_version(
-        'The data attribute is deprecated. Use GiftiMetaData object directly as a dict.',
-        '4.0',
-        '6.0',
+        "The data attribute is deprecated. Use GiftiMetaData object directly as a dict.",
+        "4.0",
+        "6.0",
     )
     def data(self):
         return _GiftiMDList(self)
 
     @classmethod
     @deprecate_with_version(
-        'from_dict class method deprecated. Use GiftiMetaData directly.', '4.0', '6.0'
+        "from_dict class method deprecated. Use GiftiMetaData directly.", "4.0", "6.0"
     )
     def from_dict(klass, data_dict):
         return klass(data_dict)
 
     @property
     @deprecate_with_version(
-        'metadata property deprecated. Use GiftiMetaData object '
-        'as dict or pass to dict() for a standard dictionary.',
-        '4.0',
-        '6.0',
+        "metadata property deprecated. Use GiftiMetaData object "
+        "as dict or pass to dict() for a standard dictionary.",
+        "4.0",
+        "6.0",
     )
     def metadata(self):
         """Returns metadata as dictionary"""
@@ -157,11 +165,11 @@ class GiftiNVPairs:
     """
 
     @deprecate_with_version(
-        'GiftiNVPairs objects are deprecated. Use the GiftiMetaData object as a dict, instead.',
-        '4.0',
-        '6.0',
+        "GiftiNVPairs objects are deprecated. Use the GiftiMetaData object as a dict, instead.",
+        "4.0",
+        "6.0",
     )
-    def __init__(self, name='', value=''):
+    def __init__(self, name="", value=""):
         self._name = name
         self._value = value
         self._container = None
@@ -170,7 +178,7 @@ class GiftiNVPairs:
     def _private_init(cls, name, value, md):
         """Private init method to provide warning-free experience"""
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', DeprecationWarning)
+            warnings.simplefilter("ignore", DeprecationWarning)
             self = cls(name, value)
         self._container = md
         return self
@@ -214,7 +222,7 @@ class GiftiLabelTable(xml.XmlSerializable):
         self.labels = []
 
     def __repr__(self):
-        return f'<GiftiLabelTable {self.labels!r}>'
+        return f"<GiftiLabelTable {self.labels!r}>"
 
     def get_labels_as_dict(self):
         self.labels_as_dict = {}
@@ -223,12 +231,12 @@ class GiftiLabelTable(xml.XmlSerializable):
         return self.labels_as_dict
 
     def _to_xml_element(self):
-        labeltable = xml.Element('LabelTable')
+        labeltable = xml.Element("LabelTable")
         for ele in self.labels:
-            label = xml.SubElement(labeltable, 'Label')
-            label.attrib['Key'] = str(ele.key)
+            label = xml.SubElement(labeltable, "Label")
+            label.attrib["Key"] = str(ele.key)
             label.text = ele.label
-            for attr in ('Red', 'Green', 'Blue', 'Alpha'):
+            for attr in ("Red", "Green", "Blue", "Alpha"):
                 if getattr(ele, attr.lower(), None) is not None:
                     label.attrib[attr] = str(getattr(ele, attr.lower()))
         return labeltable
@@ -275,8 +283,10 @@ class GiftiLabel(xml.XmlSerializable):
         self.alpha = alpha
 
     def __repr__(self):
-        chars = 255 * np.array([self.red or 0, self.green or 0, self.blue or 0, self.alpha or 0])
-        r, g, b, a = chars.astype('u1')
+        chars = 255 * np.array(
+            [self.red or 0, self.green or 0, self.blue or 0, self.alpha or 0]
+        )
+        r, g, b, a = chars.astype("u1")
         return f'<GiftiLabel {self.key}="#{r:02x}{g:02x}{b:02x}{a:02x}">'
 
     @property
@@ -294,7 +304,7 @@ class GiftiLabel(xml.XmlSerializable):
             Sequence containing values for red, green, blue, alpha.
         """
         if len(rgba) != 4:
-            raise ValueError('rgba must be length 4.')
+            raise ValueError("rgba must be length 4.")
         self.red, self.green, self.blue, self.alpha = rgba
 
 
@@ -303,8 +313,8 @@ def _arr2txt(arr, elem_fmt):
     assert arr.dtype.names is None
     if arr.ndim == 1:
         arr = arr[:, None]
-    fmt = ' '.join([elem_fmt] * arr.shape[1])
-    return '\n'.join(fmt % tuple(row) for row in arr)
+    fmt = " ".join([elem_fmt] * arr.shape[1])
+    return "\n".join(fmt % tuple(row) for row in arr)
 
 
 class GiftiCoordSystem(xml.XmlSerializable):
@@ -357,23 +367,23 @@ class GiftiCoordSystem(xml.XmlSerializable):
     def __repr__(self):
         src = xform_codes.label[self.dataspace]
         dst = xform_codes.label[self.xformspace]
-        return f'<GiftiCoordSystem {src}-to-{dst}>'
+        return f"<GiftiCoordSystem {src}-to-{dst}>"
 
     def _to_xml_element(self):
-        coord_xform = xml.Element('CoordinateSystemTransformMatrix')
+        coord_xform = xml.Element("CoordinateSystemTransformMatrix")
         if self.xform is not None:
-            dataspace = xml.SubElement(coord_xform, 'DataSpace')
+            dataspace = xml.SubElement(coord_xform, "DataSpace")
             dataspace.text = xform_codes.niistring[self.dataspace]
-            xformed_space = xml.SubElement(coord_xform, 'TransformedSpace')
+            xformed_space = xml.SubElement(coord_xform, "TransformedSpace")
             xformed_space.text = xform_codes.niistring[self.xformspace]
-            matrix_data = xml.SubElement(coord_xform, 'MatrixData')
-            matrix_data.text = _arr2txt(self.xform, '%10.6f')
+            matrix_data = xml.SubElement(coord_xform, "MatrixData")
+            matrix_data.text = _arr2txt(self.xform, "%10.6f")
         return coord_xform
 
     def print_summary(self):
-        print('Dataspace: ', xform_codes.niistring[self.dataspace])
-        print('XFormSpace: ', xform_codes.niistring[self.xformspace])
-        print('Affine Transformation Matrix: \n', self.xform)
+        print("Dataspace: ", xform_codes.niistring[self.dataspace])
+        print("XFormSpace: ", xform_codes.niistring[self.xformspace])
+        print("Affine Transformation Matrix: \n", self.xform)
 
 
 def _data_tag_element(dataarray, encoding, dtype, ordering):
@@ -382,19 +392,19 @@ def _data_tag_element(dataarray, encoding, dtype, ordering):
 
     order = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
-    if enclabel == 'ASCII':
+    if enclabel == "ASCII":
         da = _arr2txt(dataarray, KIND2FMT[dtype.kind])
-    elif enclabel in ('B64BIN', 'B64GZ'):
+    elif enclabel in ("B64BIN", "B64GZ"):
         out = np.asanyarray(dataarray, dtype).tobytes(order)
-        if enclabel == 'B64GZ':
+        if enclabel == "B64GZ":
             out = zlib.compress(out)
         da = base64.b64encode(out).decode()
-    elif enclabel == 'External':
-        raise NotImplementedError('In what format are the external files?')
+    elif enclabel == "External":
+        raise NotImplementedError("In what format are the external files?")
     else:
-        da = ''
+        da = ""
 
-    data = xml.Element('Data')
+    data = xml.Element("Data")
     data.text = da
     return data
 
@@ -452,14 +462,14 @@ class GiftiDataArray(xml.XmlSerializable):
     def __init__(
         self,
         data=None,
-        intent='NIFTI_INTENT_NONE',
+        intent="NIFTI_INTENT_NONE",
         datatype=None,
-        encoding='GIFTI_ENCODING_B64GZ',
+        encoding="GIFTI_ENCODING_B64GZ",
         endian=sys.byteorder,
         coordsys=None,
-        ordering='C',
+        ordering="C",
         meta=None,
-        ext_fname='',
+        ext_fname="",
         ext_offset=0,
     ):
         """
@@ -469,14 +479,14 @@ class GiftiDataArray(xml.XmlSerializable):
         self.intent = intent_codes.code[intent]
         if datatype is None:
             if self.data is None:
-                datatype = 'none'
+                datatype = "none"
             elif data_type_codes[self.data.dtype] in GIFTI_DTYPES:
                 datatype = self.data.dtype
             else:
                 raise ValueError(
-                    f'Data array has type {self.data.dtype}. '
-                    'The GIFTI standard only supports uint8, int32 and float32 arrays.\n'
-                    'Explicitly cast the data array to a supported dtype or pass an '
+                    f"Data array has type {self.data.dtype}. "
+                    "The GIFTI standard only supports uint8, int32 and float32 arrays.\n"
+                    "Explicitly cast the data array to a supported dtype or pass an "
                     'explicit "datatype" parameter to GiftiDataArray().'
                 )
         self.datatype = data_type_codes.code[datatype]
@@ -496,7 +506,7 @@ class GiftiDataArray(xml.XmlSerializable):
         self.dims = [] if self.data is None else list(self.data.shape)
 
     def __repr__(self):
-        return f'<GiftiDataArray {intent_codes.label[self.intent]}{self.dims}>'
+        return f"<GiftiDataArray {intent_codes.label[self.intent]}{self.dims}>"
 
     @property
     def num_dim(self):
@@ -508,20 +518,20 @@ class GiftiDataArray(xml.XmlSerializable):
 
         # All attribute values must be strings
         data_array = xml.Element(
-            'DataArray',
+            "DataArray",
             attrib={
-                'Intent': intent_codes.niistring[self.intent],
-                'DataType': data_type_codes.niistring[self.datatype],
-                'ArrayIndexingOrder': array_index_order_codes.label[self.ind_ord],
-                'Dimensionality': str(self.num_dim),
-                'Encoding': gifti_encoding_codes.specs[self.encoding],
-                'Endian': gifti_endian_codes.specs[self.endian],
-                'ExternalFileName': self.ext_fname,
-                'ExternalFileOffset': str(self.ext_offset),
+                "Intent": intent_codes.niistring[self.intent],
+                "DataType": data_type_codes.niistring[self.datatype],
+                "ArrayIndexingOrder": array_index_order_codes.label[self.ind_ord],
+                "Dimensionality": str(self.num_dim),
+                "Encoding": gifti_encoding_codes.specs[self.encoding],
+                "Endian": gifti_endian_codes.specs[self.endian],
+                "ExternalFileName": self.ext_fname,
+                "ExternalFileOffset": str(self.ext_offset),
             },
         )
         for di, dn in enumerate(self.dims):
-            data_array.attrib['Dim%d' % di] = str(dn)
+            data_array.attrib["Dim%d" % di] = str(dn)
 
         if self.meta is not None:
             data_array.append(self.meta._to_xml_element())
@@ -540,18 +550,18 @@ class GiftiDataArray(xml.XmlSerializable):
         return data_array
 
     def print_summary(self):
-        print('Intent: ', intent_codes.niistring[self.intent])
-        print('DataType: ', data_type_codes.niistring[self.datatype])
-        print('ArrayIndexingOrder: ', array_index_order_codes.label[self.ind_ord])
-        print('Dimensionality: ', self.num_dim)
-        print('Dimensions: ', self.dims)
-        print('Encoding: ', gifti_encoding_codes.specs[self.encoding])
-        print('Endian: ', gifti_endian_codes.specs[self.endian])
-        print('ExternalFileName: ', self.ext_fname)
-        print('ExternalFileOffset: ', self.ext_offset)
+        print("Intent: ", intent_codes.niistring[self.intent])
+        print("DataType: ", data_type_codes.niistring[self.datatype])
+        print("ArrayIndexingOrder: ", array_index_order_codes.label[self.ind_ord])
+        print("Dimensionality: ", self.num_dim)
+        print("Dimensions: ", self.dims)
+        print("Encoding: ", gifti_encoding_codes.specs[self.encoding])
+        print("Endian: ", gifti_endian_codes.specs[self.endian])
+        print("ExternalFileName: ", self.ext_fname)
+        print("ExternalFileOffset: ", self.ext_offset)
         if self.coordsys is not None:
-            print('----')
-            print('Coordinate System:')
+            print("----")
+            print("Coordinate System:")
             print(self.coordsys.print_summary())
 
     @property
@@ -590,9 +600,9 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     The Gifti file is stored in endian convention of the current machine.
     """
 
-    valid_exts = ('.gii',)
-    files_types = (('image', '.gii'),)
-    _compressed_suffixes = ('.gz', '.bz2')
+    valid_exts = (".gii",)
+    files_types = (("image", ".gii"),)
+    _compressed_suffixes = (".gz", ".bz2")
 
     # The parser will in due course be a GiftiImageParser, but we can't set
     # that now, because it would result in a circular import.  We set it after
@@ -607,7 +617,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         meta=None,
         labeltable=None,
         darrays=None,
-        version='1.0',
+        version="1.0",
     ):
         super().__init__(header=header, extra=extra, file_map=file_map)
         if darrays is None:
@@ -640,7 +650,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         labeltable : :class:`GiftiLabelTable` instance
         """
         if not isinstance(labeltable, GiftiLabelTable):
-            raise TypeError('Not a valid GiftiLabelTable instance')
+            raise TypeError("Not a valid GiftiLabelTable instance")
         self._labeltable = labeltable
 
     @property
@@ -656,7 +666,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         meta : :class:`GiftiMetaData` instance
         """
         if not isinstance(meta, GiftiMetaData):
-            raise TypeError('Not a valid GiftiMetaData instance')
+            raise TypeError("Not a valid GiftiMetaData instance")
         self._meta = meta
 
     def add_gifti_data_array(self, dataarr):
@@ -667,7 +677,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         dataarr : :class:`GiftiDataArray` instance
         """
         if not isinstance(dataarr, GiftiDataArray):
-            raise TypeError('Not a valid GiftiDataArray instance')
+            raise TypeError("Not a valid GiftiDataArray instance")
         self.darrays.append(dataarr)
 
     def remove_gifti_data_array(self, ith):
@@ -809,11 +819,17 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         if isinstance(intent_code, tuple):
             return tuple(self.agg_data(intent_code=code) for code in intent_code)
 
-        darrays = self.darrays if intent_code is None else self.get_arrays_from_intent(intent_code)
+        darrays = (
+            self.darrays
+            if intent_code is None
+            else self.get_arrays_from_intent(intent_code)
+        )
         all_data = tuple(da.data for da in darrays)
         all_intent = {intent_codes.niistring[da.intent] for da in darrays}
 
-        if all_intent == {'NIFTI_INTENT_TIME_SERIES'}:  # stack when the gifti is a timeseries
+        if all_intent == {
+            "NIFTI_INTENT_TIME_SERIES"
+        }:  # stack when the gifti is a timeseries
             return np.column_stack(all_data)
 
         if len(all_data) == 1:
@@ -822,27 +838,28 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         return all_data
 
     def print_summary(self):
-        print('----start----')
-        print('Source filename: ', self.get_filename())
-        print('Number of data arrays: ', self.numDA)
-        print('Version: ', self.version)
+        print("----start----")
+        print("Source filename: ", self.get_filename())
+        print("Number of data arrays: ", self.numDA)
+        print("Version: ", self.version)
         if self.meta is not None:
-            print('----')
-            print('Metadata:')
+            print("----")
+            print("Metadata:")
             print(self.meta.print_summary())
         if self.labeltable is not None:
-            print('----')
-            print('Labeltable:')
+            print("----")
+            print("Labeltable:")
             print(self.labeltable.print_summary())
         for i, da in enumerate(self.darrays):
-            print('----')
-            print(f'DataArray {i}:')
+            print("----")
+            print(f"DataArray {i}:")
             print(da.print_summary())
-        print('----end----')
+        print("----end----")
 
     def _to_xml_element(self):
         GIFTI = xml.Element(
-            'GIFTI', attrib={'Version': self.version, 'NumberOfDataArrays': str(self.numDA)}
+            "GIFTI",
+            attrib={"Version": self.version, "NumberOfDataArrays": str(self.numDA)},
         )
         if self.meta is not None:
             GIFTI.append(self.meta._to_xml_element())
@@ -852,15 +869,15 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             GIFTI.append(dar._to_xml_element())
         return GIFTI
 
-    def to_xml(self, enc='utf-8', *, mode='strict', **kwargs) -> bytes:
+    def to_xml(self, enc="utf-8", *, mode="strict", **kwargs) -> bytes:
         """Return XML corresponding to image content"""
-        if mode == 'strict':
+        if mode == "strict":
             if any(arr.datatype not in GIFTI_DTYPES for arr in self.darrays):
                 raise ValueError(
-                    'GiftiImage contains data arrays with invalid data types; '
+                    "GiftiImage contains data arrays with invalid data types; "
                     'use mode="compat" to automatically cast to conforming types'
                 )
-        elif mode == 'compat':
+        elif mode == "compat":
             darrays = []
             for arr in self.darrays:
                 if arr.datatype not in GIFTI_DTYPES:
@@ -868,29 +885,29 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
                     # TODO: Better typing for recoders
                     dtype = cast(np.dtype, data_type_codes.dtype[arr.datatype])
                     if np.issubdtype(dtype, np.floating):
-                        arr.datatype = data_type_codes['float32']
+                        arr.datatype = data_type_codes["float32"]
                     elif np.issubdtype(dtype, np.integer):
-                        arr.datatype = data_type_codes['int32']
+                        arr.datatype = data_type_codes["int32"]
                     else:
-                        raise ValueError(f'Cannot convert {dtype} to float32/int32')
+                        raise ValueError(f"Cannot convert {dtype} to float32/int32")
                 darrays.append(arr)
             gii = copy(self)
             gii.darrays = darrays
-            return gii.to_xml(enc=enc, mode='strict')
-        elif mode != 'force':
-            raise TypeError(f'Unknown mode {mode}')
+            return gii.to_xml(enc=enc, mode="strict")
+        elif mode != "force":
+            raise TypeError(f"Unknown mode {mode}")
         header = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """
         return header + super().to_xml(enc, **kwargs)
 
     # Avoid the indirection of going through to_file_map
-    def to_bytes(self, enc='utf-8', *, mode='strict'):
+    def to_bytes(self, enc="utf-8", *, mode="strict"):
         return self.to_xml(enc=enc, mode=mode)
 
     to_bytes.__doc__ = SerializableImage.to_bytes.__doc__
 
-    def to_file_map(self, file_map=None, enc='utf-8', *, mode='strict'):
+    def to_file_map(self, file_map=None, enc="utf-8", *, mode="strict"):
         """Save the current image to the specified file_map
 
         Parameters
@@ -905,7 +922,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         """
         if file_map is None:
             file_map = self.file_map
-        with file_map['image'].get_prepare_fileobj('wb') as f:
+        with file_map["image"].get_prepare_fileobj("wb") as f:
             f.write(self.to_xml(enc=enc, mode=mode))
 
     @classmethod
@@ -937,7 +954,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         img : GiftiImage
         """
         parser = klass.parser(buffer_size=buffer_size, mmap=mmap)
-        with file_map['image'].get_prepare_fileobj('rb') as fptr:
+        with file_map["image"].get_prepare_fileobj("rb") as fptr:
             parser.parse(fptr=fptr)
         return parser.img
 

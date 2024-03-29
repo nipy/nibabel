@@ -9,10 +9,10 @@ from packaging.version import Version
 try:
     from ._version import __version__
 except ImportError:
-    __version__ = '0+unknown'
+    __version__ = "0+unknown"
 
 
-COMMIT_HASH = '$Format:%h$'
+COMMIT_HASH = "$Format:%h$"
 
 
 def _cmp(a: Version, b: Version) -> int:
@@ -98,22 +98,22 @@ def pkg_commit_hash(pkg_path: str | None = None) -> tuple[str, str]:
     hash_str : str
        short form of hash
     """
-    if not COMMIT_HASH.startswith('$Format'):  # it has been substituted
-        return 'archive substitution', COMMIT_HASH
+    if not COMMIT_HASH.startswith("$Format"):  # it has been substituted
+        return "archive substitution", COMMIT_HASH
     ver = Version(__version__)
-    if ver.local is not None and ver.local.startswith('g'):
-        return 'installation', ver.local[1:8]
+    if ver.local is not None and ver.local.startswith("g"):
+        return "installation", ver.local[1:8]
     # maybe we are in a repository, but consider that we may not have git
     with suppress(FileNotFoundError):
         proc = run(
-            ('git', 'rev-parse', '--short', 'HEAD'),
+            ("git", "rev-parse", "--short", "HEAD"),
             capture_output=True,
             cwd=pkg_path,
         )
         if proc.stdout:
-            return 'repository', proc.stdout.decode().strip()
+            return "repository", proc.stdout.decode().strip()
 
-    return '(none found)', '<not found>'
+    return "(none found)", "<not found>"
 
 
 def get_pkg_info(pkg_path: str) -> dict[str, str]:

@@ -1,3 +1,1 @@
-"""Reading functions for freesurfer files
-"""
-
+"""Reading functions for freesurfer files"""

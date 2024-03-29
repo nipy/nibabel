@@ -17,7 +17,12 @@ from numpy.testing import assert_array_equal
 
 from ..casting import sctypes, type_info
 from ..testing import suppress_warnings
-from ..volumeutils import apply_read_scaling, array_from_file, array_to_file, finite_range
+from ..volumeutils import (
+    apply_read_scaling,
+    array_from_file,
+    array_to_file,
+    finite_range,
+)
 from .test_volumeutils import _calculate_scale
 
 # Debug print statements
@@ -25,7 +30,7 @@ DEBUG = True
 
 
 @pytest.mark.parametrize(
-    'in_arr, res',
+    "in_arr, res",
     [
         ([[-1, 0, 1], [np.inf, np.nan, -np.inf]], (-1, 1)),
         (np.array([[-1, 0, 1], [np.inf, np.nan, -np.inf]]), (-1, 1)),
@@ -64,7 +69,7 @@ def test_finite_range(in_arr, res):
     assert finite_range(flat_arr) == res
     assert finite_range(flat_arr, True) == res + (has_nan,)
     # Check float types work as complex
-    if in_arr.dtype.kind == 'f':
+    if in_arr.dtype.kind == "f":
         c_arr = in_arr.astype(np.complex128)
         assert finite_range(c_arr) == res
         assert finite_range(c_arr, True) == res + (has_nan,)
@@ -72,12 +77,12 @@ def test_finite_range(in_arr, res):
 
 def test_finite_range_err():
     # Test error cases
-    a = np.array([[1.0, 0, 1], [2, 3, 4]]).view([('f1', 'f')])
+    a = np.array([[1.0, 0, 1], [2, 3, 4]]).view([("f1", "f")])
     with pytest.raises(TypeError):
         finite_range(a)
 
 
-@pytest.mark.parametrize('out_type', [np.int16, np.float32])
+@pytest.mark.parametrize("out_type", [np.int16, np.float32])
 def test_a2f_mn_mx(out_type):
     # Test array to file mn, mx handling
     str_io = BytesIO()
@@ -122,19 +127,19 @@ def test_a2f_nan2zero():
     data_back = array_from_file(arr.shape, np.float32, str_io)
     assert_array_equal(np.isnan(data_back), [True, False])
     # Integer output with nan2zero gives zero
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         array_to_file(arr, str_io, np.int32, nan2zero=True)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, [0, 99])
     # Integer output with nan2zero=False gives whatever astype gives
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         array_to_file(arr, str_io, np.int32, nan2zero=False)
     data_back = array_from_file(arr.shape, np.int32, str_io)
     assert_array_equal(data_back, [np.array(np.nan).astype(np.int32), 99])
 
 
 @pytest.mark.parametrize(
-    'in_type, out_type',
+    "in_type, out_type",
     [
         (np.int16, np.int16),
         (np.int16, np.int8),
@@ -151,7 +156,7 @@ def test_array_file_scales(in_type, out_type):
     out_dtype = np.dtype(out_type)
     arr = np.zeros((3,), dtype=in_type)
     info = type_info(in_type)
-    arr[0], arr[1] = info['min'], info['max']
+    arr[0], arr[1] = info["min"], info["max"]
     slope, inter, mn, mx = _calculate_scale(arr, out_dtype, True)
     array_to_file(arr, bio, out_type, 0, inter, slope, mn, mx)
     bio.seek(0)
@@ -163,17 +168,17 @@ def test_array_file_scales(in_type, out_type):
 
 
 @pytest.mark.parametrize(
-    'category0, category1, overflow',
+    "category0, category1, overflow",
     [
         # Confirm that, for all ints and uints as input, and all possible outputs,
         # for any simple way of doing the calculation, the result is near enough
-        ('int', 'int', False),
-        ('uint', 'int', False),
+        ("int", "int", False),
+        ("uint", "int", False),
         # Converting floats to integer
-        ('float', 'int', True),
-        ('float', 'uint', True),
-        ('complex', 'int', True),
-        ('complex', 'uint', True),
+        ("float", "int", True),
+        ("float", "uint", True),
+        ("complex", "int", True),
+        ("complex", "uint", True),
     ],
 )
 def test_scaling_in_abstract(category0, category1, overflow):
@@ -188,15 +193,15 @@ def test_scaling_in_abstract(category0, category1, overflow):
 
 def check_int_a2f(in_type, out_type):
     # Check that array to / from file returns roughly the same as input
-    big_floater = sctypes['float'][-1]
+    big_floater = sctypes["float"][-1]
     info = type_info(in_type)
-    this_min, this_max = info['min'], info['max']
-    if in_type not in sctypes['complex']:
+    this_min, this_max = info["min"], info["max"]
+    if in_type not in sctypes["complex"]:
         data = np.array([this_min, this_max], in_type)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(data)):
             if DEBUG:
-                print(f'Hit PPC max -> inf bug; skip in_type {in_type}')
+                print(f"Hit PPC max -> inf bug; skip in_type {in_type}")
             return
     else:  # Funny behavior with complex256
         data = np.zeros((2,), in_type)
@@ -222,5 +227,7 @@ def check_int_a2f(in_type, out_type):
     data_back = apply_read_scaling(data_back, scale32, inter32)
     # Clip at extremes to remove inf
     info = type_info(in_type)
-    out_min, out_max = info['min'], info['max']
-    assert np.allclose(big_floater(data), big_floater(np.clip(data_back, out_min, out_max)))
+    out_min, out_max = info["min"], info["max"]
+    assert np.allclose(
+        big_floater(data), big_floater(np.clip(data_back, out_min, out_max))
+    )

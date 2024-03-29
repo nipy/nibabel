@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Create filename pairs, triplets etc, with expected extensions"""
+
 from __future__ import annotations
 
 import os
@@ -44,7 +45,7 @@ def _stringify_path(filepath_or_buffer: FileSpec) -> str:
 def types_filenames(
     template_fname: FileSpec,
     types_exts: ty.Sequence[ExtensionSpec],
-    trailing_suffixes: ty.Sequence[str] = ('.gz', '.bz2'),
+    trailing_suffixes: ty.Sequence[str] = (".gz", ".bz2"),
     enforce_extensions: bool = True,
     match_case: bool = False,
 ) -> dict[str, str]:
@@ -109,8 +110,8 @@ def types_filenames(
     """
     template_fname = _stringify_path(template_fname)
     if not isinstance(template_fname, str):
-        raise TypesFilenamesError('Need file name as input to set_filenames')
-    if template_fname.endswith('.'):
+        raise TypesFilenamesError("Need file name as input to set_filenames")
+    if template_fname.endswith("."):
         template_fname = template_fname[:-1]
     filename, found_ext, ignored, guessed_name = parse_filename(
         template_fname, types_exts, trailing_suffixes, match_case
@@ -125,13 +126,15 @@ def types_filenames(
                 # an extension, but the wrong one
                 raise TypesFilenamesError(
                     f'File extension "{found_ext}" was not in '
-                    f'expected list: {[e for t, e in types_exts]}'
+                    f"expected list: {[e for t, e in types_exts]}"
                 )
             elif ignored:  # there was no extension, but an ignored suffix
                 # This is a special case like 'test.gz' (where .gz
                 # is ignored). It's confusing to change
                 # this to test.img.gz, or test.gz.img, so error
-                raise TypesFilenamesError(f'Confusing ignored suffix {ignored} without extension')
+                raise TypesFilenamesError(
+                    f"Confusing ignored suffix {ignored} without extension"
+                )
         # if we've got to here, we have a guessed name and a found
         # extension.
     else:  # not enforcing extensions. If there's an extension, we set the
@@ -253,7 +256,7 @@ def _iendswith(whole: str, end: str) -> bool:
 
 def splitext_addext(
     filename: FileSpec,
-    addexts: ty.Sequence[str] = ('.gz', '.bz2', '.zst'),
+    addexts: ty.Sequence[str] = (".gz", ".bz2", ".zst"),
     match_case: bool = False,
 ) -> tuple[str, str, str]:
     """Split ``/pth/fname.ext.gz`` into ``/pth/fname, .ext, .gz``
@@ -299,11 +302,11 @@ def splitext_addext(
             filename, addext = filename[:extpos], filename[extpos:]
             break
     else:
-        addext = ''
+        addext = ""
     # os.path.splitext() behaves unexpectedly when filename starts with '.'
-    extpos = filename.rfind('.')
-    if extpos < 0 or filename.strip('.') == '':
-        root, ext = filename, ''
+    extpos = filename.rfind(".")
+    if extpos < 0 or filename.strip(".") == "":
+        root, ext = filename, ""
     else:
         root, ext = filename[:extpos], filename[extpos:]
     return (root, ext, addext)

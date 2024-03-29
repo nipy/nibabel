@@ -19,8 +19,8 @@ from .test_fileslice import slicer_samples
 
 EXAMPLE_IMAGES = [
     dict(
-        head=pjoin(data_path, 'example4d+orig.HEAD'),
-        fname=pjoin(data_path, 'example4d+orig.BRIK.gz'),
+        head=pjoin(data_path, "example4d+orig.HEAD"),
+        fname=pjoin(data_path, "example4d+orig.BRIK.gz"),
         shape=(33, 41, 25, 3),
         dtype=np.int16,
         affine=np.array(
@@ -34,13 +34,13 @@ EXAMPLE_IMAGES = [
         zooms=(3.0, 3.0, 3.0, 3.0),
         data_summary=dict(min=0, max=13722, mean=4266.76024636),
         is_proxy=True,
-        space='ORIG',
-        labels=['#0', '#1', '#2'],
+        space="ORIG",
+        labels=["#0", "#1", "#2"],
         scaling=None,
     ),
     dict(
-        head=pjoin(data_path, 'scaled+tlrc.HEAD'),
-        fname=pjoin(data_path, 'scaled+tlrc.BRIK'),
+        head=pjoin(data_path, "scaled+tlrc.HEAD"),
+        fname=pjoin(data_path, "scaled+tlrc.BRIK"),
         shape=(47, 54, 43, 1.0),
         dtype=np.int16,
         affine=np.array(
@@ -53,18 +53,22 @@ EXAMPLE_IMAGES = [
         ),
         zooms=(3.0, 3.0, 3.0, 0.0),
         data_summary=dict(
-            min=1.9416814999999998e-07, max=0.0012724615542099998, mean=0.00023919645351876782
+            min=1.9416814999999998e-07,
+            max=0.0012724615542099998,
+            mean=0.00023919645351876782,
         ),
         is_proxy=True,
-        space='TLRC',
-        labels=['#0'],
+        space="TLRC",
+        labels=["#0"],
         scaling=np.array([3.88336300e-08]),
     ),
 ]
 
 EXAMPLE_BAD_IMAGES = [
-    dict(head=pjoin(data_path, 'bad_datatype+orig.HEAD'), err=brikhead.AFNIImageError),
-    dict(head=pjoin(data_path, 'bad_attribute+orig.HEAD'), err=brikhead.AFNIHeaderError),
+    dict(head=pjoin(data_path, "bad_datatype+orig.HEAD"), err=brikhead.AFNIImageError),
+    dict(
+        head=pjoin(data_path, "bad_attribute+orig.HEAD"), err=brikhead.AFNIHeaderError
+    ),
 ]
 
 
@@ -74,13 +78,13 @@ class TestAFNIHeader:
 
     def test_makehead(self):
         for tp in self.test_files:
-            head1 = self.module.AFNIHeader.from_fileobj(tp['head'])
+            head1 = self.module.AFNIHeader.from_fileobj(tp["head"])
             head2 = self.module.AFNIHeader.from_header(head1)
             assert head1 == head2
             with pytest.raises(self.module.AFNIHeaderError):
                 self.module.AFNIHeader.from_header(header=None)
             with pytest.raises(self.module.AFNIHeaderError):
-                self.module.AFNIHeader.from_header(tp['fname'])
+                self.module.AFNIHeader.from_header(tp["fname"])
 
 
 class TestAFNIImage:
@@ -89,34 +93,34 @@ class TestAFNIImage:
 
     def test_brikheadfile(self):
         for tp in self.test_files:
-            brik = self.module.load(tp['fname'])
-            assert brik.get_data_dtype().type == tp['dtype']
-            assert brik.shape == tp['shape']
-            assert brik.header.get_zooms() == tp['zooms']
-            assert_array_equal(brik.affine, tp['affine'])
-            assert brik.header.get_space() == tp['space']
+            brik = self.module.load(tp["fname"])
+            assert brik.get_data_dtype().type == tp["dtype"]
+            assert brik.shape == tp["shape"]
+            assert brik.header.get_zooms() == tp["zooms"]
+            assert_array_equal(brik.affine, tp["affine"])
+            assert brik.header.get_space() == tp["space"]
             data = brik.get_fdata()
-            assert data.shape == tp['shape']
-            assert_array_equal(brik.dataobj.scaling, tp['scaling'])
-            assert brik.header.get_volume_labels() == tp['labels']
+            assert data.shape == tp["shape"]
+            assert_array_equal(brik.dataobj.scaling, tp["scaling"])
+            assert brik.header.get_volume_labels() == tp["labels"]
 
     def test_load(self):
         # Check highest level load of brikhead works
         for tp in self.test_files:
-            img = self.module.load(tp['head'])
+            img = self.module.load(tp["head"])
             data = img.get_fdata()
-            assert data.shape == tp['shape']
+            assert data.shape == tp["shape"]
             # min, max, mean values
             assert_data_similar(data, tp)
             # check if file can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
-            assert_array_equal(ni_img.affine, tp['affine'])
+            assert_array_equal(ni_img.affine, tp["affine"])
             assert_array_equal(ni_img.get_fdata(), data)
 
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
-            img = self.module.load(tp['fname'])
+            img = self.module.load(tp["fname"])
             arr = img.get_fdata()
             prox = img.dataobj
             assert prox.is_proxy
@@ -130,15 +134,15 @@ class TestBadFiles:
 
     def test_brikheadfile(self):
         for tp in self.test_files:
-            with pytest.raises(tp['err']):
-                self.module.load(tp['head'])
+            with pytest.raises(tp["err"]):
+                self.module.load(tp["head"])
 
 
 class TestBadVars:
     module = brikhead
     vars = [
-        'type = badtype-attribute\nname = BRICK_TYPES\ncount = 1\n1\n',
-        'type = integer-attribute\ncount = 1\n1\n',
+        "type = badtype-attribute\nname = BRICK_TYPES\ncount = 1\n1\n",
+        "type = integer-attribute\ncount = 1\n1\n",
     ]
 
     def test_unpack_var(self):

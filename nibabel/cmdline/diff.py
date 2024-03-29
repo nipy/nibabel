@@ -32,51 +32,51 @@ import nibabel.cmdline.utils
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n' + __doc__,
-        version='%prog ' + nib.__version__,
+        usage=f"{sys.argv[0]} [OPTIONS] [FILE ...]\n\n" + __doc__,
+        version="%prog " + nib.__version__,
     )
 
     p.add_options(
         [
             Option(
-                '-v',
-                '--verbose',
-                action='count',
-                dest='verbose',
+                "-v",
+                "--verbose",
+                action="count",
+                dest="verbose",
                 default=0,
-                help='Make more noise.  Could be specified multiple times',
+                help="Make more noise.  Could be specified multiple times",
             ),
             Option(
-                '-H',
-                '--header-fields',
-                dest='header_fields',
-                default='all',
-                help='Header fields (comma separated) to be printed as well (if present)',
+                "-H",
+                "--header-fields",
+                dest="header_fields",
+                default="all",
+                help="Header fields (comma separated) to be printed as well (if present)",
             ),
             Option(
-                '--ma',
-                '--data-max-abs-diff',
-                dest='data_max_abs_diff',
+                "--ma",
+                "--data-max-abs-diff",
+                dest="data_max_abs_diff",
                 type=float,
                 default=0.0,
-                help='Maximal absolute difference in data between files to tolerate.',
+                help="Maximal absolute difference in data between files to tolerate.",
             ),
             Option(
-                '--mr',
-                '--data-max-rel-diff',
-                dest='data_max_rel_diff',
+                "--mr",
+                "--data-max-rel-diff",
+                dest="data_max_rel_diff",
                 type=float,
                 default=0.0,
-                help='Maximal relative difference in data between files to'
-                ' tolerate. If --data-max-abs-diff is also specified,'
-                ' only the data points with absolute difference greater'
-                ' than that value would be considered for relative'
-                ' difference check.',
+                help="Maximal relative difference in data between files to"
+                " tolerate. If --data-max-abs-diff is also specified,"
+                " only the data points with absolute difference greater"
+                " than that value would be considered for relative"
+                " difference check.",
             ),
             Option(
-                '--dt',
-                '--datatype',
-                dest='dtype',
+                "--dt",
+                "--datatype",
+                dest="dtype",
                 default=np.float64,
                 help="Enter a numpy datatype such as 'float32'.",
             ),
@@ -110,13 +110,15 @@ def are_values_different(*values):
         except TypeError as exc:
             str_exc = str(exc)
             # Not implemented in numpy 1.7.1
-            if 'not supported' in str_exc or 'not implemented' in str_exc:
+            if "not supported" in str_exc or "not implemented" in str_exc:
                 value0_nans = None
             else:
                 raise
 
     for value in values[1:]:
-        if type(value0) != type(value):  # if types are different, then we consider them different
+        if type(value0) != type(
+            value
+        ):  # if types are different, then we consider them different
             return True
         elif isinstance(value0, np.ndarray):
             # use .dtype.type to provide endianness agnostic comparison
@@ -162,7 +164,9 @@ def get_headers_diff(file_headers, names=None):
 
     # for each header field
     for field in fields:
-        values = [header.get(field) for header in file_headers]  # get corresponding value
+        values = [
+            header.get(field) for header in file_headers
+        ]  # get corresponding value
 
         # if these values are different, store them in a dictionary
         if are_values_different(*values):
@@ -185,7 +189,9 @@ def get_data_hash_diff(files, dtype=np.float64):
     """
 
     md5sums = [
-        hashlib.md5(np.ascontiguousarray(nib.load(f).get_fdata(dtype=dtype))).hexdigest()
+        hashlib.md5(
+            np.ascontiguousarray(nib.load(f).get_fdata(dtype=dtype))
+        ).hexdigest()
         for f in files
     ]
 
@@ -224,14 +230,16 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
     """
 
     # we are doomed to keep them in RAM now
-    data = [f if isinstance(f, np.ndarray) else nib.load(f).get_fdata(dtype=dtype) for f in files]
+    data = [
+        f if isinstance(f, np.ndarray) else nib.load(f).get_fdata(dtype=dtype)
+        for f in files
+    ]
     diffs = OrderedDict()
     for i, d1 in enumerate(data[:-1]):
         # populate empty entries for non-compared
         diffs1 = [None] * (i + 1)
 
         for j, d2 in enumerate(data[i + 1 :], i + 1):
-
             if d1.shape == d2.shape:
                 abs_diff = np.abs(d1 - d2)
                 mean_abs = (np.abs(d1) + np.abs(d2)) * 0.5
@@ -255,21 +263,19 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
                     max_rel_diff = 0
 
                 if np.any(candidates):
-
                     diff_rec = OrderedDict()  # so that abs goes before relative
 
-                    diff_rec['abs'] = max_abs_diff.astype(dtype)
-                    diff_rec['rel'] = max_rel_diff.astype(dtype)
+                    diff_rec["abs"] = max_abs_diff.astype(dtype)
+                    diff_rec["rel"] = max_rel_diff.astype(dtype)
                     diffs1.append(diff_rec)
                 else:
                     diffs1.append(None)
 
             else:
-                diffs1.append({'CMP': 'incompat'})
+                diffs1.append({"CMP": "incompat"})
 
         if any(diffs1):
-
-            diffs['DATA(diff %d:)' % (i + 1)] = diffs1
+            diffs["DATA(diff %d:)" % (i + 1)] = diffs1
 
     return diffs
 
@@ -287,57 +293,61 @@ def display_diff(files, diff):
     str
       string-formatted table of differences
     """
-    output = ''
-    field_width = '{:<15}'
-    filename_width = '{:<53}'
-    value_width = '{:<55}'
+    output = ""
+    field_width = "{:<15}"
+    filename_width = "{:<53}"
+    value_width = "{:<55}"
 
-    output += 'These files are different.\n'
-    output += field_width.format('Field/File')
+    output += "These files are different.\n"
+    output += field_width.format("Field/File")
 
     for i, f in enumerate(files, 1):
-        output += '%d:%s' % (i, filename_width.format(os.path.basename(f)))
+        output += "%d:%s" % (i, filename_width.format(os.path.basename(f)))
 
-    output += '\n'
+    output += "\n"
 
     for key, value in diff.items():
         output += field_width.format(key)
 
         for item in value:
             if isinstance(item, dict):
-                item_str = ', '.join('%s: %s' % i for i in item.items())
+                item_str = ", ".join("%s: %s" % i for i in item.items())
             elif item is None:
-                item_str = '-'
+                item_str = "-"
             else:
                 item_str = str(item)
             # Value might start/end with some invisible spacing characters so we
             # would "condition" it on both ends a bit
-            item_str = re.sub('^[ \t]+', '<', item_str)
-            item_str = re.sub('[ \t]+$', '>', item_str)
+            item_str = re.sub("^[ \t]+", "<", item_str)
+            item_str = re.sub("[ \t]+$", ">", item_str)
             # and also replace some other invisible symbols with a question
             # mark
-            item_str = re.sub('[\x00]', '?', item_str)
+            item_str = re.sub("[\x00]", "?", item_str)
             output += value_width.format(item_str)
 
-        output += '\n'
+        output += "\n"
 
     return output
 
 
 def diff(
-    files, header_fields='all', data_max_abs_diff=None, data_max_rel_diff=None, dtype=np.float64
+    files,
+    header_fields="all",
+    data_max_abs_diff=None,
+    data_max_rel_diff=None,
+    dtype=np.float64,
 ):
-    assert len(files) >= 2, 'Please enter at least two files'
+    assert len(files) >= 2, "Please enter at least two files"
 
     file_headers = [nib.load(f).header for f in files]
 
     # signals "all fields"
-    if header_fields == 'all':
+    if header_fields == "all":
         # TODO: header fields might vary across file types,
         # thus prior sensing would be needed
         header_fields = file_headers[0].keys()
     else:
-        header_fields = header_fields.split(',')
+        header_fields = header_fields.split(",")
 
     diff = get_headers_diff(file_headers, header_fields)
 
@@ -349,7 +359,7 @@ def diff(
             files, max_abs=data_max_abs_diff, max_rel=data_max_rel_diff, dtype=dtype
         )
         if data_diffs:
-            diff['DATA(md5)'] = data_md5_diffs
+            diff["DATA(md5)"] = data_md5_diffs
             diff.update(data_diffs)
 
     return diff
@@ -380,5 +390,5 @@ def main(args=None, out=None):
         out.write(display_diff(files, files_diff))
         raise SystemExit(1)
     else:
-        out.write('These files are identical.\n')
+        out.write("These files are identical.\n")
         raise SystemExit(0)

@@ -1,6 +1,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Utility routines for working with points and affine transforms"""
+
 from functools import reduce
 
 import numpy as np
@@ -233,10 +234,12 @@ def append_diag(aff, steps, starts=()):
     if len(starts) == 0:
         starts = np.zeros(n_steps, dtype=steps.dtype)
     elif len(starts) != n_steps:
-        raise AffineError('Steps should have same length as starts')
+        raise AffineError("Steps should have same length as starts")
     old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
-    aff_plus = np.zeros((old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=aff.dtype)
+    aff_plus = np.zeros(
+        (old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=aff.dtype
+    )
     # Get stuff from old affine
     aff_plus[:old_n_out, :old_n_in] = aff[:old_n_out, :old_n_in]
     aff_plus[:old_n_out, -1] = aff[:old_n_out, -1]

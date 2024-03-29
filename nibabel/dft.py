@@ -9,7 +9,6 @@
 # Copyright (C) 2011 Christian Haselgrove
 """DICOM filesystem tools"""
 
-
 import contextlib
 import getpass
 import logging
@@ -26,9 +25,9 @@ from nibabel.optpkg import optional_package
 
 from .nifti1 import Nifti1Header
 
-pydicom = optional_package('pydicom')[0]
+pydicom = optional_package("pydicom")[0]
 
-logger = logging.getLogger('nibabel.dft')
+logger = logging.getLogger("nibabel.dft")
 
 
 class DFTError(Exception):
@@ -44,7 +43,6 @@ class VolumeError(DFTError):
 
 
 class InstanceStackError(DFTError):
-
     """bad series of instance numbers"""
 
     def __init__(self, series, i, si):
@@ -53,28 +51,28 @@ class InstanceStackError(DFTError):
         self.si = si
 
     def __str__(self):
-        fmt = 'expecting instance number %d, got %d'
+        fmt = "expecting instance number %d, got %d"
         return fmt % (self.i + 1, self.si.instance_number)
 
 
 class _Study:
     def __init__(self, d):
-        self.uid = d['uid']
-        self.date = d['date']
-        self.time = d['time']
-        self.comments = d['comments']
-        self.patient_name = d['patient_name']
-        self.patient_id = d['patient_id']
-        self.patient_birth_date = d['patient_birth_date']
-        self.patient_sex = d['patient_sex']
+        self.uid = d["uid"]
+        self.date = d["date"]
+        self.time = d["time"]
+        self.comments = d["comments"]
+        self.patient_name = d["patient_name"]
+        self.patient_id = d["patient_id"]
+        self.patient_birth_date = d["patient_birth_date"]
+        self.patient_sex = d["patient_sex"]
         self.series = None
 
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
-        if name == 'series' and val is None:
+        if name == "series" and val is None:
             val = []
             with DB.readonly_cursor() as c:
-                c.execute('SELECT * FROM series WHERE study = ?', (self.uid,))
+                c.execute("SELECT * FROM series WHERE study = ?", (self.uid,))
                 cols = [el[0] for el in c.description]
                 for row in c:
                     d = dict(zip(cols, row))
@@ -83,26 +81,26 @@ class _Study:
         return val
 
     def patient_name_or_uid(self):
-        if self.patient_name == '':
+        if self.patient_name == "":
             return self.uid
         return self.patient_name
 
 
 class _Series:
     def __init__(self, d):
-        self.uid = d['uid']
-        self.study = d['study']
-        self.number = d['number']
-        self.description = d['description']
-        self.rows = d['rows']
-        self.columns = d['columns']
-        self.bits_allocated = d['bits_allocated']
-        self.bits_stored = d['bits_stored']
+        self.uid = d["uid"]
+        self.study = d["study"]
+        self.number = d["number"]
+        self.description = d["description"]
+        self.rows = d["rows"]
+        self.columns = d["columns"]
+        self.bits_allocated = d["bits_allocated"]
+        self.bits_stored = d["bits_stored"]
         self.storage_instances = None
 
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
-        if name == 'storage_instances' and val is None:
+        if name == "storage_instances" and val is None:
             val = []
             with DB.readonly_cursor() as c:
                 query = """SELECT *
@@ -122,7 +120,7 @@ class _Series:
 
         # For compatibility with older versions of PIL that did not
         # have `frombytes`:
-        if hasattr(PIL.Image, 'frombytes'):
+        if hasattr(PIL.Image, "frombytes"):
             frombytes = PIL.Image.frombytes
         else:
             frombytes = PIL.Image.fromstring
@@ -132,19 +130,19 @@ class _Series:
         d = self.storage_instances[index].dicom()
         data = d.pixel_array.copy()
         if self.bits_allocated != 16:
-            raise VolumeError('unsupported bits allocated')
+            raise VolumeError("unsupported bits allocated")
         if self.bits_stored != 12:
-            raise VolumeError('unsupported bits stored')
+            raise VolumeError("unsupported bits stored")
         data = data / 16
         if scale_to_slice:
             min = data.min()
             max = data.max()
             data = data * 255 / (max - min)
         data = data.astype(numpy.uint8)
-        im = frombytes('L', (self.rows, self.columns), data.tobytes())
+        im = frombytes("L", (self.rows, self.columns), data.tobytes())
 
         s = BytesIO()
-        im.save(s, 'PNG')
+        im.save(s, "PNG")
         return s.getvalue()
 
     def png_size(self, index=None, scale_to_slice=True):
@@ -152,19 +150,19 @@ class _Series:
 
     def as_nifti(self):
         if len(self.storage_instances) < 2:
-            raise VolumeError('too few slices')
+            raise VolumeError("too few slices")
         d = self.storage_instances[0].dicom()
         if self.bits_allocated != 16:
-            raise VolumeError('unsupported bits allocated')
+            raise VolumeError("unsupported bits allocated")
         if self.bits_stored != 12:
-            raise VolumeError('unsupported bits stored')
+            raise VolumeError("unsupported bits stored")
         data = numpy.ndarray(
             (len(self.storage_instances), self.rows, self.columns), dtype=numpy.int16
         )
-        for (i, si) in enumerate(self.storage_instances):
+        for i, si in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
-            logger.info('reading %d/%d' % (i + 1, len(self.storage_instances)))
+            logger.info("reading %d/%d" % (i + 1, len(self.storage_instances)))
             d = self.storage_instances[i].dicom()
             data[i, :, :] = d.pixel_array
 
@@ -201,7 +199,7 @@ class _Series:
         # Values are python Decimals in pydicom 0.9.7
         m = numpy.array(m, dtype=float)
 
-        hdr = Nifti1Header(endianness='<')
+        hdr = Nifti1Header(endianness="<")
         hdr.set_intent(0)
         hdr.set_qform(m, 1)
         hdr.set_xyzt_units(2, 8)
@@ -219,21 +217,21 @@ class _Series:
 
 class _StorageInstance:
     def __init__(self, d):
-        self.uid = d['uid']
-        self.instance_number = d['instance_number']
-        self.series = d['series']
+        self.uid = d["uid"]
+        self.instance_number = d["instance_number"]
+        self.series = d["series"]
         self.files = None
 
     def __getattribute__(self, name):
         val = object.__getattribute__(self, name)
-        if name == 'files' and val is None:
+        if name == "files" and val is None:
             with DB.readonly_cursor() as c:
                 query = """SELECT directory, name
                              FROM file
                             WHERE storage_instance = ?
                             ORDER BY directory, name"""
                 c.execute(query, (self.uid,))
-                val = ['%s/%s' % tuple(row) for row in c]
+                val = ["%s/%s" % tuple(row) for row in c]
             self.files = val
         return val
 
@@ -243,10 +241,10 @@ class _StorageInstance:
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=followlinks):
+    for dirpath, dirnames, filenames in os.walk(base_dir, followlinks=followlinks):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
-            raise CachingError(f'link cycle detected under {base_dir}')
+            raise CachingError(f"link cycle detected under {base_dir}")
         dirs.append(abs_dir)
         if files_dict is not None:
             files_dict[abs_dir] = filenames
@@ -261,24 +259,24 @@ def update_cache(base_dir, followlinks=False):
         os.stat(d)
         mtimes[d] = os.stat(d).st_mtime
     with DB.readwrite_cursor() as c:
-        c.execute('SELECT path, mtime FROM directory')
+        c.execute("SELECT path, mtime FROM directory")
         db_mtimes = dict(c)
-        c.execute('SELECT uid FROM study')
+        c.execute("SELECT uid FROM study")
         studies = [row[0] for row in c]
-        c.execute('SELECT uid FROM series')
+        c.execute("SELECT uid FROM series")
         series = [row[0] for row in c]
-        c.execute('SELECT uid FROM storage_instance')
+        c.execute("SELECT uid FROM storage_instance")
         storage_instances = [row[0] for row in c]
         for dir in sorted(mtimes.keys()):
             if dir in db_mtimes and mtimes[dir] <= db_mtimes[dir]:
                 continue
-            logger.debug(f'updating {dir}')
+            logger.debug(f"updating {dir}")
             _update_dir(c, dir, files_by_dir[dir], studies, series, storage_instances)
             if dir in db_mtimes:
-                query = 'UPDATE directory SET mtime = ? WHERE path = ?'
+                query = "UPDATE directory SET mtime = ? WHERE path = ?"
                 c.execute(query, (mtimes[dir], dir))
             else:
-                query = 'INSERT INTO directory (path, mtime) VALUES (?, ?)'
+                query = "INSERT INTO directory (path, mtime) VALUES (?, ?)"
                 c.execute(query, (dir, mtimes[dir]))
 
 
@@ -287,7 +285,7 @@ def get_studies(base_dir=None, followlinks=False):
         update_cache(base_dir, followlinks)
     if base_dir is None:
         with DB.readonly_cursor() as c:
-            c.execute('SELECT * FROM study')
+            c.execute("SELECT * FROM study")
             studies = []
             cols = [el[0] for el in c.description]
             for row in c:
@@ -309,7 +307,7 @@ def get_studies(base_dir=None, followlinks=False):
                 study_uids[row[0]] = None
         studies = []
         for uid in study_uids:
-            c.execute('SELECT * FROM study WHERE uid = ?', (uid,))
+            c.execute("SELECT * FROM study WHERE uid = ?", (uid,))
             cols = [el[0] for el in c.description]
             d = dict(zip(cols, c.fetchone()))
             studies.append(_Study(d))
@@ -317,19 +315,19 @@ def get_studies(base_dir=None, followlinks=False):
 
 
 def _update_dir(c, dir, files, studies, series, storage_instances):
-    logger.debug(f'Updating directory {dir}')
-    c.execute('SELECT name, mtime FROM file WHERE directory = ?', (dir,))
+    logger.debug(f"Updating directory {dir}")
+    c.execute("SELECT name, mtime FROM file WHERE directory = ?", (dir,))
     db_mtimes = dict(c)
     for fname in db_mtimes:
         if fname not in files:
-            logger.debug(f'    remove {fname}')
-            c.execute('DELETE FROM file WHERE directory = ? AND name = ?', (dir, fname))
+            logger.debug(f"    remove {fname}")
+            c.execute("DELETE FROM file WHERE directory = ? AND name = ?", (dir, fname))
     for fname in files:
-        mtime = os.lstat(f'{dir}/{fname}').st_mtime
+        mtime = os.lstat(f"{dir}/{fname}").st_mtime
         if fname in db_mtimes and mtime <= db_mtimes[fname]:
-            logger.debug(f'    okay {fname}')
+            logger.debug(f"    okay {fname}")
         else:
-            logger.debug(f'    update {fname}')
+            logger.debug(f"    update {fname}")
             si_uid = _update_file(c, dir, fname, studies, series, storage_instances)
             if fname not in db_mtimes:
                 query = """INSERT INTO file (directory,
@@ -347,16 +345,16 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = pydicom.dcmread(f'{path}/{fname}')
+        do = pydicom.dcmread(f"{path}/{fname}")
     except pydicom.filereader.InvalidDicomError:
-        logger.debug('        not a DICOM file')
+        logger.debug("        not a DICOM file")
         return None
     try:
         study_comments = do.StudyComments
     except AttributeError:
-        study_comments = ''
+        study_comments = ""
     try:
-        logger.debug(f'        storage instance {do.SOPInstanceUID}')
+        logger.debug(f"        storage instance {do.SOPInstanceUID}")
         if str(do.StudyInstanceUID) not in studies:
             query = """INSERT INTO study (uid,
                                           date,
@@ -404,22 +402,26 @@ def _update_file(c, path, fname, studies, series, storage_instances):
         if str(do.SOPInstanceUID) not in storage_instances:
             query = """INSERT INTO storage_instance (uid, instance_number, series)
                        VALUES (?, ?, ?)"""
-            params = (str(do.SOPInstanceUID), do.InstanceNumber, str(do.SeriesInstanceUID))
+            params = (
+                str(do.SOPInstanceUID),
+                do.InstanceNumber,
+                str(do.SeriesInstanceUID),
+            )
             c.execute(query, params)
             storage_instances.append(str(do.SOPInstanceUID))
     except AttributeError as data:
-        logger.debug(f'        {data}')
+        logger.debug(f"        {data}")
         return None
     return str(do.SOPInstanceUID)
 
 
 def clear_cache():
     with DB.readwrite_cursor() as c:
-        c.execute('DELETE FROM file')
-        c.execute('DELETE FROM directory')
-        c.execute('DELETE FROM storage_instance')
-        c.execute('DELETE FROM series')
-        c.execute('DELETE FROM study')
+        c.execute("DELETE FROM file")
+        c.execute("DELETE FROM directory")
+        c.execute("DELETE FROM storage_instance")
+        c.execute("DELETE FROM series")
+        c.execute("DELETE FROM study")
 
 
 CREATE_QUERIES = (
@@ -454,7 +456,9 @@ CREATE_QUERIES = (
 
 class _DB:
     def __init__(self, fname=None, verbose=True):
-        self.fname = fname or pjoin(tempfile.gettempdir(), f'dft.{getpass.getuser()}.sqlite')
+        self.fname = fname or pjoin(
+            tempfile.gettempdir(), f"dft.{getpass.getuser()}.sqlite"
+        )
         self.verbose = verbose
 
     @property
@@ -471,18 +475,18 @@ class _DB:
 
     def _init_db(self):
         if self.verbose:
-            logger.info('db filename: ' + self.fname)
+            logger.info("db filename: " + self.fname)
 
-        self._session = sqlite3.connect(self.fname, isolation_level='EXCLUSIVE')
+        self._session = sqlite3.connect(self.fname, isolation_level="EXCLUSIVE")
         with self.readwrite_cursor() as c:
             c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'")
             if c.fetchone()[0] == 0:
-                logger.debug('create')
+                logger.debug("create")
                 for q in CREATE_QUERIES:
                     c.execute(q)
 
     def __repr__(self):
-        return f'<DFT {self.fname!r}>'
+        return f"<DFT {self.fname!r}>"
 
     @contextlib.contextmanager
     def readonly_cursor(self):
@@ -507,7 +511,7 @@ class _DB:
 
 
 DB = None
-if os.name == 'nt':
-    warnings.warn('dft needs FUSE which is not available for windows')
+if os.name == "nt":
+    warnings.warn("dft needs FUSE which is not available for windows")
 else:
     DB = _DB()

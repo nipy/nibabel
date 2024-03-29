@@ -7,30 +7,30 @@ import nibabel as nib
 from nibabel.cifti2 import cifti2, cifti2_axes
 from nibabel.tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 
-test_directory = os.path.join(get_nibabel_data(), 'nitest-cifti2')
+test_directory = os.path.join(get_nibabel_data(), "nitest-cifti2")
 
 hcp_labels = [
-    'CortexLeft',
-    'CortexRight',
-    'AccumbensLeft',
-    'AccumbensRight',
-    'AmygdalaLeft',
-    'AmygdalaRight',
-    'brain_stem',
-    'CaudateLeft',
-    'CaudateRight',
-    'CerebellumLeft',
-    'CerebellumRight',
-    'Diencephalon_ventral_left',
-    'Diencephalon_ventral_right',
-    'HippocampusLeft',
-    'HippocampusRight',
-    'PallidumLeft',
-    'PallidumRight',
-    'PutamenLeft',
-    'PutamenRight',
-    'ThalamusLeft',
-    'ThalamusRight',
+    "CortexLeft",
+    "CortexRight",
+    "AccumbensLeft",
+    "AccumbensRight",
+    "AmygdalaLeft",
+    "AmygdalaRight",
+    "brain_stem",
+    "CaudateLeft",
+    "CaudateRight",
+    "CerebellumLeft",
+    "CerebellumRight",
+    "Diencephalon_ventral_left",
+    "Diencephalon_ventral_right",
+    "HippocampusLeft",
+    "HippocampusRight",
+    "PallidumLeft",
+    "PallidumRight",
+    "PutamenLeft",
+    "PutamenRight",
+    "ThalamusLeft",
+    "ThalamusRight",
 ]
 
 hcp_n_elements = [
@@ -58,7 +58,12 @@ hcp_n_elements = [
 ]
 
 hcp_affine = np.array(
-    [[-2.0, 0.0, 0.0, 90.0], [0.0, 2.0, 0.0, -126.0], [0.0, 0.0, 2.0, -72.0], [0.0, 0.0, 0.0, 1.0]]
+    [
+        [-2.0, 0.0, 0.0, 90.0],
+        [0.0, 2.0, 0.0, -126.0],
+        [0.0, 0.0, 2.0, -72.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
 )
 
 
@@ -106,9 +111,9 @@ def check_Conte69(brain_model):
     assert isinstance(brain_model, cifti2_axes.BrainModelAxis)
     structures = list(brain_model.iter_structures())
     assert len(structures) == 2
-    assert structures[0][0] == 'CIFTI_STRUCTURE_CORTEX_LEFT'
+    assert structures[0][0] == "CIFTI_STRUCTURE_CORTEX_LEFT"
     assert structures[0][2].surface_mask.all()
-    assert structures[1][0] == 'CIFTI_STRUCTURE_CORTEX_RIGHT'
+    assert structures[1][0] == "CIFTI_STRUCTURE_CORTEX_RIGHT"
     assert structures[1][2].surface_mask.all()
     assert (brain_model.voxel == -1).all()
 
@@ -118,7 +123,7 @@ def check_Conte69(brain_model):
     assert structures[1][2].vertex[-1] == 32491
 
 
-def check_rewrite(arr, axes, extension='.nii'):
+def check_rewrite(arr, axes, extension=".nii"):
     """
     Checks whether writing the Cifti2 array to disc and reading it back in gives the same object
 
@@ -141,43 +146,47 @@ def check_rewrite(arr, axes, extension='.nii'):
     return img
 
 
-@needs_nibabel_data('nitest-cifti2')
+@needs_nibabel_data("nitest-cifti2")
 def test_read_ones():
-    img = nib.load(os.path.join(test_directory, 'ones.dscalar.nii'))
+    img = nib.load(os.path.join(test_directory, "ones.dscalar.nii"))
     arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert (arr == 1).all()
     assert isinstance(axes[0], cifti2_axes.ScalarAxis)
     assert len(axes[0]) == 1
-    assert axes[0].name[0] == 'ones'
+    assert axes[0].name[0] == "ones"
     assert axes[0].meta[0] == {}
     check_hcp_grayordinates(axes[1])
     img = check_rewrite(arr, axes)
     check_hcp_grayordinates(img.header.get_axis(1))
 
 
-@needs_nibabel_data('nitest-cifti2')
+@needs_nibabel_data("nitest-cifti2")
 def test_read_conte69_dscalar():
     img = nib.load(
-        os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.dscalar.nii')
+        os.path.join(
+            test_directory, "Conte69.MyelinAndCorrThickness.32k_fs_LR.dscalar.nii"
+        )
     )
     arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
     assert isinstance(axes[0], cifti2_axes.ScalarAxis)
     assert len(axes[0]) == 2
-    assert axes[0].name[0] == 'MyelinMap_BC_decurv'
-    assert axes[0].name[1] == 'corrThickness'
+    assert axes[0].name[0] == "MyelinMap_BC_decurv"
+    assert axes[0].name[1] == "corrThickness"
     assert axes[0].meta[0] == {
-        'PaletteColorMapping': '<PaletteColorMapping Version="1">\n   <ScaleMode>MODE_AUTO_SCALE_PERCENTAGE</ScaleMode>\n   <AutoScalePercentageValues>98.000000 2.000000 2.000000 98.000000</AutoScalePercentageValues>\n   <UserScaleValues>-100.000000 0.000000 0.000000 100.000000</UserScaleValues>\n   <PaletteName>ROY-BIG-BL</PaletteName>\n   <InterpolatePalette>true</InterpolatePalette>\n   <DisplayPositiveData>true</DisplayPositiveData>\n   <DisplayZeroData>false</DisplayZeroData>\n   <DisplayNegativeData>true</DisplayNegativeData>\n   <ThresholdTest>THRESHOLD_TEST_SHOW_OUTSIDE</ThresholdTest>\n   <ThresholdType>THRESHOLD_TYPE_OFF</ThresholdType>\n   <ThresholdFailureInGreen>false</ThresholdFailureInGreen>\n   <ThresholdNormalValues>-1.000000 1.000000</ThresholdNormalValues>\n   <ThresholdMappedValues>-1.000000 1.000000</ThresholdMappedValues>\n   <ThresholdMappedAvgAreaValues>-1.000000 1.000000</ThresholdMappedAvgAreaValues>\n   <ThresholdDataName></ThresholdDataName>\n   <ThresholdRangeMode>PALETTE_THRESHOLD_RANGE_MODE_MAP</ThresholdRangeMode>\n</PaletteColorMapping>'
+        "PaletteColorMapping": '<PaletteColorMapping Version="1">\n   <ScaleMode>MODE_AUTO_SCALE_PERCENTAGE</ScaleMode>\n   <AutoScalePercentageValues>98.000000 2.000000 2.000000 98.000000</AutoScalePercentageValues>\n   <UserScaleValues>-100.000000 0.000000 0.000000 100.000000</UserScaleValues>\n   <PaletteName>ROY-BIG-BL</PaletteName>\n   <InterpolatePalette>true</InterpolatePalette>\n   <DisplayPositiveData>true</DisplayPositiveData>\n   <DisplayZeroData>false</DisplayZeroData>\n   <DisplayNegativeData>true</DisplayNegativeData>\n   <ThresholdTest>THRESHOLD_TEST_SHOW_OUTSIDE</ThresholdTest>\n   <ThresholdType>THRESHOLD_TYPE_OFF</ThresholdType>\n   <ThresholdFailureInGreen>false</ThresholdFailureInGreen>\n   <ThresholdNormalValues>-1.000000 1.000000</ThresholdNormalValues>\n   <ThresholdMappedValues>-1.000000 1.000000</ThresholdMappedValues>\n   <ThresholdMappedAvgAreaValues>-1.000000 1.000000</ThresholdMappedAvgAreaValues>\n   <ThresholdDataName></ThresholdDataName>\n   <ThresholdRangeMode>PALETTE_THRESHOLD_RANGE_MODE_MAP</ThresholdRangeMode>\n</PaletteColorMapping>'
     }
     check_Conte69(axes[1])
     check_rewrite(arr, axes)
 
 
-@needs_nibabel_data('nitest-cifti2')
+@needs_nibabel_data("nitest-cifti2")
 def test_read_conte69_dtseries():
     img = nib.load(
-        os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.dtseries.nii')
+        os.path.join(
+            test_directory, "Conte69.MyelinAndCorrThickness.32k_fs_LR.dtseries.nii"
+        )
     )
     arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
@@ -191,10 +200,12 @@ def test_read_conte69_dtseries():
     check_rewrite(arr, axes)
 
 
-@needs_nibabel_data('nitest-cifti2')
+@needs_nibabel_data("nitest-cifti2")
 def test_read_conte69_dlabel():
     img = nib.load(
-        os.path.join(test_directory, 'Conte69.parcellations_VGD11b.32k_fs_LR.dlabel.nii')
+        os.path.join(
+            test_directory, "Conte69.parcellations_VGD11b.32k_fs_LR.dlabel.nii"
+        )
     )
     arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
@@ -203,21 +214,23 @@ def test_read_conte69_dlabel():
     assert (
         axes[0].name
         == [
-            'Composite Parcellation-lh (FRB08_OFP03_retinotopic)',
-            'Brodmann lh (from colin.R via pals_R-to-fs_LR)',
-            'MEDIAL WALL lh (fs_LR)',
+            "Composite Parcellation-lh (FRB08_OFP03_retinotopic)",
+            "Brodmann lh (from colin.R via pals_R-to-fs_LR)",
+            "MEDIAL WALL lh (fs_LR)",
         ]
     ).all()
-    assert axes[0].label[1][70] == ('19_B05', (1.0, 0.867, 0.467, 1.0))
+    assert axes[0].label[1][70] == ("19_B05", (1.0, 0.867, 0.467, 1.0))
     assert (axes[0].meta == [{}] * 3).all()
     check_Conte69(axes[1])
     check_rewrite(arr, axes)
 
 
-@needs_nibabel_data('nitest-cifti2')
+@needs_nibabel_data("nitest-cifti2")
 def test_read_conte69_ptseries():
     img = nib.load(
-        os.path.join(test_directory, 'Conte69.MyelinAndCorrThickness.32k_fs_LR.ptseries.nii')
+        os.path.join(
+            test_directory, "Conte69.MyelinAndCorrThickness.32k_fs_LR.ptseries.nii"
+        )
     )
     arr = img.get_fdata()
     axes = [img.header.get_axis(dim) for dim in range(2)]
@@ -229,9 +242,9 @@ def test_read_conte69_ptseries():
     assert (axes[0].time == [0, 1]).all()
 
     assert len(axes[1]) == 54
-    voxels, vertices = axes[1]['ER_FRB08']
+    voxels, vertices = axes[1]["ER_FRB08"]
     assert voxels.shape == (0, 3)
     assert len(vertices) == 2
-    assert vertices['CIFTI_STRUCTURE_CORTEX_LEFT'].shape == (206 // 2,)
-    assert vertices['CIFTI_STRUCTURE_CORTEX_RIGHT'].shape == (206 // 2,)
+    assert vertices["CIFTI_STRUCTURE_CORTEX_LEFT"].shape == (206 // 2,)
+    assert vertices["CIFTI_STRUCTURE_CORTEX_RIGHT"].shape == (206 // 2,)
     check_rewrite(arr, axes)

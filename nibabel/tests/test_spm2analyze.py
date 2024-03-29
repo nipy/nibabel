@@ -45,14 +45,14 @@ class TestSpm2AnalyzeHeader(test_spm99analyze.TestSpm99AnalyzeHeader):
                     hdr.set_slope_inter(*in_tup)
                 # raw set
                 if in_tup[0] is not None:
-                    hdr['scl_slope'] = in_tup[0]
+                    hdr["scl_slope"] = in_tup[0]
             else:
                 hdr.set_slope_inter(*in_tup)
                 assert hdr.get_slope_inter() == out_tup
                 # Check set survives through checking
                 hdr = Spm2AnalyzeHeader.from_header(hdr, check=True)
                 assert hdr.get_slope_inter() == out_tup
-            assert_array_equal(hdr['scl_slope'], raw_slope)
+            assert_array_equal(hdr["scl_slope"], raw_slope)
 
 
 class TestSpm2AnalyzeImage(test_spm99analyze.TestSpm99AnalyzeImage):

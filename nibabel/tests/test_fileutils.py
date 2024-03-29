@@ -6,9 +6,7 @@
 #   copyright and license terms.
 #
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing fileutils module
-"""
-
+"""Testing fileutils module"""
 
 import pytest
 
@@ -18,24 +16,24 @@ from ..tmpdirs import InTemporaryDirectory
 
 def test_read_zt_byte_strings():
     # sample binary block
-    binary = b'test.fmr\x00test.prt\x00something'
+    binary = b"test.fmr\x00test.prt\x00something"
     with InTemporaryDirectory():
         # create a tempfile
-        path = 'test.bin'
-        fwrite = open(path, 'wb')
+        path = "test.bin"
+        fwrite = open(path, "wb")
         # write the binary block to it
         fwrite.write(binary)
         fwrite.close()
         # open it again
-        fread = open(path, 'rb')
+        fread = open(path, "rb")
         # test readout of one string
-        assert read_zt_byte_strings(fread) == [b'test.fmr']
+        assert read_zt_byte_strings(fread) == [b"test.fmr"]
         # test new file position
         assert fread.tell() == 9
         # manually rewind
         fread.seek(0)
         # test readout of two strings
-        assert read_zt_byte_strings(fread, 2) == [b'test.fmr', b'test.prt']
+        assert read_zt_byte_strings(fread, 2) == [b"test.fmr", b"test.prt"]
         assert fread.tell() == 18
         # test readout of more strings than present
         fread.seek(0)
@@ -46,5 +44,5 @@ def test_read_zt_byte_strings():
             read_zt_byte_strings(fread, 2)
         # Try with a small bufsize
         fread.seek(0)
-        assert read_zt_byte_strings(fread, 2, 4) == [b'test.fmr', b'test.prt']
+        assert read_zt_byte_strings(fread, 2, 4) == [b"test.fmr", b"test.prt"]
         fread.close()

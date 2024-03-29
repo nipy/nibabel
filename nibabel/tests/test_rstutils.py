@@ -1,5 +1,4 @@
-"""Test printable table
-"""
+"""Test printable table"""
 
 import numpy as np
 import pytest
@@ -22,7 +21,7 @@ def test_rst_table():
 +--------+--------+--------+--------+--------+"""
     )
     assert (
-        rst_table(cell_values, ['a', 'b', 'c'])
+        rst_table(cell_values, ["a", "b", "c"])
         == """+---+--------+--------+--------+--------+
 |   | col[0] | col[1] | col[2] | col[3] |
 +===+========+========+========+========+
@@ -32,11 +31,11 @@ def test_rst_table():
 +---+--------+--------+--------+--------+"""
     )
     with pytest.raises(ValueError):
-        rst_table(cell_values, ['a', 'b'])
+        rst_table(cell_values, ["a", "b"])
     with pytest.raises(ValueError):
-        rst_table(cell_values, ['a', 'b', 'c', 'd'])
+        rst_table(cell_values, ["a", "b", "c", "d"])
     assert (
-        rst_table(cell_values, None, ['1', '2', '3', '4'])
+        rst_table(cell_values, None, ["1", "2", "3", "4"])
         == """+--------+-------+-------+-------+-------+
 |        |   1   |   2   |   3   |   4   |
 +========+=======+=======+=======+=======+
@@ -46,11 +45,11 @@ def test_rst_table():
 +--------+-------+-------+-------+-------+"""
     )
     with pytest.raises(ValueError):
-        rst_table(cell_values, None, ['1', '2', '3'])
+        rst_table(cell_values, None, ["1", "2", "3"])
     with pytest.raises(ValueError):
-        rst_table(cell_values, None, list('12345'))
+        rst_table(cell_values, None, list("12345"))
     assert (
-        rst_table(cell_values, title='A title')
+        rst_table(cell_values, title="A title")
         == """*******
 A title
 *******
@@ -64,7 +63,7 @@ A title
 +--------+--------+--------+--------+--------+"""
     )
     assert (
-        rst_table(cell_values, val_fmt='{0}')
+        rst_table(cell_values, val_fmt="{0}")
         == """+--------+--------+--------+--------+--------+
 |        | col[0] | col[1] | col[2] | col[3] |
 +========+========+========+========+========+
@@ -77,7 +76,7 @@ A title
     cell_values_back = np.arange(R * C)[::-1].reshape((R, C))
     cell_3d = np.dstack((cell_values, cell_values_back))
     assert (
-        rst_table(cell_3d, val_fmt='{0[0]}-{0[1]}')
+        rst_table(cell_3d, val_fmt="{0[0]}-{0[1]}")
         == """+--------+--------+--------+--------+--------+
 |        | col[0] | col[1] | col[2] | col[3] |
 +========+========+========+========+========+
@@ -87,9 +86,9 @@ A title
 +--------+--------+--------+--------+--------+"""
     )
     # Test formatting characters
-    formats = dict(down='!', along='_', thick_long='~', cross='%', title_heading='#')
+    formats = dict(down="!", along="_", thick_long="~", cross="%", title_heading="#")
     assert (
-        rst_table(cell_values, title='A title', format_chars=formats)
+        rst_table(cell_values, title="A title", format_chars=formats)
         == """#######
 A title
 #######
@@ -102,6 +101,6 @@ A title
 ! row[2] !  8.00  !  9.00  ! 10.00  ! 11.00  !
 %________%________%________%________%________%"""
     )
-    formats['funny_value'] = '!'
+    formats["funny_value"] = "!"
     with pytest.raises(ValueError):
-        rst_table(cell_values, title='A title', format_chars=formats)
+        rst_table(cell_values, title="A title", format_chars=formats)

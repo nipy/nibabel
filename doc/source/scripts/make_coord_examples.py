@@ -27,8 +27,8 @@ import numpy.linalg as npl
 
 import nibabel.eulerangles as euler
 
-T1_IMG = 'mni_icbm152_t1_tal_nlin_asym_09a.nii'
-T2_IMG = 'mni_icbm152_t2_tal_nlin_asym_09a.nii'
+T1_IMG = "mni_icbm152_t1_tal_nlin_asym_09a.nii"
+T2_IMG = "mni_icbm152_t2_tal_nlin_asym_09a.nii"
 
 imgs = []
 for img_fname in (T1_IMG, T2_IMG):
@@ -71,7 +71,12 @@ x, y = 0, 1
 def make_ortho_box(bl, x_len, y_len):
     """Make a box with sides parallel to the axes"""
     return np.array(
-        (bl, [bl[x] + x_len, bl[y]], [bl[x], bl[y] + y_len], [bl[x] + x_len, bl[y] + y_len])
+        (
+            bl,
+            [bl[x] + x_len, bl[y]],
+            [bl[x], bl[y] + y_len],
+            [bl[x] + x_len, bl[y] + y_len],
+        )
     )
 
 
@@ -84,11 +89,11 @@ anat_y_len = 155
 anat_box = make_ortho_box(anat_bl, anat_x_len, anat_y_len)
 
 
-def plot_line(pt1, pt2, fmt='r-', label=None):
+def plot_line(pt1, pt2, fmt="r-", label=None):
     plt.plot([pt1[0], pt2[0]], [pt1[1], pt2[1]], fmt, label=label)
 
 
-def plot_box(box_def, fmt='r-', label=None):
+def plot_box(box_def, fmt="r-", label=None):
     bl, br, tl, tr = box_def
     plot_line(bl, br, fmt, label=label)
     plot_line(bl, tl, fmt)
@@ -106,15 +111,15 @@ def rotate_box(box_def, angle, origin):
     return box_def_zeroed + origin
 
 
-def labeled_point(pt, marker, text, markersize=10, color='k'):
+def labeled_point(pt, marker, text, markersize=10, color="k"):
     plt.plot(pt[0], pt[1], marker, markersize=markersize)
     plt.text(pt[0] + markersize / 2, pt[1] - markersize / 2, text, color=color)
 
 
 def plot_localizer():
-    plt.imshow(sagittal, cmap='gray', origin='lower', extent=sag_extents)
-    plt.xlabel('mm from isocenter')
-    plt.ylabel('mm from isocenter')
+    plt.imshow(sagittal, cmap="gray", origin="lower", extent=sag_extents)
+    plt.xlabel("mm from isocenter")
+    plt.ylabel("mm from isocenter")
 
 
 def save_plot():
@@ -124,15 +129,15 @@ def save_plot():
     def vx2mm(pts):
         return pts - iso_center
 
-    plot_box(vx2mm(rot_box), label='EPI bounding box')
-    plot_box(vx2mm(anat_box), 'b-', label='Structural bounding box')
-    labeled_point(vx2mm(epi_center), 'ro', 'EPI FOV center')
-    labeled_point(vx2mm(anat_center), 'bo', 'Structural FOV center')
-    labeled_point(vx2mm(iso_center), 'g^', 'Magnet isocenter')
-    plt.axis('tight')
-    plt.legend(loc='lower right')
-    plt.title('Scanner localizer image')
-    plt.savefig('localizer.png')
+    plot_box(vx2mm(rot_box), label="EPI bounding box")
+    plot_box(vx2mm(anat_box), "b-", label="Structural bounding box")
+    labeled_point(vx2mm(epi_center), "ro", "EPI FOV center")
+    labeled_point(vx2mm(anat_center), "bo", "Structural FOV center")
+    labeled_point(vx2mm(iso_center), "g^", "Magnet isocenter")
+    plt.axis("tight")
+    plt.legend(loc="lower right")
+    plt.title("Scanner localizer image")
+    plt.savefig("localizer.png")
 
 
 angle = 0.3
@@ -173,14 +178,16 @@ anat_trans = np.eye(4)
 anat_trans[:3, 3] = -np.array([0, anat_box[0, 0], anat_box[0, 1]])
 vox2anat_vox = anat_scale.dot(anat_trans)
 anat_vox2mm = t1_img.affine.dot(npl.inv(vox2anat_vox))
-anat_vox_shape = np.round(np.divide([data.shape[0], anat_x_len, anat_y_len], anat_vox_sizes))
+anat_vox_shape = np.round(
+    np.divide([data.shape[0], anat_x_len, anat_y_len], anat_vox_sizes)
+)
 anat_cmap = nca.vox2mni(anat_vox2mm)
 anat = rsm.resample(t1_img, anat_cmap, np.eye(4), anat_vox_shape)
 anat_data = anat.get_fdata()
 
 save_plot()
-nipy.save_image(epi, 'someones_epi.nii.gz', dtype_from='uint8')
-nipy.save_image(anat, 'someones_anatomy.nii.gz', dtype_from='uint8')
+nipy.save_image(epi, "someones_epi.nii.gz", dtype_from="uint8")
+nipy.save_image(anat, "someones_anatomy.nii.gz", dtype_from="uint8")
 
 # Do progressive transforms
 epi2_vox = make_ortho_box((0, 0), epi_vox_shape[1], epi_vox_shape[2])
@@ -190,10 +197,10 @@ epi2_rotted = rotate_box(epi2_scaled, angle, (0, 0))
 epi2_pulled = epi2_rotted + epi_vox2mm[1:3, 3]
 plt.figure()
 plot_localizer()
-plot_box(epi2_vox, 'k', label='voxels')
-plot_box(epi2_scaled, 'g', label='scaled')
-plot_box(epi2_rotted, 'y', label='scaled, rotated')
-plot_box(epi2_pulled, 'r', label='scaled, rotated, translated')
-plt.legend(loc='upper left')
-plt.title('Anatomy of an affine transform')
-plt.savefig('illustrating_affine.png')
+plot_box(epi2_vox, "k", label="voxels")
+plot_box(epi2_scaled, "g", label="scaled")
+plot_box(epi2_rotted, "y", label="scaled, rotated")
+plot_box(epi2_pulled, "r", label="scaled, rotated, translated")
+plt.legend(loc="upper left")
+plt.title("Anatomy of an affine transform")
+plt.savefig("illustrating_affine.png")

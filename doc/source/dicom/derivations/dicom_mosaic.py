@@ -4,16 +4,18 @@ from sympy import Matrix, Symbol, simplify, symbols
 
 
 def numbered_matrix(nrows, ncols, symbol_prefix):
-    return Matrix(nrows, ncols, lambda i, j: Symbol(symbol_prefix + '_{%d%d}' % (i + 1, j + 1)))
+    return Matrix(
+        nrows, ncols, lambda i, j: Symbol(symbol_prefix + "_{%d%d}" % (i + 1, j + 1))
+    )
 
 
 def numbered_vector(nrows, symbol_prefix):
-    return Matrix(nrows, 1, lambda i, j: Symbol(symbol_prefix + '_{%d}' % (i + 1)))
+    return Matrix(nrows, 1, lambda i, j: Symbol(symbol_prefix + "_{%d}" % (i + 1)))
 
 
-RS = numbered_matrix(3, 3, 'rs')
+RS = numbered_matrix(3, 3, "rs")
 
-mdc, mdr, rdc, rdr = symbols('md_{cols} md_{rows} rd_{cols} rd_{rows}')
+mdc, mdr, rdc, rdr = symbols("md_{cols} md_{rows} rd_{cols} rd_{rows}")
 
 md_adj = Matrix((mdc - 1, mdr - 1, 0)) / -2
 rd_adj = Matrix((rdc - 1, rdr - 1, 0)) / -2

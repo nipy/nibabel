@@ -96,26 +96,26 @@ def test(
     args = []
 
     if label is not None:
-        raise NotImplementedError('Labels cannot be set at present')
+        raise NotImplementedError("Labels cannot be set at present")
 
     verbose = int(verbose)
     if verbose > 0:
-        args.append('-' + 'v' * verbose)
+        args.append("-" + "v" * verbose)
     elif verbose < 0:
-        args.append('-' + 'q' * -verbose)
+        args.append("-" + "q" * -verbose)
 
     if extra_argv:
         args.extend(extra_argv)
     if doctests:
-        args.append('--doctest-modules')
+        args.append("--doctest-modules")
     if coverage:
-        args.extend(['--cov', 'nibabel'])
+        args.extend(["--cov", "nibabel"])
     if raise_warnings is not None:
-        raise NotImplementedError('Warning filters are not implemented')
+        raise NotImplementedError("Warning filters are not implemented")
     if timer:
-        raise NotImplementedError('Timing is not implemented')
+        raise NotImplementedError("Timing is not implemented")
 
-    args.extend(['--pyargs', 'nibabel'])
+    args.extend(["--pyargs", "nibabel"])
 
     return pytest.main(args=args)
 
@@ -151,7 +151,7 @@ def bench(label=None, verbose=1, extra_argv=None):
     if extra_argv is not None:
         args.extend(extra_argv)
 
-    config_path = files('nibabel') / 'benchmarks/pytest.benchmark.ini'
+    config_path = files("nibabel") / "benchmarks/pytest.benchmark.ini"
     with as_file(config_path) as config:
-        args.extend(['-c', str(config)])
+        args.extend(["-c", str(config)])
         return test(label, verbose, extra_argv=args)

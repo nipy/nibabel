@@ -49,30 +49,30 @@ except ImportError:
 # -- General configuration ----------------------------------------------------
 
 # We load the nibabel release info into a dict by explicit execution
-rel = run_path(os.path.join('..', '..', 'nibabel', 'info.py'))
+rel = run_path(os.path.join("..", "..", "nibabel", "info.py"))
 
 # Write long description from info
-with open('_long_description.inc', 'wt') as fobj:
-    fobj.write(rel['long_description'])
+with open("_long_description.inc", "wt") as fobj:
+    fobj.write(rel["long_description"])
 
 # Load metadata from setup.cfg
-with open(Path('../../pyproject.toml'), 'rb') as fobj:
+with open(Path("../../pyproject.toml"), "rb") as fobj:
     pyproject = tomllib.load(fobj)
-authors = pyproject['project']['authors'][0]
+authors = pyproject["project"]["authors"][0]
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.autosummary',
-    'texext.math_dollar',  # has to go before numpydoc
-    'numpydoc',
-    'matplotlib.sphinxext.plot_directive',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.autosummary",
+    "texext.math_dollar",  # has to go before numpydoc
+    "numpydoc",
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 # Autosummary always wants to use a `generated/` directory.
@@ -81,19 +81,19 @@ extensions = [
 autosummary_generate = False
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The encoding of source files.
 # source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'NiBabel'
+project = "NiBabel"
 copyright = f"2006-2023, {authors['name']} <{authors['email']}>"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -113,17 +113,17 @@ release = version
 # non-false value, then it is used:
 # today = ''
 # Else, today_fmt is used as the format for a strftime call.
-today_fmt = '%B %d, %Y, %H:%M PDT'
+today_fmt = "%B %d, %Y, %H:%M PDT"
 
 # List of documents that shouldn't be included in the build.
-unused_docs = ['api/generated/gen']
+unused_docs = ["api/generated/gen"]
 
 # what to put into API doc (just class doc, just init, or both
-autoclass_content = 'both'
+autoclass_content = "both"
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
-exclude_trees = ['_build']
+exclude_trees = ["_build"]
 
 # The reST default role (used for this markup: `text`) to use for all documents
 # default_role = None
@@ -140,7 +140,7 @@ exclude_trees = ['_build']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -148,9 +148,11 @@ pygments_style = 'sphinx'
 # -- Sphinxext configuration --------------------------------------------------
 
 # Set attributes for layout of inheritance diagrams
-inheritance_graph_attrs = dict(rankdir='LR', size='"6.0, 8.0"', fontsize=14, ratio='compress')
+inheritance_graph_attrs = dict(
+    rankdir="LR", size='"6.0, 8.0"', fontsize=14, ratio="compress"
+)
 inheritance_node_attrs = dict(
-    shape='ellipse', fontsize=14, height=0.75, color='dodgerblue1', style='filled'
+    shape="ellipse", fontsize=14, height=0.75, color="dodgerblue1", style="filled"
 )
 
 # Flag to show todo items in rendered output
@@ -160,12 +162,12 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+html_theme = "sphinxdoc"
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'nibabel.css'
+html_style = "nibabel.css"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -194,14 +196,14 @@ html_style = 'nibabel.css'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 # html_last_updated_fmt = '%b %d, %Y'
 
 # Content template for the index page.
-html_index = 'index.html'
+html_index = "index.html"
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
@@ -209,13 +211,13 @@ html_index = 'index.html'
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
-    'index': [
-        'localtoc.html',
-        'relations.html',
-        'sourcelink.html',
-        'indexsidebar.html',
-        'searchbox.html',
-        'reggie.html',
+    "index": [
+        "localtoc.html",
+        "relations.html",
+        "sourcelink.html",
+        "indexsidebar.html",
+        "searchbox.html",
+        "reggie.html",
     ]
 }
 
@@ -244,9 +246,11 @@ html_show_sourcelink = True
 # html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'nibabeldoc'
+htmlhelp_basename = "nibabeldoc"
 
-mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
+mathjax_path = (
+    "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+)
 
 # -- Options for LaTeX output -------------------------------------------------
 
@@ -259,7 +263,9 @@ mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author,
 #  documentclass [howto/manual]).
-latex_documents = [('index', 'nibabel.tex', 'NiBabel Documentation', 'NiBabel Authors', 'manual')]
+latex_documents = [
+    ("index", "nibabel.tex", "NiBabel Documentation", "NiBabel Authors", "manual")
+]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -281,10 +287,10 @@ latex_documents = [('index', 'nibabel.tex', 'NiBabel Documentation', 'NiBabel Au
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'numpy': ('https://numpy.org/doc/stable', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy', None),
-    'matplotlib': ('https://matplotlib.org/stable', None),
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
+    "matplotlib": ("https://matplotlib.org/stable", None),
 }
 
 # Config of plot_directive

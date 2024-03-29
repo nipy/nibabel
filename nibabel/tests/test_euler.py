@@ -123,7 +123,7 @@ def test_euler_mat_1():
     assert_array_equal(M, np.eye(3))
 
 
-@pytest.mark.parametrize('x, y, z', eg_rots)
+@pytest.mark.parametrize("x, y, z", eg_rots)
 def test_euler_mat_2(x, y, z):
     M1 = nea.euler2mat(z, y, x)
     M2 = sympy_euler(z, y, x)
@@ -144,10 +144,14 @@ def sympy_euler2quat(z=0, y=0, x=0):
     sin = math.sin
     # the following copy / pasted from Sympy output
     return (
-        cos(0.5 * x) * cos(0.5 * y) * cos(0.5 * z) - sin(0.5 * x) * sin(0.5 * y) * sin(0.5 * z),
-        cos(0.5 * x) * sin(0.5 * y) * sin(0.5 * z) + cos(0.5 * y) * cos(0.5 * z) * sin(0.5 * x),
-        cos(0.5 * x) * cos(0.5 * z) * sin(0.5 * y) - cos(0.5 * y) * sin(0.5 * x) * sin(0.5 * z),
-        cos(0.5 * x) * cos(0.5 * y) * sin(0.5 * z) + cos(0.5 * z) * sin(0.5 * x) * sin(0.5 * y),
+        cos(0.5 * x) * cos(0.5 * y) * cos(0.5 * z)
+        - sin(0.5 * x) * sin(0.5 * y) * sin(0.5 * z),
+        cos(0.5 * x) * sin(0.5 * y) * sin(0.5 * z)
+        + cos(0.5 * y) * cos(0.5 * z) * sin(0.5 * x),
+        cos(0.5 * x) * cos(0.5 * z) * sin(0.5 * y)
+        - cos(0.5 * y) * sin(0.5 * x) * sin(0.5 * z),
+        cos(0.5 * x) * cos(0.5 * y) * sin(0.5 * z)
+        + cos(0.5 * z) * sin(0.5 * x) * sin(0.5 * y),
     )
 
 
@@ -176,7 +180,7 @@ def test_euler_instability():
     assert not np.allclose(M_e, M_e_back)
 
 
-@pytest.mark.parametrize('x, y, z', eg_rots)
+@pytest.mark.parametrize("x, y, z", eg_rots)
 def test_quats(x, y, z):
     M1 = nea.euler2mat(z, y, x)
     quatM = nq.mat2quat(M1)

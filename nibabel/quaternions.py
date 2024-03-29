@@ -25,13 +25,14 @@ they are applied on the left of the vector.  For example:
 >>> vec = np.array([1, 2, 3]).reshape((3,1)) # column vector
 >>> tvec = np.dot(M, vec)
 """
+
 import math
 
 import numpy as np
 
 from .casting import sctypes
 
-MAX_FLOAT = sctypes['float'][-1]
+MAX_FLOAT = sctypes["float"][-1]
 FLOAT_EPS = np.finfo(float).eps
 
 
@@ -86,7 +87,7 @@ def fillpositive(xyz, w2_thresh=None):
     """
     # Check inputs (force error if < 3 values)
     if len(xyz) != 3:
-        raise ValueError('xyz should have length 3')
+        raise ValueError("xyz should have length 3")
     # If necessary, guess precision of input
     if w2_thresh is None:
         try:  # trap errors for non-array, integer array
@@ -100,7 +101,7 @@ def fillpositive(xyz, w2_thresh=None):
     if np.abs(w2) < np.abs(w2_thresh):
         w = 0
     elif w2 < 0:
-        raise ValueError(f'w2 should be positive, but is {w2:e}')
+        raise ValueError(f"w2 should be positive, but is {w2:e}")
     else:
         w = np.sqrt(w2)
     return np.r_[w, xyz]

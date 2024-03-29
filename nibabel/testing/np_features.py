@@ -1,5 +1,5 @@
-"""Look for changes in numpy behavior over versions
-"""
+"""Look for changes in numpy behavior over versions"""
+
 from functools import lru_cache
 
 import numpy as np
@@ -11,6 +11,6 @@ def memmap_after_ufunc() -> bool:
 
     This should be True for numpy < 1.12, False otherwise.
     """
-    with open(__file__, 'rb') as fobj:
-        mm_arr = np.memmap(fobj, mode='r', shape=(10,), dtype=np.uint8)
+    with open(__file__, "rb") as fobj:
+        mm_arr = np.memmap(fobj, mode="r", shape=(10,), dtype=np.uint8)
         return isinstance(mm_arr + 1, np.memmap)

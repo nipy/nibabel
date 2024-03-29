@@ -13,19 +13,19 @@ This script is a minimal version of a wrapper script shipped with the
 bdist_mpkg package.
 """
 
-__docformat__ = 'restructuredtext'
+__docformat__ = "restructuredtext"
 
 import sys
 
 
 def main():
     del sys.argv[0]
-    sys.argv.insert(1, 'bdist_mpkg')
+    sys.argv.insert(1, "bdist_mpkg")
     g = dict(globals())
-    g['__file__'] = sys.argv[0]
-    g['__name__'] = '__main__'
+    g["__file__"] = sys.argv[0]
+    g["__name__"] = "__main__"
     execfile(sys.argv[0], g, g)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

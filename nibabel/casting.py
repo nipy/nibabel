@@ -3,6 +3,7 @@
 Most routines work round some numpy oddities in floating point precision and
 casting.  Others work round numpy casting to and from python ints
 """
+
 from __future__ import annotations
 
 import warnings
@@ -26,25 +27,27 @@ TRUNC_UINT64 = np.float64(_test_val).astype(np.uint64) != _test_val
 
 # np.sctypes is deprecated in numpy 2.0 and np.core.sctypes should not be used instead.
 sctypes = {
-    'int': [
-        getattr(np, dtype) for dtype in ('int8', 'int16', 'int32', 'int64') if hasattr(np, dtype)
-    ],
-    'uint': [
+    "int": [
         getattr(np, dtype)
-        for dtype in ('uint8', 'uint16', 'uint32', 'uint64')
+        for dtype in ("int8", "int16", "int32", "int64")
         if hasattr(np, dtype)
     ],
-    'float': [
+    "uint": [
         getattr(np, dtype)
-        for dtype in ('float16', 'float32', 'float64', 'float96', 'float128')
+        for dtype in ("uint8", "uint16", "uint32", "uint64")
         if hasattr(np, dtype)
     ],
-    'complex': [
+    "float": [
         getattr(np, dtype)
-        for dtype in ('complex64', 'complex128', 'complex192', 'complex256')
+        for dtype in ("float16", "float32", "float64", "float96", "float128")
         if hasattr(np, dtype)
     ],
-    'others': [bool, object, bytes, str, np.void],
+    "complex": [
+        getattr(np, dtype)
+        for dtype in ("complex64", "complex128", "complex192", "complex256")
+        if hasattr(np, dtype)
+    ],
+    "others": [bool, object, bytes, str, np.void],
 }
 sctypes_aliases = {
     getattr(np, dtype)
@@ -135,7 +138,7 @@ def float_to_int(arr, int_type, nan2zero=True, infmax=False):
         nans = np.isnan(arr)
         seen_nans = np.any(nans)
         if not nan2zero and seen_nans:
-            raise CastingError('NaNs in array, nan2zero is False')
+            raise CastingError("NaNs in array, nan2zero is False")
     iarr = np.clip(np.rint(arr), mn, mx).astype(int_type)
     if seen_nans:
         iarr[nans] = 0
@@ -221,7 +224,7 @@ def on_powerpc():
 
     Has to deal with older Macs and IBM POWER7 series among others
     """
-    return processor() == 'powerpc' or machine().startswith('ppc')
+    return processor() == "powerpc" or machine().startswith("ppc")
 
 
 def type_info(np_type):
@@ -277,7 +280,7 @@ def type_info(np_type):
     # Mitigate warning from WSL1 when checking `np.longdouble` (#1309)
     with warnings.catch_warnings():
         warnings.filterwarnings(
-            action='ignore', category=UserWarning, message='Signature.*numpy.longdouble'
+            action="ignore", category=UserWarning, message="Signature.*numpy.longdouble"
         )
         info = np.finfo(dt)
 
@@ -295,7 +298,7 @@ def type_info(np_type):
     if np_type in (np.float16, np.float32, np.float64, np.complex64, np.complex128):
         return ret
     info_64 = np.finfo(np.float64)
-    if dt.kind == 'c':
+    if dt.kind == "c":
         assert np_type is np.clongdouble
         vals = (nmant, nexp, width / 2)
     else:
@@ -325,7 +328,7 @@ def type_info(np_type):
     # and then give up. At this stage we're expecting exotic longdouble or
     # their complex equivalent.
     if np_type not in (np.longdouble, np.clongdouble) or width not in (16, 32):
-        raise FloatingError(f'We had not expected type {np_type}')
+        raise FloatingError(f"We had not expected type {np_type}")
     if vals == (1, 1, 16) and on_powerpc() and _check_maxexp(np.longdouble, 1024):
         # double pair on PPC.  The _check_nmant routine does not work for this
         # type, hence the powerpc platform check instead
@@ -352,7 +355,9 @@ def type_info(np_type):
             width=width,
         )
     else:  # don't recognize the type
-        raise FloatingError(f'We had not expected long double type {np_type} with info {info}')
+        raise FloatingError(
+            f"We had not expected long double type {np_type} with info {info}"
+        )
     return ret
 
 
@@ -406,11 +411,11 @@ def _check_maxexp(np_type, maxexp):
     np_type = dt.type
     two = np_type(2).reshape((1,))  # to avoid upcasting
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', RuntimeWarning)  # Expected overflow warning
+        warnings.simplefilter("ignore", RuntimeWarning)  # Expected overflow warning
         return np.isfinite(two ** (maxexp - 1)) and not np.isfinite(two**maxexp)
 
 
-@deprecate_with_version('as_int() is deprecated. Use int() instead.', '5.2.0', '7.0.0')
+@deprecate_with_version("as_int() is deprecated. Use int() instead.", "5.2.0", "7.0.0")
 def as_int(x, check=True):
     """Return python integer representation of number
 
@@ -447,11 +452,13 @@ def as_int(x, check=True):
     """
     ix = int(x)
     if check and ix != x:
-        raise FloatingError(f'Not an integer: {x}')
+        raise FloatingError(f"Not an integer: {x}")
     return ix
 
 
-@deprecate_with_version('int_to_float(..., dt) is deprecated. Use dt() instead.', '5.2.0', '7.0.0')
+@deprecate_with_version(
+    "int_to_float(..., dt) is deprecated. Use dt() instead.", "5.2.0", "7.0.0"
+)
 def int_to_float(val, flt_type):
     """Convert integer `val` to floating point type `flt_type`
 
@@ -537,7 +544,7 @@ def floor_exact(val, flt_type):
     if diff >= 0:  # floating point value <= val
         return fval
     # Float casting made the value go up
-    biggest_gap = 2 ** (floor_log2(val) - info['nmant'])
+    biggest_gap = 2 ** (floor_log2(val) - info["nmant"])
     assert biggest_gap > 1
     fval -= flt_type(biggest_gap)
     return fval
@@ -619,11 +626,11 @@ def int_abs(arr):
     """
     arr = np.asarray(arr)
     dt = arr.dtype
-    if dt.kind == 'u':
+    if dt.kind == "u":
         return arr
-    if dt.kind != 'i':
+    if dt.kind != "i":
         return np.absolute(arr)
-    out = arr.astype(np.dtype(dt.str.replace('i', 'u')))
+    out = arr.astype(np.dtype(dt.str.replace("i", "u")))
     return np.choose(arr < 0, (arr, arr * -1), out=out)
 
 
@@ -692,7 +699,7 @@ def best_float():
     except FloatingError:
         return np.float64
     if (
-        long_info['nmant'] > type_info(np.float64)['nmant'] and machine() != 'sparc64'
+        long_info["nmant"] > type_info(np.float64)["nmant"] and machine() != "sparc64"
     ):  # sparc has crazy-slow float128
         return np.longdouble
     return np.float64
@@ -723,7 +730,7 @@ def have_binary128():
         ti = type_info(np.longdouble)
     except FloatingError:
         return False
-    return (ti['nmant'], ti['maxexp']) == (112, 16384)
+    return (ti["nmant"], ti["maxexp"]) == (112, 16384)
 
 
 def ok_floats():
@@ -732,10 +739,10 @@ def ok_floats():
     Remove longdouble if it has no higher precision than float64
     """
     # copy float list so we don't change the numpy global
-    floats = sctypes['float'][:]
+    floats = sctypes["float"][:]
     if best_float() != np.longdouble and np.longdouble in floats:
         floats.remove(np.longdouble)
-    return sorted(floats, key=lambda f: type_info(f)['nmant'])
+    return sorted(floats, key=lambda f: type_info(f)["nmant"])
 
 
 OK_FLOATS = ok_floats()
@@ -768,10 +775,10 @@ def able_int_type(values):
     mn = min(values)
     mx = max(values)
     if mn >= 0:
-        for ityp in sctypes['uint']:
+        for ityp in sctypes["uint"]:
             if mx <= np.iinfo(ityp).max:
                 return ityp
-    for ityp in sctypes['int']:
+    for ityp in sctypes["int"]:
         info = np.iinfo(ityp)
         if mn >= info.min and mx <= info.max:
             return ityp
@@ -805,12 +812,12 @@ def ulp(val=np.float64(1.0)):
     val = np.array(val)
     if not np.isfinite(val):
         return np.nan
-    if val.dtype.kind in 'iu':
+    if val.dtype.kind in "iu":
         return 1
     aval = np.abs(val)
     info = type_info(val.dtype)
     fl2 = floor_log2(aval)
-    if fl2 is None or fl2 < info['minexp']:  # subnormal
-        fl2 = info['minexp']
+    if fl2 is None or fl2 < info["minexp"]:  # subnormal
+        fl2 = info["minexp"]
     # 'nmant' value does not include implicit first bit
-    return 2 ** (fl2 - info['nmant'])
+    return 2 ** (fl2 - info["nmant"])

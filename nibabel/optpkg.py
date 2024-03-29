@@ -1,4 +1,5 @@
 """Routines to support optional packages"""
+
 from __future__ import annotations
 
 import typing as ty
@@ -13,7 +14,7 @@ def _check_pkg_version(min_version: str | Version) -> ty.Callable[[ModuleType], 
     min_ver = Version(min_version) if isinstance(min_version, str) else min_version
 
     def check(pkg: ModuleType) -> bool:
-        pkg_ver = getattr(pkg, '__version__', None)
+        pkg_ver = getattr(pkg, "__version__", None)
         if isinstance(pkg_ver, str):
             return min_ver <= Version(pkg_ver)
         return False
@@ -95,7 +96,7 @@ def optional_package(
         check_version = _check_pkg_version(min_version)
     # fromlist=[''] results in submodule being returned, rather than the top
     # level module.  See help(__import__)
-    fromlist = [''] if '.' in name else []
+    fromlist = [""] if "." in name else []
     exc = None
     try:
         pkg = __import__(name, fromlist=fromlist)
@@ -111,18 +112,16 @@ def optional_package(
         # Failed version check
         if trip_msg is None:
             if callable(min_version):
-                trip_msg = f'Package {min_version} fails version check'
+                trip_msg = f"Package {min_version} fails version check"
             else:
-                trip_msg = f'These functions need {name} version >= {min_version}'
+                trip_msg = f"These functions need {name} version >= {min_version}"
     if trip_msg is None:
-        trip_msg = (
-            f'We need package {name} for these functions, but ``import {name}`` raised {exc}'
-        )
+        trip_msg = f"We need package {name} for these functions, but ``import {name}`` raised {exc}"
     trip = TripWire(trip_msg)
 
     def setup_module() -> None:
         import unittest
 
-        raise unittest.SkipTest(f'No {name} for these tests')
+        raise unittest.SkipTest(f"No {name} for these tests")
 
     return trip, False, setup_module

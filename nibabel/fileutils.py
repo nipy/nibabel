@@ -37,11 +37,11 @@ def read_zt_byte_strings(fobj, n_strings=1, bufsize=1024):
         List of byte strings, where strings do not include the terminal 0
     """
     byte_strings = []
-    trailing = b''
+    trailing = b""
     while True:
         buf = fobj.read(bufsize)
         eof = len(buf) < bufsize  # end of file
-        zt_strings = buf.split(b'\x00')
+        zt_strings = buf.split(b"\x00")
         if len(zt_strings) > 1:  # At least one 0
             byte_strings += [trailing + zt_strings[0]] + zt_strings[1:-1]
             trailing = zt_strings[-1]
@@ -51,7 +51,7 @@ def read_zt_byte_strings(fobj, n_strings=1, bufsize=1024):
         if eof or n_found >= n_strings:
             break
     if n_found < n_strings:
-        raise ValueError(f'Expected {n_strings} strings, found {n_found}')
+        raise ValueError(f"Expected {n_strings} strings, found {n_found}")
     n_extra = n_found - n_strings
     leftover_strings = byte_strings[n_strings:] + [trailing]
     # Add number of extra strings to account for lost terminal 0s

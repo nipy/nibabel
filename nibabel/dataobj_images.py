@@ -7,6 +7,7 @@ This can either be an actual numpy array, or an object that:
 * returns an array from ``numpy.asanyarray(obj)``;
 * has an attribute or property ``shape``.
 """
+
 from __future__ import annotations
 
 import typing as ty
@@ -23,7 +24,7 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
     from .filename_parser import FileSpec
 
-ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
+ArrayImgT = ty.TypeVar("ArrayImgT", bound="DataobjImage")
 
 
 class DataobjImage(FileBasedImage):
@@ -69,12 +70,12 @@ class DataobjImage(FileBasedImage):
         return self._dataobj
 
     @deprecate_with_version(
-        'get_data() is deprecated in favor of get_fdata(), which has a more predictable return '
-        'type. To obtain get_data() behavior going forward, use numpy.asanyarray(img.dataobj).',
-        '3.0',
-        '5.0',
+        "get_data() is deprecated in favor of get_fdata(), which has a more predictable return "
+        "type. To obtain get_data() behavior going forward, use numpy.asanyarray(img.dataobj).",
+        "3.0",
+        "5.0",
     )
-    def get_data(self, caching='fill'):
+    def get_data(self, caching="fill"):
         """Return image data from image with any necessary scaling applied
 
         .. WARNING::
@@ -214,18 +215,18 @@ class DataobjImage(FileBasedImage):
         >>> data_again[0, 0, 0, 0]
         0
         """
-        if caching not in ('fill', 'unchanged'):
+        if caching not in ("fill", "unchanged"):
             raise ValueError('caching value should be "fill" or "unchanged"')
         if self._data_cache is not None:
             return self._data_cache
         data = np.asanyarray(self._dataobj)
-        if caching == 'fill':
+        if caching == "fill":
             self._data_cache = data
         return data
 
     def get_fdata(
         self,
-        caching: ty.Literal['fill', 'unchanged'] = 'fill',
+        caching: ty.Literal["fill", "unchanged"] = "fill",
         dtype: npt.DTypeLike = np.float64,
     ) -> np.ndarray[ty.Any, np.dtype[np.floating]]:
         """Return floating point image data with necessary scaling applied
@@ -358,11 +359,11 @@ class DataobjImage(FileBasedImage):
         >>> data_again[0, 0, 0, 0]
         0.0
         """
-        if caching not in ('fill', 'unchanged'):
+        if caching not in ("fill", "unchanged"):
             raise ValueError('caching value should be "fill" or "unchanged"')
         dtype = np.dtype(dtype)
         if not issubclass(dtype.type, np.inexact):
-            raise ValueError(f'{dtype} should be floating point type')
+            raise ValueError(f"{dtype} should be floating point type")
         # Return cache if cache present and of correct dtype.
         if self._fdata_cache is not None:
             if self._fdata_cache.dtype.type == dtype.type:
@@ -371,7 +372,7 @@ class DataobjImage(FileBasedImage):
         # For array proxies, will attempt to confine data array to dtype
         # during scaling
         data = np.asanyarray(self._dataobj, dtype=dtype)
-        if caching == 'fill':
+        if caching == "fill":
             self._fdata_cache = data
         return data
 
@@ -429,7 +430,7 @@ class DataobjImage(FileBasedImage):
         klass: type[ArrayImgT],
         file_map: FileMap,
         *,
-        mmap: bool | ty.Literal['c', 'r'] = True,
+        mmap: bool | ty.Literal["c", "r"] = True,
         keep_file_open: bool | None = None,
     ) -> ArrayImgT:
         """Class method to create image from mapping in ``file_map``
@@ -468,7 +469,7 @@ class DataobjImage(FileBasedImage):
         klass: type[ArrayImgT],
         filename: FileSpec,
         *,
-        mmap: bool | ty.Literal['c', 'r'] = True,
+        mmap: bool | ty.Literal["c", "r"] = True,
         keep_file_open: bool | None = None,
     ) -> ArrayImgT:
         """Class method to create image from filename `filename`
@@ -497,7 +498,7 @@ class DataobjImage(FileBasedImage):
         -------
         img : DataobjImage instance
         """
-        if mmap not in (True, False, 'c', 'r'):
+        if mmap not in (True, False, "c", "r"):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map, mmap=mmap, keep_file_open=keep_file_open)

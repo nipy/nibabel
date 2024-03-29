@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing spatialimages
-"""
+"""Testing spatialimages"""
 
 from io import BytesIO
 
@@ -60,7 +59,7 @@ def test_from_header():
 
     class C:
         def get_data_dtype(self):
-            return np.dtype('u2')
+            return np.dtype("u2")
 
         def get_data_shape(self):
             return (5, 4, 3)
@@ -70,7 +69,7 @@ def test_from_header():
 
     converted = SpatialHeader.from_header(C())
     assert isinstance(converted, SpatialHeader)
-    assert converted.get_data_dtype() == np.dtype('u2')
+    assert converted.get_data_dtype() == np.dtype("u2")
     assert converted.get_data_shape() == (5, 4, 3)
     assert converted.get_zooms() == (10.0, 9.0, 8.0)
 
@@ -79,7 +78,7 @@ def test_eq():
     hdr = SpatialHeader()
     other = SpatialHeader()
     assert hdr == other
-    other = SpatialHeader('u2')
+    other = SpatialHeader("u2")
     assert hdr != other
     other = SpatialHeader(shape=(1, 2, 3))
     assert hdr != other
@@ -137,7 +136,7 @@ def test_data_dtype():
     assert hdr.get_data_dtype() == np.dtype(np.float32)
     hdr.set_data_dtype(np.float64)
     assert hdr.get_data_dtype() == np.dtype(np.float64)
-    hdr.set_data_dtype('u2')
+    hdr.set_data_dtype("u2")
     assert hdr.get_data_dtype() == np.dtype(np.uint16)
 
 
@@ -167,9 +166,9 @@ def test_affine():
 
 def test_read_data():
     class CHeader(SpatialHeader):
-        data_layout = 'C'
+        data_layout = "C"
 
-    for klass, order in ((SpatialHeader, 'F'), (CHeader, 'C')):
+    for klass, order in ((SpatialHeader, "F"), (CHeader, "C")):
         hdr = klass(np.int32, shape=(1, 2, 3), zooms=(3.0, 2.0, 1.0))
         fobj = BytesIO()
         data = np.arange(6).reshape((1, 2, 3))
@@ -193,7 +192,7 @@ class DataLike:
     # Minimal class implementing 'data' API
     shape = (3,)
 
-    def __array__(self, dtype='int16'):
+    def __array__(self, dtype="int16"):
         return np.arange(3, dtype=dtype)
 
 
@@ -310,7 +309,7 @@ class TestSpatialImage:
         img = img_klass(in_data, None)
         assert in_data is img.dataobj
         # The get_fdata method changes the array to floating point type
-        assert img.get_fdata(dtype='f4').dtype == np.dtype(np.float32)
+        assert img.get_fdata(dtype="f4").dtype == np.dtype(np.float32)
         fdata_32 = img.get_fdata(dtype=np.float32)
         assert fdata_32.dtype == np.dtype(np.float32)
         # Caching is specific to data dtype.  If we reload with default data
@@ -318,15 +317,15 @@ class TestSpatialImage:
         fdata_32[:] = 99
         # Cache has been modified, we pick up the modifications, but only for
         # the cached data type
-        assert (img.get_fdata(dtype='f4') == 99).all()
+        assert (img.get_fdata(dtype="f4") == 99).all()
         fdata_64 = img.get_fdata()
         assert fdata_64.dtype == np.dtype(np.float64)
         assert (fdata_64 == in_data).all()
         fdata_64[:] = 101
-        assert (img.get_fdata(dtype='f8') == 101).all()
+        assert (img.get_fdata(dtype="f8") == 101).all()
         assert (img.get_fdata() == 101).all()
         # Reloading with new data type blew away the float32 cache
-        assert (img.get_fdata(dtype='f4') == in_data).all()
+        assert (img.get_fdata(dtype="f4") == in_data).all()
         img.uncache()
         # Now recaching, is float64
         out_data = img.get_fdata()
@@ -360,7 +359,7 @@ class TestSpatialImage:
         assert rt_img.get_fdata() is not out_data
         assert (rt_img.get_fdata() == in_data).all()
 
-    @expires('5.0.0')
+    @expires("5.0.0")
     def test_get_data(self):
         # Test array image and proxy image interface
         img_klass = self.image_class
@@ -368,7 +367,7 @@ class TestSpatialImage:
         in_data = in_data_template.copy()
         img = img_klass(in_data, None)
         assert in_data is img.dataobj
-        with deprecated_to('5.0.0'):
+        with deprecated_to("5.0.0"):
             out_data = img.get_data()
         assert in_data is out_data
         # and that uncache has no effect
@@ -381,18 +380,18 @@ class TestSpatialImage:
         rt_img = bytesio_round_trip(img)
         assert in_data is not rt_img.dataobj
         assert (rt_img.dataobj == in_data).all()
-        with deprecated_to('5.0.0'):
+        with deprecated_to("5.0.0"):
             out_data = rt_img.get_data()
         assert (out_data == in_data).all()
         assert rt_img.dataobj is not out_data
         # cache
-        with deprecated_to('5.0.0'):
+        with deprecated_to("5.0.0"):
             assert rt_img.get_data() is out_data
         out_data[:] = 42
         rt_img.uncache()
-        with deprecated_to('5.0.0'):
+        with deprecated_to("5.0.0"):
             assert rt_img.get_data() is not out_data
-        with deprecated_to('5.0.0'):
+        with deprecated_to("5.0.0"):
             assert (rt_img.get_data() == in_data).all()
 
     def test_slicer(self):
@@ -400,7 +399,7 @@ class TestSpatialImage:
         in_data_template = np.arange(240, dtype=np.int16)
         base_affine = np.eye(4)
         t_axis = None
-        for dshape in ((4, 5, 6, 2), (8, 5, 6)):    # Time series      # Volume
+        for dshape in ((4, 5, 6, 2), (8, 5, 6)):  # Time series      # Volume
             in_data = in_data_template.copy().reshape(dshape)
             img = img_klass(in_data, base_affine.copy())
 
@@ -409,10 +408,11 @@ class TestSpatialImage:
                 img[0, 0, 0]
             # Make sure the right message gets raised:
             assert (
-                str(exception_manager.value) == 'Cannot slice image objects; consider using '
-                '`img.slicer[slice]` to generate a sliced image (see '
-                'documentation for caveats) or slicing image array data '
-                'with `img.dataobj[slice]` or `img.get_fdata()[slice]`'
+                str(exception_manager.value)
+                == "Cannot slice image objects; consider using "
+                "`img.slicer[slice]` to generate a sliced image (see "
+                "documentation for caveats) or slicing image array data "
+                "with `img.dataobj[slice]` or `img.get_fdata()[slice]`"
             )
 
             if not spatial_axes_first(img):
@@ -420,7 +420,7 @@ class TestSpatialImage:
                     img.slicer
                 continue
 
-            assert hasattr(img.slicer, '__getitem__')
+            assert hasattr(img.slicer, "__getitem__")
 
             # Note spatial zooms are always first 3, even when
             spatial_zooms = img.header.get_zooms()[:3]
@@ -428,12 +428,14 @@ class TestSpatialImage:
             # Down-sample with [::2, ::2, ::2] along spatial dimensions
             sliceobj = [slice(None, None, 2)] * 3 + [slice(None)] * (len(dshape) - 3)
             downsampled_img = img.slicer[tuple(sliceobj)]
-            assert (downsampled_img.header.get_zooms()[:3] == np.array(spatial_zooms) * 2).all()
+            assert (
+                downsampled_img.header.get_zooms()[:3] == np.array(spatial_zooms) * 2
+            ).all()
 
             max4d = (
-                hasattr(img.header, '_structarr')
-                and 'dims' in img.header._structarr.dtype.fields
-                and img.header._structarr['dims'].shape == (4,)
+                hasattr(img.header, "_structarr")
+                and "dims" in img.header._structarr.dtype.fields
+                and img.header._structarr["dims"].shape == (4,)
             )
             # Check newaxis and single-slice errors
             with pytest.raises(IndexError):
@@ -455,7 +457,10 @@ class TestSpatialImage:
                         img.slicer[:, :, :, None]
                 else:
                     # Reorder non-spatial axes
-                    assert img.slicer[:, :, :, None].shape == img.shape[:3] + (1,) + img.shape[3:]
+                    assert (
+                        img.slicer[:, :, :, None].shape
+                        == img.shape[:3] + (1,) + img.shape[3:]
+                    )
                 # 4D to 3D using ellipsis or slices
                 assert img.slicer[..., 0].shape == img.shape[:-1]
                 assert img.slicer[:, :, :, 0].shape == img.shape[:-1]
@@ -569,7 +574,7 @@ class MmapImageMixin:
         shape = (3, 4, 2)
         data = np.arange(np.prod(shape), dtype=np.int16).reshape(shape)
         img = img_klass(data, None)
-        fname = 'test' + img_klass.files_types[0][1]
+        fname = "test" + img_klass.files_types[0][1]
         img.to_filename(fname)
         return img, fname, False
 
@@ -590,10 +595,10 @@ class MmapImageMixin:
                     # mmap value, expected memmap mode
                     # mmap=None -> no mmap value
                     # expected mode=None -> no memmap returned
-                    (None, 'c'),
-                    (True, 'c'),
-                    ('c', 'c'),
-                    ('r', 'r'),
+                    (None, "c"),
+                    (True, "c"),
+                    ("c", "c"),
+                    ("r", "r"),
                     (False, None),
                 ):
                     # If the image has scaling, then numpy 1.12 will not return
@@ -605,15 +610,17 @@ class MmapImageMixin:
                         expected_mode = None
                     kwargs = {}
                     if mmap is not None:
-                        kwargs['mmap'] = mmap
+                        kwargs["mmap"] = mmap
                     back_img = func(param1, **kwargs)
                     back_data = np.asanyarray(back_img.dataobj)
                     if expected_mode is None:
                         assert not isinstance(
                             back_data, np.memmap
-                        ), f'Should not be a {img_klass.__name__}'
+                        ), f"Should not be a {img_klass.__name__}"
                     else:
-                        assert isinstance(back_data, np.memmap), f'Not a {img_klass.__name__}'
+                        assert isinstance(
+                            back_data, np.memmap
+                        ), f"Not a {img_klass.__name__}"
                         if self.check_mmap_mode:
                             assert back_data.mode == expected_mode
                     del back_img, back_data
@@ -622,6 +629,6 @@ class MmapImageMixin:
                     func(param1, True)
                 # Check invalid values raise error
                 with pytest.raises(ValueError):
-                    func(param1, mmap='rw')
+                    func(param1, mmap="rw")
                 with pytest.raises(ValueError):
-                    func(param1, mmap='r+')
+                    func(param1, mmap="r+")

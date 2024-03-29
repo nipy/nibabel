@@ -54,29 +54,39 @@ class Cifti2Extension(Nifti1Extension):
 
     def _mangle(self, value):
         if not isinstance(value, Cifti2Header):
-            raise ValueError('Can only mangle a Cifti2Header.')
+            raise ValueError("Can only mangle a Cifti2Header.")
         return value.to_xml()
 
 
-extension_codes.add_codes(((Cifti2Extension.code, 'cifti', Cifti2Extension),))
+extension_codes.add_codes(((Cifti2Extension.code, "cifti", Cifti2Extension),))
 
 intent_codes.add_codes(
     (
         # The codes below appear on the CIFTI-2 standard
         # http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
         # https://www.nitrc.org/forum/attachment.php?attachid=341&group_id=454&forum_id=1955
-        (3000, 'ConnUnknown', (), 'NIFTI_INTENT_CONNECTIVITY_UNKNOWN'),
-        (3001, 'ConnDense', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE'),
-        (3002, 'ConnDenseSeries', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES'),
-        (3003, 'ConnParcels', (), 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED'),
-        (3004, 'ConnParcelSries', (), 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES'),
-        (3006, 'ConnDenseScalar', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS'),
-        (3007, 'ConnDenseLabel', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS'),
-        (3008, 'ConnParcelScalr', (), 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR'),
-        (3009, 'ConnParcelDense', (), 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE'),
-        (3010, 'ConnDenseParcel', (), 'NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED'),
-        (3011, 'ConnPPSr', (), 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES'),
-        (3012, 'ConnPPSc', (), 'NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR'),
+        (3000, "ConnUnknown", (), "NIFTI_INTENT_CONNECTIVITY_UNKNOWN"),
+        (3001, "ConnDense", (), "NIFTI_INTENT_CONNECTIVITY_DENSE"),
+        (3002, "ConnDenseSeries", (), "NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES"),
+        (3003, "ConnParcels", (), "NIFTI_INTENT_CONNECTIVITY_PARCELLATED"),
+        (3004, "ConnParcelSries", (), "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SERIES"),
+        (3006, "ConnDenseScalar", (), "NIFTI_INTENT_CONNECTIVITY_DENSE_SCALARS"),
+        (3007, "ConnDenseLabel", (), "NIFTI_INTENT_CONNECTIVITY_DENSE_LABELS"),
+        (3008, "ConnParcelScalr", (), "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_SCALAR"),
+        (3009, "ConnParcelDense", (), "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_DENSE"),
+        (3010, "ConnDenseParcel", (), "NIFTI_INTENT_CONNECTIVITY_DENSE_PARCELLATED"),
+        (
+            3011,
+            "ConnPPSr",
+            (),
+            "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SERIES",
+        ),
+        (
+            3012,
+            "ConnPPSc",
+            (),
+            "NIFTI_INTENT_CONNECTIVITY_PARCELLATED_PARCELLATED_SCALAR",
+        ),
     )
 )
 
@@ -94,33 +104,33 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
         if not super().may_contain_header(binaryblock):
             return False
         hdr = klass(binaryblock=binaryblock[: klass.sizeof_hdr])
-        return klass._valid_intent_code(hdr.get_intent('code')[0])
+        return klass._valid_intent_code(hdr.get_intent("code")[0])
 
     @staticmethod
     def _chk_qfac(hdr, fix=False):
         # Allow qfac of 0 without complaint for CIFTI-2
         rep = Report(HeaderDataError)
-        if hdr['pixdim'][0] in (-1, 0, 1):
+        if hdr["pixdim"][0] in (-1, 0, 1):
             return hdr, rep
         rep.problem_level = 20
-        rep.problem_msg = 'pixdim[0] (qfac) should be 1 (default) or 0 or -1'
+        rep.problem_msg = "pixdim[0] (qfac) should be 1 (default) or 0 or -1"
         if fix:
-            hdr['pixdim'][0] = 1
-            rep.fix_msg = 'setting qfac to 1'
+            hdr["pixdim"][0] = 1
+            rep.fix_msg = "setting qfac to 1"
         return hdr, rep
 
     @staticmethod
     def _chk_pixdims(hdr, fix=False):
         rep = Report(HeaderDataError)
-        pixdims = hdr['pixdim']
+        pixdims = hdr["pixdim"]
         spat_dims = pixdims[1:4]
         if not np.any(spat_dims < 0):
             return hdr, rep
         rep.problem_level = 35
-        rep.problem_msg = 'pixdim[1,2,3] should be zero or positive'
+        rep.problem_msg = "pixdim[1,2,3] should be zero or positive"
         if fix:
-            hdr['pixdim'][1:4] = np.abs(spat_dims)
-            rep.fix_msg = 'setting to abs of pixdim values'
+            hdr["pixdim"][1:4] = np.abs(spat_dims)
+            rep.fix_msg = "setting to abs of pixdim values"
         return hdr, rep
 
 
@@ -151,332 +161,342 @@ class Cifti2Parser(xml.XmlParser):
     def StartElementHandler(self, name, attrs):
         self.flush_chardata()
         if self.verbose > 0:
-            print('Start element:\n\t', repr(name), attrs)
+            print("Start element:\n\t", repr(name), attrs)
 
-        if name == 'CIFTI':
+        if name == "CIFTI":
             # create cifti2 image
             self.header = Cifti2Header()
-            self.header.version = ver = attrs['Version']
-            if parse(ver) < Version('2'):
-                raise ValueError(f'Only CIFTI-2 files are supported; found version {ver}')
-            self.fsm_state.append('CIFTI')
+            self.header.version = ver = attrs["Version"]
+            if parse(ver) < Version("2"):
+                raise ValueError(
+                    f"Only CIFTI-2 files are supported; found version {ver}"
+                )
+            self.fsm_state.append("CIFTI")
             self.struct_state.append(self.header)
 
-        elif name == 'Matrix':
-            self.fsm_state.append('Matrix')
+        elif name == "Matrix":
+            self.fsm_state.append("Matrix")
             matrix = Cifti2Matrix()
             parent = self.struct_state[-1]
             if not isinstance(parent, Cifti2Header):
                 raise Cifti2HeaderError(
-                    'Matrix element can only be a child of the CIFTI-2 Header element'
+                    "Matrix element can only be a child of the CIFTI-2 Header element"
                 )
             parent.matrix = matrix
             self.struct_state.append(matrix)
 
-        elif name == 'MetaData':
-            self.fsm_state.append('MetaData')
+        elif name == "MetaData":
+            self.fsm_state.append("MetaData")
             meta = Cifti2MetaData()
             parent = self.struct_state[-1]
             if not isinstance(parent, (Cifti2Matrix, Cifti2NamedMap)):
                 raise Cifti2HeaderError(
-                    'MetaData element can only be a child of the CIFTI-2 Matrix '
-                    'or NamedMap elements'
+                    "MetaData element can only be a child of the CIFTI-2 Matrix "
+                    "or NamedMap elements"
                 )
 
             self.struct_state.append(meta)
 
-        elif name == 'MD':
-            pair = ['', '']
-            self.fsm_state.append('MD')
+        elif name == "MD":
+            pair = ["", ""]
+            self.fsm_state.append("MD")
             self.struct_state.append(pair)
 
-        elif name == 'Name':
-            self.write_to = 'Name'
+        elif name == "Name":
+            self.write_to = "Name"
 
-        elif name == 'Value':
-            self.write_to = 'Value'
+        elif name == "Value":
+            self.write_to = "Value"
 
-        elif name == 'MatrixIndicesMap':
-            self.fsm_state.append('MatrixIndicesMap')
-            dimensions = [int(value) for value in attrs['AppliesToMatrixDimension'].split(',')]
+        elif name == "MatrixIndicesMap":
+            self.fsm_state.append("MatrixIndicesMap")
+            dimensions = [
+                int(value) for value in attrs["AppliesToMatrixDimension"].split(",")
+            ]
             mim = Cifti2MatrixIndicesMap(
                 applies_to_matrix_dimension=dimensions,
-                indices_map_to_data_type=attrs['IndicesMapToDataType'],
+                indices_map_to_data_type=attrs["IndicesMapToDataType"],
             )
             for key, dtype in (
-                ('NumberOfSeriesPoints', int),
-                ('SeriesExponent', int),
-                ('SeriesStart', float),
-                ('SeriesStep', float),
-                ('SeriesUnit', str),
+                ("NumberOfSeriesPoints", int),
+                ("SeriesExponent", int),
+                ("SeriesStart", float),
+                ("SeriesStep", float),
+                ("SeriesUnit", str),
             ):
                 if key in attrs:
                     setattr(mim, _underscore(key), dtype(attrs[key]))
             matrix = self.struct_state[-1]
             if not isinstance(matrix, Cifti2Matrix):
                 raise Cifti2HeaderError(
-                    'MatrixIndicesMap element can only be a child of the CIFTI-2 Matrix element'
+                    "MatrixIndicesMap element can only be a child of the CIFTI-2 Matrix element"
                 )
             matrix.append(mim)
             self.struct_state.append(mim)
 
-        elif name == 'NamedMap':
-            self.fsm_state.append('NamedMap')
+        elif name == "NamedMap":
+            self.fsm_state.append("NamedMap")
             named_map = Cifti2NamedMap()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'NamedMap element can only be a child of the CIFTI-2 MatrixIndicesMap element'
+                    "NamedMap element can only be a child of the CIFTI-2 MatrixIndicesMap element"
                 )
             self.struct_state.append(named_map)
             mim.append(named_map)
 
-        elif name == 'LabelTable':
+        elif name == "LabelTable":
             named_map = self.struct_state[-1]
             mim = self.struct_state[-2]
-            if mim.indices_map_to_data_type != 'CIFTI_INDEX_TYPE_LABELS':
+            if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_LABELS":
                 raise Cifti2HeaderError(
-                    'LabelTable element can only be a child of a MatrixIndicesMap '
-                    'with CIFTI_INDEX_TYPE_LABELS type'
+                    "LabelTable element can only be a child of a MatrixIndicesMap "
+                    "with CIFTI_INDEX_TYPE_LABELS type"
                 )
             lata = Cifti2LabelTable()
             if not isinstance(named_map, Cifti2NamedMap):
                 raise Cifti2HeaderError(
-                    'LabelTable element can only be a child of the CIFTI-2 NamedMap element'
+                    "LabelTable element can only be a child of the CIFTI-2 NamedMap element"
                 )
-            self.fsm_state.append('LabelTable')
+            self.fsm_state.append("LabelTable")
             self.struct_state.append(lata)
             named_map.label_table = lata
 
-        elif name == 'Label':
+        elif name == "Label":
             lata = self.struct_state[-1]
             if not isinstance(lata, Cifti2LabelTable):
                 raise Cifti2HeaderError(
-                    'Label element can only be a child of the CIFTI-2 LabelTable element'
+                    "Label element can only be a child of the CIFTI-2 LabelTable element"
                 )
             label = Cifti2Label()
-            label.key = int(attrs['Key'])
-            label.red = float(attrs['Red'])
-            label.green = float(attrs['Green'])
-            label.blue = float(attrs['Blue'])
-            label.alpha = float(attrs['Alpha'])
-            self.write_to = 'Label'
-            self.fsm_state.append('Label')
+            label.key = int(attrs["Key"])
+            label.red = float(attrs["Red"])
+            label.green = float(attrs["Green"])
+            label.blue = float(attrs["Blue"])
+            label.alpha = float(attrs["Alpha"])
+            self.write_to = "Label"
+            self.fsm_state.append("Label")
             self.struct_state.append(label)
 
-        elif name == 'MapName':
+        elif name == "MapName":
             named_map = self.struct_state[-1]
             if not isinstance(named_map, Cifti2NamedMap):
                 raise Cifti2HeaderError(
-                    'MapName element can only be a child of the CIFTI-2 NamedMap element'
+                    "MapName element can only be a child of the CIFTI-2 NamedMap element"
                 )
 
-            self.fsm_state.append('MapName')
-            self.write_to = 'MapName'
+            self.fsm_state.append("MapName")
+            self.write_to = "MapName"
 
-        elif name == 'Surface':
+        elif name == "Surface":
             surface = Cifti2Surface()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'Surface element can only be a child of the CIFTI-2 MatrixIndicesMap element'
+                    "Surface element can only be a child of the CIFTI-2 MatrixIndicesMap element"
                 )
-            if mim.indices_map_to_data_type != 'CIFTI_INDEX_TYPE_PARCELS':
+            if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_PARCELS":
                 raise Cifti2HeaderError(
-                    'Surface element can only be a child of a MatrixIndicesMap '
-                    'with CIFTI_INDEX_TYPE_PARCELS type'
+                    "Surface element can only be a child of a MatrixIndicesMap "
+                    "with CIFTI_INDEX_TYPE_PARCELS type"
                 )
-            surface.brain_structure = attrs['BrainStructure']
-            surface.surface_number_of_vertices = int(attrs['SurfaceNumberOfVertices'])
+            surface.brain_structure = attrs["BrainStructure"]
+            surface.surface_number_of_vertices = int(attrs["SurfaceNumberOfVertices"])
             mim.append(surface)
 
-        elif name == 'Parcel':
+        elif name == "Parcel":
             parcel = Cifti2Parcel()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'Parcel element can only be a child of the CIFTI-2 MatrixIndicesMap element'
+                    "Parcel element can only be a child of the CIFTI-2 MatrixIndicesMap element"
                 )
-            parcel.name = attrs['Name']
+            parcel.name = attrs["Name"]
             mim.append(parcel)
-            self.fsm_state.append('Parcel')
+            self.fsm_state.append("Parcel")
             self.struct_state.append(parcel)
 
-        elif name == 'Vertices':
+        elif name == "Vertices":
             vertices = Cifti2Vertices()
             parcel = self.struct_state[-1]
             if not isinstance(parcel, Cifti2Parcel):
                 raise Cifti2HeaderError(
-                    'Vertices element can only be a child of the CIFTI-2 Parcel element'
+                    "Vertices element can only be a child of the CIFTI-2 Parcel element"
                 )
-            vertices.brain_structure = attrs['BrainStructure']
+            vertices.brain_structure = attrs["BrainStructure"]
             if vertices.brain_structure not in CIFTI_BRAIN_STRUCTURES:
-                raise Cifti2HeaderError('BrainStructure for this Vertices element is not valid')
+                raise Cifti2HeaderError(
+                    "BrainStructure for this Vertices element is not valid"
+                )
             parcel.append_cifti_vertices(vertices)
-            self.fsm_state.append('Vertices')
+            self.fsm_state.append("Vertices")
             self.struct_state.append(vertices)
-            self.write_to = 'Vertices'
+            self.write_to = "Vertices"
 
-        elif name == 'VoxelIndicesIJK':
+        elif name == "VoxelIndicesIJK":
             parent = self.struct_state[-1]
             if not isinstance(parent, (Cifti2Parcel, Cifti2BrainModel)):
                 raise Cifti2HeaderError(
-                    'VoxelIndicesIJK element can only be a child of the CIFTI-2 '
-                    'Parcel or BrainModel elements'
+                    "VoxelIndicesIJK element can only be a child of the CIFTI-2 "
+                    "Parcel or BrainModel elements"
                 )
             parent.voxel_indices_ijk = Cifti2VoxelIndicesIJK()
-            self.write_to = 'VoxelIndices'
+            self.write_to = "VoxelIndices"
 
-        elif name == 'Volume':
+        elif name == "Volume":
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'Volume element can only be a child of the CIFTI-2 MatrixIndicesMap element'
+                    "Volume element can only be a child of the CIFTI-2 MatrixIndicesMap element"
                 )
-            dimensions = tuple(int(val) for val in attrs['VolumeDimensions'].split(','))
+            dimensions = tuple(int(val) for val in attrs["VolumeDimensions"].split(","))
             volume = Cifti2Volume(volume_dimensions=dimensions)
             mim.append(volume)
-            self.fsm_state.append('Volume')
+            self.fsm_state.append("Volume")
             self.struct_state.append(volume)
 
-        elif name == 'TransformationMatrixVoxelIndicesIJKtoXYZ':
+        elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
             volume = self.struct_state[-1]
             if not isinstance(volume, Cifti2Volume):
                 raise Cifti2HeaderError(
-                    'TransformationMatrixVoxelIndicesIJKtoXYZ element can only be a child '
-                    'of the CIFTI-2 Volume element'
+                    "TransformationMatrixVoxelIndicesIJKtoXYZ element can only be a child "
+                    "of the CIFTI-2 Volume element"
                 )
             transform = Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ()
-            transform.meter_exponent = int(attrs['MeterExponent'])
+            transform.meter_exponent = int(attrs["MeterExponent"])
             volume.transformation_matrix_voxel_indices_ijk_to_xyz = transform
-            self.fsm_state.append('TransformMatrix')
+            self.fsm_state.append("TransformMatrix")
             self.struct_state.append(transform)
-            self.write_to = 'TransformMatrix'
+            self.write_to = "TransformMatrix"
 
-        elif name == 'BrainModel':
+        elif name == "BrainModel":
             model = Cifti2BrainModel()
             mim = self.struct_state[-1]
             if not isinstance(mim, Cifti2MatrixIndicesMap):
                 raise Cifti2HeaderError(
-                    'BrainModel element can only be a child '
-                    'of the CIFTI-2 MatrixIndicesMap element'
+                    "BrainModel element can only be a child "
+                    "of the CIFTI-2 MatrixIndicesMap element"
                 )
-            if mim.indices_map_to_data_type != 'CIFTI_INDEX_TYPE_BRAIN_MODELS':
+            if mim.indices_map_to_data_type != "CIFTI_INDEX_TYPE_BRAIN_MODELS":
                 raise Cifti2HeaderError(
-                    'BrainModel element can only be a child of a MatrixIndicesMap '
-                    'with CIFTI_INDEX_TYPE_BRAIN_MODELS type'
+                    "BrainModel element can only be a child of a MatrixIndicesMap "
+                    "with CIFTI_INDEX_TYPE_BRAIN_MODELS type"
                 )
             for key, dtype in (
-                ('IndexOffset', int),
-                ('IndexCount', int),
-                ('ModelType', str),
-                ('BrainStructure', str),
-                ('SurfaceNumberOfVertices', int),
+                ("IndexOffset", int),
+                ("IndexCount", int),
+                ("ModelType", str),
+                ("BrainStructure", str),
+                ("SurfaceNumberOfVertices", int),
             ):
                 if key in attrs:
                     setattr(model, _underscore(key), dtype(attrs[key]))
             if model.brain_structure not in CIFTI_BRAIN_STRUCTURES:
-                raise Cifti2HeaderError('BrainStructure for this BrainModel element is not valid')
+                raise Cifti2HeaderError(
+                    "BrainStructure for this BrainModel element is not valid"
+                )
             if model.model_type not in CIFTI_MODEL_TYPES:
-                raise Cifti2HeaderError('ModelType for this BrainModel element is not valid')
+                raise Cifti2HeaderError(
+                    "ModelType for this BrainModel element is not valid"
+                )
             mim.append(model)
-            self.fsm_state.append('BrainModel')
+            self.fsm_state.append("BrainModel")
             self.struct_state.append(model)
 
-        elif name == 'VertexIndices':
+        elif name == "VertexIndices":
             index = Cifti2VertexIndices()
             model = self.struct_state[-1]
             if not isinstance(model, Cifti2BrainModel):
                 raise Cifti2HeaderError(
-                    'VertexIndices element can only be a child '
-                    'of the CIFTI-2 BrainModel element'
+                    "VertexIndices element can only be a child "
+                    "of the CIFTI-2 BrainModel element"
                 )
-            self.fsm_state.append('VertexIndices')
+            self.fsm_state.append("VertexIndices")
             model.vertex_indices = index
             self.struct_state.append(index)
-            self.write_to = 'VertexIndices'
+            self.write_to = "VertexIndices"
 
     def EndElementHandler(self, name):
         self.flush_chardata()
         if self.verbose > 0:
-            print('End element:\n\t', repr(name))
+            print("End element:\n\t", repr(name))
 
-        if name == 'CIFTI':
+        if name == "CIFTI":
             # remove last element of the list
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'Matrix':
+        elif name == "Matrix":
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'MetaData':
+        elif name == "MetaData":
             self.fsm_state.pop()
             meta = self.struct_state.pop()
             parent = self.struct_state[-1]
             parent.metadata = meta
 
-        elif name == 'MD':
+        elif name == "MD":
             self.fsm_state.pop()
             pair = self.struct_state.pop()
             meta = self.struct_state[-1]
             meta[pair[0]] = pair[1]
 
-        elif name == 'Name':
+        elif name == "Name":
             self.write_to = None
 
-        elif name == 'Value':
+        elif name == "Value":
             self.write_to = None
 
-        elif name == 'MatrixIndicesMap':
+        elif name == "MatrixIndicesMap":
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'NamedMap':
+        elif name == "NamedMap":
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'LabelTable':
+        elif name == "LabelTable":
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'Label':
+        elif name == "Label":
             self.fsm_state.pop()
             label = self.struct_state.pop()
             lata = self.struct_state[-1]
             lata.append(label)
             self.write_to = None
 
-        elif name == 'MapName':
+        elif name == "MapName":
             self.fsm_state.pop()
             self.write_to = None
 
-        elif name == 'Parcel':
+        elif name == "Parcel":
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'Vertices':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-            self.write_to = None
-
-        elif name == 'VoxelIndicesIJK':
-            self.write_to = None
-
-        elif name == 'Volume':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'TransformationMatrixVoxelIndicesIJKtoXYZ':
+        elif name == "Vertices":
             self.fsm_state.pop()
             self.struct_state.pop()
             self.write_to = None
 
-        elif name == 'BrainModel':
+        elif name == "VoxelIndicesIJK":
+            self.write_to = None
+
+        elif name == "Volume":
             self.fsm_state.pop()
             self.struct_state.pop()
 
-        elif name == 'VertexIndices':
+        elif name == "TransformationMatrixVoxelIndicesIJKtoXYZ":
+            self.fsm_state.pop()
+            self.struct_state.pop()
+            self.write_to = None
+
+        elif name == "BrainModel":
+            self.fsm_state.pop()
+            self.struct_state.pop()
+
+        elif name == "VertexIndices":
             self.fsm_state.pop()
             self.struct_state.pop()
             self.write_to = None
@@ -501,54 +521,54 @@ class Cifti2Parser(xml.XmlParser):
         # Just join the strings to get the data.  Maybe there are some memory
         # optimizations we could do by passing the list of strings to the
         # read_data_block function.
-        data = ''.join(self._char_blocks)
+        data = "".join(self._char_blocks)
         # Reset the char collector
         self._char_blocks = None
         # Process data
-        if self.write_to == 'Name':
+        if self.write_to == "Name":
             data = data.strip()  # .decode('utf-8')
             pair = self.struct_state[-1]
             pair[0] = data
 
-        elif self.write_to == 'Value':
+        elif self.write_to == "Value":
             data = data.strip()  # .decode('utf-8')
             pair = self.struct_state[-1]
             pair[1] = data
 
-        elif self.write_to == 'Vertices':
+        elif self.write_to == "Vertices":
             # conversion to numpy array
-            c = BytesIO(data.strip().encode('utf-8'))
+            c = BytesIO(data.strip().encode("utf-8"))
             vertices = self.struct_state[-1]
             vertices.extend(np.loadtxt(c, dtype=int, ndmin=1))
             c.close()
 
-        elif self.write_to == 'VoxelIndices':
+        elif self.write_to == "VoxelIndices":
             # conversion to numpy array
-            c = BytesIO(data.strip().encode('utf-8'))
+            c = BytesIO(data.strip().encode("utf-8"))
             parent = self.struct_state[-1]
             parent.voxel_indices_ijk.extend(np.loadtxt(c, dtype=int).reshape(-1, 3))
             c.close()
 
-        elif self.write_to == 'VertexIndices':
+        elif self.write_to == "VertexIndices":
             # conversion to numpy array
-            c = BytesIO(data.strip().encode('utf-8'))
+            c = BytesIO(data.strip().encode("utf-8"))
             index = self.struct_state[-1]
             index.extend(np.loadtxt(c, dtype=int, ndmin=1))
             c.close()
 
-        elif self.write_to == 'TransformMatrix':
+        elif self.write_to == "TransformMatrix":
             # conversion to numpy array
-            c = BytesIO(data.strip().encode('utf-8'))
+            c = BytesIO(data.strip().encode("utf-8"))
             transform = self.struct_state[-1]
             matrix = np.loadtxt(c, dtype=np.float64)
             transform.matrix = matrix.reshape(4, 4)
             c.close()
 
-        elif self.write_to == 'Label':
+        elif self.write_to == "Label":
             label = self.struct_state[-1]
             label.label = data.strip()
 
-        elif self.write_to == 'MapName':
+        elif self.write_to == "MapName":
             named_map = self.struct_state[-1]
             named_map.map_name = data.strip()  # .decode('utf-8')
 

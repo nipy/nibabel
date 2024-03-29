@@ -19,37 +19,37 @@ from ..viewers import OrthoSlicer3D
 
 # Need at least MPL 1.3 for viewer tests.
 # 2020.02.11 - 1.3 wheels are no longer distributed, so the minimum we test with is 1.5
-matplotlib, has_mpl, _ = optional_package('matplotlib', min_version='1.5')
+matplotlib, has_mpl, _ = optional_package("matplotlib", min_version="1.5")
 
-needs_mpl = unittest.skipUnless(has_mpl, 'These tests need matplotlib')
+needs_mpl = unittest.skipUnless(has_mpl, "These tests need matplotlib")
 if has_mpl:
-    matplotlib.use('Agg')
+    matplotlib.use("Agg")
 
 
 @needs_mpl
 def test_viewer():
     # Test viewer
-    plt = optional_package('matplotlib.pyplot')[0]
+    plt = optional_package("matplotlib.pyplot")[0]
     a = np.sin(np.linspace(0, np.pi, 20))
     b = np.sin(np.linspace(0, np.pi * 5, 30))
     data = (np.outer(a, b)[..., np.newaxis] * a)[:, :, :, np.newaxis]
     data = data * np.array([1.0, 2.0])  # give it a # of volumes > 1
     v = OrthoSlicer3D(data)
     assert_array_equal(v.position, (0, 0, 0))
-    assert 'OrthoSlicer3D' in repr(v)
+    assert "OrthoSlicer3D" in repr(v)
 
     # fake some events, inside and outside axes
-    v._on_scroll(nt('event', 'button inaxes key')('up', None, None))
+    v._on_scroll(nt("event", "button inaxes key")("up", None, None))
     for ax in (v._axes[0], v._axes[3]):
-        v._on_scroll(nt('event', 'button inaxes key')('up', ax, None))
-    v._on_scroll(nt('event', 'button inaxes key')('up', ax, 'shift'))
+        v._on_scroll(nt("event", "button inaxes key")("up", ax, None))
+    v._on_scroll(nt("event", "button inaxes key")("up", ax, "shift"))
     # "click" outside axes, then once in each axis, then move without click
-    v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, 1))
+    v._on_mouse(nt("event", "xdata ydata inaxes button")(0.5, 0.5, None, 1))
     for ax in v._axes:
-        v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, ax, 1))
-    v._on_mouse(nt('event', 'xdata ydata inaxes button')(0.5, 0.5, None, None))
+        v._on_mouse(nt("event", "xdata ydata inaxes button")(0.5, 0.5, ax, 1))
+    v._on_mouse(nt("event", "xdata ydata inaxes button")(0.5, 0.5, None, None))
     v.set_volume_idx(1)
-    v.cmap = 'hot'
+    v.cmap = "hot"
     v.clim = (0, 3)
     with pytest.raises(ValueError):
         OrthoSlicer3D.clim.fset(v, (0.0,))  # bad limits
@@ -59,16 +59,16 @@ def test_viewer():
             KeyError,  # MPL3.6 and higher
         )
     ):
-        OrthoSlicer3D.cmap.fset(v, 'foo')  # wrong cmap
+        OrthoSlicer3D.cmap.fset(v, "foo")  # wrong cmap
 
     # decrement/increment volume numbers via keypress
     v.set_volume_idx(1)  # should just pass
-    v._on_keypress(nt('event', 'key')('-'))  # decrement
+    v._on_keypress(nt("event", "key")("-"))  # decrement
     assert_equal(v._data_idx[3], 0)
-    v._on_keypress(nt('event', 'key')('+'))  # increment
+    v._on_keypress(nt("event", "key")("+"))  # increment
     assert_equal(v._data_idx[3], 1)
-    v._on_keypress(nt('event', 'key')('-'))
-    v._on_keypress(nt('event', 'key')('='))  # alternative increment key
+    v._on_keypress(nt("event", "key")("-"))
+    v._on_keypress(nt("event", "key")("="))  # alternative increment key
     assert_equal(v._data_idx[3], 1)
 
     v.close()
@@ -76,8 +76,8 @@ def test_viewer():
 
     # non-multi-volume
     v = OrthoSlicer3D(data[:, :, :, 0])
-    v._on_scroll(nt('event', 'button inaxes key')('up', v._axes[0], 'shift'))
-    v._on_keypress(nt('event', 'key')('escape'))
+    v._on_scroll(nt("event", "button inaxes key")("up", v._axes[0], "shift"))
+    v._on_keypress(nt("event", "key")("escape"))
     v.close()
 
     # complex input should raise a TypeError prior to figure creation

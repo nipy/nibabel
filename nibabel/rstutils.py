@@ -2,6 +2,7 @@
 
 * Make ReST table given array of values
 """
+
 import numpy as np
 
 
@@ -9,8 +10,8 @@ def rst_table(
     cell_values,
     row_names=None,
     col_names=None,
-    title='',
-    val_fmt='{0:5.2f}',
+    title="",
+    val_fmt="{0:5.2f}",
     format_chars=None,
 ):
     """Return string for ReST table with entries `cell_values`
@@ -45,16 +46,16 @@ def rst_table(
     # formatting
     if format_chars is None:
         format_chars = {}
-    down = format_chars.pop('down', '|')
-    along = format_chars.pop('along', '-')
-    thick_long = format_chars.pop('thick_long', '=')
-    cross = format_chars.pop('cross', '+')
-    title_heading = format_chars.pop('title_heading', '*')
+    down = format_chars.pop("down", "|")
+    along = format_chars.pop("along", "-")
+    thick_long = format_chars.pop("thick_long", "=")
+    cross = format_chars.pop("cross", "+")
+    title_heading = format_chars.pop("title_heading", "*")
     if len(format_chars) != 0:
         raise ValueError(f"Unexpected ``format_char`` keys {', '.join(format_chars)}")
-    down_joiner = ' ' + down + ' '
-    down_starter = down + ' '
-    down_ender = ' ' + down
+    down_joiner = " " + down + " "
+    down_starter = down + " "
+    down_ender = " " + down
     cross_joiner = along + cross + along
     cross_starter = cross + along
     cross_ender = along + cross
@@ -65,13 +66,13 @@ def rst_table(
     cell_values = np.asarray(cell_values)
     R, C = cell_values.shape[:2]
     if row_names is None:
-        row_names = [f'row[{r}]' for r in range(R)]
+        row_names = [f"row[{r}]" for r in range(R)]
     elif len(row_names) != R:
-        raise ValueError('len(row_names) != number of rows')
+        raise ValueError("len(row_names) != number of rows")
     if col_names is None:
-        col_names = [f'col[{c}]' for c in range(C)]
+        col_names = [f"col[{c}]" for c in range(C)]
     elif len(col_names) != C:
-        raise ValueError('len(col_names) != number of columns')
+        raise ValueError("len(col_names) != number of columns")
     row_len = max(len(name) for name in row_names)
     col_len = max(len(name) for name in col_names)
     # Compile row value strings, find longest, extend col length to match
@@ -82,26 +83,28 @@ def rst_table(
         if max_len > col_len:
             col_len = max_len
         row_str_list.append(row_strs)
-    row_name_fmt = '{0:<' + str(row_len) + '}'
+    row_name_fmt = "{0:<" + str(row_len) + "}"
     row_names = [row_name_fmt.format(name) for name in row_names]
-    col_name_fmt = '{0:^' + str(col_len) + '}'
+    col_name_fmt = "{0:^" + str(col_len) + "}"
     col_names = [col_name_fmt.format(name) for name in col_names]
-    col_headings = [' ' * row_len] + col_names
+    col_headings = [" " * row_len] + col_names
     col_header = down_joiner.join(col_headings)
-    row_val_fmt = '{0:<' + str(col_len) + '}'
+    row_val_fmt = "{0:<" + str(col_len) + "}"
     table_strs = []
-    if title != '':
+    if title != "":
         table_strs += [
             title_heading * len(title),
             title,
             title_heading * len(title),
-            '',
+            "",
         ]
     along_headings = [along * len(h) for h in col_headings]
     crossed_line = cross_starter + cross_joiner.join(along_headings) + cross_ender
     thick_long_headings = [thick_long * len(h) for h in col_headings]
     crossed_thick_line = (
-        cross_thick_starter + cross_thick_joiner.join(thick_long_headings) + cross_thick_ender
+        cross_thick_starter
+        + cross_thick_joiner.join(thick_long_headings)
+        + cross_thick_ender
     )
     table_strs += [
         crossed_line,
@@ -113,4 +116,4 @@ def rst_table(
         row_line = down_starter + down_joiner.join([row_name] + row_vals) + down_ender
         table_strs.append(row_line)
     table_strs.append(crossed_line)
-    return '\n'.join(table_strs)
+    return "\n".join(table_strs)

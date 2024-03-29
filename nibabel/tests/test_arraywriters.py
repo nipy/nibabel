@@ -24,19 +24,19 @@ from ..casting import int_abs, sctypes, shared_range, type_info
 from ..testing import assert_allclose_safely, suppress_warnings
 from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 
-FLOAT_TYPES = sctypes['float']
-COMPLEX_TYPES = sctypes['complex']
-INT_TYPES = sctypes['int']
-UINT_TYPES = sctypes['uint']
+FLOAT_TYPES = sctypes["float"]
+COMPLEX_TYPES = sctypes["complex"]
+INT_TYPES = sctypes["int"]
+UINT_TYPES = sctypes["uint"]
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-def round_trip(writer, order='F', apply_scale=True):
+def round_trip(writer, order="F", apply_scale=True):
     sio = BytesIO()
     arr = writer.array
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         writer.to_fileobj(sio, order)
     data_back = array_from_file(arr.shape, writer.out_dtype, sio, order=order)
     slope, inter = get_slope_inter(writer)
@@ -48,7 +48,7 @@ def round_trip(writer, order='F', apply_scale=True):
 def test_arraywriters():
     # Test initialize
     # Simple cases
-    if machine() == 'sparc64' and python_compiler().startswith('GCC'):
+    if machine() == "sparc64" and python_compiler().startswith("GCC"):
         # bus errors on at least np 1.4.1 through 1.6.1 for complex
         test_types = FLOAT_TYPES + IUINT_TYPES
     else:
@@ -62,7 +62,7 @@ def test_arraywriters():
             assert_array_equal(arr, round_trip(aw))
             # Byteswapped should be OK
             bs_arr = arr.byteswap()
-            bs_arr = bs_arr.view(bs_arr.dtype.newbyteorder('S'))
+            bs_arr = bs_arr.view(bs_arr.dtype.newbyteorder("S"))
             bs_aw = klass(bs_arr)
             bs_aw_rt = round_trip(bs_aw)
             # assert against original array because POWER7 was running into
@@ -77,10 +77,10 @@ def test_arraywriters():
             # Default out - in order is Fortran
             arr_back = round_trip(a2w)
             assert_array_equal(arr2, arr_back)
-            arr_back = round_trip(a2w, 'F')
+            arr_back = round_trip(a2w, "F")
             assert_array_equal(arr2, arr_back)
             # C order works as well
-            arr_back = round_trip(a2w, 'C')
+            arr_back = round_trip(a2w, "C")
             assert_array_equal(arr2, arr_back)
             assert arr_back.flags.c_contiguous
 
@@ -107,11 +107,15 @@ def test_arraywriter_check_scaling():
 def test_no_scaling():
     # Test arraywriter when writing different types without scaling
     for in_dtype, out_dtype, awt in itertools.product(
-        NUMERIC_TYPES, NUMERIC_TYPES, (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter)
+        NUMERIC_TYPES,
+        NUMERIC_TYPES,
+        (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter),
     ):
         mn_in, mx_in = _dt_min_max(in_dtype)
         arr = np.array([mn_in, 0, 1, mx_in], dtype=in_dtype)
-        kwargs = dict(check_scaling=False) if awt == ArrayWriter else dict(calc_scale=False)
+        kwargs = (
+            dict(check_scaling=False) if awt == ArrayWriter else dict(calc_scale=False)
+        )
         aw = awt(arr, out_dtype, **kwargs)
         with suppress_warnings():
             back_arr = round_trip(aw)
@@ -124,9 +128,9 @@ def test_no_scaling():
                 with suppress_warnings():
                     exp_back = exp_back.astype(float)
                 # Float to iu conversion will always round, clip
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     exp_back = np.round(exp_back)
-                if hasattr(aw, 'slope') and in_dtype in FLOAT_TYPES:
+                if hasattr(aw, "slope") and in_dtype in FLOAT_TYPES:
                     # Finite scaling sets infs to min / max
                     exp_back = np.clip(exp_back, 0, 1)
                 else:
@@ -151,7 +155,7 @@ def test_no_scaling():
 
 def test_scaling_needed():
     # Structured types return True if dtypes same, raise error otherwise
-    dt_def = [('f', 'i4')]
+    dt_def = [("f", "i4")]
     arr = np.ones(10, dt_def)
     for t in NUMERIC_TYPES:
         with pytest.raises(WriterError):
@@ -438,7 +442,7 @@ def test_io_scaling():
     ):
         out_dtype = np.dtype(out_type)
         info = type_info(in_type)
-        imin, imax = info['min'], info['max']
+        imin, imax = info["min"], info["max"]
         if imin == 0:  # unsigned int
             val_tuples = ((0, imax), (100, imax))
         else:
@@ -523,7 +527,7 @@ def test_byte_orders():
     # Test endian read/write of types not requiring scaling
     for tp in (np.uint64, np.float64, np.complex128):
         dt = np.dtype(tp)
-        for code in '<>':
+        for code in "<>":
             ndt = dt.newbyteorder(code)
             for klass in (SlopeInterArrayWriter, SlopeArrayWriter, ArrayWriter):
                 aw = klass(arr, ndt)
@@ -559,7 +563,7 @@ def test_to_float():
     for in_type in NUMERIC_TYPES:
         step = 1 if in_type in IUINT_TYPES else 0.5
         info = type_info(in_type)
-        mn, mx = info['min'], info['max']
+        mn, mx = info["min"], info["max"]
         arr = np.arange(start, stop, step, dtype=in_type)
         arr[0] = mn
         arr[-1] = mx
@@ -576,7 +580,7 @@ def test_to_float():
                 arr_back = round_trip(aw)
                 assert_array_equal(arr.astype(out_type), arr_back)
                 # Check too-big values overflowed correctly
-                out_min, out_max = out_info['min'], out_info['max']
+                out_min, out_max = out_info["min"], out_info["max"]
                 assert np.all(arr_back[arr > out_max] == np.inf)
                 assert np.all(arr_back[arr < out_min] == -np.inf)
 
@@ -629,10 +633,10 @@ def test_float_int_min_max():
     # Conversion between float and int
     for in_dt in FLOAT_TYPES:
         finf = type_info(in_dt)
-        arr = np.array([finf['min'], finf['max']], dtype=in_dt)
+        arr = np.array([finf["min"], finf["max"]], dtype=in_dt)
         # Bug in numpy 1.6.2 on PPC leading to infs - abort
         if not np.all(np.isfinite(arr)):
-            print(f'Hit PPC max -> inf bug; skip in_type {in_dt}')
+            print(f"Hit PPC max -> inf bug; skip in_type {in_dt}")
             continue
         for out_dt in IUINT_TYPES:
             try:
@@ -671,10 +675,13 @@ def test_int_int_slope():
         iinf = np.iinfo(in_dt)
         for out_dt in IUINT_TYPES:
             kinds = np.dtype(in_dt).kind + np.dtype(out_dt).kind
-            if kinds in ('ii', 'uu', 'ui'):
+            if kinds in ("ii", "uu", "ui"):
                 arrs = (np.array([iinf.min, iinf.max], dtype=in_dt),)
-            elif kinds == 'iu':
-                arrs = (np.array([iinf.min, 0], dtype=in_dt), np.array([0, iinf.max], dtype=in_dt))
+            elif kinds == "iu":
+                arrs = (
+                    np.array([iinf.min, 0], dtype=in_dt),
+                    np.array([0, iinf.max], dtype=in_dt),
+                )
             for arr in arrs:
                 try:
                     aw = SlopeArrayWriter(arr, out_dt)
@@ -761,9 +768,9 @@ def test_nan2zero_scaling():
         in_info = type_info(in_dt)
         out_info = type_info(out_dt)
         # Skip impossible combinations
-        if in_info['min'] == 0 and sign == -1:
+        if in_info["min"] == 0 and sign == -1:
             continue
-        mx = min(in_info['max'], out_info['max'] * 2.0, 2**32)
+        mx = min(in_info["max"], out_info["max"] * 2.0, 2**32)
         vals = [np.nan] + [100, mx]
         nan_arr = np.array(vals, dtype=in_dt) * sign
         # Check that nan scales to same value as zero within same array
@@ -830,7 +837,7 @@ def test_finite_range_nan():
                 assert aw.has_nan == has_nan
                 # Check float types work as complex
                 in_arr = np.array(in_arr)
-                if in_arr.dtype.kind == 'f':
+                if in_arr.dtype.kind == "f":
                     c_arr = in_arr.astype(np.complex128)
                     try:
                         aw = awt(c_arr, out_type, **kwargs)
@@ -840,7 +847,7 @@ def test_finite_range_nan():
                     assert aw.has_nan == has_nan
                     assert aw.finite_range() == res
             # Structured type cannot be nan and we can test this
-            a = np.array([[1.0, 0, 1], [2, 3, 4]]).view([('f1', 'f')])
+            a = np.array([[1.0, 0, 1], [2, 3, 4]]).view([("f1", "f")])
             aw = awt(a, a.dtype, **kwargs)
             with pytest.raises(TypeError):
                 aw.finite_range()

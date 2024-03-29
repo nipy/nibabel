@@ -26,7 +26,7 @@ from .. import (
     all_image_classes,
 )
 
-DATA_PATH = pjoin(dirname(__file__), 'data')
+DATA_PATH = pjoin(dirname(__file__), "data")
 
 
 def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
@@ -48,20 +48,22 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
         def check_img(img_path, img_klass, sniff_mode, sniff, expect_success, msg):
             """Embedded function to do the actual checks expected."""
 
-            if sniff_mode == 'no_sniff':
+            if sniff_mode == "no_sniff":
                 # Don't pass any sniff--not even "None"
                 is_img, new_sniff = img_klass.path_maybe_image(img_path)
-            elif sniff_mode in ('empty', 'irrelevant', 'bad_sniff'):
+            elif sniff_mode in ("empty", "irrelevant", "bad_sniff"):
                 # Add img_path to binaryblock sniff parameters
-                is_img, new_sniff = img_klass.path_maybe_image(img_path, (sniff, img_path))
+                is_img, new_sniff = img_klass.path_maybe_image(
+                    img_path, (sniff, img_path)
+                )
             else:
                 # Pass a sniff, but don't reuse across images.
                 is_img, new_sniff = img_klass.path_maybe_image(img_path, sniff)
 
             if expect_success:
                 # Check that the sniff returned is appropriate.
-                new_msg = f'{img_klass.__name__} returned sniff==None ({msg})'
-                expected_sizeof_hdr = getattr(img_klass.header_class, 'sizeof_hdr', 0)
+                new_msg = f"{img_klass.__name__} returned sniff==None ({msg})"
+                expected_sizeof_hdr = getattr(img_klass.header_class, "sizeof_hdr", 0)
                 current_sizeof_hdr = 0 if new_sniff is None else len(new_sniff[0])
                 assert current_sizeof_hdr >= expected_sizeof_hdr, new_msg
 
@@ -73,33 +75,32 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 )
                 assert is_img, new_msg
 
-            if sniff_mode == 'vanilla':
+            if sniff_mode == "vanilla":
                 return new_sniff
             else:
                 return sniff
 
-        sizeof_hdr = getattr(expected_img_klass.header_class, 'sizeof_hdr', 0)
+        sizeof_hdr = getattr(expected_img_klass.header_class, "sizeof_hdr", 0)
 
         for sniff_mode, sniff in dict(
             vanilla=None,  # use the sniff of the previous item
             no_sniff=None,  # Don't pass a sniff
             none=None,  # pass None as the sniff, should query in fn
-            empty=b'',  # pass an empty sniff, should query in fn
-            irrelevant=b'a' * (sizeof_hdr - 1),  # A too-small sniff, query
-            bad_sniff=b'a' * sizeof_hdr,  # Bad sniff, should fail
+            empty=b"",  # pass an empty sniff, should query in fn
+            irrelevant=b"a" * (sizeof_hdr - 1),  # A too-small sniff, query
+            bad_sniff=b"a" * sizeof_hdr,  # Bad sniff, should fail
         ).items():
-
             for klass in img_klasses:
                 if klass == expected_img_klass:
                     # Class will load unless you pass a bad sniff,
                     #   or the header ignores the sniff
-                    expect_success = sniff_mode != 'bad_sniff' or sizeof_hdr == 0
+                    expect_success = sniff_mode != "bad_sniff" or sizeof_hdr == 0
                 else:
                     expect_success = False  # Not sure the relationships
 
                 # Reuse the sniff... but it will only change for some
                 # sniff_mode values.
-                msg = f'{expected_img_klass.__name__}/ {sniff_mode}/ {expect_success}'
+                msg = f"{expected_img_klass.__name__}/ {sniff_mode}/ {expect_success}"
                 sniff = check_img(
                     img_path,
                     klass,
@@ -111,14 +112,14 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
 
     # Test whether we can guess the image type from example files
     for img_filename, image_klass in [
-        ('example4d.nii.gz', Nifti1Image),
-        ('nifti1.hdr', Nifti1Pair),
-        ('example_nifti2.nii.gz', Nifti2Image),
-        ('nifti2.hdr', Nifti2Pair),
-        ('tiny.mnc', Minc1Image),
-        ('small.mnc', Minc2Image),
-        ('test.mgz', MGHImage),
-        ('analyze.hdr', Spm2AnalyzeImage),
+        ("example4d.nii.gz", Nifti1Image),
+        ("nifti1.hdr", Nifti1Pair),
+        ("example_nifti2.nii.gz", Nifti2Image),
+        ("nifti2.hdr", Nifti2Pair),
+        ("tiny.mnc", Minc1Image),
+        ("small.mnc", Minc2Image),
+        ("test.mgz", MGHImage),
+        ("analyze.hdr", Spm2AnalyzeImage),
     ]:
         # print('Testing: %s %s' % (img_filename, image_klass.__name__))
         test_image_class(pjoin(DATA_PATH, img_filename), image_klass)

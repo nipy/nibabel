@@ -23,7 +23,7 @@ _counter = 0
 
 def _as_fname(img):
     global _counter
-    fname = 'img%3d.nii' % _counter
+    fname = "img%3d.nii" % _counter
     _counter = _counter + 1
     save(img, fname)
     return fname
@@ -47,20 +47,19 @@ def test_concat():
         #   second position.
         for data0_shape in all_shapes:
             data0_numel = np.asarray(data0_shape).prod()
-            data0 = np.arange(data0_numel, dtype='int32').reshape(data0_shape)
+            data0 = np.arange(data0_numel, dtype="int32").reshape(data0_shape)
             img0_mem = Nifti1Image(data0, affine)
 
             for data1_shape in all_shapes:
                 data1_numel = np.asarray(data1_shape).prod()
-                data1 = np.arange(data1_numel, dtype='int32').reshape(data1_shape)
+                data1 = np.arange(data1_numel, dtype="int32").reshape(data1_shape)
                 img1_mem = Nifti1Image(data1, affine)
                 img2_mem = Nifti1Image(data1, affine + 1)  # bad affine
 
                 # Loop over every possible axis, including None (explicit and implied)
-                for axis in list(range(-(dim - 2), (dim - 1))) + [None, '__default__']:
-
+                for axis in list(range(-(dim - 2), (dim - 1))) + [None, "__default__"]:
                     # Allow testing default vs. passing explicit param
-                    if axis == '__default__':
+                    if axis == "__default__":
                         np_concat_kwargs = dict(axis=-1)
                         concat_imgs_kwargs = dict()
                         axis = None  # Convert downstream
@@ -84,7 +83,9 @@ def test_concat():
                                 **np_concat_kwargs,
                             )
                         else:  # both 3D, appending on final axis
-                            all_data = np.concatenate([data0, data1], **np_concat_kwargs)
+                            all_data = np.concatenate(
+                                [data0, data1], **np_concat_kwargs
+                            )
                         expect_error = False
                     except ValueError:
                         # Shapes are not combinable
@@ -98,13 +99,15 @@ def test_concat():
                         imgs_mixed = [imgs[0], img_files[1], imgs[2]]
                         for img0, img1, img2 in (imgs, img_files, imgs_mixed):
                             try:
-                                all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
+                                all_imgs = concat_images(
+                                    [img0, img1], **concat_imgs_kwargs
+                                )
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
                                 assert (
                                     not expect_error
-                                ), 'Expected a concatenation error, but got none.'
+                                ), "Expected a concatenation error, but got none."
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
@@ -114,13 +117,15 @@ def test_concat():
 
                             # except if check_affines is False
                             try:
-                                all_imgs = concat_images([img0, img1], **concat_imgs_kwargs)
+                                all_imgs = concat_images(
+                                    [img0, img1], **concat_imgs_kwargs
+                                )
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
                                 assert (
                                     not expect_error
-                                ), 'Expected a concatenation error, but got none.'
+                                ), "Expected a concatenation error, but got none."
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 

@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utilities for testing"""
+
 from __future__ import annotations
 
 import os
@@ -32,21 +33,21 @@ except ImportError:  # PY38
 
 
 def get_test_data(
-    subdir: ty.Literal['gifti', 'nicom', 'externals'] | None = None,
+    subdir: ty.Literal["gifti", "nicom", "externals"] | None = None,
     fname: str | None = None,
 ) -> Traversable:
     parts: tuple[str, ...]
     if subdir is None:
-        parts = ('tests', 'data')
-    elif subdir in ('gifti', 'nicom', 'externals'):
-        parts = (subdir, 'tests', 'data')
+        parts = ("tests", "data")
+    elif subdir in ("gifti", "nicom", "externals"):
+        parts = (subdir, "tests", "data")
     else:
-        raise ValueError(f'Unknown test data directory: {subdir}')
+        raise ValueError(f"Unknown test data directory: {subdir}")
 
     if fname is not None:
         parts += (fname,)
 
-    return files('nibabel').joinpath(*parts)
+    return files("nibabel").joinpath(*parts)
 
 
 # set path to example data
@@ -76,9 +77,9 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
     to_test = to_test & (a != b)
     a = a[to_test]
     b = b[to_test]
-    if a.dtype.kind in 'ui':
+    if a.dtype.kind in "ui":
         a = a.astype(float)
-    if b.dtype.kind in 'ui':
+    if b.dtype.kind in "ui":
         b = b.astype(float)
     assert np.allclose(a, b, rtol=rtol, atol=atol)
 
@@ -97,7 +98,7 @@ def assert_re_in(regex, c, flags=0):
     for e in c:
         if re.match(regex, e, flags=flags):
             return
-    raise AssertionError(f'Not a single entry matched {regex!r} in {c!r}')
+    raise AssertionError(f"Not a single entry matched {regex!r} in {c!r}")
 
 
 def get_fresh_mod(mod_name=__name__):
@@ -161,7 +162,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
 
     def __enter__(self):
         for mod in self.modules:
-            if hasattr(mod, '__warningregistry__'):
+            if hasattr(mod, "__warningregistry__"):
                 mod_reg = mod.__warningregistry__
                 self._warnreg_copies[mod] = mod_reg.copy()
                 mod_reg.clear()
@@ -170,7 +171,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     def __exit__(self, *exc_info):
         super().__exit__(*exc_info)
         for mod in self.modules:
-            if hasattr(mod, '__warningregistry__'):
+            if hasattr(mod, "__warningregistry__"):
                 mod.__warningregistry__.clear()
             if mod in self._warnreg_copies:
                 mod.__warningregistry__.update(self._warnreg_copies[mod])
@@ -190,7 +191,7 @@ class error_warnings(clear_and_catch_warnings):
     I consider myself warned
     """
 
-    filter = 'error'
+    filter = "error"
 
     def __enter__(self):
         mgr = super().__enter__()
@@ -201,15 +202,15 @@ class error_warnings(clear_and_catch_warnings):
 class suppress_warnings(error_warnings):
     """Version of ``catch_warnings`` class that suppresses warnings"""
 
-    filter = 'ignore'
+    filter = "ignore"
 
 
-EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
+EXTRA_SET = os.environ.get("NIPY_EXTRA_TESTS", "").split(",")
 
 
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return unittest.skipUnless(test_str in EXTRA_SET, f'Skip {test_str} tests.')
+    return unittest.skipUnless(test_str in EXTRA_SET, f"Skip {test_str} tests.")
 
 
 def assert_arr_dict_equal(dict1, dict2):

@@ -20,8 +20,8 @@ import nibabel as nib
 import nibabel.cmdline.utils
 from nibabel.cmdline.utils import _err, ap, safe_get, table2string, verbose
 
-__copyright__ = 'Copyright (c) 2011-18 Yaroslav Halchenko and NiBabel contributors'
-__license__ = 'MIT'
+__copyright__ = "Copyright (c) 2011-18 Yaroslav Halchenko and NiBabel contributors"
+__license__ = "MIT"
 
 
 MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
@@ -30,58 +30,59 @@ MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n' + __doc__,
-        version='%prog ' + nib.__version__,
+        usage=f"{sys.argv[0]} [OPTIONS] [FILE ...]\n\n" + __doc__,
+        version="%prog " + nib.__version__,
     )
 
     p.add_options(
         [
             Option(
-                '-v',
-                '--verbose',
-                action='count',
-                dest='verbose',
+                "-v",
+                "--verbose",
+                action="count",
+                dest="verbose",
                 default=0,
-                help='Make more noise.  Could be specified multiple times',
+                help="Make more noise.  Could be specified multiple times",
             ),
             Option(
-                '-H',
-                '--header-fields',
-                dest='header_fields',
-                default='',
-                help='Header fields (comma separated) to be printed as well (if present)',
+                "-H",
+                "--header-fields",
+                dest="header_fields",
+                default="",
+                help="Header fields (comma separated) to be printed as well (if present)",
             ),
             Option(
-                '-s',
-                '--stats',
-                action='store_true',
-                dest='stats',
+                "-s",
+                "--stats",
+                action="store_true",
+                dest="stats",
                 default=False,
-                help='Output basic data statistics',
+                help="Output basic data statistics",
             ),
             Option(
-                '-c',
-                '--counts',
-                action='store_true',
-                dest='counts',
+                "-c",
+                "--counts",
+                action="store_true",
+                dest="counts",
                 default=False,
-                help='Output counts - number of entries for each numeric value '
-                '(useful for int ROI maps)',
+                help="Output counts - number of entries for each numeric value "
+                "(useful for int ROI maps)",
             ),
             Option(
-                '--all-counts',
-                action='store_true',
-                dest='all_counts',
+                "--all-counts",
+                action="store_true",
+                dest="all_counts",
                 default=False,
-                help='Output all counts, even if number of unique values > %d' % MAX_UNIQUE,
+                help="Output all counts, even if number of unique values > %d"
+                % MAX_UNIQUE,
             ),
             Option(
-                '-z',
-                '--zeros',
-                action='store_true',
-                dest='stats_zeros',
+                "-z",
+                "--zeros",
+                action="store_true",
+                dest="stats_zeros",
                 default=False,
-                help='Include zeros into output basic data statistics (--stats, --counts)',
+                help="Include zeros into output basic data statistics (--stats, --counts)",
             ),
         ]
     )
@@ -90,45 +91,45 @@ def get_opt_parser():
 
 
 def proc_file(f, opts):
-    verbose(1, f'Loading {f}')
+    verbose(1, f"Loading {f}")
 
-    row = [f'@l{f}']
+    row = [f"@l{f}"]
     try:
         vol = nib.load(f)
         h = vol.header
     except Exception as e:
-        row += ['failed']
-        verbose(2, f'Failed to gather information -- {e}')
+        row += ["failed"]
+        verbose(2, f"Failed to gather information -- {e}")
         return row
 
     row += [
-        str(safe_get(h, 'data_dtype')),
+        str(safe_get(h, "data_dtype")),
         f"@l[{ap(safe_get(h, 'data_shape'), '%3g')}]",
         f"@l{ap(safe_get(h, 'zooms'), '%.2f', 'x')}",
     ]
     # Slope
     if (
-        hasattr(h, 'has_data_slope')
+        hasattr(h, "has_data_slope")
         and (h.has_data_slope or h.has_data_intercept)
         and h.get_slope_inter() not in ((1.0, 0.0), (None, None))
     ):
-        row += ['@l*%.3g+%.3g' % h.get_slope_inter()]
+        row += ["@l*%.3g+%.3g" % h.get_slope_inter()]
     else:
-        row += ['']
+        row += [""]
 
-    if hasattr(h, 'extensions') and len(h.extensions):
-        row += ['@l#exts: %d' % len(h.extensions)]
+    if hasattr(h, "extensions") and len(h.extensions):
+        row += ["@l#exts: %d" % len(h.extensions)]
     else:
-        row += ['']
+        row += [""]
 
     if opts.header_fields:
         # signals "all fields"
-        if opts.header_fields == 'all':
+        if opts.header_fields == "all":
             # TODO: might vary across file types, thus prior sensing
             # would be needed
             header_fields = h.keys()
         else:
-            header_fields = opts.header_fields.split(',')
+            header_fields = opts.header_fields.split(",")
 
         for f in header_fields:
             if not f:  # skip empty
@@ -140,17 +141,17 @@ def proc_file(f, opts):
 
     try:
         if (
-            hasattr(h, 'get_qform')
-            and hasattr(h, 'get_sform')
+            hasattr(h, "get_qform")
+            and hasattr(h, "get_sform")
             and (h.get_qform() != h.get_sform()).any()
         ):
-            row += ['sform']
+            row += ["sform"]
         else:
-            row += ['']
+            row += [""]
     except Exception as e:
-        verbose(2, f'Failed to obtain qform or sform -- {e}')
+        verbose(2, f"Failed to obtain qform or sform -- {e}")
         if isinstance(h, nib.AnalyzeHeader):
-            row += ['']
+            row += [""]
         else:
             row += [_err()]
 
@@ -166,19 +167,19 @@ def proc_file(f, opts):
                 d = d.reshape(-1)
             if opts.stats:
                 # just # of elements
-                row += ['@l[%d]' % np.prod(d.shape)]
+                row += ["@l[%d]" % np.prod(d.shape)]
                 # stats
-                row += [f'@l[{np.min(d):.2g}, {np.max(d):.2g}]' if len(d) else '-']
+                row += [f"@l[{np.min(d):.2g}, {np.max(d):.2g}]" if len(d) else "-"]
             if opts.counts:
                 items, inv = np.unique(d, return_inverse=True)
                 if len(items) > 1000 and not opts.all_counts:
-                    counts = _err('%d uniques. Use --all-counts' % len(items))
+                    counts = _err("%d uniques. Use --all-counts" % len(items))
                 else:
                     freq = np.bincount(inv)
-                    counts = ' '.join('%g:%d' % (i, f) for i, f in zip(items, freq))
-                row += ['@l' + counts]
+                    counts = " ".join("%g:%d" % (i, f) for i, f in zip(items, freq))
+                row += ["@l" + counts]
         except OSError as e:
-            verbose(2, f'Failed to obtain stats/counts -- {e}')
+            verbose(2, f"Failed to obtain stats/counts -- {e}")
             row += [_err()]
     return row
 

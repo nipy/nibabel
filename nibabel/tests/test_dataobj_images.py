@@ -1,5 +1,4 @@
-"""Testing dataobj_images module
-"""
+"""Testing dataobj_images module"""
 
 import numpy as np
 
@@ -11,18 +10,18 @@ from nibabel.tests.test_image_api import DataInterfaceMixin
 
 class DoNumpyImage(DataobjImage):
     header_class = FileBasedHeader
-    valid_exts = ('.npy',)
-    files_types = (('image', '.npy'),)
+    valid_exts = (".npy",)
+    files_types = (("image", ".npy"),)
 
     @classmethod
     def from_file_map(klass, file_map, mmap=True, keep_file_open=None):
-        if mmap not in (True, False, 'c', 'r'):
+        if mmap not in (True, False, "c", "r"):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         if mmap is True:
-            mmap = 'c'
+            mmap = "c"
         elif mmap is False:
             mmap = None
-        with file_map['image'].get_prepare_fileobj('rb') as fobj:
+        with file_map["image"].get_prepare_fileobj("rb") as fobj:
             try:
                 arr = np.load(fobj, mmap=mmap)
             except Exception:
@@ -31,7 +30,7 @@ class DoNumpyImage(DataobjImage):
 
     def to_file_map(self, file_map=None):
         file_map = self.file_map if file_map is None else file_map
-        with file_map['image'].get_prepare_fileobj('wb') as fobj:
+        with file_map["image"].get_prepare_fileobj("wb") as fobj:
             np.save(fobj, self.dataobj)
 
     def get_data_dtype(self):

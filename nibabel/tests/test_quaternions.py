@@ -74,7 +74,7 @@ def test_fillpos():
     assert wxyz[0] == 0.0
 
 
-@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+@pytest.mark.parametrize("dtype", ("f4", "f8"))
 def test_fillpositive_plus_minus_epsilon(dtype):
     # Deterministic test for fillpositive threshold
     # We are trying to fill (x, y, z) with a w such that |(w, x, y, z)| == 1
@@ -101,7 +101,7 @@ def test_fillpositive_plus_minus_epsilon(dtype):
     assert nq.fillpositive(minus)[0] > 0.0
 
 
-@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+@pytest.mark.parametrize("dtype", ("f4", "f8"))
 def test_fillpositive_simulated_error(dtype):
     # Nondeterministic test for fillpositive threshold
     # Create random vectors, normalize to unit length, and count on floating point
@@ -123,7 +123,7 @@ def test_conjugate():
     # Takes sequence
     cq = nq.conjugate((1, 0, 0, 0))
     # Returns float type
-    assert cq.dtype.kind == 'f'
+    assert cq.dtype.kind == "f"
 
 
 def test_quat2mat():
@@ -144,10 +144,10 @@ def test_inverse_0():
     # Takes sequence
     iq = nq.inverse((1, 0, 0, 0))
     # Returns float type
-    assert iq.dtype.kind == 'f'
+    assert iq.dtype.kind == "f"
 
 
-@pytest.mark.parametrize('M, q', eg_pairs)
+@pytest.mark.parametrize("M, q", eg_pairs)
 def test_inverse_1(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -157,7 +157,7 @@ def test_inverse_1(M, q):
 
 def test_eye():
     qi = nq.eye()
-    assert qi.dtype.kind == 'f'
+    assert qi.dtype.kind == "f"
     assert np.all([1, 0, 0, 0] == qi)
     assert np.allclose(nq.quat2mat(qi), np.eye(3))
 
@@ -170,15 +170,15 @@ def test_norm():
     assert not nq.isunit(qi)
 
 
-@pytest.mark.parametrize('M1, q1', eg_pairs[0::4])
-@pytest.mark.parametrize('M2, q2', eg_pairs[1::4])
+@pytest.mark.parametrize("M1, q1", eg_pairs[0::4])
+@pytest.mark.parametrize("M2, q2", eg_pairs[1::4])
 def test_mult(M1, q1, M2, q2):
     # Test that quaternion * same as matrix *
     q21 = nq.mult(q2, q1)
     assert_array_almost_equal, M2 @ M1, nq.quat2mat(q21)
 
 
-@pytest.mark.parametrize('M, q', eg_pairs)
+@pytest.mark.parametrize("M, q", eg_pairs)
 def test_inverse(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -192,15 +192,15 @@ def test_eye():
     assert np.allclose(nq.quat2mat(qi), np.eye(3))
 
 
-@pytest.mark.parametrize('vec', np.eye(3))
-@pytest.mark.parametrize('M, q', eg_pairs)
+@pytest.mark.parametrize("vec", np.eye(3))
+@pytest.mark.parametrize("M, q", eg_pairs)
 def test_qrotate(vec, M, q):
     vdash = nq.rotate_vector(vec, q)
     vM = M @ vec
     assert_array_almost_equal(vdash, vM)
 
 
-@pytest.mark.parametrize('q', unit_quats)
+@pytest.mark.parametrize("q", unit_quats)
 def test_quaternion_reconstruction(q):
     # Test reconstruction of arbitrary unit quaternions
     M = nq.quat2mat(q)

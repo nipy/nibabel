@@ -18,7 +18,7 @@ DEBUG = False
 
 def round_trip(arr, out_dtype):
     img = Nifti1Image(arr, np.eye(4), dtype=out_dtype)
-    img.file_map['image'].fileobj = BytesIO()
+    img.file_map["image"].fileobj = BytesIO()
     img.to_file_map()
     back = Nifti1Image.from_file_map(img.file_map)
     # Recover array and calculated scaling from array proxy object
@@ -28,7 +28,7 @@ def round_trip(arr, out_dtype):
 def check_params(in_arr, in_type, out_type):
     arr = in_arr.astype(in_type)
     # clip infs that can arise from downcasting
-    if arr.dtype.kind == 'f':
+    if arr.dtype.kind == "f":
         info = np.finfo(in_type)
         arr = np.clip(arr, info.min, info.max)
     try:
@@ -65,19 +65,19 @@ def big_bad_ulp(arr):
     info = type_info(arr.dtype)
     working_arr = np.abs(arr.astype(BFT))
     # Log2 for numpy < 1.3
-    fl2 = np.zeros_like(working_arr) + info['minexp']
+    fl2 = np.zeros_like(working_arr) + info["minexp"]
     # Avoid divide by zero error for log of 0
     nzs = working_arr > 0
     fl2[nzs] = np.floor(np.log(working_arr[nzs]) / LOGe2)
-    fl2 = np.clip(fl2, info['minexp'], np.inf)
-    return 2 ** (fl2 - info['nmant'])
+    fl2 = np.clip(fl2, info["minexp"], np.inf)
+    return 2 ** (fl2 - info["nmant"])
 
 
 def test_big_bad_ulp():
     for ftype in (np.float32, np.float64):
         ti = type_info(ftype)
         fi = np.finfo(ftype)
-        min_ulp = 2 ** (ti['minexp'] - ti['nmant'])
+        min_ulp = 2 ** (ti["minexp"] - ti["nmant"])
         in_arr = np.zeros((10,), dtype=ftype)
         in_arr = np.array([0, 0, 1, 2, 4, 5, -5, -np.inf, np.inf], dtype=ftype)
         out_arr = [
@@ -102,7 +102,7 @@ def test_round_trip():
     rng = np.random.RandomState(20111121)
     N = 10000
     sd_10s = range(-20, 51, 5)
-    iuint_types = sctypes['int'] + sctypes['uint']
+    iuint_types = sctypes["int"] + sctypes["uint"]
     # Remove types which cannot be set into nifti header datatype
     nifti_supported = supported_np_types(Nifti1Header())
     iuint_types = [t for t in iuint_types if t in nifti_supported]
@@ -136,7 +136,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     nzs = arr != 0  # avoid divide by zero error
     if not np.any(nzs):
         if DEBUG:
-            raise ValueError('Array all zero')
+            raise ValueError("Array all zero")
         return
     arr = arr[nzs]
     arr_dash_L = arr_dash.astype(BIG_FLOAT)[nzs]
@@ -164,7 +164,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
         # Error from calculation of inter
         inter_err = ulp(scaling_type(inter))
         # Max abs error from floating point
-        with np.errstate(over='ignore'):
+        with np.errstate(over="ignore"):
             Ai = arr - scaling_type(inter)
         Ais = Ai / scaling_type(slope)
         exp_abs_err = inting_err + inter_err + (big_bad_ulp(Ai) + big_bad_ulp(Ais))

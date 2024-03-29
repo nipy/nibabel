@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utilities for calculating and applying affine orientations"""
+
 import numpy as np
 import numpy.linalg as npl
 
@@ -109,9 +110,9 @@ def ornt_transform(start_ornt, end_ornt):
     start_ornt = np.asarray(start_ornt)
     end_ornt = np.asarray(end_ornt)
     if start_ornt.shape != end_ornt.shape:
-        raise ValueError('The orientations must have the same shape')
+        raise ValueError("The orientations must have the same shape")
     if start_ornt.shape[1] != 2:
-        raise ValueError(f'Invalid shape for an orientation: {start_ornt.shape}')
+        raise ValueError(f"Invalid shape for an orientation: {start_ornt.shape}")
     result = np.empty_like(start_ornt)
     for end_in_idx, (end_out_idx, end_flip) in enumerate(end_ornt):
         for start_in_idx, (start_out_idx, start_flip) in enumerate(start_ornt):
@@ -123,7 +124,7 @@ def ornt_transform(start_ornt, end_ornt):
                 result[start_in_idx, :] = [end_in_idx, flip]
                 break
         else:
-            raise ValueError('Unable to find out axis %d in start_ornt' % end_out_idx)
+            raise ValueError("Unable to find out axis %d in start_ornt" % end_out_idx)
     return result
 
 
@@ -152,10 +153,12 @@ def apply_orientation(arr, ornt):
     ornt = np.asarray(ornt)
     n = ornt.shape[0]
     if t_arr.ndim < n:
-        raise OrientationError('Data array has fewer dimensions than orientation')
+        raise OrientationError("Data array has fewer dimensions than orientation")
     # no coordinates can be dropped for applying the orientations
     if np.any(np.isnan(ornt[:, 0])):
-        raise OrientationError('Cannot drop coordinates when applying orientation to data')
+        raise OrientationError(
+            "Cannot drop coordinates when applying orientation to data"
+        )
     # apply ornt transformations
     for ax, flip in enumerate(ornt[:, 1]):
         if flip == -1:
@@ -206,7 +209,7 @@ def inv_ornt_aff(ornt, shape):
     """
     ornt = np.asarray(ornt)
     if np.any(np.isnan(ornt)):
-        raise OrientationError('We cannot invert orientation transform')
+        raise OrientationError("We cannot invert orientation transform")
     p = ornt.shape[0]
     shape = np.array(shape)[:p]
     # ornt implies a flip, followed by a transpose.   We need the affine
@@ -224,9 +227,9 @@ def inv_ornt_aff(ornt, shape):
 
 
 @deprecate_with_version(
-    'flip_axis is deprecated. Please use numpy.flip instead.',
-    '3.2',
-    '5.0',
+    "flip_axis is deprecated. Please use numpy.flip instead.",
+    "3.2",
+    "5.0",
 )
 def flip_axis(arr, axis=0):
     """Flip contents of `axis` in array `arr`
@@ -275,7 +278,7 @@ def ornt2axcodes(ornt, labels=None):
     ('F', 'L', 'U')
     """
     if labels is None:
-        labels = list(zip('LPI', 'RAS'))
+        labels = list(zip("LPI", "RAS"))
     axcodes = []
     for axno, direction in np.asarray(ornt):
         if np.isnan(axno):
@@ -283,13 +286,13 @@ def ornt2axcodes(ornt, labels=None):
             continue
         axint = int(np.round(axno))
         if axint != axno:
-            raise ValueError(f'Non integer axis number {axno:f}')
+            raise ValueError(f"Non integer axis number {axno:f}")
         elif direction == 1:
             axcode = labels[axint][1]
         elif direction == -1:
             axcode = labels[axint][0]
         else:
-            raise ValueError('Direction should be -1 or 1')
+            raise ValueError("Direction should be -1 or 1")
         axcodes.append(axcode)
     return tuple(axcodes)
 
@@ -320,12 +323,14 @@ def axcodes2ornt(axcodes, labels=None):
            [ 0., -1.],
            [ 2.,  1.]])
     """
-    labels = list(zip('LPI', 'RAS')) if labels is None else labels
+    labels = list(zip("LPI", "RAS")) if labels is None else labels
     allowed_labels = sum([list(L) for L in labels], []) + [None]
     if len(allowed_labels) != len(set(allowed_labels)):
-        raise ValueError(f'Duplicate labels in {allowed_labels}')
+        raise ValueError(f"Duplicate labels in {allowed_labels}")
     if not set(axcodes).issubset(allowed_labels):
-        raise ValueError(f'Not all axis codes {list(axcodes)} in label set {allowed_labels}')
+        raise ValueError(
+            f"Not all axis codes {list(axcodes)} in label set {allowed_labels}"
+        )
     n_axes = len(axcodes)
     ornt = np.ones((n_axes, 2), dtype=np.int8) * np.nan
     for code_idx, code in enumerate(axcodes):

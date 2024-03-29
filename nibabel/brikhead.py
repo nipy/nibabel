@@ -26,6 +26,7 @@ exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
 am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
+
 import os
 import re
 from copy import deepcopy
@@ -39,30 +40,30 @@ from .volumeutils import Recoder
 
 # used for doc-tests
 filepath = os.path.dirname(os.path.realpath(__file__))
-datadir = os.path.realpath(os.path.join(filepath, 'tests/data'))
+datadir = os.path.realpath(os.path.join(filepath, "tests/data"))
 
-_attr_dic = {'string': str, 'integer': int, 'float': float}
+_attr_dic = {"string": str, "integer": int, "float": float}
 
 _endian_dict = {
-    'LSB_FIRST': '<',
-    'MSB_FIRST': '>',
+    "LSB_FIRST": "<",
+    "MSB_FIRST": ">",
 }
 
 _dtype_dict = {
-    0: 'B',
-    1: 'h',
-    3: 'f',
-    5: 'D',
+    0: "B",
+    1: "h",
+    3: "f",
+    5: "D",
 }
 
 space_codes = Recoder(
     (
-        (0, 'unknown', ''),
-        (1, 'scanner', 'ORIG'),
-        (3, 'talairach', 'TLRC'),
-        (4, 'mni', 'MNI'),
+        (0, "unknown", ""),
+        (1, "scanner", "ORIG"),
+        (3, "talairach", "TLRC"),
+        (4, "mni", "MNI"),
     ),
-    fields=('code', 'label', 'space'),
+    fields=("code", "label", "space"),
 )
 
 
@@ -75,8 +76,8 @@ class AFNIHeaderError(HeaderDataError):
 
 
 DATA_OFFSET = 0
-TYPE_RE = re.compile(r'type\s*=\s*(string|integer|float)-attribute\s*\n')
-NAME_RE = re.compile(r'name\s*=\s*(\w+)\s*\n')
+TYPE_RE = re.compile(r"type\s*=\s*(string|integer|float)-attribute\s*\n")
+NAME_RE = re.compile(r"name\s*=\s*(\w+)\s*\n")
 
 
 def _unpack_var(var):
@@ -107,26 +108,26 @@ def _unpack_var(var):
     TEMPLATE_SPACE ORIG
     """
 
-    err_msg = f'Please check HEAD file to ensure it is AFNI compliant. Offending attribute:\n{var}'
+    err_msg = f"Please check HEAD file to ensure it is AFNI compliant. Offending attribute:\n{var}"
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
-        raise AFNIHeaderError(f'Invalid attribute type entry in HEAD file. {err_msg}')
+        raise AFNIHeaderError(f"Invalid attribute type entry in HEAD file. {err_msg}")
     if len(aname) != 1:
-        raise AFNIHeaderError(f'Invalid attribute name entry in HEAD file. {err_msg}')
+        raise AFNIHeaderError(f"Invalid attribute name entry in HEAD file. {err_msg}")
     atype = _attr_dic.get(atype[0], str)
-    attr = ' '.join(var.strip().splitlines()[3:])
+    attr = " ".join(var.strip().splitlines()[3:])
     if atype is not str:
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
             raise AFNIHeaderError(
-                f'Failed to read variable from HEAD file due to improper type casting. {err_msg}'
+                f"Failed to read variable from HEAD file due to improper type casting. {err_msg}"
             )
     else:
         # AFNI string attributes will always start with open single quote and
         # end with a tilde (NUL). These attributes CANNOT contain tildes (so
         # stripping is safe), but can contain single quotes (so we replace)
-        attr = attr.replace("'", '', 1).rstrip('~')
+        attr = attr.replace("'", "", 1).rstrip("~")
 
     return aname[0], attr[0] if len(attr) == 1 else attr
 
@@ -154,13 +155,13 @@ def _get_datatype(info):
     0=uint, 1=int16, 3=float32, 5=complex64 (see ``_dtype_dict``).  This should
     generally be the same value for each sub-brick in the dataset.
     """
-    bo = info['BYTEORDER_STRING']
-    bt = info['BRICK_TYPES']
+    bo = info["BYTEORDER_STRING"]
+    bt = info["BRICK_TYPES"]
     if isinstance(bt, list):
         if np.unique(bt).size > 1:
             raise AFNIImageError("Can't load file with multiple data types.")
         bt = bt[0]
-    bo = _endian_dict.get(bo, '=')
+    bo = _endian_dict.get(bo, "=")
     bt = _dtype_dict.get(bt, None)
     if bt is None:
         raise AFNIImageError("Can't deduce image data type.")
@@ -196,7 +197,7 @@ def parse_AFNI_header(fobj):
         with open(fobj) as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
-    head = fobj.read().split('\n\n')
+    head = fobj.read().split("\n\n")
     return {key: value for key, value in map(_unpack_var, head)}
 
 
@@ -289,15 +290,17 @@ class AFNIHeader(SpatialHeader):
         """
         self.info = info
         dt = _get_datatype(self.info)
-        super().__init__(data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms())
+        super().__init__(
+            data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms()
+        )
 
     @classmethod
     def from_header(klass, header=None):
         if header is None:
-            raise AFNIHeaderError('Cannot create AFNIHeader from nothing.')
+            raise AFNIHeaderError("Cannot create AFNIHeader from nothing.")
         if type(header) == klass:
             return header.copy()
-        raise AFNIHeaderError('Cannot create AFNIHeader from non-AFNIHeader.')
+        raise AFNIHeaderError("Cannot create AFNIHeader from non-AFNIHeader.")
 
     @classmethod
     def from_fileobj(klass, fileobj):
@@ -324,8 +327,8 @@ class AFNIHeader(SpatialHeader):
         ``DATASET_DIMENSIONS`` is length 3, giving the number of voxels in i,
         j, k.
         """
-        dset_rank = self.info['DATASET_RANK']
-        shape = tuple(self.info['DATASET_DIMENSIONS'][: dset_rank[0]])
+        dset_rank = self.info["DATASET_RANK"]
+        shape = tuple(self.info["DATASET_DIMENSIONS"][: dset_rank[0]])
         n_vols = dset_rank[1]
         return shape + (n_vols,)
 
@@ -349,8 +352,8 @@ class AFNIHeader(SpatialHeader):
         ``TAXIS_FLOATS`` should be length 5, with first entry giving "Time
         origin", and second giving "Time step (TR)".
         """
-        xyz_step = tuple(np.abs(self.info['DELTA']))
-        t_step = self.info.get('TAXIS_FLOATS', (0, 0))
+        xyz_step = tuple(np.abs(self.info["DELTA"]))
+        t_step = self.info.get("TAXIS_FLOATS", (0, 0))
         if len(t_step) > 0:
             t_step = (t_step[1],)
         return xyz_step + t_step
@@ -369,7 +372,7 @@ class AFNIHeader(SpatialHeader):
         There appears to be documentation for these spaces at
         https://afni.nimh.nih.gov/pub/dist/atlases/elsedemo/AFNI_atlas_spaces.niml
         """
-        listed_space = self.info.get('TEMPLATE_SPACE', 0)
+        listed_space = self.info.get("TEMPLATE_SPACE", 0)
         space = space_codes.space[listed_space]
         return space
 
@@ -389,7 +392,7 @@ class AFNIHeader(SpatialHeader):
         """
         # AFNI default is RAI- == LPS+ == DICOM order.  We need to flip RA sign
         # to align with nibabel RAS+ system
-        affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
+        affine = np.asarray(self.info["IJK_TO_DICOM_REAL"]).reshape(3, 4)
         affine = np.row_stack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
         return affine
 
@@ -407,10 +410,10 @@ class AFNIHeader(SpatialHeader):
         # BRICK_FLOAT_FACS has one value per sub-brick, such that the scaled
         # values for sub-brick array [n] are the values read from disk *
         # BRICK_FLOAT_FACS[n]
-        floatfacs = self.info.get('BRICK_FLOAT_FACS', None)
+        floatfacs = self.info.get("BRICK_FLOAT_FACS", None)
         if floatfacs is None or not np.any(floatfacs):
             return None
-        scale = np.ones(self.info['DATASET_RANK'][1])
+        scale = np.ones(self.info["DATASET_RANK"][1])
         floatfacs = np.atleast_1d(floatfacs)
         scale[floatfacs.nonzero()] = floatfacs[floatfacs.nonzero()]
         return scale
@@ -446,9 +449,9 @@ class AFNIHeader(SpatialHeader):
         >>> header.get_volume_labels()
         ['#0', '#1', '#2']
         """
-        labels = self.info.get('BRICK_LABS', None)
+        labels = self.info.get("BRICK_LABS", None)
         if labels is not None:
-            labels = labels.split('~')
+            labels = labels.split("~")
         return labels
 
 
@@ -476,9 +479,9 @@ class AFNIImage(SpatialImage):
 
     header_class = AFNIHeader
     header: AFNIHeader
-    valid_exts = ('.brik', '.head')
-    files_types = (('image', '.brik'), ('header', '.head'))
-    _compressed_suffixes = ('.gz', '.bz2', '.Z', '.zst')
+    valid_exts = (".brik", ".head")
+    files_types = (("image", ".brik"), ("header", ".head"))
+    _compressed_suffixes = (".gz", ".bz2", ".Z", ".zst")
     makeable = False
     rw = False
     ImageArrayProxy = AFNIArrayProxy
@@ -510,11 +513,13 @@ class AFNIImage(SpatialImage):
             effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
-        with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
+        with file_map["header"].get_prepare_fileobj("rt") as hdr_fobj:
             hdr = klass.header_class.from_fileobj(hdr_fobj)
-        imgf = file_map['image'].fileobj
-        imgf = file_map['image'].filename if imgf is None else imgf
-        data = klass.ImageArrayProxy(imgf, hdr.copy(), mmap=mmap, keep_file_open=keep_file_open)
+        imgf = file_map["image"].fileobj
+        imgf = file_map["image"].filename if imgf is None else imgf
+        data = klass.ImageArrayProxy(
+            imgf, hdr.copy(), mmap=mmap, keep_file_open=keep_file_open
+        )
         return klass(data, hdr.get_affine(), header=hdr, extra=None, file_map=file_map)
 
     @classmethod
@@ -552,10 +557,10 @@ class AFNIImage(SpatialImage):
         # check for AFNI-specific BRIK/HEAD compression idiosyncrasies
         for key, fholder in file_map.items():
             fname = fholder.filename
-            if key == 'header' and not os.path.exists(fname):
+            if key == "header" and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
                     fname = fname[: -len(ext)] if fname.endswith(ext) else fname
-            elif key == 'image' and not os.path.exists(fname):
+            elif key == "image" and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
                     if os.path.exists(fname + ext):
                         fname += ext

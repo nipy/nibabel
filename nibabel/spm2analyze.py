@@ -7,15 +7,18 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read / write access to SPM2 version of analyze image format"""
+
 import numpy as np
 
 from . import spm99analyze as spm99  # module import
 
 image_dimension_dtd = spm99.image_dimension_dtd.copy()
-image_dimension_dtd[image_dimension_dtd.index(('funused2', 'f4'))] = ('scl_inter', 'f4')
+image_dimension_dtd[image_dimension_dtd.index(("funused2", "f4"))] = ("scl_inter", "f4")
 
 # Full header numpy dtype combined across sub-fields
-header_dtype = np.dtype(spm99.header_key_dtd + image_dimension_dtd + spm99.data_history_dtd)
+header_dtype = np.dtype(
+    spm99.header_key_dtd + image_dimension_dtd + spm99.data_history_dtd
+)
 
 
 class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
@@ -93,19 +96,19 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
         True
         """
         # get scaling factor from 'scl_slope' (funused1)
-        slope = float(self['scl_slope'])
+        slope = float(self["scl_slope"])
         if np.isfinite(slope) and slope:
             # try to get offset from scl_inter
-            inter = float(self['scl_inter'])
+            inter = float(self["scl_inter"])
             if not np.isfinite(inter):
                 inter = 0.0
             return slope, inter
         # no non-zero and finite scaling, try gl/cal fields
-        unscaled_range = self['glmax'] - self['glmin']
-        scaled_range = self['cal_max'] - self['cal_min']
+        unscaled_range = self["glmax"] - self["glmin"]
+        scaled_range = self["cal_max"] - self["cal_min"]
         if unscaled_range and scaled_range:
             slope = float(scaled_range) / unscaled_range
-            inter = self['cal_min'] - slope * self['glmin']
+            inter = self["cal_min"] - slope * self["glmin"]
             return slope, inter
         return None, None
 
@@ -118,9 +121,9 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
             shape=(), dtype=header_dtype, buffer=binaryblock[: klass.sizeof_hdr]
         )
         bs_hdr_struct = hdr_struct.byteswap()
-        return binaryblock[344:348] not in (b'ni1\x00', b'n+1\x00') and 348 in (
-            hdr_struct['sizeof_hdr'],
-            bs_hdr_struct['sizeof_hdr'],
+        return binaryblock[344:348] not in (b"ni1\x00", b"n+1\x00") and 348 in (
+            hdr_struct["sizeof_hdr"],
+            bs_hdr_struct["sizeof_hdr"],
         )
 
 

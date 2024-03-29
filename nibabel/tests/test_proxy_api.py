@@ -55,7 +55,7 @@ from ..volumeutils import apply_read_scaling
 from .test_api_validators import ValidateAPI
 from .test_parrec import EG_REC, VARY_REC
 
-h5py, have_h5py, _ = optional_package('h5py')
+h5py, have_h5py, _ = optional_package("h5py")
 
 try:
     from numpy.exceptions import ComplexWarning
@@ -105,18 +105,18 @@ class _TestProxyAPI(ValidateAPI):
     def validate_shape(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
-        assert_array_equal(prox.shape, params['shape'])
+        assert_array_equal(prox.shape, params["shape"])
         # Read only
         with pytest.raises(AttributeError):
-            prox.shape = params['shape']
+            prox.shape = params["shape"]
 
     def validate_ndim(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
-        assert prox.ndim == len(params['shape'])
+        assert prox.ndim == len(params["shape"])
         # Read only
         with pytest.raises(AttributeError):
-            prox.ndim = len(params['shape'])
+            prox.ndim = len(params["shape"])
 
     def validate_is_proxy(self, pmaker, params):
         # Check shape
@@ -132,25 +132,25 @@ class _TestProxyAPI(ValidateAPI):
         # Check proxy returns expected array from asarray
         prox, fio, hdr = pmaker()
         out = np.asarray(prox)
-        assert_array_equal(out, params['arr_out'])
-        assert_dt_equal(out.dtype, params['dtype_out'])
+        assert_array_equal(out, params["arr_out"])
+        assert_dt_equal(out.dtype, params["dtype_out"])
         # Shape matches expected shape
-        assert out.shape == params['shape']
+        assert out.shape == params["shape"]
 
     def validate_array_interface_with_dtype(self, pmaker, params):
         # Check proxy returns expected array from asarray
         prox, fio, hdr = pmaker()
         orig = np.array(prox, dtype=None)
-        assert_array_equal(orig, params['arr_out'])
-        assert_dt_equal(orig.dtype, params['dtype_out'])
+        assert_array_equal(orig, params["arr_out"])
+        assert_dt_equal(orig.dtype, params["dtype_out"])
 
         context = None
         if np.issubdtype(orig.dtype, np.complexfloating):
             context = clear_and_catch_warnings()
             context.__enter__()
-            warnings.simplefilter('ignore', ComplexWarning)
+            warnings.simplefilter("ignore", ComplexWarning)
 
-        for dtype in sctypes['float'] + sctypes['int'] + sctypes['uint']:
+        for dtype in sctypes["float"] + sctypes["int"] + sctypes["uint"]:
             # Directly coerce with a dtype
             direct = dtype(prox)
             # Half-precision is imprecise. Obviously. It's a bad idea, but don't break
@@ -158,14 +158,14 @@ class _TestProxyAPI(ValidateAPI):
             rtol = 1e-03 if dtype == np.float16 else 1e-05
             assert_allclose(direct, orig.astype(dtype), rtol=rtol, atol=1e-08)
             assert_dt_equal(direct.dtype, np.dtype(dtype))
-            assert direct.shape == params['shape']
+            assert direct.shape == params["shape"]
             # All three methods should produce equivalent results
             for arrmethod in (np.array, np.asarray, np.asanyarray):
                 out = arrmethod(prox, dtype=dtype)
                 assert_array_equal(out, direct)
                 assert_dt_equal(out.dtype, np.dtype(dtype))
                 # Shape matches expected shape
-                assert out.shape == params['shape']
+                assert out.shape == params["shape"]
 
         if context is not None:
             context.__exit__()
@@ -175,7 +175,7 @@ class _TestProxyAPI(ValidateAPI):
         # Depends on header providing 'get_data_dtype', 'set_data_dtype',
         # 'get_data_shape', 'set_data_shape', 'set_data_offset'
         prox, fio, hdr = pmaker()
-        assert_array_equal(prox, params['arr_out'])
+        assert_array_equal(prox, params["arr_out"])
         # Mess up header badly and hope for same correct result
         if hdr.get_data_dtype() == np.uint8:
             hdr.set_data_dtype(np.int16)
@@ -184,20 +184,20 @@ class _TestProxyAPI(ValidateAPI):
         hdr.set_data_shape(np.array(hdr.get_data_shape()) + 1)
         if self.settable_offset:
             hdr.set_data_offset(32)
-        assert_array_equal(prox, params['arr_out'])
+        assert_array_equal(prox, params["arr_out"])
 
     def validate_fileobj_isolated(self, pmaker, params):
         # Check file position of read independent of file-like object
         prox, fio, hdr = pmaker()
         if isinstance(fio, str):
             return
-        assert_array_equal(prox, params['arr_out'])
+        assert_array_equal(prox, params["arr_out"])
         fio.read()  # move to end of file
-        assert_array_equal(prox, params['arr_out'])
+        assert_array_equal(prox, params["arr_out"])
 
     def validate_proxy_slicing(self, pmaker, params):
         # Confirm that proxy object can be sliced correctly
-        arr = params['arr_out']
+        arr = params["arr_out"]
         shape = arr.shape
         prox, fio, hdr = pmaker()
         for sliceobj in _some_slicers(shape):
@@ -217,11 +217,11 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
     has_slope = False
     has_inter = False
     data_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.complex64, np.float64)
-    array_order = 'F'
+    array_order = "F"
     # Cannot set offset for Freesurfer
     settable_offset = True
     # Freesurfer enforces big-endian. '=' means use native
-    data_endian = '='
+    data_endian = "="
 
     def obj_params(self):
         """Iterator returning (``proxy_creator``, ``proxy_params``) pairs
@@ -269,7 +269,9 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 # and datatypes of slope, inter
                 hdr.set_slope_inter(slope, inter)
                 s, i = hdr.get_slope_inter()
-                tmp = apply_read_scaling(arr, 1.0 if s is None else s, 0.0 if i is None else i)
+                tmp = apply_read_scaling(
+                    arr, 1.0 if s is None else s, 0.0 if i is None else i
+                )
                 dtype_out = tmp.dtype.type
 
             def sio_func():
@@ -295,10 +297,10 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
             yield sio_func, params
             # Same with filenames
             with InTemporaryDirectory():
-                fname = 'data.bin'
+                fname = "data.bin"
 
                 def fname_func():
-                    with open(fname, 'wb') as fio:
+                    with open(fname, "wb") as fio:
                         fio.seek(offset)
                         fio.write(data)
                     # Use a copy of the header to avoid changing
@@ -312,14 +314,14 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
     def validate_dtype(self, pmaker, params):
         # Read-only dtype attribute
         prox, fio, hdr = pmaker()
-        assert_dt_equal(prox.dtype, params['dtype'])
+        assert_dt_equal(prox.dtype, params["dtype"])
         with pytest.raises(AttributeError):
             prox.dtype = np.dtype(prox.dtype)
 
     def validate_slope_inter_offset(self, pmaker, params):
         # Check slope, inter, offset
         prox, fio, hdr = pmaker()
-        for attr_name in ('slope', 'inter', 'offset'):
+        for attr_name in ("slope", "inter", "offset"):
             expected = params[attr_name]
             assert_array_equal(getattr(prox, attr_name), expected)
             # Read only
@@ -364,19 +366,19 @@ class TestMGHAPI(TestAnalyzeProxyAPI):
     has_slope = False
     has_inter = False
     settable_offset = False
-    data_endian = '>'
+    data_endian = ">"
     data_dtypes = (np.uint8, np.int16, np.int32, np.float32)
 
 
 class TestMinc1API(_TestProxyAPI):
     module = minc1
     file_class = minc1.Minc1File
-    eg_fname = 'tiny.mnc'
+    eg_fname = "tiny.mnc"
     eg_shape = (10, 20, 20)
 
     @staticmethod
     def opener(f):
-        return netcdf_file(f, mode='r')
+        return netcdf_file(f, mode="r")
 
     def obj_params(self):
         """Iterator returning (``proxy_creator``, ``proxy_params``) pairs
@@ -397,10 +399,13 @@ class TestMinc1API(_TestProxyAPI):
             mf = self.file_class(self.opener(eg_path))
             prox = minc1.MincImageArrayProxy(mf)
             img = self.module.load(eg_path)
-            fobj = open(eg_path, 'rb')
+            fobj = open(eg_path, "rb")
             return prox, fobj, img.header
 
-        yield (eg_func, dict(shape=self.eg_shape, dtype_out=np.float64, arr_out=arr_out))
+        yield (
+            eg_func,
+            dict(shape=self.eg_shape, dtype_out=np.float64, arr_out=arr_out),
+        )
 
 
 if have_h5py:
@@ -408,16 +413,16 @@ if have_h5py:
     class TestMinc2API(TestMinc1API):
         module = minc2
         file_class = minc2.Minc2File
-        eg_fname = 'small.mnc'
+        eg_fname = "small.mnc"
         eg_shape = (18, 28, 29)
 
         @staticmethod
         def opener(f):
-            return h5py.File(f, mode='r')
+            return h5py.File(f, mode="r")
 
 
 class TestEcatAPI(_TestProxyAPI):
-    eg_fname = 'tinypet.v'
+    eg_fname = "tinypet.v"
     eg_shape = (10, 10, 3, 1)
 
     def obj_params(self):
@@ -429,13 +434,16 @@ class TestEcatAPI(_TestProxyAPI):
             img = ecat.load(eg_path)
             sh = img.get_subheaders()
             prox = ecat.EcatImageArrayProxy(sh)
-            fobj = open(eg_path, 'rb')
+            fobj = open(eg_path, "rb")
             return prox, fobj, sh
 
-        yield (eg_func, dict(shape=self.eg_shape, dtype_out=np.float64, arr_out=arr_out))
+        yield (
+            eg_func,
+            dict(shape=self.eg_shape, dtype_out=np.float64, arr_out=arr_out),
+        )
 
     def validate_header_isolated(self, pmaker, params):
-        raise unittest.SkipTest('ECAT header does not support dtype get')
+        raise unittest.SkipTest("ECAT header does not support dtype get")
 
 
 class TestPARRECAPI(_TestProxyAPI):
@@ -445,8 +453,8 @@ class TestPARRECAPI(_TestProxyAPI):
 
         def eg_func():
             img = parrec.load(rec_name)
-            prox = parrec.PARRECArrayProxy(rec_name, img.header, scaling='dv')
-            fobj = open(rec_name, 'rb')
+            prox = parrec.PARRECArrayProxy(rec_name, img.header, scaling="dv")
+            fobj = open(rec_name, "rb")
             return prox, fobj, img.header
 
         return (eg_func, dict(shape=img.shape, dtype_out=np.float64, arr_out=arr_out))

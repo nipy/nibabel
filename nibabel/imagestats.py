@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Functions for computing image statistics"""
+
 import numpy as np
 
 from nibabel.imageclasses import spatial_axes_first
@@ -56,7 +57,9 @@ def mask_volume(img):
     1000.0
     """
     if not spatial_axes_first(img):
-        raise ValueError('Cannot calculate voxel volume for image with unknown spatial axes')
+        raise ValueError(
+            "Cannot calculate voxel volume for image with unknown spatial axes"
+        )
     voxel_volume_mm3 = np.prod(img.header.get_zooms()[:3])
     mask_volume_vx = count_nonzero_voxels(img)
     mask_volume_mm3 = mask_volume_vx * voxel_volume_mm3

@@ -28,6 +28,7 @@ Array writers may be able to scale the array or apply an intercept, or do
 something else to make sense of conversions between float and int, or between
 larger ints and smaller.
 """
+
 import numpy as np
 
 from .casting import best_float, floor_exact, int_abs, shared_range, type_info
@@ -76,8 +77,8 @@ class ArrayWriter:
         WriterError: Scaling needed but cannot scale
         >>> aw = ArrayWriter(arr, np.int8, check_scaling=False)
         """
-        nan2zero = kwargs.pop('nan2zero', True)
-        check_scaling = kwargs.pop('check_scaling', True)
+        nan2zero = kwargs.pop("nan2zero", True)
+        check_scaling = kwargs.pop("check_scaling", True)
         self._array = np.asanyarray(array)
         arr_dtype = self._array.dtype
         if out_dtype is None:
@@ -89,7 +90,7 @@ class ArrayWriter:
         self._has_nan = None
         self._nan2zero = nan2zero
         if check_scaling and self.scaling_needed():
-            raise WriterError('Scaling needed but cannot scale')
+            raise WriterError("Scaling needed but cannot scale")
 
     def scaling_needed(self):
         """Checks if scaling is needed for input array
@@ -114,19 +115,19 @@ class ArrayWriter:
         out_dtype = self._out_dtype
         # There's a bug in np.can_cast (at least up to and including 1.6.1)
         # such that any structured output type passes.  Check for this first.
-        if 'V' in (arr_dtype.kind, out_dtype.kind):
+        if "V" in (arr_dtype.kind, out_dtype.kind):
             if arr_dtype == out_dtype:
                 return False
-            raise WriterError('Cannot cast to or from non-numeric types')
+            raise WriterError("Cannot cast to or from non-numeric types")
         if np.can_cast(arr_dtype, out_dtype):
             return False
         # Direct casting for complex output from any numeric type
-        if out_dtype.kind == 'c':
+        if out_dtype.kind == "c":
             return False
-        if arr_dtype.kind == 'c':
-            raise WriterError('Cannot cast complex types to non-complex')
+        if arr_dtype.kind == "c":
+            raise WriterError("Cannot cast complex types to non-complex")
         # Direct casting for float output from any non-complex numeric type
-        if out_dtype.kind == 'f':
+        if out_dtype.kind == "f":
             return False
         # Now we need to look at the data for special cases
         if data.size == 0:
@@ -136,10 +137,10 @@ class ArrayWriter:
             # Data all zero
             return False
         # Floats -> (u)ints always need scaling
-        if arr_dtype.kind == 'f':
+        if arr_dtype.kind == "f":
             return True
         # (u)int input, (u)int output
-        assert arr_dtype.kind in 'iu' and out_dtype.kind in 'iu'
+        assert arr_dtype.kind in "iu" and out_dtype.kind in "iu"
         info = np.iinfo(out_dtype)
         # No scaling needed if data already fits in output type
         # But note - we need to convert to ints, to avoid conversion to float
@@ -165,7 +166,7 @@ class ArrayWriter:
         # Structured types raise an error for finite range; don't run finite
         # range unless we have to.
         if self._has_nan is None:
-            if self._array.dtype.kind in 'fc':
+            if self._array.dtype.kind in "fc":
                 self.finite_range()
             else:
                 self._has_nan = False
@@ -183,12 +184,12 @@ class ArrayWriter:
         """True if nan2zero check needed for writing array"""
         return (
             self._nan2zero
-            and self._array.dtype.kind in 'fc'
-            and self.out_dtype.kind in 'iu'
+            and self._array.dtype.kind in "fc"
+            and self.out_dtype.kind in "iu"
             and self.has_nan
         )
 
-    def to_fileobj(self, fileobj, order='F'):
+    def to_fileobj(self, fileobj, order="F"):
         """Write array into `fileobj`
 
         Parameters
@@ -226,7 +227,9 @@ class SlopeArrayWriter(ArrayWriter):
     * calc_scale() - calculate slope to best write self.array
     """
 
-    def __init__(self, array, out_dtype=None, calc_scale=True, scaler_dtype=np.float32, **kwargs):
+    def __init__(
+        self, array, out_dtype=None, calc_scale=True, scaler_dtype=np.float32, **kwargs
+    ):
         r"""Initialize array writer
 
         Parameters
@@ -268,7 +271,7 @@ class SlopeArrayWriter(ArrayWriter):
         >>> aw.slope
         2.0
         """
-        nan2zero = kwargs.pop('nan2zero', True)
+        nan2zero = kwargs.pop("nan2zero", True)
         self._array = np.asanyarray(array)
         arr_dtype = self._array.dtype
         if out_dtype is None:
@@ -321,7 +324,7 @@ class SlopeArrayWriter(ArrayWriter):
     def _set_slope(self, val):
         self._slope = np.squeeze(self.scaler_dtype.type(val))
 
-    slope = property(_get_slope, _set_slope, None, 'get/set slope')
+    slope = property(_get_slope, _set_slope, None, "get/set slope")
 
     def calc_scale(self, force=False):
         """Calculate / set scaling for floats/(u)ints to (u)ints"""
@@ -336,14 +339,14 @@ class SlopeArrayWriter(ArrayWriter):
 
     def _writing_range(self):
         """Finite range for thresholding on write"""
-        if self._out_dtype.kind in 'iu' and self._array.dtype.kind == 'f':
+        if self._out_dtype.kind in "iu" and self._array.dtype.kind == "f":
             mn, mx = self.finite_range()
             if (mn, mx) == (np.inf, -np.inf):  # no finite data
                 mn, mx = 0, 0
             return mn, mx
         return None, None
 
-    def to_fileobj(self, fileobj, order='F'):
+    def to_fileobj(self, fileobj, order="F"):
         """Write array into `fileobj`
 
         Parameters
@@ -368,9 +371,9 @@ class SlopeArrayWriter(ArrayWriter):
     def _do_scaling(self):
         arr = self._array
         out_dtype = self._out_dtype
-        assert out_dtype.kind in 'iu'
+        assert out_dtype.kind in "iu"
         mn, mx = self.finite_range()
-        if arr.dtype.kind == 'f':
+        if arr.dtype.kind == "f":
             # Float to (u)int scaling
             # Need to take nan2zero value into account for scaling
             if self._nan2zero and self.has_nan:
@@ -393,7 +396,7 @@ class SlopeArrayWriter(ArrayWriter):
         # (u)int to (u)int scaling
         mn, mx = self.finite_range()
         out_dt = self._out_dtype
-        if out_dt.kind == 'u':
+        if out_dt.kind == "u":
             # We're checking for a sign flip.  This can only work for uint
             # output, because, for int output, the abs min of the type is
             # greater than the abs max, so the data either fits into the range
@@ -411,18 +414,18 @@ class SlopeArrayWriter(ArrayWriter):
         """Calculate scaling based on data range and output type"""
         out_dtype = self._out_dtype
         info = type_info(out_dtype)
-        out_min, out_max = info['min'], info['max']
+        out_min, out_max = info["min"], info["max"]
         big_float = best_float()
-        if out_dtype.kind == 'f':
+        if out_dtype.kind == "f":
             # But we want maximum precision for the calculations. Casting will
             # not lose precision because min/max are of fp type.
             out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         else:  # (u)int
             out_min, out_max = (big_float(v) for v in (out_min, out_max))
-        if self._out_dtype.kind == 'u':
+        if self._out_dtype.kind == "u":
             if in_min < 0 and in_max > 0:
                 raise WriterError(
-                    'Cannot scale negative and positive numbers to uint without intercept'
+                    "Cannot scale negative and positive numbers to uint without intercept"
                 )
             if in_max <= 0:  # All input numbers <= 0
                 self.slope = in_min / out_max
@@ -455,7 +458,9 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
     * calc_scale() - calculate inter, slope to best write self.array
     """
 
-    def __init__(self, array, out_dtype=None, calc_scale=True, scaler_dtype=np.float32, **kwargs):
+    def __init__(
+        self, array, out_dtype=None, calc_scale=True, scaler_dtype=np.float32, **kwargs
+    ):
         r"""Initialize array writer
 
         Parameters
@@ -510,9 +515,9 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
     def _set_inter(self, val):
         self._inter = np.squeeze(self.scaler_dtype.type(val))
 
-    inter = property(_get_inter, _set_inter, None, 'get/set inter')
+    inter = property(_get_inter, _set_inter, None, "get/set inter")
 
-    def to_fileobj(self, fileobj, order='F'):
+    def to_fileobj(self, fileobj, order="F"):
         """Write array into `fileobj`
 
         Parameters
@@ -578,7 +583,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         in_dtype = self._array.dtype
         out_dtype = self._out_dtype
         working_dtype = self.scaler_dtype
-        if in_dtype.kind == 'f':  # Already floats
+        if in_dtype.kind == "f":  # Already floats
             # float64 and below cast correctly to longdouble.  Longdouble needs
             # no casting
             in_min, in_max = np.array([in_min, in_max], dtype=big_float)
@@ -591,10 +596,10 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             in_range = big_float(in_max - in_min)
             # Cast to float for later processing.
             in_min, in_max = (big_float(v) for v in (in_min, in_max))
-        if out_dtype.kind == 'f':
+        if out_dtype.kind == "f":
             # Type range, these are also floats
             info = type_info(out_dtype)
-            out_min, out_max = info['min'], info['max']
+            out_min, out_max = info["min"], info["max"]
         else:
             # Use shared range to avoid rounding to values outside range. This
             # doesn't matter much except for the case of nan2zero were we need
@@ -604,7 +609,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
             out_min, out_max = np.array((out_min, out_max), dtype=big_float)
         # We want maximum precision for the calculations. Casting will not lose
         # precision because min/max are of fp type.
-        assert [v.dtype.kind for v in (out_min, out_max)] == ['f', 'f']
+        assert [v.dtype.kind for v in (out_min, out_max)] == ["f", "f"]
         out_range = out_max - out_min
         """
         Think of the input values as a line starting (left) at in_min and
@@ -669,7 +674,7 @@ class SlopeInterArrayWriter(SlopeArrayWriter):
         self.inter = inter
         self.slope = slope
         if not np.all(np.isfinite([self.slope, self.inter])):
-            raise ScalingError('Slope / inter not both finite')
+            raise ScalingError("Slope / inter not both finite")
         # Check nan fill value
         if not (0 in (in_min, in_max) and self._nan2zero and self.has_nan):
             return
@@ -754,7 +759,7 @@ def make_array_writer(data, out_type, has_slope=True, has_intercept=True, **kwar
     """
     data = np.asarray(data)
     if has_intercept and not has_slope:
-        raise ValueError('Cannot handle intercept without slope')
+        raise ValueError("Cannot handle intercept without slope")
     if has_intercept:
         return SlopeInterArrayWriter(data, out_type, **kwargs)
     if has_slope:

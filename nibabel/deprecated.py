@@ -1,4 +1,5 @@
 """Module to help with deprecating objects and classes"""
+
 from __future__ import annotations
 
 import typing as ty
@@ -8,7 +9,7 @@ from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
 
 if ty.TYPE_CHECKING:  # pragma: no cover
-    P = ty.ParamSpec('P')
+    P = ty.ParamSpec("P")
 
 
 class ModuleProxy:
@@ -36,11 +37,11 @@ class ModuleProxy:
         self._module_name = module_name
 
     def __getattr__(self, key: str) -> ty.Any:
-        mod = __import__(self._module_name, fromlist=[''])
+        mod = __import__(self._module_name, fromlist=[""])
         return getattr(mod, key)
 
     def __repr__(self) -> str:
-        return f'<module proxy for {self._module_name}>'
+        return f"<module proxy for {self._module_name}>"
 
 
 class FutureWarningMixin:
@@ -60,7 +61,7 @@ class FutureWarningMixin:
     "Please, don't use this class"
     """
 
-    warn_message = 'This class will be removed in future versions'
+    warn_message = "This class will be removed in future versions"
 
     def __init__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         warnings.warn(self.warn_message, FutureWarning, stacklevel=2)
@@ -89,8 +90,8 @@ def alert_future_error(
     *,
     warning_class: type[Warning] = FutureWarning,
     error_class: type[Exception] = RuntimeError,
-    warning_rec: str = '',
-    error_rec: str = '',
+    warning_rec: str = "",
+    error_rec: str = "",
     stacklevel: int = 2,
 ) -> None:
     """Warn or error with appropriate messages for changing functionality.
@@ -114,7 +115,7 @@ def alert_future_error(
         1, so provide the stacklevel you would provide directly to warnings.warn()
     """
     if cmp_pkg_version(version) > 0:
-        msg = f'{msg} This will error in NiBabel {version}. {warning_rec}'
+        msg = f"{msg} This will error in NiBabel {version}. {warning_rec}"
         warnings.warn(msg.strip(), warning_class, stacklevel=stacklevel + 1)
     else:
-        raise error_class(f'{msg} {error_rec}'.strip())
+        raise error_class(f"{msg} {error_rec}".strip())

@@ -1,5 +1,4 @@
-"""Testing DICOM wrappers
-"""
+"""Testing DICOM wrappers"""
 
 import gzip
 from copy import copy
@@ -19,26 +18,28 @@ from .. import dicomreaders as didr
 from .. import dicomwrappers as didw
 from . import dicom_test, have_dicom, pydicom
 
-IO_DATA_PATH = pjoin(dirname(__file__), 'data')
-DATA_FILE = pjoin(IO_DATA_PATH, 'siemens_dwi_1000.dcm.gz')
-DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, 'philips_mprage.dcm.gz')
+IO_DATA_PATH = pjoin(dirname(__file__), "data")
+DATA_FILE = pjoin(IO_DATA_PATH, "siemens_dwi_1000.dcm.gz")
+DATA_FILE_PHILIPS = pjoin(IO_DATA_PATH, "philips_mprage.dcm.gz")
 if have_dicom:
     DATA = pydicom.dcmread(gzip.open(DATA_FILE))
     DATA_PHILIPS = pydicom.dcmread(gzip.open(DATA_FILE_PHILIPS))
 else:
     DATA = None
     DATA_PHILIPS = None
-DATA_FILE_B0 = pjoin(IO_DATA_PATH, 'siemens_dwi_0.dcm.gz')
-DATA_FILE_SLC_NORM = pjoin(IO_DATA_PATH, 'csa_slice_norm.dcm')
-DATA_FILE_DEC_RSCL = pjoin(IO_DATA_PATH, 'decimal_rescale.dcm')
-DATA_FILE_4D = pjoin(IO_DATA_PATH, '4d_multiframe_test.dcm')
-DATA_FILE_EMPTY_ST = pjoin(IO_DATA_PATH, 'slicethickness_empty_string.dcm')
-DATA_FILE_4D_DERIVED = pjoin(get_nibabel_data(), 'nitest-dicom', '4d_multiframe_with_derived.dcm')
-DATA_FILE_CT = pjoin(get_nibabel_data(), 'nitest-dicom', 'siemens_ct_header_csa.dcm')
+DATA_FILE_B0 = pjoin(IO_DATA_PATH, "siemens_dwi_0.dcm.gz")
+DATA_FILE_SLC_NORM = pjoin(IO_DATA_PATH, "csa_slice_norm.dcm")
+DATA_FILE_DEC_RSCL = pjoin(IO_DATA_PATH, "decimal_rescale.dcm")
+DATA_FILE_4D = pjoin(IO_DATA_PATH, "4d_multiframe_test.dcm")
+DATA_FILE_EMPTY_ST = pjoin(IO_DATA_PATH, "slicethickness_empty_string.dcm")
+DATA_FILE_4D_DERIVED = pjoin(
+    get_nibabel_data(), "nitest-dicom", "4d_multiframe_with_derived.dcm"
+)
+DATA_FILE_CT = pjoin(get_nibabel_data(), "nitest-dicom", "siemens_ct_header_csa.dcm")
 DATA_FILE_SIEMENS_TRACE = pjoin(
     get_nibabel_data(),
-    'dcm_qa_xa30',
-    'In/20_DWI_dir80_AP/0001_1.3.12.2.1107.5.2.43.67093.2022071112140611403312307.dcm',
+    "dcm_qa_xa30",
+    "In/20_DWI_dir80_AP/0001_1.3.12.2.1107.5.2.43.67093.2022071112140611403312307.dcm",
 )
 
 # This affine from our converted image was shown to match our image spatially
@@ -64,8 +65,8 @@ def test_wrappers():
     # test direct wrapper calls
     # first with empty or minimal data
     multi_minimal = {
-        'PerFrameFunctionalGroupsSequence': [None],
-        'SharedFunctionalGroupsSequence': [None],
+        "PerFrameFunctionalGroupsSequence": [None],
+        "SharedFunctionalGroupsSequence": [None],
     }
     for maker, args in (
         (didw.Wrapper, ({},)),
@@ -74,10 +75,10 @@ def test_wrappers():
         (didw.MultiframeWrapper, (multi_minimal,)),
     ):
         dw = maker(*args)
-        assert dw.get('InstanceNumber') is None
-        assert dw.get('AcquisitionNumber') is None
+        assert dw.get("InstanceNumber") is None
+        assert dw.get("AcquisitionNumber") is None
         with pytest.raises(KeyError):
-            dw['not an item']
+            dw["not an item"]
         with pytest.raises(didw.WrapperError):
             dw.get_data()
         with pytest.raises(didw.WrapperError):
@@ -89,12 +90,17 @@ def test_wrappers():
             assert not dw.is_mosaic
         assert dw.b_matrix is None
         assert dw.q_vector is None
-    for maker in (didw.wrapper_from_data, didw.Wrapper, didw.SiemensWrapper, didw.MosaicWrapper):
+    for maker in (
+        didw.wrapper_from_data,
+        didw.Wrapper,
+        didw.SiemensWrapper,
+        didw.MosaicWrapper,
+    ):
         dw = maker(DATA)
-        assert dw.get('InstanceNumber') == 2
-        assert dw.get('AcquisitionNumber') == 2
+        assert dw.get("InstanceNumber") == 2
+        assert dw.get("AcquisitionNumber") == 2
         with pytest.raises(KeyError):
-            dw['not an item']
+            dw["not an item"]
     for maker in (didw.MosaicWrapper, didw.wrapper_from_data):
         dw = maker(DATA)
         assert dw.is_mosaic
@@ -106,24 +112,24 @@ def test_wrappers():
 def test_get_from_wrapper():
     # Test that 'get', and __getitem__ work as expected for underlying dicom
     # data
-    dcm_data = {'some_key': 'some value'}
+    dcm_data = {"some_key": "some value"}
     dw = didw.Wrapper(dcm_data)
-    assert dw.get('some_key') == 'some value'
-    assert dw.get('some_other_key') is None
+    assert dw.get("some_key") == "some value"
+    assert dw.get("some_other_key") is None
     # Getitem uses the same dictionary access
-    assert dw['some_key'] == 'some value'
+    assert dw["some_key"] == "some value"
     # And raises a WrapperError for missing keys
     with pytest.raises(KeyError):
-        dw['some_other_key']
+        dw["some_other_key"]
     # Test we don't use attributes for get
 
     class FakeData(dict):
         pass
 
     d = FakeData()
-    d.some_key = 'another bit of data'
+    d.some_key = "another bit of data"
     dw = didw.Wrapper(d)
-    assert dw.get('some_key') is None
+    assert dw.get("some_key") is None
     # Check get defers to dcm_data get
 
     class FakeData2:
@@ -131,43 +137,46 @@ def test_get_from_wrapper():
             return 1
 
     d = FakeData2()
-    d.some_key = 'another bit of data'
+    d.some_key = "another bit of data"
     dw = didw.Wrapper(d)
-    assert dw.get('some_key') == 1
+    assert dw.get("some_key") == 1
 
 
 @dicom_test
 def test_wrapper_from_data():
     # test wrapper from data, wrapper from file
     for dw in (didw.wrapper_from_data(DATA), didw.wrapper_from_file(DATA_FILE)):
-        assert dw.get('InstanceNumber') == 2
-        assert dw.get('AcquisitionNumber') == 2
+        assert dw.get("InstanceNumber") == 2
+        assert dw.get("AcquisitionNumber") == 2
         with pytest.raises(KeyError):
-            dw['not an item']
+            dw["not an item"]
         assert dw.is_mosaic
         assert_array_almost_equal(np.dot(didr.DPCS_TO_TAL, dw.affine), EXPECTED_AFFINE)
-    for dw in (didw.wrapper_from_data(DATA_PHILIPS), didw.wrapper_from_file(DATA_FILE_PHILIPS)):
-        assert dw.get('InstanceNumber') == 1
-        assert dw.get('AcquisitionNumber') == 3
+    for dw in (
+        didw.wrapper_from_data(DATA_PHILIPS),
+        didw.wrapper_from_file(DATA_FILE_PHILIPS),
+    ):
+        assert dw.get("InstanceNumber") == 1
+        assert dw.get("AcquisitionNumber") == 3
         with pytest.raises(KeyError):
-            dw['not an item']
+            dw["not an item"]
         assert dw.is_multiframe
     # Another CSA file
     dw = didw.wrapper_from_file(DATA_FILE_SLC_NORM)
     assert dw.is_mosaic
     # Check that multiframe requires minimal set of DICOM tags
     fake_data = dict()
-    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.2'
+    fake_data["SOPClassUID"] = "1.2.840.10008.5.1.4.1.1.4.2"
     dw = didw.wrapper_from_data(fake_data)
     assert not dw.is_multiframe
     # use the correct SOPClassUID
-    fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
+    fake_data["SOPClassUID"] = "1.2.840.10008.5.1.4.1.1.4.1"
     with pytest.raises(didw.WrapperError):
         didw.wrapper_from_data(fake_data)
-    fake_data['PerFrameFunctionalGroupsSequence'] = [None]
+    fake_data["PerFrameFunctionalGroupsSequence"] = [None]
     with pytest.raises(didw.WrapperError):
         didw.wrapper_from_data(fake_data)
-    fake_data['SharedFunctionalGroupsSequence'] = [None]
+    fake_data["SharedFunctionalGroupsSequence"] = [None]
     # minimal set should now be met
     dw = didw.wrapper_from_data(fake_data)
     assert dw.is_multiframe
@@ -185,7 +194,7 @@ def test_wrapper_args_kwds():
     dcm2 = didw.wrapper_from_file(DATA_FILE, defer_size=np.inf)
     assert_array_equal(data, dcm2.get_data())
     # Trying to read non-dicom file raises pydicom error, usually
-    csa_fname = pjoin(IO_DATA_PATH, 'csa2_b0.bin')
+    csa_fname = pjoin(IO_DATA_PATH, "csa2_b0.bin")
     with pytest.raises(pydicom.filereader.InvalidDicomError):
         didw.wrapper_from_file(csa_fname)
     # We can force the read, in which case rubbish returns
@@ -312,13 +321,13 @@ def test_orthogonal():
 
     # Test the threshold for rotation matrix orthogonality
     d = {}
-    d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
+    d["ImageOrientationPatient"] = [0, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, np.eye(3))
-    d['ImageOrientationPatient'] = [1e-5, 1, 0, 1, 0, 0]
+    d["ImageOrientationPatient"] = [1e-5, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_almost_equal(dw.rotation_matrix, np.eye(3), 5)
-    d['ImageOrientationPatient'] = [1e-4, 1, 0, 1, 0, 0]
+    d["ImageOrientationPatient"] = [1e-4, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     with pytest.raises(didw.WrapperPrecisionError):
         dw.rotation_matrix
@@ -328,10 +337,10 @@ def test_orthogonal():
 def test_rotation_matrix():
     # Test rotation matrix and slice normal
     d = {}
-    d['ImageOrientationPatient'] = [0, 1, 0, 1, 0, 0]
+    d["ImageOrientationPatient"] = [0, 1, 0, 1, 0, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, np.eye(3))
-    d['ImageOrientationPatient'] = [1, 0, 0, 0, 1, 0]
+    d["ImageOrientationPatient"] = [1, 0, 0, 0, 1, 0]
     dw = didw.wrapper_from_data(d)
     assert_array_equal(dw.rotation_matrix, [[0, 1, 0], [1, 0, 0], [0, 0, -1]])
 
@@ -436,15 +445,15 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
     dim_idx_seq = [DimIdxSeqElem()] * num_of_frames
     # add an entry for StackID into the DimensionIndexSequence
     if sid_dim is not None:
-        sid_tag = pydicom.datadict.tag_for_keyword('StackID')
-        fcs_tag = pydicom.datadict.tag_for_keyword('FrameContentSequence')
+        sid_tag = pydicom.datadict.tag_for_keyword("StackID")
+        fcs_tag = pydicom.datadict.tag_for_keyword("FrameContentSequence")
         dim_idx_seq[sid_dim] = DimIdxSeqElem(sid_tag, fcs_tag)
     # create the PerFrameFunctionalGroupsSequence
     frames = [PerFrmFuncGrpSeqElem(div, sid) for div, sid in zip(div_seq, sid_seq)]
     return {
-        'NumberOfFrames': num_of_frames,
-        'DimensionIndexSequence': dim_idx_seq,
-        'PerFrameFunctionalGroupsSequence': frames,
+        "NumberOfFrames": num_of_frames,
+        "DimensionIndexSequence": dim_idx_seq,
+        "PerFrameFunctionalGroupsSequence": frames,
     }
 
 
@@ -452,8 +461,8 @@ class TestMultiFrameWrapper(TestCase):
     # Test MultiframeWrapper
     MINIMAL_MF = {
         # Minimal contents of dcm_data for this wrapper
-        'PerFrameFunctionalGroupsSequence': [None],
-        'SharedFunctionalGroupsSequence': [None],
+        "PerFrameFunctionalGroupsSequence": [None],
+        "SharedFunctionalGroupsSequence": [None],
     }
     WRAPCLASS = didw.MultiframeWrapper
 
@@ -466,18 +475,18 @@ class TestMultiFrameWrapper(TestCase):
         # No rows, cols, raise WrapperError
         with pytest.raises(didw.WrapperError):
             dw.image_shape
-        fake_mf['Rows'] = 64
+        fake_mf["Rows"] = 64
         with pytest.raises(didw.WrapperError):
             dw.image_shape
-        fake_mf.pop('Rows')
-        fake_mf['Columns'] = 64
+        fake_mf.pop("Rows")
+        fake_mf["Columns"] = 64
         with pytest.raises(didw.WrapperError):
             dw.image_shape
-        fake_mf['Rows'] = 32
+        fake_mf["Rows"] = 32
         # Missing frame data, raise AssertionError
         with pytest.raises(AssertionError):
             dw.image_shape
-        fake_mf['NumberOfFrames'] = 4
+        fake_mf["NumberOfFrames"] = 4
         # PerFrameFunctionalGroupsSequence does not match NumberOfFrames
         with pytest.raises(AssertionError):
             dw.image_shape
@@ -552,14 +561,14 @@ class TestMultiFrameWrapper(TestCase):
             dw.image_orient_patient
         # Make a fake frame
         fake_frame = fake_frames(
-            'PlaneOrientationSequence', 'ImageOrientationPatient', [[0, 1, 0, 1, 0, 0]]
+            "PlaneOrientationSequence", "ImageOrientationPatient", [[0, 1, 0, 1, 0, 0]]
         )[0]
-        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf["SharedFunctionalGroupsSequence"] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient, [[0, 1], [1, 0], [0, 0]])
-        fake_mf['SharedFunctionalGroupsSequence'] = [None]
+        fake_mf["SharedFunctionalGroupsSequence"] = [None]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).image_orient_patient
-        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf["PerFrameFunctionalGroupsSequence"] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient, [[0, 1], [1, 0], [0, 0]])
 
     def test_voxel_sizes(self):
@@ -570,35 +579,37 @@ class TestMultiFrameWrapper(TestCase):
         with pytest.raises(didw.WrapperError):
             dw.voxel_sizes
         # Make a fake frame
-        fake_frame = fake_frames('PixelMeasuresSequence', 'PixelSpacing', [[2.1, 3.2]])[0]
-        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        fake_frame = fake_frames("PixelMeasuresSequence", "PixelSpacing", [[2.1, 3.2]])[
+            0
+        ]
+        fake_mf["SharedFunctionalGroupsSequence"] = [fake_frame]
         # Still not enough, we lack information for slice distances
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).voxel_sizes
         # This can come from SpacingBetweenSlices or frame SliceThickness
-        fake_mf['SpacingBetweenSlices'] = 4.3
+        fake_mf["SpacingBetweenSlices"] = 4.3
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
         # If both, prefer SliceThickness
         fake_frame.PixelMeasuresSequence[0].SliceThickness = 5.4
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
         # Just SliceThickness is OK
-        del fake_mf['SpacingBetweenSlices']
+        del fake_mf["SpacingBetweenSlices"]
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
         # Removing shared leads to error again
-        fake_mf['SharedFunctionalGroupsSequence'] = [None]
+        fake_mf["SharedFunctionalGroupsSequence"] = [None]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).voxel_sizes
         # Restoring to frames makes it work again
-        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf["PerFrameFunctionalGroupsSequence"] = [fake_frame]
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
         # Decimals in any field are OK
         fake_frame = fake_frames(
-            'PixelMeasuresSequence', 'PixelSpacing', [[Decimal('2.1'), Decimal('3.2')]]
+            "PixelMeasuresSequence", "PixelSpacing", [[Decimal("2.1"), Decimal("3.2")]]
         )[0]
-        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
-        fake_mf['SpacingBetweenSlices'] = Decimal('4.3')
+        fake_mf["SharedFunctionalGroupsSequence"] = [fake_frame]
+        fake_mf["SpacingBetweenSlices"] = Decimal("4.3")
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
-        fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal('5.4')
+        fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal("5.4")
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
 
     def test_image_position(self):
@@ -610,14 +621,14 @@ class TestMultiFrameWrapper(TestCase):
             dw.image_position
         # Make a fake frame
         fake_frame = fake_frames(
-            'PlanePositionSequence', 'ImagePositionPatient', [[-2.0, 3.0, 7]]
+            "PlanePositionSequence", "ImagePositionPatient", [[-2.0, 3.0, 7]]
         )[0]
-        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf["SharedFunctionalGroupsSequence"] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
-        fake_mf['SharedFunctionalGroupsSequence'] = [None]
+        fake_mf["SharedFunctionalGroupsSequence"] = [None]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).image_position
-        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf["PerFrameFunctionalGroupsSequence"] = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         # Check lists of Decimals work
         fake_frame.PlanePositionSequence[0].ImagePositionPatient = [
@@ -627,14 +638,14 @@ class TestMultiFrameWrapper(TestCase):
         assert MFW(fake_mf).image_position.dtype == float
 
     @dicom_test
-    @pytest.mark.xfail(reason='Not packaged in install', raises=FileNotFoundError)
+    @pytest.mark.xfail(reason="Not packaged in install", raises=FileNotFoundError)
     def test_affine(self):
         # Make sure we find orientation/position/spacing info
         dw = didw.wrapper_from_file(DATA_FILE_4D)
         aff = dw.affine
 
     @dicom_test
-    @pytest.mark.xfail(reason='Not packaged in install', raises=FileNotFoundError)
+    @pytest.mark.xfail(reason="Not packaged in install", raises=FileNotFoundError)
     def test_data_real(self):
         # The data in this file is (initially) a 1D gradient so it compresses
         # well.  This just tests that the data ordering produces a consistent
@@ -642,10 +653,10 @@ class TestMultiFrameWrapper(TestCase):
         dw = didw.wrapper_from_file(DATA_FILE_4D)
         data = dw.get_data()
         # data hash depends on the endianness
-        if endian_codes[data.dtype.byteorder] == '>':
+        if endian_codes[data.dtype.byteorder] == ">":
             data = data.byteswap()
         dat_str = data.tobytes()
-        assert sha1(dat_str).hexdigest() == '149323269b0af92baa7508e19ca315240f77fa8c'
+        assert sha1(dat_str).hexdigest() == "149323269b0af92baa7508e19ca315240f77fa8c"
 
     @dicom_test
     def test_slicethickness_fallback(self):
@@ -653,26 +664,28 @@ class TestMultiFrameWrapper(TestCase):
         assert dw.voxel_sizes[2] == 1.0
 
     @dicom_test
-    @needs_nibabel_data('nitest-dicom')
+    @needs_nibabel_data("nitest-dicom")
     def test_data_derived_shape(self):
         # Test 4D diffusion data with an additional trace volume included
         # Excludes the trace volume and generates the correct shape
         dw = didw.wrapper_from_file(DATA_FILE_4D_DERIVED)
-        with pytest.warns(UserWarning, match='Derived images found and removed'):
+        with pytest.warns(UserWarning, match="Derived images found and removed"):
             assert dw.image_shape == (96, 96, 60, 33)
 
     @dicom_test
-    @needs_nibabel_data('dcm_qa_xa30')
+    @needs_nibabel_data("dcm_qa_xa30")
     def test_data_trace(self):
         # Test that a standalone trace volume is found and not dropped
         dw = didw.wrapper_from_file(DATA_FILE_SIEMENS_TRACE)
         assert dw.image_shape == (72, 72, 39, 1)
 
     @dicom_test
-    @needs_nibabel_data('nitest-dicom')
+    @needs_nibabel_data("nitest-dicom")
     def test_data_unreadable_private_headers(self):
         # Test CT image with unreadable CSA tags
-        with pytest.warns(UserWarning, match='Error while attempting to read CSA header'):
+        with pytest.warns(
+            UserWarning, match="Error while attempting to read CSA header"
+        ):
             dw = didw.wrapper_from_file(DATA_FILE_CT)
         assert dw.image_shape == (512, 571)
 
@@ -691,8 +704,8 @@ class TestMultiFrameWrapper(TestCase):
         with pytest.raises(didw.WrapperError):
             dw.get_data()
         # Make shape and indices
-        fake_mf['Rows'] = 2
-        fake_mf['Columns'] = 3
+        fake_mf["Rows"] = 2
+        fake_mf["Columns"] = 3
         dim_idxs = ((1, 1), (1, 2), (1, 3), (1, 4))
         fake_mf.update(fake_shape_dependents(dim_idxs, sid_dim=0))
         assert MFW(fake_mf).image_shape == (2, 3, 4)
@@ -702,19 +715,19 @@ class TestMultiFrameWrapper(TestCase):
         # Add data - 3D
         data = np.arange(24).reshape((2, 3, 4))
         # Frames dim is first for some reason
-        fake_mf['pixel_array'] = np.rollaxis(data, 2)
+        fake_mf["pixel_array"] = np.rollaxis(data, 2)
         # Now it should work
         dw = MFW(fake_mf)
         assert_array_equal(dw.get_data(), data)
         # Test scaling works
-        fake_mf['RescaleSlope'] = 2.0
-        fake_mf['RescaleIntercept'] = -1
+        fake_mf["RescaleSlope"] = 2.0
+        fake_mf["RescaleIntercept"] = -1
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
         # Check slice sorting
         dim_idxs = ((1, 4), (1, 2), (1, 3), (1, 1))
         fake_mf.update(fake_shape_dependents(dim_idxs, sid_dim=0))
         sorted_data = data[..., [3, 1, 2, 0]]
-        fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
+        fake_mf["pixel_array"] = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
         # 5D!
         dim_idxs = [
@@ -738,10 +751,10 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(dim_idxs, sid_dim=0))
         shape = (2, 3, 4, 2, 2)
         data = np.arange(np.prod(shape)).reshape(shape)
-        sorted_data = data.reshape(shape[:2] + (-1,), order='F')
+        sorted_data = data.reshape(shape[:2] + (-1,), order="F")
         order = [11, 9, 10, 8, 3, 1, 2, 0, 15, 13, 14, 12, 7, 5, 6, 4]
         sorted_data = sorted_data[..., np.argsort(order)]
-        fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
+        fake_mf["pixel_array"] = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
 
     def test__scale_data(self):
@@ -751,11 +764,13 @@ class TestMultiFrameWrapper(TestCase):
         dw = MFW(fake_mf)
         data = np.arange(24).reshape((2, 3, 4))
         assert_array_equal(data, dw._scale_data(data))
-        fake_mf['RescaleSlope'] = 2.0
-        fake_mf['RescaleIntercept'] = -1.0
+        fake_mf["RescaleSlope"] = 2.0
+        fake_mf["RescaleIntercept"] = -1.0
         assert_array_equal(data * 2 - 1, dw._scale_data(data))
-        fake_frame = fake_frames('PixelValueTransformationSequence', 'RescaleSlope', [3.0])[0]
-        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        fake_frame = fake_frames(
+            "PixelValueTransformationSequence", "RescaleSlope", [3.0]
+        )[0]
+        fake_mf["PerFrameFunctionalGroupsSequence"] = [fake_frame]
         # Lacking RescaleIntercept -> Error
         dw = MFW(fake_mf)
         with pytest.raises(AttributeError):
@@ -763,6 +778,6 @@ class TestMultiFrameWrapper(TestCase):
         fake_frame.PixelValueTransformationSequence[0].RescaleIntercept = -2
         assert_array_equal(data * 3 - 2, dw._scale_data(data))
         # Decimals are OK
-        fake_frame.PixelValueTransformationSequence[0].RescaleSlope = Decimal('3')
-        fake_frame.PixelValueTransformationSequence[0].RescaleIntercept = Decimal('-2')
+        fake_frame.PixelValueTransformationSequence[0].RescaleSlope = Decimal("3")
+        fake_frame.PixelValueTransformationSequence[0].RescaleIntercept = Decimal("-2")
         assert_array_equal(data * 3 - 2, dw._scale_data(data))

@@ -2,7 +2,7 @@
 
 from struct import Struct
 
-_ENDIAN_CODES = '@=<>!'
+_ENDIAN_CODES = "@=<>!"
 
 
 class Unpacker:

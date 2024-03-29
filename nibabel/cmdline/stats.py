@@ -20,20 +20,20 @@ from nibabel.loadsave import load
 def _get_parser():
     """Return command-line argument parser."""
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('infile', help='Neuroimaging volume to compute statistics on.')
+    p.add_argument("infile", help="Neuroimaging volume to compute statistics on.")
     p.add_argument(
-        '-V',
-        '--Volume',
-        action='store_true',
+        "-V",
+        "--Volume",
+        action="store_true",
         required=False,
-        help='Compute mask volume of a given mask image.',
+        help="Compute mask volume of a given mask image.",
     )
     p.add_argument(
-        '--units',
-        default='mm3',
+        "--units",
+        default="mm3",
         required=False,
-        choices=('mm3', 'vox'),
-        help='Preferred output units',
+        choices=("mm3", "vox"),
+        help="Preferred output units",
     )
     return p
 
@@ -45,11 +45,13 @@ def main(args=None):
     from_img = load(opts.infile)
 
     if opts.Volume:
-        if opts.units == 'mm3':
+        if opts.units == "mm3":
             computed_volume = mask_volume(from_img)
-        elif opts.units == 'vox':
+        elif opts.units == "vox":
             computed_volume = count_nonzero_voxels(from_img)
         else:
-            raise ValueError(f'{opts.units} is not a valid unit. Choose "mm3" or "vox".')
+            raise ValueError(
+                f'{opts.units} is not a valid unit. Choose "mm3" or "vox".'
+            )
         print(computed_volume)
         return 0

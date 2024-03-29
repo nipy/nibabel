@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read MINC1 format images"""
+
 from __future__ import annotations
 
 from numbers import Integral
@@ -18,18 +19,18 @@ from .fileslice import canonical_slicers
 from .spatialimages import SpatialHeader, SpatialImage
 
 _dt_dict = {
-    ('b', 'unsigned'): np.uint8,
-    ('b', 'signed__'): np.int8,
-    ('c', 'unsigned'): 'S1',
-    ('h', 'unsigned'): np.uint16,
-    ('h', 'signed__'): np.int16,
-    ('i', 'unsigned'): np.uint32,
-    ('i', 'signed__'): np.int32,
+    ("b", "unsigned"): np.uint8,
+    ("b", "signed__"): np.int8,
+    ("c", "unsigned"): "S1",
+    ("h", "unsigned"): np.uint16,
+    ("h", "signed__"): np.int16,
+    ("i", "unsigned"): np.uint32,
+    ("i", "signed__"): np.int32,
 }
 
 # See
 # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
-_default_dir_cos = {'xspace': [1, 0, 0], 'yspace': [0, 1, 0], 'zspace': [0, 0, 1]}
+_default_dir_cos = {"xspace": [1, 0, 0], "yspace": [0, 1, 0], "zspace": [0, 0, 1]}
 
 
 class MincError(Exception):
@@ -46,7 +47,7 @@ class Minc1File:
 
     def __init__(self, mincfile):
         self._mincfile = mincfile
-        self._image = mincfile.variables['image']
+        self._image = mincfile.variables["image"]
         self._dim_names = self._image.dimensions
         # The code below will error with vector_dimensions.  See:
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#An_Introduction_to_NetCDF
@@ -55,15 +56,17 @@ class Minc1File:
         # We don't currently support irregular spacing
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
         for dim in self._dims:
-            if dim.spacing != b'regular__':
-                raise ValueError('Irregular spacing not supported')
-        self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
+            if dim.spacing != b"regular__":
+                raise ValueError("Irregular spacing not supported")
+        self._spatial_dims = [
+            name for name in self._dim_names if name.endswith("space")
+        ]
         # the MINC standard appears to allow the following variables to
         # be undefined.
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_conversion_variables
         # It wasn't immediately obvious what the defaults were.
-        self._image_max = self._mincfile.variables['image-max']
-        self._image_min = self._mincfile.variables['image-min']
+        self._image_max = self._mincfile.variables["image-max"]
+        self._image_min = self._mincfile.variables["image-min"]
 
     def _get_dimensions(self, var):
         # Dimensions for a particular variable
@@ -73,14 +76,14 @@ class Minc1File:
 
     def get_data_dtype(self):
         typecode = self._image.typecode()
-        if typecode == 'f':
+        if typecode == "f":
             dtt = np.dtype(np.float32)
-        elif typecode == 'd':
+        elif typecode == "d":
             dtt = np.dtype(np.float64)
         else:
-            signtype = self._image.signtype.decode('latin-1')
+            signtype = self._image.signtype.decode("latin-1")
             dtt = _dt_dict[(typecode, signtype)]
-        return np.dtype(dtt).newbyteorder('>')
+        return np.dtype(dtt).newbyteorder(">")
 
     def get_data_shape(self):
         return self._image.data.shape
@@ -88,7 +91,9 @@ class Minc1File:
     def get_zooms(self):
         """Get real-world sizes of voxels"""
         # zooms must be positive; but steps in MINC can be negative
-        return tuple(abs(float(dim.step)) if hasattr(dim, 'step') else 1.0 for dim in self._dims)
+        return tuple(
+            abs(float(dim.step)) if hasattr(dim, "step") else 1.0 for dim in self._dims
+        )
 
     def get_affine(self):
         nspatial = len(self._spatial_dims)
@@ -100,11 +105,11 @@ class Minc1File:
             dim = self._dims[dim_names.index(name)]
             rot_mat[:, i] = (
                 dim.direction_cosines
-                if hasattr(dim, 'direction_cosines')
+                if hasattr(dim, "direction_cosines")
                 else _default_dir_cos[name]
             )
-            steps[i] = dim.step if hasattr(dim, 'step') else 1.0
-            starts[i] = dim.start if hasattr(dim, 'start') else 0.0
+            steps[i] = dim.step if hasattr(dim, "step") else 1.0
+            starts[i] = dim.start if hasattr(dim, "start") else 0.0
         origin = np.dot(rot_mat, starts)
         aff = np.eye(nspatial + 1)
         aff[:nspatial, :nspatial] = rot_mat * steps
@@ -128,7 +133,7 @@ class Minc1File:
             except AttributeError:
                 valid_range = [info.min, info.max]
         if valid_range[0] < info.min or valid_range[1] > info.max:
-            raise ValueError('Valid range outside input data type range')
+            raise ValueError("Valid range outside input data type range")
         return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
@@ -171,12 +176,14 @@ class Minc1File:
         mx_dims = self._get_dimensions(image_max)
         mn_dims = self._get_dimensions(image_min)
         if mx_dims != mn_dims:
-            raise MincError('"image-max" and "image-min" do not have the same dimensions')
+            raise MincError(
+                '"image-max" and "image-min" do not have the same dimensions'
+            )
         nscales = len(mx_dims)
         if nscales > 2:
-            raise MincError('More than two scaling dimensions')
+            raise MincError("More than two scaling dimensions")
         if mx_dims != self._dim_names[:nscales]:
-            raise MincError('image-max and image dimensions do not match')
+            raise MincError("image-max and image dimensions do not match")
         dmin, dmax = self._get_valid_range()
         out_data = np.clip(data, dmin, dmax)
         if nscales == 0:  # scalar values
@@ -196,7 +203,9 @@ class Minc1File:
             # Fill slicer to broadcast against sliced data; add length 1 axis
             # for each axis except int axes (which are dropped by slicing)
             broad_part = tuple(
-                None for s in sliceobj[ax_inds[nscales] :] if not isinstance(s, Integral)
+                None
+                for s in sliceobj[ax_inds[nscales] :]
+                if not isinstance(s, Integral)
             )
             i_slicer += broad_part
             imax = self._get_array(image_max)[i_slicer]
@@ -281,7 +290,7 @@ class MincHeader(SpatialHeader):
     """Class to contain header for MINC formats"""
 
     # We don't use the data layout - this just in case we do later
-    data_layout = 'C'
+    data_layout = "C"
 
     def data_to_fileobj(self, data, fileobj, rescale=True):
         """See Header class for an implementation we can't use"""
@@ -295,7 +304,7 @@ class MincHeader(SpatialHeader):
 class Minc1Header(MincHeader):
     @classmethod
     def may_contain_header(klass, binaryblock):
-        return binaryblock[:4] == b'CDF\x01'
+        return binaryblock[:4] == b"CDF\x01"
 
 
 class Minc1Image(SpatialImage):
@@ -309,9 +318,9 @@ class Minc1Image(SpatialImage):
     header_class: type[MincHeader] = Minc1Header
     header: MincHeader
     _meta_sniff_len: int = 4
-    valid_exts: tuple[str, ...] = ('.mnc',)
-    files_types: tuple[tuple[str, str], ...] = (('image', '.mnc'),)
-    _compressed_suffixes: tuple[str, ...] = ('.gz', '.bz2', '.zst')
+    valid_exts: tuple[str, ...] = (".mnc",)
+    files_types: tuple[tuple[str, str], ...] = (("image", ".mnc"),)
+    _compressed_suffixes: tuple[str, ...] = (".gz", ".bz2", ".zst")
 
     makeable = True
     rw = False
@@ -321,11 +330,11 @@ class Minc1Image(SpatialImage):
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         # Note that mmap and keep_file_open are included for proper
-        with file_map['image'].get_prepare_fileobj() as fobj:
+        with file_map["image"].get_prepare_fileobj() as fobj:
             minc_file = Minc1File(netcdf_file(fobj))
             affine = minc_file.get_affine()
             if affine.shape != (4, 4):
-                raise MincError('Image does not have 3 spatial dimensions')
+                raise MincError("Image does not have 3 spatial dimensions")
             data_dtype = minc_file.get_data_dtype()
             shape = minc_file.get_data_shape()
             zooms = minc_file.get_zooms()

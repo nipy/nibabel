@@ -27,35 +27,35 @@ def bench_load_save():
     arr = rng.normal(size=img_shape)
     img = Nifti1Image(arr, np.eye(4))
     sio = BytesIO()
-    img.file_map['image'].fileobj = sio
+    img.file_map["image"].fileobj = sio
     hdr = img.header
     sys.stdout.flush()
     print()
-    print_git_title('Image load save')
+    print_git_title("Image load save")
     hdr.set_data_dtype(np.float32)
-    mtime = measure('sio.truncate(0); img.to_file_map()', repeat)
-    print('%30s %6.2f' % ('Save float64 to float32', mtime))
-    mtime = measure('img.from_file_map(img.file_map)', repeat)
-    print('%30s %6.2f' % ('Load from float32', mtime))
+    mtime = measure("sio.truncate(0); img.to_file_map()", repeat)
+    print("%30s %6.2f" % ("Save float64 to float32", mtime))
+    mtime = measure("img.from_file_map(img.file_map)", repeat)
+    print("%30s %6.2f" % ("Load from float32", mtime))
     hdr.set_data_dtype(np.int16)
-    mtime = measure('sio.truncate(0); img.to_file_map()', repeat)
-    print('%30s %6.2f' % ('Save float64 to int16', mtime))
-    mtime = measure('img.from_file_map(img.file_map)', repeat)
-    print('%30s %6.2f' % ('Load from int16', mtime))
+    mtime = measure("sio.truncate(0); img.to_file_map()", repeat)
+    print("%30s %6.2f" % ("Save float64 to int16", mtime))
+    mtime = measure("img.from_file_map(img.file_map)", repeat)
+    print("%30s %6.2f" % ("Load from int16", mtime))
     # Set a lot of NaNs to check timing
     arr[:, :, :20] = np.nan
-    mtime = measure('sio.truncate(0); img.to_file_map()', repeat)
-    print('%30s %6.2f' % ('Save float64 to int16, NaNs', mtime))
-    mtime = measure('img.from_file_map(img.file_map)', repeat)
-    print('%30s %6.2f' % ('Load from int16, NaNs', mtime))
+    mtime = measure("sio.truncate(0); img.to_file_map()", repeat)
+    print("%30s %6.2f" % ("Save float64 to int16, NaNs", mtime))
+    mtime = measure("img.from_file_map(img.file_map)", repeat)
+    print("%30s %6.2f" % ("Load from int16, NaNs", mtime))
     # Int16 input, float output
     arr = np.random.random_integers(low=-1000, high=1000, size=img_shape)
     arr = arr.astype(np.int16)
     img = Nifti1Image(arr, np.eye(4))
     sio = BytesIO()
-    img.file_map['image'].fileobj = sio
+    img.file_map["image"].fileobj = sio
     hdr = img.header
     hdr.set_data_dtype(np.float32)
-    mtime = measure('sio.truncate(0); img.to_file_map()', repeat)
-    print('%30s %6.2f' % ('Save Int16 to float32', mtime))
+    mtime = measure("sio.truncate(0); img.to_file_map()", repeat)
+    print("%30s %6.2f" % ("Save Int16 to float32", mtime))
     sys.stdout.flush()

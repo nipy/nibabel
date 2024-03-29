@@ -11,7 +11,7 @@ from ..utils import get_affine_from_reference
 
 
 def test_get_affine_from_reference():
-    filename = os.path.join(data_path, 'example_nifti2.nii.gz')
+    filename = os.path.join(data_path, "example_nifti2.nii.gz")
     img = nib.load(filename)
     affine = img.affine
 

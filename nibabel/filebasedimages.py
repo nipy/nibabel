@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Common interface for any image format--volume or surface, binary or xml"""
+
 from __future__ import annotations
 
 import io
@@ -16,7 +17,12 @@ from urllib import request
 
 from ._compression import COMPRESSION_ERRORS
 from .fileholders import FileHolder, FileMap
-from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
+from .filename_parser import (
+    TypesFilenamesError,
+    _stringify_path,
+    splitext_addext,
+    types_filenames,
+)
 from .openers import ImageOpener
 
 if ty.TYPE_CHECKING:  # pragma: no cover
@@ -24,10 +30,10 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
 FileSniff = ty.Tuple[bytes, str]
 
-ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
-HdrT = ty.TypeVar('HdrT', bound='FileBasedHeader')
+ImgT = ty.TypeVar("ImgT", bound="FileBasedImage")
+HdrT = ty.TypeVar("HdrT", bound="FileBasedHeader")
 
-StreamImgT = ty.TypeVar('StreamImgT', bound='SerializableImage')
+StreamImgT = ty.TypeVar("StreamImgT", bound="SerializableImage")
 
 
 class ImageFileError(Exception):
@@ -38,7 +44,9 @@ class FileBasedHeader:
     """Template class to implement header protocol"""
 
     @classmethod
-    def from_header(klass: type[HdrT], header: FileBasedHeader | ty.Mapping | None = None) -> HdrT:
+    def from_header(
+        klass: type[HdrT], header: FileBasedHeader | ty.Mapping | None = None
+    ) -> HdrT:
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
@@ -48,7 +56,7 @@ class FileBasedHeader:
         if type(header) == klass:
             return header.copy()
         raise NotImplementedError(
-            f'Header class requires a conversion from {klass} to {type(header)}'
+            f"Header class requires a conversion from {klass} to {type(header)}"
         )
 
     @classmethod
@@ -159,7 +167,7 @@ class FileBasedImage:
 
     header_class: type[FileBasedHeader] = FileBasedHeader
     _meta_sniff_len: int = 0
-    files_types: tuple[ExtensionSpec, ...] = (('image', None),)
+    files_types: tuple[ExtensionSpec, ...] = (("image", None),)
     valid_exts: tuple[str, ...] = ()
     _compressed_suffixes: tuple[str, ...] = ()
 
@@ -203,7 +211,7 @@ class FileBasedImage:
 
     def __getitem__(self, key) -> None:
         """No slicing or dictionary interface for images"""
-        raise TypeError('Cannot slice image objects.')
+        raise TypeError("Cannot slice image objects.")
 
     def get_filename(self) -> str | None:
         """Fetch the image filename
@@ -278,10 +286,14 @@ class FileBasedImage:
         """
         try:
             filenames = types_filenames(
-                filespec, klass.files_types, trailing_suffixes=klass._compressed_suffixes
+                filespec,
+                klass.files_types,
+                trailing_suffixes=klass._compressed_suffixes,
             )
         except TypesFilenamesError:
-            raise ImageFileError(f'Filespec "{filespec}" does not look right for class {klass}')
+            raise ImageFileError(
+                f'Filespec "{filespec}" does not look right for class {klass}'
+            )
         file_map = {}
         for key, fname in filenames.items():
             file_map[key] = FileHolder(filename=fname)
@@ -310,7 +322,9 @@ class FileBasedImage:
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def make_file_map(klass, mapping: ty.Mapping[str, str | io.IOBase] | None = None) -> FileMap:
+    def make_file_map(
+        klass, mapping: ty.Mapping[str, str | io.IOBase] | None = None
+    ) -> FileMap:
         """Class method to make files holder for this image type
 
         Parameters
@@ -336,7 +350,7 @@ class FileBasedImage:
             mapval = mapping.get(key, None)
             if isinstance(mapval, str):
                 file_map[key].filename = mapval
-            elif hasattr(mapval, 'tell'):
+            elif hasattr(mapval, "tell"):
                 file_map[key].fileobj = mapval
         return file_map
 
@@ -410,7 +424,7 @@ class FileBasedImage:
         t_fnames = types_filenames(
             filename, klass.files_types, trailing_suffixes=klass._compressed_suffixes
         )
-        meta_fname = t_fnames.get('header', _stringify_path(filename))
+        meta_fname = t_fnames.get("header", _stringify_path(filename))
 
         # Do not re-sniff if it would be from the same file
         if sniff is not None and sniff[1] == meta_fname:
@@ -418,7 +432,7 @@ class FileBasedImage:
 
         # Attempt to sniff from metadata location
         try:
-            with ImageOpener(meta_fname, 'rb') as fobj:
+            with ImageOpener(meta_fname, "rb") as fobj:
                 binaryblock = fobj.read(sniff_nbytes)
         except COMPRESSION_ERRORS + (OSError, EOFError):
             return None
@@ -467,13 +481,15 @@ class FileBasedImage:
         froot, ext, trailing = splitext_addext(filename, klass._compressed_suffixes)
         if ext.lower() not in klass.valid_exts:
             return False, sniff
-        if not hasattr(klass.header_class, 'may_contain_header'):
+        if not hasattr(klass.header_class, "may_contain_header"):
             return True, sniff
 
         # Force re-sniff on too-short sniff
         if sniff is not None and len(sniff[0]) < klass._meta_sniff_len:
             sniff = None
-        sniff = klass._sniff_meta_for(filename, max(klass._meta_sniff_len, sniff_max), sniff)
+        sniff = klass._sniff_meta_for(
+            filename, max(klass._meta_sniff_len, sniff_max), sniff
+        )
         if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
             return False, sniff
         return klass.header_class.may_contain_header(sniff[0]), sniff
@@ -535,7 +551,9 @@ class SerializableImage(FileBasedImage):
     def _filemap_from_iobase(klass, io_obj: io.IOBase) -> FileMap:
         """For single-file image types, make a file map with the correct key"""
         if len(klass.files_types) > 1:
-            raise NotImplementedError('(de)serialization is undefined for multi-file images')
+            raise NotImplementedError(
+                "(de)serialization is undefined for multi-file images"
+            )
         return klass.make_file_map({klass.files_types[0][0]: io_obj})
 
     @classmethod

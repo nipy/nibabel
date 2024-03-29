@@ -1,5 +1,5 @@
-"""Testing CIFTI-2 objects
-"""
+"""Testing CIFTI-2 objects"""
+
 import collections
 from xml.etree import ElementTree
 
@@ -33,15 +33,15 @@ def test_value_if_klass():
 
 
 def test_cifti2_metadata():
-    md = ci.Cifti2MetaData({'a': 'aval'})
+    md = ci.Cifti2MetaData({"a": "aval"})
     assert len(md) == 1
-    assert list(iter(md)) == ['a']
-    assert md['a'] == 'aval'
-    assert md.data == dict([('a', 'aval')])
+    assert list(iter(md)) == ["a"]
+    assert md["a"] == "aval"
+    assert md.data == dict([("a", "aval")])
 
     with pytest.warns(FutureWarning):
-        md = ci.Cifti2MetaData(metadata={'a': 'aval'})
-    assert md == {'a': 'aval'}
+        md = ci.Cifti2MetaData(metadata={"a": "aval"})
+    assert md == {"a": "aval"}
 
     with pytest.warns(FutureWarning):
         md = ci.Cifti2MetaData(None)
@@ -54,39 +54,42 @@ def test_cifti2_metadata():
     with pytest.raises(ValueError):
         md.difference_update(None)
 
-    md['a'] = 'aval'
-    assert md['a'] == 'aval'
+    md["a"] = "aval"
+    assert md["a"] == "aval"
     assert len(md) == 1
-    assert md.data == dict([('a', 'aval')])
+    assert md.data == dict([("a", "aval")])
 
-    del md['a']
+    del md["a"]
     assert len(md) == 0
 
-    metadata_test = [('a', 'aval'), ('b', 'bval')]
+    metadata_test = [("a", "aval"), ("b", "bval")]
     md.update(metadata_test)
     assert md.data == dict(metadata_test)
 
     assert list(iter(md)) == list(iter(collections.OrderedDict(metadata_test)))
 
-    md.update({'a': 'aval', 'b': 'bval'})
+    md.update({"a": "aval", "b": "bval"})
     assert md.data == dict(metadata_test)
 
-    md.update({'a': 'aval', 'd': 'dval'})
-    assert md.data == dict(metadata_test + [('d', 'dval')])
+    md.update({"a": "aval", "d": "dval"})
+    assert md.data == dict(metadata_test + [("d", "dval")])
 
-    md.difference_update({'a': 'aval', 'd': 'dval'})
+    md.difference_update({"a": "aval", "d": "dval"})
     assert md.data == dict(metadata_test[1:])
 
     with pytest.raises(KeyError):
-        md.difference_update({'a': 'aval', 'd': 'dval'})
-    assert md.to_xml() == b'<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>'
+        md.difference_update({"a": "aval", "d": "dval"})
+    assert (
+        md.to_xml()
+        == b"<MetaData><MD><Name>b</Name><Value>bval</Value></MD></MetaData>"
+    )
 
 
 def test__float_01():
     assert _float_01(0) == 0
     assert _float_01(1) == 1
-    assert _float_01('0') == 0
-    assert _float_01('0.2') == 0.2
+    assert _float_01("0") == 0
+    assert _float_01("0.2") == 0.2
     with pytest.raises(ValueError):
         _float_01(1.1)
     with pytest.raises(ValueError):
@@ -96,7 +99,7 @@ def test__float_01():
     with pytest.raises(ValueError):
         _float_01(-1)
     with pytest.raises(ValueError):
-        _float_01('foo')
+        _float_01("foo")
 
 
 def test_cifti2_labeltable():
@@ -107,7 +110,7 @@ def test_cifti2_labeltable():
     with pytest.raises(ci.Cifti2HeaderError):
         lt._to_xml_element()
 
-    label = ci.Cifti2Label(label='Test', key=0)
+    label = ci.Cifti2Label(label="Test", key=0)
     lt[0] = label
     assert len(lt) == 1
     assert dict(lt) == {label.key: label}
@@ -131,22 +134,22 @@ def test_cifti2_labeltable():
         lt[0] = test_tuple[:-1]
 
     with pytest.raises(ValueError):
-        lt[0] = ('foo', 1.1, 0, 0, 1)
+        lt[0] = ("foo", 1.1, 0, 0, 1)
 
     with pytest.raises(ValueError):
-        lt[0] = ('foo', 1.0, -1, 0, 1)
+        lt[0] = ("foo", 1.0, -1, 0, 1)
 
     with pytest.raises(ValueError):
-        lt[0] = ('foo', 1.0, 0, -0.1, 1)
+        lt[0] = ("foo", 1.0, 0, -0.1, 1)
 
 
 def test_cifti2_label():
     lb = ci.Cifti2Label()
-    lb.label = 'Test'
+    lb.label = "Test"
     lb.key = 0
     assert lb.rgba == (0, 0, 0, 0)
     assert compare_xml_leaf(
-        lb.to_xml().decode('utf-8'),
+        lb.to_xml().decode("utf-8"),
         "<Label Key='0' Red='0' Green='0' Blue='0' Alpha='0'>Test</Label>",
     )
 
@@ -157,7 +160,7 @@ def test_cifti2_label():
     assert lb.rgba == (0, 0.1, 0.2, 0.3)
 
     assert compare_xml_leaf(
-        lb.to_xml().decode('utf-8'),
+        lb.to_xml().decode("utf-8"),
         "<Label Key='0' Red='0' Green='0.1' Blue='0.2' Alpha='0.3'>Test</Label>",
     )
 
@@ -166,7 +169,7 @@ def test_cifti2_label():
         lb.to_xml()
     lb.red = 0
 
-    lb.key = 'a'
+    lb.key = "a"
     with pytest.raises(ci.Cifti2HeaderError):
         lb.to_xml()
     lb.key = 0
@@ -184,7 +187,7 @@ def test_cifti2_parcel():
         ci.Cifti2Parcel(vertices=[1, 2, 3])
 
     pl = ci.Cifti2Parcel(
-        name='region',
+        name="region",
         voxel_indices_ijk=ci.Cifti2VoxelIndicesIJK([[1, 2, 3]]),
         vertices=[ci.Cifti2Vertices([0, 1, 2])],
     )
@@ -192,7 +195,8 @@ def test_cifti2_parcel():
 
     assert len(pl.vertices) == 0
     assert (
-        pl.to_xml() == b'<Parcel Name="region"><VoxelIndicesIJK>1 2 3</VoxelIndicesIJK></Parcel>'
+        pl.to_xml()
+        == b'<Parcel Name="region"><VoxelIndicesIJK>1 2 3</VoxelIndicesIJK></Parcel>'
     )
 
 
@@ -201,7 +205,7 @@ def test_cifti2_vertices():
     with pytest.raises(ci.Cifti2HeaderError):
         vs.to_xml()
 
-    vs.brain_structure = 'CIFTI_STRUCTURE_OTHER'
+    vs.brain_structure = "CIFTI_STRUCTURE_OTHER"
 
     assert vs.to_xml() == b'<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER" />'
 
@@ -209,11 +213,14 @@ def test_cifti2_vertices():
     vs.extend(np.array([0, 1, 2]))
     assert len(vs) == 3
     with pytest.raises(ValueError):
-        vs[1] = 'a'
+        vs[1] = "a"
     with pytest.raises(ValueError):
-        vs.insert(1, 'a')
+        vs.insert(1, "a")
 
-    assert vs.to_xml() == b'<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER">0 1 2</Vertices>'
+    assert (
+        vs.to_xml()
+        == b'<Vertices BrainStructure="CIFTI_STRUCTURE_OTHER">0 1 2</Vertices>'
+    )
 
     vs[0] = 10
     assert vs[0] == 10
@@ -247,10 +254,10 @@ def test_cifti2_vertexindices():
         vi.to_xml()
     vi.extend(np.array([0, 1, 2]))
     assert len(vi) == 3
-    assert vi.to_xml() == b'<VertexIndices>0 1 2</VertexIndices>'
+    assert vi.to_xml() == b"<VertexIndices>0 1 2</VertexIndices>"
 
     with pytest.raises(ValueError):
-        vi[0] = 'a'
+        vi[0] = "a"
 
     vi[0] = 10
     assert vi[0] == 10
@@ -282,7 +289,7 @@ def test_cifti2_voxelindicesijk():
     vi[1] = [3, 4, 6]
     assert vi[1] == [3, 4, 6]
     with pytest.raises(ValueError):
-        vi['a'] = [1, 2, 3]
+        vi["a"] = [1, 2, 3]
 
     with pytest.raises(TypeError):
         vi[[1, 2]] = [1, 2, 3]
@@ -293,7 +300,7 @@ def test_cifti2_voxelindicesijk():
     assert vi[1, 1] == 4
 
     with pytest.raises(ValueError):
-        vi[[1, 1]] = 'a'
+        vi[[1, 1]] = "a"
 
     assert vi[0, 1:] == [1, 2]
     vi[0, 1] = 10
@@ -314,7 +321,9 @@ def test_cifti2_voxelindicesijk():
     with pytest.raises(ValueError):
         vi[0, 0, 0] = 0
 
-    assert vi.to_xml().decode('utf-8') == '<VoxelIndicesIJK>0 1 2\n3 4 6</VoxelIndicesIJK>'
+    assert (
+        vi.to_xml().decode("utf-8") == "<VoxelIndicesIJK>0 1 2\n3 4 6</VoxelIndicesIJK>"
+    )
 
     with pytest.raises(TypeError):
         ci.Cifti2VoxelIndicesIJK([0, 1])
@@ -324,7 +333,7 @@ def test_cifti2_voxelindicesijk():
 
 
 def test_matrixindicesmap():
-    mim = ci.Cifti2MatrixIndicesMap(0, 'CIFTI_INDEX_TYPE_LABELS')
+    mim = ci.Cifti2MatrixIndicesMap(0, "CIFTI_INDEX_TYPE_LABELS")
     volume = ci.Cifti2Volume()
     volume2 = ci.Cifti2Volume()
     parcel = ci.Cifti2Parcel()
@@ -368,10 +377,10 @@ def test_matrix():
     with pytest.raises(TypeError):
         m.insert(0, ci.Cifti2Parcel())
 
-    mim_none = ci.Cifti2MatrixIndicesMap(None, 'CIFTI_INDEX_TYPE_LABELS')
-    mim_0 = ci.Cifti2MatrixIndicesMap(0, 'CIFTI_INDEX_TYPE_LABELS')
-    mim_1 = ci.Cifti2MatrixIndicesMap(1, 'CIFTI_INDEX_TYPE_LABELS')
-    mim_01 = ci.Cifti2MatrixIndicesMap([0, 1], 'CIFTI_INDEX_TYPE_LABELS')
+    mim_none = ci.Cifti2MatrixIndicesMap(None, "CIFTI_INDEX_TYPE_LABELS")
+    mim_0 = ci.Cifti2MatrixIndicesMap(0, "CIFTI_INDEX_TYPE_LABELS")
+    mim_1 = ci.Cifti2MatrixIndicesMap(1, "CIFTI_INDEX_TYPE_LABELS")
+    mim_01 = ci.Cifti2MatrixIndicesMap([0, 1], "CIFTI_INDEX_TYPE_LABELS")
 
     with pytest.raises(ci.Cifti2HeaderError):
         m.insert(0, mim_none)
@@ -404,14 +413,14 @@ def test_underscoring():
     # Pairs taken from inflection tests
     # https://github.com/jpvanhal/inflection/blob/663982e/test_inflection.py#L113-L125
     pairs = (
-        ('Product', 'product'),
-        ('SpecialGuest', 'special_guest'),
-        ('ApplicationController', 'application_controller'),
-        ('Area51Controller', 'area51_controller'),
-        ('HTMLTidy', 'html_tidy'),
-        ('HTMLTidyGenerator', 'html_tidy_generator'),
-        ('FreeBSD', 'free_bsd'),
-        ('HTML', 'html'),
+        ("Product", "product"),
+        ("SpecialGuest", "special_guest"),
+        ("ApplicationController", "application_controller"),
+        ("Area51Controller", "area51_controller"),
+        ("HTMLTidy", "html_tidy"),
+        ("HTMLTidyGenerator", "html_tidy_generator"),
+        ("FreeBSD", "free_bsd"),
+        ("HTML", "html"),
     )
 
     for camel, underscored in pairs:
@@ -428,7 +437,7 @@ class TestCifti2ImageAPI(_TDA, SerializeMixin, DtypeOverrideMixin):
     # A callable returning a nifti header
     ni_header_maker = Nifti2Header
     example_shapes = ((2,), (2, 3), (2, 3, 4))
-    standard_extension = '.nii'
+    standard_extension = ".nii"
     storable_dtypes = (
         np.int8,
         np.uint8,
@@ -445,6 +454,8 @@ class TestCifti2ImageAPI(_TDA, SerializeMixin, DtypeOverrideMixin):
     def make_imaker(self, arr, header=None, ni_header=None):
         for idx, sz in enumerate(arr.shape):
             maps = [ci.Cifti2NamedMap(str(value)) for value in range(sz)]
-            mim = ci.Cifti2MatrixIndicesMap((idx,), 'CIFTI_INDEX_TYPE_SCALARS', maps=maps)
+            mim = ci.Cifti2MatrixIndicesMap(
+                (idx,), "CIFTI_INDEX_TYPE_SCALARS", maps=maps
+            )
             header.matrix.append(mim)
         return lambda: self.image_maker(arr.copy(), header, ni_header)

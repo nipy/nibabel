@@ -29,7 +29,7 @@ from ..tmpdirs import InTemporaryDirectory
 from . import test_wrapstruct as tws
 from .test_fileslice import slicer_samples
 
-ecat_file = os.path.join(data_path, 'tinypet.v')
+ecat_file = os.path.join(data_path, "tinypet.v")
 
 
 class TestEcatHeader(tws._TestWrapStructBase):
@@ -42,15 +42,15 @@ class TestEcatHeader(tws._TestWrapStructBase):
     def test_empty(self):
         hdr = self.header_class()
         assert len(hdr.binaryblock) == 512
-        assert hdr['magic_number'] == b'MATRIX72'
-        assert hdr['sw_version'] == 74
-        assert hdr['num_frames'] == 0
-        assert hdr['file_type'] == 0
-        assert hdr['ecat_calibration_factor'] == 1.0
+        assert hdr["magic_number"] == b"MATRIX72"
+        assert hdr["sw_version"] == 74
+        assert hdr["num_frames"] == 0
+        assert hdr["file_type"] == 0
+        assert hdr["ecat_calibration_factor"] == 1.0
 
     def _set_something_into_hdr(self, hdr):
         # Called from test_bytes test method.  Specific to the header data type
-        hdr['scan_start_time'] = 42
+        hdr["scan_start_time"] = 42
 
     def test_dtype(self):
         # dtype not specified in header, only in subheaders
@@ -59,24 +59,24 @@ class TestEcatHeader(tws._TestWrapStructBase):
             hdr.get_data_dtype()
 
     def test_header_codes(self):
-        fid = open(self.example_file, 'rb')
+        fid = open(self.example_file, "rb")
         hdr = self.header_class()
         newhdr = hdr.from_fileobj(fid)
         fid.close()
-        assert newhdr.get_filetype() == 'ECAT7_VOLUME16'
-        assert newhdr.get_patient_orient() == 'ECAT7_Unknown_Orientation'
+        assert newhdr.get_filetype() == "ECAT7_VOLUME16"
+        assert newhdr.get_patient_orient() == "ECAT7_Unknown_Orientation"
 
     def test_update(self):
         hdr = self.header_class()
-        assert hdr['num_frames'] == 0
-        hdr['num_frames'] = 2
-        assert hdr['num_frames'] == 2
+        assert hdr["num_frames"] == 0
+        hdr["num_frames"] = 2
+        assert hdr["num_frames"] == 2
 
     def test_from_eg_file(self):
         # Example header is big-endian
         with Opener(self.example_file) as fileobj:
             hdr = self.header_class.from_fileobj(fileobj, check=False)
-        assert hdr.endianness == '>'
+        assert hdr.endianness == ">"
 
 
 class TestEcatMlist(TestCase):
@@ -84,18 +84,18 @@ class TestEcatMlist(TestCase):
     example_file = ecat_file
 
     def test_mlist(self):
-        fid = open(self.example_file, 'rb')
+        fid = open(self.example_file, "rb")
         hdr = self.header_class.from_fileobj(fid)
         mlist = read_mlist(fid, hdr.endianness)
         fid.seek(0)
         fid.seek(512)
         dat = fid.read(128 * 32)
-        dt = np.dtype([('matlist', np.int32)])
-        dt = dt.newbyteorder('>')
+        dt = np.dtype([("matlist", np.int32)])
+        dt = dt.newbyteorder(">")
         mats = np.recarray(shape=(32, 4), dtype=dt, buf=dat)
         fid.close()
         # tests
-        assert mats['matlist'][0, 0] + mats['matlist'][0, 3] == 31
+        assert mats["matlist"][0, 0] + mats["matlist"][0, 3] == 31
         assert get_frame_order(mlist)[0][0] == 0
         assert get_frame_order(mlist)[0][1] == 16842758.0
         # test badly ordered mlist
@@ -113,9 +113,9 @@ class TestEcatMlist(TestCase):
             assert get_frame_order(badordermlist)[0][0] == 1
 
     def test_mlist_errors(self):
-        fid = open(self.example_file, 'rb')
+        fid = open(self.example_file, "rb")
         hdr = self.header_class.from_fileobj(fid)
-        hdr['num_frames'] = 6
+        hdr["num_frames"] = 6
         mlist = read_mlist(fid, hdr.endianness)
         fid.close()
         mlist = np.array(
@@ -149,7 +149,7 @@ class TestEcatSubHeader(TestCase):
     header_class = EcatHeader
     subhdr_class = EcatSubHeader
     example_file = ecat_file
-    fid = open(example_file, 'rb')
+    fid = open(example_file, "rb")
     hdr = header_class.from_fileobj(fid)
     mlist = read_mlist(fid, hdr.endianness)
     subhdr = subhdr_class(hdr, mlist, fid)
@@ -163,7 +163,8 @@ class TestEcatSubHeader(TestCase):
         assert self.subhdr.get_nframes() == len(self.subhdr.subheaders)
         assert self.subhdr._check_affines() is True
         assert_array_almost_equal(
-            np.diag(self.subhdr.get_frame_affine()), np.array([2.20241979, 2.20241979, 3.125, 1.0])
+            np.diag(self.subhdr.get_frame_affine()),
+            np.array([2.20241979, 2.20241979, 3.125, 1.0]),
         )
         assert self.subhdr.get_zooms()[0] == 2.20241978764534
         assert self.subhdr.get_zooms()[2] == 3.125
@@ -172,8 +173,8 @@ class TestEcatSubHeader(TestCase):
         assert self.subhdr._get_frame_offset() == 1536
         dat = self.subhdr.raw_data_from_fileobj()
         assert dat.shape == self.subhdr.get_shape()
-        assert self.subhdr.subheaders[0]['scale_factor'].item() == 1.0
-        ecat_calib_factor = self.hdr['ecat_calibration_factor']
+        assert self.subhdr.subheaders[0]["scale_factor"].item() == 1.0
+        ecat_calib_factor = self.hdr["ecat_calibration_factor"]
         assert ecat_calib_factor == 25007614.0
 
 
@@ -183,11 +184,11 @@ class TestEcatImage(TestCase):
     img = image_class.load(example_file)
 
     def test_file(self):
-        assert Path(self.img.file_map['header'].filename) == Path(self.example_file)
-        assert Path(self.img.file_map['image'].filename) == Path(self.example_file)
+        assert Path(self.img.file_map["header"].filename) == Path(self.example_file)
+        assert Path(self.img.file_map["image"].filename) == Path(self.example_file)
 
     def test_save(self):
-        tmp_file = 'tinypet_tmp.v'
+        tmp_file = "tinypet_tmp.v"
         with InTemporaryDirectory():
             self.img.to_filename(tmp_file)
             other = self.image_class.load(tmp_file)
@@ -257,9 +258,9 @@ class TestEcatImage(TestCase):
         # These values came from reading the example image using nibabel 1.3.0
         vals = dict(max=248750736458.0, min=1125342630.0, mean=117907565661.46666)
         data = self.img.get_fdata()
-        assert data.max() == vals['max']
-        assert data.min() == vals['min']
-        assert_array_almost_equal(data.mean(), vals['mean'])
+        assert data.max() == vals["max"]
+        assert data.min() == vals["min"]
+        assert_array_almost_equal(data.mean(), vals["mean"])
 
     def test_mlist_regression(self):
         # Test mlist is as same as for nibabel 1.3.0

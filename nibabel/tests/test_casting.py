@@ -1,5 +1,5 @@
-"""Test casting utilities
-"""
+"""Test casting utilities"""
+
 import os
 from platform import machine
 
@@ -23,8 +23,8 @@ from ..testing import suppress_warnings
 
 
 def test_shared_range():
-    for ft in sctypes['float']:
-        for it in sctypes['int'] + sctypes['uint']:
+    for ft in sctypes["float"]:
+        for it in sctypes["int"] + sctypes["uint"]:
             # Test that going a bit above or below the calculated min and max
             # either generates the same number when cast, or the max int value
             # (if this system generates that) or something smaller (because of
@@ -53,7 +53,7 @@ def test_shared_range():
                 assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
                 assert np.all(bit_bigger <= casted_mx)
-            if it in sctypes['uint']:
+            if it in sctypes["uint"]:
                 assert mn == 0
                 continue
             # And something larger for the minimum
@@ -84,25 +84,25 @@ def test_shared_range():
 def test_shared_range_inputs():
     # Check any dtype specifier will work as input
     rng0 = shared_range(np.float32, np.int32)
-    assert_array_equal(rng0, shared_range('f4', 'i4'))
-    assert_array_equal(rng0, shared_range(np.dtype('f4'), np.dtype('i4')))
+    assert_array_equal(rng0, shared_range("f4", "i4"))
+    assert_array_equal(rng0, shared_range(np.dtype("f4"), np.dtype("i4")))
 
 
 def test_casting():
-    for ft in sctypes['float']:
-        for it in sctypes['int'] + sctypes['uint']:
+    for ft in sctypes["float"]:
+        for it in sctypes["int"] + sctypes["uint"]:
             ii = np.iinfo(it)
             arr = [ii.min - 1, ii.max + 1, -np.inf, np.inf, np.nan, 0.2, 10.6]
             farr_orig = np.array(arr, dtype=ft)
             # We're later going to test if we modify this array
             farr = farr_orig.copy()
             mn, mx = shared_range(ft, it)
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 iarr = float_to_int(farr, it)
             exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11], dtype=it)
             assert_array_equal(iarr, exp_arr)
             # Now test infmax version
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 iarr = float_to_int(farr, it, infmax=True)
                 im_exp = np.array([mn, mx, ii.min, ii.max, 0, 0, 11], dtype=it)
             # Float16 can overflow to infs
@@ -116,7 +116,7 @@ def test_casting():
                 float_to_int(farr, it, False)
             # We can pass through NaNs if we really want
             exp_arr[arr.index(np.nan)] = ft(np.nan).astype(it)
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 iarr = float_to_int(farr, it, nan2zero=None)
             assert_array_equal(iarr, exp_arr)
             # Confirm input array is not modified
@@ -126,7 +126,7 @@ def test_casting():
     # Test scalars work and return scalars
     assert_array_equal(float_to_int(np.float32(0), np.int16), [0])
     # Test scalar nan OK
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         assert_array_equal(float_to_int(np.nan, np.int16), [0])
     # Test nans give error if not nan2zero
     with pytest.raises(CastingError):
@@ -134,12 +134,12 @@ def test_casting():
 
 
 def test_int_abs():
-    for itype in sctypes['int']:
+    for itype in sctypes["int"]:
         info = np.iinfo(itype)
         in_arr = np.array([info.min, info.max], dtype=itype)
         idtype = np.dtype(itype)
-        udtype = np.dtype(idtype.str.replace('i', 'u'))
-        assert udtype.kind == 'u'
+        udtype = np.dtype(idtype.str.replace("i", "u"))
+        assert udtype.kind == "u"
         assert idtype.itemsize == udtype.itemsize
         mn, mx = in_arr
         e_mn = int(mx) + 1
@@ -182,7 +182,7 @@ def test_able_int_type():
 
 def test_able_casting():
     # Check the able_int_type function guesses numpy out type
-    types = sctypes['int'] + sctypes['uint']
+    types = sctypes["int"] + sctypes["uint"]
     for in_type in types:
         in_info = np.iinfo(in_type)
         in_mn, in_mx = in_info.min, in_info.max
@@ -218,7 +218,7 @@ def test_best_float():
     end_of_ints = np.longdouble(2**53)
     if (
         end_of_ints == (end_of_ints + 1)
-        or machine() == 'sparc64'  # off continuous integers
+        or machine() == "sparc64"  # off continuous integers
         or longdouble_precision_improved()  # crippling slow longdouble on sparc
     ):  # Windows precisions can change
         assert best == np.float64
@@ -235,7 +235,7 @@ def test_longdouble_precision_improved():
     # call.
     # However, there may be detectable conditions in Windows where we would expect this
     # to be False as well.
-    if os.name != 'nt':
+    if os.name != "nt":
         assert not longdouble_precision_improved()
 
 

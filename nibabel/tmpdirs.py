@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Contexts for *with* statement providing temporary directories"""
+
 import os
 import tempfile
 from contextlib import contextmanager
@@ -37,11 +38,11 @@ class TemporaryDirectory(tempfile.TemporaryDirectory):
     """
 
     @deprecate_with_version(
-        'Please use the standard library tempfile.TemporaryDirectory',
-        '5.0',
-        '7.0',
+        "Please use the standard library tempfile.TemporaryDirectory",
+        "5.0",
+        "7.0",
     )
-    def __init__(self, suffix='', prefix=tempfile.template, dir=None):
+    def __init__(self, suffix="", prefix=tempfile.template, dir=None):
         """
         Examples
         --------

@@ -19,6 +19,7 @@ A mapped voxel space (mapped voxels) is either:
   mapping), or
 * a length 2 sequence with the same information (shape, affine).
 """
+
 from itertools import product
 
 import numpy as np
@@ -72,15 +73,15 @@ def vox2out_vox(mapped_voxels, voxel_sizes=None):
         in_shape, in_affine = mapped_voxels
     n_axes = len(in_shape)
     if n_axes > 3:
-        raise ValueError('This function can only deal with 3D images')
+        raise ValueError("This function can only deal with 3D images")
     if n_axes < 3:
         in_shape += (1,) * (3 - n_axes)
     out_vox = np.ones((3,))
     if voxel_sizes is not None:
         if not len(voxel_sizes) == n_axes:
-            raise ValueError('voxel sizes length should match shape')
+            raise ValueError("voxel sizes length should match shape")
         if not np.all(np.array(voxel_sizes) > 0):
-            raise ValueError('voxel sizes should all be positive')
+            raise ValueError("voxel sizes should all be positive")
         out_vox[:n_axes] = voxel_sizes
     in_mn_mx = zip([0, 0, 0], np.array(in_shape) - 1)
     in_corners = list(product(*in_mn_mx))
@@ -128,9 +129,9 @@ def slice2volume(index, axis, shape=None):
         the embedded volume
     """
     if index < 0:
-        raise ValueError('Cannot handle negative index')
+        raise ValueError("Cannot handle negative index")
     if not 0 <= axis <= 2:
-        raise ValueError('Axis should be between 0 and 2')
+        raise ValueError("Axis should be between 0 and 2")
     axes = list(range(4))
     axes.remove(axis)
     slice_aff = np.eye(4)[:, axes]

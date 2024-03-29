@@ -18,6 +18,7 @@ The B matrix ``B`` is a symmetric positive semi-definite matrix.  If
 
    B ~ (q_est . q_est.T) / norm(q_est)
 """
+
 import numpy as np
 import numpy.linalg as npl
 
@@ -49,13 +50,13 @@ def B2q(B, tol=None):
     """
     B = np.asarray(B)
     if not np.allclose(B - B.T, 0):
-        raise ValueError('B matrix is not symmetric enough')
+        raise ValueError("B matrix is not symmetric enough")
     w, v = npl.eigh(B)
     if tol is None:
         tol = np.abs(w.max()) * B.shape[0] * np.finfo(w.dtype).eps
     non_trivial = np.abs(w) > tol
     if np.any(w[non_trivial] < 0):
-        raise ValueError('B not positive semi-definite')
+        raise ValueError("B not positive semi-definite")
     inds = np.argsort(w)[::-1]
     max_ind = inds[0]
     vector = v[:, max_ind]

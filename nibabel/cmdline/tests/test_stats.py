@@ -16,17 +16,17 @@ from nibabel.loadsave import save
 
 
 def test_volume(tmpdir, capsys):
-    mask_data = np.zeros((20, 20, 20), dtype='u1')
+    mask_data = np.zeros((20, 20, 20), dtype="u1")
     mask_data[5:15, 5:15, 5:15] = 1
     img = Nifti1Image(mask_data, np.eye(4))
 
-    infile = tmpdir / 'input.nii'
+    infile = tmpdir / "input.nii"
     save(img, infile)
 
-    args = f'{infile} --Volume'
+    args = f"{infile} --Volume"
     main(args.split())
     vol_mm3 = capsys.readouterr()
-    args = f'{infile} --Volume --units vox'
+    args = f"{infile} --Volume --units vox"
     main(args.split())
     vol_vox = capsys.readouterr()
 

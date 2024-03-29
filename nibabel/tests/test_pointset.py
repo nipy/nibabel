@@ -11,16 +11,16 @@ from nibabel.optpkg import optional_package
 from nibabel.spatialimages import SpatialImage
 from nibabel.tests.nibabel_data import get_nibabel_data
 
-h5, has_h5py, _ = optional_package('h5py')
+h5, has_h5py, _ = optional_package("h5py")
 
-FS_DATA = Path(get_nibabel_data()) / 'nitest-freesurfer'
+FS_DATA = Path(get_nibabel_data()) / "nitest-freesurfer"
 
 
 class TestPointsets:
     rng = np.random.default_rng()
 
-    @pytest.mark.parametrize('shape', [(5, 2), (5, 3), (5, 4)])
-    @pytest.mark.parametrize('homogeneous', [True, False])
+    @pytest.mark.parametrize("shape", [(5, 2), (5, 3), (5, 4)])
+    @pytest.mark.parametrize("homogeneous", [True, False])
     def test_init(self, shape, homogeneous):
         coords = self.rng.random(shape)
 
@@ -32,7 +32,9 @@ class TestPointsets:
         assert points.homogeneous is homogeneous
         assert (points.n_coords, points.dim) == shape
 
-        points = ps.Pointset(coords, affine=np.diag([2] * shape[1] + [1]), homogeneous=homogeneous)
+        points = ps.Pointset(
+            coords, affine=np.diag([2] * shape[1] + [1]), homogeneous=homogeneous
+        )
         assert np.allclose(points.affine, np.diag([2] * shape[1] + [1]))
         assert points.homogeneous is homogeneous
         assert (points.n_coords, points.dim) == shape
@@ -45,8 +47,8 @@ class TestPointsets:
         with pytest.raises(ValueError):
             ps.Pointset(coords, affine=np.ones((shape[1] + 1, shape[1] + 1)))
 
-    @pytest.mark.parametrize('shape', [(5, 2), (5, 3), (5, 4)])
-    @pytest.mark.parametrize('homogeneous', [True, False])
+    @pytest.mark.parametrize("shape", [(5, 2), (5, 3), (5, 4)])
+    @pytest.mark.parametrize("homogeneous", [True, False])
     def test_affines(self, shape, homogeneous):
         orig_coords = coords = self.rng.random(shape)
 
@@ -104,12 +106,12 @@ def test_GridIndices():
     shape = (2, 3)
     gi = ps.GridIndices(shape)
 
-    assert gi.dtype == np.dtype('u1')
+    assert gi.dtype == np.dtype("u1")
     assert gi.shape == (6, 2)
-    assert repr(gi) == '<GridIndices(2, 3)>'
+    assert repr(gi) == "<GridIndices(2, 3)>"
 
     gi_arr = np.asanyarray(gi)
-    assert gi_arr.dtype == np.dtype('u1')
+    assert gi_arr.dtype == np.dtype("u1")
     assert gi_arr.shape == (6, 2)
     # Tractable to write out
     assert np.array_equal(gi_arr, [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
@@ -117,19 +119,19 @@ def test_GridIndices():
     shape = (2, 3, 4)
     gi = ps.GridIndices(shape)
 
-    assert gi.dtype == np.dtype('u1')
+    assert gi.dtype == np.dtype("u1")
     assert gi.shape == (24, 3)
-    assert repr(gi) == '<GridIndices(2, 3, 4)>'
+    assert repr(gi) == "<GridIndices(2, 3, 4)>"
 
     gi_arr = np.asanyarray(gi)
-    assert gi_arr.dtype == np.dtype('u1')
+    assert gi_arr.dtype == np.dtype("u1")
     assert gi_arr.shape == (24, 3)
     # Separate implementation
     assert np.array_equal(gi_arr, np.mgrid[:2, :3, :4].reshape(3, -1).T)
 
 
 class TestGrids(TestPointsets):
-    @pytest.mark.parametrize('shape', [(5, 5, 5), (5, 5, 5, 5), (5, 5, 5, 5, 5)])
+    @pytest.mark.parametrize("shape", [(5, 5, 5), (5, 5, 5, 5), (5, 5, 5, 5, 5)])
     def test_from_image(self, shape):
         # Check image is generates voxel coordinates
         affine = np.diag([2, 3, 4, 1])
@@ -165,7 +167,9 @@ class TestGrids(TestPointsets):
 
         mask_img = grid.to_mask()
         assert mask_img.shape == (2, 2, 2)
-        assert np.array_equal(mask_img.get_fdata(), [[[0, 0], [0, 0]], [[0, 0], [0, 1]]])
+        assert np.array_equal(
+            mask_img.get_fdata(), [[[0, 0], [0, 0]], [[0, 0], [0, 1]]]
+        )
         assert np.array_equal(mask_img.affine, np.eye(4))
 
         mask_img = grid.to_mask(shape=(3, 3, 3))

@@ -12,6 +12,7 @@ Format described here:
 
     https://www.nitrc.org/forum/message.php?msg_id=3738
 """
+
 import numpy as np
 
 from .analyze import AnalyzeHeader
@@ -134,8 +135,8 @@ class Nifti2Header(Nifti1Header):
     single_vox_offset = 544
 
     # Magics for single and pair
-    pair_magic = b'ni2'
-    single_magic = b'n+2'
+    pair_magic = b"ni2"
+    single_magic = b"n+2"
 
     # Size of header in sizeof_hdr field
     sizeof_hdr = 540
@@ -189,7 +190,7 @@ class Nifti2Header(Nifti1Header):
     def default_structarr(klass, endianness=None):
         """Create empty header binary block with given endianness"""
         hdr_data = super().default_structarr(endianness)
-        hdr_data['eol_check'] = (13, 10, 26, 10)
+        hdr_data["eol_check"] = (13, 10, 26, 10)
         return hdr_data
 
     """ Checks only below here """
@@ -202,22 +203,22 @@ class Nifti2Header(Nifti1Header):
     @staticmethod
     def _chk_eol_check(hdr, fix=False):
         rep = Report(HeaderDataError)
-        if np.all(hdr['eol_check'] == (13, 10, 26, 10)):
+        if np.all(hdr["eol_check"] == (13, 10, 26, 10)):
             return hdr, rep
-        if np.all(hdr['eol_check'] == 0):
+        if np.all(hdr["eol_check"] == 0):
             rep.problem_level = 20
-            rep.problem_msg = 'EOL check all 0'
+            rep.problem_msg = "EOL check all 0"
             if fix:
-                hdr['eol_check'] = (13, 10, 26, 10)
-                rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
+                hdr["eol_check"] = (13, 10, 26, 10)
+                rep.fix_msg = "setting EOL check to 13, 10, 26, 10"
             return hdr, rep
         rep.problem_level = 40
         rep.problem_msg = (
-            'EOL check not 0 or 13, 10, 26, 10; data may be corrupted by EOL conversion'
+            "EOL check not 0 or 13, 10, 26, 10; data may be corrupted by EOL conversion"
         )
         if fix:
-            hdr['eol_check'] = (13, 10, 26, 10)
-            rep.fix_msg = 'setting EOL check to 13, 10, 26, 10'
+            hdr["eol_check"] = (13, 10, 26, 10)
+            rep.fix_msg = "setting EOL check to 13, 10, 26, 10"
         return hdr, rep
 
     @classmethod
@@ -229,7 +230,7 @@ class Nifti2Header(Nifti1Header):
             shape=(), dtype=header_dtype, buffer=binaryblock[: klass.sizeof_hdr]
         )
         bs_hdr_struct = hdr_struct.byteswap()
-        return 540 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
+        return 540 in (hdr_struct["sizeof_hdr"], bs_hdr_struct["sizeof_hdr"])
 
 
 class Nifti2PairHeader(Nifti2Header):

@@ -34,8 +34,8 @@ import numpy as np
 
 from ..optpkg import optional_package
 
-_, have_scipy, _ = optional_package('scipy')
-_, have_h5py, _ = optional_package('h5py')
+_, have_scipy, _ = optional_package("scipy")
+_, have_h5py, _ = optional_package("h5py")
 
 import unittest
 
@@ -89,7 +89,7 @@ class GenericImageAPI(ValidateAPI):
     can_save = False
     # Filename extension to which to save image; only used if `can_save` is
     # True
-    standard_extension = '.img'
+    standard_extension = ".img"
 
     def obj_params(self):
         """Return generator returning (`img_creator`, `img_params`) tuples
@@ -159,38 +159,40 @@ class GenericImageAPI(ValidateAPI):
         assert_almost_equal(img.get_fdata(), rt_rt_img.get_fdata())
         assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
         # get_ / set_ filename
-        fname = 'an_image' + self.standard_extension
+        fname = "an_image" + self.standard_extension
         for path in (fname, pathlib.Path(fname)):
             img.set_filename(path)
             assert img.get_filename() == str(path)
-            assert img.file_map['image'].filename == str(path)
+            assert img.file_map["image"].filename == str(path)
         # to_ / from_ filename
-        fname = 'another_image' + self.standard_extension
+        fname = "another_image" + self.standard_extension
         for path in (fname, pathlib.Path(fname)):
             with InTemporaryDirectory():
                 # Validate that saving or loading a file doesn't use deprecated methods internally
                 with clear_and_catch_warnings():
                     warnings.filterwarnings(
-                        'error', category=DeprecationWarning, module=r'nibabel.*'
+                        "error", category=DeprecationWarning, module=r"nibabel.*"
                     )
                     img.to_filename(path)
                     rt_img = img.__class__.from_filename(path)
                 assert_array_equal(img.shape, rt_img.shape)
                 assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-                assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
+                assert_almost_equal(
+                    np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj)
+                )
                 del rt_img  # to allow windows to delete the directory
 
     def validate_no_slicing(self, imaker, params):
         img = imaker()
         with pytest.raises(TypeError):
-            img['string']
+            img["string"]
         with pytest.raises(TypeError):
             img[:]
 
-    @expires('5.0.0')
+    @expires("5.0.0")
     def validate_get_data_deprecated(self, imaker, params):
         img = imaker()
-        with deprecated_to('5.0.0'):
+        with deprecated_to("5.0.0"):
             data = img.get_data()
         assert_array_equal(np.asanyarray(img.dataobj), data)
 
@@ -205,12 +207,12 @@ class GetSetDtypeMixin:
         # data / storage dtype
         img = imaker()
         # Need to rename this one
-        assert img.get_data_dtype().type == params['dtype']
+        assert img.get_data_dtype().type == params["dtype"]
         # dtype survives round trip
         if self.has_scaling and self.can_save:
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 rt_img = bytesio_round_trip(img)
-            assert rt_img.get_data_dtype().type == params['dtype']
+            assert rt_img.get_data_dtype().type == params["dtype"]
         # Setting to a different dtype
         img.set_data_dtype(np.float32)  # assumed supported for all formats
         assert img.get_data_dtype().type == np.float32
@@ -227,7 +229,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     array or an array-like thing.
     """
 
-    meth_names = ('get_fdata',)
+    meth_names = ("get_fdata",)
 
     def validate_data_interface(self, imaker, params):
         # Check get data returns array, and caches
@@ -236,7 +238,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert img.ndim == len(img.shape)
         assert_data_similar(img.dataobj, params)
         for meth_name in self.meth_names:
-            if params['is_proxy']:
+            if params["is_proxy"]:
                 self._check_proxy_interface(imaker, meth_name)
             else:  # Array image
                 self._check_array_interface(imaker, meth_name)
@@ -248,7 +250,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             # Values to get_data caching parameter must be 'fill' or
             # 'unchanged'
             with pytest.raises(ValueError):
-                method(caching='something')
+                method(caching="something")
         # dataobj is read only
         fake_data = np.zeros(img.shape, dtype=img.get_data_dtype())
         with pytest.raises(AttributeError):
@@ -271,7 +273,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert not img.in_memory
         # Load with caching='unchanged'
         method = getattr(img, meth_name)
-        data = method(caching='unchanged')
+        data = method(caching="unchanged")
         # Still not cached
         assert not img.in_memory
         # Default load, does caching
@@ -287,10 +289,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # integers, but lets assume that's not true here.
         assert_array_equal(proxy_data, data)
         # Now caching='unchanged' does nothing, returns cached version
-        data_again = method(caching='unchanged')
+        data_again = method(caching="unchanged")
         assert data is data_again
         # caching='fill' does nothing because the cache is already full
-        data_yet_again = method(caching='fill')
+        data_yet_again = method(caching="fill")
         assert data is data_yet_again
         # changing array data does not change proxy data, or reloaded
         # data
@@ -308,7 +310,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         img = imaker()
         method = getattr(img, meth_name)
         assert not img.in_memory
-        data = method(caching='fill')
+        data = method(caching="fill")
         assert img.in_memory
         data_again = method()
         assert data is data_again
@@ -321,31 +323,31 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert_array_equal(fdata_back, 42)
         assert fdata_back.dtype == np.float64
         # New data dtype, no caching, doesn't use or alter cache
-        fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
+        fdata_new_dt = img.get_fdata(caching="unchanged", dtype="f4")
         # We get back the original read, not the modified cache
         # Allow for small rounding error when the data is scaled with 32-bit
         # factors, rather than 64-bit factors and then cast to float-32
         # Use rtol/atol from numpy.allclose
-        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        assert_allclose(fdata_new_dt, proxy_data.astype("f4"), rtol=1e-05, atol=1e-08)
         assert fdata_new_dt.dtype == np.float32
         # The original cache stays in place, for default float64
         assert_array_equal(img.get_fdata(), 42)
         # And for not-default float32, because we haven't cached
         fdata_new_dt[:] = 43
-        fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
-        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        fdata_new_dt = img.get_fdata(caching="unchanged", dtype="f4")
+        assert_allclose(fdata_new_dt, proxy_data.astype("f4"), rtol=1e-05, atol=1e-08)
         # Until we reset with caching='fill', at which point we
         # drop the original float64 cache, and have a float32 cache
-        fdata_new_dt = img.get_fdata(caching='fill', dtype='f4')
-        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        fdata_new_dt = img.get_fdata(caching="fill", dtype="f4")
+        assert_allclose(fdata_new_dt, proxy_data.astype("f4"), rtol=1e-05, atol=1e-08)
         # We're using the cache, for dtype='f4' reads
         fdata_new_dt[:] = 43
-        assert_array_equal(img.get_fdata(dtype='f4'), 43)
+        assert_array_equal(img.get_fdata(dtype="f4"), 43)
         # We've lost the cache for float64 reads (no longer 42)
         assert_array_equal(img.get_fdata(), proxy_data)
 
     def _check_array_interface(self, imaker, meth_name):
-        for caching in (None, 'fill', 'unchanged'):
+        for caching in (None, "fill", "unchanged"):
             self._check_array_caching(imaker, meth_name, caching)
 
     def _check_array_caching(self, imaker, meth_name, caching):
@@ -363,7 +365,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Set something to the output array.
         data[:] = 42
         get_result_changed = np.all(get_data_func() == 42)
-        assert get_result_changed == (dataobj_is_data or caching != 'unchanged')
+        assert get_result_changed == (dataobj_is_data or caching != "unchanged")
         if dataobj_is_data:
             assert data is img.dataobj
             # Changing array data changes
@@ -382,11 +384,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # cache state.
         img.uncache()
         assert img.in_memory
-        if meth_name != 'get_fdata':
+        if meth_name != "get_fdata":
             return
         # Return original array from get_fdata only if the input array is the
         # requested dtype.
-        float_types = sctypes['float']
+        float_types = sctypes["float"]
         if arr_dtype not in float_types:
             return
         for float_type in float_types:
@@ -397,10 +399,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Validate shape
         img = imaker()
         # Same as expected shape
-        assert img.shape == params['shape']
+        assert img.shape == params["shape"]
         # Same as array shape if passed
-        if 'data' in params:
-            assert img.shape == params['data'].shape
+        if "data" in params:
+            assert img.shape == params["data"].shape
         # Read only
         with pytest.raises(AttributeError):
             img.shape = np.eye(4)
@@ -409,10 +411,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Validate shape
         img = imaker()
         # Same as expected ndim
-        assert img.ndim == len(params['shape'])
+        assert img.ndim == len(params["shape"])
         # Same as array ndim if passed
-        if 'data' in params:
-            assert img.ndim == params['data'].ndim
+        if "data" in params:
+            assert img.ndim == params["data"].ndim
         # Read only
         with pytest.raises(AttributeError):
             img.ndim = 5
@@ -428,21 +430,21 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 # Skip only formats we can't write
                 if not img.rw or not img.valid_exts:
                     return
-                fname = 'image' + img.valid_exts[0]
+                fname = "image" + img.valid_exts[0]
                 img.to_filename(fname)
             rt_img = img.__class__.from_filename(fname, mmap=True)
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
             rt_img = img.__class__.from_filename(fname, mmap=False)
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-            rt_img = img.__class__.from_filename(fname, mmap='c')
+            rt_img = img.__class__.from_filename(fname, mmap="c")
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
-            rt_img = img.__class__.from_filename(fname, mmap='r')
+            rt_img = img.__class__.from_filename(fname, mmap="r")
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
             # r+ is specifically not valid for images
             with pytest.raises(ValueError):
-                img.__class__.from_filename(fname, mmap='r+')
+                img.__class__.from_filename(fname, mmap="r+")
             with pytest.raises(ValueError):
-                img.__class__.from_filename(fname, mmap='invalid')
+                img.__class__.from_filename(fname, mmap="invalid")
             del rt_img  # to allow windows to delete the directory
 
 
@@ -473,7 +475,7 @@ class AffineMixin:
     def validate_affine(self, imaker, params):
         # Check affine API
         img = imaker()
-        assert_almost_equal(img.affine, params['affine'], 6)
+        assert_almost_equal(img.affine, params["affine"], 6)
         assert img.affine.dtype == np.float64
         img.affine[0, 0] = 1.5
         assert img.affine[0, 0] == 1.5
@@ -485,7 +487,7 @@ class AffineMixin:
 class SerializeMixin:
     def validate_to_from_stream(self, imaker, params):
         img = imaker()
-        klass = getattr(self, 'klass', img.__class__)
+        klass = getattr(self, "klass", img.__class__)
         stream = io.BytesIO()
         img.to_stream(stream)
 
@@ -495,22 +497,22 @@ class SerializeMixin:
 
     def validate_file_stream_equivalence(self, imaker, params):
         img = imaker()
-        klass = getattr(self, 'klass', img.__class__)
+        klass = getattr(self, "klass", img.__class__)
         with InTemporaryDirectory():
-            fname = 'img' + self.standard_extension
+            fname = "img" + self.standard_extension
             img.to_filename(fname)
 
-            with open('stream', 'wb') as fobj:
+            with open("stream", "wb") as fobj:
                 img.to_stream(fobj)
 
             # Check that writing gets us the same thing
             contents1 = pathlib.Path(fname).read_bytes()
-            contents2 = pathlib.Path('stream').read_bytes()
+            contents2 = pathlib.Path("stream").read_bytes()
             assert contents1 == contents2
 
             # Check that reading gets us the same thing
             img_a = klass.from_filename(fname)
-            with open(fname, 'rb') as fobj:
+            with open(fname, "rb") as fobj:
                 img_b = klass.from_stream(fobj)
                 # This needs to happen while the filehandle is open
                 assert np.array_equal(img_a.get_fdata(), img_b.get_fdata())
@@ -520,14 +522,14 @@ class SerializeMixin:
 
     def validate_to_from_bytes(self, imaker, params):
         img = imaker()
-        klass = getattr(self, 'klass', img.__class__)
+        klass = getattr(self, "klass", img.__class__)
         with InTemporaryDirectory():
-            fname = 'img' + self.standard_extension
+            fname = "img" + self.standard_extension
             img.to_filename(fname)
 
-            all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
+            all_images = list(getattr(self, "example_images", [])) + [{"fname": fname}]
             for img_params in all_images:
-                img_a = klass.from_filename(img_params['fname'])
+                img_a = klass.from_filename(img_params["fname"])
                 bytes_a = img_a.to_bytes()
 
                 img_b = klass.from_bytes(bytes_a)
@@ -550,9 +552,9 @@ class SerializeMixin:
         img = imaker()
         img_bytes = img.to_bytes()
 
-        server.expect_oneshot_request('/img').respond_with_data(img_bytes)
-        url = server.url_for('/img')
-        assert url.startswith('http://')  # Check we'll trigger an HTTP handler
+        server.expect_oneshot_request("/img").respond_with_data(img_bytes)
+        url = server.url_for("/img")
+        assert url.startswith("http://")  # Check we'll trigger an HTTP handler
         rt_img = img.__class__.from_url(url)
 
         assert rt_img.to_bytes() == img_bytes
@@ -563,7 +565,7 @@ class SerializeMixin:
 
     @pytest.mark.xfail(
         sys.version_info >= (3, 12),
-        reason='Response type for file: urls is not a stream in Python 3.12',
+        reason="Response type for file: urls is not a stream in Python 3.12",
     )
     def validate_from_file_url(self, imaker, params):
         tmp_path = self.tmp_path
@@ -571,10 +573,10 @@ class SerializeMixin:
         img = imaker()
         import uuid
 
-        fname = tmp_path / f'img-{uuid.uuid4()}{self.standard_extension}'
+        fname = tmp_path / f"img-{uuid.uuid4()}{self.standard_extension}"
         img.to_filename(fname)
 
-        rt_img = img.__class__.from_url(f'file:///{fname}')
+        rt_img = img.__class__.from_url(f"file:///{fname}")
 
         assert self._header_eq(img.header, rt_img.header)
         assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
@@ -605,11 +607,11 @@ class LoadImageAPI(
 
     def obj_params(self):
         for img_params in self.example_images:
-            yield lambda: self.loader(img_params['fname']), img_params
+            yield lambda: self.loader(img_params["fname"]), img_params
 
     def validate_path_maybe_image(self, imaker, params):
         for img_params in self.example_images:
-            test, sniff = self.klass.path_maybe_image(img_params['fname'])
+            test, sniff = self.klass.path_maybe_image(img_params["fname"])
             assert isinstance(test, bool)
             if sniff is not None:
                 assert isinstance(sniff[0], bytes)
@@ -653,13 +655,15 @@ class MakeImageAPI(LoadImageAPI):
             hdr = self.header_maker()
             hdr.set_data_dtype(stored_dtype)
             func = make_imaker(arr.copy(), aff, hdr)
-            params = dict(dtype=stored_dtype, affine=aff, data=arr, shape=shape, is_proxy=False)
+            params = dict(
+                dtype=stored_dtype, affine=aff, data=arr, shape=shape, is_proxy=False
+            )
             yield make_imaker(arr.copy(), aff, hdr), params
             if not self.can_save:
                 continue
             # Create proxy images from these array images, by storing via BytesIO.
             # We assume that loading from a fileobj creates a proxy image.
-            params['is_proxy'] = True
+            params["is_proxy"] = True
             yield make_prox_imaker(arr.copy(), aff, hdr), params
 
 
@@ -672,14 +676,14 @@ class DtypeOverrideMixin(GetSetDtypeMixin):
         img = imaker()
         klass = img.__class__
         for dtype in self.storable_dtypes:
-            if hasattr(img, 'affine'):
+            if hasattr(img, "affine"):
                 new_img = klass(img.dataobj, img.affine, header=img.header, dtype=dtype)
             else:  # XXX This is for CIFTI-2, these validators might need refactoring
                 new_img = klass(img.dataobj, header=img.header, dtype=dtype)
             assert new_img.get_data_dtype() == dtype
 
             if self.has_scaling and self.can_save:
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     rt_img = bytesio_round_trip(new_img)
                 assert rt_img.get_data_dtype() == dtype
 
@@ -688,7 +692,7 @@ class DtypeOverrideMixin(GetSetDtypeMixin):
             raise unittest.SkipTest
         img = imaker()
         orig_dtype = img.get_data_dtype()
-        fname = 'image' + self.standard_extension
+        fname = "image" + self.standard_extension
         with InTemporaryDirectory():
             for dtype in self.storable_dtypes:
                 try:
@@ -721,7 +725,7 @@ class TestAnalyzeAPI(TestSpatialImageAPI, DtypeOverrideMixin):
     klass = image_maker = AnalyzeImage
     has_scaling = False
     can_save = True
-    standard_extension = '.img'
+    standard_extension = ".img"
     # Supported dtypes for storing to disk
     storable_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.float64)
 
@@ -744,7 +748,7 @@ class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
 
 class TestNifti1API(TestNifti1PairAPI, SerializeMixin):
     klass = image_maker = Nifti1Image
-    standard_extension = '.nii'
+    standard_extension = ".nii"
 
 
 class TestNifti2PairAPI(TestNifti1PairAPI):
@@ -764,7 +768,7 @@ class TestMinc1API(ImageHeaderAPI):
 class TestMinc2API(TestMinc1API):
     def setup_method(self):
         if not have_h5py:
-            raise unittest.SkipTest('Need h5py for these tests')
+            raise unittest.SkipTest("Need h5py for these tests")
 
     klass = image_maker = Minc2Image
     loader = minc2.load
@@ -792,13 +796,13 @@ class TestMGHAPI(ImageHeaderAPI, SerializeMixin):
     example_shapes = ((2, 3, 4), (2, 3, 4, 5))  # MGH can only do >= 3D
     has_scaling = True
     can_save = True
-    standard_extension = '.mgh'
+    standard_extension = ".mgh"
 
 
 class TestGiftiAPI(LoadImageAPI, SerializeMixin):
     klass = image_maker = GiftiImage
     can_save = True
-    standard_extension = '.gii'
+    standard_extension = ".gii"
 
 
 class TestAFNIAPI(LoadImageAPI):

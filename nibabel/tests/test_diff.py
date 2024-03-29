@@ -1,14 +1,13 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""Test diff
-"""
+"""Test diff"""
 
 from os.path import abspath, dirname
 from os.path import join as pjoin
 
 import numpy as np
 
-DATA_PATH = abspath(pjoin(dirname(__file__), 'data'))
+DATA_PATH = abspath(pjoin(dirname(__file__), "data"))
 
 from nibabel.cmdline.diff import are_values_different
 
@@ -34,10 +33,10 @@ def test_diff_values_float():
 
 def test_diff_values_mixed():
     assert are_values_different(1.0, 1)
-    assert are_values_different(1.0, '1')
-    assert are_values_different(1, '1')
+    assert are_values_different(1.0, "1")
+    assert are_values_different(1, "1")
     assert are_values_different(1, None)
-    assert are_values_different(np.ndarray([0]), 'hey')
+    assert are_values_different(np.ndarray([0]), "hey")
     assert not are_values_different(None, None)
 
 
@@ -63,7 +62,9 @@ def test_diff_values_array():
     assert are_values_different(nan, nan, 1)
     assert are_values_different(1, nan, nan)
     assert not are_values_different(array([nan, nan]), array([nan, nan]))
-    assert not are_values_different(array([nan, nan]), array([nan, nan]), array([nan, nan]))
+    assert not are_values_different(
+        array([nan, nan]), array([nan, nan]), array([nan, nan])
+    )
     assert not are_values_different(array([nan, 1]), array([nan, 1]))
     assert are_values_different(array([nan, nan]), array([nan, 1]))
     assert are_values_different(array([0, nan]), array([nan, 0]))
@@ -76,6 +77,6 @@ def test_diff_values_array():
 
     # we will allow for types to be of different endianness but the
     # same in "instantiation" type and value
-    assert not are_values_different(np.array(1, dtype='<i4'), np.array(1, dtype='>i4'))
+    assert not are_values_different(np.array(1, dtype="<i4"), np.array(1, dtype=">i4"))
     # but do report difference if instantiation type is different:
-    assert are_values_different(np.array(1, dtype='<i4'), np.array(1, dtype='<i2'))
+    assert are_values_different(np.array(1, dtype="<i4"), np.array(1, dtype="<i2"))

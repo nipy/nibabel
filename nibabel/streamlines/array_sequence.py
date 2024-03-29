@@ -30,7 +30,7 @@ class _BuildCache:
         # Use the passed dtype only if null data array
         self.dtype = dtype if arr_seq._data.size == 0 else arr_seq._data.dtype
         if arr_seq.common_shape != () and common_shape != arr_seq.common_shape:
-            raise ValueError('All dimensions, except the first one, must match exactly')
+            raise ValueError("All dimensions, except the first one, must match exactly")
         self.common_shape = common_shape
         n_in_row = reduce(mul, common_shape, 1)
         bytes_per_row = n_in_row * dtype.itemsize
@@ -50,9 +50,9 @@ def _define_operators(cls):
                 return self._op(op)
             except SystemError as e:
                 message = (
-                    'Numpy returned an uninformative error. It possibly should be '
+                    "Numpy returned an uninformative error. It possibly should be "
                     "'Integers to negative integer powers are not allowed.' "
-                    'See https://github.com/numpy/numpy/issues/19634 for details.'
+                    "See https://github.com/numpy/numpy/issues/19634 for details."
                 )
                 raise ValueError(message) from e
 
@@ -61,9 +61,9 @@ def _define_operators(cls):
                 return self._op(op, value, inplace=inplace)
             except SystemError as e:
                 message = (
-                    'Numpy returned an uninformative error. It possibly should be '
+                    "Numpy returned an uninformative error. It possibly should be "
                     "'Integers to negative integer powers are not allowed.' "
-                    'See https://github.com/numpy/numpy/issues/19634 for details.'
+                    "See https://github.com/numpy/numpy/issues/19634 for details."
                 )
                 raise ValueError(message) from e
 
@@ -73,26 +73,26 @@ def _define_operators(cls):
         fn.__doc__ = getattr(np.ndarray, op).__doc__
 
     for op in (
-        '__add__',
-        '__sub__',
-        '__mul__',
-        '__mod__',
-        '__pow__',
-        '__floordiv__',
-        '__truediv__',
-        '__lshift__',
-        '__rshift__',
-        '__or__',
-        '__and__',
-        '__xor__',
+        "__add__",
+        "__sub__",
+        "__mul__",
+        "__mod__",
+        "__pow__",
+        "__floordiv__",
+        "__truediv__",
+        "__lshift__",
+        "__rshift__",
+        "__or__",
+        "__and__",
+        "__xor__",
     ):
         _wrap(cls, op=op, inplace=False)
         _wrap(cls, op=f"__i{op.strip('_')}__", inplace=True)
 
-    for op in ('__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__'):
+    for op in ("__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__"):
         _wrap(cls, op)
 
-    for op in ('__neg__', '__abs__', '__invert__'):
+    for op in ("__neg__", "__abs__", "__invert__"):
         _wrap(cls, op, unary=True)
 
     return cls
@@ -178,17 +178,17 @@ class ArraySequence:
 
     def _check_shape(self, arrseq):
         """Check whether this array sequence is compatible with another."""
-        msg = 'cannot perform operation - array sequences have different'
+        msg = "cannot perform operation - array sequences have different"
         if len(self._lengths) != len(arrseq._lengths):
-            msg += f' lengths: {len(self._lengths)} vs. {len(arrseq._lengths)}.'
+            msg += f" lengths: {len(self._lengths)} vs. {len(arrseq._lengths)}."
             raise ValueError(msg)
 
         if self.total_nb_rows != arrseq.total_nb_rows:
-            msg += f' amount of data: {self.total_nb_rows} vs. {arrseq.total_nb_rows}.'
+            msg += f" amount of data: {self.total_nb_rows} vs. {arrseq.total_nb_rows}."
             raise ValueError(msg)
 
         if self.common_shape != arrseq.common_shape:
-            msg += f' common shape: {self.common_shape} vs. {arrseq.common_shape}.'
+            msg += f" common shape: {self.common_shape} vs. {arrseq.common_shape}."
             raise ValueError(msg)
 
         return True
@@ -285,7 +285,9 @@ class ArraySequence:
                 self._data.resize(new_shape, refcheck=False)
 
     def shrink_data(self):
-        self._data.resize((self._get_next_offset(),) + self.common_shape, refcheck=False)
+        self._data.resize(
+            (self._get_next_offset(),) + self.common_shape, refcheck=False
+        )
 
     def extend(self, elements):
         """Appends all `elements` to this array sequence.
@@ -319,7 +321,9 @@ class ArraySequence:
             e0 = np.asarray(elements[0])
             n_elements = np.sum([len(e) for e in elements])
             self._build_cache = _BuildCache(self, e0.shape[1:], e0.dtype)
-            self._resize_data_to(self._get_next_offset() + n_elements, self._build_cache)
+            self._resize_data_to(
+                self._get_next_offset() + n_elements, self._build_cache
+            )
 
         for e in elements:
             self.append(e, cache_build=True)
@@ -342,7 +346,9 @@ class ArraySequence:
         """
         seq = self.__class__()
         total_lengths = np.sum(self._lengths)
-        seq._data = np.empty((total_lengths,) + self._data.shape[1:], dtype=self._data.dtype)
+        seq._data = np.empty(
+            (total_lengths,) + self._data.shape[1:], dtype=self._data.dtype
+        )
 
         next_offset = 0
         offsets = []
@@ -401,8 +407,8 @@ class ArraySequence:
             return seq
 
         raise TypeError(
-            'Index must be either an int, a slice, a list of int'
-            ' or a ndarray of bool! Not ' + str(type(idx))
+            "Index must be either an int, a slice, a list of int"
+            " or a ndarray of bool! Not " + str(type(idx))
         )
 
     def __setitem__(self, idx, elements):
@@ -444,20 +450,22 @@ class ArraySequence:
 
         else:
             raise TypeError(
-                'Index must be either an int, a slice, a list of int'
-                ' or a ndarray of bool! Not ' + str(type(idx))
+                "Index must be either an int, a slice, a list of int"
+                " or a ndarray of bool! Not " + str(type(idx))
             )
 
         if is_array_sequence(elements):
             if len(lengths) != len(elements):
-                msg = f'Trying to set {len(lengths)} sequences with {len(elements)} sequences.'
+                msg = f"Trying to set {len(lengths)} sequences with {len(elements)} sequences."
                 raise ValueError(msg)
 
             if sum(lengths) != elements.total_nb_rows:
-                msg = f'Trying to set {sum(lengths)} points with {elements.total_nb_rows} points.'
+                msg = f"Trying to set {sum(lengths)} points with {elements.total_nb_rows} points."
                 raise ValueError(msg)
 
-            for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
+            for o1, l1, o2, l2 in zip(
+                offsets, lengths, elements._offsets, elements._lengths
+            ):
                 data[o1 : o1 + l1] = elements._data[o2 : o2 + l2]
 
         elif isinstance(elements, numbers.Number):
@@ -510,7 +518,9 @@ class ArraySequence:
                 )
 
         else:
-            args = [] if value is None else [value]  # Dealing with unary and binary ops.
+            args = (
+                [] if value is None else [value]
+            )  # Dealing with unary and binary ops.
             elements = zip(seq._offsets, seq._lengths, self._offsets, self._lengths)
 
             # Change seq.dtype to match the operation resulting type.
@@ -527,7 +537,7 @@ class ArraySequence:
     def __iter__(self):
         if len(self._lengths) != len(self._offsets):
             raise ValueError(
-                'ArraySequence object corrupted: len(self._lengths) != len(self._offsets)'
+                "ArraySequence object corrupted: len(self._lengths) != len(self._offsets)"
             )
 
         for offset, lengths in zip(self._offsets, self._lengths):
@@ -537,29 +547,31 @@ class ArraySequence:
         return len(self._offsets)
 
     def __repr__(self):
-        if len(self) > np.get_printoptions()['threshold']:
+        if len(self) > np.get_printoptions()["threshold"]:
             # Show only the first and last edgeitems.
-            edgeitems = np.get_printoptions()['edgeitems']
+            edgeitems = np.get_printoptions()["edgeitems"]
             data = str(list(self[:edgeitems]))[:-1]
-            data += ', ..., '
+            data += ", ..., "
             data += str(list(self[-edgeitems:]))[1:]
         else:
             data = str(list(self))
 
-        return f'{self.__class__.__name__}({data})'
+        return f"{self.__class__.__name__}({data})"
 
     def save(self, filename):
         """Saves this :class:`ArraySequence` object to a .npz file."""
-        np.savez(filename, data=self._data, offsets=self._offsets, lengths=self._lengths)
+        np.savez(
+            filename, data=self._data, offsets=self._offsets, lengths=self._lengths
+        )
 
     @classmethod
     def load(cls, filename):
         """Loads a :class:`ArraySequence` object from a .npz file."""
         content = np.load(filename)
         seq = cls()
-        seq._data = content['data']
-        seq._offsets = content['offsets']
-        seq._lengths = content['lengths']
+        seq._data = content["data"]
+        seq._offsets = content["offsets"]
+        seq._lengths = content["lengths"]
         return seq
 
 

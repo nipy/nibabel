@@ -121,6 +121,7 @@ The volume sorting described above can be enabled in the parrec2nii command
 utility via the option "--strict-sort".  The dimension info can be exported
 to a CSV file by adding the option "--volume-info".
 """
+
 import re
 import warnings
 from collections import OrderedDict
@@ -178,93 +179,93 @@ DEG2RAD = np.pi / 180.0
 # values are: (shortname[, dtype[, shape]])
 # if shape is None, the number of elements is to be determined on read
 _hdr_key_dict = {
-    'Patient name': ('patient_name',),
-    'Examination name': ('exam_name',),
-    'Protocol name': ('protocol_name',),
-    'Examination date/time': ('exam_date',),
-    'Series Type': ('series_type',),
-    'Acquisition nr': ('acq_nr', int),
-    'Reconstruction nr': ('recon_nr', int),
-    'Scan Duration [sec]': ('scan_duration', float),
-    'Max. number of cardiac phases': ('max_cardiac_phases', int),
-    'Max. number of echoes': ('max_echoes', int),
-    'Max. number of slices/locations': ('max_slices', int),
-    'Max. number of dynamics': ('max_dynamics', int),
-    'Max. number of mixes': ('max_mixes', int),
-    'Patient position': ('patient_position',),
-    'Preparation direction': ('prep_direction',),
-    'Technique': ('tech',),
-    'Scan resolution  (x, y)': ('scan_resolution', int, (2,)),
-    'Scan mode': ('scan_mode',),
-    'Repetition time [ms]': ('repetition_time', float, None),
-    'FOV (ap,fh,rl) [mm]': ('fov', float, (3,)),
-    'Water Fat shift [pixels]': ('water_fat_shift', float),
-    'Angulation midslice(ap,fh,rl)[degr]': ('angulation', float, (3,)),
-    'Off Centre midslice(ap,fh,rl) [mm]': ('off_center', float, (3,)),
-    'Flow compensation <0=no 1=yes> ?': ('flow_compensation', int),
-    'Presaturation     <0=no 1=yes> ?': ('presaturation', int),
-    'Phase encoding velocity [cm/sec]': ('phase_enc_velocity', float, (3,)),
-    'MTC               <0=no 1=yes> ?': ('mtc', int),
-    'SPIR              <0=no 1=yes> ?': ('spir', int),
-    'EPI factor        <0,1=no EPI>': ('epi_factor', int),
-    'Dynamic scan      <0=no 1=yes> ?': ('dyn_scan', int),
-    'Diffusion         <0=no 1=yes> ?': ('diffusion', int),
-    'Diffusion echo time [ms]': ('diffusion_echo_time', float),
+    "Patient name": ("patient_name",),
+    "Examination name": ("exam_name",),
+    "Protocol name": ("protocol_name",),
+    "Examination date/time": ("exam_date",),
+    "Series Type": ("series_type",),
+    "Acquisition nr": ("acq_nr", int),
+    "Reconstruction nr": ("recon_nr", int),
+    "Scan Duration [sec]": ("scan_duration", float),
+    "Max. number of cardiac phases": ("max_cardiac_phases", int),
+    "Max. number of echoes": ("max_echoes", int),
+    "Max. number of slices/locations": ("max_slices", int),
+    "Max. number of dynamics": ("max_dynamics", int),
+    "Max. number of mixes": ("max_mixes", int),
+    "Patient position": ("patient_position",),
+    "Preparation direction": ("prep_direction",),
+    "Technique": ("tech",),
+    "Scan resolution  (x, y)": ("scan_resolution", int, (2,)),
+    "Scan mode": ("scan_mode",),
+    "Repetition time [ms]": ("repetition_time", float, None),
+    "FOV (ap,fh,rl) [mm]": ("fov", float, (3,)),
+    "Water Fat shift [pixels]": ("water_fat_shift", float),
+    "Angulation midslice(ap,fh,rl)[degr]": ("angulation", float, (3,)),
+    "Off Centre midslice(ap,fh,rl) [mm]": ("off_center", float, (3,)),
+    "Flow compensation <0=no 1=yes> ?": ("flow_compensation", int),
+    "Presaturation     <0=no 1=yes> ?": ("presaturation", int),
+    "Phase encoding velocity [cm/sec]": ("phase_enc_velocity", float, (3,)),
+    "MTC               <0=no 1=yes> ?": ("mtc", int),
+    "SPIR              <0=no 1=yes> ?": ("spir", int),
+    "EPI factor        <0,1=no EPI>": ("epi_factor", int),
+    "Dynamic scan      <0=no 1=yes> ?": ("dyn_scan", int),
+    "Diffusion         <0=no 1=yes> ?": ("diffusion", int),
+    "Diffusion echo time [ms]": ("diffusion_echo_time", float),
     # Lines below added for par / rec versions > 4
-    'Max. number of diffusion values': ('max_diffusion_values', int),
-    'Max. number of gradient orients': ('max_gradient_orient', int),
+    "Max. number of diffusion values": ("max_diffusion_values", int),
+    "Max. number of gradient orients": ("max_gradient_orient", int),
     # Line below added for par / rec version > 4.1
-    'Number of label types   <0=no ASL>': ('nr_label_types', int),
+    "Number of label types   <0=no ASL>": ("nr_label_types", int),
     # The following are duplicates of the above fields, but with slightly
     # different abbreviation, spelling, or capatilization.  Both variants have
     # been observed in the wild in V4.2 PAR files:
     # https://github.com/nipy/nibabel/issues/505
-    'Series_data_type': ('series_type',),
-    'Patient Position': ('patient_position',),
-    'Repetition time [msec]': ('repetition_time', float, None),
-    'Diffusion echo time [msec]': ('diffusion_echo_time', float),
+    "Series_data_type": ("series_type",),
+    "Patient Position": ("patient_position",),
+    "Repetition time [msec]": ("repetition_time", float, None),
+    "Diffusion echo time [msec]": ("diffusion_echo_time", float),
 }
 
 # Image information as coded into a numpy structured array
 # header items order per image definition line
 image_def_dtds = {}
-image_def_dtds['V4'] = [
-    ('slice number', int),
-    ('echo number', int),
-    ('dynamic scan number', int),
-    ('cardiac phase number', int),
-    ('image_type_mr', int),
-    ('scanning sequence', int),
-    ('index in REC file', int),
-    ('image pixel size', int),
-    ('scan percentage', int),
-    ('recon resolution', int, (2)),
-    ('rescale intercept', float),
-    ('rescale slope', float),
-    ('scale slope', float),
+image_def_dtds["V4"] = [
+    ("slice number", int),
+    ("echo number", int),
+    ("dynamic scan number", int),
+    ("cardiac phase number", int),
+    ("image_type_mr", int),
+    ("scanning sequence", int),
+    ("index in REC file", int),
+    ("image pixel size", int),
+    ("scan percentage", int),
+    ("recon resolution", int, (2)),
+    ("rescale intercept", float),
+    ("rescale slope", float),
+    ("scale slope", float),
     # Window center, width recorded as integer but can be float
-    ('window center', float),
-    ('window width', float),
-    ('image angulation', float, (3,)),
-    ('image offcentre', float, (3,)),
-    ('slice thickness', float),
-    ('slice gap', float),
-    ('image_display_orientation', int),
-    ('slice orientation', int),
-    ('fmri_status_indication', int),
-    ('image_type_ed_es', int),
-    ('pixel spacing', float, (2,)),
-    ('echo_time', float),
-    ('dyn_scan_begin_time', float),
-    ('trigger_time', float),
-    ('diffusion_b_factor', float),
-    ('number of averages', int),
-    ('image_flip_angle', float),
-    ('cardiac frequency', int),
-    ('minimum RR-interval', int),
-    ('maximum RR-interval', int),
-    ('TURBO factor', int),
-    ('Inversion delay', float),
+    ("window center", float),
+    ("window width", float),
+    ("image angulation", float, (3,)),
+    ("image offcentre", float, (3,)),
+    ("slice thickness", float),
+    ("slice gap", float),
+    ("image_display_orientation", int),
+    ("slice orientation", int),
+    ("fmri_status_indication", int),
+    ("image_type_ed_es", int),
+    ("pixel spacing", float, (2,)),
+    ("echo_time", float),
+    ("dyn_scan_begin_time", float),
+    ("trigger_time", float),
+    ("diffusion_b_factor", float),
+    ("number of averages", int),
+    ("image_flip_angle", float),
+    ("cardiac frequency", int),
+    ("minimum RR-interval", int),
+    ("maximum RR-interval", int),
+    ("TURBO factor", int),
+    ("Inversion delay", float),
 ]
 
 # Extra image def fields for 4.1 compared to 4
@@ -287,16 +288,16 @@ image_def_dtds['V4.2'] = image_def_dtds['V4.1'] + [
 supported_versions = list(image_def_dtds.keys())
 
 #: Deprecated; please don't use
-image_def_dtype = np.dtype(image_def_dtds['V4.2'])
+image_def_dtype = np.dtype(image_def_dtds["V4.2"])
 
 #: slice orientation codes
 slice_orientation_codes = Recoder(
     (  # code, label
-        (1, 'transverse'),
-        (2, 'sagittal'),
-        (3, 'coronal'),
+        (1, "transverse"),
+        (2, "sagittal"),
+        (3, "coronal"),
     ),
-    fields=('code', 'label'),
+    fields=("code", "label"),
 )
 
 
@@ -309,7 +310,7 @@ class PARRECError(Exception):
 
 
 # Value after colon may be absent
-GEN_RE = re.compile(r'.\s+(.*?)\s*:\s*(.*)')
+GEN_RE = re.compile(r".\s+(.*?)\s*:\s*(.*)")
 
 
 def _split_header(fobj):
@@ -318,27 +319,27 @@ def _split_header(fobj):
     gen_dict = {}
     image_lines = []
     # Small state-machine
-    state = 'top-header'
+    state = "top-header"
     for line in fobj:
         line = line.strip()
-        if line == '':
+        if line == "":
             continue
-        if state == 'top-header':
-            if not line.startswith('#'):
-                state = 'general-info'
-            elif 'image export tool' in line:
+        if state == "top-header":
+            if not line.startswith("#"):
+                state = "general-info"
+            elif "image export tool" in line:
                 version = line.split()[-1]
-        if state == 'general-info':
-            if not line.startswith('.'):
-                state = 'comment-block'
+        if state == "general-info":
+            if not line.startswith("."):
+                state = "comment-block"
             else:  # Let match raise error for unexpected field format
                 key, value = GEN_RE.match(line).groups()
                 gen_dict[key] = value
-        if state == 'comment-block':
-            if not line.startswith('#'):
-                state = 'image-info'
-        if state == 'image-info':
-            if line.startswith('#'):
+        if state == "comment-block":
+            if not line.startswith("#"):
+                state = "image-info"
+        if state == "image-info":
+            if line.startswith("#"):
                 break
             image_lines.append(line)
     return version, gen_dict, image_lines
@@ -356,7 +357,7 @@ def _process_gen_dict(gen_dict):
             value = props[1](value)
         elif len(props) == 3:
             # array with dtype and shape
-            value = np.fromstring(value, props[1], sep=' ')
+            value = np.fromstring(value, props[1], sep=" ")
             # if shape is None, allow arbitrary length
             if props[2] is not None:
                 value.shape = props[2]
@@ -379,7 +380,7 @@ def _process_image_lines(image_lines, version):
             if len(props) == 2:
                 name, np_type = props
                 value = items[item_counter]
-                if not np.dtype(np_type).kind == 'S':
+                if not np.dtype(np_type).kind == "S":
                     value = np_type(value)
                 item_counter += 1
             elif len(props) == 3:
@@ -445,7 +446,9 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     """
     slice_set = set(range(slice_min, slice_max + 1))
     if not slice_set.issuperset(slice_nos):
-        raise ValueError(f'Slice numbers outside inclusive range {slice_min} to {slice_max}')
+        raise ValueError(
+            f"Slice numbers outside inclusive range {slice_min} to {slice_max}"
+        )
     vol_nos = np.array(vol_numbers(slice_nos))
     slice_nos = np.asarray(slice_nos)
     is_full = np.ones(slice_nos.shape, dtype=bool)
@@ -470,29 +473,29 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
     def _chk_trunc(idef_name, gdef_max_name):
         if gdef_max_name not in general_info:
             return
-        id_values = image_defs[idef_name + ' number']
+        id_values = image_defs[idef_name + " number"]
         n_have = len(set(id_values))
         n_expected = general_info[gdef_max_name]
         if n_have != n_expected:
             _err_or_warn(
-                f'Header inconsistency: Found {n_have} {idef_name} '
-                f'values, but expected {n_expected}'
+                f"Header inconsistency: Found {n_have} {idef_name} "
+                f"values, but expected {n_expected}"
             )
 
-    _chk_trunc('slice', 'max_slices')
-    _chk_trunc('echo', 'max_echoes')
-    _chk_trunc('dynamic scan', 'max_dynamics')
-    _chk_trunc('diffusion b value', 'max_diffusion_values')
-    _chk_trunc('gradient orientation', 'max_gradient_orient')
+    _chk_trunc("slice", "max_slices")
+    _chk_trunc("echo", "max_echoes")
+    _chk_trunc("dynamic scan", "max_dynamics")
+    _chk_trunc("diffusion b value", "max_diffusion_values")
+    _chk_trunc("gradient orientation", "max_gradient_orient")
 
     # Final check for partial volumes
-    if not np.all(vol_is_full(image_defs['slice number'], general_info['max_slices'])):
-        _err_or_warn('Found one or more partial volume(s)')
+    if not np.all(vol_is_full(image_defs["slice number"], general_info["max_slices"])):
+        _err_or_warn("Found one or more partial volume(s)")
 
 
 def one_line(long_str):
     """Make maybe mutli-line `long_str` into one long line"""
-    return ' '.join(line.strip() for line in long_str.splitlines())
+    return " ".join(line.strip() for line in long_str.splitlines())
 
 
 def parse_PAR_header(fobj):
@@ -562,7 +565,7 @@ def _data_from_rec(
     """
     rec_data = array_from_file(in_shape, dtype, rec_fileobj, mmap=mmap)
     rec_data = rec_data[..., slice_indices]
-    rec_data = rec_data.reshape(out_shape, order='F')
+    rec_data = rec_data.reshape(out_shape, order="F")
     if scalings is not None:
         # Don't do in-place b/c this goes int16 -> float64
         rec_data = rec_data * scalings[0]
@@ -586,12 +589,14 @@ def exts2pars(exts_source):
         element contains a PARRECHeader read from the contained extensions.
     """
     headers = []
-    exts_source = exts_source.header if hasattr(exts_source, 'header') else exts_source
-    exts_source = exts_source.extensions if hasattr(exts_source, 'extensions') else exts_source
+    exts_source = exts_source.header if hasattr(exts_source, "header") else exts_source
+    exts_source = (
+        exts_source.extensions if hasattr(exts_source, "extensions") else exts_source
+    )
     for extension in exts_source:
         content = extension.get_content()
         content = content.decode(getpreferredencoding(False))
-        if not content.startswith('# === DATA DESCRIPTION FILE ==='):
+        if not content.startswith("# === DATA DESCRIPTION FILE ==="):
             continue
         gen_info, image_info = parse_PAR_header(StringIO(content))
         headers.append(PARRECHeader(gen_info, image_info))
@@ -599,7 +604,7 @@ def exts2pars(exts_source):
 
 
 class PARRECArrayProxy:
-    def __init__(self, file_like, header, *, mmap=True, scaling='dv'):
+    def __init__(self, file_like, header, *, mmap=True, scaling="dv"):
         """Initialize PARREC array proxy
 
         Parameters
@@ -620,7 +625,7 @@ class PARRECArrayProxy:
         scaling : {'fp', 'dv'}, optional, keyword only
             Type of scaling to use - see header ``get_data_scaling`` method.
         """
-        if mmap not in (True, False, 'c', 'r'):
+        if mmap not in (True, False, "c", "r"):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         self.file_like = file_like
         # Copies of values needed to read array
@@ -651,9 +656,11 @@ class PARRECArrayProxy:
         indices = self._slice_indices
         if slicer == ():
             with ImageOpener(self.file_like) as fileobj:
-                rec_data = array_from_file(self._rec_shape, self._dtype, fileobj, mmap=self._mmap)
+                rec_data = array_from_file(
+                    self._rec_shape, self._dtype, fileobj, mmap=self._mmap
+                )
                 rec_data = rec_data[..., indices]
-                return rec_data.reshape(self._shape, order='F')
+                return rec_data.reshape(self._shape, order="F")
         elif indices[0] != 0 or np.any(np.diff(indices) != 1):
             # We can't load direct from REC file, use inefficient slicing
             return self._get_unscaled(())[slicer]
@@ -661,7 +668,7 @@ class PARRECArrayProxy:
         # Slices all sequential from zero, can use fileslice
         # This gives more efficient volume by volume loading, for example
         with ImageOpener(self.file_like) as fileobj:
-            return fileslice(fileobj, slicer, self._shape, self._dtype, 0, 'F')
+            return fileslice(fileobj, slicer, self._shape, self._dtype, 0, "F")
 
     def _get_scaled(self, dtype, slicer):
         raw_data = self._get_unscaled(slicer)
@@ -680,7 +687,9 @@ class PARRECArrayProxy:
             final_type = np.promote_types(final_type, dtype)
 
         # Slice scaling to give output shape
-        return raw_data * slopes[slicer].astype(final_type) + inters[slicer].astype(final_type)
+        return raw_data * slopes[slicer].astype(final_type) + inters[slicer].astype(
+            final_type
+        )
 
     def get_unscaled(self):
         """Read data from file
@@ -745,23 +754,25 @@ class PARRECHeader(SpatialHeader):
         # charge with basic properties to be able to use base class
         # functionality
         # dtype
-        bitpix = self._get_unique_image_prop('image pixel size')
+        bitpix = self._get_unique_image_prop("image pixel size")
         if bitpix not in (8, 16):
             raise PARRECError(
-                f'Only 8- and 16-bit data supported (not {bitpix}) '
-                'please report this to the nibabel developers'
+                f"Only 8- and 16-bit data supported (not {bitpix}) "
+                "please report this to the nibabel developers"
             )
         # REC data always little endian
-        dt = np.dtype('uint' + str(bitpix)).newbyteorder('<')
-        super().__init__(data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms())
+        dt = np.dtype("uint" + str(bitpix)).newbyteorder("<")
+        super().__init__(
+            data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms()
+        )
 
     @classmethod
     def from_header(klass, header=None):
         if header is None:
-            raise PARRECError('Cannot create PARRECHeader from air.')
+            raise PARRECError("Cannot create PARRECHeader from air.")
         if type(header) == klass:
             return header.copy()
-        raise PARRECError('Cannot create PARREC header from non-PARREC header.')
+        raise PARRECError("Cannot create PARREC header from non-PARREC header.")
 
     @classmethod
     def from_fileobj(klass, fileobj, permit_truncated=False, strict_sort=False):
@@ -788,19 +799,19 @@ class PARRECHeader(SpatialHeader):
             f"{self.general_info['exam_date'].replace(' ', '')};"
             f"{self.general_info['protocol_name']}"
         )[:80]
-        is_fmri = self.general_info['max_dynamics'] > 1
+        is_fmri = self.general_info["max_dynamics"] > 1
         # PAR/REC uses msec, but in _calc_zooms we convert to sec
-        t = 'sec' if is_fmri else 'unknown'
-        xyzt_units = unit_codes['mm'] + unit_codes[t]
+        t = "sec" if is_fmri else "unknown"
+        xyzt_units = unit_codes["mm"] + unit_codes[t]
         return dict(descr=descr, xyzt_units=xyzt_units)  # , pixdim=pixdim)
 
     def get_water_fat_shift(self):
         """Water fat shift, in pixels"""
-        return self.general_info['water_fat_shift']
+        return self.general_info["water_fat_shift"]
 
     def get_echo_train_length(self):
         """Echo train length of the recording"""
-        return self.general_info['epi_factor']
+        return self.general_info["epi_factor"]
 
     def get_q_vectors(self):
         """Get Q vectors from the data
@@ -828,7 +839,7 @@ class PARRECHeader(SpatialHeader):
             Array of b vectors, shape (n_directions, 3), or None if not a
             diffusion acquisition.
         """
-        if self.general_info['diffusion'] == 0:
+        if self.general_info["diffusion"] == 0:
             return None, None
         reorder = self.get_sorted_slice_indices()
         if len(self.get_data_shape()) == 3:
@@ -838,15 +849,17 @@ class PARRECHeader(SpatialHeader):
             return None, None
         else:
             n_slices, n_vols = self.get_data_shape()[-2:]
-        bvals = self.image_defs['diffusion_b_factor'][reorder].reshape(
-            (n_slices, n_vols), order='F'
+        bvals = self.image_defs["diffusion_b_factor"][reorder].reshape(
+            (n_slices, n_vols), order="F"
         )
         # All bvals within volume should be the same
         assert not np.any(np.diff(bvals, axis=0))
         bvals = bvals[0]
-        if 'diffusion' not in self.image_defs.dtype.names:
+        if "diffusion" not in self.image_defs.dtype.names:
             return bvals, None
-        bvecs = self.image_defs['diffusion'][reorder].reshape((n_slices, n_vols, 3), order='F')
+        bvecs = self.image_defs["diffusion"][reorder].reshape(
+            (n_slices, n_vols, 3), order="F"
+        )
         # All 3 values of bvecs should be same within volume
         assert not np.any(np.diff(bvecs, axis=0))
         bvecs = bvecs[0]
@@ -885,7 +898,7 @@ class PARRECHeader(SpatialHeader):
         props = self.image_defs[name]
         if np.any(np.diff(props, axis=0)):
             raise PARRECError(
-                f'Varying {name} in image sequence ({props}). This is not supported.'
+                f"Varying {name} in image sequence ({props}). This is not supported."
             )
         return props[0]
 
@@ -896,7 +909,7 @@ class PARRECHeader(SpatialHeader):
     def set_data_offset(self, offset):
         """PAR header always has 0 data offset (into REC file)"""
         if offset != 0:
-            raise PARRECError('PAR header assumes offset 0')
+            raise PARRECError("PAR header assumes offset 0")
 
     def _calc_zooms(self):
         """Compute image zooms from header data.
@@ -914,22 +927,22 @@ class PARRECHeader(SpatialHeader):
         some attributes available in the fully initialized object.
         """
         # slice orientation for the whole image series
-        slice_gap = self._get_unique_image_prop('slice gap')
+        slice_gap = self._get_unique_image_prop("slice gap")
         # scaling per image axis
         n_dim = 4 if self._get_n_vols() > 1 else 3
         zooms = np.ones(n_dim)
         # spatial sizes are inplane X mm, inplane Y mm + inter slice gap
-        zooms[:2] = self._get_unique_image_prop('pixel spacing')
-        slice_thickness = self._get_unique_image_prop('slice thickness')
+        zooms[:2] = self._get_unique_image_prop("pixel spacing")
+        slice_thickness = self._get_unique_image_prop("slice thickness")
         zooms[2] = slice_thickness + slice_gap
         # If 4D dynamic scan, convert time from milliseconds to seconds
-        if len(zooms) > 3 and self.general_info['dyn_scan']:
-            if len(self.general_info['repetition_time']) > 1:
-                warnings.warn('multiple TRs found in .PAR file')
-            zooms[3] = self.general_info['repetition_time'][0] / 1000.0
+        if len(zooms) > 3 and self.general_info["dyn_scan"]:
+            if len(self.general_info["repetition_time"]) > 1:
+                warnings.warn("multiple TRs found in .PAR file")
+            zooms[3] = self.general_info["repetition_time"][0] / 1000.0
         return zooms
 
-    def get_affine(self, origin='scanner'):
+    def get_affine(self, origin="scanner"):
         """Compute affine transformation into scanner space.
 
         The method only considers global rotation and offset settings in the
@@ -972,10 +985,10 @@ class PARRECHeader(SpatialHeader):
         slice_orientation = self.get_slice_orientation()
         permute_to_psl = ACQ_TO_PSL.get(slice_orientation)
         if permute_to_psl is None:
-            raise PARRECError(f'Unknown slice orientation ({slice_orientation}).')
+            raise PARRECError(f"Unknown slice orientation ({slice_orientation}).")
         # hdr has deg, we need radians
         # Order is [ap, fh, rl]
-        ap_rot, fh_rot, rl_rot = self.general_info['angulation'] * DEG2RAD
+        ap_rot, fh_rot, rl_rot = self.general_info["angulation"] * DEG2RAD
         Mx = euler2mat(x=ap_rot)
         My = euler2mat(y=fh_rot)
         Mz = euler2mat(z=rl_rot)
@@ -984,22 +997,22 @@ class PARRECHeader(SpatialHeader):
         rot = from_matvec(dot_reduce(Mz, Mx, My))
         # compose the PSL affine
         psl_aff = dot_reduce(rot, permute_to_psl, zoomer, to_center)
-        if origin == 'scanner':
+        if origin == "scanner":
             # offset to scanner's isocenter (in ap, fh, rl)
-            iso_offset = self.general_info['off_center']
+            iso_offset = self.general_info["off_center"]
             psl_aff[:3, 3] += iso_offset
         # Currently in PSL; apply PSL -> RAS
         return np.dot(PSL_TO_RAS, psl_aff)
 
     def _get_n_slices(self):
         """Get number of slices for output data"""
-        return len(set(self.image_defs['slice number']))
+        return len(set(self.image_defs["slice number"]))
 
     def _get_n_vols(self):
         """Get number of volumes for output data"""
-        slice_nos = self.image_defs['slice number']
+        slice_nos = self.image_defs["slice number"]
         vol_nos = vol_numbers(slice_nos)
-        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+        is_full = vol_is_full(slice_nos, self.general_info["max_slices"])
         return len(set(np.array(vol_nos)[is_full]))
 
     def _calc_data_shape(self):
@@ -1023,12 +1036,12 @@ class PARRECHeader(SpatialHeader):
         This routine gets called in ``__init__``, so may not be able to use
         some attributes available in the fully initialized object.
         """
-        inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
+        inplane_shape = tuple(self._get_unique_image_prop("recon resolution"))
         shape = inplane_shape + (self._get_n_slices(),)
         n_vols = self._get_n_vols()
         return shape + (n_vols,) if n_vols > 1 else shape
 
-    def get_data_scaling(self, method='dv'):
+    def get_data_scaling(self, method="dv"):
         """Returns scaling slope and intercept.
 
         Parameters
@@ -1059,12 +1072,12 @@ class PARRECHeader(SpatialHeader):
         SS: scale slope
         """
         # These will be 3D or 4D
-        scale_slope = self.image_defs['scale slope']
-        rescale_slope = self.image_defs['rescale slope']
-        rescale_intercept = self.image_defs['rescale intercept']
-        if method == 'dv':
+        scale_slope = self.image_defs["scale slope"]
+        rescale_slope = self.image_defs["rescale slope"]
+        rescale_intercept = self.image_defs["rescale intercept"]
+        if method == "dv":
             slope, intercept = rescale_slope, rescale_intercept
-        elif method == 'fp':
+        elif method == "fp":
             slope = 1.0 / scale_slope
             intercept = rescale_intercept / (rescale_slope * scale_slope)
         else:
@@ -1073,8 +1086,8 @@ class PARRECHeader(SpatialHeader):
         slope = slope[reorder]
         intercept = intercept[reorder]
         shape = (1, 1) + self.get_data_shape()[2:]
-        slope = slope.reshape(shape, order='F')
-        intercept = intercept.reshape(shape, order='F')
+        slope = slope.reshape(shape, order="F")
+        intercept = intercept.reshape(shape, order="F")
         return slope, intercept
 
     def get_slice_orientation(self):
@@ -1084,11 +1097,11 @@ class PARRECHeader(SpatialHeader):
         -------
         orientation : {'transverse', 'sagittal', 'coronal'}
         """
-        lab = self._get_unique_image_prop('slice orientation')
+        lab = self._get_unique_image_prop("slice orientation")
         return slice_orientation_codes.label[lab]
 
     def get_rec_shape(self):
-        inplane_shape = tuple(self._get_unique_image_prop('recon resolution'))
+        inplane_shape = tuple(self._get_unique_image_prop("recon resolution"))
         return inplane_shape + (len(self.image_defs),)
 
     def _strict_sort_order(self):
@@ -1123,19 +1136,19 @@ class PARRECHeader(SpatialHeader):
         """
         # sort keys present in all supported .PAR versions
         idefs = self.image_defs
-        slice_nos = idefs['slice number']
-        dynamics = idefs['dynamic scan number']
-        phases = idefs['cardiac phase number']
-        echos = idefs['echo number']
-        image_type = idefs['image_type_mr']
+        slice_nos = idefs["slice number"]
+        dynamics = idefs["dynamic scan number"]
+        phases = idefs["cardiac phase number"]
+        echos = idefs["echo number"]
+        image_type = idefs["image_type_mr"]
 
         # sort keys only present in a subset of .PAR files
-        asl_keys = (idefs['label type'],) if 'label type' in idefs.dtype.names else ()
-        if self.general_info['diffusion'] != 0:
-            bvals = self.get_def('diffusion b value number')
+        asl_keys = (idefs["label type"],) if "label type" in idefs.dtype.names else ()
+        if self.general_info["diffusion"] != 0:
+            bvals = self.get_def("diffusion b value number")
             if bvals is None:
-                bvals = self.get_def('diffusion_b_factor')
-            bvecs = self.get_def('gradient orientation number')
+                bvals = self.get_def("diffusion_b_factor")
+            bvecs = self.get_def("gradient orientation number")
             if bvecs is None:
                 # no b-vectors available
                 diffusion_keys = (bvals,)
@@ -1145,13 +1158,20 @@ class PARRECHeader(SpatialHeader):
             diffusion_keys = ()
 
         # initial sort (last key is highest precedence)
-        keys = (slice_nos, echos, phases) + diffusion_keys + asl_keys + (dynamics, image_type)
+        keys = (
+            (slice_nos, echos, phases)
+            + diffusion_keys
+            + asl_keys
+            + (dynamics, image_type)
+        )
         initial_sort_order = np.lexsort(keys)
 
         # sequentially number the volumes based on the initial sort
         vol_nos = vol_numbers(slice_nos[initial_sort_order])
         # identify truncated volumes
-        is_full = vol_is_full(slice_nos[initial_sort_order], self.general_info['max_slices'])
+        is_full = vol_is_full(
+            slice_nos[initial_sort_order], self.general_info["max_slices"]
+        )
 
         # second stage of sorting
         return initial_sort_order[np.lexsort((vol_nos, is_full))]
@@ -1163,8 +1183,8 @@ class PARRECHeader(SpatialHeader):
         We calculate volume number by looking for repeating slice numbers (see
         :func:`vol_numbers`).
         """
-        slice_nos = self.image_defs['slice number']
-        is_full = vol_is_full(slice_nos, self.general_info['max_slices'])
+        slice_nos = self.image_defs["slice number"]
+        is_full = vol_is_full(slice_nos, self.general_info["max_slices"])
         keys = (slice_nos, vol_numbers(slice_nos), np.logical_not(is_full))
         return np.lexsort(keys)
 
@@ -1216,14 +1236,14 @@ class PARRECHeader(SpatialHeader):
 
         # define which keys which might vary across image volumes
         dynamic_keys = [
-            'cardiac phase number',
-            'echo number',
-            'label type',
-            'image_type_mr',
-            'dynamic scan number',
-            'scanning sequence',
-            'gradient orientation number',
-            'diffusion b value number',
+            "cardiac phase number",
+            "echo number",
+            "label type",
+            "image_type_mr",
+            "dynamic scan number",
+            "scanning sequence",
+            "gradient orientation number",
+            "diffusion b value number",
         ]
 
         # remove dynamic keys that may not be present in older .PAR versions
@@ -1235,13 +1255,13 @@ class PARRECHeader(SpatialHeader):
             if ndim == 1:
                 num_unique = len(np.unique(image_defs[key]))
             else:
-                raise ValueError('unexpected image_defs shape > 1D')
+                raise ValueError("unexpected image_defs shape > 1D")
             if num_unique > 1:
                 non_unique_keys.append(key)
 
         # each key in dynamic keys will be identical across slices, so use
         # the value at slice 1.
-        sl1_indices = image_defs['slice number'][sorted_indices] == 1
+        sl1_indices = image_defs["slice number"][sorted_indices] == 1
 
         sort_info = OrderedDict()
         for key in non_unique_keys:
@@ -1254,8 +1274,8 @@ class PARRECImage(SpatialImage):
 
     header_class = PARRECHeader
     header: PARRECHeader
-    valid_exts = ('.rec', '.par')
-    files_types = (('image', '.rec'), ('header', '.par'))
+    valid_exts = (".rec", ".par")
+    files_types = (("image", ".rec"), ("header", ".par"))
 
     makeable = False
     rw = False
@@ -1264,7 +1284,13 @@ class PARRECImage(SpatialImage):
 
     @classmethod
     def from_file_map(
-        klass, file_map, *, mmap=True, permit_truncated=False, scaling='dv', strict_sort=False
+        klass,
+        file_map,
+        *,
+        mmap=True,
+        permit_truncated=False,
+        scaling="dv",
+        strict_sort=False,
     ):
         """Create PARREC image from file map `file_map`
 
@@ -1292,17 +1318,23 @@ class PARRECImage(SpatialImage):
             `strict_sort=False`, where volumes are sorted by the order in which
             the slices appear in the .PAR file.
         """
-        with file_map['header'].get_prepare_fileobj('rt') as hdr_fobj:
+        with file_map["header"].get_prepare_fileobj("rt") as hdr_fobj:
             hdr = klass.header_class.from_fileobj(
                 hdr_fobj, permit_truncated=permit_truncated, strict_sort=strict_sort
             )
-        rec_fobj = file_map['image'].get_prepare_fileobj()
+        rec_fobj = file_map["image"].get_prepare_fileobj()
         data = klass.ImageArrayProxy(rec_fobj, hdr, mmap=mmap, scaling=scaling)
         return klass(data, hdr.get_affine(), header=hdr, extra=None, file_map=file_map)
 
     @classmethod
     def from_filename(
-        klass, filename, *, mmap=True, permit_truncated=False, scaling='dv', strict_sort=False
+        klass,
+        filename,
+        *,
+        mmap=True,
+        permit_truncated=False,
+        scaling="dv",
+        strict_sort=False,
     ):
         """Create PARREC image from filename `filename`
 

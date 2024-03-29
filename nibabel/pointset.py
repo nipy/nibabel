@@ -17,6 +17,7 @@ A *mesh* is a collection of points and some structure that enables
 adjacent points to be identified. A *triangular mesh* in particular
 uses triplets of adjacent vertices to describe faces.
 """
+
 from __future__ import annotations
 
 import math
@@ -32,7 +33,7 @@ from nibabel.spatialimages import SpatialImage
 if ty.TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Self
 
-    _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
+    _DType = ty.TypeVar("_DType", bound=np.dtype[ty.Any])
 
 
 class CoordinateArray(ty.Protocol):
@@ -40,12 +41,14 @@ class CoordinateArray(ty.Protocol):
     shape: tuple[int, int]
 
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
-        ...  # pragma: no cover
+    def __array__(
+        self, dtype: None = ..., /
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...  # pragma: no cover
 
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
-        ...  # pragma: no cover
+    def __array__(
+        self, dtype: _DType, /
+    ) -> np.ndarray[ty.Any, _DType]: ...  # pragma: no cover
 
 
 @dataclass
@@ -85,9 +88,11 @@ class Pointset:
             self.affine = np.asanyarray(affine)
 
         if self.affine.shape != (self.dim + 1,) * 2:
-            raise ValueError(f'Invalid affine for {self.dim}D coordinates:\n{self.affine}')
+            raise ValueError(
+                f"Invalid affine for {self.dim}D coordinates:\n{self.affine}"
+            )
         if np.any(self.affine[-1, :-1] != 0) or self.affine[-1, -1] != 1:
-            raise ValueError(f'Invalid affine matrix:\n{self.affine}')
+            raise ValueError(f"Invalid affine matrix:\n{self.affine}")
 
     @property
     def n_coords(self) -> int:
@@ -154,7 +159,9 @@ class Grid(Pointset):
 
     @classmethod
     def from_image(cls, spatialimage: SpatialImage) -> Self:
-        return cls(coordinates=GridIndices(spatialimage.shape[:3]), affine=spatialimage.affine)
+        return cls(
+            coordinates=GridIndices(spatialimage.shape[:3]), affine=spatialimage.affine
+        )
 
     @classmethod
     def from_mask(cls, mask: SpatialImage) -> Self:
@@ -167,7 +174,7 @@ class Grid(Pointset):
     def to_mask(self, shape=None) -> SpatialImage:
         if shape is None:
             shape = tuple(np.max(self.coordinates, axis=0)[: self.dim] + 1)
-        mask_arr = np.zeros(shape, dtype='bool')
+        mask_arr = np.zeros(shape, dtype="bool")
         mask_arr[tuple(np.asanyarray(self.coordinates)[:, : self.dim].T)] = True
         return SpatialImage(mask_arr, self.affine)
 
@@ -175,7 +182,7 @@ class Grid(Pointset):
 class GridIndices:
     """Class for generating indices just-in-time"""
 
-    __slots__ = ('gridshape', 'dtype', 'shape')
+    __slots__ = ("gridshape", "dtype", "shape")
     ndim = 2
 
     def __init__(self, shape, dtype=None):
@@ -184,11 +191,13 @@ class GridIndices:
         self.shape = (math.prod(self.gridshape), len(self.gridshape))
 
     def __repr__(self):
-        return f'<{self.__class__.__name__}{self.gridshape}>'
+        return f"<{self.__class__.__name__}{self.gridshape}>"
 
     def __array__(self, dtype=None):
         if dtype is None:
             dtype = self.dtype
 
         axes = [np.arange(s, dtype=dtype) for s in self.gridshape]
-        return np.reshape(np.meshgrid(*axes, copy=False, indexing='ij'), (len(axes), -1)).T
+        return np.reshape(
+            np.meshgrid(*axes, copy=False, indexing="ij"), (len(axes), -1)
+        ).T

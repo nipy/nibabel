@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing processing module
-"""
+"""Testing processing module"""
 
 import logging
 from os.path import dirname
@@ -18,7 +17,7 @@ import numpy.linalg as npl
 
 from nibabel.optpkg import optional_package
 
-spnd, have_scipy, _ = optional_package('scipy.ndimage')
+spnd, have_scipy, _ = optional_package("scipy.ndimage")
 
 import unittest
 
@@ -26,7 +25,13 @@ import pytest
 from numpy.testing import assert_almost_equal, assert_array_equal
 
 import nibabel as nib
-from nibabel.affines import AffineError, apply_affine, from_matvec, to_matvec, voxel_sizes
+from nibabel.affines import (
+    AffineError,
+    apply_affine,
+    from_matvec,
+    to_matvec,
+    voxel_sizes,
+)
 from nibabel.eulerangles import euler2mat
 from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
@@ -43,20 +48,20 @@ from nibabel.processing import (
 from nibabel.testing import assert_allclose_safely
 from nibabel.tests.test_spaces import assert_all_in, get_outspace_params
 
-needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
+needs_scipy = unittest.skipUnless(have_scipy, "These tests need scipy")
 
-DATA_DIR = pjoin(dirname(__file__), 'data')
+DATA_DIR = pjoin(dirname(__file__), "data")
 
 # 3D MINC work correctly with processing, but not 4D MINC
 from .test_imageclasses import MINC_3DS, MINC_4DS
 
 # Filenames of other images that should work correctly with processing
 OTHER_IMGS = (
-    'anatomical.nii',
-    'functional.nii',
-    'example4d.nii.gz',
-    'example_nifti2.nii.gz',
-    'phantom_EPI_asc_CLEAR_2_1.PAR',
+    "anatomical.nii",
+    "functional.nii",
+    "example4d.nii.gz",
+    "example_nifti2.nii.gz",
+    "phantom_EPI_asc_CLEAR_2_1.PAR",
 )
 
 
@@ -120,10 +125,10 @@ def test_adapt_affine():
 @needs_scipy
 def test_resample_from_to(caplog):
     # Test resampling from image to image / image space
-    data = np.arange(24, dtype='int32').reshape((2, 3, 4))
+    data = np.arange(24, dtype="int32").reshape((2, 3, 4))
     affine = np.diag([-4, 5, 6, 1])
     img = Nifti1Image(data, affine)
-    img.header['descrip'] = 'red shirt image'
+    img.header["descrip"] = "red shirt image"
     out = resample_from_to(img, img)
     assert_almost_equal(img.dataobj, out.dataobj)
     assert_array_equal(img.affine, out.affine)
@@ -158,7 +163,7 @@ def test_resample_from_to(caplog):
     exp_out[1:, :, :] = data[:-1, :, :]
     assert_almost_equal(out.dataobj, exp_out)
     # Then 'nearest' mode
-    out = resample_from_to(img, trans1_img, mode='nearest')
+    out = resample_from_to(img, trans1_img, mode="nearest")
     exp_out[0, :, :] = exp_out[1, :, :]
     assert_almost_equal(out.dataobj, exp_out)
     # Test order
@@ -183,7 +188,9 @@ def test_resample_from_to(caplog):
     assert out.__class__ == Nifti1Image
     # By default, type of from_img makes no difference
     n1_img = Nifti2Image(data, affine)
-    with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
+    with caplog.at_level(
+        logging.CRITICAL
+    ):  # Here and below, suppress logs when changing classes
         out = resample_from_to(n1_img, trans_img)
     assert out.__class__ == Nifti1Image
     # Passed as keyword arg
@@ -208,7 +215,7 @@ def test_resample_from_to(caplog):
     out = resample_from_to(img, (img_2d.shape, img_2d.affine))
     assert_array_equal(out.dataobj, data[:, :, 0])
     # 4D input and output also OK
-    data_4d = np.arange(24 * 5, dtype='int32').reshape((2, 3, 4, 5))
+    data_4d = np.arange(24 * 5, dtype="int32").reshape((2, 3, 4, 5))
     img_4d = Nifti1Image(data_4d, affine)
     out = resample_from_to(img_4d, img_4d)
     assert_almost_equal(data_4d, out.dataobj)
@@ -224,7 +231,7 @@ def test_resample_from_to(caplog):
 def test_resample_to_output(caplog):
     # Test routine to sample images to output space
     # Image aligned to output axes - no-op
-    data = np.arange(24, dtype='int32').reshape((2, 3, 4))
+    data = np.arange(24, dtype="int32").reshape((2, 3, 4))
     img = Nifti1Image(data, np.eye(4))
     # Check default resampling
     img2 = resample_to_output(img)
@@ -277,7 +284,9 @@ def test_resample_to_output(caplog):
     # Subsample voxels
     out_img = resample_to_output(Nifti1Image(data, np.diag([4, 5, 6, 1])))
     with pytest.warns(UserWarning):  # Suppress scipy warning
-        exp_out = spnd.affine_transform(data, [1 / 4, 1 / 5, 1 / 6], output_shape=(5, 11, 19))
+        exp_out = spnd.affine_transform(
+            data, [1 / 4, 1 / 5, 1 / 6], output_shape=(5, 11, 19)
+        )
     assert_array_equal(out_img.dataobj, exp_out)
     # Unsubsample with voxel sizes
     out_img = resample_to_output(Nifti1Image(data, np.diag([4, 5, 6, 1])), [4, 5, 6])
@@ -312,18 +321,22 @@ def test_resample_to_output(caplog):
     )
     # Mode
     assert_almost_equal(
-        resample_to_output(rot_3_img, mode='nearest').dataobj,
-        spnd.affine_transform(data, rzs, trans, exp_shape, mode='nearest'),
+        resample_to_output(rot_3_img, mode="nearest").dataobj,
+        spnd.affine_transform(data, rzs, trans, exp_shape, mode="nearest"),
     )
     # out_class
     img_ni1 = Nifti2Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
+    with caplog.at_level(
+        logging.CRITICAL
+    ):  # Here and below, suppress logs when changing classes
         assert resample_to_output(img_ni2).__class__ == Nifti1Image
     # Can be overridden
     with caplog.at_level(logging.CRITICAL):
-        assert resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
+        assert (
+            resample_to_output(img_ni1, out_class=Nifti2Image).__class__ == Nifti2Image
+        )
     # None specifies out_class from input
     assert resample_to_output(img_ni2, out_class=None).__class__ == Nifti2Image
 
@@ -331,7 +344,7 @@ def test_resample_to_output(caplog):
 @needs_scipy
 def test_smooth_image(caplog):
     # Test image smoothing
-    data = np.arange(24, dtype='int32').reshape((2, 3, 4))
+    data = np.arange(24, dtype="int32").reshape((2, 3, 4))
     aff = np.diag([-4, 5, 6, 1])
     img = Nifti1Image(data, aff)
     # Zero smoothing is no-op
@@ -341,40 +354,42 @@ def test_smooth_image(caplog):
     assert_array_equal(out_img.dataobj, data)
     # Isotropic smoothing
     sd = fwhm2sigma(np.true_divide(8, [4, 5, 6]))
-    exp_out = spnd.gaussian_filter(data, sd, mode='nearest')
+    exp_out = spnd.gaussian_filter(data, sd, mode="nearest")
     assert_array_equal(smooth_image(img, 8).dataobj, exp_out)
     assert_array_equal(smooth_image(img, [8, 8, 8]).dataobj, exp_out)
     with pytest.raises(ValueError):
         smooth_image(img, [8, 8])
     # Not isotropic
     mixed_sd = fwhm2sigma(np.true_divide([8, 7, 6], [4, 5, 6]))
-    exp_out = spnd.gaussian_filter(data, mixed_sd, mode='nearest')
+    exp_out = spnd.gaussian_filter(data, mixed_sd, mode="nearest")
     assert_array_equal(smooth_image(img, [8, 7, 6]).dataobj, exp_out)
     # In 2D
     img_2d = Nifti1Image(data[0], aff)
-    exp_out = spnd.gaussian_filter(data[0], sd[:2], mode='nearest')
+    exp_out = spnd.gaussian_filter(data[0], sd[:2], mode="nearest")
     assert_array_equal(smooth_image(img_2d, 8).dataobj, exp_out)
     assert_array_equal(smooth_image(img_2d, [8, 8]).dataobj, exp_out)
     with pytest.raises(ValueError):
         smooth_image(img_2d, [8, 8, 8])
     # Isotropic in 4D has zero for last dimension in scalar case
-    data_4d = np.arange(24 * 5, dtype='int32').reshape((2, 3, 4, 5))
+    data_4d = np.arange(24 * 5, dtype="int32").reshape((2, 3, 4, 5))
     img_4d = Nifti1Image(data_4d, aff)
-    exp_out = spnd.gaussian_filter(data_4d, list(sd) + [0], mode='nearest')
+    exp_out = spnd.gaussian_filter(data_4d, list(sd) + [0], mode="nearest")
     assert_array_equal(smooth_image(img_4d, 8).dataobj, exp_out)
     # But raises error for vector case
     with pytest.raises(ValueError):
         smooth_image(img_4d, [8, 8, 8])
     # mode, cval
-    exp_out = spnd.gaussian_filter(data, sd, mode='constant')
-    assert_array_equal(smooth_image(img, 8, mode='constant').dataobj, exp_out)
-    exp_out = spnd.gaussian_filter(data, sd, mode='constant', cval=99)
-    assert_array_equal(smooth_image(img, 8, mode='constant', cval=99).dataobj, exp_out)
+    exp_out = spnd.gaussian_filter(data, sd, mode="constant")
+    assert_array_equal(smooth_image(img, 8, mode="constant").dataobj, exp_out)
+    exp_out = spnd.gaussian_filter(data, sd, mode="constant", cval=99)
+    assert_array_equal(smooth_image(img, 8, mode="constant", cval=99).dataobj, exp_out)
     # out_class
     img_ni1 = Nifti1Image(data, np.eye(4))
     img_ni2 = Nifti2Image(data, np.eye(4))
     # Default is Nifti1Image
-    with caplog.at_level(logging.CRITICAL):  # Here and below, suppress logs when changing classes
+    with caplog.at_level(
+        logging.CRITICAL
+    ):  # Here and below, suppress logs when changing classes
         assert smooth_image(img_ni2, 0).__class__ == Nifti1Image
     # Can be overridden
     with caplog.at_level(logging.CRITICAL):
@@ -391,7 +406,7 @@ def test_spatial_axes_check(caplog):
             s_img = smooth_image(img, 0)
         assert_array_equal(img.dataobj, s_img.dataobj)
         with caplog.at_level(logging.CRITICAL):
-            out = resample_from_to(img, img, mode='nearest')
+            out = resample_from_to(img, img, mode="nearest")
         assert_almost_equal(img.dataobj, out.dataobj)
         if len(img.shape) > 3:
             continue
@@ -402,7 +417,7 @@ def test_spatial_axes_check(caplog):
         with pytest.raises(ValueError):
             smooth_image(img, 0)
         with pytest.raises(ValueError):
-            resample_from_to(img, img, mode='nearest')
+            resample_from_to(img, img, mode="nearest")
         with pytest.raises(ValueError):
             resample_to_output(img, voxel_sizes(img.affine))
 
@@ -437,33 +452,35 @@ def test_against_spm_resample():
     # the anatomical image affine, and then resample to the first volume in the
     # functional, and compare to the same thing in SPM.
     # See ``make_moved_anat.py`` script in this directory for input to SPM.
-    anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
-    func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
+    anat = nib.load(pjoin(DATA_DIR, "anatomical.nii"))
+    func = nib.load(pjoin(DATA_DIR, "functional.nii"))
     some_rotations = euler2mat(0.1, 0.2, 0.3)
     extra_affine = from_matvec(some_rotations, [3, 4, 5])
-    moved_anat = nib.Nifti1Image(anat.get_fdata(), extra_affine.dot(anat.affine), anat.header)
+    moved_anat = nib.Nifti1Image(
+        anat.get_fdata(), extra_affine.dot(anat.affine), anat.header
+    )
     one_func = nib.Nifti1Image(func.dataobj[..., 0], func.affine, func.header)
     moved2func = resample_from_to(moved_anat, one_func, order=1, cval=np.nan)
-    spm_moved = nib.load(pjoin(DATA_DIR, 'resampled_anat_moved.nii'))
+    spm_moved = nib.load(pjoin(DATA_DIR, "resampled_anat_moved.nii"))
     assert_spm_resampling_close(moved_anat, moved2func, spm_moved)
     # Next we resample the rotated anatomical image to output space, and compare
     # to the same operation done with SPM (our own version of 'reorient.m' by
     # John Ashburner).
     moved2output = resample_to_output(moved_anat, 4, order=1, cval=np.nan)
-    spm2output = nib.load(pjoin(DATA_DIR, 'reoriented_anat_moved.nii'))
+    spm2output = nib.load(pjoin(DATA_DIR, "reoriented_anat_moved.nii"))
     assert_spm_resampling_close(moved_anat, moved2output, spm2output)
 
 
 @needs_scipy
 def test_conform(caplog):
-    anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
+    anat = nib.load(pjoin(DATA_DIR, "anatomical.nii"))
 
     # Test with default arguments.
     c = conform(anat)
     assert c.shape == (256, 256, 256)
     assert c.header.get_zooms() == (1, 1, 1)
     assert c.dataobj.dtype.type == anat.dataobj.dtype.type
-    assert aff2axcodes(c.affine) == ('R', 'A', 'S')
+    assert aff2axcodes(c.affine) == ("R", "A", "S")
     assert isinstance(c, Nifti1Image)
 
     # Test with non-default arguments.
@@ -472,18 +489,18 @@ def test_conform(caplog):
             anat,
             out_shape=(100, 100, 200),
             voxel_size=(2, 2, 1.5),
-            orientation='LPI',
+            orientation="LPI",
             out_class=Nifti2Image,
         )
     assert c.shape == (100, 100, 200)
     assert c.header.get_zooms() == (2, 2, 1.5)
     assert c.dataobj.dtype.type == anat.dataobj.dtype.type
-    assert aff2axcodes(c.affine) == ('L', 'P', 'I')
+    assert aff2axcodes(c.affine) == ("L", "P", "I")
     assert isinstance(c, Nifti2Image)
 
     # TODO: support nD images in `conform` in the future, but for now, test that we get
     # errors on non-3D images.
-    func = nib.load(pjoin(DATA_DIR, 'functional.nii'))
+    func = nib.load(pjoin(DATA_DIR, "functional.nii"))
     with pytest.raises(ValueError):
         conform(func)
     with pytest.raises(ValueError):

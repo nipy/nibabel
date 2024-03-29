@@ -25,6 +25,7 @@ and compare against command line output of::
 
     mincstats my_funny.mnc
 """
+
 import warnings
 
 import numpy as np
@@ -50,39 +51,43 @@ class Minc2File(Minc1File):
 
     def __init__(self, mincfile):
         self._mincfile = mincfile
-        minc_part = mincfile['minc-2.0']
+        minc_part = mincfile["minc-2.0"]
         # The whole image is the first of the entries in 'image'
-        image = minc_part['image']['0']
-        self._image = image['image']
+        image = minc_part["image"]["0"]
+        self._image = image["image"]
         self._dim_names = self._get_dimensions(self._image)
-        dimensions = minc_part['dimensions']
+        dimensions = minc_part["dimensions"]
         self._dims = [Hdf5Bunch(dimensions[s]) for s in self._dim_names]
         # We don't currently support irregular spacing
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
         for dim in self._dims:
             # "If this attribute is absent, a value of regular__ should be assumed."
-            spacing = getattr(dim, 'spacing', b'regular__')
-            if spacing == b'irregular':
-                raise ValueError('Irregular spacing not supported')
-            elif spacing != b'regular__':
-                warnings.warn(f'Invalid spacing declaration: {spacing}; assuming regular')
+            spacing = getattr(dim, "spacing", b"regular__")
+            if spacing == b"irregular":
+                raise ValueError("Irregular spacing not supported")
+            elif spacing != b"regular__":
+                warnings.warn(
+                    f"Invalid spacing declaration: {spacing}; assuming regular"
+                )
 
-        self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
-        self._image_max = image['image-max']
-        self._image_min = image['image-min']
+        self._spatial_dims = [
+            name for name in self._dim_names if name.endswith("space")
+        ]
+        self._image_max = image["image-max"]
+        self._image_min = image["image-min"]
 
     def _get_dimensions(self, var):
         # Dimensions for a particular variable
         # Differs for MINC1 and MINC2 - see:
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Associating_HDF5_dataspaces_with_MINC_dimensions
         try:
-            dimorder = var.attrs['dimorder'].decode()
+            dimorder = var.attrs["dimorder"].decode()
         except KeyError:  # No specified dimensions
             return []
         # The dimension name list must contain only as many entries
         # as the variable has dimensions. This reduces errors when an
         # unnecessary dimorder attribute is left behind.
-        return dimorder.split(',')[: len(var.shape)]
+        return dimorder.split(",")[: len(var.shape)]
 
     def get_data_dtype(self):
         return self._image.dtype
@@ -99,12 +104,12 @@ class Minc2File(Minc1File):
         ddt = self.get_data_dtype()
         info = np.iinfo(ddt.type)
         try:
-            valid_range = self._image.attrs['valid_range']
+            valid_range = self._image.attrs["valid_range"]
         except (AttributeError, KeyError):
             valid_range = [info.min, info.max]
         else:
             if valid_range[0] < info.min or valid_range[1] > info.max:
-                raise ValueError('Valid range outside input data type range')
+                raise ValueError("Valid range outside input data type range")
         return np.asarray(valid_range, dtype=np.float64)
 
     def _get_scalar(self, var):
@@ -143,7 +148,7 @@ class Minc2File(Minc1File):
 class Minc2Header(MincHeader):
     @classmethod
     def may_contain_header(klass, binaryblock):
-        return binaryblock[:4] == b'\211HDF'
+        return binaryblock[:4] == b"\211HDF"
 
 
 class Minc2Image(Minc1Image):
@@ -165,13 +170,13 @@ class Minc2Image(Minc1Image):
         # So we are importing it here "on demand"
         import h5py  # type: ignore[import]
 
-        holder = file_map['image']
+        holder = file_map["image"]
         if holder.filename is None:
-            raise MincError('MINC2 needs filename for load')
-        minc_file = Minc2File(h5py.File(holder.filename, 'r'))
+            raise MincError("MINC2 needs filename for load")
+        minc_file = Minc2File(h5py.File(holder.filename, "r"))
         affine = minc_file.get_affine()
         if affine.shape != (4, 4):
-            raise MincError('Image does not have 3 spatial dimensions')
+            raise MincError("Image does not have 3 spatial dimensions")
         data_dtype = minc_file.get_data_dtype()
         shape = minc_file.get_data_shape()
         zooms = minc_file.get_zooms()

@@ -24,7 +24,7 @@ from ..openers import ImageOpener
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
 
-pydicom = optional_package('pydicom')[0]
+pydicom = optional_package("pydicom")[0]
 
 
 class WrapperError(Exception):
@@ -73,9 +73,9 @@ def wrapper_from_data(dcm_data):
     dcm_w : ``dicomwrappers.Wrapper`` or subclass
        DICOM wrapper corresponding to DICOM data type
     """
-    sop_class = dcm_data.get('SOPClassUID')
+    sop_class = dcm_data.get("SOPClassUID")
     # try to detect what type of dicom object to wrap
-    if sop_class == '1.2.840.10008.5.1.4.1.1.4.1':  # Enhanced MR Image Storage
+    if sop_class == "1.2.840.10008.5.1.4.1.1.4.1":  # Enhanced MR Image Storage
         # currently only Philips is using Enhanced Multiframe DICOM
         return MultiframeWrapper(dcm_data)
     # Check for Siemens DICOM format types
@@ -84,8 +84,8 @@ def wrapper_from_data(dcm_data):
         csa = csar.get_csa_header(dcm_data)
     except csar.CSAReadError as e:
         warnings.warn(
-            f'Error while attempting to read CSA header: {e.args}\n'
-            'Ignoring Siemens private (CSA) header info.'
+            f"Error while attempting to read CSA header: {e.args}\n"
+            "Ignoring Siemens private (CSA) header info."
         )
         csa = None
     if csa is None:
@@ -143,7 +143,7 @@ class Wrapper:
     @one_time
     def image_shape(self):
         """The array shape as it will be returned by ``get_data()``"""
-        shape = (self.get('Rows'), self.get('Columns'))
+        shape = (self.get("Rows"), self.get("Columns"))
         if None in shape:
             return None
         return shape
@@ -151,7 +151,7 @@ class Wrapper:
     @one_time
     def image_orient_patient(self):
         """Note that this is _not_ LR flipped"""
-        iop = self.get('ImageOrientationPatient')
+        iop = self.get("ImageOrientationPatient")
         if iop is None:
             return None
         # Values are python Decimals in pydicom 0.9.7
@@ -190,7 +190,7 @@ class Wrapper:
         # motivated in ``doc/source/notebooks/ata_error.ipynb``, and from
         # discussion at https://github.com/nipy/nibabel/pull/156
         if not np.allclose(np.eye(3), np.dot(R, R.T), atol=5e-5):
-            raise WrapperPrecisionError('Rotation matrix not nearly orthogonal')
+            raise WrapperPrecisionError("Rotation matrix not nearly orthogonal")
         return R
 
     @one_time
@@ -199,13 +199,13 @@ class Wrapper:
         # pix space gives (row_spacing, column_spacing).  That is, the
         # mm you move when moving from one row to the next, and the mm
         # you move when moving from one column to the next
-        pix_space = self.get('PixelSpacing')
+        pix_space = self.get("PixelSpacing")
         if pix_space is None:
             return None
-        zs = self.get('SpacingBetweenSlices')
+        zs = self.get("SpacingBetweenSlices")
         if zs is None:
-            zs = self.get('SliceThickness')
-            if zs is None or zs == '':
+            zs = self.get("SliceThickness")
+            if zs is None or zs == "":
                 zs = 1
         # Protect from python decimals in pydicom 0.9.7
         zs = float(zs)
@@ -225,7 +225,7 @@ class Wrapper:
         img_pos : (3,) array
            position in mm of voxel (0,0) in image array
         """
-        ipp = self.get('ImagePositionPatient')
+        ipp = self.get("ImagePositionPatient")
         if ipp is None:
             return None
             # Values are python Decimals in pydicom 0.9.7
@@ -249,7 +249,7 @@ class Wrapper:
     @one_time
     def instance_number(self):
         """Just because we use this a lot for sorting"""
-        return self.get('InstanceNumber')
+        return self.get("InstanceNumber")
 
     @one_time
     def series_signature(self):
@@ -269,16 +269,16 @@ class Wrapper:
         signature = {}
         eq = operator.eq
         for key in (
-            'SeriesInstanceUID',
-            'SeriesNumber',
-            'ImageType',
-            'SequenceName',
-            'EchoNumbers',
+            "SeriesInstanceUID",
+            "SeriesNumber",
+            "ImageType",
+            "SequenceName",
+            "EchoNumbers",
         ):
             signature[key] = (self.get(key), eq)
-        signature['image_shape'] = (self.image_shape, eq)
-        signature['iop'] = (self.image_orient_patient, none_or_close)
-        signature['vox'] = (self.voxel_sizes, none_or_close)
+        signature["image_shape"] = (self.image_shape, eq)
+        signature["iop"] = (self.image_orient_patient, none_or_close)
+        signature["vox"] = (self.voxel_sizes, none_or_close)
         return signature
 
     def __getitem__(self, key):
@@ -308,7 +308,7 @@ class Wrapper:
         vox = self.voxel_sizes
         ipp = self.image_position
         if any(p is None for p in (orient, vox, ipp)):
-            raise WrapperError('Not enough information for affine')
+            raise WrapperError("Not enough information for affine")
         aff = np.eye(4)
         aff[:3, :3] = orient * np.array(vox)
         aff[:3, 3] = ipp
@@ -316,9 +316,9 @@ class Wrapper:
 
     def get_pixel_array(self):
         """Return unscaled pixel array from DICOM"""
-        data = self.dcm_data.get('pixel_array')
+        data = self.dcm_data.get("pixel_array")
         if data is None:
-            raise WrapperError('Cannot find data in DICOM')
+            raise WrapperError("Cannot find data in DICOM")
         return data
 
     def get_data(self):
@@ -365,7 +365,10 @@ class Wrapper:
             if not func(v1, v2):
                 return False
         # values present in one or the other but not both
-        for keys, sig in ((my_keys - your_keys, my_sig), (your_keys - my_keys, your_sig)):
+        for keys, sig in (
+            (my_keys - your_keys, my_sig),
+            (your_keys - my_keys, your_sig),
+        ):
             for key in keys:
                 v1, func = sig[key]
                 if not func(v1, None):
@@ -375,8 +378,8 @@ class Wrapper:
     def _scale_data(self, data):
         # depending on pydicom and dicom files, values might need casting from
         # Decimal to float
-        scale = float(self.get('RescaleSlope', 1))
-        offset = float(self.get('RescaleIntercept', 0))
+        scale = float(self.get("RescaleSlope", 1))
+        offset = float(self.get("RescaleIntercept", 0))
         return self._apply_scale_offset(data, scale, offset)
 
     def _apply_scale_offset(self, data, scale, offset):
@@ -458,15 +461,15 @@ class MultiframeWrapper(Wrapper):
         """
         Wrapper.__init__(self, dcm_data)
         self.dcm_data = dcm_data
-        self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
+        self.frames = dcm_data.get("PerFrameFunctionalGroupsSequence")
         try:
             self.frames[0]
         except TypeError:
-            raise WrapperError('PerFrameFunctionalGroupsSequence is empty.')
+            raise WrapperError("PerFrameFunctionalGroupsSequence is empty.")
         try:
-            self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
+            self.shared = dcm_data.get("SharedFunctionalGroupsSequence")[0]
         except TypeError:
-            raise WrapperError('SharedFunctionalGroupsSequence is empty.')
+            raise WrapperError("SharedFunctionalGroupsSequence is empty.")
         self._shape = None
 
     @one_time
@@ -497,51 +500,57 @@ class MultiframeWrapper(Wrapper):
         * Diagram of DimensionIndexSequence and DimensionIndexValues:
           http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#figure_C.7.6.17-1
         """
-        rows, cols = self.get('Rows'), self.get('Columns')
+        rows, cols = self.get("Rows"), self.get("Columns")
         if None in (rows, cols):
-            raise WrapperError('Rows and/or Columns are empty.')
+            raise WrapperError("Rows and/or Columns are empty.")
 
         # Check number of frames
         first_frame = self.frames[0]
-        n_frames = self.get('NumberOfFrames')
+        n_frames = self.get("NumberOfFrames")
         # some Philips may have derived images appended
         has_derived = False
-        if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
+        if hasattr(first_frame, "get") and first_frame.get([0x18, 0x9117]):
             # DWI image may include derived isotropic, ADC or trace volume
             try:
                 anisotropic = pydicom.Sequence(
                     frame
                     for frame in self.frames
-                    if frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
+                    if frame.MRDiffusionSequence[0].DiffusionDirectionality
+                    != "ISOTROPIC"
                 )
                 # Image contains DWI volumes followed by derived images; remove derived images
                 if len(anisotropic) != 0:
                     self.frames = anisotropic
             except IndexError:
                 # Sequence tag is found but missing items!
-                raise WrapperError('Diffusion file missing information')
+                raise WrapperError("Diffusion file missing information")
             except AttributeError:
                 # DiffusionDirectionality tag is not required
                 pass
             else:
                 if n_frames != len(self.frames):
-                    warnings.warn('Derived images found and removed')
+                    warnings.warn("Derived images found and removed")
                     n_frames = len(self.frames)
                     has_derived = True
 
         assert len(self.frames) == n_frames
         frame_indices = np.array(
-            [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
+            [
+                frame.FrameContentSequence[0].DimensionIndexValues
+                for frame in self.frames
+            ]
         )
         # Check that there is only one multiframe stack index
         stack_ids = {frame.FrameContentSequence[0].StackID for frame in self.frames}
         if len(stack_ids) > 1:
             raise WrapperError(
-                'File contains more than one StackID. Cannot handle multi-stack files'
+                "File contains more than one StackID. Cannot handle multi-stack files"
             )
         # Determine if one of the dimension indices refers to the stack id
-        dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
-        stackid_tag = pydicom.datadict.tag_for_keyword('StackID')
+        dim_seq = [
+            dim.DimensionIndexPointer for dim in self.get("DimensionIndexSequence")
+        ]
+        stackid_tag = pydicom.datadict.tag_for_keyword("StackID")
         # remove the stack id axis if present
         if stackid_tag in dim_seq:
             stackid_dim_idx = dim_seq.index(stackid_tag)
@@ -549,9 +558,11 @@ class MultiframeWrapper(Wrapper):
             dim_seq.pop(stackid_dim_idx)
         if has_derived:
             # derived volume is included
-            derived_tag = pydicom.datadict.tag_for_keyword('DiffusionBValue')
+            derived_tag = pydicom.datadict.tag_for_keyword("DiffusionBValue")
             if derived_tag not in dim_seq:
-                raise WrapperError('Missing information, cannot remove indices with confidence.')
+                raise WrapperError(
+                    "Missing information, cannot remove indices with confidence."
+                )
             derived_dim_idx = dim_seq.index(derived_tag)
             frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
         # account for the 2 additional dimensions (row and column) not included
@@ -568,8 +579,8 @@ class MultiframeWrapper(Wrapper):
         n_frames_calc = n_vols * shape[2]
         if n_frames != n_frames_calc:
             raise WrapperError(
-                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
-                f'of shape {shape} does not match NumberOfFrames {n_frames}.'
+                f"Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) "
+                f"of shape {shape} does not match NumberOfFrames {n_frames}."
             )
         return tuple(shape)
 
@@ -584,7 +595,7 @@ class MultiframeWrapper(Wrapper):
             try:
                 iop = self.frames[0].PlaneOrientationSequence[0].ImageOrientationPatient
             except AttributeError:
-                raise WrapperError('Not enough information for image_orient_patient')
+                raise WrapperError("Not enough information for image_orient_patient")
         if iop is None:
             return None
         iop = np.array(list(map(float, iop)))
@@ -599,14 +610,14 @@ class MultiframeWrapper(Wrapper):
             try:
                 pix_measures = self.frames[0].PixelMeasuresSequence[0]
             except AttributeError:
-                raise WrapperError('Not enough data for pixel spacing')
+                raise WrapperError("Not enough data for pixel spacing")
         pix_space = pix_measures.PixelSpacing
         try:
             zs = pix_measures.SliceThickness
         except AttributeError:
-            zs = self.get('SpacingBetweenSlices')
+            zs = self.get("SpacingBetweenSlices")
             if zs is None:
-                raise WrapperError('Not enough data for slice thickness')
+                raise WrapperError("Not enough data for slice thickness")
         # Ensure values are float rather than Decimal
         return tuple(map(float, list(pix_space) + [zs]))
 
@@ -618,7 +629,7 @@ class MultiframeWrapper(Wrapper):
             try:
                 ipp = self.frames[0].PlanePositionSequence[0].ImagePositionPatient
             except AttributeError:
-                raise WrapperError('Cannot get image position from dicom')
+                raise WrapperError("Cannot get image position from dicom")
         if ipp is None:
             return None
         return np.array(list(map(float, ipp)))
@@ -627,28 +638,28 @@ class MultiframeWrapper(Wrapper):
     def series_signature(self):
         signature = {}
         eq = operator.eq
-        for key in ('SeriesInstanceUID', 'SeriesNumber', 'ImageType'):
+        for key in ("SeriesInstanceUID", "SeriesNumber", "ImageType"):
             signature[key] = (self.get(key), eq)
-        signature['image_shape'] = (self.image_shape, eq)
-        signature['iop'] = (self.image_orient_patient, none_or_close)
-        signature['vox'] = (self.voxel_sizes, none_or_close)
+        signature["image_shape"] = (self.image_shape, eq)
+        signature["iop"] = (self.image_orient_patient, none_or_close)
+        signature["vox"] = (self.voxel_sizes, none_or_close)
         return signature
 
     def get_data(self):
         shape = self.image_shape
         if shape is None:
-            raise WrapperError('No valid information for image shape')
+            raise WrapperError("No valid information for image shape")
         data = self.get_pixel_array()
         # Roll frames axis to last
         data = data.transpose((1, 2, 0))
         # Sort frames with first index changing fastest, last slowest
         sorted_indices = np.lexsort(self._frame_indices.T)
         data = data[..., sorted_indices]
-        data = data.reshape(shape, order='F')
+        data = data.reshape(shape, order="F")
         return self._scale_data(data)
 
     def _scale_data(self, data):
-        pix_trans = getattr(self.frames[0], 'PixelValueTransformationSequence', None)
+        pix_trans = getattr(self.frames[0], "PixelValueTransformationSequence", None)
         if pix_trans is None:
             return super()._scale_data(data)
         scale = float(pix_trans[0].RescaleSlope)
@@ -727,7 +738,7 @@ class SiemensWrapper(Wrapper):
         ice = csar.get_ice_dims(self.csa_header)
         if ice is not None:
             ice = ice[:6] + ice[8:9]
-        signature['ICE_Dims'] = (ice, operator.eq)
+        signature["ICE_Dims"] = (ice, operator.eq)
         return signature
 
     @one_time
@@ -754,7 +765,7 @@ class SiemensWrapper(Wrapper):
             if bval_requested is None:
                 return None
             if bval_requested != 0:
-                raise csar.CSAError('No B matrix and b value != 0')
+                raise csar.CSAError("No B matrix and b value != 0")
             return np.zeros((3, 3))
         # rotation from voxels to DICOM PCS, inverted to give the rotation
         # from DPCS to voxels.  Because this is an orthonormal matrix, its
@@ -835,7 +846,7 @@ class MosaicWrapper(SiemensWrapper):
                 pass
             if n_mosaic is None or n_mosaic == 0:
                 raise WrapperError(
-                    'No valid mosaic number in CSA header; is this really Siemens mosiac data?'
+                    "No valid mosaic number in CSA header; is this really Siemens mosiac data?"
                 )
         self.n_mosaic = n_mosaic
         self.mosaic_size = int(np.ceil(np.sqrt(n_mosaic)))
@@ -844,8 +855,8 @@ class MosaicWrapper(SiemensWrapper):
     def image_shape(self):
         """Return image shape as returned by ``get_data()``"""
         # reshape pixel slice array back from mosaic
-        rows = self.get('Rows')
-        cols = self.get('Columns')
+        rows = self.get("Rows")
+        cols = self.get("Columns")
         if None in (rows, cols):
             return None
         return (rows // self.mosaic_size, cols // self.mosaic_size, self.n_mosaic)
@@ -868,9 +879,9 @@ class MosaicWrapper(SiemensWrapper):
         """
         ipp = super().image_position
         # mosaic image size
-        md_rows, md_cols = (self.get('Rows'), self.get('Columns'))
+        md_rows, md_cols = (self.get("Rows"), self.get("Columns"))
         iop = self.image_orient_patient
-        pix_spacing = self.get('PixelSpacing')
+        pix_spacing = self.get("PixelSpacing")
         if any(x is None for x in (ipp, md_rows, md_cols, iop, pix_spacing)):
             return None
         # PixelSpacing values are python Decimal in pydicom 0.9.7
@@ -919,7 +930,7 @@ class MosaicWrapper(SiemensWrapper):
         """
         shape = self.image_shape
         if shape is None:
-            raise WrapperError('No valid information for image shape')
+            raise WrapperError("No valid information for image shape")
         n_slice_rows, n_slice_cols, n_mosaic = shape
         n_slab_rows = self.mosaic_size
         n_blocks = n_slab_rows**2

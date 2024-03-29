@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for loader function"""
+
 import logging
 import pathlib
 import shutil
@@ -43,9 +44,9 @@ from ..testing import deprecated_to, expires
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 
-_, have_scipy, _ = optional_package('scipy')  # No scipy=>no SPM-format writing
-DATA_PATH = pjoin(dirname(__file__), 'data')
-MGH_DATA_PATH = pjoin(dirname(__file__), '..', 'freesurfer', 'tests', 'data')
+_, have_scipy, _ = optional_package("scipy")  # No scipy=>no SPM-format writing
+DATA_PATH = pjoin(dirname(__file__), "data")
+MGH_DATA_PATH = pjoin(dirname(__file__), "..", "freesurfer", "tests", "data")
 
 
 def round_trip(img):
@@ -57,7 +58,9 @@ def test_conversion_spatialimages(caplog):
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
     klasses = [
-        klass for klass in all_image_classes if klass.rw and issubclass(klass, SpatialImage)
+        klass
+        for klass in all_image_classes
+        if klass.rw and issubclass(klass, SpatialImage)
     ]
     for npt in np.float32, np.int16:
         data = np.arange(np.prod(shape), dtype=npt).reshape(shape)
@@ -79,7 +82,7 @@ def test_conversion_spatialimages(caplog):
 def test_save_load_endian():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
-    data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
+    data = np.arange(np.prod(shape), dtype="f4").reshape(shape)
     # Native endian image
     img = Nifti1Image(data, affine)
     assert img.header.endianness == native_code
@@ -131,8 +134,8 @@ def test_save_load():
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
     with InTemporaryDirectory() as pth:
-        nifn = 'an_image.nii'
-        sifn = 'another_image.img'
+        nifn = "an_image.nii"
+        sifn = "another_image.img"
         ni1.save(img, nifn)
         re_img = nils.load(nifn)
         assert isinstance(re_img, ni1.Nifti1Image)
@@ -172,47 +175,47 @@ def test_two_to_one():
     affine[:3, 3] = [3, 2, 1]
     # single file format
     img = ni1.Nifti1Image(data, affine)
-    assert img.header['magic'] == b'n+1'
+    assert img.header["magic"] == b"n+1"
     str_io = BytesIO()
-    img.file_map['image'].fileobj = str_io
+    img.file_map["image"].fileobj = str_io
     # check that the single format vox offset stays at zero
     img.to_file_map()
-    assert img.header['magic'] == b'n+1'
-    assert img.header['vox_offset'] == 0
+    assert img.header["magic"] == b"n+1"
+    assert img.header["vox_offset"] == 0
     # make a new pair image, with the single image header
     pimg = ni1.Nifti1Pair(data, affine, img.header)
     isio = BytesIO()
     hsio = BytesIO()
-    pimg.file_map['image'].fileobj = isio
-    pimg.file_map['header'].fileobj = hsio
+    pimg.file_map["image"].fileobj = isio
+    pimg.file_map["header"].fileobj = hsio
     pimg.to_file_map()
     # the offset stays at zero (but is 352 on disk)
-    assert pimg.header['magic'] == b'ni1'
-    assert pimg.header['vox_offset'] == 0
+    assert pimg.header["magic"] == b"ni1"
+    assert pimg.header["vox_offset"] == 0
     assert_array_equal(pimg.get_fdata(), data)
     # same for from_image, going from single image to pair format
     ana_img = ana.AnalyzeImage.from_image(img)
-    assert ana_img.header['vox_offset'] == 0
+    assert ana_img.header["vox_offset"] == 0
     # back to the single image, save it again to a stringio
     str_io = BytesIO()
-    img.file_map['image'].fileobj = str_io
+    img.file_map["image"].fileobj = str_io
     img.to_file_map()
-    assert img.header['vox_offset'] == 0
+    assert img.header["vox_offset"] == 0
     aimg = ana.AnalyzeImage.from_image(img)
-    assert aimg.header['vox_offset'] == 0
+    assert aimg.header["vox_offset"] == 0
     aimg = spm99.Spm99AnalyzeImage.from_image(img)
-    assert aimg.header['vox_offset'] == 0
+    assert aimg.header["vox_offset"] == 0
     aimg = spm2.Spm2AnalyzeImage.from_image(img)
-    assert aimg.header['vox_offset'] == 0
+    assert aimg.header["vox_offset"] == 0
     nfimg = ni1.Nifti1Pair.from_image(img)
-    assert nfimg.header['vox_offset'] == 0
+    assert nfimg.header["vox_offset"] == 0
     # now set the vox offset directly
     hdr = nfimg.header
-    hdr['vox_offset'] = 16
-    assert nfimg.header['vox_offset'] == 16
+    hdr["vox_offset"] = 16
+    assert nfimg.header["vox_offset"] == 16
     # check it gets properly set by the nifti single image
     nfimg = ni1.Nifti1Image.from_image(img)
-    assert nfimg.header['vox_offset'] == 0
+    assert nfimg.header["vox_offset"] == 0
 
 
 def test_negative_load_save():
@@ -223,7 +226,7 @@ def test_negative_load_save():
     hdr.set_data_dtype(np.int16)
     img = Nifti1Image(data, affine, hdr)
     str_io = BytesIO()
-    img.file_map['image'].fileobj = str_io
+    img.file_map["image"].fileobj = str_io
     img.to_file_map()
     str_io.seek(0)
     re_img = Nifti1Image.from_file_map(img.file_map)
@@ -235,40 +238,40 @@ def test_filename_save():
     # extensions to filetypes
     # Tuples of class, ext, loadedclass
     inklass_ext_loadklasses = (
-        (Nifti1Image, '.nii', Nifti1Image),
-        (Nifti2Image, '.nii', Nifti2Image),
-        (Nifti1Pair, '.nii', Nifti1Image),
-        (Nifti2Pair, '.nii', Nifti2Image),
-        (Nifti1Image, '.img', Nifti1Pair),
-        (Nifti2Image, '.img', Nifti2Pair),
-        (Nifti1Pair, '.img', Nifti1Pair),
-        (Nifti2Pair, '.img', Nifti2Pair),
-        (Nifti1Image, '.hdr', Nifti1Pair),
-        (Nifti2Image, '.hdr', Nifti2Pair),
-        (Nifti1Pair, '.hdr', Nifti1Pair),
-        (Nifti2Pair, '.hdr', Nifti2Pair),
-        (Minc1Image, '.nii', Nifti1Image),
-        (Minc1Image, '.img', Nifti1Pair),
-        (Spm2AnalyzeImage, '.nii', Nifti1Image),
-        (Spm2AnalyzeImage, '.img', Spm2AnalyzeImage),
-        (Spm99AnalyzeImage, '.nii', Nifti1Image),
-        (Spm99AnalyzeImage, '.img', Spm2AnalyzeImage),
-        (AnalyzeImage, '.nii', Nifti1Image),
-        (AnalyzeImage, '.img', Spm2AnalyzeImage),
+        (Nifti1Image, ".nii", Nifti1Image),
+        (Nifti2Image, ".nii", Nifti2Image),
+        (Nifti1Pair, ".nii", Nifti1Image),
+        (Nifti2Pair, ".nii", Nifti2Image),
+        (Nifti1Image, ".img", Nifti1Pair),
+        (Nifti2Image, ".img", Nifti2Pair),
+        (Nifti1Pair, ".img", Nifti1Pair),
+        (Nifti2Pair, ".img", Nifti2Pair),
+        (Nifti1Image, ".hdr", Nifti1Pair),
+        (Nifti2Image, ".hdr", Nifti2Pair),
+        (Nifti1Pair, ".hdr", Nifti1Pair),
+        (Nifti2Pair, ".hdr", Nifti2Pair),
+        (Minc1Image, ".nii", Nifti1Image),
+        (Minc1Image, ".img", Nifti1Pair),
+        (Spm2AnalyzeImage, ".nii", Nifti1Image),
+        (Spm2AnalyzeImage, ".img", Spm2AnalyzeImage),
+        (Spm99AnalyzeImage, ".nii", Nifti1Image),
+        (Spm99AnalyzeImage, ".img", Spm2AnalyzeImage),
+        (AnalyzeImage, ".nii", Nifti1Image),
+        (AnalyzeImage, ".img", Spm2AnalyzeImage),
     )
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
-    data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
+    data = np.arange(np.prod(shape), dtype="f4").reshape(shape)
     for inklass, out_ext, loadklass in inklass_ext_loadklasses:
         if not have_scipy:
             # We can't load a SPM analyze type without scipy.  These types have
             # a 'mat' file (the type we can't load)
-            if ('mat', '.mat') in loadklass.files_types:
+            if ("mat", ".mat") in loadklass.files_types:
                 continue
         img = inklass(data, affine)
         try:
             pth = mkdtemp()
-            fname = pjoin(pth, 'image' + out_ext)
+            fname = pjoin(pth, "image" + out_ext)
             for path in (fname, pathlib.Path(fname)):
                 nils.save(img, path)
                 rt_img = nils.load(path)
@@ -281,18 +284,25 @@ def test_filename_save():
             shutil.rmtree(pth)
 
 
-@expires('5.0.0')
+@expires("5.0.0")
 def test_guessed_image_type():
     # Test whether we can guess the image type from example files
-    with deprecated_to('5.0.0'):
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'example4d.nii.gz')) == Nifti1Image
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti1.hdr')) == Nifti1Pair
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'example_nifti2.nii.gz')) == Nifti2Image
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti2.hdr')) == Nifti2Pair
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'tiny.mnc')) == Minc1Image
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'small.mnc')) == Minc2Image
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'test.mgz')) == MGHImage
-        assert nils.guessed_image_type(pjoin(DATA_PATH, 'analyze.hdr')) == Spm2AnalyzeImage
+    with deprecated_to("5.0.0"):
+        assert (
+            nils.guessed_image_type(pjoin(DATA_PATH, "example4d.nii.gz")) == Nifti1Image
+        )
+        assert nils.guessed_image_type(pjoin(DATA_PATH, "nifti1.hdr")) == Nifti1Pair
+        assert (
+            nils.guessed_image_type(pjoin(DATA_PATH, "example_nifti2.nii.gz"))
+            == Nifti2Image
+        )
+        assert nils.guessed_image_type(pjoin(DATA_PATH, "nifti2.hdr")) == Nifti2Pair
+        assert nils.guessed_image_type(pjoin(DATA_PATH, "tiny.mnc")) == Minc1Image
+        assert nils.guessed_image_type(pjoin(DATA_PATH, "small.mnc")) == Minc2Image
+        assert nils.guessed_image_type(pjoin(DATA_PATH, "test.mgz")) == MGHImage
+        assert (
+            nils.guessed_image_type(pjoin(DATA_PATH, "analyze.hdr")) == Spm2AnalyzeImage
+        )
 
 
 def test_fail_save():
@@ -302,5 +312,5 @@ def test_fail_save():
         img = SpatialImage(dataobj, affine)
         # Fails because float16 is not supported.
         with pytest.raises(AttributeError):
-            nils.save(img, 'foo.nii.gz')
+            nils.save(img, "foo.nii.gz")
         del img

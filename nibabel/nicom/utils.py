@@ -1,5 +1,4 @@
-"""Utilities for working with DICOM datasets
-"""
+"""Utilities for working with DICOM datasets"""
 
 
 def find_private_section(dcm_data, group_no, creator):
@@ -27,22 +26,22 @@ def find_private_section(dcm_data, group_no, creator):
     element_start : int
         Element number at which named section starts.
     """
-    if hasattr(creator, 'search'):
+    if hasattr(creator, "search"):
         match_func = creator.search
     else:
         if isinstance(creator, bytes):
-            creator = creator.decode('latin-1')
+            creator = creator.decode("latin-1")
         match_func = creator.__eq__
     # Group elements assumed ordered by tag (groupno, elno)
     for element in dcm_data.group_dataset(group_no):
         elno = element.tag.elem
         if elno > 0xFF:
             break
-        if element.VR not in ('LO', 'OB'):
+        if element.VR not in ("LO", "OB"):
             continue
         val = element.value
         if isinstance(val, bytes):
-            val = val.decode('latin-1')
+            val = val.decode("latin-1")
         if match_func(val):
             return elno * 0x100
     return None

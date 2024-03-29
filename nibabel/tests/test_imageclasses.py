@@ -1,5 +1,4 @@
-"""Testing imageclasses module
-"""
+"""Testing imageclasses module"""
 
 from os.path import dirname
 from os.path import join as pjoin
@@ -13,15 +12,15 @@ from nibabel.nifti1 import Nifti1Image
 from nibabel.nifti2 import Nifti2Image
 from nibabel.optpkg import optional_package
 
-have_h5py = optional_package('h5py')[1]
+have_h5py = optional_package("h5py")[1]
 
-DATA_DIR = pjoin(dirname(__file__), 'data')
+DATA_DIR = pjoin(dirname(__file__), "data")
 
-MINC_3DS = ('minc1_1_scale.mnc',)
-MINC_4DS = ('minc1_4d.mnc',)
+MINC_3DS = ("minc1_1_scale.mnc",)
+MINC_4DS = ("minc1_4d.mnc",)
 if have_h5py:
-    MINC_3DS = MINC_3DS + ('minc2_1_scale.mnc',)
-    MINC_4DS = MINC_4DS + ('minc2_4d.mnc',)
+    MINC_3DS = MINC_3DS + ("minc2_1_scale.mnc",)
+    MINC_4DS = MINC_4DS + ("minc2_4d.mnc",)
 
 
 def test_spatial_axes_first():

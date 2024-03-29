@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Context manager openers for various fileobject types"""
+
 from __future__ import annotations
 
 import gzip
@@ -22,10 +23,10 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
     from _typeshed import WriteableBuffer
 
-    ModeRT = ty.Literal['r', 'rt']
-    ModeRB = ty.Literal['rb']
-    ModeWT = ty.Literal['w', 'wt']
-    ModeWB = ty.Literal['wb']
+    ModeRT = ty.Literal["r", "rt"]
+    ModeRB = ty.Literal["rb"]
+    ModeWT = ty.Literal["w", "wt"]
+    ModeWB = ty.Literal["wb"]
     ModeR = ty.Union[ModeRT, ModeRB]
     ModeW = ty.Union[ModeWT, ModeWB]
     Mode = ty.Union[ModeR, ModeW]
@@ -35,11 +36,9 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
 @ty.runtime_checkable
 class Fileish(ty.Protocol):
-    def read(self, size: int = -1, /) -> bytes:
-        ...  # pragma: no cover
+    def read(self, size: int = -1, /) -> bytes: ...  # pragma: no cover
 
-    def write(self, b: bytes, /) -> int | None:
-        ...  # pragma: no cover
+    def write(self, b: bytes, /) -> int | None: ...  # pragma: no cover
 
 
 class DeterministicGzipFile(gzip.GzipFile):
@@ -58,20 +57,20 @@ class DeterministicGzipFile(gzip.GzipFile):
         mtime: int = 0,
     ):
         if mode is None:
-            mode = 'rb'
+            mode = "rb"
         modestr: str = mode
 
         # These two guards are adapted from
         # https://github.com/python/cpython/blob/6ab65c6/Lib/gzip.py#L171-L174
-        if 'b' not in modestr:
-            modestr = f'{mode}b'
+        if "b" not in modestr:
+            modestr = f"{mode}b"
         if fileobj is None:
             if filename is None:
-                raise TypeError('Must define either fileobj or filename')
+                raise TypeError("Must define either fileobj or filename")
             # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
             fileobj = self.myfileobj = ty.cast(io.FileIO, open(filename, modestr))
         return super().__init__(
-            filename='',
+            filename="",
             mode=modestr,
             compresslevel=compresslevel,
             fileobj=fileobj,
@@ -81,13 +80,12 @@ class DeterministicGzipFile(gzip.GzipFile):
 
 def _gzip_open(
     filename: str,
-    mode: Mode = 'rb',
+    mode: Mode = "rb",
     compresslevel: int = 9,
     mtime: int = 0,
     keep_open: bool = False,
 ) -> gzip.GzipFile:
-
-    if not HAVE_INDEXED_GZIP or mode != 'rb':
+    if not HAVE_INDEXED_GZIP or mode != "rb":
         gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==
@@ -101,12 +99,14 @@ def _gzip_open(
 
 def _zstd_open(
     filename: str,
-    mode: Mode = 'r',
+    mode: Mode = "r",
     *,
     level_or_option: int | dict | None = None,
     zstd_dict: pyzstd.ZstdDict | None = None,
 ) -> pyzstd.ZstdFile:
-    return pyzstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
+    return pyzstd.ZstdFile(
+        filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict
+    )
 
 
 class Opener:
@@ -129,24 +129,25 @@ class Opener:
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
-    gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
-    bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
-    zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
+
+    gz_def = (_gzip_open, ("mode", "compresslevel", "mtime", "keep_open"))
+    bz2_def = (BZ2File, ("mode", "buffering", "compresslevel"))
+    zstd_def = (_zstd_open, ("mode", "level_or_option", "zstd_dict"))
     compress_ext_map: dict[str | None, OpenerDef] = {
-        '.gz': gz_def,
-        '.bz2': bz2_def,
-        '.zst': zstd_def,
-        None: (open, ('mode', 'buffering')),  # default
+        ".gz": gz_def,
+        ".bz2": bz2_def,
+        ".zst": zstd_def,
+        None: (open, ("mode", "buffering")),  # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
     #: default option for zst files
     default_zst_compresslevel = 3
     default_level_or_option = {
-        'rb': None,
-        'r': None,
-        'wb': default_zst_compresslevel,
-        'w': default_zst_compresslevel,
+        "rb": None,
+        "r": None,
+        "wb": default_zst_compresslevel,
+        "w": default_zst_compresslevel,
     }
     #: whether to ignore case looking for compression extensions
     compress_ext_icase: bool = True
@@ -157,28 +158,28 @@ class Opener:
         if isinstance(fileish, (io.IOBase, Fileish)):
             self.fobj = fileish
             self.me_opened = False
-            self._name = getattr(fileish, 'name', None)
+            self._name = getattr(fileish, "name", None)
             return
         opener, arg_names = self._get_opener_argnames(fileish)
         # Get full arguments to check for mode and compresslevel
         full_kwargs = {**kwargs, **dict(zip(arg_names, args))}
         # Set default mode
-        if 'mode' not in full_kwargs:
-            mode = 'rb'
-            kwargs['mode'] = mode
+        if "mode" not in full_kwargs:
+            mode = "rb"
+            kwargs["mode"] = mode
         else:
-            mode = full_kwargs['mode']
+            mode = full_kwargs["mode"]
         # Default compression level
-        if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
-            kwargs['compresslevel'] = self.default_compresslevel
-        if 'level_or_option' in arg_names and 'level_or_option' not in kwargs:
-            kwargs['level_or_option'] = self.default_level_or_option[mode]
+        if "compresslevel" in arg_names and "compresslevel" not in kwargs:
+            kwargs["compresslevel"] = self.default_compresslevel
+        if "level_or_option" in arg_names and "level_or_option" not in kwargs:
+            kwargs["level_or_option"] = self.default_level_or_option[mode]
         # Default keep_open hint
-        if 'keep_open' in arg_names:
-            kwargs.setdefault('keep_open', False)
+        if "keep_open" in arg_names:
+            kwargs.setdefault("keep_open", False)
         # Clear keep_open hint if it is not relevant for the file type
         else:
-            kwargs.pop('keep_open', None)
+            kwargs.pop("keep_open", None)
         self.fobj = opener(fileish, *args, **kwargs)
         self._name = fileish
         self.me_opened = True
@@ -212,7 +213,7 @@ class Opener:
     @property
     def mode(self) -> str:
         # Check and raise our own error for type narrowing purposes
-        if hasattr(self.fobj, 'mode'):
+        if hasattr(self.fobj, "mode"):
             return self.fobj.mode
         raise AttributeError(f'{self.fobj.__class__.__name__} has no attribute "mode"')
 
@@ -224,9 +225,11 @@ class Opener:
 
     def readinto(self, buffer: WriteableBuffer, /) -> int | None:
         # Check and raise our own error for type narrowing purposes
-        if hasattr(self.fobj, 'readinto'):
+        if hasattr(self.fobj, "readinto"):
             return self.fobj.readinto(buffer)
-        raise AttributeError(f'{self.fobj.__class__.__name__} has no attribute "readinto"')
+        raise AttributeError(
+            f'{self.fobj.__class__.__name__} has no attribute "readinto"'
+        )
 
     def write(self, b: bytes, /) -> int | None:
         return self.fobj.write(b)

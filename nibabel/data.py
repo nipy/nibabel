@@ -1,6 +1,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Utilities to find files from NIPY data packages"""
+
 import configparser
 import glob
 import os
@@ -11,7 +12,9 @@ from packaging.version import Version
 
 from .environment import get_nipy_system_dir, get_nipy_user_dir
 
-DEFAULT_INSTALL_HINT = 'If you have the package, have you set the path to the package correctly?'
+DEFAULT_INSTALL_HINT = (
+    "If you have the package, have you set the path to the package correctly?"
+)
 
 
 class DataError(Exception):
@@ -118,32 +121,32 @@ class VersionedDatasource(Datasource):
         """
         Datasource.__init__(self, base_path)
         if config_filename is None:
-            config_filename = 'config.ini'
+            config_filename = "config.ini"
         self.config = configparser.ConfigParser()
         cfg_file = self.get_filename(config_filename)
         readfiles = self.config.read(cfg_file)
         if not readfiles:
-            raise DataError(f'Could not read config file {cfg_file}')
+            raise DataError(f"Could not read config file {cfg_file}")
         try:
-            self.version = self.config.get('DEFAULT', 'version')
+            self.version = self.config.get("DEFAULT", "version")
         except configparser.Error:
-            raise DataError(f'Could not get version from {cfg_file}')
-        version_parts = self.version.split('.')
+            raise DataError(f"Could not get version from {cfg_file}")
+        version_parts = self.version.split(".")
         self.major_version = int(version_parts[0])
         self.minor_version = int(version_parts[1])
-        self.version_no = float(f'{self.major_version}.{self.minor_version}')
+        self.version_no = float(f"{self.major_version}.{self.minor_version}")
 
 
-def _cfg_value(fname, section='DATA', value='path'):
+def _cfg_value(fname, section="DATA", value="path"):
     """Utility function to fetch value from config file"""
     configp = configparser.ConfigParser()
     readfiles = configp.read(fname)
     if not readfiles:
-        return ''
+        return ""
     try:
         return configp.get(section, value)
     except configparser.Error:
-        return ''
+        return ""
 
 
 def get_data_path():
@@ -190,22 +193,22 @@ def get_data_path():
     """
     paths = []
     try:
-        var = os.environ['NIPY_DATA_PATH']
+        var = os.environ["NIPY_DATA_PATH"]
     except KeyError:
         pass
     else:
         if var:
             paths = var.split(os.path.pathsep)
-    np_cfg = pjoin(get_nipy_user_dir(), 'config.ini')
+    np_cfg = pjoin(get_nipy_user_dir(), "config.ini")
     np_etc = get_nipy_system_dir()
-    config_files = sorted(glob.glob(pjoin(np_etc, '*.ini')))
+    config_files = sorted(glob.glob(pjoin(np_etc, "*.ini")))
     for fname in [np_cfg] + config_files:
         var = _cfg_value(fname)
         if var:
             paths += var.split(os.path.pathsep)
-    paths.append(pjoin(sys.prefix, 'share', 'nipy'))
-    if sys.prefix == '/usr':
-        paths.append(pjoin('/usr/local', 'share', 'nipy'))
+    paths.append(pjoin(sys.prefix, "share", "nipy"))
+    if sys.prefix == "/usr":
+        paths.append(pjoin("/usr/local", "share", "nipy"))
     paths.append(pjoin(get_nipy_user_dir()))
     return paths
 
@@ -276,23 +279,23 @@ def make_datasource(pkg_def, **kwargs):
     datasource : ``VersionedDatasource``
        An initialized ``VersionedDatasource`` instance
     """
-    if any(key for key in kwargs if key != 'data_path'):
-        raise ValueError('Unexpected keyword argument(s)')
-    data_path = kwargs.get('data_path')
+    if any(key for key in kwargs if key != "data_path"):
+        raise ValueError("Unexpected keyword argument(s)")
+    data_path = kwargs.get("data_path")
     if data_path is None:
         data_path = get_data_path()
-    unix_relpath = pkg_def['relpath']
-    names = unix_relpath.split('/')
+    unix_relpath = pkg_def["relpath"]
+    names = unix_relpath.split("/")
     try:
         pth = find_data_dir(data_path, *names)
     except DataError as e:
         pth = [pjoin(this_data_path, *names) for this_data_path in data_path]
-        pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-        msg = f'{e}; Is it possible you have not installed a data package?'
-        if 'name' in pkg_def:
+        pkg_hint = pkg_def.get("install hint", DEFAULT_INSTALL_HINT)
+        msg = f"{e}; Is it possible you have not installed a data package?"
+        if "name" in pkg_def:
             msg += f"\n\nYou may need the package \"{pkg_def['name']}\""
         if pkg_hint is not None:
-            msg += f'\n\n{pkg_hint}'
+            msg += f"\n\n{pkg_hint}"
         raise DataError(msg)
     return VersionedDatasource(pth)
 
@@ -335,10 +338,10 @@ def datasource_or_bomber(pkg_def, **options):
     -------
     ds : datasource or ``Bomber`` instance
     """
-    unix_relpath = pkg_def['relpath']
-    version = pkg_def.get('min version')
-    pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
-    names = unix_relpath.split('/')
+    unix_relpath = pkg_def["relpath"]
+    version = pkg_def.get("min version")
+    pkg_hint = pkg_def.get("install hint", DEFAULT_INSTALL_HINT)
+    names = unix_relpath.split("/")
     sys_relpath = os.path.sep.join(names)
     try:
         ds = make_datasource(pkg_def, **options)
@@ -347,9 +350,9 @@ def datasource_or_bomber(pkg_def, **options):
     # check version
     if version is None or Version(ds.version) >= Version(version):
         return ds
-    if 'name' in pkg_def:
-        pkg_name = pkg_def['name']
+    if "name" in pkg_def:
+        pkg_name = pkg_def["name"]
     else:
-        pkg_name = 'data at ' + unix_relpath
-    msg = f'{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}'
+        pkg_name = "data at " + unix_relpath
+    msg = f"{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}"
     return Bomber(sys_relpath, DataError(msg))

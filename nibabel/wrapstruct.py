@@ -109,13 +109,20 @@ The same for logging::
 
    nib.imageglobals.logger = logger
 """
+
 from __future__ import annotations
 
 import numpy as np
 
 from . import imageglobals as imageglobals
 from .batteryrunners import BatteryRunner
-from .volumeutils import Recoder, endian_codes, native_code, pretty_mapping, swapped_code
+from .volumeutils import (
+    Recoder,
+    endian_codes,
+    native_code,
+    pretty_mapping,
+    swapped_code,
+)
 
 
 class WrapStructError(Exception):
@@ -124,7 +131,7 @@ class WrapStructError(Exception):
 
 class WrapStruct:
     # placeholder datatype
-    template_dtype = np.dtype([('integer', 'i2')])
+    template_dtype = np.dtype([("integer", "i2")])
 
     def __init__(self, binaryblock=None, endianness=None, check=True):
         """Initialize WrapStruct from binary data block
@@ -157,7 +164,7 @@ class WrapStruct:
             return
         # check size
         if len(binaryblock) != self.template_dtype.itemsize:
-            raise WrapStructError('Binary block is wrong size')
+            raise WrapStructError("Binary block is wrong size")
         wstr = np.ndarray(shape=(), dtype=self.template_dtype, buffer=binaryblock)
         if endianness is None:
             endianness = self.__class__.guessed_endian(wstr)
@@ -366,7 +373,7 @@ class WrapStruct:
         wstr = klass(binaryblock, endianness=endianness, check=False)
         battrun = BatteryRunner(klass._get_checks())
         reports = battrun.check_only(wstr)
-        return '\n'.join([report.message for report in reports if report.message])
+        return "\n".join([report.message for report in reports if report.message])
 
     @classmethod
     def guessed_endian(self, mapping):
@@ -412,7 +419,7 @@ class WrapStruct:
     def __str__(self):
         """Return string representation for printing"""
         summary = f"{self.__class__} object, endian='{self.endianness}'"
-        return '\n'.join([summary, pretty_mapping(self)])
+        return "\n".join([summary, pretty_mapping(self)])
 
     def as_byteswapped(self, endianness=None):
         """return new byteswapped object with given ``endianness``
@@ -522,12 +529,12 @@ class LabeledWrapStruct(WrapStruct):
         'two'
         """
         if fieldname not in self._field_recoders:
-            raise ValueError(f'{fieldname} not a coded field')
+            raise ValueError(f"{fieldname} not a coded field")
         code = int(self._structarr[fieldname])
         try:
             return self._field_recoders[fieldname].label[code]
         except KeyError:
-            return f'<unknown code {code}>'
+            return f"<unknown code {code}>"
 
     def __str__(self):
         """Return string representation for printing"""
@@ -539,4 +546,4 @@ class LabeledWrapStruct(WrapStruct):
             except ValueError:
                 return obj[key]
 
-        return '\n'.join([summary, pretty_mapping(self, _getter)])
+        return "\n".join([summary, pretty_mapping(self, _getter)])

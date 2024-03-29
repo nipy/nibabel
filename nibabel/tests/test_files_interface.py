@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing filesets - a draft
-"""
+"""Testing filesets - a draft"""
 
 from io import BytesIO
 
@@ -25,7 +24,9 @@ def test_files_spatialimages():
     arr = np.zeros((2, 3, 4))
     aff = np.eye(4)
     klasses = [
-        klass for klass in all_image_classes if klass.rw and issubclass(klass, SpatialImage)
+        klass
+        for klass in all_image_classes
+        if klass.rw and issubclass(klass, SpatialImage)
     ]
     for klass in klasses:
         file_map = klass.make_file_map()
@@ -54,31 +55,31 @@ def test_files_interface():
     aff = np.eye(4)
     img = Nifti1Image(arr, aff)
     # single image
-    img.set_filename('test')
-    assert img.get_filename() == 'test.nii'
-    assert img.file_map['image'].filename == 'test.nii'
+    img.set_filename("test")
+    assert img.get_filename() == "test.nii"
+    assert img.file_map["image"].filename == "test.nii"
     with pytest.raises(KeyError):
-        img.file_map['header']
+        img.file_map["header"]
     # pair - note new class
     img = Nifti1Pair(arr, aff)
-    img.set_filename('test')
-    assert img.get_filename() == 'test.img'
-    assert img.file_map['image'].filename == 'test.img'
-    assert img.file_map['header'].filename == 'test.hdr'
+    img.set_filename("test")
+    assert img.get_filename() == "test.img"
+    assert img.file_map["image"].filename == "test.img"
+    assert img.file_map["header"].filename == "test.hdr"
     # fileobjs - single image
     img = Nifti1Image(arr, aff)
-    img.file_map['image'].fileobj = BytesIO()
+    img.file_map["image"].fileobj = BytesIO()
     img.to_file_map()  # saves to files
     img2 = Nifti1Image.from_file_map(img.file_map)
     # img still has correct data
     assert_array_equal(img2.get_fdata(), img.get_fdata())
     # fileobjs - pair
     img = Nifti1Pair(arr, aff)
-    img.file_map['image'].fileobj = BytesIO()
+    img.file_map["image"].fileobj = BytesIO()
     # no header yet
     with pytest.raises(FileHolderError):
         img.to_file_map()
-    img.file_map['header'].fileobj = BytesIO()
+    img.file_map["header"].fileobj = BytesIO()
     img.to_file_map()  # saves to files
     img2 = Nifti1Pair.from_file_map(img.file_map)
     # img still has correct data
@@ -87,7 +88,7 @@ def test_files_interface():
 
 def test_round_trip_spatialimages():
     # write an image to files
-    data = np.arange(24, dtype='i4').reshape((2, 3, 4))
+    data = np.arange(24, dtype="i4").reshape((2, 3, 4))
     aff = np.eye(4)
     klasses = [
         klass

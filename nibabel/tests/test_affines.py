@@ -5,7 +5,11 @@ from itertools import product
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
+from numpy.testing import (
+    assert_almost_equal,
+    assert_array_almost_equal,
+    assert_array_equal,
+)
 
 from ..affines import (
     AffineError,
@@ -108,7 +112,9 @@ def test_matrix_vector():
 def test_append_diag():
     # Routine for appending diagonal elements
     assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]), np.diag([2, 3, 1, 1]))
-    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1, 1]), np.diag([2, 3, 1, 1, 1]))
+    assert_array_equal(
+        append_diag(np.diag([2, 3, 1]), [1, 1]), np.diag([2, 3, 1, 1, 1])
+    )
     aff = np.array(
         [
             [2, 0, 0],
@@ -217,7 +223,9 @@ def test_obliquity():
     R = from_matvec(euler2mat(x=0.09, y=0.001, z=0.001), [0.0, 0.0, 0.0])
     oblique = R.dot(aligned)
     assert_almost_equal(obliquity(aligned), [0.0, 0.0, 0.0])
-    assert_almost_equal(obliquity(oblique) * 180 / pi, [0.0810285, 5.1569949, 5.1569376])
+    assert_almost_equal(
+        obliquity(oblique) * 180 / pi, [0.0810285, 5.1569949, 5.1569376]
+    )
 
 
 def test_rescale_affine():

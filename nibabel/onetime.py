@@ -18,12 +18,13 @@ Hettinger. https://docs.python.org/howto/descriptor.html
 
 [2] Python data model, https://docs.python.org/reference/datamodel.html
 """
+
 from __future__ import annotations
 
 import typing as ty
 
-InstanceT = ty.TypeVar('InstanceT')
-T = ty.TypeVar('T')
+InstanceT = ty.TypeVar("InstanceT")
+T = ty.TypeVar("T")
 
 from nibabel.deprecated import deprecate_with_version
 
@@ -136,12 +137,12 @@ class OneTimeProperty(ty.Generic[T]):
     @ty.overload
     def __get__(
         self, obj: None, objtype: type[InstanceT] | None = None
-    ) -> ty.Callable[[InstanceT], T]:
-        ...  # pragma: no cover
+    ) -> ty.Callable[[InstanceT], T]: ...  # pragma: no cover
 
     @ty.overload
-    def __get__(self, obj: InstanceT, objtype: type[InstanceT] | None = None) -> T:
-        ...  # pragma: no cover
+    def __get__(
+        self, obj: InstanceT, objtype: type[InstanceT] | None = None
+    ) -> T: ...  # pragma: no cover
 
     def __get__(
         self, obj: InstanceT | None, objtype: type[InstanceT] | None = None
@@ -193,7 +194,7 @@ def auto_attr(func: ty.Callable[[InstanceT], T]) -> OneTimeProperty[T]:
 
 # For backwards compatibility
 setattr_on_read = deprecate_with_version(
-    message='setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr',
-    since='3.2',
-    until='5.0',
+    message="setattr_on_read has been renamed to auto_attr. Please use nibabel.onetime.auto_attr",
+    since="3.2",
+    until="5.0",
 )(auto_attr)

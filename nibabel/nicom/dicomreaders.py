@@ -29,17 +29,19 @@ def mosaic_to_nii(dcm_data):
     """
     dcm_w = wrapper_from_data(dcm_data)
     if not dcm_w.is_mosaic:
-        raise DicomReadError('data does not appear to be in mosaic format')
+        raise DicomReadError("data does not appear to be in mosaic format")
     data = dcm_w.get_data()
     aff = np.dot(DPCS_TO_TAL, dcm_w.affine)
     return Nifti1Image(data, aff)
 
 
-def read_mosaic_dwi_dir(dicom_path, globber='*.dcm', dicom_kwargs=None):
-    return read_mosaic_dir(dicom_path, globber, check_is_dwi=True, dicom_kwargs=dicom_kwargs)
+def read_mosaic_dwi_dir(dicom_path, globber="*.dcm", dicom_kwargs=None):
+    return read_mosaic_dir(
+        dicom_path, globber, check_is_dwi=True, dicom_kwargs=dicom_kwargs
+    )
 
 
-def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, dicom_kwargs=None):
+def read_mosaic_dir(dicom_path, globber="*.dcm", check_is_dwi=False, dicom_kwargs=None):
     """Read all Siemens mosaic DICOMs in directory, return arrays, params
 
     Parameters
@@ -85,15 +87,15 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, dicom_kwarg
         # this order for mosaic images.  Slice by slice dicoms need more
         # sensible sorting
         if not dcm_w.is_mosaic:
-            raise DicomReadError('data does not appear to be in mosaic format')
+            raise DicomReadError("data does not appear to be in mosaic format")
         arrays.append(dcm_w.get_data()[..., None])
         q = dcm_w.q_vector
         if q is None:  # probably not diffusion
             if check_is_dwi:
                 raise DicomReadError(
                     f'Could not find diffusion information reading file "{fname}";  '
-                    'is it possible this is not a _raw_ diffusion directory? '
-                    'Could it be a processed dataset like ADC etc?'
+                    "is it possible this is not a _raw_ diffusion directory? "
+                    "Could it be a processed dataset like ADC etc?"
                 )
             b = np.nan
             g = np.ones((3,)) + np.nan
@@ -131,7 +133,7 @@ def slices_to_series(wrappers):
                 break
         else:  # no match in current volume lists
             volume_lists.append([dw])
-    print('We appear to have %d Series' % len(volume_lists))
+    print("We appear to have %d Series" % len(volume_lists))
     # second pass
     out_vol_lists = []
     for vol_list in volume_lists:
@@ -143,13 +145,13 @@ def slices_to_series(wrappers):
                 out_vol_lists += _third_pass(vol_list)
                 continue
         out_vol_lists.append(vol_list)
-    print('We have %d volumes after second pass' % len(out_vol_lists))
+    print("We have %d volumes after second pass" % len(out_vol_lists))
     # final pass check
     for vol_list in out_vol_lists:
         zs = [s.slice_indicator for s in vol_list]
         diffs = np.diff(zs)
         if not np.allclose(diffs, np.mean(diffs)):
-            raise DicomReadError('Largeish slice gaps - missing DICOMs?')
+            raise DicomReadError("Largeish slice gaps - missing DICOMs?")
     return out_vol_lists
 
 
@@ -165,14 +167,16 @@ def _third_pass(wrappers):
     """What we do when there are not unique zs in a slice set"""
     inos = [s.instance_number for s in wrappers]
     msg_fmt = (
-        'Plausibly matching slices, but where some have '
-        'the same apparent slice location, and %s; '
-        '- slices are probably unsortable'
+        "Plausibly matching slices, but where some have "
+        "the same apparent slice location, and %s; "
+        "- slices are probably unsortable"
     )
     if None in inos:
-        raise DicomReadError(msg_fmt % 'some or all slices with missing InstanceNumber')
+        raise DicomReadError(msg_fmt % "some or all slices with missing InstanceNumber")
     if len(set(inos)) < len(inos):
-        raise DicomReadError(msg_fmt % 'some or all slices with the same InstanceNumber')
+        raise DicomReadError(
+            msg_fmt % "some or all slices with the same InstanceNumber"
+        )
     # sort by instance number
     wrappers.sort(key=_instance_sorter)
     # start loop, in which we start a new volume, each time we see a z

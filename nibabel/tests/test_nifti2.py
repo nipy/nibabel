@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti2 reading package"""
+
 import os
 
 import numpy as np
@@ -18,8 +19,8 @@ from ..nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair, Nifti2PairHeader
 from ..testing import data_path
 from . import test_nifti1 as tn1
 
-header_file = os.path.join(data_path, 'nifti2.hdr')
-image_file = os.path.join(data_path, 'example_nifti2.nii.gz')
+header_file = os.path.join(data_path, "nifti2.hdr")
+image_file = os.path.join(data_path, "example_nifti2.nii.gz")
 
 
 class _Nifti2Mixin:
@@ -40,18 +41,18 @@ class _Nifti2Mixin:
         HC = self.header_class
         hdr = HC()
         good_eol = (13, 10, 26, 10)
-        assert_array_equal(hdr['eol_check'], good_eol)
-        hdr['eol_check'] = 0
+        assert_array_equal(hdr["eol_check"], good_eol)
+        hdr["eol_check"] = 0
         fhdr, message, raiser = self.log_chk(hdr, 20)
-        assert_array_equal(fhdr['eol_check'], good_eol)
-        assert message == 'EOL check all 0; setting EOL check to 13, 10, 26, 10'
-        hdr['eol_check'] = (13, 10, 0, 10)
+        assert_array_equal(fhdr["eol_check"], good_eol)
+        assert message == "EOL check all 0; setting EOL check to 13, 10, 26, 10"
+        hdr["eol_check"] = (13, 10, 0, 10)
         fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert_array_equal(fhdr['eol_check'], good_eol)
+        assert_array_equal(fhdr["eol_check"], good_eol)
         assert (
-            message == 'EOL check not 0 or 13, 10, 26, 10; '
-            'data may be corrupted by EOL conversion; '
-            'setting EOL check to 13, 10, 26, 10'
+            message == "EOL check not 0 or 13, 10, 26, 10; "
+            "data may be corrupted by EOL conversion; "
+            "setting EOL check to 13, 10, 26, 10"
         )
 
 
@@ -91,8 +92,8 @@ class TestNifti2General(tn1.TestNifti1General):
 def test_nifti12_conversion():
     shape = (2, 3, 4)
     dtype_type = np.int64
-    ext1 = Nifti1Extension(6, b'My comment')
-    ext2 = Nifti1Extension(6, b'Fresh comment')
+    ext1 = Nifti1Extension(6, b"My comment")
+    ext2 = Nifti1Extension(6, b"Fresh comment")
     for in_type, out_type in (
         (Nifti1Header, Nifti2Header),
         (Nifti1PairHeader, Nifti2Header),

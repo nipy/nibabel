@@ -41,24 +41,33 @@ from ..tmpdirs import InTemporaryDirectory
 from . import test_spatialimages as tsi
 from . import test_wrapstruct as tws
 
-HAVE_ZSTD = optional_package('pyzstd')[1]
+HAVE_ZSTD = optional_package("pyzstd")[1]
 
-header_file = os.path.join(data_path, 'analyze.hdr')
+header_file = os.path.join(data_path, "analyze.hdr")
 
-PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
+PIXDIM0_MSG = "pixdim[1,2,3] should be non-zero; setting 0 dims to 1"
 
 
 def add_duplicate_types(supported_np_types):
     # Update supported numpy types with named scalar types that map to the same set of dtypes
     dtypes = {np.dtype(t) for t in supported_np_types}
-    supported_np_types.update(scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes)
+    supported_np_types.update(
+        scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes
+    )
 
 
 class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr
-    supported_np_types = {np.uint8, np.int16, np.int32, np.float32, np.float64, np.complex64}
+    supported_np_types = {
+        np.uint8,
+        np.int16,
+        np.int32,
+        np.float32,
+        np.float64,
+        np.complex64,
+    }
     add_duplicate_types(supported_np_types)
 
     def test_supported_types(self):
@@ -68,7 +77,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     def get_bad_bb(self):
         # A value for the binary block that should raise an error
         # Completely zeros binary block (nearly) always (fairly) bad
-        return b'\x00' * self.header_class.template_dtype.itemsize
+        return b"\x00" * self.header_class.template_dtype.itemsize
 
     def test_general_init(self):
         super().test_general_init()
@@ -91,12 +100,12 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     def test_empty(self):
         hdr = self.header_class()
         assert len(hdr.binaryblock) == self.sizeof_hdr
-        assert hdr['sizeof_hdr'] == self.sizeof_hdr
-        assert np.all(hdr['dim'][1:] == 1)
-        assert hdr['dim'][0] == 0
-        assert np.all(hdr['pixdim'] == 1)
-        assert hdr['datatype'] == 16  # float32
-        assert hdr['bitpix'] == 32
+        assert hdr["sizeof_hdr"] == self.sizeof_hdr
+        assert np.all(hdr["dim"][1:] == 1)
+        assert hdr["dim"][0] == 0
+        assert np.all(hdr["pixdim"] == 1)
+        assert hdr["datatype"] == 16  # float32
+        assert hdr["bitpix"] == 32
 
     def _set_something_into_hdr(self, hdr):
         # Called from test_bytes test method.  Specific to the header data type
@@ -107,24 +116,27 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         # Test header checks
         hdr_t = self.header_class()
         # _dxer just returns the diagnostics as a string
-        assert self._dxer(hdr_t) == ''
+        assert self._dxer(hdr_t) == ""
         hdr = hdr_t.copy()
-        hdr['sizeof_hdr'] = 1
+        hdr["sizeof_hdr"] = 1
         with suppress_warnings():
-            assert self._dxer(hdr) == 'sizeof_hdr should be ' + str(self.sizeof_hdr)
+            assert self._dxer(hdr) == "sizeof_hdr should be " + str(self.sizeof_hdr)
         hdr = hdr_t.copy()
-        hdr['datatype'] = 0
-        assert self._dxer(hdr) == 'data code 0 not supported\nbitpix does not match datatype'
+        hdr["datatype"] = 0
+        assert (
+            self._dxer(hdr)
+            == "data code 0 not supported\nbitpix does not match datatype"
+        )
         hdr = hdr_t.copy()
-        hdr['bitpix'] = 0
-        assert self._dxer(hdr) == 'bitpix does not match datatype'
+        hdr["bitpix"] = 0
+        assert self._dxer(hdr) == "bitpix does not match datatype"
 
     def test_pixdim_checks(self):
         hdr_t = self.header_class()
         for i in (1, 2, 3):
             hdr = hdr_t.copy()
-            hdr['pixdim'][i] = -1
-            assert self._dxer(hdr) == 'pixdim[1,2,3] should be positive'
+            hdr["pixdim"][i] = -1
+            assert self._dxer(hdr) == "pixdim[1,2,3] should be positive"
 
     def test_log_checks(self):
         # Test logging, fixing, errors for header checking
@@ -132,66 +144,72 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         # magic
         hdr = HC()
         with suppress_warnings():
-            hdr['sizeof_hdr'] = 350  # severity 30
+            hdr["sizeof_hdr"] = 350  # severity 30
             fhdr, message, raiser = self.log_chk(hdr, 30)
 
-        assert fhdr['sizeof_hdr'] == self.sizeof_hdr
+        assert fhdr["sizeof_hdr"] == self.sizeof_hdr
         assert (
-            message == f'sizeof_hdr should be {self.sizeof_hdr}; '
-            f'set sizeof_hdr to {self.sizeof_hdr}'
+            message == f"sizeof_hdr should be {self.sizeof_hdr}; "
+            f"set sizeof_hdr to {self.sizeof_hdr}"
         )
         pytest.raises(*raiser)
         # RGB datatype does not raise error
         hdr = HC()
-        hdr.set_data_dtype('RGB')
+        hdr.set_data_dtype("RGB")
         fhdr, message, raiser = self.log_chk(hdr, 0)
         # datatype not recognized
         hdr = HC()
-        hdr['datatype'] = -1  # severity 40
+        hdr["datatype"] = -1  # severity 40
         with suppress_warnings():
             fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert message == 'data code -1 not recognized; not attempting fix'
+        assert message == "data code -1 not recognized; not attempting fix"
 
         pytest.raises(*raiser)
         # datatype not supported
-        hdr['datatype'] = 255  # severity 40
+        hdr["datatype"] = 255  # severity 40
         fhdr, message, raiser = self.log_chk(hdr, 40)
-        assert message == 'data code 255 not supported; not attempting fix'
+        assert message == "data code 255 not supported; not attempting fix"
         pytest.raises(*raiser)
         # bitpix
         hdr = HC()
-        hdr['datatype'] = 16  # float32
-        hdr['bitpix'] = 16  # severity 10
+        hdr["datatype"] = 16  # float32
+        hdr["bitpix"] = 16  # severity 10
         fhdr, message, raiser = self.log_chk(hdr, 10)
-        assert fhdr['bitpix'] == 32
-        assert message == 'bitpix does not match datatype; setting bitpix to match datatype'
+        assert fhdr["bitpix"] == 32
+        assert (
+            message
+            == "bitpix does not match datatype; setting bitpix to match datatype"
+        )
         pytest.raises(*raiser)
 
     def test_pixdim_log_checks(self):
         # pixdim positive
         HC = self.header_class
         hdr = HC()
-        hdr['pixdim'][1] = -2  # severity 35
+        hdr["pixdim"][1] = -2  # severity 35
         fhdr, message, raiser = self.log_chk(hdr, 35)
-        assert fhdr['pixdim'][1] == 2
-        assert message == 'pixdim[1,2,3] should be positive; setting to abs of pixdim values'
+        assert fhdr["pixdim"][1] == 2
+        assert (
+            message
+            == "pixdim[1,2,3] should be positive; setting to abs of pixdim values"
+        )
         pytest.raises(*raiser)
         hdr = HC()
-        hdr['pixdim'][1] = 0  # severity 30
+        hdr["pixdim"][1] = 0  # severity 30
         fhdr, message, raiser = self.log_chk(hdr, 30)
-        assert fhdr['pixdim'][1] == 1
+        assert fhdr["pixdim"][1] == 1
         assert message == PIXDIM0_MSG
         pytest.raises(*raiser)
         # both
         hdr = HC()
-        hdr['pixdim'][1] = 0  # severity 30
-        hdr['pixdim'][2] = -2  # severity 35
+        hdr["pixdim"][1] = 0  # severity 30
+        hdr["pixdim"][2] = -2  # severity 35
         fhdr, message, raiser = self.log_chk(hdr, 35)
-        assert fhdr['pixdim'][1] == 1
-        assert fhdr['pixdim'][2] == 2
+        assert fhdr["pixdim"][1] == 1
+        assert fhdr["pixdim"][2] == 2
         assert message == (
-            'pixdim[1,2,3] should be non-zero and pixdim[1,2,3] should be '
-            'positive; setting 0 dims to 1 and setting to abs of pixdim values'
+            "pixdim[1,2,3] should be non-zero and pixdim[1,2,3] should be "
+            "positive; setting 0 dims to 1 and setting to abs of pixdim values"
         )
         pytest.raises(*raiser)
 
@@ -212,9 +230,9 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         slopes = (1, 0, np.nan, np.inf, -np.inf)
         inters = (0, np.nan, np.inf, -np.inf) if has_inter else (0,)
         for slope, inter in itertools.product(slopes, inters):
-            hdr['scl_slope'] = slope
+            hdr["scl_slope"] = slope
             if has_inter:
-                hdr['scl_inter'] = inter
+                hdr["scl_inter"] = inter
             self.assert_no_log_err(hdr)
 
     def test_logger_error(self):
@@ -223,11 +241,11 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = HC()
         # Make a new logger
         str_io = StringIO()
-        logger = logging.getLogger('test.logger')
+        logger = logging.getLogger("test.logger")
         logger.addHandler(logging.StreamHandler(str_io))
         # Prepare a defect: bitpix not matching data type
-        hdr['datatype'] = 16  # float32
-        hdr['bitpix'] = 16  # severity 10
+        hdr["datatype"] = 16  # float32
+        hdr["bitpix"] = 16  # severity 10
         logger.setLevel(10)
         log_cache = imageglobals.logger, imageglobals.error_level
         try:
@@ -235,7 +253,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             imageglobals.logger = logger
             hdr.copy().check_fix()
             assert str_io.getvalue() == (
-                'bitpix does not match datatype; setting bitpix to match datatype\n'
+                "bitpix does not match datatype; setting bitpix to match datatype\n"
             )
             # Check that error_level in fact causes error to be raised
             imageglobals.error_level = 10
@@ -254,10 +272,10 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             (16, np.float32),
             (32, np.complex64),
             (64, np.float64),
-            (128, np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1')])),
+            (128, np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1")])),
         )
         # and unsupported - here using some labels instead
-        all_unsupported_types = (np.void, 'none', 'all', 0)
+        all_unsupported_types = (np.void, "none", "all", 0)
 
         def assert_set_dtype(dt_spec, np_dtype):
             hdr = self.header_class()
@@ -283,7 +301,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             # or string dtype code
             assert_set_dtype(np.dtype(npt).str, npt)
             # or string dtype code without byteorder
-            if np.dtype(npt).str[0] in '=|<>':
+            if np.dtype(npt).str[0] in "=|<>":
                 assert_set_dtype(np.dtype(npt).str[1:], npt)
         # Test aliases to Python types
         assert_set_dtype(float, np.float64)  # float64 always supported
@@ -307,7 +325,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             hdr.set_data_shape(shape)
             assert hdr.get_data_shape() == shape
         # Check max works, but max+1 raises error
-        dim_dtype = hdr.structarr['dim'].dtype
+        dim_dtype = hdr.structarr["dim"].dtype
         mx = int(np.iinfo(dim_dtype).max)
         shape = (mx,)
         hdr.set_data_shape(shape)
@@ -330,7 +348,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         # Setting no data into an empty header results in - no data
         str_io = BytesIO()
         hdr.data_to_fileobj([], str_io)
-        assert str_io.getvalue() == b''
+        assert str_io.getvalue() == b""
         # Setting more data then there should be gives an error
         with pytest.raises(HeaderDataError):
             hdr.data_to_fileobj(np.zeros(3), str_io)
@@ -374,7 +392,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         S3 = BytesIO()
         # Analyze header cannot do scaling, so turn off scaling with
         # 'rescale=False'
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert_array_almost_equal(data, data_back)
@@ -386,12 +404,12 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
                 hdr.data_to_fileobj(data, S3, rescale=True)
         # If not scaling we lose precision from rounding
         data = np.arange(6, dtype=np.float64).reshape((1, 2, 3)) + 0.5
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert not np.allclose(data, data_back)
         # Test RGB image
-        dtype = np.dtype([('R', 'uint8'), ('G', 'uint8'), ('B', 'uint8')])
+        dtype = np.dtype([("R", "uint8"), ("G", "uint8"), ("B", "uint8")])
         data = np.ones((1, 2, 3), dtype)
         hdr.set_data_dtype(dtype)
         S4 = BytesIO()
@@ -410,12 +428,12 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
                 continue
             dt = codes.dtype[code]
             ehdr.set_data_dtype(npt)
-            assert ehdr['datatype'] == code
-            assert ehdr['bitpix'] == dt.itemsize * 8
+            assert ehdr["datatype"] == code
+            assert ehdr["bitpix"] == dt.itemsize * 8
             ehdr.set_data_dtype(code)
-            assert ehdr['datatype'] == code
+            assert ehdr["datatype"] == code
             ehdr.set_data_dtype(dt)
-            assert ehdr['datatype'] == code
+            assert ehdr["datatype"] == code
 
     def test_offset(self):
         # Test get / set offset
@@ -473,10 +491,10 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         assert_array_equal(np.diag(hdr.get_base_affine()), [1, 1, 1, 1])
 
     def test_from_eg_file(self):
-        fileobj = open(self.example_file, 'rb')
+        fileobj = open(self.example_file, "rb")
         hdr = self.header_class.from_fileobj(fileobj, check=False)
-        assert hdr.endianness == '>'
-        assert hdr['sizeof_hdr'] == self.sizeof_hdr
+        assert hdr.endianness == ">"
+        assert hdr["sizeof_hdr"] == self.sizeof_hdr
 
     def test_orientation(self):
         # Test flips
@@ -497,7 +515,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = self.header_class()
         s1 = str(hdr)
         # check the datacode recoding
-        rexp = re.compile('^datatype +: float32', re.MULTILINE)
+        rexp = re.compile("^datatype +: float32", re.MULTILINE)
         assert rexp.search(s1) is not None
 
     def test_from_header(self):
@@ -518,7 +536,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
 
         class C:
             def get_data_dtype(self):
-                return np.dtype('i2')
+                return np.dtype("i2")
 
             def get_data_shape(self):
                 return (5, 4, 3)
@@ -528,7 +546,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
 
         converted = klass.from_header(C())
         assert isinstance(converted, klass)
-        assert converted.get_data_dtype() == np.dtype('i2')
+        assert converted.get_data_dtype() == np.dtype("i2")
         assert converted.get_data_shape() == (5, 4, 3)
         assert converted.get_zooms() == (10.0, 9.0, 8.0)
 
@@ -589,13 +607,13 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             with pytest.raises(HeaderTypeError):
                 hdr.data_to_fileobj(data, BytesIO())
         # But if we aren't scaling, convert the floats to integers and write
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             hdr.data_to_fileobj(data, S, rescale=False)
         rdata = hdr.data_from_fileobj(S)
         assert np.allclose(data, rdata)
         # This won't work for floats that aren't close to integers
         data_p5 = data + 0.5
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             hdr.data_to_fileobj(data_p5, S, rescale=False)
         rdata = hdr.data_from_fileobj(S)
         assert not np.allclose(data_p5, rdata)
@@ -634,7 +652,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
 
         class H2:
             def get_data_dtype(self):
-                return np.dtype('u1')
+                return np.dtype("u1")
 
         with pytest.raises(AttributeError):
             klass.from_header(H2())
@@ -651,7 +669,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
                 return 4.0, 5.0, 6.0
 
         exp_hdr = klass()
-        exp_hdr.set_data_dtype(np.dtype('u1'))
+        exp_hdr.set_data_dtype(np.dtype("u1"))
         exp_hdr.set_data_shape((2, 3, 4))
         exp_hdr.set_zooms((4, 5, 6))
         assert klass.from_header(H4()) == exp_hdr
@@ -661,8 +679,8 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             def as_analyze_map(self):
                 return dict(cal_min=-100, cal_max=100)
 
-        exp_hdr['cal_min'] = -100
-        exp_hdr['cal_max'] = 100
+        exp_hdr["cal_min"] = -100
+        exp_hdr["cal_max"] = 100
         assert klass.from_header(H5()) == exp_hdr
         # set_* methods override fields from header
 
@@ -676,9 +694,9 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         class H7(H5):
             def as_analyze_map(self):
                 n_hdr = Nifti1Header()
-                n_hdr.set_data_dtype(np.dtype('i2'))
-                n_hdr['cal_min'] = -100
-                n_hdr['cal_max'] = 100
+                n_hdr.set_data_dtype(np.dtype("i2"))
+                n_hdr["cal_min"] = -100
+                n_hdr["cal_max"] = 100
                 return n_hdr
 
         # Values from methods still override values from header (shape, dtype,
@@ -696,7 +714,7 @@ def test_best_affine():
 def test_data_code_error():
     # test analyze raising error for unsupported codes
     hdr = Nifti1Header()
-    hdr['datatype'] = 256
+    hdr["datatype"] = 256
     with pytest.raises(HeaderDataError):
         AnalyzeHeader.from_header(hdr)
 
@@ -808,16 +826,16 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img_ext = img_klass.files_types[0][1]
-        compressed_exts = ['', '.gz', '.bz2']
+        compressed_exts = ["", ".gz", ".bz2"]
         if HAVE_ZSTD:
-            compressed_exts += ['.zst']
+            compressed_exts += [".zst"]
         with InTemporaryDirectory():
             for offset in (0, 2048):
                 # Set offset in in-memory image
                 for compressed_ext in compressed_exts:
                     img = img_klass(arr, aff)
                     img.header.set_data_offset(offset)
-                    fname = 'test' + img_ext + compressed_ext
+                    fname = "test" + img_ext + compressed_ext
                     img.to_filename(fname)
                     img_back = img_klass.from_filename(fname)
                     assert_array_equal(arr, img_back.dataobj)
@@ -897,7 +915,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img = img_klass(arr, aff)
-        fname = 'test' + img_klass.files_types[0][1]
+        fname = "test" + img_klass.files_types[0][1]
         with InTemporaryDirectory():
             for dtype in self.supported_np_types:
                 img.to_filename(fname, dtype=dtype)

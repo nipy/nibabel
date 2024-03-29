@@ -1,12 +1,12 @@
-"""Helper functions for tests
-"""
+"""Helper functions for tests"""
+
 from io import BytesIO
 
 import numpy as np
 
 from ..optpkg import optional_package
 
-have_scipy = optional_package('scipy.io')[1]
+have_scipy = optional_package("scipy.io")[1]
 
 from numpy.testing import assert_array_equal
 
@@ -43,12 +43,12 @@ def assert_data_similar(arr, params):
         key ``data_summary`` with value a dict having keys ``min``, ``max``,
         ``mean``
     """
-    if 'data' in params:
-        assert_array_equal(arr, params['data'])
+    if "data" in params:
+        assert_array_equal(arr, params["data"])
         return
-    summary = params['data_summary']
+    summary = params["data_summary"]
     real_arr = np.asarray(arr)
     assert np.allclose(
         (real_arr.min(), real_arr.max(), real_arr.mean()),
-        (summary['min'], summary['max'], summary['mean']),
+        (summary["min"], summary["max"], summary["mean"]),
     )

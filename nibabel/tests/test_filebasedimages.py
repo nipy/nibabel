@@ -1,5 +1,4 @@
-"""Testing filebasedimages module
-"""
+"""Testing filebasedimages module"""
 
 import warnings
 from itertools import product
@@ -13,8 +12,8 @@ from .test_image_api import GenericImageAPI, SerializeMixin
 
 class FBNumpyImage(FileBasedImage):
     header_class = FileBasedHeader
-    valid_exts = ('.npy',)
-    files_types = (('image', '.npy'),)
+    valid_exts = (".npy",)
+    files_types = (("image", ".npy"),)
 
     def __init__(self, arr, header=None, extra=None, file_map=None):
         super().__init__(header, extra, file_map)
@@ -25,7 +24,7 @@ class FBNumpyImage(FileBasedImage):
         return self.arr.shape
 
     def get_data(self):
-        warnings.warn('Deprecated', DeprecationWarning)
+        warnings.warn("Deprecated", DeprecationWarning)
         return self.arr
 
     @property
@@ -37,13 +36,13 @@ class FBNumpyImage(FileBasedImage):
 
     @classmethod
     def from_file_map(klass, file_map):
-        with file_map['image'].get_prepare_fileobj('rb') as fobj:
+        with file_map["image"].get_prepare_fileobj("rb") as fobj:
             arr = np.load(fobj)
         return klass(arr)
 
     def to_file_map(self, file_map=None):
         file_map = self.file_map if file_map is None else file_map
-        with file_map['image'].get_prepare_fileobj('wb') as fobj:
+        with file_map["image"].get_prepare_fileobj("wb") as fobj:
             np.save(fobj, self.arr)
 
     def get_data_dtype(self):
@@ -68,7 +67,7 @@ class TestFBImageAPI(GenericImageAPI):
     example_shapes = ((2,), (2, 3), (2, 3, 4), (2, 3, 4, 5))
     example_dtypes = (np.int8, np.uint16, np.int32, np.float32)
     can_save = True
-    standard_extension = '.npy'
+    standard_extension = ".npy"
 
     def make_imaker(self, arr, header=None):
         return lambda: self.image_maker(arr, header)
@@ -126,7 +125,7 @@ def test_filebased_header():
 
 class MultipartNumpyImage(FBNumpyImage):
     # We won't actually try to write these out, just need to test an edge case
-    files_types = (('header', '.hdr'), ('image', '.npy'))
+    files_types = (("header", ".hdr"), ("image", ".npy"))
 
 
 class SerializableMPNumpyImage(MultipartNumpyImage, SerializableImage):

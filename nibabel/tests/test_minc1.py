@@ -25,15 +25,15 @@ from ..tmpdirs import InTemporaryDirectory
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
 
-pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
+pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
-EG_FNAME = pjoin(data_path, 'tiny.mnc')
+EG_FNAME = pjoin(data_path, "tiny.mnc")
 
 # Example images in format expected for ``test_image_api``, adding ``zooms``
 # item.
 EXAMPLE_IMAGES = [
     dict(
-        fname=pjoin(data_path, 'tiny.mnc'),
+        fname=pjoin(data_path, "tiny.mnc"),
         shape=(10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -50,7 +50,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc1_1_scale.mnc'),
+        fname=pjoin(data_path, "minc1_1_scale.mnc"),
         shape=(10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -67,7 +67,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc1_4d.mnc'),
+        fname=pjoin(data_path, "minc1_4d.mnc"),
         shape=(2, 10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -84,7 +84,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc1-no-att.mnc'),
+        fname=pjoin(data_path, "minc1-no-att.mnc"),
         shape=(10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -112,21 +112,21 @@ class _TestMincFile:
 
     def test_mincfile(self):
         for tp in self.test_files:
-            mnc_obj = self.opener(tp['fname'], 'r')
+            mnc_obj = self.opener(tp["fname"], "r")
             mnc = self.file_class(mnc_obj)
-            assert mnc.get_data_dtype().type == tp['dtype']
-            assert mnc.get_data_shape() == tp['shape']
-            assert mnc.get_zooms() == tp['zooms']
-            assert_array_equal(mnc.get_affine(), tp['affine'])
+            assert mnc.get_data_dtype().type == tp["dtype"]
+            assert mnc.get_data_shape() == tp["shape"]
+            assert mnc.get_zooms() == tp["zooms"]
+            assert_array_equal(mnc.get_affine(), tp["affine"])
             data = mnc.get_scaled_data()
-            assert data.shape == tp['shape']
+            assert data.shape == tp["shape"]
             # Can't close mmapped NetCDF with live mmap arrays
             del mnc, data
 
     def test_mincfile_slicing(self):
         # Test slicing and scaling of mincfile data
         for tp in self.test_files:
-            mnc_obj = self.opener(tp['fname'], 'r')
+            mnc_obj = self.opener(tp["fname"], "r")
             mnc = self.file_class(mnc_obj)
             data = mnc.get_scaled_data()
             for slicedef in (
@@ -146,20 +146,20 @@ class _TestMincFile:
     def test_load(self):
         # Check highest level load of minc works
         for tp in self.test_files:
-            img = load(tp['fname'])
+            img = load(tp["fname"])
             data = img.get_fdata()
-            assert data.shape == tp['shape']
+            assert data.shape == tp["shape"]
             # min, max, mean values from read in SPM2 / minctools
             assert_data_similar(data, tp)
             # check if mnc can be converted to nifti
             ni_img = Nifti1Image.from_image(img)
-            assert_array_equal(ni_img.affine, tp['affine'])
+            assert_array_equal(ni_img.affine, tp["affine"])
             assert_array_equal(ni_img.get_fdata(), data)
 
     def test_array_proxy_slicing(self):
         # Test slicing of array proxy
         for tp in self.test_files:
-            img = load(tp['fname'])
+            img = load(tp["fname"])
             arr = img.get_fdata()
             prox = img.dataobj
             assert prox.is_proxy
@@ -172,14 +172,14 @@ class TestMinc1File(_TestMincFile):
         # we can read minc compressed
         # Not so for MINC2; hence this small sub-class
         for tp in self.test_files:
-            content = open(tp['fname'], 'rb').read()
-            openers_exts = [(gzip.open, '.gz'), (bz2.BZ2File, '.bz2')]
+            content = open(tp["fname"], "rb").read()
+            openers_exts = [(gzip.open, ".gz"), (bz2.BZ2File, ".bz2")]
             if HAVE_ZSTD:  # add .zst to test if installed
-                openers_exts += [(pyzstd.ZstdFile, '.zst')]
+                openers_exts += [(pyzstd.ZstdFile, ".zst")]
             with InTemporaryDirectory():
                 for opener, ext in openers_exts:
-                    fname = 'test.mnc' + ext
-                    fobj = opener(fname, 'wb')
+                    fname = "test.mnc" + ext
+                    fobj = opener(fname, "wb")
                     fobj.write(content)
                     fobj.close()
                     img = self.module.load(fname)
@@ -201,7 +201,7 @@ def test_header_data_io():
 
 class TestMinc1Image(tsi.TestSpatialImage):
     image_class = Minc1Image
-    eg_images = (pjoin(data_path, 'tiny.mnc'),)
+    eg_images = (pjoin(data_path, "tiny.mnc"),)
     module = minc1
 
     def test_data_to_from_fileobj(self):

@@ -3,12 +3,13 @@
 """
 Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 """
+
 import ast
 import re
 from collections import OrderedDict
 
 ASCCONV_RE = re.compile(
-    r'### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
+    r"### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###",
     flags=re.MULTILINE | re.DOTALL,
 )
 
@@ -76,7 +77,7 @@ def assign2atoms(assign_ast, default_class=int):
         left to right sequence of assignment in `line_ast`.
     """
     if not len(assign_ast.targets) == 1:
-        raise AscconvParseError('Too many targets in assign')
+        raise AscconvParseError("Too many targets in assign")
     target = assign_ast.targets[0]
     atoms = []
     prev_target_type = default_class  # Placeholder for any scalar value
@@ -97,7 +98,7 @@ def assign2atoms(assign_ast, default_class=int):
             target = target.value
             prev_target_type = list
         else:
-            raise AscconvParseError(f'Unexpected LHS element {target}')
+            raise AscconvParseError(f"Unexpected LHS element {target}")
     return reversed(atoms)
 
 
@@ -167,7 +168,7 @@ def obj_from_atoms(atoms, namespace):
         else:
             root_obj = _create_subscript_in(el, root_obj)
         if not isinstance(root_obj, el.obj_type):
-            raise AscconvParseError(f'Unexpected type for {el.obj_id} in {prev_root}')
+            raise AscconvParseError(f"Unexpected type for {el.obj_id} in {prev_root}")
     return prev_root, el.obj_id
 
 
@@ -179,7 +180,7 @@ def _get_value(assign):
         return value.s
     if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub):
         return -value.operand.n
-    raise AscconvParseError(f'Unexpected RHS of assignment: {value}')
+    raise AscconvParseError(f"Unexpected RHS of assignment: {value}")
 
 
 def parse_ascconv(ascconv_str, str_delim='"'):
@@ -205,9 +206,9 @@ def parse_ascconv(ascconv_str, str_delim='"'):
         A line of the ASCCONV section could not be parsed.
     """
     attrs, content = ASCCONV_RE.match(ascconv_str).groups()
-    attrs = OrderedDict(tuple(x.split('=')) for x in attrs.split())
+    attrs = OrderedDict(tuple(x.split("=")) for x in attrs.split())
     # Normalize string start / end markers to something Python understands
-    content = content.replace(str_delim, '"""').replace('\\', '\\\\')
+    content = content.replace(str_delim, '"""').replace("\\", "\\\\")
     # Use Python's own parser to parse modified ASCCONV assignments
     tree = ast.parse(content)
 

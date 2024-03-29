@@ -25,6 +25,7 @@ The proxy API is - at minimum:
 
 See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 """
+
 from __future__ import annotations
 
 import typing as ty
@@ -61,7 +62,7 @@ if ty.TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Self  # PY310
 
     # Taken from numpy/__init__.pyi
-    _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
+    _DType = ty.TypeVar("_DType", bound=np.dtype[ty.Any])
 
 
 class ArrayLike(ty.Protocol):
@@ -74,21 +75,21 @@ class ArrayLike(ty.Protocol):
     shape: tuple[int, ...]
 
     @property
-    def ndim(self) -> int:
-        ...  # pragma: no cover
+    def ndim(self) -> int: ...  # pragma: no cover
 
     # If no dtype is passed, any dtype might be returned, depending on the array-like
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
-        ...  # pragma: no cover
+    def __array__(
+        self, dtype: None = ..., /
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...  # pragma: no cover
 
     # Any dtype might be passed, and *that* dtype must be returned
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
-        ...  # pragma: no cover
+    def __array__(
+        self, dtype: _DType, /
+    ) -> np.ndarray[ty.Any, _DType]: ...  # pragma: no cover
 
-    def __getitem__(self, key, /) -> npt.NDArray:
-        ...  # pragma: no cover
+    def __getitem__(self, key, /) -> npt.NDArray: ...  # pragma: no cover
 
 
 class ArrayProxy(ArrayLike):
@@ -122,7 +123,7 @@ class ArrayProxy(ArrayLike):
     examples.
     """
 
-    _default_order = 'F'
+    _default_order = "F"
 
     def __init__(self, file_like, spec, *, mmap=True, order=None, keep_file_open=None):
         """Initialize array proxy instance
@@ -169,12 +170,12 @@ class ArrayProxy(ArrayLike):
             effect. The default value (``None``) will result in the value of
             ``KEEP_FILE_OPEN_DEFAULT`` being used.
         """
-        if mmap not in (True, False, 'c', 'r'):
+        if mmap not in (True, False, "c", "r"):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
-        if order not in (None, 'C', 'F'):
+        if order not in (None, "C", "F"):
             raise ValueError("order should be one of {None, 'C', 'F'}")
         self.file_like = file_like
-        if hasattr(spec, 'get_data_shape'):
+        if hasattr(spec, "get_data_shape"):
             slope, inter = spec.get_slope_inter()
             par = (
                 spec.get_data_shape(),
@@ -187,16 +188,16 @@ class ArrayProxy(ArrayLike):
             optional = (0, 1.0, 0.0)
             par = spec + optional[len(spec) - 2 :]
         else:
-            raise TypeError('spec must be tuple of length 2-5 or header object')
+            raise TypeError("spec must be tuple of length 2-5 or header object")
 
         # Warn downstream users that the class variable order is going away
-        if hasattr(self.__class__, 'order'):
+        if hasattr(self.__class__, "order"):
             warnings.warn(
-                f'Class {self.__class__} has an `order` class variable. '
-                'ArrayProxy subclasses should rename this variable to `_default_order` '
-                'to avoid conflict with instance variables.\n'
-                '* deprecated in version: 5.0\n'
-                '* will raise error in version: 7.0\n',
+                f"Class {self.__class__} has an `order` class variable. "
+                "ArrayProxy subclasses should rename this variable to `_default_order` "
+                "to avoid conflict with instance variables.\n"
+                "* deprecated in version: 5.0\n"
+                "* will raise error in version: 7.0\n",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -213,12 +214,14 @@ class ArrayProxy(ArrayLike):
         self.order = order
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
-        self._keep_file_open, self._persist_opener = self._should_keep_file_open(keep_file_open)
+        self._keep_file_open, self._persist_opener = self._should_keep_file_open(
+            keep_file_open
+        )
         self._lock = RLock()
 
     def _has_fh(self) -> bool:
         """Determine if our file-like is a filehandle or path"""
-        return hasattr(self.file_like, 'read') and hasattr(self.file_like, 'seek')
+        return hasattr(self.file_like, "read") and hasattr(self.file_like, "seek")
 
     def copy(self) -> Self:
         """Create a new ArrayProxy for the same file and parameters
@@ -241,14 +244,14 @@ class ArrayProxy(ArrayLike):
         """If this ``ArrayProxy`` was created with ``keep_file_open=True``,
         the open file object is closed if necessary.
         """
-        if hasattr(self, '_opener') and not self._opener.closed:
+        if hasattr(self, "_opener") and not self._opener.closed:
             self._opener.close_if_mine()
             self._opener = None
 
     def __getstate__(self):
         """Returns the state of this ``ArrayProxy`` during pickling."""
         state = self.__dict__.copy()
-        state.pop('_lock', None)
+        state.pop("_lock", None)
         return state
 
     def __setstate__(self, state):
@@ -322,17 +325,17 @@ class ArrayProxy(ArrayLike):
             keep_file_open = KEEP_FILE_OPEN_DEFAULT
             if keep_file_open not in (True, False):
                 raise ValueError(
-                    'nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT '
-                    f'must be boolean. Found: {keep_file_open}'
+                    "nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT "
+                    f"must be boolean. Found: {keep_file_open}"
                 )
         elif keep_file_open not in (True, False):
-            raise ValueError('keep_file_open must be one of {None, True, False}')
+            raise ValueError("keep_file_open must be one of {None, True, False}")
 
         # file_like is a handle - keep_file_open is irrelevant
         if self._has_fh():
             return False, False
         # if the file is a gzip file, and we have_indexed_gzip,
-        have_igzip = openers.HAVE_INDEXED_GZIP and self.file_like.endswith('.gz')
+        have_igzip = openers.HAVE_INDEXED_GZIP and self.file_like.endswith(".gz")
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener
@@ -379,8 +382,10 @@ class ArrayProxy(ArrayLike):
             which provides access to the file.
         """
         if self._persist_opener:
-            if not hasattr(self, '_opener'):
-                self._opener = openers.ImageOpener(self.file_like, keep_open=self._keep_file_open)
+            if not hasattr(self, "_opener"):
+                self._opener = openers.ImageOpener(
+                    self.file_like, keep_open=self._keep_file_open
+                )
             yield self._opener
         else:
             with openers.ImageOpener(self.file_like, keep_open=False) as opener:
@@ -421,7 +426,9 @@ class ArrayProxy(ArrayLike):
         if np.can_cast(scl_inter, use_dtype):
             scl_inter = scl_inter.astype(use_dtype)
         # Read array and upcast as necessary for big slopes, intercepts
-        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), scl_slope, scl_inter)
+        scaled = apply_read_scaling(
+            self._get_unscaled(slicer=slicer), scl_slope, scl_inter
+        )
         if dtype is not None:
             scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
         return scaled
@@ -472,14 +479,16 @@ class ArrayProxy(ArrayLike):
 
         n_unknowns = len([e for e in shape if e == -1])
         if n_unknowns > 1:
-            raise ValueError('can only specify one unknown dimension')
+            raise ValueError("can only specify one unknown dimension")
         elif n_unknowns == 1:
             known_size = reduce(mul, shape, -1)
             unknown_size = size // known_size
             shape = tuple(unknown_size if e == -1 else e for e in shape)
 
         if np.prod(shape) != size:
-            raise ValueError(f'cannot reshape array of size {size:d} into shape {shape!s}')
+            raise ValueError(
+                f"cannot reshape array of size {size:d} into shape {shape!s}"
+            )
         return self.__class__(
             file_like=self.file_like,
             spec=(shape, self._dtype, self._offset, self._slope, self._inter),
@@ -497,7 +506,7 @@ def is_proxy(obj):
 
 def reshape_dataobj(obj, shape):
     """Use `obj` reshape method if possible, else numpy reshape function"""
-    return obj.reshape(shape) if hasattr(obj, 'reshape') else np.reshape(obj, shape)
+    return obj.reshape(shape) if hasattr(obj, "reshape") else np.reshape(obj, shape)
 
 
 def get_obj_dtype(obj):
@@ -506,7 +515,7 @@ def get_obj_dtype(obj):
         # Read and potentially apply scaling to one value
         idx = (0,) * len(obj.shape)
         return obj[idx].dtype
-    elif hasattr(obj, 'dtype'):
+    elif hasattr(obj, "dtype"):
         # Trust the dtype (probably an ndarray)
         return obj.dtype
     else:

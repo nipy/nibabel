@@ -17,11 +17,11 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ..optpkg import optional_package
 
-_, have_scipy, _ = optional_package('scipy')
+_, have_scipy, _ = optional_package("scipy")
 
 # Decorator to skip tests requiring save / load if scipy not available for mat
 # files
-needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
+needs_scipy = unittest.skipUnless(have_scipy, "scipy not available")
 
 from ..casting import sctypes_aliases, shared_range, type_info
 from ..spatialimages import HeaderDataError
@@ -43,10 +43,10 @@ for sctype in sctypes_aliases:
     sctypes.setdefault(np.dtype(sctype).kind, []).append(sctype)
 
 # Sort types to ensure that xdist doesn't complain about test order when we parametrize
-FLOAT_TYPES = sorted(sctypes['f'], key=lambda x: x.__name__)
-COMPLEX_TYPES = sorted(sctypes['c'], key=lambda x: x.__name__)
-INT_TYPES = sorted(sctypes['i'], key=lambda x: x.__name__)
-UINT_TYPES = sorted(sctypes['u'], key=lambda x: x.__name__)
+FLOAT_TYPES = sorted(sctypes["f"], key=lambda x: x.__name__)
+COMPLEX_TYPES = sorted(sctypes["c"], key=lambda x: x.__name__)
+INT_TYPES = sorted(sctypes["i"], key=lambda x: x.__name__)
+UINT_TYPES = sorted(sctypes["u"], key=lambda x: x.__name__)
 
 # Create combined type lists
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
@@ -83,7 +83,7 @@ class HeaderScalingMixin:
         assert_array_almost_equal(data, data_back, 4)
         assert not np.all(data == data_back)
         # This doesn't use scaling, and so gets perfect precision
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             hdr.data_to_fileobj(data, S3, rescale=False)
         data_back = hdr.data_from_fileobj(S3)
         assert np.all(data == data_back)
@@ -95,7 +95,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
     def test_empty(self):
         super().test_empty()
         hdr = self.header_class()
-        assert hdr['scl_slope'] == 1
+        assert hdr["scl_slope"] == 1
 
     def test_big_scaling(self):
         # Test that upcasting works for huge scalefactors
@@ -106,7 +106,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
         sio = BytesIO()
         dtt = np.float32
         # This will generate a huge scalefactor
-        data = np.array([type_info(dtt)['max']], dtype=dtt)[:, None, None]
+        data = np.array([type_info(dtt)["max"]], dtype=dtt)[:, None, None]
         hdr.data_to_fileobj(data, sio)
         data_back = hdr.data_from_fileobj(sio)
         assert np.allclose(data, data_back)
@@ -136,32 +136,32 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
                     hdr.set_slope_inter(*in_tup)
                 # raw set
                 if in_tup[0] is not None:
-                    hdr['scl_slope'] = in_tup[0]
+                    hdr["scl_slope"] = in_tup[0]
             else:
                 hdr.set_slope_inter(*in_tup)
                 assert hdr.get_slope_inter() == out_tup
                 # Check set survives through checking
                 hdr = Spm99AnalyzeHeader.from_header(hdr, check=True)
                 assert hdr.get_slope_inter() == out_tup
-            assert_array_equal(hdr['scl_slope'], raw_slope)
+            assert_array_equal(hdr["scl_slope"], raw_slope)
 
     def test_origin_checks(self):
         HC = self.header_class
         # origin
         hdr = HC()
         hdr.data_shape = [1, 1, 1]
-        hdr['origin'][0] = 101  # severity 20
+        hdr["origin"][0] = 101  # severity 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert fhdr == hdr
         assert (
-            message == 'very large origin values '
-            'relative to dims; leaving as set, '
-            'ignoring for affine'
+            message == "very large origin values "
+            "relative to dims; leaving as set, "
+            "ignoring for affine"
         )
         pytest.raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock
-        assert dxer(hdr.binaryblock) == 'very large origin values relative to dims'
+        assert dxer(hdr.binaryblock) == "very large origin values relative to dims"
 
 
 class ImageScalingMixin:
@@ -183,13 +183,13 @@ class ImageScalingMixin:
             assert np.isnan(inter)
 
     def _get_raw_scaling(self, hdr):
-        return hdr['scl_slope'], None
+        return hdr["scl_slope"], None
 
     def _set_raw_scaling(self, hdr, slope, inter):
         # Brutal set of slope and inter
-        hdr['scl_slope'] = slope
+        hdr["scl_slope"] = slope
         if inter is not None:
-            raise ValueError('inter should be None')
+            raise ValueError("inter should be None")
 
     def assert_null_scaling(self, arr, slope, inter):
         # Assert scaling makes no difference to img, load, save
@@ -204,8 +204,8 @@ class ImageScalingMixin:
         # Scaling has no effect on image as written via header (with rescaling
         # turned off).
         fm = bytesio_filemap(img)
-        img_fobj = fm['image'].fileobj
-        hdr_fobj = img_fobj if 'header' not in fm else fm['header'].fileobj
+        img_fobj = fm["image"].fileobj
+        hdr_fobj = img_fobj if "header" not in fm else fm["header"].fileobj
         img_hdr.write_to(hdr_fobj)
         img_hdr.data_to_fileobj(arr, img_fobj, rescale=False)
         raw_rt_img = img_class.from_file_map(fm)
@@ -241,7 +241,9 @@ class ImageScalingMixin:
         invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
         bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
         good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
-        for slope, inter in invalid_pairs + bad_slopes_good_inter + good_slope_bad_inters:
+        for slope, inter in (
+            invalid_pairs + bad_slopes_good_inter + good_slope_bad_inters
+        ):
             self.assert_null_scaling(arr, slope, inter)
 
     def _check_write_scaling(self, slope, inter, effective_slope, effective_inter):
@@ -277,7 +279,8 @@ class ImageScalingMixin:
         # But the array scaled after round trip
         img_rt = bytesio_round_trip(img)
         assert_array_equal(
-            img_rt.get_fdata(), apply_read_scaling(arr, effective_slope, effective_inter)
+            img_rt.get_fdata(),
+            apply_read_scaling(arr, effective_slope, effective_inter),
         )
         # The scaling set into the array proxy
         do_slope, do_inter = img.header.get_slope_inter()
@@ -289,15 +292,16 @@ class ImageScalingMixin:
         self.assert_scaling_equal(img.header, slope, inter)
         # The data gets rounded nicely if we need to do conversion
         img.header.set_data_dtype(np.uint8)
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             img_rt = bytesio_round_trip(img)
         assert_array_equal(
-            img_rt.get_fdata(), apply_read_scaling(np.round(arr), effective_slope, effective_inter)
+            img_rt.get_fdata(),
+            apply_read_scaling(np.round(arr), effective_slope, effective_inter),
         )
         # But we have to clip too
         arr[-1, -1, -1] = 256
         arr[-2, -1, -1] = -1
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             img_rt = bytesio_round_trip(img)
         exp_unscaled_arr = np.clip(np.round(arr), 0, 255)
         assert_array_equal(
@@ -317,7 +321,7 @@ class ImageScalingMixin:
         assert_array_equal(img_rt.get_fdata(), np.clip(arr, 0, 255))
 
     # NOTE: Need to check complex scaling
-    @pytest.mark.parametrize('in_dtype', FLOAT_TYPES + IUINT_TYPES)
+    @pytest.mark.parametrize("in_dtype", FLOAT_TYPES + IUINT_TYPES)
     def test_no_scaling(self, in_dtype, supported_dtype):
         # Test writing image converting types when not calculating scaling
         img_class = self.image_class
@@ -328,13 +332,13 @@ class ImageScalingMixin:
         inter = 10 if hdr.has_data_intercept else 0
 
         mn_in, mx_in = _dt_min_max(in_dtype)
-        mn = -1 if np.dtype(in_dtype).kind != 'u' else 0
+        mn = -1 if np.dtype(in_dtype).kind != "u" else 0
         arr = np.array([mn_in, mn, 0, 1, 10, mx_in], dtype=in_dtype)
         img = img_class(arr, np.eye(4), hdr)
         img.set_data_dtype(supported_dtype)
         # Setting the scaling means we don't calculate it later
         img.header.set_slope_inter(slope, inter)
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             rt_img = bytesio_round_trip(img)
         with suppress_warnings():  # invalid mult
             back_arr = np.asanyarray(rt_img.dataobj)
@@ -346,7 +350,7 @@ class ImageScalingMixin:
                 # Working precision is (at least) float
                 exp_back = exp_back.astype(float)
                 # Float to iu conversion will always round, clip
-                with np.errstate(invalid='ignore'):
+                with np.errstate(invalid="ignore"):
                     exp_back = np.round(exp_back)
                 if in_dtype in FLOAT_TYPES:
                     # Clip to shared range of working precision
@@ -392,7 +396,7 @@ class ImageScalingMixin:
         # Uncontroversial so far, but now check that nan2zero works correctly
         # for int type
         img.set_data_dtype(np.uint8)
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             rt_img = bytesio_round_trip(img)
         assert rt_img.get_fdata()[0, 0, 0] == 0
 
@@ -403,9 +407,13 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
 
     # Decorating the old way, before the team invented @
     test_data_hdr_cache = needs_scipy(test_analyze.TestAnalyzeImage.test_data_hdr_cache)
-    test_header_updating = needs_scipy(test_analyze.TestAnalyzeImage.test_header_updating)
+    test_header_updating = needs_scipy(
+        test_analyze.TestAnalyzeImage.test_header_updating
+    )
     test_offset_to_zero = needs_scipy(test_analyze.TestAnalyzeImage.test_offset_to_zero)
-    test_big_offset_exts = needs_scipy(test_analyze.TestAnalyzeImage.test_big_offset_exts)
+    test_big_offset_exts = needs_scipy(
+        test_analyze.TestAnalyzeImage.test_big_offset_exts
+    )
     test_dtype_to_filename_arg = needs_scipy(
         test_analyze.TestAnalyzeImage.test_dtype_to_filename_arg
     )
@@ -433,17 +441,17 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         # mat files are for matlab and have 111 voxel origins.  We need to
         # adjust for that, when loading and saving.  Check for signs of that in
         # the saved mat file
-        mat_fileobj = img.file_map['mat'].fileobj
+        mat_fileobj = img.file_map["mat"].fileobj
         from scipy.io import loadmat, savemat
 
         mat_fileobj.seek(0)
         mats = loadmat(mat_fileobj)
-        assert 'M' in mats and 'mat' in mats
+        assert "M" in mats and "mat" in mats
         from_111 = np.eye(4)
         from_111[:3, 3] = -1
         to_111 = np.eye(4)
         to_111[:3, 3] = 1
-        assert_array_equal(mats['mat'], np.dot(aff, from_111))
+        assert_array_equal(mats["mat"], np.dot(aff, from_111))
         # The M matrix does not include flips, so if we only have the M matrix
         # in the mat file, and we have default flipping, the mat resulting
         # should have a flip.  The 'mat' matrix does include flips and so
@@ -451,7 +459,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         # the the 'mat' matrix.
         assert img.header.default_x_flip  # check the default
         flipper = np.diag([-1, 1, 1, 1])
-        assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
+        assert_array_equal(mats["M"], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
         savemat(mat_fileobj, dict(M=np.diag([3, 4, 5, 1]), mat=np.diag([6, 7, 8, 1])))
         # Check we are preferring the 'mat' matrix
@@ -464,7 +472,9 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         savemat(mat_fileobj, dict(M=np.diag([3, 4, 5, 1])))
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_fdata(), arr)
-        assert_array_equal(r_img.affine, np.dot(np.diag([3, 4, 5, 1]), np.dot(flipper, to_111)))
+        assert_array_equal(
+            r_img.affine, np.dot(np.diag([3, 4, 5, 1]), np.dot(flipper, to_111))
+        )
 
     def test_none_affine(self):
         # Allow for possibility of no affine resulting in nothing written into
@@ -498,7 +508,7 @@ def test_origin_affine():
             [0.0, 0.0, 0.0, 1.0],
         ],
     )
-    hdr['origin'][:3] = [3, 4, 5]
+    hdr["origin"][:3] = [3, 4, 5]
     assert_array_almost_equal(
         hdr.get_origin_affine(),  # using origin
         [
@@ -508,7 +518,7 @@ def test_origin_affine():
             [0.0, 0.0, 0.0, 1.0],
         ],
     )
-    hdr['origin'] = 0  # unset origin
+    hdr["origin"] = 0  # unset origin
     hdr.set_data_shape((3, 5))
     assert_array_almost_equal(
         hdr.get_origin_affine(),

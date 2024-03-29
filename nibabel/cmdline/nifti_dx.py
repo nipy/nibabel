@@ -14,15 +14,16 @@ from optparse import OptionParser
 
 import nibabel as nib
 
-__author__ = 'Matthew Brett'
-__copyright__ = 'Copyright (c) 2011-18 Matthew Brett and NiBabel contributors'
-__license__ = 'MIT'
+__author__ = "Matthew Brett"
+__copyright__ = "Copyright (c) 2011-18 Matthew Brett and NiBabel contributors"
+__license__ = "MIT"
 
 
 def main(args=None):
     """Go go team"""
     parser = OptionParser(
-        usage=f'{sys.argv[0]} [FILE ...]\n\n' + __doc__, version='%prog ' + nib.__version__
+        usage=f"{sys.argv[0]} [FILE ...]\n\n" + __doc__,
+        version="%prog " + nib.__version__,
     )
     (opts, files) = parser.parse_args(args=args)
 
@@ -32,6 +33,6 @@ def main(args=None):
         result = nib.Nifti1Header.diagnose_binaryblock(hdr)
         if len(result):
             print(f'Picky header check output for "{fname}"\n')
-            print(result + '\n')
+            print(result + "\n")
         else:
             print(f'Header for "{fname}" is clean')

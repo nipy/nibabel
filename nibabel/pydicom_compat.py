@@ -19,6 +19,7 @@ A test decorator is available in nibabel.nicom.tests:
 
 A deprecated copy is available here for backward compatibility.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -34,7 +35,7 @@ warnings.warn(
     stacklevel=2,
 )
 
-pydicom, have_dicom, _ = optional_package('pydicom')
+pydicom, have_dicom, _ = optional_package("pydicom")
 
 read_file: Callable | None = None
 tag_for_keyword: Callable | None = None
@@ -50,7 +51,7 @@ if have_dicom:
 
 
 @deprecate_with_version(
-    'dicom_test has been moved to nibabel.nicom.tests', since='3.1', until='5.0'
+    "dicom_test has been moved to nibabel.nicom.tests", since="3.1", until="5.0"
 )
 def dicom_test(func):
     # Import locally to avoid circular dependency

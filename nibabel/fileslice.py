@@ -1,4 +1,5 @@
 """Utilities for getting array slices out of file-like objects"""
+
 import operator
 from functools import reduce
 from mmap import mmap
@@ -45,7 +46,7 @@ def is_fancy(sliceobj):
     if not isinstance(sliceobj, tuple):
         sliceobj = (sliceobj,)
     for slicer in sliceobj:
-        if getattr(slicer, 'ndim', 0) > 0:  # ndarray always fancy, but scalars are safe
+        if getattr(slicer, "ndim", 0) > 0:  # ndarray always fancy, but scalars are safe
             return True
         # slice or Ellipsis or None OK for  basic
         if isinstance(slicer, slice) or slicer in (None, Ellipsis):
@@ -91,7 +92,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
     if not isinstance(sliceobj, tuple):
         sliceobj = (sliceobj,)
     if is_fancy(sliceobj):
-        raise ValueError('Cannot handle fancy indexing')
+        raise ValueError("Cannot handle fancy indexing")
     can_slicers = []
     n_dim = len(shape)
     n_real = 0
@@ -102,7 +103,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
         if slicer == Ellipsis:
             remaining = sliceobj[i + 1 :]
             if Ellipsis in remaining:
-                raise ValueError('More than one Ellipsis in slicing expression')
+                raise ValueError("More than one Ellipsis in slicing expression")
             real_remaining = [r for r in remaining if r is not None]
             n_ellided = n_dim - n_real - len(real_remaining)
             can_slicers.extend((slice(None),) * n_ellided)
@@ -126,7 +127,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
             if slicer < 0:
                 slicer = dim_len + slicer
             elif check_inds and slicer >= dim_len:
-                raise ValueError('Integer index %d to large' % slicer)
+                raise ValueError("Integer index %d to large" % slicer)
         can_slicers.append(slicer)
     # Fill out any missing dimensions
     if n_real < n_dim:
@@ -333,7 +334,7 @@ def threshold_heuristic(slicer, dim_len, stride, skip_thresh=SKIP_THRESH):
     """
     if isinstance(slicer, Integral):
         gap_size = (dim_len - 1) * stride
-        return 'full' if gap_size <= skip_thresh else None
+        return "full" if gap_size <= skip_thresh else None
     step_size = abs(slicer.step) * stride
     if step_size > skip_thresh:
         return None  # Prefer skip
@@ -342,10 +343,12 @@ def threshold_heuristic(slicer, dim_len, stride, skip_thresh=SKIP_THRESH):
     start, stop = slicer.start, slicer.stop
     read_len = stop - start
     gap_size = (dim_len - read_len) * stride
-    return 'full' if gap_size <= skip_thresh else 'contiguous'
+    return "full" if gap_size <= skip_thresh else "contiguous"
 
 
-def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride, heuristic=threshold_heuristic):
+def optimize_slicer(
+    slicer, dim_len, all_full, is_slowest, stride, heuristic=threshold_heuristic
+):
     """Return maybe modified slice and post-slice slicing for `slicer`
 
     Parameters
@@ -419,18 +422,18 @@ def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride, heuristic=thr
     if all_full:
         action = heuristic(slicer, dim_len, stride)
         # Check return values (we may be using a custom function)
-        if action not in ('full', 'contiguous', None):
-            raise ValueError(f'Unexpected return {action} from heuristic')
-        if is_int and action == 'contiguous':
-            raise ValueError('int index cannot be contiguous')
+        if action not in ("full", "contiguous", None):
+            raise ValueError(f"Unexpected return {action} from heuristic")
+        if is_int and action == "contiguous":
+            raise ValueError("int index cannot be contiguous")
         # If this is the slowest changing dimension, never upgrade None or
         # contiguous beyond contiguous (we've already covered the already-full
         # case)
-        if is_slowest and action == 'full':
-            action = None if is_int else 'contiguous'
-        if action == 'full':
+        if is_slowest and action == "full":
+            action = None if is_int else "contiguous"
+        if action == "full":
             return slice(None), slicer
-        elif action == 'contiguous':  # Cannot be int
+        elif action == "contiguous":  # Cannot be int
             # If this is already contiguous, default None behavior handles it
             step = slicer.step
             if step not in (-1, 1):
@@ -439,13 +442,15 @@ def optimize_slicer(slicer, dim_len, all_full, is_slowest, stride, heuristic=thr
                 return (slice(slicer.start, slicer.stop, 1), slice(None, None, step))
     # We only need to be positive
     if is_int:
-        return slicer, 'dropped'
+        return slicer, "dropped"
     if slicer.step > 0:
         return slicer, slice(None)
     return _positive_slice(slicer), slice(None, None, -1)
 
 
-def calc_slicedefs(sliceobj, in_shape, itemsize, offset, order, heuristic=threshold_heuristic):
+def calc_slicedefs(
+    sliceobj, in_shape, itemsize, offset, order, heuristic=threshold_heuristic
+):
     """Return parameters for slicing array with `sliceobj` given memory layout
 
     Calculate the best combination of skips / (read + discard) to use for
@@ -487,17 +492,19 @@ def calc_slicedefs(sliceobj, in_shape, itemsize, offset, order, heuristic=thresh
         `segments` and reshaping via `read_shape`.  Slices are in terms of
         `read_shape`.  If empty, no new slicing to apply
     """
-    if order not in 'CF':
+    if order not in "CF":
         raise ValueError("order should be one of 'CF'")
     sliceobj = canonical_slicers(sliceobj, in_shape)
     # order fastest changing first (record reordering)
-    if order == 'C':
+    if order == "C":
         sliceobj = sliceobj[::-1]
         in_shape = in_shape[::-1]
     # Analyze sliceobj for new read_slicers and fixup post_slicers
     # read_slicers are the virtual slices; we don't slice with these, but use
     # the slice definitions to read the relevant memory from disk
-    read_slicers, post_slicers = optimize_read_slicers(sliceobj, in_shape, itemsize, heuristic)
+    read_slicers, post_slicers = optimize_read_slicers(
+        sliceobj, in_shape, itemsize, heuristic
+    )
     # work out segments corresponding to read_slicers
     segments = slicers2segments(read_slicers, in_shape, offset, itemsize)
     # Make post_slicers empty if it is the slicing identity operation
@@ -505,7 +512,7 @@ def calc_slicedefs(sliceobj, in_shape, itemsize, offset, order, heuristic=thresh
         post_slicers = []
     read_shape = predict_shape(read_slicers, in_shape)
     # If reordered, order shape, post_slicers
-    if order == 'C':
+    if order == "C":
         read_shape = read_shape[::-1]
         post_slicers = post_slicers[::-1]
     return list(segments), tuple(read_shape), tuple(post_slicers)
@@ -660,15 +667,15 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
 
     if len(segments) == 0:
         if n_bytes != 0:
-            raise ValueError('No segments, but non-zero n_bytes')
-        return b''
+            raise ValueError("No segments, but non-zero n_bytes")
+        return b""
     if len(segments) == 1:
         offset, length = segments[0]
         with lock:
             fileobj.seek(offset)
             bytes = fileobj.read(length)
         if len(bytes) != n_bytes:
-            raise ValueError('Whoops, not enough data in file')
+            raise ValueError("Whoops, not enough data in file")
         return bytes
     # More than one segment
     bytes = mmap(-1, n_bytes)
@@ -677,11 +684,13 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
             fileobj.seek(offset)
             bytes.write(fileobj.read(length))
     if bytes.tell() != n_bytes:
-        raise ValueError('Oh dear, n_bytes does not look right')
+        raise ValueError("Oh dear, n_bytes does not look right")
     return bytes
 
 
-def _simple_fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C', heuristic=None):
+def _simple_fileslice(
+    fileobj, sliceobj, shape, dtype, offset=0, order="C", heuristic=None
+):
     """Read all data from `fileobj` into array, then slice with `sliceobj`
 
     The simplest possible thing; read all the data into the full array, then
@@ -718,7 +727,14 @@ def _simple_fileslice(fileobj, sliceobj, shape, dtype, offset=0, order='C', heur
 
 
 def fileslice(
-    fileobj, sliceobj, shape, dtype, offset=0, order='C', heuristic=threshold_heuristic, lock=None
+    fileobj,
+    sliceobj,
+    shape,
+    dtype,
+    offset=0,
+    order="C",
+    heuristic=threshold_heuristic,
+    lock=None,
 ):
     """Slice array in `fileobj` using `sliceobj` slicer and array definitions
 
@@ -771,10 +787,12 @@ def fileslice(
         Array in `fileobj` as sliced with `sliceobj`
     """
     if is_fancy(sliceobj):
-        raise ValueError('Cannot handle fancy indexing')
+        raise ValueError("Cannot handle fancy indexing")
     dtype = np.dtype(dtype)
     itemsize = int(dtype.itemsize)
-    segments, sliced_shape, post_slicers = calc_slicedefs(sliceobj, shape, itemsize, offset, order)
+    segments, sliced_shape, post_slicers = calc_slicedefs(
+        sliceobj, shape, itemsize, offset, order
+    )
     n_bytes = reduce(operator.mul, sliced_shape, 1) * itemsize
     arr_data = read_segments(fileobj, segments, n_bytes, lock)
     sliced = np.ndarray(sliced_shape, dtype, buffer=arr_data, order=order)

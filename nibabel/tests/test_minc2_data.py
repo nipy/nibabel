@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Test we can correctly import example MINC2_PATH files
-"""
+"""Test we can correctly import example MINC2_PATH files"""
 
 import os
 from os.path import join as pjoin
@@ -20,9 +19,9 @@ from .. import load as top_load
 from ..optpkg import optional_package
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
 
-h5py, have_h5py, setup_module = optional_package('h5py')
+h5py, have_h5py, setup_module = optional_package("h5py")
 
-MINC2_PATH = pjoin(get_nibabel_data(), 'nitest-minc2')
+MINC2_PATH = pjoin(get_nibabel_data(), "nitest-minc2")
 
 
 def _make_affine(coses, zooms, starts):
@@ -42,7 +41,7 @@ class TestEPIFrame:
     zooms = [-0.8984375, -0.8984375, 3.0]
     starts = [117.25609125, 138.89861125, -54.442028]
     example_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_EPI-frame.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_EPI-frame.mnc"),
         shape=(40, 256, 256),
         type=np.int16,
         affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
@@ -53,24 +52,24 @@ class TestEPIFrame:
         mean=93.52085367,
     )
 
-    @needs_nibabel_data('nitest-minc2')
+    @needs_nibabel_data("nitest-minc2")
     def test_load(self):
         # Check highest level load of minc works
-        img = self.opener(self.example_params['fname'])
-        assert img.shape == self.example_params['shape']
-        assert_almost_equal(img.header.get_zooms(), self.example_params['zooms'], 5)
-        assert_almost_equal(img.affine, self.example_params['affine'], 4)
-        assert img.get_data_dtype().type == self.example_params['type']
+        img = self.opener(self.example_params["fname"])
+        assert img.shape == self.example_params["shape"]
+        assert_almost_equal(img.header.get_zooms(), self.example_params["zooms"], 5)
+        assert_almost_equal(img.affine, self.example_params["affine"], 4)
+        assert img.get_data_dtype().type == self.example_params["type"]
         # Check correspondence of data and recorded shape
         data = img.get_fdata()
-        assert data.shape == self.example_params['shape']
+        assert data.shape == self.example_params["shape"]
         # min, max, mean values from read in SPM2
-        assert_almost_equal(data.min(), self.example_params['min'], 4)
-        assert_almost_equal(data.max(), self.example_params['max'], 4)
-        assert_almost_equal(data.mean(), self.example_params['mean'], 4)
+        assert_almost_equal(data.min(), self.example_params["min"], 4)
+        assert_almost_equal(data.max(), self.example_params["max"], 4)
+        assert_almost_equal(data.mean(), self.example_params["mean"], 4)
         # check if mnc can be converted to nifti
         ni_img = Nifti1Image.from_image(img)
-        assert_almost_equal(ni_img.affine, self.example_params['affine'], 2)
+        assert_almost_equal(ni_img.affine, self.example_params["affine"], 2)
         assert_array_equal(ni_img.get_fdata(), data)
 
 
@@ -81,7 +80,7 @@ class TestB0(TestEPIFrame):
     zooms = [-0.8984375, -0.8984375, 6.49999990444107]
     starts = [105.473101260826, 151.74885125, -61.8714747993248]
     example_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_diff-B0.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_diff-B0.mnc"),
         shape=(19, 256, 256),
         type=np.int16,
         affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
@@ -96,7 +95,7 @@ class TestB0(TestEPIFrame):
 class TestFA(TestEPIFrame):
     example_params = TestB0.example_params.copy()
     new_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_diff-FA.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_diff-FA.mnc"),
         # These values from mincstats
         min=0.008068881038,
         max=1.224754546,
@@ -112,7 +111,7 @@ class TestGado(TestEPIFrame):
     zooms = [1, -1, -1]
     starts = [-75.76775, 115.80462, 81.38605]
     example_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_gado-contrast.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_gado-contrast.mnc"),
         shape=(100, 170, 146),
         type=np.int16,
         affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
@@ -131,7 +130,7 @@ class TestT1(TestEPIFrame):
     zooms = [1, 1, 1]
     starts = [-90, -126, -12]
     example_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_t1.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_t1.mnc"),
         shape=(110, 217, 181),
         type=np.int16,
         affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
@@ -146,7 +145,7 @@ class TestT1(TestEPIFrame):
 class TestPD(TestEPIFrame):
     example_params = TestT1.example_params.copy()
     new_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_pd.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_pd.mnc"),
         # These values from mincstats
         min=0,
         max=102.5024482,
@@ -158,7 +157,7 @@ class TestPD(TestEPIFrame):
 class TestMask(TestEPIFrame):
     example_params = TestT1.example_params.copy()
     new_params = dict(
-        fname=os.path.join(MINC2_PATH, 'mincex_mask.mnc'),
+        fname=os.path.join(MINC2_PATH, "mincex_mask.mnc"),
         type=np.uint8,
         # These values from mincstats
         min=0,

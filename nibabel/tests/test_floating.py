@@ -1,5 +1,5 @@
-"""Test floating point deconstructions and floor methods
-"""
+"""Test floating point deconstructions and floor methods"""
+
 import sys
 
 import numpy as np
@@ -24,7 +24,7 @@ IEEE_floats = [np.float16, np.float32, np.float64]
 
 LD_INFO = type_info(np.longdouble)
 
-FP_OVERFLOW_WARN = Version(np.__version__) < Version('2.0.0.dev0')
+FP_OVERFLOW_WARN = Version(np.__version__) < Version("2.0.0.dev0")
 
 
 def dtt2dict(dtt):
@@ -43,7 +43,7 @@ def dtt2dict(dtt):
 
 def test_type_info():
     # Test routine to get min, max, nmant, nexp
-    for dtt in sctypes['int'] + sctypes['uint']:
+    for dtt in sctypes["int"] + sctypes["uint"]:
         info = np.iinfo(dtt)
         infod = type_info(dtt)
         assert infod == dict(
@@ -55,18 +55,18 @@ def test_type_info():
             maxexp=None,
             width=np.dtype(dtt).itemsize,
         )
-        assert infod['min'].dtype.type == dtt
-        assert infod['max'].dtype.type == dtt
+        assert infod["min"].dtype.type == dtt
+        assert infod["max"].dtype.type == dtt
     for dtt in IEEE_floats + [np.complex64, np.complex64]:
         infod = type_info(dtt)
         assert dtt2dict(dtt) == infod
-        assert infod['min'].dtype.type == dtt
-        assert infod['max'].dtype.type == dtt
+        assert infod["min"].dtype.type == dtt
+        assert infod["max"].dtype.type == dtt
     # What is longdouble?
     ld_dict = dtt2dict(np.longdouble)
     dbl_dict = dtt2dict(np.float64)
     infod = type_info(np.longdouble)
-    vals = tuple(ld_dict[k] for k in ('nmant', 'nexp', 'width'))
+    vals = tuple(ld_dict[k] for k in ("nmant", "nexp", "width"))
     # Information for PPC head / tail doubles from:
     # https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man3/float.3.html
     if vals in (
@@ -79,24 +79,24 @@ def test_type_info():
         pass
     elif vals == (105, 11, 16):  # bust info for PPC head / tail longdoubles
         # min and max broken, copy from infod
-        ld_dict.update({k: infod[k] for k in ('min', 'max')})
+        ld_dict.update({k: infod[k] for k in ("min", "max")})
     elif vals == (1, 1, 16):  # another bust info for PPC head / tail longdoubles
         ld_dict = dbl_dict.copy()
         ld_dict.update(dict(nmant=106, width=16))
     elif vals == (52, 15, 12):
-        width = ld_dict['width']
+        width = ld_dict["width"]
         ld_dict = dbl_dict.copy()
-        ld_dict['width'] = width
+        ld_dict["width"] = width
     else:
-        raise ValueError(f'Unexpected float type {np.longdouble} to test')
+        raise ValueError(f"Unexpected float type {np.longdouble} to test")
     assert ld_dict == infod
 
 
 def test_nmant():
     for t in IEEE_floats:
-        assert type_info(t)['nmant'] == np.finfo(t).nmant
-    if (LD_INFO['nmant'], LD_INFO['nexp']) == (63, 15):
-        assert type_info(np.longdouble)['nmant'] == 63
+        assert type_info(t)["nmant"] == np.finfo(t).nmant
+    if (LD_INFO["nmant"], LD_INFO["nexp"]) == (63, 15):
+        assert type_info(np.longdouble)["nmant"] == 63
 
 
 def test_check_nmant_nexp():
@@ -115,19 +115,22 @@ def test_check_nmant_nexp():
     # Check against type_info
     for t in ok_floats():
         ti = type_info(t)
-        if ti['nmant'] not in (105, 106):  # This check does not work for PPC double pair
-            assert _check_nmant(t, ti['nmant'])
+        if ti["nmant"] not in (
+            105,
+            106,
+        ):  # This check does not work for PPC double pair
+            assert _check_nmant(t, ti["nmant"])
         # Test fails for longdouble after blacklisting of OSX powl as of numpy
         # 1.12 - see https://github.com/numpy/numpy/issues/8307
-        if t != np.longdouble or sys.platform != 'darwin':
-            assert _check_maxexp(t, ti['maxexp'])
+        if t != np.longdouble or sys.platform != "darwin":
+            assert _check_maxexp(t, ti["maxexp"])
 
 
 def test_int_longdouble_np_regression():
     # Test longdouble conversion from int works as expected
     # Previous versions of numpy would fail, and we used a custom int_to_float()
     # function. This test remains to ensure we don't need to bring it back.
-    nmant = type_info(np.float64)['nmant']
+    nmant = type_info(np.float64)["nmant"]
     # test we recover precision just above nmant
     i = 2 ** (nmant + 1) - 1
     assert int(np.longdouble(i)) == i
@@ -144,7 +147,7 @@ def test_int_np_regression():
     # Test int works as expected for integers.
     # We previously used a custom as_int() for integers because of a
     # numpy 1.4.1 bug such that int(np.uint32(2**32-1) == -1
-    for t in sctypes['int'] + sctypes['uint']:
+    for t in sctypes["int"] + sctypes["uint"]:
         info = np.iinfo(t)
         mn, mx = np.array([info.min, info.max], dtype=t)
         assert (mn, mx) == (int(mn), int(mx))
@@ -174,7 +177,7 @@ def test_floor_exact(max_digits):
 
     to_test = IEEE_floats + [float]
     try:
-        type_info(np.longdouble)['nmant']
+        type_info(np.longdouble)["nmant"]
     except FloatingError:
         # Significand bit count not reliable, don't test long double
         pass
@@ -193,7 +196,7 @@ def test_floor_exact(max_digits):
         assert floor_exact(-(10**4933), t) == -np.inf
         assert ceil_exact(-(10**4933), t) == -np.inf
         # Check around end of integer precision
-        nmant = info['nmant']
+        nmant = info["nmant"]
         for i in range(nmant + 1):
             iv = 2**i
             # up to 2**nmant should be exactly representable
@@ -237,7 +240,7 @@ def test_floor_exact(max_digits):
 def test_usable_binary128():
     # Check for usable binary128
     yes = have_binary128()
-    with np.errstate(over='ignore'):
+    with np.errstate(over="ignore"):
         exp_test = np.longdouble(2) ** 16383
     assert yes == (
         exp_test.dtype.itemsize == 16

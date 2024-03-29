@@ -8,6 +8,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # module imports
 """Utilities to load and save image objects"""
+
 from __future__ import annotations
 
 import os
@@ -22,14 +23,14 @@ from .filename_parser import _stringify_path, splitext_addext
 from .imageclasses import all_image_classes
 from .openers import ImageOpener
 
-_compressed_suffixes = ('.gz', '.bz2', '.zst')
+_compressed_suffixes = (".gz", ".bz2", ".zst")
 
 
 if ty.TYPE_CHECKING:  # pragma: no cover
     from .filebasedimages import FileBasedImage
     from .filename_parser import FileSpec
 
-    P = ty.ParamSpec('P')
+    P = ty.ParamSpec("P")
 
     class Signature(ty.TypedDict):
         signature: bytes
@@ -57,25 +58,25 @@ def _signature_matches_extension(filename: FileSpec) -> tuple[bool, str]:
 
     """
     signatures: dict[str, Signature] = {
-        '.gz': {'signature': b'\x1f\x8b', 'format_name': 'gzip'},
-        '.bz2': {'signature': b'BZh', 'format_name': 'bzip2'},
-        '.zst': {'signature': b'\x28\xb5\x2f\xfd', 'format_name': 'ztsd'},
+        ".gz": {"signature": b"\x1f\x8b", "format_name": "gzip"},
+        ".bz2": {"signature": b"BZh", "format_name": "bzip2"},
+        ".zst": {"signature": b"\x28\xb5\x2f\xfd", "format_name": "ztsd"},
     }
     filename = _stringify_path(filename)
     *_, ext = splitext_addext(filename)
     ext = ext.lower()
     if ext not in signatures:
-        return True, ''
-    expected_signature = signatures[ext]['signature']
+        return True, ""
+    expected_signature = signatures[ext]["signature"]
     try:
-        with open(filename, 'rb') as fh:
+        with open(filename, "rb") as fh:
             sniff = fh.read(len(expected_signature))
     except OSError:
-        return False, f'Could not read file: {filename}'
+        return False, f"Could not read file: {filename}"
     if sniff.startswith(expected_signature):
-        return True, ''
-    format_name = signatures[ext]['format_name']
-    return False, f'File {filename} is not a {format_name} file'
+        return True, ""
+    format_name = signatures[ext]["format_name"]
+    return False, f"File {filename} is not a {format_name} file"
 
 
 def load(filename: FileSpec, **kwargs) -> FileBasedImage:
@@ -117,7 +118,7 @@ def load(filename: FileSpec, **kwargs) -> FileBasedImage:
     raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
 
-@deprecate_with_version('guessed_image_type deprecated.', '3.2', '5.0')
+@deprecate_with_version("guessed_image_type deprecated.", "3.2", "5.0")
 def guessed_image_type(filename):
     """Guess image type from file `filename`
 
@@ -176,16 +177,18 @@ def save(img: FileBasedImage, filename: FileSpec, **kwargs) -> None:
     from .nifti2 import Nifti2Image, Nifti2Pair
 
     converted: FileBasedImage
-    if type(img) == Nifti1Image and lext in ('.img', '.hdr'):
+    if type(img) == Nifti1Image and lext in (".img", ".hdr"):
         converted = Nifti1Pair.from_image(img)
-    elif type(img) == Nifti2Image and lext in ('.img', '.hdr'):
+    elif type(img) == Nifti2Image and lext in (".img", ".hdr"):
         converted = Nifti2Pair.from_image(img)
-    elif type(img) == Nifti1Pair and lext == '.nii':
+    elif type(img) == Nifti1Pair and lext == ".nii":
         converted = Nifti1Image.from_image(img)
-    elif type(img) == Nifti2Pair and lext == '.nii':
+    elif type(img) == Nifti2Pair and lext == ".nii":
         converted = Nifti2Image.from_image(img)
     else:  # arbitrary conversion
-        valid_klasses = [klass for klass in all_image_classes if lext in klass.valid_exts]
+        valid_klasses = [
+            klass for klass in all_image_classes if lext in klass.valid_exts
+        ]
         if not valid_klasses:  # if list is empty
             raise ImageFileError(f'Cannot work out file type of "{filename}"')
 
@@ -205,11 +208,11 @@ def save(img: FileBasedImage, filename: FileSpec, **kwargs) -> None:
 
 
 @deprecate_with_version(
-    'read_img_data deprecated. Please use ``img.dataobj.get_unscaled()`` instead.',
-    '3.2',
-    '5.0',
+    "read_img_data deprecated. Please use ``img.dataobj.get_unscaled()`` instead.",
+    "3.2",
+    "5.0",
 )
-def read_img_data(img, prefer='scaled'):
+def read_img_data(img, prefer="scaled"):
     """Read data from image associated with files
 
     If you want unscaled data, please use ``img.dataobj.get_unscaled()``
@@ -259,19 +262,19 @@ def read_img_data(img, prefer='scaled'):
     mean-centered scaled data.  However, this is not necessarily true of
     other formats with more complicated scaling - such as MINC.
     """
-    if prefer not in ('scaled', 'unscaled'):
+    if prefer not in ("scaled", "unscaled"):
         raise ValueError(f'Invalid string "{prefer}" for "prefer"')
     hdr = img.header
-    if not hasattr(hdr, 'raw_data_from_fileobj'):
+    if not hasattr(hdr, "raw_data_from_fileobj"):
         # We can only do scaled
-        if prefer == 'unscaled':
-            raise ValueError('Can only do unscaled for Analyze types')
+        if prefer == "unscaled":
+            raise ValueError("Can only do unscaled for Analyze types")
         return np.array(img.dataobj)
     # Analyze types
-    img_fh = img.file_map['image']
+    img_fh = img.file_map["image"]
     img_file_like = img_fh.filename if img_fh.fileobj is None else img_fh.fileobj
     if img_file_like is None:
-        raise ImageFileError('No image file specified for this image')
+        raise ImageFileError("No image file specified for this image")
     # Check the consumable values in the header
     hdr = img.header
     dao = img.dataobj
@@ -286,6 +289,6 @@ def read_img_data(img, prefer='scaled'):
         if default_scaling and (dao.slope, dao.inter) != (1, 0):
             hdr.set_slope_inter(dao.slope, dao.inter)
     with ImageOpener(img_file_like) as fileobj:
-        if prefer == 'scaled':
+        if prefer == "scaled":
             return hdr.data_from_fileobj(fileobj)
         return hdr.raw_data_from_fileobj(fileobj)

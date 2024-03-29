@@ -110,15 +110,15 @@ class CaretMetaData(xml.XmlSerializable, MutableMapping):
         return iter(self._data)
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} {self._data!r}>'
+        return f"<{self.__class__.__name__} {self._data!r}>"
 
     def _to_xml_element(self):
-        metadata = xml.Element('MetaData')
+        metadata = xml.Element("MetaData")
 
         for name_text, value_text in self._data.items():
-            md = xml.SubElement(metadata, 'MD')
-            name = xml.SubElement(md, 'Name')
+            md = xml.SubElement(metadata, "MD")
+            name = xml.SubElement(md, "Name")
             name.text = str(name_text)
-            value = xml.SubElement(md, 'Value')
+            value = xml.SubElement(md, "Value")
             value.text = str(value_text)
         return metadata

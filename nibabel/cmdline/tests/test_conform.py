@@ -17,35 +17,35 @@ from nibabel.cmdline.conform import main
 from nibabel.optpkg import optional_package
 from nibabel.testing import get_test_data
 
-_, have_scipy, _ = optional_package('scipy.ndimage')
-needs_scipy = unittest.skipUnless(have_scipy, 'These tests need scipy')
+_, have_scipy, _ = optional_package("scipy.ndimage")
+needs_scipy = unittest.skipUnless(have_scipy, "These tests need scipy")
 
 
 @needs_scipy
 def test_default(tmpdir):
-    infile = get_test_data(fname='anatomical.nii')
-    outfile = tmpdir / 'output.nii.gz'
+    infile = get_test_data(fname="anatomical.nii")
+    outfile = tmpdir / "output.nii.gz"
     main([str(infile), str(outfile)])
     assert outfile.isfile()
     c = nib.load(outfile)
     assert c.shape == (256, 256, 256)
     assert c.header.get_zooms() == (1, 1, 1)
-    assert nib.orientations.aff2axcodes(c.affine) == ('R', 'A', 'S')
+    assert nib.orientations.aff2axcodes(c.affine) == ("R", "A", "S")
 
     with pytest.raises(FileExistsError):
         main([str(infile), str(outfile)])
 
-    main([str(infile), str(outfile), '--force'])
+    main([str(infile), str(outfile), "--force"])
     assert outfile.isfile()
 
 
 @needs_scipy
 def test_nondefault(tmpdir):
-    infile = get_test_data(fname='anatomical.nii')
-    outfile = tmpdir / 'output.nii.gz'
+    infile = get_test_data(fname="anatomical.nii")
+    outfile = tmpdir / "output.nii.gz"
     out_shape = (100, 100, 150)
     voxel_size = (1, 2, 4)
-    orientation = 'LAS'
+    orientation = "LAS"
     args = (
         f"{infile} {outfile} --out-shape {' '.join(map(str, out_shape))} "
         f"--voxel-size {' '.join(map(str, voxel_size))} --orientation {orientation}"

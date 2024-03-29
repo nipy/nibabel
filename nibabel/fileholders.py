@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Fileholder class"""
+
 from __future__ import annotations
 
 import io
@@ -75,7 +76,7 @@ class FileHolder:
             if self.pos != 0:
                 obj.seek(self.pos)
         else:
-            raise FileHolderError('No filename or fileobj present')
+            raise FileHolderError("No filename or fileobj present")
         return obj
 
     def same_file_as(self, other: FileHolder) -> bool:

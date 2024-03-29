@@ -175,7 +175,7 @@ class BatteryRunner:
 
 
 class Report:
-    def __init__(self, error=Exception, problem_level=0, problem_msg='', fix_msg=''):
+    def __init__(self, error=Exception, problem_level=0, problem_msg="", fix_msg=""):
         """Initialize report with values
 
         Parameters
@@ -252,7 +252,7 @@ class Report:
     def message(self):
         """formatted message string, including fix message if present"""
         if self.fix_msg:
-            return '; '.join((self.problem_msg, self.fix_msg))
+            return "; ".join((self.problem_msg, self.fix_msg))
         return self.problem_msg
 
     def log_raise(self, logger, error_level=40):
@@ -285,7 +285,7 @@ class Report:
            write the report to `stream`, otherwise we write nothing.
         """
         if self.problem_level >= log_level:
-            stream.write(f'Level {self.problem_level}: {self.message}\n')
+            stream.write(f"Level {self.problem_level}: {self.message}\n")
         if self.problem_level and self.problem_level >= error_level:
             if self.error:
                 raise self.error(self.problem_msg)

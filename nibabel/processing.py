@@ -16,12 +16,13 @@ Image processing functions for:
 
 Smoothing and resampling routines need scipy.
 """
+
 import numpy as np
 import numpy.linalg as npl
 
 from .optpkg import optional_package
 
-spnd = optional_package('scipy.ndimage')[0]
+spnd = optional_package("scipy.ndimage")[0]
 
 from .affines import AffineError, append_diag, from_matvec, rescale_affine, to_matvec
 from .imageclasses import spatial_axes_first
@@ -118,7 +119,7 @@ def resample_from_to(
     from_img,
     to_vox_map,
     order=3,
-    mode='constant',
+    mode="constant",
     cval=0.0,
     out_class=Nifti1Image,
 ):
@@ -161,7 +162,7 @@ def resample_from_to(
     # This check requires `shape` attribute of image
     if not spatial_axes_first(from_img):
         raise ValueError(
-            f'Cannot predict position of spatial axes for Image type {type(from_img)}'
+            f"Cannot predict position of spatial axes for Image type {type(from_img)}"
         )
     try:
         to_shape, to_affine = to_vox_map.shape, to_vox_map.affine
@@ -172,7 +173,7 @@ def resample_from_to(
         out_class = from_img.__class__
     from_n_dim = len(from_img.shape)
     if from_n_dim < 3:
-        raise AffineError('from_img must be at least 3D')
+        raise AffineError("from_img must be at least 3D")
     a_from_affine = adapt_affine(from_img.affine, from_n_dim)
     to_vox2from_vox = npl.inv(a_from_affine).dot(a_to_affine)
     rzs, trans = to_matvec(to_vox2from_vox)
@@ -186,7 +187,7 @@ def resample_to_output(
     in_img,
     voxel_sizes=None,
     order=3,
-    mode='constant',
+    mode="constant",
     cval=0.0,
     out_class=Nifti1Image,
 ):
@@ -237,7 +238,9 @@ def resample_to_output(
     # looks like when resampled into world coordinates
     if n_dim < 3:  # Expand image to 3D, make voxel sizes match
         new_shape = in_shape + (1,) * (3 - n_dim)
-        data = np.asanyarray(in_img.dataobj).reshape(new_shape)  # 2D data should be small
+        data = np.asanyarray(in_img.dataobj).reshape(
+            new_shape
+        )  # 2D data should be small
         in_img = out_class(data, in_img.affine, in_img.header)
         if voxel_sizes is not None and len(voxel_sizes) == n_dim:
             # Need to pad out voxel sizes to match new image dimensions
@@ -249,7 +252,7 @@ def resample_to_output(
 def smooth_image(
     img,
     fwhm,
-    mode='nearest',
+    mode="nearest",
     cval=0.0,
     out_class=Nifti1Image,
 ):
@@ -292,7 +295,9 @@ def smooth_image(
     """
     # This check requires `shape` attribute of image
     if not spatial_axes_first(img):
-        raise ValueError(f'Cannot predict position of spatial axes for Image type {type(img)}')
+        raise ValueError(
+            f"Cannot predict position of spatial axes for Image type {type(img)}"
+        )
     if out_class is None:
         out_class = img.__class__
     n_dim = len(img.shape)
@@ -320,7 +325,7 @@ def conform(
     voxel_size=(1.0, 1.0, 1.0),
     order=3,
     cval=0.0,
-    orientation='RAS',
+    orientation="RAS",
     out_class=None,
 ):
     """Resample image to ``out_shape`` with voxels of size ``voxel_size``.
@@ -372,11 +377,11 @@ def conform(
     # are written.
     required_ndim = 3
     if from_img.ndim != required_ndim:
-        raise ValueError('Only 3D images are supported.')
+        raise ValueError("Only 3D images are supported.")
     elif len(out_shape) != required_ndim:
-        raise ValueError(f'`out_shape` must have {required_ndim} values')
+        raise ValueError(f"`out_shape` must have {required_ndim} values")
     elif len(voxel_size) != required_ndim:
-        raise ValueError(f'`voxel_size` must have {required_ndim} values')
+        raise ValueError(f"`voxel_size` must have {required_ndim} values")
 
     start_ornt = io_orientation(from_img.affine)
     end_ornt = axcodes2ornt(orientation)
@@ -392,7 +397,7 @@ def conform(
         from_img=from_img,
         to_vox_map=(out_shape, out_aff),
         order=order,
-        mode='constant',
+        mode="constant",
         cval=cval,
         out_class=out_class,
     )

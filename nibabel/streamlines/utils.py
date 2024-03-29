@@ -19,12 +19,12 @@ def get_affine_from_reference(ref):
     affine : ndarray (4, 4)
         Transformation matrix mapping voxel space to RAS+mm space.
     """
-    if hasattr(ref, 'affine'):
+    if hasattr(ref, "affine"):
         return ref.affine
 
-    if hasattr(ref, 'shape'):
+    if hasattr(ref, "shape"):
         if ref.shape != (4, 4):
-            msg = '`ref` needs to be a numpy array with shape (4, 4)!'
+            msg = "`ref` needs to be a numpy array with shape (4, 4)!"
             raise ValueError(msg)
 
         return ref

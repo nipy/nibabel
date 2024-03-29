@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Processor functions for images"""
+
 import numpy as np
 
 from .loadsave import load
@@ -104,10 +105,10 @@ def concat_images(images, check_affines=True, axis=None):
        New image resulting from concatenating `images` across last
        dimension
     """
-    images = [load(img) if not hasattr(img, 'get_data') else img for img in images]
+    images = [load(img) if not hasattr(img, "get_data") else img for img in images]
     n_imgs = len(images)
     if n_imgs == 0:
-        raise ValueError('Cannot concatenate an empty list of images.')
+        raise ValueError("Cannot concatenate an empty list of images.")
     img0 = images[0]
     affine = img0.affine
     header = img0.header
@@ -128,14 +129,18 @@ def concat_images(images, check_affines=True, axis=None):
     masked_shape = np.array(shape0)[idx_mask]
     for i, img in enumerate(images):
         if len(img.shape) != n_dim:
-            raise ValueError(f'Image {i} has {len(img.shape)} dimensions, image 0 has {n_dim}')
+            raise ValueError(
+                f"Image {i} has {len(img.shape)} dimensions, image 0 has {n_dim}"
+            )
         if not np.all(np.array(img.shape)[idx_mask] == masked_shape):
             raise ValueError(
-                f'shape {img.shape} for image {i} not compatible with '
-                f'first image shape {shape0} with axis == {axis}'
+                f"shape {img.shape} for image {i} not compatible with "
+                f"first image shape {shape0} with axis == {axis}"
             )
         if check_affines and not np.all(img.affine == affine):
-            raise ValueError(f'Affine for image {i} does not match affine for first image')
+            raise ValueError(
+                f"Affine for image {i} does not match affine for first image"
+            )
         # Do not fill cache in image if it is empty
         out_data[i] = np.asanyarray(img.dataobj)
 
@@ -167,7 +172,7 @@ def four_to_three(img):
     affine = img.affine
     image_maker = img.__class__
     if arr.ndim != 4:
-        raise ValueError('Expecting four dimensions')
+        raise ValueError("Expecting four dimensions")
     imgs = []
     for i in range(arr.shape[3]):
         arr3d = arr[..., i]
@@ -203,7 +208,7 @@ def as_closest_canonical(img, enforce_diag=False):
 
     # however, the affine may not be diagonal
     if enforce_diag and not _aff_is_diag(img.affine):
-        raise OrientationError('Transformed affine is not diagonal')
+        raise OrientationError("Transformed affine is not diagonal")
 
     return img
 

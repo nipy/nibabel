@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Constants and types for dealing transparently with compression"""
+
 from __future__ import annotations
 
 import bz2
@@ -23,8 +24,8 @@ if ty.TYPE_CHECKING:  # pragma: no cover
     HAVE_INDEXED_GZIP = True
     HAVE_ZSTD = True
 else:
-    indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package('indexed_gzip')
-    pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
+    indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package("indexed_gzip")
+    pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
 
 
 # Collections of types for isinstance or exception matching

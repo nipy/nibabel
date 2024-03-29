@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Thin layer around xml.etree.ElementTree, to abstract nibabel xml support"""
+
 from io import BytesIO
 from xml.etree.ElementTree import Element, SubElement, tostring  # noqa
 from xml.parsers.expat import ParserCreate
@@ -21,7 +22,7 @@ class XmlSerializable:
         """Output should be a xml.etree.ElementTree.Element"""
         raise NotImplementedError  # pragma: no cover
 
-    def to_xml(self, enc='utf-8', **kwargs) -> bytes:
+    def to_xml(self, enc="utf-8", **kwargs) -> bytes:
         r"""Generate an XML bytestring with a given encoding.
 
         Parameters
@@ -48,9 +49,9 @@ class XmlParser:
         CharacterDataHandler
     """
 
-    HANDLER_NAMES = ['StartElementHandler', 'EndElementHandler', 'CharacterDataHandler']
+    HANDLER_NAMES = ["StartElementHandler", "EndElementHandler", "CharacterDataHandler"]
 
-    def __init__(self, encoding='utf-8', buffer_size=35000000, verbose=0):
+    def __init__(self, encoding="utf-8", buffer_size=35000000, verbose=0):
         """
         Parameters
         ----------
@@ -92,8 +93,11 @@ class XmlParser:
         fptr : file pointer
             open file pointer to an xml documents
         """
-        if int(string is not None) + int(fptr is not None) + int(fname is not None) != 1:
-            raise ValueError('Exactly one of fptr, fname, string must be specified.')
+        if (
+            int(string is not None) + int(fptr is not None) + int(fname is not None)
+            != 1
+        ):
+            raise ValueError("Exactly one of fptr, fname, string must be specified.")
 
         if string is not None:
             fptr = BytesIO(string)
@@ -101,7 +105,7 @@ class XmlParser:
             fptr = open(fname)
 
         # store the name of the xml file in case it is needed during parsing
-        self.fname = getattr(fptr, 'name', None)
+        self.fname = getattr(fptr, "name", None)
         parser = self._create_parser()
         for name in self.HANDLER_NAMES:
             setattr(parser, name, getattr(self, name))

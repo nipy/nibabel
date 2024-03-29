@@ -1,4 +1,5 @@
 """Class for recording and reporting deprecations"""
+
 from __future__ import annotations
 
 import functools
@@ -7,10 +8,10 @@ import typing as ty
 import warnings
 
 if ty.TYPE_CHECKING:  # pragma: no cover
-    T = ty.TypeVar('T')
-    P = ty.ParamSpec('P')
+    T = ty.TypeVar("T")
+    P = ty.ParamSpec("P")
 
-_LEADING_WHITE = re.compile(r'^(\s*)')
+_LEADING_WHITE = re.compile(r"^(\s*)")
 
 TESTSETUP = """
 
@@ -48,14 +49,14 @@ def _ensure_cr(text: str) -> str:
 
     Ensures that `text` always ends with a carriage return
     """
-    return text.rstrip() + '\n'
+    return text.rstrip() + "\n"
 
 
 def _add_dep_doc(
     old_doc: str,
     dep_doc: str,
-    setup: str = '',
-    cleanup: str = '',
+    setup: str = "",
+    cleanup: str = "",
 ) -> str:
     """Add deprecation message `dep_doc` to docstring in `old_doc`
 
@@ -89,15 +90,20 @@ def _add_dep_doc(
     next_line = line_no + 1
     if next_line >= len(old_lines):
         # nothing following first paragraph, just append message
-        return old_doc + '\n' + dep_doc
+        return old_doc + "\n" + dep_doc
     leading_white = _LEADING_WHITE.match(old_lines[next_line])
     assert leading_white is not None  # Type narrowing, since this always matches
     indent = leading_white.group()
     setup_lines = [indent + L for L in setup.splitlines()]
-    dep_lines = [indent + L for L in [''] + dep_doc.splitlines() + ['']]
+    dep_lines = [indent + L for L in [""] + dep_doc.splitlines() + [""]]
     cleanup_lines = [indent + L for L in cleanup.splitlines()]
-    return '\n'.join(
-        new_lines + dep_lines + setup_lines + old_lines[next_line:] + cleanup_lines + ['']
+    return "\n".join(
+        new_lines
+        + dep_lines
+        + setup_lines
+        + old_lines[next_line:]
+        + cleanup_lines
+        + [""]
     )
 
 
@@ -158,8 +164,8 @@ class Deprecator:
     def __call__(
         self,
         message: str,
-        since: str = '',
-        until: str = '',
+        since: str = "",
+        until: str = "",
         warn_class: type[Warning] | None = None,
         error_class: type[Exception] | None = None,
     ) -> ty.Callable[[ty.Callable[P, T]], ty.Callable[P, T]]:
@@ -190,16 +196,16 @@ class Deprecator:
         exception = error_class if error_class is not None else self.error_class
         warning = warn_class if warn_class is not None else self.warn_class
         messages = [message]
-        if (since, until) != ('', ''):
-            messages.append('')
+        if (since, until) != ("", ""):
+            messages.append("")
         if since:
-            messages.append('* deprecated from version: ' + since)
+            messages.append("* deprecated from version: " + since)
         if until:
             messages.append(
                 f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
                 f'{exception} as of version: {until}'
             )
-        message = '\n'.join(messages)
+        message = "\n".join(messages)
 
         def deprecator(func: ty.Callable[P, T]) -> ty.Callable[P, T]:
             @functools.wraps(func)
@@ -211,17 +217,17 @@ class Deprecator:
 
             keep_doc = deprecated_func.__doc__
             if keep_doc is None:
-                keep_doc = ''
+                keep_doc = ""
             setup = TESTSETUP
             cleanup = TESTCLEANUP
             # After expiration, remove all but the first paragraph.
             # The details are no longer relevant, but any code will likely
             # raise exceptions we don't need.
             if keep_doc and until and self.is_bad_version(until):
-                lines = '\n'.join(line.rstrip() for line in keep_doc.splitlines())
-                keep_doc = lines.split('\n\n', 1)[0]
-                setup = ''
-                cleanup = ''
+                lines = "\n".join(line.rstrip() for line in keep_doc.splitlines())
+                keep_doc = lines.split("\n\n", 1)[0]
+                setup = ""
+                cleanup = ""
             deprecated_func.__doc__ = _add_dep_doc(keep_doc, message, setup, cleanup)
             return deprecated_func
 

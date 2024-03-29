@@ -16,7 +16,7 @@ from .. import Nifti1Image, imagestats
 def test_mask_volume():
     # Test mask volume computation
 
-    mask_data = np.zeros((20, 20, 20), dtype='u1')
+    mask_data = np.zeros((20, 20, 20), dtype="u1")
     mask_data[5:15, 5:15, 5:15] = 1
     img = Nifti1Image(mask_data, np.eye(4))
 

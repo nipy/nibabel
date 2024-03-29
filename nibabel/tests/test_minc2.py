@@ -18,13 +18,13 @@ from ..optpkg import optional_package
 from ..testing import data_path
 from . import test_minc1 as tm2
 
-h5py, have_h5py, setup_module = optional_package('h5py')
+h5py, have_h5py, setup_module = optional_package("h5py")
 
 # Example images in format expected for ``test_image_api``, adding ``zooms``
 # item.
 EXAMPLE_IMAGES = [
     dict(
-        fname=pjoin(data_path, 'small.mnc'),
+        fname=pjoin(data_path, "small.mnc"),
         shape=(18, 28, 29),
         dtype=np.int16,
         affine=np.array(
@@ -41,7 +41,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc2_1_scale.mnc'),
+        fname=pjoin(data_path, "minc2_1_scale.mnc"),
         shape=(10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -58,7 +58,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc2_4d.mnc'),
+        fname=pjoin(data_path, "minc2_4d.mnc"),
         shape=(2, 10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -75,7 +75,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc2-no-att.mnc'),
+        fname=pjoin(data_path, "minc2-no-att.mnc"),
         shape=(10, 20, 20),
         dtype=np.uint8,
         affine=np.array(
@@ -92,7 +92,7 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
     dict(
-        fname=pjoin(data_path, 'minc2-4d-d.mnc'),
+        fname=pjoin(data_path, "minc2-4d-d.mnc"),
         shape=(5, 16, 16, 16),
         dtype=np.float64,
         affine=np.array(
@@ -120,12 +120,12 @@ if have_h5py:
 
     class TestMinc2Image(tm2.TestMinc1Image):
         image_class = Minc2Image
-        eg_images = (pjoin(data_path, 'small.mnc'),)
+        eg_images = (pjoin(data_path, "small.mnc"),)
         module = minc2
 
 
 def test_bad_diminfo():
-    fname = pjoin(data_path, 'minc2_baddim.mnc')
+    fname = pjoin(data_path, "minc2_baddim.mnc")
     # File has a bad spacing field 'xspace' when it should be
     # `irregular`, `regular__` or absent (default to regular__).
     # We interpret an invalid spacing as absent, but warn.

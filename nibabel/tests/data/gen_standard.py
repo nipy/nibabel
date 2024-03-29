@@ -5,6 +5,7 @@
 
     * standard.trk
 """
+
 import numpy as np
 
 import nibabel as nib
@@ -51,7 +52,7 @@ def mark_the_spot(mask):
     return streamlines
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     rng = np.random.RandomState(42)
 
     width = 4  # Coronal
@@ -75,14 +76,14 @@ if __name__ == '__main__':
         Field.DIMENSIONS: (width, height, depth),
         Field.VOXEL_SIZES: voxel_size,
         Field.VOXEL_TO_RASMM: affine,
-        Field.VOXEL_ORDER: 'RAS',
+        Field.VOXEL_ORDER: "RAS",
     }
 
     # Save the standard mask.
     nii = nib.Nifti1Image(mask, affine=affine)
-    nib.save(nii, 'standard.nii.gz')
+    nib.save(nii, "standard.nii.gz")
 
     # Save the standard tractogram in every available file format.
     for ext, cls in FORMATS.items():
         tfile = cls(tractogram, header)
-        nib.streamlines.save(tfile, 'standard' + ext)
+        nib.streamlines.save(tfile, "standard" + ext)
