@@ -276,7 +276,7 @@ def test_slope_inter_castable():
         for out_dtt in NUMERIC_TYPES:
             for klass in (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter):
                 arr = np.zeros((5,), dtype=in_dtt)
-                _ = klass(arr, out_dtt)  # no error
+                klass(arr, out_dtt)  # no error
     # Test special case of none finite
     # This raises error for ArrayWriter, but not for the others
     arr = np.array([np.inf, np.nan, -np.inf])
