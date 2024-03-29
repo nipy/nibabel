@@ -437,7 +437,7 @@ class DataobjImage(FileBasedImage):
         Parameters
         ----------
         file_map : dict
-            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            Mapping with (key, value) pairs of (``file_type``, FileHolder
             instance giving file-likes for each file needed for this image
             type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only
