@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 ASCCONV_RE = re.compile(
     r'### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
-    flags=re.M | re.S,
+    flags=re.MULTILINE | re.DOTALL,
 )
 
 
