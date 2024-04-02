@@ -14,12 +14,21 @@ from nibabel.deprecator import (
     Deprecator,
     ExpiredDeprecationError,
     _add_dep_doc,
+    _dedent_docstring,
     _ensure_cr,
 )
 
 from ..testing import clear_and_catch_warnings
 
 _OWN_MODULE = sys.modules[__name__]
+
+func_docstring = (
+    f'A docstring\n   \n   foo\n   \n{indent(TESTSETUP, "   ", lambda x: True)}'
+    f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}'
+)
+
+if sys.version_info >= (3, 13):
+    func_docstring = _dedent_docstring(func_docstring)
 
 
 def test__ensure_cr():
@@ -92,11 +101,7 @@ class TestDeprecatorFunc:
         with pytest.deprecated_call() as w:
             assert func(1, 2) is None
             assert len(w) == 1
-        assert (
-            func.__doc__
-            == f'A docstring\n   \n   foo\n   \n{indent(TESTSETUP, "   ", lambda x: True)}'
-            f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}'
-        )
+        assert func.__doc__ == func_docstring
 
         # Try some since and until versions
         func = dec('foo', '1.1')(func_no_doc)
