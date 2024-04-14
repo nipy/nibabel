@@ -309,7 +309,6 @@ class TckFile(TractogramFile):
         offset_data = 0
 
         with Opener(fileobj) as f:
-
             # Record start position
             start_position = f.tell()
 

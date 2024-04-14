@@ -21,6 +21,7 @@ RMS resliced Phantom_EPI_3mm_tra_15RL_SENSE_10_1.PAR              : 29.079360247
 The *_cor_SENSE* image has a higher RMS because the back of the phantom is out
 of the field of view.
 """
+
 import glob
 
 import numpy as np

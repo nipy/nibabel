@@ -1,5 +1,5 @@
-"""Define abstract interface for Tractogram file classes
-"""
+"""Define abstract interface for Tractogram file classes"""
+
 from abc import ABC, abstractmethod
 
 from .header import Field

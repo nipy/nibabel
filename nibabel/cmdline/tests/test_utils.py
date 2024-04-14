@@ -12,8 +12,18 @@ import numpy as np
 import pytest
 
 import nibabel as nib
-from nibabel.cmdline.diff import *
-from nibabel.cmdline.utils import *
+from nibabel.cmdline.diff import (
+    display_diff,
+    get_data_diff,
+    get_data_hash_diff,
+    get_headers_diff,
+    main,
+)
+from nibabel.cmdline.utils import (
+    ap,
+    safe_get,
+    table2string,
+)
 from nibabel.testing import data_path
 
 

@@ -58,7 +58,6 @@ def test_concat():
 
                 # Loop over every possible axis, including None (explicit and implied)
                 for axis in list(range(-(dim - 2), (dim - 1))) + [None, '__default__']:
-
                     # Allow testing default vs. passing explicit param
                     if axis == '__default__':
                         np_concat_kwargs = dict(axis=-1)

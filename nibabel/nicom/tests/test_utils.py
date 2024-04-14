@@ -1,5 +1,5 @@
-"""Testing nicom.utils module
-"""
+"""Testing nicom.utils module"""
+
 import re
 
 from nibabel.optpkg import optional_package

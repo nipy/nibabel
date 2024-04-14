@@ -1,5 +1,4 @@
-"""Test tractogramFile base class
-"""
+"""Test tractogramFile base class"""
 
 import pytest
 
@@ -8,7 +7,6 @@ from ..tractogram_file import TractogramFile
 
 
 def test_subclassing_tractogram_file():
-
     # Missing 'save' method
     class DummyTractogramFile(TractogramFile):
         @classmethod

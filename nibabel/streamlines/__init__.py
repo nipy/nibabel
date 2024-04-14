@@ -1,5 +1,5 @@
-"""Multiformat-capable streamline format read / write interface
-"""
+"""Multiformat-capable streamline format read / write interface"""
+
 import os
 import warnings
 

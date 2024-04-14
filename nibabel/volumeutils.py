@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utility functions for analyze-like formats"""
+
 from __future__ import annotations
 
 import io
@@ -1190,13 +1191,13 @@ def _ftype4scaled_finite(
 @ty.overload
 def finite_range(
     arr: npt.ArrayLike, check_nan: ty.Literal[False] = False
-) -> tuple[Scalar, Scalar]:
-    ...  # pragma: no cover
+) -> tuple[Scalar, Scalar]: ...  # pragma: no cover
 
 
 @ty.overload
-def finite_range(arr: npt.ArrayLike, check_nan: ty.Literal[True]) -> tuple[Scalar, Scalar, bool]:
-    ...  # pragma: no cover
+def finite_range(
+    arr: npt.ArrayLike, check_nan: ty.Literal[True]
+) -> tuple[Scalar, Scalar, bool]: ...  # pragma: no cover
 
 
 def finite_range(

@@ -1,5 +1,5 @@
-"""Look for changes in numpy behavior over versions
-"""
+"""Look for changes in numpy behavior over versions"""
+
 from functools import lru_cache
 
 import numpy as np

@@ -17,6 +17,7 @@ A *mesh* is a collection of points and some structure that enables
 adjacent points to be identified. A *triangular mesh* in particular
 uses triplets of adjacent vertices to describe faces.
 """
+
 from __future__ import annotations
 
 import math
@@ -40,12 +41,12 @@ class CoordinateArray(ty.Protocol):
     shape: tuple[int, int]
 
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
-        ...  # pragma: no cover
+    def __array__(
+        self, dtype: None = ..., /
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...  # pragma: no cover
 
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
-        ...  # pragma: no cover
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...  # pragma: no cover
 
 
 @dataclass

@@ -24,7 +24,7 @@ def main():
     g = dict(globals())
     g['__file__'] = sys.argv[0]
     g['__name__'] = '__main__'
-    execfile(sys.argv[0], g, g)
+    exec(open(sys.argv[0]).read(), g, g)
 
 
 if __name__ == '__main__':

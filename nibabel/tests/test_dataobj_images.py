@@ -1,5 +1,4 @@
-"""Testing dataobj_images module
-"""
+"""Testing dataobj_images module"""
 
 import numpy as np
 

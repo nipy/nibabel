@@ -1,5 +1,4 @@
-"""Testing reading DICOM files
-"""
+"""Testing reading DICOM files"""
 
 from os.path import join as pjoin
 

@@ -1,5 +1,4 @@
-"""Testing package info
-"""
+"""Testing package info"""
 
 import pytest
 
@@ -15,7 +14,7 @@ def test_pkg_info():
         - nibabel.pkg_info.get_pkg_info
         - nibabel.pkg_info.pkg_commit_hash
     """
-    info = nib.get_info()
+    nib.get_info()
 
 
 def test_version():

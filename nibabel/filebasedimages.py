@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Common interface for any image format--volume or surface, binary or xml"""
+
 from __future__ import annotations
 
 import io

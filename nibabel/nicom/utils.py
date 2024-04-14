@@ -1,5 +1,4 @@
-"""Utilities for working with DICOM datasets
-"""
+"""Utilities for working with DICOM datasets"""
 
 
 def find_private_section(dcm_data, group_no, creator):

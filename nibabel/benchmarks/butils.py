@@ -1,5 +1,4 @@
-"""Benchmarking utilities
-"""
+"""Benchmarking utilities"""
 
 from .. import get_info
 

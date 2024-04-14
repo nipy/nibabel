@@ -1,13 +1,12 @@
-"""Testing gifti objects
-"""
+"""Testing gifti objects"""
+
 import itertools
 import sys
-import warnings
 from io import BytesIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_equal
 
 from nibabel.tmpdirs import InTemporaryDirectory
 
@@ -329,7 +328,7 @@ def test_metadata_list_interface():
     assert len(md) == 0
 
     # Extension adds multiple keys
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0'):
         foobar = GiftiNVPairs('foo', 'bar')
     mdlist.extend([nvpair, foobar])
     assert len(mdlist) == 2
@@ -337,7 +336,7 @@ def test_metadata_list_interface():
     assert md == {'key': 'value', 'foo': 'bar'}
 
     # Insertion updates list order, though we don't attempt to preserve it in the dict
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0'):
         lastone = GiftiNVPairs('last', 'one')
     mdlist.insert(1, lastone)
     assert len(mdlist) == 3
@@ -360,14 +359,14 @@ def test_metadata_list_interface():
     mypair.value = 'strings'
     assert 'completelynew' not in md
     assert md == {'foo': 'bar', 'last': 'one'}
-    # Check popping from the end (lastone inserted before foobar)
-    lastpair = mdlist.pop()
+    # Check popping from the end (last one inserted before foobar)
+    mdlist.pop()
     assert len(mdlist) == 1
     assert len(md) == 1
     assert md == {'last': 'one'}
 
     # And let's remove an old pair with a new object
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0'):
         lastoneagain = GiftiNVPairs('last', 'one')
     mdlist.remove(lastoneagain)
     assert len(mdlist) == 0

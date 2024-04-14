@@ -16,6 +16,7 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 
     http://www.nitrc.org/projects/cifti
 """
+
 import re
 from collections import OrderedDict
 from collections.abc import Iterable, MutableMapping, MutableSequence

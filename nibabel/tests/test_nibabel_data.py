@@ -1,10 +1,8 @@
-"""Tests for ``get_nibabel_data``
-"""
+"""Tests for ``get_nibabel_data``"""
 
 import os
-from os.path import dirname, isdir
+from os.path import dirname, isdir, realpath
 from os.path import join as pjoin
-from os.path import realpath
 
 from . import nibabel_data as nibd
 

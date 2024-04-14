@@ -18,6 +18,7 @@ Hettinger. https://docs.python.org/howto/descriptor.html
 
 [2] Python data model, https://docs.python.org/reference/datamodel.html
 """
+
 from __future__ import annotations
 
 import typing as ty
@@ -136,12 +137,12 @@ class OneTimeProperty(ty.Generic[T]):
     @ty.overload
     def __get__(
         self, obj: None, objtype: type[InstanceT] | None = None
-    ) -> ty.Callable[[InstanceT], T]:
-        ...  # pragma: no cover
+    ) -> ty.Callable[[InstanceT], T]: ...  # pragma: no cover
 
     @ty.overload
-    def __get__(self, obj: InstanceT, objtype: type[InstanceT] | None = None) -> T:
-        ...  # pragma: no cover
+    def __get__(
+        self, obj: InstanceT, objtype: type[InstanceT] | None = None
+    ) -> T: ...  # pragma: no cover
 
     def __get__(
         self, obj: InstanceT | None, objtype: type[InstanceT] | None = None
