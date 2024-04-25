@@ -399,7 +399,8 @@ class OrthoSlicer3D:
         # deal with slicing appropriately
         self._position[:3] = [x, y, z]
         idxs = np.dot(self._inv_affine, self._position)[:3]
-        for ii, (size, idx) in enumerate(zip(self._sizes, idxs)):
+        idxs_new_order = idxs[self._order]
+        for ii, (size, idx) in enumerate(zip(self._sizes, idxs_new_order)):
             self._data_idx[ii] = max(min(int(round(idx)), size - 1), 0)
         for ii in range(3):
             # sagittal: get to S/A
