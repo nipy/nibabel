@@ -441,7 +441,7 @@ def array_from_file(
     True
     """
     if mmap not in (True, False, 'c', 'r', 'r+'):
-        raise ValueError("mmap value should be one of True, False, 'c', " "'r', 'r+'")
+        raise ValueError("mmap value should be one of True, False, 'c', 'r', 'r+'")
     in_dtype = np.dtype(in_dtype)
     # Get file-like object from Opener instance
     infile = getattr(infile, 'fobj', infile)
