@@ -26,7 +26,7 @@ PImage, have_pil, _ = optional_package('PIL.Image')
 data_dir = pjoin(dirname(__file__), 'data')
 
 
-def setUpModule():
+def setup_module():
     if os.name == 'nt':
         raise unittest.SkipTest('FUSE not available for windows, skipping dft tests')
     if not have_dicom:
