@@ -20,7 +20,7 @@ from .test_tractogram import assert_tractogram_equal
 DATA = {}
 
 
-def setup():
+def setup_module():
     global DATA
     DATA['empty_filenames'] = [pjoin(data_path, 'empty' + ext) for ext in FORMATS.keys()]
     DATA['simple_filenames'] = [pjoin(data_path, 'simple' + ext) for ext in FORMATS.keys()]

@@ -14,12 +14,12 @@ from nibabel.deprecated import (
 from nibabel.tests.test_deprecator import TestDeprecatorFunc as _TestDF
 
 
-def setup():
+def setup_module():
     # Hack nibabel version string
     pkg_info.cmp_pkg_version.__defaults__ = ('2.0',)
 
 
-def teardown():
+def teardown_module():
     # Hack nibabel version string back again
     pkg_info.cmp_pkg_version.__defaults__ = (pkg_info.__version__,)
 
