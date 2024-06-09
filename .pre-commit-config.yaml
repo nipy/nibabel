@@ -16,7 +16,7 @@ repos:
     rev: v0.3.4
     hooks:
       - id: ruff
-        args: [--fix, --show-fix, --exit-non-zero-on-fix]
+        args: [--fix, --show-fixes, --exit-non-zero-on-fix]
         exclude: = ["doc", "tools"]
       - id: ruff-format
         exclude: = ["doc", "tools"]
