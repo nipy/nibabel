@@ -554,23 +554,20 @@ class MultiframeWrapper(Wrapper):
                 raise WrapperError('Missing information, cannot remove indices with confidence.')
             derived_dim_idx = dim_seq.index(derived_tag)
             frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
-        # account for the 2 additional dimensions (row and column) not included
-        # in the indices
-        n_dim = frame_indices.shape[1] + 2
         # Store frame indices
         self._frame_indices = frame_indices
-        if n_dim < 4:  # 3D volume
-            return rows, cols, n_frames
-        # More than 3 dimensions
+        # Determine size of any extra-spatial dimensions
         ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
-        shape = (rows, cols) + tuple(ns_unique)
-        n_vols = np.prod(shape[3:])
-        n_frames_calc = n_vols * shape[2]
-        if n_frames != n_frames_calc:
-            raise WrapperError(
-                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
-                f'of shape {shape} does not match NumberOfFrames {n_frames}.'
-            )
+        shape = (rows, cols) + tuple(x for i, x in enumerate(ns_unique) if i == 0 or x != 1)
+        n_dim = len(shape)
+        if n_dim > 3:
+            n_vols = np.prod(shape[3:])
+            n_frames_calc = n_vols * shape[2]
+            if n_frames != n_frames_calc:
+                raise WrapperError(
+                    f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
+                    f'of shape {shape} does not match NumberOfFrames {n_frames}.'
+                )
         return tuple(shape)
 
     @cached_property
@@ -640,10 +637,11 @@ class MultiframeWrapper(Wrapper):
             raise WrapperError('No valid information for image shape')
         data = self.get_pixel_array()
         # Roll frames axis to last
-        data = data.transpose((1, 2, 0))
-        # Sort frames with first index changing fastest, last slowest
-        sorted_indices = np.lexsort(self._frame_indices.T)
-        data = data[..., sorted_indices]
+        if len(data.shape) > 2:
+            data = data.transpose((1, 2, 0))
+            # Sort frames with first index changing fastest, last slowest
+            sorted_indices = np.lexsort(self._frame_indices.T)
+            data = data[..., sorted_indices]
         data = data.reshape(shape, order='F')
         return self._scale_data(data)
 
