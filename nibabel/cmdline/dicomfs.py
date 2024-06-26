@@ -37,7 +37,7 @@ from optparse import Option, OptionParser
 import nibabel as nib
 import nibabel.dft as dft
 
-encoding = locale.getdefaultlocale()[1]
+encoding = locale.getlocale()[1]
 
 fuse.fuse_python_api = (0, 2)
 
