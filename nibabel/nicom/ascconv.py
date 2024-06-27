@@ -91,7 +91,7 @@ def assign2atoms(assign_ast, default_class=int):
             prev_target_type = OrderedDict
         elif isinstance(target, ast.Subscript):
             if isinstance(target.slice, ast.Constant):  # PY39
-                index = target.slice.n
+                index = target.slice.value
             else:  # PY38
                 index = target.slice.value.n
             atoms.append(Atom(target, prev_target_type, index))
@@ -174,12 +174,10 @@ def obj_from_atoms(atoms, namespace):
 
 def _get_value(assign):
     value = assign.value
-    if isinstance(value, ast.Num):
-        return value.n
-    if isinstance(value, ast.Str):
-        return value.s
+    if isinstance(value, ast.Constant):
+        return value.value
     if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub):
-        return -value.operand.n
+        return -value.operand.value
     raise AscconvParseError(f'Unexpected RHS of assignment: {value}')
 
 
