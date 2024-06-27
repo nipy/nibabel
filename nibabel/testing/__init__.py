@@ -27,8 +27,8 @@ from .helpers import assert_data_similar, bytesio_filemap, bytesio_round_trip
 from .np_features import memmap_after_ufunc
 
 try:
-    from importlib.abc import Traversable
     from importlib.resources import as_file, files
+    from importlib.resources.abc import Traversable
 except ImportError:  # PY38
     from importlib_resources import as_file, files
     from importlib_resources.abc import Traversable
