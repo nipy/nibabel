@@ -6,7 +6,6 @@ from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.compat.py3k import asbytes
 
 import nibabel as nib
 from nibabel.testing import clear_and_catch_warnings, data_path, error_warnings
@@ -95,7 +94,7 @@ def test_is_supported_detect_format(tmp_path):
     # Valid file without extension
     for tfile_cls in FORMATS.values():
         f = BytesIO()
-        f.write(asbytes(tfile_cls.MAGIC_NUMBER))
+        f.write(tfile_cls.MAGIC_NUMBER)
         f.seek(0, os.SEEK_SET)
         assert nib.streamlines.is_supported(f)
         assert nib.streamlines.detect_format(f) is tfile_cls
@@ -104,7 +103,7 @@ def test_is_supported_detect_format(tmp_path):
     for tfile_cls in FORMATS.values():
         fpath = tmp_path / 'test.txt'
         with open(fpath, 'w+b') as f:
-            f.write(asbytes(tfile_cls.MAGIC_NUMBER))
+            f.write(tfile_cls.MAGIC_NUMBER)
             f.seek(0, os.SEEK_SET)
             assert nib.streamlines.is_supported(f)
             assert nib.streamlines.detect_format(f) is tfile_cls
