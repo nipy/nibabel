@@ -390,7 +390,7 @@ def read_mlist(fileobj, endianness):
         mlist_index += n_rows
         if mlist_block_no <= 2:  # should block_no in (1, 2) be an error?
             break
-    return np.row_stack(mlists)
+    return np.vstack(mlists)
 
 
 def get_frame_order(mlist):
