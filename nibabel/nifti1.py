@@ -13,6 +13,7 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 
 from __future__ import annotations
 
+import json
 import typing as ty
 import warnings
 from io import BytesIO
@@ -368,16 +369,38 @@ class NiftiExtension(ty.Generic[T]):
         """Return the canonical extension type code."""
         return self.code
 
+    # Canonical access to extension content
+    # Follows the lead of httpx.Response .content, .text and .json()
+    # properties/methods
     @property
     def content(self) -> bytes:
         """Return the extension content as raw bytes."""
         self._sync()
         return self._content
 
+    @property
+    def text(self) -> str:
+        """Attempt to decode the extension content as text.
+
+        The encoding is determined by the `encoding` attribute, which may be
+        set by the user or subclass. If not set, the default encoding is 'utf-8'.
+        """
+        return self.content.decode(self.encoding or 'utf-8')
+
+    def json(self) -> ty.Any:
+        """Attempt to decode the extension content as JSON.
+
+        If the content is not valid JSON, a JSONDecodeError or UnicodeDecodeError
+        will be raised.
+        """
+        return json.loads(self.content)
+
     def get_content(self) -> T:
         """Return the extension content in its runtime representation.
 
         This method may return a different type for each extension type.
+        For simple use cases, consider using ``.content``, ``.text`` or ``.json()``
+        instead.
         """
         if self._object is None:
             self._object = self._unmangle(self._content)
