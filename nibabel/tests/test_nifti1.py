@@ -1224,6 +1224,32 @@ def test_ext_eq():
     assert not ext == ext2
 
 
+def test_extension_content_access():
+    ext = Nifti1Extension('comment', b'123')
+    # Unmangled content access
+    assert ext.get_content() == b'123'
+
+    # Raw, text and JSON access
+    assert ext.content == b'123'
+    assert ext.text == '123'
+    assert ext.json() == 123
+
+    # Encoding can be set
+    ext.encoding = 'ascii'
+    assert ext.text == '123'
+
+    # Test that encoding errors are caught
+    ascii_ext = Nifti1Extension('comment', 'hôpital'.encode('utf-8'))
+    ascii_ext.encoding = 'ascii'
+    with pytest.raises(UnicodeDecodeError):
+        ascii_ext.text
+
+    json_ext = Nifti1Extension('unknown', b'{"a": 1}')
+    assert json_ext.content == b'{"a": 1}'
+    assert json_ext.text == '{"a": 1}'
+    assert json_ext.json() == {'a': 1}
+
+
 def test_extension_codes():
     for k in extension_codes.keys():
         Nifti1Extension(k, 'somevalue')
