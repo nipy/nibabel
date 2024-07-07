@@ -20,7 +20,7 @@ from io import BytesIO
 
 import numpy as np
 import numpy.linalg as npl
-from typing_extensions import TypeVar  # PY312
+from typing_extensions import Self, TypeVar  # PY312
 
 from . import analyze  # module import
 from .arrayproxy import get_obj_dtype
@@ -328,6 +328,12 @@ class NiftiExtension(ty.Generic[T]):
             self.code = code  # type: ignore[assignment]
         self._content = content
 
+    @classmethod
+    def from_bytes(cls, content: bytes) -> Self:
+        if not hasattr(cls, 'code'):
+            raise NotImplementedError('from_bytes() requires a class attribute `code`')
+        return cls(cls.code, content)
+
     # Handle (de)serialization of extension content
     # Subclasses may implement these methods to provide an alternative
     # view of the extension content. If left unimplemented, the content
@@ -508,6 +514,8 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
     and content is the raw bytestring loaded directly from the nifti file
     header.
     """
+
+    code = 2
 
     def __init__(
         self,
