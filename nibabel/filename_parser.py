@@ -14,7 +14,7 @@ import os
 import pathlib
 import typing as ty
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     FileSpec = str | os.PathLike[str]
     ExtensionSpec = tuple[str, str | None]
 

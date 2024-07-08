@@ -137,12 +137,10 @@ class OneTimeProperty(ty.Generic[T]):
     @ty.overload
     def __get__(
         self, obj: None, objtype: type[InstanceT] | None = None
-    ) -> ty.Callable[[InstanceT], T]: ...  # pragma: no cover
+    ) -> ty.Callable[[InstanceT], T]: ...
 
     @ty.overload
-    def __get__(
-        self, obj: InstanceT, objtype: type[InstanceT] | None = None
-    ) -> T: ...  # pragma: no cover
+    def __get__(self, obj: InstanceT, objtype: type[InstanceT] | None = None) -> T: ...
 
     def __get__(
         self, obj: InstanceT | None, objtype: type[InstanceT] | None = None

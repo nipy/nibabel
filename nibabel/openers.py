@@ -18,7 +18,7 @@ from os.path import splitext
 
 from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, pyzstd
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     from types import TracebackType
 
     from _typeshed import WriteableBuffer
@@ -36,9 +36,8 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
 @ty.runtime_checkable
 class Fileish(ty.Protocol):
-    def read(self, size: int = -1, /) -> bytes: ...  # pragma: no cover
-
-    def write(self, b: bytes, /) -> int | None: ...  # pragma: no cover
+    def read(self, size: int = -1, /) -> bytes: ...
+    def write(self, b: bytes, /) -> int | None: ...
 
 
 class DeterministicGzipFile(gzip.GzipFile):

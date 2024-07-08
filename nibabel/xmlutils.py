@@ -20,7 +20,7 @@ class XmlSerializable:
 
     def _to_xml_element(self) -> Element:
         """Output should be a xml.etree.ElementTree.Element"""
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def to_xml(self, enc='utf-8', **kwargs) -> bytes:
         r"""Generate an XML bytestring with a given encoding.
@@ -109,10 +109,10 @@ class XmlParser:
         parser.ParseFile(fptr)
 
     def StartElementHandler(self, name, attrs):
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def EndElementHandler(self, name):
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def CharacterDataHandler(self, data):
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError

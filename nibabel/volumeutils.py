@@ -24,7 +24,7 @@ from ._compression import COMPRESSED_FILE_LIKES
 from .casting import OK_FLOATS, shared_range
 from .externals.oset import OrderedSet
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
     Scalar = np.number | float
@@ -1191,13 +1191,13 @@ def _ftype4scaled_finite(
 @ty.overload
 def finite_range(
     arr: npt.ArrayLike, check_nan: ty.Literal[False] = False
-) -> tuple[Scalar, Scalar]: ...  # pragma: no cover
+) -> tuple[Scalar, Scalar]: ...
 
 
 @ty.overload
 def finite_range(
     arr: npt.ArrayLike, check_nan: ty.Literal[True]
-) -> tuple[Scalar, Scalar, bool]: ...  # pragma: no cover
+) -> tuple[Scalar, Scalar, bool]: ...
 
 
 def finite_range(
