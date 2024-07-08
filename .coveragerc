@@ -4,7 +4,6 @@ source = nibabel
 omit =
     */externals/*
     */benchmarks/*
-    */tests/*
     nibabel/_version.py
 
 [report]
