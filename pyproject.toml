@@ -67,11 +67,12 @@ doc = [
   "tomli; python_version < '3.11'",
 ]
 test = [
-  "pytest<8.1",  # relax once pytest-doctestplus releases 1.2.0
+  "pytest",
   "pytest-doctestplus",
   "pytest-cov",
   "pytest-httpserver",
   "pytest-xdist",
+  "coverage>=7.2",
 ]
 # Remaining: Simpler to centralize in tox
 dev = ["tox"]
