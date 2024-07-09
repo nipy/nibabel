@@ -26,7 +26,7 @@ from .openers import ImageOpener
 _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     from .filebasedimages import FileBasedImage
     from .filename_parser import FileSpec
 

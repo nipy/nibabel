@@ -9,7 +9,7 @@ import typing as ty
 import warnings
 from textwrap import dedent
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     T = ty.TypeVar('T')
     P = ty.ParamSpec('P')
 

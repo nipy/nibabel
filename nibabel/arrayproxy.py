@@ -57,7 +57,7 @@ raised.
 KEEP_FILE_OPEN_DEFAULT = False
 
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     import numpy.typing as npt
     from typing_extensions import Self  # PY310
 
@@ -75,19 +75,17 @@ class ArrayLike(ty.Protocol):
     shape: tuple[int, ...]
 
     @property
-    def ndim(self) -> int: ...  # pragma: no cover
+    def ndim(self) -> int: ...
 
     # If no dtype is passed, any dtype might be returned, depending on the array-like
     @ty.overload
-    def __array__(
-        self, dtype: None = ..., /
-    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...  # pragma: no cover
+    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     # Any dtype might be passed, and *that* dtype must be returned
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...  # pragma: no cover
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...
 
-    def __getitem__(self, key, /) -> npt.NDArray: ...  # pragma: no cover
+    def __getitem__(self, key, /) -> npt.NDArray: ...
 
 
 class ArrayProxy(ArrayLike):

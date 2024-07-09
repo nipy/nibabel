@@ -19,7 +19,7 @@ from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
 from .fileholders import FileMap
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
     from .filename_parser import FileSpec
