@@ -189,7 +189,7 @@ jobs:
       - name: Show tox config
         run: tox c
       - name: Run tox
-        run: tox -v --exit-and-dump-after 1200
+        run: tox -vv --exit-and-dump-after 1200
       - uses: codecov/codecov-action@v4
         if: ${{ always() }}
         with:
