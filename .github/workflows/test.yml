@@ -125,9 +125,9 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.8
             dependencies: 'min'
-          # NumPy 2.0
+          # NoGIL
           - os: ubuntu-latest
-            python-version: '3.12'
+            python-version: '3.13-dev'
             dependencies: 'dev'
         exclude:
           # x86 for Windows + Python<3.12
@@ -168,11 +168,18 @@ jobs:
           submodules: recursive
           fetch-depth: 0
       - name: Set up Python ${{ matrix.python-version }}
+        if: "!endsWith(matrix.python-version, '-dev')"
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
           allow-prereleases: true
+      - name: Set up Python ${{ matrix.python-version }}
+        if: endsWith(matrix.python-version, '-dev')
+        uses: deadsnakes/action@v3.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          nogil: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
