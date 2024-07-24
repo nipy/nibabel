@@ -581,11 +581,10 @@ class MultiframeWrapper(Wrapper):
         frames_per_part = 1
         del_indices = {}
         for row_idx, row in enumerate(frame_indices.T):
-            if curr_parts == 1:
-                break
             unique = np.unique(row)
             count = len(unique)
-            if count == 1:
+            if count == 1 or curr_parts == 1:
+                del_indices[row_idx] = count
                 continue
             # Replace slice indices with order determined from slice positions along normal
             if len(shape) == 2:
