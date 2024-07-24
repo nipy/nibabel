@@ -467,6 +467,25 @@ class MultiframeWrapper(Wrapper):
             self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         except TypeError:
             raise WrapperError('SharedFunctionalGroupsSequence is empty.')
+        # Try to determine slice order and minimal image position patient
+        self._frame_slc_ord = self._ipp = None
+        try:
+            frame_ipps = [self.shared.PlanePositionSequence[0].ImagePositionPatient]
+        except AttributeError:
+            try:
+                frame_ipps = [f.PlanePositionSequence[0].ImagePositionPatient for f in self.frames]
+            except AttributeError:
+                frame_ipps = None
+        if frame_ipps is not None and all(ipp is not None for ipp in frame_ipps):
+            frame_ipps = [np.array(list(map(float, ipp))) for ipp in frame_ipps]
+            frame_slc_pos = [np.inner(ipp, self.slice_normal) for ipp in frame_ipps]
+            rnd_slc_pos = np.round(frame_slc_pos, 4)
+            uniq_slc_pos = np.unique(rnd_slc_pos)
+            pos_ord_map = {
+                val: order for val, order in zip(uniq_slc_pos, np.argsort(uniq_slc_pos))
+            }
+            self._frame_slc_ord = [pos_ord_map[pos] for pos in rnd_slc_pos]
+            self._ipp = frame_ipps[np.argmin(frame_slc_pos)]
         self._shape = None
 
     @cached_property
@@ -509,14 +528,16 @@ class MultiframeWrapper(Wrapper):
         if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
             # DWI image may include derived isotropic, ADC or trace volume
             try:
-                anisotropic = pydicom.Sequence(
-                    frame
-                    for frame in self.frames
-                    if frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
-                )
+                aniso_frames = pydicom.Sequence()
+                aniso_slc_ord = []
+                for slc_ord, frame in zip(self._frame_slc_ord, self.frames):
+                    if frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC':
+                        aniso_frames.append(frame)
+                        aniso_slc_ord.append(slc_ord)
                 # Image contains DWI volumes followed by derived images; remove derived images
-                if len(anisotropic) != 0:
-                    self.frames = anisotropic
+                if len(aniso_frames) != 0:
+                    self.frames = aniso_frames
+                    self._frame_slc_ord = aniso_slc_ord
             except IndexError:
                 # Sequence tag is found but missing items!
                 raise WrapperError('Diffusion file missing information')
@@ -554,20 +575,70 @@ class MultiframeWrapper(Wrapper):
                 raise WrapperError('Missing information, cannot remove indices with confidence.')
             derived_dim_idx = dim_seq.index(derived_tag)
             frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
+        # Determine the shape and which indices to use
+        shape = [rows, cols]
+        curr_parts = n_frames
+        frames_per_part = 1
+        del_indices = {}
+        for row_idx, row in enumerate(frame_indices.T):
+            if curr_parts == 1:
+                break
+            unique = np.unique(row)
+            count = len(unique)
+            if count == 1:
+                continue
+            # Replace slice indices with order determined from slice positions along normal
+            if len(shape) == 2:
+                row = self._frame_slc_ord
+                frame_indices.T[row_idx, :] = row
+                unique = np.unique(row)
+                if len(unique) != count:
+                    raise WrapperError("Number of slice indices and positions don't match")
+            new_parts, leftover = divmod(curr_parts, count)
+            allowed_val_counts = [new_parts * frames_per_part]
+            if len(shape) > 2:
+                # Except for the slice dim, having a unique value for each frame is valid
+                allowed_val_counts.append(n_frames)
+            if leftover != 0 or any(
+                np.count_nonzero(row == val) not in allowed_val_counts for val in unique
+            ):
+                if len(shape) == 2:
+                    raise WrapperError('Missing slices from multiframe')
+                del_indices[row_idx] = count
+                continue
+            frames_per_part *= count
+            shape.append(count)
+            curr_parts = new_parts
+        if del_indices:
+            if curr_parts > 1:
+                ns_failed = [k for k, v in del_indices.items() if v != 1]
+                if len(ns_failed) > 1:
+                    # If some indices weren't used yet but we still have unaccounted for
+                    # partitions, try combining indices into single tuple and using that
+                    tup_dtype = np.dtype(','.join(['I'] * len(ns_failed)))
+                    row = [tuple(x for x in vals) for vals in frame_indices[:, ns_failed]]
+                    row = np.array(row, dtype=tup_dtype)
+            frame_indices = np.delete(frame_indices, np.array(list(del_indices.keys())), axis=1)
+            if curr_parts > 1 and len(ns_failed) > 1:
+                unique = np.unique(row, axis=0)
+                count = len(unique)
+                new_parts, rem = divmod(curr_parts, count)
+                allowed_val_counts = [new_parts * frames_per_part, n_frames]
+                if rem == 0 and all(
+                    np.count_nonzero(row == val) in allowed_val_counts for val in unique
+                ):
+                    shape.append(count)
+                    curr_parts = new_parts
+                    ord_vals = np.argsort(unique)
+                    order = {tuple(unique[i]): ord_vals[i] for i in range(count)}
+                    ord_row = np.array([order[tuple(v)] for v in row])
+                    frame_indices = np.hstack(
+                        [frame_indices, np.array(ord_row).reshape((n_frames, 1))]
+                    )
+        if curr_parts > 1:
+            raise WrapperError('Unable to determine sorting of final dimension(s)')
         # Store frame indices
         self._frame_indices = frame_indices
-        # Determine size of any extra-spatial dimensions
-        ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
-        shape = (rows, cols) + tuple(x for i, x in enumerate(ns_unique) if i == 0 or x != 1)
-        n_dim = len(shape)
-        if n_dim > 3:
-            n_vols = np.prod(shape[3:])
-            n_frames_calc = n_vols * shape[2]
-            if n_frames != n_frames_calc:
-                raise WrapperError(
-                    f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
-                    f'of shape {shape} does not match NumberOfFrames {n_frames}.'
-                )
         return tuple(shape)
 
     @cached_property
@@ -607,18 +678,11 @@ class MultiframeWrapper(Wrapper):
         # Ensure values are float rather than Decimal
         return tuple(map(float, list(pix_space) + [zs]))
 
-    @cached_property
+    @property
     def image_position(self):
-        try:
-            ipp = self.shared.PlanePositionSequence[0].ImagePositionPatient
-        except AttributeError:
-            try:
-                ipp = self.frames[0].PlanePositionSequence[0].ImagePositionPatient
-            except AttributeError:
-                raise WrapperError('Cannot get image position from dicom')
-        if ipp is None:
-            return None
-        return np.array(list(map(float, ipp)))
+        if self._ipp is None:
+            raise WrapperError('Not enough information for image_position_patient')
+        return self._ipp
 
     @cached_property
     def series_signature(self):

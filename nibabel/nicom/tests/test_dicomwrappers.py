@@ -364,7 +364,7 @@ def test_decimal_rescale():
     assert dw.get_data().dtype != np.dtype(object)
 
 
-def fake_frames(seq_name, field_name, value_seq):
+def fake_frames(seq_name, field_name, value_seq, frame_seq=None):
     """Make fake frames for multiframe testing
 
     Parameters
@@ -375,6 +375,8 @@ def fake_frames(seq_name, field_name, value_seq):
         name of field within sequence
     value_seq : length N sequence
         sequence of values
+    frame_seq : length N list
+        previous result from this function to update
 
     Returns
     -------
@@ -386,18 +388,27 @@ def fake_frames(seq_name, field_name, value_seq):
     class Fake:
         pass
 
-    frames = []
-    for value in value_seq:
-        fake_frame = Fake()
+    if frame_seq == None:
+        frame_seq = [Fake() for _ in range(len(value_seq))]
+    for value, fake_frame in zip(value_seq, frame_seq):
         fake_element = Fake()
         setattr(fake_element, field_name, value)
         setattr(fake_frame, seq_name, [fake_element])
-        frames.append(fake_frame)
-    return frames
+    return frame_seq
 
 
-def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
+def fake_shape_dependents(
+    div_seq,
+    sid_seq=None,
+    sid_dim=None,
+    ipp_seq=None,
+    slice_dim=None,
+    flip_ipp_idx_corr=False,
+):
     """Make a fake dictionary of data that ``image_shape`` is dependent on.
+
+    If you are providing the ``ipp_seq`` argument, they should be generated using
+    a slice normal aligned with the z-axis (i.e. iop == (0, 1, 0, 1, 0, 0)).
 
     Parameters
     ----------
@@ -407,39 +418,86 @@ def fake_shape_dependents(div_seq, sid_seq=None, sid_dim=None):
         list of values to use for the `StackID` of each frame.
     sid_dim : int
         the index of the column in 'div_seq' to use as 'sid_seq'
+    ipp_seq : list of tuples
+        list of values to use for `ImagePositionPatient` for each frame
+    slice_dim : int
+        the index of the column in 'div_seq' corresponding to slices
+    flip_ipp_idx_corr : bool
+        generate ipp values so slice location is negatively correlated with slice index
     """
 
-    class DimIdxSeqElem:
+    class PrintBase:
+        def __repr__(self):
+            attr_strs = []
+            for attr in dir(self):
+                if attr[0].isupper():
+                    attr_strs.append(f'{attr}={getattr(self, attr)}')
+            return f"{self.__class__.__name__}({', '.join(attr_strs)})"
+
+    class DimIdxSeqElem(PrintBase):
         def __init__(self, dip=(0, 0), fgp=None):
             self.DimensionIndexPointer = dip
             if fgp is not None:
                 self.FunctionalGroupPointer = fgp
 
-    class FrmContSeqElem:
+    class FrmContSeqElem(PrintBase):
         def __init__(self, div, sid):
             self.DimensionIndexValues = div
             self.StackID = sid
 
-    class PerFrmFuncGrpSeqElem:
-        def __init__(self, div, sid):
+    class PlnPosSeqElem(PrintBase):
+        def __init__(self, ipp):
+            self.ImagePositionPatient = ipp
+
+    class PlnOrientSeqElem(PrintBase):
+        def __init__(self, iop):
+            self.ImageOrientationPatient = iop
+
+    class PerFrmFuncGrpSeqElem(PrintBase):
+        def __init__(self, div, sid, ipp, iop):
             self.FrameContentSequence = [FrmContSeqElem(div, sid)]
+            self.PlanePositionSequence = [PlnPosSeqElem(ipp)]
+            self.PlaneOrientationSequence = [PlnOrientSeqElem(iop)]
 
     # if no StackID values passed in then use the values at index 'sid_dim' in
     # the value for DimensionIndexValues for it
+    n_indices = len(div_seq[0])
     if sid_seq is None:
         if sid_dim is None:
             sid_dim = 0
         sid_seq = [div[sid_dim] for div in div_seq]
-    # create the DimensionIndexSequence
+    # Determine slice_dim and create per-slice ipp information
+    if slice_dim is None:
+        slice_dim = 1 if sid_dim == 0 else 0
     num_of_frames = len(div_seq)
-    dim_idx_seq = [DimIdxSeqElem()] * num_of_frames
+    frame_slc_indices = np.array(div_seq)[:, slice_dim]
+    uniq_slc_indices = np.unique(frame_slc_indices)
+    n_slices = len(uniq_slc_indices)
+    assert num_of_frames % n_slices == 0
+    iop_seq = [(0.0, 1.0, 0.0, 1.0, 0.0, 0.0) for _ in range(num_of_frames)]
+    if ipp_seq is None:
+        slc_locs = np.linspace(-1.0, 1.0, n_slices)
+        if flip_ipp_idx_corr:
+            slc_locs = slc_locs[::-1]
+        slc_idx_loc = {
+            div_idx: slc_locs[arr_idx] for arr_idx, div_idx in enumerate(np.sort(uniq_slc_indices))
+        }
+        ipp_seq = [(-1.0, -1.0, slc_idx_loc[idx]) for idx in frame_slc_indices]
+    else:
+        assert flip_ipp_idx_corr is False  # caller can flip it themselves
+        assert len(ipp_seq) == num_of_frames
+    # create the DimensionIndexSequence
+    dim_idx_seq = [DimIdxSeqElem()] * n_indices
     # add an entry for StackID into the DimensionIndexSequence
     if sid_dim is not None:
         sid_tag = pydicom.datadict.tag_for_keyword('StackID')
         fcs_tag = pydicom.datadict.tag_for_keyword('FrameContentSequence')
         dim_idx_seq[sid_dim] = DimIdxSeqElem(sid_tag, fcs_tag)
     # create the PerFrameFunctionalGroupsSequence
-    frames = [PerFrmFuncGrpSeqElem(div, sid) for div, sid in zip(div_seq, sid_seq)]
+    frames = [
+        PerFrmFuncGrpSeqElem(div, sid, ipp, iop)
+        for div, sid, ipp, iop in zip(div_seq, sid_seq, ipp_seq, iop_seq)
+    ]
     return {
         'NumberOfFrames': num_of_frames,
         'DimensionIndexSequence': dim_idx_seq,
@@ -480,7 +538,15 @@ class TestMultiFrameWrapper(TestCase):
         # PerFrameFunctionalGroupsSequence does not match NumberOfFrames
         with pytest.raises(AssertionError):
             dw.image_shape
-        # check 3D shape when StackID index is 0
+        # check 2D shape with StackID index is 0
+        div_seq = ((1, 1),)
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        assert MFW(fake_mf).image_shape == (32, 64)
+        # Check 2D shape with extraneous extra indices
+        div_seq = ((1, 1, 2),)
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        assert MFW(fake_mf).image_shape == (32, 64)
+        # Check 3D shape when StackID index is 0
         div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64, 4)
@@ -540,6 +606,18 @@ class TestMultiFrameWrapper(TestCase):
         # Make some fake frame data for 4D when StackID index is 1
         div_seq = ((1, 1, 1), (2, 1, 1), (1, 1, 2), (2, 1, 2), (1, 1, 3), (2, 1, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
+        # Test with combo indices, here with the last two needing to be combined into
+        # a single index corresponding to [(1, 1), (1, 1), (2, 1), (2, 1), (2, 2), (2, 2)]
+        div_seq = (
+            (1, 1, 1, 1),
+            (1, 2, 1, 1),
+            (1, 1, 2, 1),
+            (1, 2, 2, 1),
+            (1, 1, 2, 2),
+            (1, 2, 2, 2),
+        )
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
 
     def test_iop(self):
@@ -608,22 +686,30 @@ class TestMultiFrameWrapper(TestCase):
         with pytest.raises(didw.WrapperError):
             dw.image_position
         # Make a fake frame
-        fake_frame = fake_frames(
-            'PlanePositionSequence', 'ImagePositionPatient', [[-2.0, 3.0, 7]]
-        )[0]
-        fake_mf['SharedFunctionalGroupsSequence'] = [fake_frame]
+        iop = [0, 1, 0, 1, 0, 0]
+        frames = fake_frames('PlaneOrientationSequence', 'ImageOrientationPatient', [iop])
+        frames = fake_frames(
+            'PlanePositionSequence', 'ImagePositionPatient', [[-2.0, 3.0, 7]], frames
+        )
+        fake_mf['SharedFunctionalGroupsSequence'] = frames
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         fake_mf['SharedFunctionalGroupsSequence'] = [None]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).image_position
-        fake_mf['PerFrameFunctionalGroupsSequence'] = [fake_frame]
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         # Check lists of Decimals work
-        fake_frame.PlanePositionSequence[0].ImagePositionPatient = [
+        frames[0].PlanePositionSequence[0].ImagePositionPatient = [
             Decimal(str(v)) for v in [-2, 3, 7]
         ]
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
         assert MFW(fake_mf).image_position.dtype == float
+        # We should get minimum along slice normal with multiple frames
+        frames = fake_frames('PlaneOrientationSequence', 'ImageOrientationPatient', [iop] * 2)
+        ipps = [[-2.0, 3.0, 7], [-2.0, 3.0, 6]]
+        frames = fake_frames('PlanePositionSequence', 'ImagePositionPatient', ipps, frames)
+        fake_mf['PerFrameFunctionalGroupsSequence'] = frames
+        assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 6])
 
     @dicom_test
     @pytest.mark.xfail(reason='Not packaged in install', raises=FileNotFoundError)
@@ -644,7 +730,7 @@ class TestMultiFrameWrapper(TestCase):
         if endian_codes[data.dtype.byteorder] == '>':
             data = data.byteswap()
         dat_str = data.tobytes()
-        assert sha1(dat_str).hexdigest() == '149323269b0af92baa7508e19ca315240f77fa8c'
+        assert sha1(dat_str).hexdigest() == 'dc011bb49682fb78f3cebacf965cb65cc9daba7d'
 
     @dicom_test
     def test_slicethickness_fallback(self):
@@ -665,7 +751,7 @@ class TestMultiFrameWrapper(TestCase):
     def test_data_trace(self):
         # Test that a standalone trace volume is found and not dropped
         dw = didw.wrapper_from_file(DATA_FILE_SIEMENS_TRACE)
-        assert dw.image_shape == (72, 72, 39, 1)
+        assert dw.image_shape == (72, 72, 39)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
