@@ -388,7 +388,7 @@ def fake_frames(seq_name, field_name, value_seq, frame_seq=None):
     class Fake:
         pass
 
-    if frame_seq == None:
+    if frame_seq is None:
         frame_seq = [Fake() for _ in range(len(value_seq))]
     for value, fake_frame in zip(value_seq, frame_seq):
         fake_element = Fake()
@@ -866,6 +866,11 @@ class TestMultiFrameWrapper(TestCase):
         dim_idxs = ((1, 4), (1, 2), (1, 3), (1, 1))
         fake_mf.update(fake_shape_dependents(dim_idxs, sid_dim=0))
         sorted_data = data[..., [3, 1, 2, 0]]
+        fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
+        assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
+        # Check slice sorting with negative index / IPP correlation
+        fake_mf.update(fake_shape_dependents(dim_idxs, sid_dim=0, flip_ipp_idx_corr=True))
+        sorted_data = data[..., [0, 2, 1, 3]]
         fake_mf['pixel_array'] = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
         # 5D!
