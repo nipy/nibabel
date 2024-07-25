@@ -626,6 +626,35 @@ class TestMultiFrameWrapper(TestCase):
         )
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
+        # Test invalid 4D indices
+        div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2), (1, 1, 3), (1, 2, 4))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
+        div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2), (1, 1, 3), (1, 2, 2))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
+        # Time index that is unique to each frame
+        div_seq = ((1, 1, 1), (1, 2, 2), (1, 1, 3), (1, 2, 4), (1, 1, 5), (1, 2, 6))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
+        div_seq = (
+            (1, 1, 1, 1),
+            (1, 2, 2, 1),
+            (1, 1, 3, 1),
+            (1, 2, 4, 1),
+            (1, 1, 5, 1),
+            (1, 2, 6, 1),
+            (1, 1, 7, 2),
+            (1, 2, 8, 2),
+            (1, 1, 9, 2),
+            (1, 2, 10, 2),
+            (1, 1, 11, 2),
+            (1, 2, 12, 2),
+        )
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        assert MFW(fake_mf).image_shape == (32, 64, 2, 3, 2)
 
     def test_iop(self):
         # Test Image orient patient for multiframe

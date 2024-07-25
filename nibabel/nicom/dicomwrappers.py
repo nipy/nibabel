@@ -598,21 +598,32 @@ class MultiframeWrapper(Wrapper):
                 unique = np.unique(row)
                 if len(unique) != count:
                     raise WrapperError("Number of slice indices and positions don't match")
+            elif count == n_frames:
+                if shape[-1] == 'remaining':
+                    raise WrapperError('At most one index have ambiguous size')
+                shape.append('remaining')
+                continue
             new_parts, leftover = divmod(curr_parts, count)
-            allowed_val_counts = [new_parts * frames_per_part]
-            if row_idx != slice_dim_idx:
-                # Except for the slice dim, having a unique value for each frame is valid
-                allowed_val_counts.append(n_frames)
-            if leftover != 0 or any(
-                np.count_nonzero(row == val) not in allowed_val_counts for val in unique
-            ):
+            expected = new_parts * frames_per_part
+            if leftover != 0 or any(np.count_nonzero(row == val) != expected for val in unique):
                 if row_idx == slice_dim_idx:
                     raise WrapperError('Missing slices from multiframe')
                 del_indices[row_idx] = count
                 continue
+            if shape[-1] == 'remaining':
+                shape[-1] = new_parts
+                frames_per_part *= shape[-1]
+                new_parts = 1
             frames_per_part *= count
             shape.append(count)
             curr_parts = new_parts
+        if shape[-1] == 'remaining':
+            if curr_parts > 1:
+                shape[-1] = curr_parts
+                curr_parts = 1
+            else:
+                del_indices[len(shape)] = 1
+                shape = shape[:-1]
         if del_indices:
             if curr_parts > 1:
                 ns_failed = [k for k, v in del_indices.items() if v != 1]
