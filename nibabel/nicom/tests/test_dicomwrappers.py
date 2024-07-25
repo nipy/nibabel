@@ -473,7 +473,6 @@ def fake_shape_dependents(
     frame_slc_indices = np.array(div_seq)[:, slice_dim]
     uniq_slc_indices = np.unique(frame_slc_indices)
     n_slices = len(uniq_slc_indices)
-    assert num_of_frames % n_slices == 0
     iop_seq = [(0.0, 1.0, 0.0, 1.0, 0.0, 0.0) for _ in range(num_of_frames)]
     if ipp_seq is None:
         slc_locs = np.linspace(-1.0, 1.0, n_slices)
@@ -579,6 +578,17 @@ class TestMultiFrameWrapper(TestCase):
         div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64, 2, 2)
+        # Check number of IPP vals match the number of slices or we raise
+        frames = fake_mf['PerFrameFunctionalGroupsSequence']
+        for frame in frames[1:]:
+            frame.PlanePositionSequence = frames[0].PlanePositionSequence[:]
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
+        # Check we raise on missing slices
+        div_seq = ((1, 1, 0), (1, 2, 0), (1, 1, 1))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # check 3D shape when there is no StackID index
         div_seq = ((1,), (2,), (3,), (4,))
         sid_seq = (1, 1, 1, 1)
@@ -614,6 +624,11 @@ class TestMultiFrameWrapper(TestCase):
         div_seq = ((1, 1, 1), (2, 1, 1), (1, 1, 2), (2, 1, 2), (1, 1, 3), (2, 1, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
         assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
+        # Check non-singular dimension preceding slice dim raises
+        div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2), (1, 1, 3), (1, 2, 3))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0, slice_dim=2))
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
         # Test with combo indices, here with the last two needing to be combined into
         # a single index corresponding to [(1, 1), (1, 1), (2, 1), (2, 1), (2, 2), (2, 2)]
         div_seq = (
@@ -655,6 +670,22 @@ class TestMultiFrameWrapper(TestCase):
         )
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64, 2, 3, 2)
+        # Check we only allow one extra spatial dimension with unique val per frame
+        div_seq = (
+            (1, 1, 1, 6),
+            (1, 2, 2, 5),
+            (1, 1, 3, 4),
+            (1, 2, 4, 3),
+            (1, 1, 5, 2),
+            (1, 2, 6, 1),
+        )
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        with pytest.raises(didw.WrapperError):
+            MFW(fake_mf).image_shape
+        # Check that having unique value per frame works with single volume
+        div_seq = ((1, 1, 1), (1, 2, 2), (1, 3, 3))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        assert MFW(fake_mf).image_shape == (32, 64, 3)
 
     def test_iop(self):
         # Test Image orient patient for multiframe
