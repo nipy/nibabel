@@ -14,12 +14,12 @@ than in a property, or property-like thing.
 
 import operator
 import warnings
+from functools import cached_property
 
 import numpy as np
 
 from nibabel.optpkg import optional_package
 
-from ..onetime import auto_attr as one_time
 from ..openers import ImageOpener
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
@@ -140,7 +140,7 @@ class Wrapper:
         """
         self.dcm_data = dcm_data
 
-    @one_time
+    @cached_property
     def image_shape(self):
         """The array shape as it will be returned by ``get_data()``"""
         shape = (self.get('Rows'), self.get('Columns'))
@@ -148,7 +148,7 @@ class Wrapper:
             return None
         return shape
 
-    @one_time
+    @cached_property
     def image_orient_patient(self):
         """Note that this is _not_ LR flipped"""
         iop = self.get('ImageOrientationPatient')
@@ -158,7 +158,7 @@ class Wrapper:
         iop = np.array(list(map(float, iop)))
         return np.array(iop).reshape(2, 3).T
 
-    @one_time
+    @cached_property
     def slice_normal(self):
         iop = self.image_orient_patient
         if iop is None:
@@ -166,7 +166,7 @@ class Wrapper:
         # iop[:, 0] is column index cosine, iop[:, 1] is row index cosine
         return np.cross(iop[:, 1], iop[:, 0])
 
-    @one_time
+    @cached_property
     def rotation_matrix(self):
         """Return rotation matrix between array indices and mm
 
@@ -193,7 +193,7 @@ class Wrapper:
             raise WrapperPrecisionError('Rotation matrix not nearly orthogonal')
         return R
 
-    @one_time
+    @cached_property
     def voxel_sizes(self):
         """voxel sizes for array as returned by ``get_data()``"""
         # pix space gives (row_spacing, column_spacing).  That is, the
@@ -212,7 +212,7 @@ class Wrapper:
         pix_space = list(map(float, pix_space))
         return tuple(pix_space + [zs])
 
-    @one_time
+    @cached_property
     def image_position(self):
         """Return position of first voxel in data block
 
@@ -231,7 +231,7 @@ class Wrapper:
             # Values are python Decimals in pydicom 0.9.7
         return np.array(list(map(float, ipp)))
 
-    @one_time
+    @cached_property
     def slice_indicator(self):
         """A number that is higher for higher slices in Z
 
@@ -246,12 +246,12 @@ class Wrapper:
             return None
         return np.inner(ipp, s_norm)
 
-    @one_time
+    @cached_property
     def instance_number(self):
         """Just because we use this a lot for sorting"""
         return self.get('InstanceNumber')
 
-    @one_time
+    @cached_property
     def series_signature(self):
         """Signature for matching slices into series
 
@@ -390,7 +390,7 @@ class Wrapper:
             return data + offset
         return data
 
-    @one_time
+    @cached_property
     def b_value(self):
         """Return b value for diffusion or None if not available"""
         q_vec = self.q_vector
@@ -398,7 +398,7 @@ class Wrapper:
             return None
         return q2bg(q_vec)[0]
 
-    @one_time
+    @cached_property
     def b_vector(self):
         """Return b vector for diffusion or None if not available"""
         q_vec = self.q_vector
@@ -469,7 +469,7 @@ class MultiframeWrapper(Wrapper):
             raise WrapperError('SharedFunctionalGroupsSequence is empty.')
         self._shape = None
 
-    @one_time
+    @cached_property
     def image_shape(self):
         """The array shape as it will be returned by ``get_data()``
 
@@ -573,7 +573,7 @@ class MultiframeWrapper(Wrapper):
             )
         return tuple(shape)
 
-    @one_time
+    @cached_property
     def image_orient_patient(self):
         """
         Note that this is _not_ LR flipped
@@ -590,7 +590,7 @@ class MultiframeWrapper(Wrapper):
         iop = np.array(list(map(float, iop)))
         return np.array(iop).reshape(2, 3).T
 
-    @one_time
+    @cached_property
     def voxel_sizes(self):
         """Get i, j, k voxel sizes"""
         try:
@@ -610,7 +610,7 @@ class MultiframeWrapper(Wrapper):
         # Ensure values are float rather than Decimal
         return tuple(map(float, list(pix_space) + [zs]))
 
-    @one_time
+    @cached_property
     def image_position(self):
         try:
             ipp = self.shared.PlanePositionSequence[0].ImagePositionPatient
@@ -623,7 +623,7 @@ class MultiframeWrapper(Wrapper):
             return None
         return np.array(list(map(float, ipp)))
 
-    @one_time
+    @cached_property
     def series_signature(self):
         signature = {}
         eq = operator.eq
@@ -696,7 +696,7 @@ class SiemensWrapper(Wrapper):
                 csa_header = {}
         self.csa_header = csa_header
 
-    @one_time
+    @cached_property
     def slice_normal(self):
         # The std_slice_normal comes from the cross product of the directions
         # in the ImageOrientationPatient
@@ -720,7 +720,7 @@ class SiemensWrapper(Wrapper):
             else:
                 return std_slice_normal
 
-    @one_time
+    @cached_property
     def series_signature(self):
         """Add ICE dims from CSA header to signature"""
         signature = super().series_signature
@@ -730,7 +730,7 @@ class SiemensWrapper(Wrapper):
         signature['ICE_Dims'] = (ice, operator.eq)
         return signature
 
-    @one_time
+    @cached_property
     def b_matrix(self):
         """Get DWI B matrix referring to voxel space
 
@@ -767,7 +767,7 @@ class SiemensWrapper(Wrapper):
         # semi-definite.
         return nearest_pos_semi_def(B_vox)
 
-    @one_time
+    @cached_property
     def q_vector(self):
         """Get DWI q vector referring to voxel space
 
@@ -840,7 +840,7 @@ class MosaicWrapper(SiemensWrapper):
         self.n_mosaic = n_mosaic
         self.mosaic_size = int(np.ceil(np.sqrt(n_mosaic)))
 
-    @one_time
+    @cached_property
     def image_shape(self):
         """Return image shape as returned by ``get_data()``"""
         # reshape pixel slice array back from mosaic
@@ -850,7 +850,7 @@ class MosaicWrapper(SiemensWrapper):
             return None
         return (rows // self.mosaic_size, cols // self.mosaic_size, self.n_mosaic)
 
-    @one_time
+    @cached_property
     def image_position(self):
         """Return position of first voxel in data block
 
