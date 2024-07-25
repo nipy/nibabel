@@ -488,10 +488,13 @@ def fake_shape_dependents(
         assert len(ipp_seq) == num_of_frames
     # create the DimensionIndexSequence
     dim_idx_seq = [DimIdxSeqElem()] * n_indices
+    # Add entry for InStackPositionNumber to DimensionIndexSequence
+    fcs_tag = pydicom.datadict.tag_for_keyword('FrameContentSequence')
+    isp_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
+    dim_idx_seq[slice_dim] = DimIdxSeqElem(isp_tag, fcs_tag)
     # add an entry for StackID into the DimensionIndexSequence
     if sid_dim is not None:
         sid_tag = pydicom.datadict.tag_for_keyword('StackID')
-        fcs_tag = pydicom.datadict.tag_for_keyword('FrameContentSequence')
         dim_idx_seq[sid_dim] = DimIdxSeqElem(sid_tag, fcs_tag)
     # create the PerFrameFunctionalGroupsSequence
     frames = [
@@ -546,6 +549,10 @@ class TestMultiFrameWrapper(TestCase):
         div_seq = ((1, 1, 2),)
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64)
+        # Check 2D plus time
+        div_seq = ((1, 1, 1), (1, 1, 2), (1, 1, 3))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        assert MFW(fake_mf).image_shape == (32, 64, 1, 3)
         # Check 3D shape when StackID index is 0
         div_seq = ((1, 1), (1, 2), (1, 3), (1, 4))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))

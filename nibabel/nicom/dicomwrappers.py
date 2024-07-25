@@ -470,10 +470,10 @@ class MultiframeWrapper(Wrapper):
         # Try to determine slice order and minimal image position patient
         self._frame_slc_ord = self._ipp = None
         try:
-            frame_ipps = [self.shared.PlanePositionSequence[0].ImagePositionPatient]
+            frame_ipps = [f.PlanePositionSequence[0].ImagePositionPatient for f in self.frames]
         except AttributeError:
             try:
-                frame_ipps = [f.PlanePositionSequence[0].ImagePositionPatient for f in self.frames]
+                frame_ipps = [self.shared.PlanePositionSequence[0].ImagePositionPatient]
             except AttributeError:
                 frame_ipps = None
         if frame_ipps is not None and all(ipp is not None for ipp in frame_ipps):
@@ -575,19 +575,24 @@ class MultiframeWrapper(Wrapper):
                 raise WrapperError('Missing information, cannot remove indices with confidence.')
             derived_dim_idx = dim_seq.index(derived_tag)
             frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
+            dim_seq.pop(derived_dim_idx)
         # Determine the shape and which indices to use
         shape = [rows, cols]
         curr_parts = n_frames
         frames_per_part = 1
         del_indices = {}
+        stackpos_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
+        slice_dim_idx = dim_seq.index(stackpos_tag)
         for row_idx, row in enumerate(frame_indices.T):
             unique = np.unique(row)
             count = len(unique)
-            if count == 1 or curr_parts == 1:
+            if curr_parts == 1 or (count == 1 and row_idx != slice_dim_idx):
                 del_indices[row_idx] = count
                 continue
             # Replace slice indices with order determined from slice positions along normal
-            if len(shape) == 2:
+            if row_idx == slice_dim_idx:
+                if len(shape) > 2:
+                    raise WrapperError('Non-singular index precedes the slice index')
                 row = self._frame_slc_ord
                 frame_indices.T[row_idx, :] = row
                 unique = np.unique(row)
@@ -595,13 +600,13 @@ class MultiframeWrapper(Wrapper):
                     raise WrapperError("Number of slice indices and positions don't match")
             new_parts, leftover = divmod(curr_parts, count)
             allowed_val_counts = [new_parts * frames_per_part]
-            if len(shape) > 2:
+            if row_idx != slice_dim_idx:
                 # Except for the slice dim, having a unique value for each frame is valid
                 allowed_val_counts.append(n_frames)
             if leftover != 0 or any(
                 np.count_nonzero(row == val) not in allowed_val_counts for val in unique
             ):
-                if len(shape) == 2:
+                if row_idx == slice_dim_idx:
                     raise WrapperError('Missing slices from multiframe')
                 del_indices[row_idx] = count
                 continue
