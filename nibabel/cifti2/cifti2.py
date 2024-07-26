@@ -1570,7 +1570,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
 
         self.update_headers()
         header = self._nifti_header
-        extension = Cifti2Extension(content=self.header.to_xml())
+        extension = Cifti2Extension.from_bytes(self.header.to_xml())
         header.extensions = Nifti1Extensions(
             ext for ext in header.extensions if not isinstance(ext, Cifti2Extension)
         )

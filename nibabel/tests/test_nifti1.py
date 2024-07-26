@@ -1224,6 +1224,32 @@ def test_ext_eq():
     assert not ext == ext2
 
 
+def test_extension_content_access():
+    ext = Nifti1Extension('comment', b'123')
+    # Unmangled content access
+    assert ext.get_content() == b'123'
+
+    # Raw, text and JSON access
+    assert ext.content == b'123'
+    assert ext.text == '123'
+    assert ext.json() == 123
+
+    # Encoding can be set
+    ext.encoding = 'ascii'
+    assert ext.text == '123'
+
+    # Test that encoding errors are caught
+    ascii_ext = Nifti1Extension('comment', 'hôpital'.encode('utf-8'))
+    ascii_ext.encoding = 'ascii'
+    with pytest.raises(UnicodeDecodeError):
+        ascii_ext.text
+
+    json_ext = Nifti1Extension('unknown', b'{"a": 1}')
+    assert json_ext.content == b'{"a": 1}'
+    assert json_ext.text == '{"a": 1}'
+    assert json_ext.json() == {'a': 1}
+
+
 def test_extension_codes():
     for k in extension_codes.keys():
         Nifti1Extension(k, 'somevalue')
@@ -1339,7 +1365,7 @@ def test_nifti_dicom_extension():
     dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20, b'LO', 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_implicit_VR is False
     assert dcmext._is_little_endian is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
@@ -1350,7 +1376,7 @@ def test_nifti_dicom_extension():
     # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
     dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
-    assert dcmext._guess_implicit_VR() is True
+    assert dcmext._is_implicit_VR is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert len(dcmext.get_content().values()) == 1
@@ -1362,7 +1388,7 @@ def test_nifti_dicom_extension():
     hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_implicit_VR is False
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert dcmext.get_content()[0x10, 0x20].value == 'NiPy'

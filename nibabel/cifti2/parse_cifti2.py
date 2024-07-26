@@ -40,19 +40,15 @@ from .cifti2 import (
 )
 
 
-class Cifti2Extension(Nifti1Extension):
+class Cifti2Extension(Nifti1Extension[Cifti2Header]):
     code = 32
 
-    def __init__(self, code=None, content=None):
-        Nifti1Extension.__init__(self, code=code or self.code, content=content)
-
-    def _unmangle(self, value):
+    def _unmangle(self, value: bytes) -> Cifti2Header:
         parser = Cifti2Parser()
         parser.parse(string=value)
-        self._content = parser.header
-        return self._content
+        return parser.header
 
-    def _mangle(self, value):
+    def _mangle(self, value: Cifti2Header) -> bytes:
         if not isinstance(value, Cifti2Header):
             raise ValueError('Can only mangle a Cifti2Header.')
         return value.to_xml()
