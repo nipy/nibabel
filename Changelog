@@ -25,6 +25,33 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+Upcoming release (To be determined)
+===================================
+
+New features
+------------
+
+Enhancements
+------------
+ * Ability to read data from many multiframe DICOM files that previously generated errors
+
+Bug fixes
+---------
+ * Fixed multiframe DICOM issue where data could be flipped along slice dimension relative to the
+   affine
+ * Fixed multiframe DICOM issue where ``image_position`` and the translation component in the
+   ``affine`` could be incorrect
+
+Documentation
+-------------
+
+Maintenance
+-----------
+
+API changes and deprecations
+----------------------------
+
+
 5.2.1 (Monday 26 February 2024)
 ===============================
 
