@@ -13,6 +13,7 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 
 from __future__ import annotations
 
+import json
 import warnings
 from io import BytesIO
 
@@ -377,7 +378,7 @@ class Nifti1Extension:
             # deal with unknown codes
             code = self._code
 
-        s = f"Nifti1Extension('{code}', '{self._content}')"
+        s = f"{self.__class__.__name__}('{code}', '{self._content}')"
         return s
 
     def __eq__(self, other):
@@ -505,6 +506,20 @@ class Nifti1DicomExtension(Nifti1Extension):
         return dio.read(ds_len)
 
 
+class NiftiJSONExtension(Nifti1Extension):
+    """Generic JSON-based NIfTI header extension
+
+    This class handles serialization and deserialization of JSON contents
+    without any further validation or processing.
+    """
+
+    def _unmangle(self, value: bytes) -> dict:
+        return json.loads(value.decode('utf-8'))
+
+    def _mangle(self, value: dict) -> bytes:
+        return json.dumps(value).encode('utf-8')
+
+
 # NIfTI header extension type codes (ECODE)
 # see nifti1_io.h for a complete list of all known extensions and
 # references to their description or contacts of the respective
@@ -520,6 +535,21 @@ extension_codes = Recoder(
         (12, 'workflow_fwds', Nifti1Extension),
         (14, 'freesurfer', Nifti1Extension),
         (16, 'pypickle', Nifti1Extension),
+        (18, 'mind_ident', Nifti1Extension),
+        (20, 'b_value', Nifti1Extension),
+        (22, 'spherical_direction', Nifti1Extension),
+        (24, 'dt_component', Nifti1Extension),
+        (26, 'shc_degreeorder', Nifti1Extension),
+        (28, 'voxbo', Nifti1Extension),
+        (30, 'caret', Nifti1Extension),
+        ## Defined in nibabel.cifti2.parse_cifti2
+        # (32, 'cifti', Cifti2Extension),
+        (34, 'variable_frame_timing', Nifti1Extension),
+        (36, 'unassigned', Nifti1Extension),
+        (38, 'eval', Nifti1Extension),
+        (40, 'matlab', Nifti1Extension),
+        (42, 'quantiphyse', Nifti1Extension),
+        (44, 'mrs', NiftiJSONExtension),
     ),
     fields=('code', 'label', 'handler'),
 )
