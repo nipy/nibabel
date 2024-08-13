@@ -11,7 +11,6 @@ from unittest import TestCase
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
-from pydicom.dataset import Dataset
 
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...volumeutils import endian_codes
@@ -64,8 +63,8 @@ def test_wrappers():
     # test direct wrapper calls
     # first with empty or minimal data
     multi_minimal = {
-        'PerFrameFunctionalGroupsSequence': [Dataset()],
-        'SharedFunctionalGroupsSequence': [Dataset()],
+        'PerFrameFunctionalGroupsSequence': [pydicom.Dataset()],
+        'SharedFunctionalGroupsSequence': [pydicom.Dataset()],
     }
     for maker, args in (
         (didw.Wrapper, ({},)),
@@ -164,10 +163,10 @@ def test_wrapper_from_data():
     fake_data['SOPClassUID'] = '1.2.840.10008.5.1.4.1.1.4.1'
     with pytest.raises(didw.WrapperError):
         didw.wrapper_from_data(fake_data)
-    fake_data['PerFrameFunctionalGroupsSequence'] = [Dataset()]
+    fake_data['PerFrameFunctionalGroupsSequence'] = [pydicom.Dataset()]
     with pytest.raises(didw.WrapperError):
         didw.wrapper_from_data(fake_data)
-    fake_data['SharedFunctionalGroupsSequence'] = [Dataset()]
+    fake_data['SharedFunctionalGroupsSequence'] = [pydicom.Dataset()]
     # minimal set should now be met
     dw = didw.wrapper_from_data(fake_data)
     assert dw.is_multiframe
@@ -386,14 +385,14 @@ def fake_frames(seq_name, field_name, value_seq, frame_seq=None):
         value_seq[n] for n in range(N)
     """
     if frame_seq is None:
-        frame_seq = [Dataset() for _ in range(len(value_seq))]
+        frame_seq = [pydicom.Dataset() for _ in range(len(value_seq))]
     for value, fake_frame in zip(value_seq, frame_seq):
         if value is None:
             continue
         if hasattr(fake_frame, seq_name):
             fake_element = getattr(fake_frame, seq_name)[0]
         else:
-            fake_element = Dataset()
+            fake_element = pydicom.Dataset()
             setattr(fake_frame, seq_name, [fake_element])
         setattr(fake_element, field_name, value)
     return frame_seq
@@ -436,30 +435,30 @@ def fake_shape_dependents(
                     attr_strs.append(f'{attr}={getattr(self, attr)}')
             return f"{self.__class__.__name__}({', '.join(attr_strs)})"
 
-    class DimIdxSeqElem(Dataset):
+    class DimIdxSeqElem(pydicom.Dataset):
         def __init__(self, dip=(0, 0), fgp=None):
             super().__init__()
             self.DimensionIndexPointer = dip
             if fgp is not None:
                 self.FunctionalGroupPointer = fgp
 
-    class FrmContSeqElem(Dataset):
+    class FrmContSeqElem(pydicom.Dataset):
         def __init__(self, div, sid):
             super().__init__()
             self.DimensionIndexValues = div
             self.StackID = sid
 
-    class PlnPosSeqElem(Dataset):
+    class PlnPosSeqElem(pydicom.Dataset):
         def __init__(self, ipp):
             super().__init__()
             self.ImagePositionPatient = ipp
 
-    class PlnOrientSeqElem(Dataset):
+    class PlnOrientSeqElem(pydicom.Dataset):
         def __init__(self, iop):
             super().__init__()
             self.ImageOrientationPatient = iop
 
-    class PerFrmFuncGrpSeqElem(Dataset):
+    class PerFrmFuncGrpSeqElem(pydicom.Dataset):
         def __init__(self, div, sid, ipp, iop):
             super().__init__()
             self.FrameContentSequence = [FrmContSeqElem(div, sid)]
@@ -514,17 +513,21 @@ def fake_shape_dependents(
     }
 
 
-class FakeDataset(Dataset):
-    pixel_array = None
+if have_dicom:
+
+    class FakeDataset(pydicom.Dataset):
+        pixel_array = None
 
 
 class TestMultiFrameWrapper(TestCase):
     # Test MultiframeWrapper
-    # Minimal contents of dcm_data for this wrapper
-    MINIMAL_MF = FakeDataset()
-    MINIMAL_MF.PerFrameFunctionalGroupsSequence = [Dataset()]
-    MINIMAL_MF.SharedFunctionalGroupsSequence = [Dataset()]
-    WRAPCLASS = didw.MultiframeWrapper
+
+    if have_dicom:
+        # Minimal contents of dcm_data for this wrapper
+        MINIMAL_MF = FakeDataset()
+        MINIMAL_MF.PerFrameFunctionalGroupsSequence = [pydicom.Dataset()]
+        MINIMAL_MF.SharedFunctionalGroupsSequence = [pydicom.Dataset()]
+        WRAPCLASS = didw.MultiframeWrapper
 
     @dicom_test
     def test_shape(self):
@@ -719,6 +722,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         assert MFW(fake_mf).image_shape == (32, 64, 3)
 
+    @dicom_test
     def test_iop(self):
         # Test Image orient patient for multiframe
         fake_mf = deepcopy(self.MINIMAL_MF)
@@ -732,12 +736,13 @@ class TestMultiFrameWrapper(TestCase):
         )[0]
         fake_mf.SharedFunctionalGroupsSequence = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient, [[0, 1], [1, 0], [0, 0]])
-        fake_mf.SharedFunctionalGroupsSequence = [Dataset()]
+        fake_mf.SharedFunctionalGroupsSequence = [pydicom.Dataset()]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).image_orient_patient
         fake_mf.PerFrameFunctionalGroupsSequence = [fake_frame]
         assert_array_equal(MFW(fake_mf).image_orient_patient, [[0, 1], [1, 0], [0, 0]])
 
+    @dicom_test
     def test_voxel_sizes(self):
         # Test voxel size calculation
         fake_mf = deepcopy(self.MINIMAL_MF)
@@ -761,7 +766,7 @@ class TestMultiFrameWrapper(TestCase):
         del fake_mf.SpacingBetweenSlices
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
         # Removing shared leads to error again
-        fake_mf.SharedFunctionalGroupsSequence = [Dataset()]
+        fake_mf.SharedFunctionalGroupsSequence = [pydicom.Dataset()]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).voxel_sizes
         # Restoring to frames makes it work again
@@ -777,6 +782,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_frame.PixelMeasuresSequence[0].SliceThickness = Decimal('5.4')
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
 
+    @dicom_test
     def test_image_position(self):
         # Test image_position property for multiframe
         fake_mf = deepcopy(self.MINIMAL_MF)
@@ -792,7 +798,7 @@ class TestMultiFrameWrapper(TestCase):
         )
         fake_mf.SharedFunctionalGroupsSequence = frames
         assert_array_equal(MFW(fake_mf).image_position, [-2, 3, 7])
-        fake_mf.SharedFunctionalGroupsSequence = [Dataset()]
+        fake_mf.SharedFunctionalGroupsSequence = [pydicom.Dataset()]
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf).image_position
         fake_mf.PerFrameFunctionalGroupsSequence = frames
@@ -933,12 +939,13 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.pixel_array = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
 
+    @dicom_test
     def test_scale_data(self):
         # Test data scaling
         fake_mf = deepcopy(self.MINIMAL_MF)
         fake_mf.Rows = 2
         fake_mf.Columns = 3
-        fake_mf.PerFrameFunctionalGroupsSequence = [Dataset() for _ in range(4)]
+        fake_mf.PerFrameFunctionalGroupsSequence = [pydicom.Dataset() for _ in range(4)]
         MFW = self.WRAPCLASS
         data = np.arange(24).reshape((2, 3, 4), order='F')
         assert_array_equal(data, MFW(fake_mf)._scale_data(data))
@@ -947,11 +954,11 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.RescaleIntercept = -1.0
         assert_array_equal(data * 2 - 1, MFW(fake_mf)._scale_data(data))
         # RealWorldValueMapping takes precedence, but only with defined units
-        fake_mf.RealWorldValueMappingSequence = [Dataset()]
+        fake_mf.RealWorldValueMappingSequence = [pydicom.Dataset()]
         fake_mf.RealWorldValueMappingSequence[0].RealWorldValueSlope = 10.0
         fake_mf.RealWorldValueMappingSequence[0].RealWorldValueIntercept = -5.0
         assert_array_equal(data * 2 - 1, MFW(fake_mf)._scale_data(data))
-        fake_mf.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence = [Dataset()]
+        fake_mf.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence = [pydicom.Dataset()]
         fake_mf.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence[0].CodeMeaning = '%'
         assert_array_equal(data * 10 - 5, MFW(fake_mf)._scale_data(data))
         fake_mf.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence[
@@ -959,10 +966,12 @@ class TestMultiFrameWrapper(TestCase):
         ].CodeMeaning = 'no units'
         assert_array_equal(data * 2 - 1, MFW(fake_mf)._scale_data(data))
         # Possible to have more than one RealWorldValueMapping, use first one with defined units
-        fake_mf.RealWorldValueMappingSequence.append(Dataset())
+        fake_mf.RealWorldValueMappingSequence.append(pydicom.Dataset())
         fake_mf.RealWorldValueMappingSequence[-1].RealWorldValueSlope = 15.0
         fake_mf.RealWorldValueMappingSequence[-1].RealWorldValueIntercept = -3.0
-        fake_mf.RealWorldValueMappingSequence[-1].MeasurementUnitsCodeSequence = [Dataset()]
+        fake_mf.RealWorldValueMappingSequence[-1].MeasurementUnitsCodeSequence = [
+            pydicom.Dataset()
+        ]
         fake_mf.RealWorldValueMappingSequence[-1].MeasurementUnitsCodeSequence[0].CodeMeaning = '%'
         assert_array_equal(data * 15 - 3, MFW(fake_mf)._scale_data(data))
         # A global RWV scale takes precedence over per-frame PixelValueTransformation
@@ -988,10 +997,12 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(data * 3 - 2, MFW(fake_mf)._scale_data(data))
         # A per-frame RWV scaling takes precedence over per-frame PixelValueTransformation
         for frame in frames:
-            frame.RealWorldValueMappingSequence = [Dataset()]
+            frame.RealWorldValueMappingSequence = [pydicom.Dataset()]
             frame.RealWorldValueMappingSequence[0].RealWorldValueSlope = 10.0
             frame.RealWorldValueMappingSequence[0].RealWorldValueIntercept = -5.0
-            frame.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence = [Dataset()]
+            frame.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence = [
+                pydicom.Dataset()
+            ]
             frame.RealWorldValueMappingSequence[0].MeasurementUnitsCodeSequence[
                 0
             ].CodeMeaning = '%'
@@ -1005,12 +1016,13 @@ class TestMultiFrameWrapper(TestCase):
             MFW(fake_mf)._scale_data(data),
         )
 
+    @dicom_test
     def test_philips_scale_data(self):
         fake_mf = deepcopy(self.MINIMAL_MF)
         fake_mf.Manufacturer = 'Philips'
         fake_mf.Rows = 2
         fake_mf.Columns = 3
-        fake_mf.PerFrameFunctionalGroupsSequence = [Dataset() for _ in range(4)]
+        fake_mf.PerFrameFunctionalGroupsSequence = [pydicom.Dataset() for _ in range(4)]
         MFW = self.WRAPCLASS
         data = np.arange(24).reshape((2, 3, 4), order='F')
         # Unlike other manufacturers, public scale factors from Philips without defined
@@ -1040,12 +1052,12 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.RescaleType = 'mrad'
         assert_array_equal(data * 2 - 1, MFW(fake_mf)._scale_data(data))
         # A RWV scale factor with defined units takes precdence
-        shared = Dataset()
+        shared = pydicom.Dataset()
         fake_mf.SharedFunctionalGroupsSequence = [shared]
-        rwv_map = Dataset()
+        rwv_map = pydicom.Dataset()
         rwv_map.RealWorldValueSlope = 10.0
         rwv_map.RealWorldValueIntercept = -5.0
-        rwv_map.MeasurementUnitsCodeSequence = [Dataset()]
+        rwv_map.MeasurementUnitsCodeSequence = [pydicom.Dataset()]
         rwv_map.MeasurementUnitsCodeSequence[0].CodeMeaning = '%'
         shared.RealWorldValueMappingSequence = [rwv_map]
         assert_array_equal(data * 10 - 5, MFW(fake_mf)._scale_data(data))
@@ -1057,7 +1069,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         # Simplest case is all frames have same (valid) scale factor
         for frame in fake_mf.PerFrameFunctionalGroupsSequence:
-            pix_trans = Dataset()
+            pix_trans = pydicom.Dataset()
             pix_trans.RescaleSlope = 2.5
             pix_trans.RescaleIntercept = -4
             pix_trans.RescaleType = 'mrad'
@@ -1084,10 +1096,10 @@ class TestMultiFrameWrapper(TestCase):
         )
         # Again RWV scale factors take precedence
         for frame_idx, frame in enumerate(fake_mf.PerFrameFunctionalGroupsSequence):
-            rwv_map = Dataset()
+            rwv_map = pydicom.Dataset()
             rwv_map.RealWorldValueSlope = 14.0 - frame_idx
             rwv_map.RealWorldValueIntercept = 5.0
-            rwv_map.MeasurementUnitsCodeSequence = [Dataset()]
+            rwv_map.MeasurementUnitsCodeSequence = [pydicom.Dataset()]
             rwv_map.MeasurementUnitsCodeSequence[0].CodeMeaning = '%'
             frame.RealWorldValueMappingSequence = [rwv_map]
         assert_array_equal(
