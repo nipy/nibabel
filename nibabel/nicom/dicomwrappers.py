@@ -13,16 +13,18 @@ than in a property, or property-like thing.
 """
 
 import operator
+import re
 import warnings
+from functools import cached_property
 
 import numpy as np
 
 from nibabel.optpkg import optional_package
 
-from ..onetime import auto_attr as one_time
 from ..openers import ImageOpener
 from . import csareader as csar
 from .dwiparams import B2q, nearest_pos_semi_def, q2bg
+from .utils import Vendor, find_private_section, vendor_from_private
 
 pydicom = optional_package('pydicom')[0]
 
@@ -59,7 +61,7 @@ def wrapper_from_file(file_like, *args, **kwargs):
     return wrapper_from_data(dcm_data)
 
 
-def wrapper_from_data(dcm_data):
+def wrapper_from_data(dcm_data, frame_filters=None):
     """Create DICOM wrapper from DICOM data object
 
     Parameters
@@ -67,6 +69,9 @@ def wrapper_from_data(dcm_data):
     dcm_data : ``dicom.dataset.Dataset`` instance or similar
        Object allowing attribute access, with DICOM attributes.
        Probably a dataset as read by ``pydicom``.
+
+    frame_filters
+        Optionally override the `frame_filters` used to create a `MultiFrameWrapper`
 
     Returns
     -------
@@ -76,9 +81,8 @@ def wrapper_from_data(dcm_data):
     sop_class = dcm_data.get('SOPClassUID')
     # try to detect what type of dicom object to wrap
     if sop_class == '1.2.840.10008.5.1.4.1.1.4.1':  # Enhanced MR Image Storage
-        # currently only Philips is using Enhanced Multiframe DICOM
-        return MultiframeWrapper(dcm_data)
-    # Check for Siemens DICOM format types
+        return MultiframeWrapper(dcm_data, frame_filters)
+    # Check for non-enhanced (legacy) Siemens DICOM format types
     # Only Siemens will have data for the CSA header
     try:
         csa = csar.get_csa_header(dcm_data)
@@ -103,6 +107,7 @@ class Wrapper:
     Methods:
 
     * get_data()
+    * get_unscaled_data()
     * get_pixel_array()
     * is_same_series(other)
     * __getitem__ : return attributes from `dcm_data`
@@ -120,6 +125,8 @@ class Wrapper:
     * image_position : sequence length 3
     * slice_indicator : float
     * series_signature : tuple
+    * scale_factors : (N, 2) array
+    * vendor : Vendor
     """
 
     is_csa = False
@@ -136,11 +143,35 @@ class Wrapper:
         dcm_data : object
            object should allow 'get' and '__getitem__' access.  Usually this
            will be a ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file, but a dictionary should also work.
+           DICOM file.
         """
         self.dcm_data = dcm_data
 
-    @one_time
+    @cached_property
+    def vendor(self):
+        """The vendor of the instrument that produced the DICOM"""
+        # Look at manufacturer tag first
+        mfgr = self.get('Manufacturer')
+        if mfgr:
+            if re.search('Siemens', mfgr, re.IGNORECASE):
+                return Vendor.SIEMENS
+            if re.search('Philips', mfgr, re.IGNORECASE):
+                return Vendor.PHILIPS
+            if re.search('GE Medical', mfgr, re.IGNORECASE):
+                return Vendor.GE
+        # Next look at UID prefixes
+        for uid_src in ('StudyInstanceUID', 'SeriesInstanceUID', 'SOPInstanceUID'):
+            uid = str(self.get(uid_src))
+            if uid.startswith(('1.3.12.2.1007.', '1.3.12.2.1107.')):
+                return Vendor.SIEMENS
+            if uid.startswith(('1.3.46', '1.3.12.2.1017')):
+                return Vendor.PHILIPS
+            if uid.startswith('1.2.840.113619'):
+                return Vendor.GE
+        # Finally look for vendor specific private blocks
+        return vendor_from_private(self.dcm_data)
+
+    @cached_property
     def image_shape(self):
         """The array shape as it will be returned by ``get_data()``"""
         shape = (self.get('Rows'), self.get('Columns'))
@@ -148,7 +179,7 @@ class Wrapper:
             return None
         return shape
 
-    @one_time
+    @cached_property
     def image_orient_patient(self):
         """Note that this is _not_ LR flipped"""
         iop = self.get('ImageOrientationPatient')
@@ -158,7 +189,7 @@ class Wrapper:
         iop = np.array(list(map(float, iop)))
         return np.array(iop).reshape(2, 3).T
 
-    @one_time
+    @cached_property
     def slice_normal(self):
         iop = self.image_orient_patient
         if iop is None:
@@ -166,7 +197,7 @@ class Wrapper:
         # iop[:, 0] is column index cosine, iop[:, 1] is row index cosine
         return np.cross(iop[:, 1], iop[:, 0])
 
-    @one_time
+    @cached_property
     def rotation_matrix(self):
         """Return rotation matrix between array indices and mm
 
@@ -193,7 +224,7 @@ class Wrapper:
             raise WrapperPrecisionError('Rotation matrix not nearly orthogonal')
         return R
 
-    @one_time
+    @cached_property
     def voxel_sizes(self):
         """voxel sizes for array as returned by ``get_data()``"""
         # pix space gives (row_spacing, column_spacing).  That is, the
@@ -212,7 +243,7 @@ class Wrapper:
         pix_space = list(map(float, pix_space))
         return tuple(pix_space + [zs])
 
-    @one_time
+    @cached_property
     def image_position(self):
         """Return position of first voxel in data block
 
@@ -231,7 +262,7 @@ class Wrapper:
             # Values are python Decimals in pydicom 0.9.7
         return np.array(list(map(float, ipp)))
 
-    @one_time
+    @cached_property
     def slice_indicator(self):
         """A number that is higher for higher slices in Z
 
@@ -246,12 +277,12 @@ class Wrapper:
             return None
         return np.inner(ipp, s_norm)
 
-    @one_time
+    @cached_property
     def instance_number(self):
         """Just because we use this a lot for sorting"""
         return self.get('InstanceNumber')
 
-    @one_time
+    @cached_property
     def series_signature(self):
         """Signature for matching slices into series
 
@@ -315,14 +346,30 @@ class Wrapper:
         return aff
 
     def get_pixel_array(self):
-        """Return unscaled pixel array from DICOM"""
+        """Return raw pixel array without reshaping or scaling
+
+        Returns
+        -------
+        data : array
+           array with raw pixel data from DICOM
+        """
         data = self.dcm_data.get('pixel_array')
         if data is None:
             raise WrapperError('Cannot find data in DICOM')
         return data
 
+    def get_unscaled_data(self):
+        """Return pixel array that is potentially reshaped, but without any scaling
+
+        Returns
+        -------
+        data : array
+           array with raw pixel data from DICOM
+        """
+        return self.get_pixel_array()
+
     def get_data(self):
-        """Get scaled image data from DICOMs
+        """Get potentially scaled and reshaped image data from DICOMs
 
         We return the data as DICOM understands it, first dimension is
         rows, second dimension is columns
@@ -333,7 +380,7 @@ class Wrapper:
            array with data as scaled from any scaling in the DICOM
            fields.
         """
-        return self._scale_data(self.get_pixel_array())
+        return self._scale_data(self.get_unscaled_data())
 
     def is_same_series(self, other):
         """Return True if `other` appears to be in same series
@@ -372,11 +419,86 @@ class Wrapper:
                     return False
         return True
 
+    @cached_property
+    def scale_factors(self):
+        """Return (2, N) array of slope/intercept pairs"""
+        scaling = self._get_best_scale_factor(self.dcm_data)
+        if scaling is None:
+            if self.vendor == Vendor.PHILIPS:
+                warnings.warn(
+                    'Unable to find Philips private scale factor, cross-series comparisons may be invalid'
+                )
+            scaling = (1, 0)
+        return np.array((scaling,))
+
+    def _get_rwv_scale_factor(self, dcm_data):
+        """Return the first set of 'real world' scale factors with defined units"""
+        rw_seq = dcm_data.get('RealWorldValueMappingSequence')
+        if rw_seq:
+            for rw_map in rw_seq:
+                try:
+                    units = rw_map.MeasurementUnitsCodeSequence[0].CodeMeaning
+                except (AttributeError, IndexError):
+                    continue
+                if units not in ('', 'no units', 'UNDEFINED'):
+                    return (
+                        rw_map.get('RealWorldValueSlope', 1),
+                        rw_map.get('RealWorldValueIntercept', 0),
+                    )
+
+    def _get_legacy_scale_factor(self, dcm_data):
+        """Return scale factors from older 'Modality LUT' macro
+
+        For Philips data we require RescaleType is defined and not set to 'normalized'
+        """
+        pix_trans_seq = dcm_data.get('PixelValueTransformationSequence')
+        if pix_trans_seq is not None:
+            pix_trans = pix_trans_seq[0]
+            if self.vendor != Vendor.PHILIPS or pix_trans.get('RescaleType', 'US') not in (
+                '',
+                'US',
+                'normalized',
+            ):
+                return (pix_trans.get('RescaleSlope', 1), pix_trans.get('RescaleIntercept', 0))
+        if (
+            dcm_data.get('RescaleSlope') is not None
+            or dcm_data.get('RescaleIntercept') is not None
+        ):
+            if self.vendor != Vendor.PHILIPS or dcm_data.get('RescaleType', 'US') not in (
+                '',
+                'US',
+                'normalized',
+            ):
+                return (dcm_data.get('RescaleSlope', 1), dcm_data.get('RescaleIntercept', 0))
+
+    def _get_philips_scale_factor(self, dcm_data):
+        """Return scale factors from Philips private element
+
+        If we don't have any other scale factors that are tied to real world units, then
+        this is the best scaling to use to enable cross-series comparisons
+        """
+        offset = find_private_section(dcm_data, 0x2005, 'Philips MR Imaging DD 001')
+        priv_scale = None if offset is None else dcm_data.get((0x2005, offset + 0xE))
+        if priv_scale is not None:
+            return (priv_scale.value, 0.0)
+
+    def _get_best_scale_factor(self, dcm_data):
+        """Return the most appropriate scale factor found or None"""
+        scaling = self._get_rwv_scale_factor(dcm_data)
+        if scaling is not None:
+            return scaling
+        scaling = self._get_legacy_scale_factor(dcm_data)
+        if scaling is not None:
+            return scaling
+        if self.vendor == Vendor.PHILIPS:
+            scaling = self._get_philips_scale_factor(dcm_data)
+            if scaling is not None:
+                return scaling
+
     def _scale_data(self, data):
         # depending on pydicom and dicom files, values might need casting from
         # Decimal to float
-        scale = float(self.get('RescaleSlope', 1))
-        offset = float(self.get('RescaleIntercept', 0))
+        scale, offset = self.scale_factors[0]
         return self._apply_scale_offset(data, scale, offset)
 
     def _apply_scale_offset(self, data, scale, offset):
@@ -390,7 +512,7 @@ class Wrapper:
             return data + offset
         return data
 
-    @one_time
+    @cached_property
     def b_value(self):
         """Return b value for diffusion or None if not available"""
         q_vec = self.q_vector
@@ -398,13 +520,78 @@ class Wrapper:
             return None
         return q2bg(q_vec)[0]
 
-    @one_time
+    @cached_property
     def b_vector(self):
         """Return b vector for diffusion or None if not available"""
         q_vec = self.q_vector
         if q_vec is None:
             return None
         return q2bg(q_vec)[1]
+
+
+class FrameFilter:
+    """Base class for defining how to filter out (ignore) frames from a multiframe file
+
+    It is guaranteed that the `applies` method will on a dataset before the `keep` method
+    is called on any of the frames inside.
+    """
+
+    def applies(self, dcm_wrp) -> bool:
+        """Returns true if the filter should be applied to a dataset"""
+        return True
+
+    def keep(self, frame_data) -> bool:
+        """Return true if the frame should be kept"""
+        raise NotImplementedError
+
+
+class FilterMultiStack(FrameFilter):
+    """Filter out all but one `StackID`"""
+
+    def __init__(self, keep_id=None):
+        self._keep_id = keep_id
+
+    def applies(self, dcm_wrp) -> bool:
+        first_fcs = dcm_wrp.frames[0].get('FrameContentSequence', (None,))[0]
+        if first_fcs is None or not hasattr(first_fcs, 'StackID'):
+            return False
+        stack_ids = {frame.FrameContentSequence[0].StackID for frame in dcm_wrp.frames}
+        if self._keep_id is not None:
+            if self._keep_id not in stack_ids:
+                raise WrapperError('Explicitly requested StackID not found')
+            self._selected = self._keep_id
+        if len(stack_ids) > 1:
+            if self._keep_id is None:
+                warnings.warn(
+                    'A multi-stack file was passed without an explicit filter, just using lowest StackID'
+                )
+                self._selected = sorted(stack_ids)[0]
+            return True
+        return False
+
+    def keep(self, frame) -> bool:
+        return frame.FrameContentSequence[0].StackID == self._selected
+
+
+class FilterDwiIso(FrameFilter):
+    """Filter out derived ISOTROPIC frames from DWI series"""
+
+    def applies(self, dcm_wrp) -> bool:
+        if not hasattr(dcm_wrp.frames[0], 'MRDiffusionSequence'):
+            return False
+        diff_dirs = {
+            f.MRDiffusionSequence[0].get('DiffusionDirectionality') for f in dcm_wrp.frames
+        }
+        if len(diff_dirs) > 1 and 'ISOTROPIC' in diff_dirs:
+            warnings.warn('Derived images found and removed')
+            return True
+        return False
+
+    def keep(self, frame) -> bool:
+        return frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
+
+
+DEFUALT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso())
 
 
 class MultiframeWrapper(Wrapper):
@@ -436,17 +623,20 @@ class MultiframeWrapper(Wrapper):
 
     Methods
     -------
+    vendor(self)
+    frame_order(self)
     image_shape(self)
     image_orient_patient(self)
     voxel_sizes(self)
     image_position(self)
     series_signature(self)
+    scale_factors(self)
     get_data(self)
     """
 
     is_multiframe = True
 
-    def __init__(self, dcm_data):
+    def __init__(self, dcm_data, frame_filters=None):
         """Initializes MultiframeWrapper
 
         Parameters
@@ -454,10 +644,13 @@ class MultiframeWrapper(Wrapper):
         dcm_data : object
            object should allow 'get' and '__getitem__' access.  Usually this
            will be a ``dicom.dataset.Dataset`` object resulting from reading a
-           DICOM file, but a dictionary should also work.
+           DICOM file.
+
+        frame_filters : Iterable of FrameFilter
+            defines which frames inside the dataset should be ignored. If None then
+            `dicomwrappers.DEFAULT_FRAME_FILTERS` will be used.
         """
         Wrapper.__init__(self, dcm_data)
-        self.dcm_data = dcm_data
         self.frames = dcm_data.get('PerFrameFunctionalGroupsSequence')
         try:
             self.frames[0]
@@ -467,9 +660,60 @@ class MultiframeWrapper(Wrapper):
             self.shared = dcm_data.get('SharedFunctionalGroupsSequence')[0]
         except TypeError:
             raise WrapperError('SharedFunctionalGroupsSequence is empty.')
-        self._shape = None
+        # Apply frame filters one at a time in the order provided
+        if frame_filters is None:
+            frame_filters = DEFUALT_FRAME_FILTERS
+        frame_filters = [filt for filt in frame_filters if filt.applies(self)]
+        for filt in frame_filters:
+            self.frames = [f for f in self.frames if filt.keep(f)]
+        # Make sure there is only one StackID remaining
+        first_fcs = self.frames[0].get('FrameContentSequence', (None,))[0]
+        if first_fcs is not None and hasattr(first_fcs, 'StackID'):
+            if len({frame.FrameContentSequence[0].StackID for frame in self.frames}) > 1:
+                raise WrapperError('More than one StackID remains after filtering')
+        # Try to determine slice order and minimal image position patient
+        self._frame_slc_ord = self._ipp = self._slice_spacing = None
+        try:
+            frame_ipps = [f.PlanePositionSequence[0].ImagePositionPatient for f in self.frames]
+        except AttributeError:
+            try:
+                frame_ipps = [self.shared.PlanePositionSequence[0].ImagePositionPatient]
+            except AttributeError:
+                frame_ipps = None
+        if frame_ipps is not None and all(ipp is not None for ipp in frame_ipps):
+            frame_ipps = [np.array(list(map(float, ipp))) for ipp in frame_ipps]
+            frame_slc_pos = [np.inner(ipp, self.slice_normal) for ipp in frame_ipps]
+            rnd_slc_pos = np.round(frame_slc_pos, 4)
+            uniq_slc_pos = np.unique(rnd_slc_pos)
+            pos_ord_map = {
+                val: order for val, order in zip(uniq_slc_pos, np.argsort(uniq_slc_pos))
+            }
+            self._frame_slc_ord = [pos_ord_map[pos] for pos in rnd_slc_pos]
+            if len(self._frame_slc_ord) > 1:
+                self._slice_spacing = (
+                    frame_slc_pos[self._frame_slc_ord[1]] - frame_slc_pos[self._frame_slc_ord[0]]
+                )
+            self._ipp = frame_ipps[np.argmin(frame_slc_pos)]
+        self._frame_indices = None
 
-    @one_time
+    @cached_property
+    def vendor(self):
+        """The vendor of the instrument that produced the DICOM"""
+        vendor = super().vendor
+        if vendor is not None:
+            return vendor
+        vendor = vendor_from_private(self.shared)
+        if vendor is not None:
+            return vendor
+        return vendor_from_private(self.frames[0])
+
+    @cached_property
+    def frame_order(self):
+        if self._frame_indices is None:
+            _ = self.image_shape
+        return np.lexsort(self._frame_indices.T)
+
+    @cached_property
     def image_shape(self):
         """The array shape as it will be returned by ``get_data()``
 
@@ -500,80 +744,96 @@ class MultiframeWrapper(Wrapper):
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError('Rows and/or Columns are empty.')
-
-        # Check number of frames
-        first_frame = self.frames[0]
-        n_frames = self.get('NumberOfFrames')
-        # some Philips may have derived images appended
-        has_derived = False
-        if hasattr(first_frame, 'get') and first_frame.get([0x18, 0x9117]):
-            # DWI image may include derived isotropic, ADC or trace volume
-            try:
-                anisotropic = pydicom.Sequence(
-                    frame
-                    for frame in self.frames
-                    if frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
-                )
-                # Image contains DWI volumes followed by derived images; remove derived images
-                if len(anisotropic) != 0:
-                    self.frames = anisotropic
-            except IndexError:
-                # Sequence tag is found but missing items!
-                raise WrapperError('Diffusion file missing information')
-            except AttributeError:
-                # DiffusionDirectionality tag is not required
-                pass
-            else:
-                if n_frames != len(self.frames):
-                    warnings.warn('Derived images found and removed')
-                    n_frames = len(self.frames)
-                    has_derived = True
-
-        assert len(self.frames) == n_frames
-        frame_indices = np.array(
-            [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
-        )
-        # Check that there is only one multiframe stack index
-        stack_ids = {frame.FrameContentSequence[0].StackID for frame in self.frames}
-        if len(stack_ids) > 1:
-            raise WrapperError(
-                'File contains more than one StackID. Cannot handle multi-stack files'
+        # Check number of frames, initialize array of frame indices
+        n_frames = len(self.frames)
+        try:
+            frame_indices = np.array(
+                [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
             )
-        # Determine if one of the dimension indices refers to the stack id
+        except AttributeError:
+            raise WrapperError("Can't find frame 'DimensionIndexValues'")
+        # Determine the shape and which indices to use
+        shape = [rows, cols]
+        curr_parts = n_frames
+        frames_per_part = 1
+        del_indices = {}
         dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
-        stackid_tag = pydicom.datadict.tag_for_keyword('StackID')
-        # remove the stack id axis if present
-        if stackid_tag in dim_seq:
-            stackid_dim_idx = dim_seq.index(stackid_tag)
-            frame_indices = np.delete(frame_indices, stackid_dim_idx, axis=1)
-            dim_seq.pop(stackid_dim_idx)
-        if has_derived:
-            # derived volume is included
-            derived_tag = pydicom.datadict.tag_for_keyword('DiffusionBValue')
-            if derived_tag not in dim_seq:
-                raise WrapperError('Missing information, cannot remove indices with confidence.')
-            derived_dim_idx = dim_seq.index(derived_tag)
-            frame_indices = np.delete(frame_indices, derived_dim_idx, axis=1)
-        # account for the 2 additional dimensions (row and column) not included
-        # in the indices
-        n_dim = frame_indices.shape[1] + 2
+        stackpos_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
+        slice_dim_idx = dim_seq.index(stackpos_tag)
+        for row_idx, row in enumerate(frame_indices.T):
+            unique = np.unique(row)
+            count = len(unique)
+            if curr_parts == 1 or (count == 1 and row_idx != slice_dim_idx):
+                del_indices[row_idx] = count
+                continue
+            # Replace slice indices with order determined from slice positions along normal
+            if row_idx == slice_dim_idx:
+                if len(shape) > 2:
+                    raise WrapperError('Non-singular index precedes the slice index')
+                row = self._frame_slc_ord
+                frame_indices.T[row_idx, :] = row
+                unique = np.unique(row)
+                if len(unique) != count:
+                    raise WrapperError("Number of slice indices and positions don't match")
+            elif count == n_frames:
+                if shape[-1] == 'remaining':
+                    raise WrapperError('At most one index have ambiguous size')
+                shape.append('remaining')
+                continue
+            new_parts, leftover = divmod(curr_parts, count)
+            expected = new_parts * frames_per_part
+            if leftover != 0 or any(np.count_nonzero(row == val) != expected for val in unique):
+                if row_idx == slice_dim_idx:
+                    raise WrapperError('Missing slices from multiframe')
+                del_indices[row_idx] = count
+                continue
+            if shape[-1] == 'remaining':
+                shape[-1] = new_parts
+                frames_per_part *= shape[-1]
+                new_parts = 1
+            frames_per_part *= count
+            shape.append(count)
+            curr_parts = new_parts
+        if shape[-1] == 'remaining':
+            if curr_parts > 1:
+                shape[-1] = curr_parts
+                curr_parts = 1
+            else:
+                del_indices[len(shape)] = 1
+                shape = shape[:-1]
+        if del_indices:
+            if curr_parts > 1:
+                ns_failed = [k for k, v in del_indices.items() if v != 1]
+                if len(ns_failed) > 1:
+                    # If some indices weren't used yet but we still have unaccounted for
+                    # partitions, try combining indices into single tuple and using that
+                    tup_dtype = np.dtype(','.join(['I'] * len(ns_failed)))
+                    row = [tuple(x for x in vals) for vals in frame_indices[:, ns_failed]]
+                    row = np.array(row, dtype=tup_dtype)
+            frame_indices = np.delete(frame_indices, np.array(list(del_indices.keys())), axis=1)
+            if curr_parts > 1 and len(ns_failed) > 1:
+                unique = np.unique(row, axis=0)
+                count = len(unique)
+                new_parts, rem = divmod(curr_parts, count)
+                allowed_val_counts = [new_parts * frames_per_part, n_frames]
+                if rem == 0 and all(
+                    np.count_nonzero(row == val) in allowed_val_counts for val in unique
+                ):
+                    shape.append(count)
+                    curr_parts = new_parts
+                    ord_vals = np.argsort(unique)
+                    order = {tuple(unique[i]): ord_vals[i] for i in range(count)}
+                    ord_row = np.array([order[tuple(v)] for v in row])
+                    frame_indices = np.hstack(
+                        [frame_indices, np.array(ord_row).reshape((n_frames, 1))]
+                    )
+        if curr_parts > 1:
+            raise WrapperError('Unable to determine sorting of final dimension(s)')
         # Store frame indices
         self._frame_indices = frame_indices
-        if n_dim < 4:  # 3D volume
-            return rows, cols, n_frames
-        # More than 3 dimensions
-        ns_unique = [len(np.unique(row)) for row in self._frame_indices.T]
-        shape = (rows, cols) + tuple(ns_unique)
-        n_vols = np.prod(shape[3:])
-        n_frames_calc = n_vols * shape[2]
-        if n_frames != n_frames_calc:
-            raise WrapperError(
-                f'Calculated # of frames ({n_frames_calc}={n_vols}*{shape[2]}) '
-                f'of shape {shape} does not match NumberOfFrames {n_frames}.'
-            )
         return tuple(shape)
 
-    @one_time
+    @cached_property
     def image_orient_patient(self):
         """
         Note that this is _not_ LR flipped
@@ -590,7 +850,7 @@ class MultiframeWrapper(Wrapper):
         iop = np.array(list(map(float, iop)))
         return np.array(iop).reshape(2, 3).T
 
-    @one_time
+    @cached_property
     def voxel_sizes(self):
         """Get i, j, k voxel sizes"""
         try:
@@ -601,29 +861,25 @@ class MultiframeWrapper(Wrapper):
             except AttributeError:
                 raise WrapperError('Not enough data for pixel spacing')
         pix_space = pix_measures.PixelSpacing
-        try:
-            zs = pix_measures.SliceThickness
-        except AttributeError:
-            zs = self.get('SpacingBetweenSlices')
-            if zs is None:
-                raise WrapperError('Not enough data for slice thickness')
+        if self._slice_spacing is not None:
+            zs = self._slice_spacing
+        else:
+            try:
+                zs = pix_measures.SliceThickness
+            except AttributeError:
+                zs = self.get('SpacingBetweenSlices')
+                if zs is None:
+                    raise WrapperError('Not enough data for slice thickness')
         # Ensure values are float rather than Decimal
         return tuple(map(float, list(pix_space) + [zs]))
 
-    @one_time
+    @property
     def image_position(self):
-        try:
-            ipp = self.shared.PlanePositionSequence[0].ImagePositionPatient
-        except AttributeError:
-            try:
-                ipp = self.frames[0].PlanePositionSequence[0].ImagePositionPatient
-            except AttributeError:
-                raise WrapperError('Cannot get image position from dicom')
-        if ipp is None:
-            return None
-        return np.array(list(map(float, ipp)))
+        if self._ipp is None:
+            raise WrapperError('Not enough information for image_position_patient')
+        return self._ipp
 
-    @one_time
+    @cached_property
     def series_signature(self):
         signature = {}
         eq = operator.eq
@@ -634,26 +890,63 @@ class MultiframeWrapper(Wrapper):
         signature['vox'] = (self.voxel_sizes, none_or_close)
         return signature
 
-    def get_data(self):
+    @cached_property
+    def scale_factors(self):
+        """Return `(2, N)` array of slope/intercept pairs
+
+        If there is a single global scale factor then `N` will be one, otherwise it will
+        be the number of frames
+        """
+        # Look for shared / global RWV scale factor first
+        shared_scale = self._get_rwv_scale_factor(self.shared)
+        if shared_scale is not None:
+            return np.array([shared_scale])
+        shared_scale = self._get_rwv_scale_factor(self.dcm_data)
+        if shared_scale is not None:
+            return np.array([shared_scale])
+        # Try pulling out best scale factors from each individual frame
+        frame_scales = [self._get_best_scale_factor(f) for f in self.frames]
+        if any(s is not None for s in frame_scales):
+            if any(s is None for s in frame_scales):
+                if self.vendor == Vendor.PHILIPS:
+                    warnings.warn(
+                        'Unable to find Philips private scale factor, cross-series comparisons may be invalid'
+                    )
+                frame_scales = [s if s is not None else (1, 0) for s in frame_scales]
+            if all(s == frame_scales[0] for s in frame_scales[1:]):
+                return np.array([frame_scales[0]])
+            return np.array(frame_scales)[self.frame_order]
+        # Finally look for shared non-RWV scale factors
+        shared_scale = self._get_best_scale_factor(self.shared)
+        if shared_scale is not None:
+            return np.array([shared_scale])
+        shared_scale = self._get_best_scale_factor(self.dcm_data)
+        if shared_scale is None:
+            if self.vendor == Vendor.PHILIPS:
+                warnings.warn(
+                    'Unable to find Philips private scale factor, cross-series comparisons may be invalid'
+                )
+            shared_scale = (1, 0)
+        return np.array([shared_scale])
+
+    def get_unscaled_data(self):
         shape = self.image_shape
         if shape is None:
             raise WrapperError('No valid information for image shape')
         data = self.get_pixel_array()
-        # Roll frames axis to last
-        data = data.transpose((1, 2, 0))
-        # Sort frames with first index changing fastest, last slowest
-        sorted_indices = np.lexsort(self._frame_indices.T)
-        data = data[..., sorted_indices]
-        data = data.reshape(shape, order='F')
-        return self._scale_data(data)
+        # Roll frames axis to last and reorder
+        if len(data.shape) > 2:
+            data = data.transpose((1, 2, 0))[..., self.frame_order]
+        return data.reshape(shape, order='F')
 
     def _scale_data(self, data):
-        pix_trans = getattr(self.frames[0], 'PixelValueTransformationSequence', None)
-        if pix_trans is None:
-            return super()._scale_data(data)
-        scale = float(pix_trans[0].RescaleSlope)
-        offset = float(pix_trans[0].RescaleIntercept)
-        return self._apply_scale_offset(data, scale, offset)
+        scale_factors = self.scale_factors
+        if scale_factors.shape[0] == 1:
+            scale, offset = scale_factors[0]
+            return self._apply_scale_offset(data, scale, offset)
+        orig_shape = data.shape
+        data = data.reshape(data.shape[:2] + (len(self.frames),))
+        return (data * scale_factors[:, 0] + scale_factors[:, 1]).reshape(orig_shape)
 
 
 class SiemensWrapper(Wrapper):
@@ -680,7 +973,7 @@ class SiemensWrapper(Wrapper):
            object should allow 'get' and '__getitem__' access.  If `csa_header`
            is None, it should also be possible to extract a CSA header from
            `dcm_data`. Usually this will be a ``dicom.dataset.Dataset`` object
-           resulting from reading a DICOM file.  A dict should also work.
+           resulting from reading a DICOM file.
         csa_header : None or mapping, optional
            mapping giving values for Siemens CSA image sub-header.  If
            None, we try and read the CSA information from `dcm_data`.
@@ -696,7 +989,12 @@ class SiemensWrapper(Wrapper):
                 csa_header = {}
         self.csa_header = csa_header
 
-    @one_time
+    @cached_property
+    def vendor(self):
+        """The vendor of the instrument that produced the DICOM"""
+        return Vendor.SIEMENS
+
+    @cached_property
     def slice_normal(self):
         # The std_slice_normal comes from the cross product of the directions
         # in the ImageOrientationPatient
@@ -720,7 +1018,7 @@ class SiemensWrapper(Wrapper):
             else:
                 return std_slice_normal
 
-    @one_time
+    @cached_property
     def series_signature(self):
         """Add ICE dims from CSA header to signature"""
         signature = super().series_signature
@@ -730,7 +1028,7 @@ class SiemensWrapper(Wrapper):
         signature['ICE_Dims'] = (ice, operator.eq)
         return signature
 
-    @one_time
+    @cached_property
     def b_matrix(self):
         """Get DWI B matrix referring to voxel space
 
@@ -767,7 +1065,7 @@ class SiemensWrapper(Wrapper):
         # semi-definite.
         return nearest_pos_semi_def(B_vox)
 
-    @one_time
+    @cached_property
     def q_vector(self):
         """Get DWI q vector referring to voxel space
 
@@ -840,7 +1138,7 @@ class MosaicWrapper(SiemensWrapper):
         self.n_mosaic = n_mosaic
         self.mosaic_size = int(np.ceil(np.sqrt(n_mosaic)))
 
-    @one_time
+    @cached_property
     def image_shape(self):
         """Return image shape as returned by ``get_data()``"""
         # reshape pixel slice array back from mosaic
@@ -850,7 +1148,7 @@ class MosaicWrapper(SiemensWrapper):
             return None
         return (rows // self.mosaic_size, cols // self.mosaic_size, self.n_mosaic)
 
-    @one_time
+    @cached_property
     def image_position(self):
         """Return position of first voxel in data block
 
@@ -887,7 +1185,7 @@ class MosaicWrapper(SiemensWrapper):
         Q = np.fliplr(iop) * pix_spacing
         return ipp + np.dot(Q, vox_trans_fixes[:, None]).ravel()
 
-    def get_data(self):
+    def get_unscaled_data(self):
         """Get scaled image data from DICOMs
 
         Resorts data block from mosaic to 3D
@@ -930,8 +1228,7 @@ class MosaicWrapper(SiemensWrapper):
         # pool mosaic-generated dims
         v3 = v4.reshape((n_slice_rows, n_slice_cols, n_blocks))
         # delete any padding slices
-        v3 = v3[..., :n_mosaic]
-        return self._scale_data(v3)
+        return v3[..., :n_mosaic]
 
 
 def none_or_close(val1, val2, rtol=1e-5, atol=1e-6):

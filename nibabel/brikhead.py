@@ -391,7 +391,7 @@ class AFNIHeader(SpatialHeader):
         # AFNI default is RAI- == LPS+ == DICOM order.  We need to flip RA sign
         # to align with nibabel RAS+ system
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
-        affine = np.row_stack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
+        affine = np.vstack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
         return affine
 
     def get_data_scaling(self):

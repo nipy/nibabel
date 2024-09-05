@@ -30,7 +30,7 @@ from nibabel.casting import able_int_type
 from nibabel.fileslice import strided_scalar
 from nibabel.spatialimages import SpatialImage
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     from typing_extensions import Self
 
     _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
@@ -41,12 +41,10 @@ class CoordinateArray(ty.Protocol):
     shape: tuple[int, int]
 
     @ty.overload
-    def __array__(
-        self, dtype: None = ..., /
-    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...  # pragma: no cover
+    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...  # pragma: no cover
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...
 
 
 @dataclass

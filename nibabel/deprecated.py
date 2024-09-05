@@ -8,7 +8,7 @@ import warnings
 from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     P = ty.ParamSpec('P')
 
 

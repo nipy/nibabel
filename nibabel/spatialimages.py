@@ -154,7 +154,7 @@ try:
 except ImportError:  # PY38
     from functools import lru_cache as cache
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
 SpatialImgT = ty.TypeVar('SpatialImgT', bound='SpatialImage')
@@ -162,18 +162,15 @@ SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')
 
 
 class HasDtype(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype: ...  # pragma: no cover
-
-    def set_data_dtype(self, dtype: npt.DTypeLike) -> None: ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None: ...
 
 
 @ty.runtime_checkable
 class SpatialProtocol(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype: ...  # pragma: no cover
-
-    def get_data_shape(self) -> ty.Tuple[int, ...]: ...  # pragma: no cover
-
-    def get_zooms(self) -> ty.Tuple[float, ...]: ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...
+    def get_data_shape(self) -> ty.Tuple[int, ...]: ...
+    def get_zooms(self) -> ty.Tuple[float, ...]: ...
 
 
 class HeaderDataError(Exception):

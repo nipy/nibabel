@@ -1,9 +1,18 @@
 [run]
 branch = True
 source = nibabel
-include = */nibabel/*
 omit =
     */externals/*
     */benchmarks/*
-    */tests/*
     nibabel/_version.py
+
+[report]
+exclude_also =
+    def __repr__
+    if (ty\.|typing\.)?TYPE_CHECKING:
+    class .*\((ty\.|typing\.)Protocol\):
+    @(ty\.|typing\.)overload
+    if 0:
+    if __name__ == .__main__.:
+    @(abc\.)?abstractmethod
+    raise NotImplementedError

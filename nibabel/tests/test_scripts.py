@@ -202,7 +202,7 @@ def test_help():
         code, stdout, stderr = run_command([cmd, '--help'])
         assert code == 0
         assert_re_in(f'.*{cmd}', stdout)
-        assert_re_in('.*Usage', stdout)
+        assert_re_in('.*[uU]sage', stdout)
         # Some third party modules might like to announce some Deprecation
         # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
         if 'warning' not in stderr.lower():

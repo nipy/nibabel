@@ -29,6 +29,10 @@ except ImportError:
 
 # Check for external Sphinx extensions we depend on
 try:
+    import numpy as np
+except ImportError:
+    raise RuntimeError('Need to install "numpy" package for doc build')
+try:
     import numpydoc
 except ImportError:
     raise RuntimeError('Need to install "numpydoc" package for doc build')
@@ -44,6 +48,11 @@ except ImportError:
     raise RuntimeError(
         'Need nibabel on Python PATH; consider "make htmldoc" from nibabel root directory'
     )
+
+from packaging.version import Version
+
+if Version(np.__version__) >= Version('1.22'):
+    np.set_printoptions(legacy='1.21')
 
 # -- General configuration ----------------------------------------------------
 
