@@ -1,7 +1,7 @@
 exclude: ".*/data/.*"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -13,15 +13,18 @@ repos:
       - id: check-merge-conflict
       - id: check-vcs-permalinks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.6.4
     hooks:
       - id: ruff
-        args: [--fix, --show-fixes, --exit-non-zero-on-fix]
+        args: [ --fix ]
         exclude: = ["doc", "tools"]
       - id: ruff-format
         exclude: = ["doc", "tools"]
+      - id: ruff
+        args: [ --select, ISC001, --fix ]
+        exclude: = ["doc", "tools"]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.11.2
     hooks:
       - id: mypy
         # Sync with project.optional-dependencies.typing
@@ -36,7 +39,7 @@ repos:
         args: ["nibabel"]
         pass_filenames: false
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         additional_dependencies:
