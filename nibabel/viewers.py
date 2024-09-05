@@ -492,10 +492,11 @@ class OrthoSlicer3D:
             x, y = event.xdata, event.ydata
             x = self._sizes[xax] - x if self._flips[xax] else x
             y = self._sizes[yax] - y if self._flips[yax] else y
-            idxs = [None, None, None, 1.0]
+            idxs = np.ones(4)
             idxs[xax] = x
             idxs[yax] = y
             idxs[ii] = self._data_idx[ii]
+            idxs[:3] = idxs[self._order]
             self._set_position(*np.dot(self._affine, idxs)[:3])
         self._draw()
 
