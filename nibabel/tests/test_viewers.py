@@ -102,3 +102,35 @@ def test_viewer():
     v2.link_to(v1)  # shouldn't do anything
     v1.close()
     v2.close()
+
+
+@needs_mpl
+def test_viewer_nonRAS():
+    data1 = np.random.rand(10, 20, 40)
+    data1[5, 10, :] = 0
+    data1[5, :, 30] = 0
+    data1[:, 10, 30] = 0
+    # RSA affine
+    aff1 = np.array([[1, 0, 0, -5], [0, 0, 1, -30], [0, 1, 0, -10], [0, 0, 0, 1]])
+    o1 = OrthoSlicer3D(data1, aff1)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+
+    # Sagittal view: [0, I->S, P->A], so data is transposed, matching plot array
+    assert_array_equal(sag, data1[5, :, :])
+    # Coronal view: [L->R, I->S, 0]. Data is not transposed, transpose to match plot array
+    assert_array_equal(cor, data1[:, :, 30].T)
+    # Axial view: [L->R, 0, P->A]. Data is not transposed, transpose to match plot array
+    assert_array_equal(axi, data1[:, 10, :].T)
+
+    o1.set_position(1, 2, 3)  # R, A, S coordinates
+
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+
+    # Shift 1 right, 2 anterior, 3 superior
+    assert_array_equal(sag, data1[6, :, :])
+    assert_array_equal(cor, data1[:, :, 32].T)
+    assert_array_equal(axi, data1[:, 13, :].T)
