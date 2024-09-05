@@ -1097,7 +1097,10 @@ class Nifti1Header(SpmAnalyzeHeader):
         # (a subtle requirement of the NIFTI format qform transform)
         # Transform below is polar decomposition, returning the closest
         # orthogonal matrix PR, to input R
-        P, S, Qs = npl.svd(R)
+        try:
+            P, S, Qs = npl.svd(R)
+        except np.linalg.LinAlgError as e:
+            raise HeaderDataError(f'Could not decompose affine:\n{affine}') from e
         PR = np.dot(P, Qs)
         if not strip_shears and not np.allclose(PR, R):
             raise HeaderDataError('Shears in affine and `strip_shears` is False')
