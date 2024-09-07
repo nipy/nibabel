@@ -101,7 +101,11 @@ class Pointset:
         """The dimensionality of the space the coordinates are in"""
         return self.coordinates.shape[1] - self.homogeneous
 
-    def __rmatmul__(self, affine: np.ndarray) -> Self:
+    # Use __rmatmul__ to prefer to compose affines. Mypy does not like that
+    # this conflicts with ndarray.__matmul__. We will need some more feedback
+    # on how this plays out for type-checking or code suggestions before we
+    # can do better than ignore.
+    def __rmatmul__(self, affine: np.ndarray) -> Self:  # type: ignore[misc]
         """Apply an affine transformation to the pointset
 
         This will return a new pointset with an updated affine matrix only.
