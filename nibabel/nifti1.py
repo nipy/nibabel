@@ -555,6 +555,8 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
     """
 
     code = 2
+    _is_implict_VR: bool = False
+    _is_little_endian: bool = True
 
     def __init__(
         self,
@@ -586,27 +588,25 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
         code should always be 2 for DICOM.
         """
 
-        self._is_little_endian = parent_hdr is None or parent_hdr.endianness == '<'
+        if code != 2:
+            raise ValueError(f'code must be 2 for DICOM. Got {code}.')
 
-        bytes_content: bytes
+        if content is None:
+            content = pdcm.Dataset()
+
+        if parent_hdr is not None:
+            self._is_little_endian = parent_hdr.endianness == '<'
+
         if isinstance(content, pdcm.dataset.Dataset):
-            self._is_implicit_VR = False
-            self._object = content
-            bytes_content = self._mangle(content)
+            super().__init__(code, object=content)
         elif isinstance(content, bytes):  # Got a byte string - unmangle it
             self._is_implicit_VR = self._guess_implicit_VR(content)
-            self._object = self._unmangle(content)
-            bytes_content = content
-        elif content is None:  # initialize a new dicom dataset
-            self._is_implicit_VR = False
-            self._object = pdcm.dataset.Dataset()
-            bytes_content = self._mangle(self._object)
+            super().__init__(code, content=content)
         else:
             raise TypeError(
                 f'content must be either a bytestring or a pydicom Dataset. '
                 f'Got {content.__class__}'
             )
-        super().__init__(code, bytes_content)
 
     @staticmethod
     def _guess_implicit_VR(content) -> bool:
