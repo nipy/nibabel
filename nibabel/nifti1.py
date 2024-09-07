@@ -299,7 +299,25 @@ intent_codes = Recoder(
 
 
 class NiftiExtension(ty.Generic[T]):
-    """Base class for NIfTI header extensions."""
+    """Base class for NIfTI header extensions.
+
+    This class provides access to the extension content in various forms.
+    For simple extensions that expose data as bytes, text or JSON, this class
+    is sufficient. More complex extensions should be implemented as subclasses
+    that provide custom serialization/deserialization methods.
+
+    Efficiency note:
+
+    This class assumes that the runtime representation of the extension content
+    is mutable. Once a runtime representation is set, it is cached and will be
+    serialized on any attempt to access the extension content as bytes, including
+    determining the size of the extension in the NIfTI file.
+
+    If the runtime representation is never accessed, the raw bytes will be used
+    without modification. While avoiding unnecessary deserialization, if there
+    are bytestrings that do not produce a valid runtime representation, they will
+    be written as-is, and may cause errors downstream.
+    """
 
     code: int
     encoding: ty.Optional[str] = None
@@ -309,7 +327,8 @@ class NiftiExtension(ty.Generic[T]):
     def __init__(
         self,
         code: ty.Union[int, str],
-        content: bytes,
+        content: bytes = b'',
+        object: ty.Optional[T] = None,
     ) -> None:
         """
         Parameters
@@ -318,21 +337,40 @@ class NiftiExtension(ty.Generic[T]):
           Canonical extension code as defined in the NIfTI standard, given
           either as integer or corresponding label
           (see :data:`~nibabel.nifti1.extension_codes`)
-        content : bytes
-          Extension content as read from the NIfTI file header. This content may
-          be converted into a runtime representation.
+        content : bytes, optional
+          Extension content as read from the NIfTI file header.
+        object : optional
+          Extension content in runtime form.
         """
         try:
             self.code = extension_codes.code[code]  # type: ignore[assignment]
         except KeyError:
             self.code = code  # type: ignore[assignment]
         self._content = content
+        if object is not None:
+            self._object = object
 
     @classmethod
     def from_bytes(cls, content: bytes) -> Self:
+        """Create an extension from raw bytes.
+
+        This constructor may only be used in extension classes with a class
+        attribute `code` to indicate the extension type.
+        """
         if not hasattr(cls, 'code'):
             raise NotImplementedError('from_bytes() requires a class attribute `code`')
-        return cls(cls.code, content)
+        return cls(cls.code, content=content)
+
+    @classmethod
+    def from_object(cls, obj: T) -> Self:
+        """Create an extension from a runtime object.
+
+        This constructor may only be used in extension classes with a class
+        attribute `code` to indicate the extension type.
+        """
+        if not hasattr(cls, 'code'):
+            raise NotImplementedError('from_object() requires a class attribute `code`')
+        return cls(cls.code, object=obj)
 
     # Handle (de)serialization of extension content
     # Subclasses may implement these methods to provide an alternative
@@ -401,7 +439,7 @@ class NiftiExtension(ty.Generic[T]):
         """
         return json.loads(self.content)
 
-    def get_content(self) -> T:
+    def get_object(self) -> T:
         """Return the extension content in its runtime representation.
 
         This method may return a different type for each extension type.
@@ -412,15 +450,14 @@ class NiftiExtension(ty.Generic[T]):
             self._object = self._unmangle(self._content)
         return self._object
 
+    # Backwards compatibility
+    get_content = get_object
+
     def get_sizeondisk(self) -> int:
         """Return the size of the extension in the NIfTI file."""
-        self._sync()
-        # need raw value size plus 8 bytes for esize and ecode
-        size = len(self._content) + 8
-        # extensions size has to be a multiple of 16 bytes
-        if size % 16 != 0:
-            size += 16 - (size % 16)
-        return size
+        # need raw value size plus 8 bytes for esize and ecode, rounded up to next 16 bytes
+        # Rounding C+8 up to M is done by (C+8 + (M-1)) // M * M
+        return (len(self.content) + 23) // 16 * 16
 
     def write_to(self, fileobj: ty.BinaryIO, byteswap: bool = False) -> None:
         """Write header extensions to fileobj
@@ -438,20 +475,20 @@ class NiftiExtension(ty.Generic[T]):
         -------
         None
         """
-        self._sync()
         extstart = fileobj.tell()
-        rawsize = self.get_sizeondisk()
+        rawsize = self.get_sizeondisk()  # Calls _sync()
         # write esize and ecode first
         extinfo = np.array((rawsize, self.code), dtype=np.int32)
         if byteswap:
             extinfo = extinfo.byteswap()
         fileobj.write(extinfo.tobytes())
-        # followed by the actual extension content
-        # XXX if mangling upon load is implemented, it should be reverted here
+        # followed by the actual extension content, synced above
         fileobj.write(self._content)
         # be nice and zero out remaining part of the extension till the
         # next 16 byte border
-        fileobj.write(b'\x00' * (extstart + rawsize - fileobj.tell()))
+        pad = extstart + rawsize - fileobj.tell()
+        if pad:
+            fileobj.write(bytes(pad))
 
 
 class Nifti1Extension(NiftiExtension[T]):
@@ -461,6 +498,8 @@ class Nifti1Extension(NiftiExtension[T]):
     as `comment`. More sophisticated extensions should/will be supported by
     dedicated subclasses.
     """
+
+    code = 0  # Default to unknown extension
 
     def _unmangle(self, value: bytes) -> T:
         """Convert the extension content into its runtime representation.
