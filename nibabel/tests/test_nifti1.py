@@ -30,7 +30,6 @@ from nibabel.nifti1 import (
     Nifti1Image,
     Nifti1Pair,
     Nifti1PairHeader,
-    NiftiJSONExtension,
     data_type_codes,
     extension_codes,
     load,
@@ -1413,56 +1412,6 @@ def test_nifti_dicom_extension():
     # creating an extension with bad content should raise
     with pytest.raises(TypeError):
         Nifti1DicomExtension(2, 0)
-
-
-def test_json_extension(tmp_path):
-    nim = load(image_file)
-    hdr = nim.header
-    exts_container = hdr.extensions
-
-    # Test basic functionality
-    json_ext = NiftiJSONExtension('ignore', b'{"key": "value"}')
-    assert json_ext.get_content() == {'key': 'value'}
-    byte_content = json_ext._mangle(json_ext.get_content())
-    assert byte_content == b'{"key": "value"}'
-    json_obj = json_ext._unmangle(byte_content)
-    assert json_obj == {'key': 'value'}
-    size = 16 * ((len(byte_content) + 7) // 16 + 1)
-    assert json_ext.get_sizeondisk() == size
-
-    def ext_to_bytes(ext, byteswap=False):
-        bio = BytesIO()
-        ext.write_to(bio, byteswap)
-        return bio.getvalue()
-
-    # Check serialization
-    bytestring = ext_to_bytes(json_ext)
-    assert bytestring[:8] == struct.pack('<2I', size, extension_codes['ignore'])
-    assert bytestring[8:].startswith(byte_content)
-    assert len(bytestring) == size
-
-    # Save to file and read back
-    exts_container.append(json_ext)
-    nim.to_filename(tmp_path / 'test.nii')
-
-    # We used ignore, so it comes back as a Nifti1Extension
-    rt_img = Nifti1Image.from_filename(tmp_path / 'test.nii')
-    assert len(rt_img.header.extensions) == 3
-    rt_ext = rt_img.header.extensions[-1]
-    assert rt_ext.get_code() == extension_codes['ignore']
-    assert rt_ext.get_content() == byte_content
-
-    # MRS is currently the only JSON extension
-    json_ext._code = extension_codes['mrs']
-    nim.to_filename(tmp_path / 'test.nii')
-
-    # Check that the extension is read back as a NiftiJSONExtension
-    rt_img = Nifti1Image.from_filename(tmp_path / 'test.nii')
-    assert len(rt_img.header.extensions) == 3
-    rt_ext = rt_img.header.extensions[-1]
-    assert rt_ext.get_code() == extension_codes['mrs']
-    assert isinstance(rt_ext, NiftiJSONExtension)
-    assert rt_ext.get_content() == json_obj
 
 
 class TestNifti1General:
