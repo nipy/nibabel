@@ -555,7 +555,7 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
     """
 
     code = 2
-    _is_implict_VR: bool = False
+    _is_implicit_VR: bool = False
     _is_little_endian: bool = True
 
     def __init__(
