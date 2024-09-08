@@ -22,7 +22,7 @@ from io import BytesIO
 import numpy as np
 import numpy.linalg as npl
 
-if sys.version_info <= (3, 12):
+if sys.version_info < (3, 13):
     from typing_extensions import Self, TypeVar  # PY312
 else:
     from typing import Self, TypeVar
