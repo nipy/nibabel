@@ -468,14 +468,14 @@ class OrthoSlicer3D:
         dv *= 1.0 if event.button == 'up' else -1.0
         dv *= -1 if self._flips[ii] else 1
         val = self._data_idx[ii] + dv
-        
+
         if ii == 3:
             self._set_volume_index(val)
         else:
             coords = [self._data_idx[k] for k in range(3)]
             coords[ii] = val
             coords_ordered = [0, 0, 0, 1]
-            for k in range(3): 
+            for k in range(3):
                 coords_ordered[self._order[k]] = coords[k]
             position = np.dot(self._affine, coords_ordered)[:3]
             self._set_position(*position)
@@ -493,9 +493,11 @@ class OrthoSlicer3D:
             self._set_volume_index(event.xdata)
         else:
             # translate click xdata/ydata to physical position
-            xax, yax = [[self._order[1], self._order[2]], 
-                        [self._order[0], self._order[2]], 
-                        [self._order[0], self._order[1]]][ii]
+            xax, yax = [
+                [self._order[1], self._order[2]],
+                [self._order[0], self._order[2]],
+                [self._order[0], self._order[1]],
+            ][ii]
             x, y = event.xdata, event.ydata
             x = self._sizes[xax] - x - 1 if self._flips[xax] else x
             y = self._sizes[yax] - y - 1 if self._flips[yax] else y
@@ -503,9 +505,9 @@ class OrthoSlicer3D:
             idxs[xax] = x
             idxs[yax] = y
             idxs[self._order[ii]] = self._data_idx[ii]
-            self._set_position(*np.dot(self._affine, idxs)[:3]) 
+            self._set_position(*np.dot(self._affine, idxs)[:3])
         self._draw()
-    
+
     def _on_keypress(self, event):
         """Handle mpl keypress events"""
         if event.key is not None and 'escape' in event.key:
