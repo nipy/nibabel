@@ -198,7 +198,7 @@ def parse_AFNI_header(fobj):
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
-    return {key: value for key, value in map(_unpack_var, head)}
+    return dict(map(_unpack_var, head))
 
 
 class AFNIArrayProxy(ArrayProxy):

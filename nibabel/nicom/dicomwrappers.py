@@ -685,9 +685,7 @@ class MultiframeWrapper(Wrapper):
             frame_slc_pos = [np.inner(ipp, self.slice_normal) for ipp in frame_ipps]
             rnd_slc_pos = np.round(frame_slc_pos, 4)
             uniq_slc_pos = np.unique(rnd_slc_pos)
-            pos_ord_map = {
-                val: order for val, order in zip(uniq_slc_pos, np.argsort(uniq_slc_pos))
-            }
+            pos_ord_map = dict(zip(uniq_slc_pos, np.argsort(uniq_slc_pos)))
             self._frame_slc_ord = [pos_ord_map[pos] for pos in rnd_slc_pos]
             if len(self._frame_slc_ord) > 1:
                 self._slice_spacing = (
