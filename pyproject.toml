@@ -131,18 +131,19 @@ select = [
     "PYI",
     "Q",
     "RSE",
+    "RUF",
     "TCH",
     "UP",
 ]
 ignore = [
-    "B006",  # TODO: enable
-    "B008",  # TODO: enable
+    "B006",   # TODO: enable
+    "B008",   # TODO: enable
     "B007",
     "B011",
-    "B017",  # TODO: enable
+    "B017",   # TODO: enable
     "B018",
     "B020",
-    "B023",  # TODO: enable
+    "B023",   # TODO: enable
     "B028",
     "B904",
     "C401",
@@ -157,6 +158,10 @@ ignore = [
     "PT017",
     "PT018",
     "PYI024",
+    "RUF005",
+    "RUF012", # TODO: enable
+    "RUF015",
+    "RUF017", # TODO: enable
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
