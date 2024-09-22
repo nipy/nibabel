@@ -148,7 +148,7 @@ def test_warn_ignore():
 
 
 @pytest.mark.parametrize(
-    'regex, entries',
+    ('regex', 'entries'),
     [
         ['.*', ''],
         ['.*', ['any']],

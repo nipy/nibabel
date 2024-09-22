@@ -119,7 +119,7 @@ def test_nib_roi(tmp_path, inplace):
 
 
 @pytest.mark.parametrize(
-    'args, errmsg',
+    ('args', 'errmsg'),
     (
         (('-i', '1:1'), 'Cannot take zero-length slice'),
         (('-j', '1::2'), 'Downsampling is not supported'),

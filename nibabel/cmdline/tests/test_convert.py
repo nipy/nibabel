@@ -71,7 +71,7 @@ def test_convert_dtype(tmp_path, data_dtype):
 
 
 @pytest.mark.parametrize(
-    'ext,img_class',
+    ('ext', 'img_class'),
     [
         ('mgh', nib.MGHImage),
         ('img', nib.Nifti1Pair),
@@ -94,7 +94,7 @@ def test_convert_by_extension(tmp_path, ext, img_class):
 
 
 @pytest.mark.parametrize(
-    'ext,img_class',
+    ('ext', 'img_class'),
     [
         ('mgh', nib.MGHImage),
         ('img', nib.Nifti1Pair),
@@ -141,7 +141,7 @@ def test_convert_nifti_int_fail(tmp_path):
 
 
 @pytest.mark.parametrize(
-    'orig_dtype,alias,expected_dtype',
+    ('orig_dtype', 'alias', 'expected_dtype'),
     [
         ('int64', 'mask', 'uint8'),
         ('int64', 'compat', 'int32'),

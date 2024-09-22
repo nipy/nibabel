@@ -13,7 +13,7 @@ import nibabel as nib
 
 
 @pytest.mark.parametrize(
-    'verbose, v_args', [(-2, ['-qq']), (-1, ['-q']), (0, []), (1, ['-v']), (2, ['-vv'])]
+    ('verbose', 'v_args'), [(-2, ['-qq']), (-1, ['-q']), (0, []), (1, ['-v']), (2, ['-vv'])]
 )
 @pytest.mark.parametrize('doctests', (True, False))
 @pytest.mark.parametrize('coverage', (True, False))
