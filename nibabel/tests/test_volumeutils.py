@@ -989,7 +989,7 @@ def test_seek_tell_logic():
 
     class BabyBio(BytesIO):
         def seek(self, *args):
-            raise OSError()
+            raise OSError
 
     bio = BabyBio()
     # Fresh fileobj, position 0, can't seek - error
