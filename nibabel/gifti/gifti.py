@@ -18,7 +18,7 @@ import base64
 import sys
 import warnings
 from copy import copy
-from typing import Type, cast
+from typing import cast
 
 import numpy as np
 
@@ -598,7 +598,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     # The parser will in due course be a GiftiImageParser, but we can't set
     # that now, because it would result in a circular import.  We set it after
     # the class has been defined, at the end of the class definition.
-    parser: Type[xml.XmlParser]
+    parser: type[xml.XmlParser]
 
     def __init__(
         self,
