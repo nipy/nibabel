@@ -117,6 +117,7 @@ exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
 [tool.ruff.lint]
 select = [
     "B",
+    "C4",
     "F",
     "I",
     "PLE",
@@ -135,6 +136,9 @@ ignore = [
     "B023",  # TODO: enable
     "B028",
     "B904",
+    "C401",
+    "C408",
+    "C416",
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
