@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import bz2
 import gzip
-import io
 import typing as ty
 
 from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:
+    import io
+
     import indexed_gzip  # type: ignore[import]
     import pyzstd
 

@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import io
 import sys
 import typing as ty
 import warnings
@@ -25,6 +24,8 @@ from .casting import OK_FLOATS, shared_range
 from .externals.oset import OrderedSet
 
 if ty.TYPE_CHECKING:
+    import io
+
     import numpy.typing as npt
 
     Scalar = np.number | float

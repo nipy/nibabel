@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import typing as ty
-from types import ModuleType
 
 from packaging.version import Version
 
 from .tripwire import TripWire
+
+if ty.TYPE_CHECKING:
+    from types import ModuleType
 
 
 def _check_pkg_version(min_version: str | Version) -> ty.Callable[[ModuleType], bool]:

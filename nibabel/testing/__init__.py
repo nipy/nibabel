@@ -26,12 +26,13 @@ from numpy.testing import assert_array_equal
 from .helpers import assert_data_similar, bytesio_filemap, bytesio_round_trip
 from .np_features import memmap_after_ufunc
 
+if ty.TYPE_CHECKING:
+    from importlib.resources.abc import Traversable
+
 try:
     from importlib.resources import as_file, files
-    from importlib.resources.abc import Traversable
 except ImportError:  # PY38
     from importlib_resources import as_file, files
-    from importlib_resources.abc import Traversable
 
 
 def get_test_data(

@@ -10,11 +10,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from .analyze import AnalyzeImage
 from .brikhead import AFNIImage
 from .cifti2 import Cifti2Image
-from .dataobj_images import DataobjImage
-from .filebasedimages import FileBasedImage
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
 from .minc1 import Minc1Image
@@ -24,6 +24,10 @@ from .nifti2 import Nifti2Image, Nifti2Pair
 from .parrec import PARRECImage
 from .spm2analyze import Spm2AnalyzeImage
 from .spm99analyze import Spm99AnalyzeImage
+
+if TYPE_CHECKING:
+    from .dataobj_images import DataobjImage
+    from .filebasedimages import FileBasedImage
 
 # Ordered by the load/save priority.
 all_image_classes: list[type[FileBasedImage]] = [
