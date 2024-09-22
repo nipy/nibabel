@@ -957,7 +957,7 @@ class EcatImage(SpatialImage):
         hdr.write_to(hdrf)
 
         # Write every frames
-        for index in range(0, self.header['num_frames']):
+        for index in range(self.header['num_frames']):
             # Move to subheader offset
             frame_offset = subheaders._get_frame_offset(index) - 512
             imgf.seek(frame_offset)
