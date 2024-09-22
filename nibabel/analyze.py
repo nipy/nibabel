@@ -515,7 +515,9 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         data = np.asanyarray(data)
         shape = self.get_data_shape()
         if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' % ', '.join(str(s) for s in shape))
+            raise HeaderDataError(
+                'Data should be shape ({})'.format(', '.join(str(s) for s in shape))
+            )
         out_dtype = self.get_data_dtype()
         if rescale:
             try:

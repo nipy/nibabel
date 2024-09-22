@@ -570,7 +570,9 @@ class MGHImage(SpatialImage, SerializableImage):
         """
         shape = header.get_data_shape()
         if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' % ', '.join(str(s) for s in shape))
+            raise HeaderDataError(
+                'Data should be shape ({})'.format(', '.join(str(s) for s in shape))
+            )
         offset = header.get_data_offset()
         out_dtype = header.get_data_dtype()
         array_to_file(data, mghfile, out_dtype, offset)
