@@ -431,17 +431,17 @@ def test_DeterministicGzipFile_fileobj():
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(filename='', mode='wb', fileobj=fobj) as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(fileobj=fobj, mode='wb') as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(filename='test.gz', mode='wb', fileobj=fobj) as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
 
 def test_bitwise_determinism():
