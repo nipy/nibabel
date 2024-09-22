@@ -241,7 +241,7 @@ def test_load_dataarray1():
         me = img.darrays[0].meta
         assert 'AnatomicalStructurePrimary' in me
         assert 'AnatomicalStructureSecondary' in me
-        me['AnatomicalStructurePrimary'] == 'CortexLeft'
+        assert me['AnatomicalStructurePrimary'] == 'CortexLeft'
         assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4, 4))
         assert xform_codes.niistring[img.darrays[0].coordsys.dataspace] == 'NIFTI_XFORM_TALAIRACH'
         assert xform_codes.niistring[img.darrays[0].coordsys.xformspace] == 'NIFTI_XFORM_TALAIRACH'
@@ -279,7 +279,7 @@ def test_load_dataarray4():
 def test_dataarray5():
     img5 = load(DATA_FILE5)
     for da in img5.darrays:
-        gifti_endian_codes.byteorder[da.endian] == 'little'
+        assert gifti_endian_codes.byteorder[da.endian] == 'little'
     assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
     assert_array_almost_equal(img5.darrays[1].data, DATA_FILE5_darr2)
     # Round trip tested below

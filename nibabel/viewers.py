@@ -447,7 +447,7 @@ class OrthoSlicer3D:
     # Matplotlib handlers ####################################################
     def _in_axis(self, event):
         """Return axis index if within one of our axes, else None"""
-        if getattr(event, 'inaxes') is None:
+        if event.inaxes is None:
             return None
         for ii, ax in enumerate(self._axes):
             if event.inaxes is ax:
