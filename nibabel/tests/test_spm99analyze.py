@@ -423,7 +423,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         aff = np.diag([2, 3, 4, 1])  # no LR flip in affine
         img = img_klass(arr, aff)
         fm = img.file_map
-        for key, value in fm.items():
+        for value in fm.values():
             value.fileobj = BytesIO()
         # Test round trip
         img.to_file_map()
@@ -475,7 +475,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         img = img_klass(np.zeros((2, 3, 4)), None)
         aff = img.header.get_best_affine()
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)

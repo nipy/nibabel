@@ -207,7 +207,7 @@ class TestLoadSave(unittest.TestCase):
 
     def test_save_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
-        for ext, cls in FORMATS.items():
+        for ext in FORMATS:
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram, filename)
@@ -216,7 +216,7 @@ class TestLoadSave(unittest.TestCase):
 
     def test_save_simple_file(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
-        for ext, cls in FORMATS.items():
+        for ext in FORMATS:
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram, filename)
@@ -262,7 +262,7 @@ class TestLoadSave(unittest.TestCase):
     def test_save_sliced_tractogram(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
         original_tractogram = tractogram.copy()
-        for ext, cls in FORMATS.items():
+        for ext in FORMATS:
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram[::2], filename)
@@ -283,7 +283,7 @@ class TestLoadSave(unittest.TestCase):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
 
         # Just to create a generator
-        for ext, _ in FORMATS.items():
+        for ext in FORMATS:
             filtered = (s for s in tractogram.streamlines if True)
             lazy_tractogram = LazyTractogram(lambda: filtered, affine_to_rasmm=np.eye(4))
 
