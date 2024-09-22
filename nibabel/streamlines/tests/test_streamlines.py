@@ -191,13 +191,13 @@ class TestLoadSave(unittest.TestCase):
         trk_file = trk.TrkFile(tractogram)
 
         # No need for keyword arguments.
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             nib.streamlines.save(trk_file, 'dummy.trk', header={})
 
         # Wrong extension.
         with pytest.warns(ExtensionWarning, match='extension'):
             trk_file = trk.TrkFile(tractogram)
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 nib.streamlines.save(trk_file, 'dummy.tck', header={})
 
         with InTemporaryDirectory():
@@ -272,11 +272,11 @@ class TestLoadSave(unittest.TestCase):
                 assert_tractogram_equal(tractogram, original_tractogram)
 
     def test_load_unknown_format(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             nib.streamlines.load('')
 
     def test_save_unknown_format(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             nib.streamlines.save(Tractogram(), '')
 
     def test_save_from_generator(self):
