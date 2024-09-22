@@ -36,7 +36,6 @@ DEBUG = True
         ([[np.nan, -1, 2], [-2, np.nan, 1]], (-2, 2)),
         ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
         ([[-np.inf, 2], [np.nan, 1]], (1, 2)),  # good max case
-        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
         ([np.nan], (np.inf, -np.inf)),
         ([np.inf], (np.inf, -np.inf)),
         ([-np.inf], (np.inf, -np.inf)),
