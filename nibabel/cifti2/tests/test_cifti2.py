@@ -392,7 +392,7 @@ def test_matrix():
     m[0] = mim_1
     assert list(m.mapped_indices) == [1]
     m.insert(0, mim_0)
-    assert list(sorted(m.mapped_indices)) == [0, 1]
+    assert sorted(m.mapped_indices) == [0, 1]
     assert h.number_of_mapped_indices == 2
     assert h.get_index_map(0) == mim_0
     assert h.get_index_map(1) == mim_1
