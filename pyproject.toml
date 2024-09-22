@@ -124,6 +124,7 @@ select = [
     "FURB",
     "I",
     "PERF",
+    "PGH",
     "PIE",
     "PLE",
     "PT",
