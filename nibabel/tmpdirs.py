@@ -54,7 +54,7 @@ class TemporaryDirectory(tempfile.TemporaryDirectory):
         >>> os.path.exists(tmpdir)
         False
         """
-        return super().__init__(suffix, prefix, dir)
+        super().__init__(suffix, prefix, dir)
 
 
 @contextmanager

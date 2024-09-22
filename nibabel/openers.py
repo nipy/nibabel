@@ -68,7 +68,7 @@ class DeterministicGzipFile(gzip.GzipFile):
                 raise TypeError('Must define either fileobj or filename')
             # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
             fileobj = self.myfileobj = ty.cast(io.FileIO, open(filename, modestr))
-        return super().__init__(
+        super().__init__(
             filename='',
             mode=modestr,
             compresslevel=compresslevel,
