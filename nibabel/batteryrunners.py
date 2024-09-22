@@ -252,7 +252,7 @@ class Report:
     def message(self):
         """formatted message string, including fix message if present"""
         if self.fix_msg:
-            return '; '.join((self.problem_msg, self.fix_msg))
+            return f'{self.problem_msg}; {self.fix_msg}'
         return self.problem_msg
 
     def log_raise(self, logger, error_level=40):
