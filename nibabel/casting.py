@@ -764,7 +764,7 @@ def able_int_type(values):
     >>> able_int_type([-1, 1]) == np.int8
     True
     """
-    if any([v % 1 for v in values]):
+    if any(v % 1 for v in values):
         return None
     mn = min(values)
     mx = max(values)
