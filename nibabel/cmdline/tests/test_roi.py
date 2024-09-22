@@ -143,7 +143,7 @@ def test_entrypoint(capsys):
         except SystemExit:
             pass
         else:
-            assert False, 'argparse exits on --help. If changing to another parser, update test.'
+            pytest.fail('argparse exits on --help. If changing to another parser, update test.')
     captured = capsys.readouterr()
     assert captured.out.startswith('usage: nib-roi')
 
