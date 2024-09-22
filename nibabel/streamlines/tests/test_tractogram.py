@@ -49,8 +49,8 @@ def make_fake_tractogram(
 ):
     """Make multiple streamlines according to provided requirements."""
     all_streamlines = []
-    all_data_per_point = defaultdict(lambda: [])
-    all_data_per_streamline = defaultdict(lambda: [])
+    all_data_per_point = defaultdict(list)
+    all_data_per_streamline = defaultdict(list)
     for nb_points in list_nb_points:
         data = make_fake_streamline(
             nb_points, data_per_point_shapes, data_for_streamline_shapes, rng
