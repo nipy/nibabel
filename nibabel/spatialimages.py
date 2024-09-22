@@ -139,11 +139,9 @@ from typing import Literal
 
 import numpy as np
 
-from .arrayproxy import ArrayLike
 from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .fileholders import FileMap
 from .fileslice import canonical_slicers
 from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D
@@ -156,6 +154,9 @@ except ImportError:  # PY38
 
 if ty.TYPE_CHECKING:
     import numpy.typing as npt
+
+    from .arrayproxy import ArrayLike
+    from .fileholders import FileMap
 
 SpatialImgT = ty.TypeVar('SpatialImgT', bound='SpatialImage')
 SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')

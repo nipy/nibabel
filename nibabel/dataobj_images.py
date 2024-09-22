@@ -14,14 +14,14 @@ import typing as ty
 
 import numpy as np
 
-from .arrayproxy import ArrayLike
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .fileholders import FileMap
 
 if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
+    from .arrayproxy import ArrayLike
+    from .fileholders import FileMap
     from .filename_parser import FileSpec
 
 ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
