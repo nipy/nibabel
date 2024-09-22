@@ -10,11 +10,13 @@
 
 from __future__ import annotations
 
-import io
 import typing as ty
 from copy import copy
 
 from .openers import ImageOpener
+
+if ty.TYPE_CHECKING:
+    import io
 
 
 class FileHolderError(Exception):

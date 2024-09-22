@@ -132,9 +132,7 @@ work:
 
 from __future__ import annotations
 
-import io
 import typing as ty
-from collections.abc import Sequence
 from typing import Literal
 
 import numpy as np
@@ -153,6 +151,9 @@ except ImportError:  # PY38
     from functools import lru_cache as cache
 
 if ty.TYPE_CHECKING:
+    import io
+    from collections.abc import Sequence
+
     import numpy.typing as npt
 
     from .arrayproxy import ArrayLike
