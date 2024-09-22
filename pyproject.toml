@@ -123,6 +123,7 @@ select = [
     "I",
     "PIE",
     "PLE",
+    "PYI",
     "Q",
     "RSE",
     "TCH",
@@ -143,6 +144,7 @@ ignore = [
     "C408",
     "C416",
     "PIE790",
+    "PYI024",
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
