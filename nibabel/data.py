@@ -87,8 +87,7 @@ class Datasource:
         for base, dirs, files in os.walk(self.base_path):
             if relative:
                 base = base[len(self.base_path) + 1 :]
-            for filename in files:
-                out_list.append(pjoin(base, filename))
+            out_list.extend(pjoin(base, filename) for filename in files)
         return out_list
 
 
