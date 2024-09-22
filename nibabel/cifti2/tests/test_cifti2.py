@@ -37,7 +37,7 @@ def test_cifti2_metadata():
     assert len(md) == 1
     assert list(iter(md)) == ['a']
     assert md['a'] == 'aval'
-    assert md.data == dict([('a', 'aval')])
+    assert md.data == {'a': 'aval'}
 
     with pytest.warns(FutureWarning):
         md = ci.Cifti2MetaData(metadata={'a': 'aval'})
@@ -57,7 +57,7 @@ def test_cifti2_metadata():
     md['a'] = 'aval'
     assert md['a'] == 'aval'
     assert len(md) == 1
-    assert md.data == dict([('a', 'aval')])
+    assert md.data == {'a': 'aval'}
 
     del md['a']
     assert len(md) == 0
