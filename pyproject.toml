@@ -118,6 +118,7 @@ exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
 select = [
     "F",
     "I",
+    "PLE",
     "Q",
     "UP",
 ]
