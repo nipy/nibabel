@@ -115,7 +115,12 @@ line-length = 99
 exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
 
 [tool.ruff.lint]
-select = ["F", "I", "Q"]
+select = [
+    "F",
+    "I",
+    "Q",
+    "UP",
+]
 ignore = [
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",

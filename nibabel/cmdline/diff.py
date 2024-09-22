@@ -302,7 +302,7 @@ def display_diff(files, diff):
 
         for item in value:
             if isinstance(item, dict):
-                item_str = ', '.join('%s: %s' % i for i in item.items())
+                item_str = ', '.join('{}: {}'.format(*i) for i in item.items())
             elif item is None:
                 item_str = '-'
             else:

@@ -160,7 +160,7 @@ def test_data_path(with_nimd_env):
         tmpfile = pjoin(tmpdir, 'another_example.ini')
         with open(tmpfile, 'w') as fobj:
             fobj.write('[DATA]\n')
-            fobj.write('path = %s\n' % '/path/two')
+            fobj.write('path = {}\n'.format('/path/two'))
         assert get_data_path() == tst_list + ['/path/two'] + old_pth
 
 

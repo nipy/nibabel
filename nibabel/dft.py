@@ -231,7 +231,7 @@ class _StorageInstance:
                             WHERE storage_instance = ?
                             ORDER BY directory, name"""
                 c.execute(query, (self.uid,))
-                val = ['%s/%s' % tuple(row) for row in c]
+                val = ['{}/{}'.format(*tuple(row)) for row in c]
             self.files = val
         return val
 

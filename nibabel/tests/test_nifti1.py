@@ -538,7 +538,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_slice_duration(0.1)
         # We need a function to print out the Nones and floating point
         # values in a predictable way, for the tests below.
-        _stringer = lambda val: val is not None and '%2.1f' % val or None
+        _stringer = lambda val: val is not None and f'{val:2.1f}' or None
         _print_me = lambda s: list(map(_stringer, s))
         # The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']

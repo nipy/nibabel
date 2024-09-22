@@ -552,7 +552,7 @@ class Nifti1Extensions(list):
         return np.sum([e.get_sizeondisk() for e in self])
 
     def __repr__(self):
-        return 'Nifti1Extensions(%s)' % ', '.join(str(e) for e in self)
+        return 'Nifti1Extensions({})'.format(', '.join(str(e) for e in self))
 
     def write_to(self, fileobj, byteswap):
         """Write header extensions to fileobj
