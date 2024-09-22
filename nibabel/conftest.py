@@ -5,7 +5,7 @@ import pytest
 
 # Ignore warning requesting help with nicom
 with pytest.warns(UserWarning):
-    import nibabel.nicom  # noqa :401
+    import nibabel.nicom  # noqa: F401
 
 
 @pytest.fixture(scope='session', autouse=True)
