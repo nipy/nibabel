@@ -15,7 +15,7 @@ import sys
 import numpy as np
 from numpy.testing import measure
 
-from nibabel.volumeutils import finite_range  # NOQA
+from nibabel.volumeutils import finite_range  # noqa: F401
 
 from .butils import print_git_title
 
