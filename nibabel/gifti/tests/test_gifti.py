@@ -425,11 +425,12 @@ def test_gifti_coord(capsys):
     captured = capsys.readouterr()
     assert (
         captured.out
-        == """Dataspace:  NIFTI_XFORM_UNKNOWN
+        == """\
+Dataspace:  NIFTI_XFORM_UNKNOWN
 XFormSpace:  NIFTI_XFORM_UNKNOWN
-Affine Transformation Matrix: 
+Affine Transformation Matrix:
  None
- """
+"""
     )
     gcs.to_xml()
 
