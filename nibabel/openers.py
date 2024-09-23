@@ -22,6 +22,7 @@ if ty.TYPE_CHECKING:
     from types import TracebackType
 
     from _typeshed import WriteableBuffer
+    from typing_extensions import Self
 
     ModeRT = ty.Literal['r', 'rt']
     ModeRB = ty.Literal['rb']
@@ -246,7 +247,7 @@ class Opener:
         if self.me_opened:
             self.close()
 
-    def __enter__(self) -> Opener:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
