@@ -129,19 +129,17 @@ work:
     >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 """
+
 from __future__ import annotations
 
-import io
 import typing as ty
-from collections.abc import Sequence
 from typing import Literal
 
 import numpy as np
 
-from .arrayproxy import ArrayLike
+from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .fileholders import FileMap
 from .fileslice import canonical_slicers
 from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D
@@ -152,31 +150,29 @@ try:
 except ImportError:  # PY38
     from functools import lru_cache as cache
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
+    import io
+    from collections.abc import Sequence
+
     import numpy.typing as npt
+
+    from .arrayproxy import ArrayLike
+    from .fileholders import FileMap
 
 SpatialImgT = ty.TypeVar('SpatialImgT', bound='SpatialImage')
 SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')
 
 
 class HasDtype(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype:
-        ...  # pragma: no cover
-
-    def set_data_dtype(self, dtype: npt.DTypeLike) -> None:
-        ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None: ...
 
 
 @ty.runtime_checkable
 class SpatialProtocol(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype:
-        ...  # pragma: no cover
-
-    def get_data_shape(self) -> ty.Tuple[int, ...]:
-        ...  # pragma: no cover
-
-    def get_zooms(self) -> ty.Tuple[float, ...]:
-        ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...
+    def get_data_shape(self) -> tuple[int, ...]: ...
+    def get_zooms(self) -> tuple[float, ...]: ...
 
 
 class HeaderDataError(Exception):
@@ -333,7 +329,7 @@ def _supported_np_types(klass: type[HasDtype]) -> set[type[np.generic]]:
         else:
             raise e
     supported = set()
-    for np_type in set(np.sctypeDict.values()):
+    for np_type in sctypes_aliases:
         try:
             obj.set_data_dtype(np_type)
         except HeaderDataError:
@@ -481,7 +477,7 @@ class SpatialImage(DataobjImage):
     def __init__(
         self,
         dataobj: ArrayLike,
-        affine: np.ndarray,
+        affine: np.ndarray | None,
         header: FileBasedHeader | ty.Mapping | None = None,
         extra: ty.Mapping | None = None,
         file_map: FileMap | None = None,
@@ -566,6 +562,7 @@ class SpatialImage(DataobjImage):
 
     def _affine2header(self) -> None:
         """Unconditionally set affine into the header"""
+        assert self._affine is not None
         RZS = self._affine[:3, :3]
         vox = np.sqrt(np.sum(RZS * RZS, axis=0))
         hdr = self._header

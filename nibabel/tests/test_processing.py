@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing processing module
-"""
+"""Testing processing module"""
 
 import logging
 from os.path import dirname
@@ -222,7 +221,7 @@ def test_resample_from_to(caplog):
 
 @needs_scipy
 def test_resample_to_output(caplog):
-    # Test routine to sample iamges to output space
+    # Test routine to sample images to output space
     # Image aligned to output axes - no-op
     data = np.arange(24, dtype='int32').reshape((2, 3, 4))
     img = Nifti1Image(data, np.eye(4))

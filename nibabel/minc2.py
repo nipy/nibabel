@@ -25,6 +25,9 @@ and compare against command line output of::
 
     mincstats my_funny.mnc
 """
+
+import warnings
+
 import numpy as np
 
 from .minc1 import Minc1File, Minc1Image, MincError, MincHeader
@@ -58,8 +61,13 @@ class Minc2File(Minc1File):
         # We don't currently support irregular spacing
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
         for dim in self._dims:
-            if dim.spacing != b'regular__':
+            # "If this attribute is absent, a value of regular__ should be assumed."
+            spacing = getattr(dim, 'spacing', b'regular__')
+            if spacing == b'irregular':
                 raise ValueError('Irregular spacing not supported')
+            elif spacing != b'regular__':
+                warnings.warn(f'Invalid spacing declaration: {spacing}; assuming regular')
+
         self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
         self._image_max = image['image-max']
         self._image_min = image['image-min']
@@ -156,7 +164,7 @@ class Minc2Image(Minc1Image):
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         # Import of h5py might take awhile for MPI-enabled builds
         # So we are importing it here "on demand"
-        import h5py  # type: ignore
+        import h5py  # type: ignore[import]
 
         holder = file_map['image']
         if holder.filename is None:

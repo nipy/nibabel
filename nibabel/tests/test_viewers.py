@@ -102,3 +102,230 @@ def test_viewer():
     v2.link_to(v1)  # shouldn't do anything
     v1.close()
     v2.close()
+
+
+@needs_mpl
+def test_viewer_nonRAS():
+    data1 = np.random.rand(10, 20, 40)
+    data1[5, 10, :] = 0
+    data1[5, :, 30] = 0
+    data1[:, 10, 30] = 0
+    # RSA affine
+    aff1 = np.array([[1, 0, 0, -5], [0, 0, 1, -30], [0, 1, 0, -10], [0, 0, 0, 1]])
+    o1 = OrthoSlicer3D(data1, aff1)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+
+    # Sagittal view: [0, I->S, P->A], so data is transposed, matching plot array
+    assert_array_equal(sag, data1[5, :, :])
+    # Coronal view: [L->R, I->S, 0]. Data is not transposed, transpose to match plot array
+    assert_array_equal(cor, data1[:, :, 30].T)
+    # Axial view: [L->R, 0, P->A]. Data is not transposed, transpose to match plot array
+    assert_array_equal(axi, data1[:, 10, :].T)
+
+    o1.set_position(1, 2, 3)  # R, A, S coordinates
+
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+
+    # Shift 1 right, 2 anterior, 3 superior
+    assert_array_equal(sag, data1[6, :, :])
+    assert_array_equal(cor, data1[:, :, 32].T)
+    assert_array_equal(axi, data1[:, 13, :].T)
+
+
+@needs_mpl
+def test_viewer_nonRAS_on_mouse():
+    """
+    test on_mouse selection on non RAS matrices
+
+    """
+    # This affine simulates an acquisition on a quadruped subject that is in a prone position.
+    # This corresponds to an acquisition with:
+    # - LR inverted on scanner x (i)
+    # - IS on scanner y (j)
+    # - PA on scanner z (k)
+    # This example enables to test also OrthoSlicer3D properties `_flips` and `_order`.
+
+    (I, J, K) = (10, 20, 40)
+    data1 = np.random.rand(I, J, K)
+    (i_target, j_target, k_target) = (2, 14, 12)
+    i1 = i_target - 2
+    i2 = i_target + 2
+    j1 = j_target - 3
+    j2 = j_target + 3
+    k1 = k_target - 4
+    k2 = k_target + 4
+    data1[i1 : i2 + 1, j1 : j2 + 1, k1 : k2 + 1] = 0
+    data1[i_target, j_target, k_target] = 1
+    valp1 = 1.5
+    valm1 = 0.5
+    data1[i_target - 1, j_target, k_target] = valp1  # x flipped
+    data1[i_target + 1, j_target, k_target] = valm1  # x flipped
+    data1[i_target, j_target - 1, k_target] = valm1
+    data1[i_target, j_target + 1, k_target] = valp1
+    data1[i_target, j_target, k_target - 1] = valm1
+    data1[i_target, j_target, k_target + 1] = valp1
+
+    aff1 = np.array([[-1, 0, 0, 5], [0, 0, 1, -10], [0, 1, 0, -30], [0, 0, 0, 1]])
+
+    o1 = OrthoSlicer3D(data1, aff1)
+
+    class Event:
+        def __init__(self):
+            self.name = 'simulated mouse event'
+            self.button = 1
+
+    event = Event()
+    event.xdata = k_target
+    event.ydata = j_target
+    event.inaxes = o1._ims[0].axes
+    o1._on_mouse(event)
+
+    event.inaxes = o1._ims[1].axes
+    event.xdata = (I - 1) - i_target  # x flipped
+    event.ydata = j_target
+    o1._on_mouse(event)
+
+    event.inaxes = o1._ims[2].axes
+    event.xdata = (I - 1) - i_target  # x flipped
+    event.ydata = k_target
+    o1._on_mouse(event)
+
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+
+    assert_array_equal(sag, data1[i_target, :, :])  #
+    assert_array_equal(cor, data1[::-1, :, k_target].T)  # x flipped
+    assert_array_equal(axi, data1[::-1, j_target, :].T)  # x flipped
+    return None
+
+
+@needs_mpl
+def test_viewer_nonRAS_on_scroll():
+    """
+    test scrolling on non RAS matrices
+
+    """
+    # This affine simulates an acquisition on a quadruped subject that is in a prone position.
+    # This corresponds to an acquisition with:
+    # - LR inverted on scanner x (i)
+    # - IS on scanner y (j)
+    # - PA on scanner z (k)
+    # This example enables to test also OrthoSlicer3D properties `_flips` and `_order`.
+
+    (I, J, K) = (10, 20, 40)
+    data1 = np.random.rand(I, J, K)
+    (i_target, j_target, k_target) = (2, 14, 12)
+    i1 = i_target - 2
+    i2 = i_target + 2
+    j1 = j_target - 3
+    j2 = j_target + 3
+    k1 = k_target - 4
+    k2 = k_target + 4
+    data1[i1 : i2 + 1, j1 : j2 + 1, k1 : k2 + 1] = 0
+    data1[i_target, j_target, k_target] = 1
+    valp1 = 1.5
+    valm1 = 0.5
+    data1[i_target - 1, j_target, k_target] = valp1  # x flipped
+    data1[i_target + 1, j_target, k_target] = valm1  # x flipped
+    data1[i_target, j_target - 1, k_target] = valm1
+    data1[i_target, j_target + 1, k_target] = valp1
+    data1[i_target, j_target, k_target - 1] = valm1
+    data1[i_target, j_target, k_target + 1] = valp1
+
+    aff1 = np.array([[-1, 0, 0, 5], [0, 0, 1, -10], [0, 1, 0, -30], [0, 0, 0, 1]])
+
+    o1 = OrthoSlicer3D(data1, aff1)
+
+    class Event:
+        def __init__(self):
+            self.name = 'simulated mouse event'
+            self.button = None
+            self.key = None
+
+    [x_t, y_t, z_t] = list(aff1.dot(np.array([i_target, j_target, k_target, 1]))[:3])
+    # print(x_t, y_t, z_t)
+    # scanner positions are x_t=3, y_t=2, z_t=16
+
+    event = Event()
+
+    # Sagittal plane - one scroll up
+    # x coordinate is flipped so index decrease by 1
+    o1.set_position(x_t, y_t, z_t)
+    event.inaxes = o1._ims[0].axes
+    event.button = 'up'
+    o1._on_scroll(event)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+    assert_array_equal(sag, data1[i_target - 1, :, :])
+    assert_array_equal(cor, data1[::-1, :, k_target].T)  # ::-1 because the array is flipped in x
+    assert_array_equal(axi, data1[::-1, j_target, :].T)  # ::-1 because the array is flipped in x
+
+    # Sagittal plane - one scrolled down
+    o1.set_position(x_t, y_t, z_t)
+    event.button = 'down'
+    o1._on_scroll(event)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+    assert_array_equal(sag, data1[i_target + 1, :, :])
+    assert_array_equal(cor, data1[::-1, :, k_target].T)
+    assert_array_equal(axi, data1[::-1, j_target, :].T)
+
+    # Coronal plane - one scroll up
+    # y coordinate is increase by 1
+    o1.set_position(x_t, y_t, z_t)
+    event.inaxes = o1._ims[1].axes
+    event.button = 'up'
+    o1._on_scroll(event)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+    assert_array_equal(sag, data1[i_target, :, :])
+    assert_array_equal(
+        cor, data1[::-1, :, k_target + 1].T
+    )  # ::-1 because the array is flipped in x
+    assert_array_equal(axi, data1[::-1, j_target, :].T)  # ::-1 because the array is flipped in x
+
+    # Coronal plane - one scrolled down
+    o1.set_position(x_t, y_t, z_t)
+    event.button = 'down'
+    o1._on_scroll(event)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+    assert_array_equal(sag, data1[i_target, :, :])
+    assert_array_equal(cor, data1[::-1, :, k_target - 1].T)
+    assert_array_equal(axi, data1[::-1, j_target, :].T)
+
+    # Axial plane - one scroll up
+    # y is increase by 1
+    o1.set_position(x_t, y_t, z_t)
+    event.inaxes = o1._ims[2].axes
+    event.button = 'up'
+    o1._on_scroll(event)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+    assert_array_equal(sag, data1[i_target, :, :])
+    assert_array_equal(cor, data1[::-1, :, k_target].T)  # ::-1 because the array is flipped in x
+    assert_array_equal(
+        axi, data1[::-1, j_target + 1, :].T
+    )  # ::-1 because the array is flipped in x
+
+    # Axial plane - one scrolled down
+    o1.set_position(x_t, y_t, z_t)
+    event.button = 'down'
+    o1._on_scroll(event)
+    sag = o1._ims[0].get_array()
+    cor = o1._ims[1].get_array()
+    axi = o1._ims[2].get_array()
+    assert_array_equal(sag, data1[i_target, :, :])
+    assert_array_equal(cor, data1[::-1, :, k_target].T)
+    assert_array_equal(axi, data1[::-1, j_target - 1, :].T)
+    return None

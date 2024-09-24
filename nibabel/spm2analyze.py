@@ -7,11 +7,12 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read / write access to SPM2 version of analyze image format"""
+
 import numpy as np
 
 from . import spm99analyze as spm99  # module import
 
-image_dimension_dtd = spm99.image_dimension_dtd[:]
+image_dimension_dtd = spm99.image_dimension_dtd.copy()
 image_dimension_dtd[image_dimension_dtd.index(('funused2', 'f4'))] = ('scl_inter', 'f4')
 
 # Full header numpy dtype combined across sub-fields

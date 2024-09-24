@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for openers module"""
+
 import contextlib
 import hashlib
 import os
@@ -17,10 +18,8 @@ from io import BytesIO, UnsupportedOperation
 from unittest import mock
 
 import pytest
-from numpy.compat.py3k import asbytes, asstr
 from packaging.version import Version
 
-from ..deprecator import ExpiredDeprecationError
 from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
 from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
@@ -128,35 +127,36 @@ def patch_indexed_gzip(state):
         yield
 
 
-def test_Opener_gzip_type():
-    # Test that BufferedGzipFile or IndexedGzipFile are used as appropriate
+def test_Opener_gzip_type(tmp_path):
+    # Test that GzipFile or IndexedGzipFile are used as appropriate
 
-    data = 'this is some test data'
-    fname = 'test.gz'
+    data = b'this is some test data'
+    fname = tmp_path / 'test.gz'
 
-    with InTemporaryDirectory():
+    # make some test data
+    with GzipFile(fname, mode='wb') as f:
+        f.write(data)
 
-        # make some test data
-        with GzipFile(fname, mode='wb') as f:
-            f.write(data.encode())
+    # Each test is specified by a tuple containing:
+    #   (indexed_gzip present, Opener kwargs, expected file type)
+    tests = [
+        (False, {'mode': 'rb', 'keep_open': True}, GzipFile),
+        (False, {'mode': 'rb', 'keep_open': False}, GzipFile),
+        (False, {'mode': 'wb', 'keep_open': True}, GzipFile),
+        (False, {'mode': 'wb', 'keep_open': False}, GzipFile),
+        (True, {'mode': 'rb', 'keep_open': True}, MockIndexedGzipFile),
+        (True, {'mode': 'rb', 'keep_open': False}, MockIndexedGzipFile),
+        (True, {'mode': 'wb', 'keep_open': True}, GzipFile),
+        (True, {'mode': 'wb', 'keep_open': False}, GzipFile),
+    ]
 
-        # Each test is specified by a tuple containing:
-        #   (indexed_gzip present, Opener kwargs, expected file type)
-        tests = [
-            (False, {'mode': 'rb', 'keep_open': True}, GzipFile),
-            (False, {'mode': 'rb', 'keep_open': False}, GzipFile),
-            (False, {'mode': 'wb', 'keep_open': True}, GzipFile),
-            (False, {'mode': 'wb', 'keep_open': False}, GzipFile),
-            (True, {'mode': 'rb', 'keep_open': True}, MockIndexedGzipFile),
-            (True, {'mode': 'rb', 'keep_open': False}, MockIndexedGzipFile),
-            (True, {'mode': 'wb', 'keep_open': True}, GzipFile),
-            (True, {'mode': 'wb', 'keep_open': False}, GzipFile),
-        ]
-
-        for test in tests:
-            igzip_present, kwargs, expected = test
-            with patch_indexed_gzip(igzip_present):
-                assert isinstance(Opener(fname, **kwargs).fobj, expected)
+    for test in tests:
+        igzip_present, kwargs, expected = test
+        with patch_indexed_gzip(igzip_present):
+            opener = Opener(fname, **kwargs)
+            assert isinstance(opener.fobj, expected)
+            # Explicit close to appease Windows
+            del opener
 
 
 class TestImageOpener(unittest.TestCase):
@@ -342,10 +342,10 @@ virginia
         for input, does_t in files_to_test:
             with Opener(input, 'wb') as fobj:
                 for line in lines:
-                    fobj.write(asbytes(line + os.linesep))
+                    fobj.write(str.encode(line + os.linesep))
             with Opener(input, 'rb') as fobj:
                 for back_line, line in zip(fobj, lines):
-                    assert asstr(back_line).rstrip() == line
+                    assert back_line.decode().rstrip() == line
             if not does_t:
                 continue
             with Opener(input, 'rt') as fobj:
@@ -431,17 +431,17 @@ def test_DeterministicGzipFile_fileobj():
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(filename='', mode='wb', fileobj=fobj) as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(fileobj=fobj, mode='wb') as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(filename='test.gz', mode='wb', fileobj=fobj) as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
 
 def test_bitwise_determinism():

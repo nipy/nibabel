@@ -1,16 +1,28 @@
 """Class for recording and reporting deprecations"""
+
 from __future__ import annotations
 
 import functools
 import re
+import sys
 import typing as ty
 import warnings
+from textwrap import dedent
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     T = ty.TypeVar('T')
     P = ty.ParamSpec('P')
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
+
+
+def _dedent_docstring(docstring):
+    """Compatibility with Python 3.13+.
+
+    xref: https://github.com/python/cpython/issues/81283
+    """
+    return '\n'.join([dedent(line) for line in docstring.split('\n')])
+
 
 TESTSETUP = """
 
@@ -31,6 +43,10 @@ TESTCLEANUP = """
     >>> _ = _suppress_warnings.__exit__(None, None, None)
 
 """
+
+if sys.version_info >= (3, 13):
+    TESTSETUP = _dedent_docstring(TESTSETUP)
+    TESTCLEANUP = _dedent_docstring(TESTCLEANUP)
 
 
 class ExpiredDeprecationError(RuntimeError):

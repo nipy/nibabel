@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Context manager openers for various fileobject types"""
+
 from __future__ import annotations
 
 import gzip
@@ -17,10 +18,11 @@ from os.path import splitext
 
 from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, pyzstd
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     from types import TracebackType
 
     from _typeshed import WriteableBuffer
+    from typing_extensions import Self
 
     ModeRT = ty.Literal['r', 'rt']
     ModeRB = ty.Literal['rb']
@@ -35,11 +37,8 @@ if ty.TYPE_CHECKING:  # pragma: no cover
 
 @ty.runtime_checkable
 class Fileish(ty.Protocol):
-    def read(self, size: int = -1, /) -> bytes:
-        ...  # pragma: no cover
-
-    def write(self, b: bytes, /) -> int | None:
-        ...  # pragma: no cover
+    def read(self, size: int = -1, /) -> bytes: ...
+    def write(self, b: bytes, /) -> int | None: ...
 
 
 class DeterministicGzipFile(gzip.GzipFile):
@@ -70,7 +69,7 @@ class DeterministicGzipFile(gzip.GzipFile):
                 raise TypeError('Must define either fileobj or filename')
             # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
             fileobj = self.myfileobj = ty.cast(io.FileIO, open(filename, modestr))
-        return super().__init__(
+        super().__init__(
             filename='',
             mode=modestr,
             compresslevel=compresslevel,
@@ -86,7 +85,6 @@ def _gzip_open(
     mtime: int = 0,
     keep_open: bool = False,
 ) -> gzip.GzipFile:
-
     if not HAVE_INDEXED_GZIP or mode != 'rb':
         gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
@@ -129,6 +127,7 @@ class Opener:
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
+
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
@@ -248,7 +247,7 @@ class Opener:
         if self.me_opened:
             self.close()
 
-    def __enter__(self) -> Opener:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(

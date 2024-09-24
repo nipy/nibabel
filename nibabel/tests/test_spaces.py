@@ -1,5 +1,4 @@
-"""Tests for spaces module
-"""
+"""Tests for spaces module"""
 
 import numpy as np
 import numpy.linalg as npl

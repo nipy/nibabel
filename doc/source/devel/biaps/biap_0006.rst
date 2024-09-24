@@ -202,7 +202,7 @@ here is the definition of a "multi-frame image"::
     3.8.9 Multi-frame image:
         Image that contains multiple two-dimensional pixel planes.
 
-From `PS 3.3 of the 2011 DICOM standrd
+From `PS 3.3 of the 2011 DICOM standard
 <http://medical.nema.org/Dicom/2011/11_03pu.pdf>`_.
 
 **********************************

@@ -10,7 +10,6 @@
 Helper utilities to be used in cmdline applications
 """
 
-
 # global verbosity switch
 import re
 from io import StringIO
@@ -73,7 +72,7 @@ def table2string(table, out=None):
             if item.startswith('@'):
                 align = item[1]
                 item = item[2:]
-                if align not in ['l', 'r', 'c', 'w']:
+                if align not in ('l', 'r', 'c', 'w'):
                     raise ValueError(f'Unknown alignment {align}. Known are l,r,c')
             else:
                 align = 'c'
@@ -81,7 +80,7 @@ def table2string(table, out=None):
             nspacesl = max(ceil((col_width[j] - len(item)) / 2.0), 0)
             nspacesr = max(col_width[j] - nspacesl - len(item), 0)
 
-            if align in ['w', 'c']:
+            if align in ('w', 'c'):
                 pass
             elif align == 'l':
                 nspacesl, nspacesr = 0, nspacesl + nspacesr

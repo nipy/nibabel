@@ -53,7 +53,7 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, dicom_kwarg
        If True, raises an error if we don't find DWI information in the
        DICOM headers.
     dicom_kwargs : None or dict
-       Extra keyword arguments to pass to the pydicom ``read_file`` function.
+       Extra keyword arguments to pass to the pydicom ``dcmread`` function.
 
     Returns
     -------

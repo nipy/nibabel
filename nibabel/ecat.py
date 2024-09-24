@@ -42,6 +42,7 @@ currently ``libs/tpc/*ecat*`` and ``source/m-ecat*``.  Unfortunately XMedCon is
 GPL and some of the header files are adapted from CTI files (called CTI code
 below).  It's not clear what the licenses are for these files.
 """
+
 import warnings
 from numbers import Integral
 
@@ -389,7 +390,7 @@ def read_mlist(fileobj, endianness):
         mlist_index += n_rows
         if mlist_block_no <= 2:  # should block_no in (1, 2) be an error?
             break
-    return np.row_stack(mlists)
+    return np.vstack(mlists)
 
 
 def get_frame_order(mlist):
@@ -513,7 +514,6 @@ def read_subheaders(fileobj, mlist, endianness):
 
 
 class EcatSubHeader:
-
     _subhdrdtype = subhdr_dtype
     _data_type_codes = data_type_codes
 
@@ -923,7 +923,7 @@ class EcatImage(SpatialImage):
             endianness = native_code
 
         stream.seek(pos)
-        make_array_writer(data.newbyteorder(endianness), dtype).to_fileobj(stream)
+        make_array_writer(data.view(data.dtype.newbyteorder(endianness)), dtype).to_fileobj(stream)
 
     def to_file_map(self, file_map=None):
         """Write ECAT7 image to `file_map` or contained ``self.file_map``
@@ -957,7 +957,7 @@ class EcatImage(SpatialImage):
         hdr.write_to(hdrf)
 
         # Write every frames
-        for index in range(0, self.header['num_frames']):
+        for index in range(self.header['num_frames']):
             # Move to subheader offset
             frame_offset = subheaders._get_frame_offset(index) - 512
             imgf.seek(frame_offset)

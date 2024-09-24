@@ -1,5 +1,5 @@
-"""Testing CIFTI-2 objects
-"""
+"""Testing CIFTI-2 objects"""
+
 import collections
 from xml.etree import ElementTree
 
@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from nibabel import cifti2 as ci
-from nibabel.cifti2.cifti2 import Cifti2HeaderError, _float_01, _value_if_klass
+from nibabel.cifti2.cifti2 import _float_01, _value_if_klass
 from nibabel.nifti2 import Nifti2Header
 from nibabel.tests.test_dataobj_images import TestDataobjAPI as _TDA
 from nibabel.tests.test_image_api import DtypeOverrideMixin, SerializeMixin
@@ -37,7 +37,7 @@ def test_cifti2_metadata():
     assert len(md) == 1
     assert list(iter(md)) == ['a']
     assert md['a'] == 'aval'
-    assert md.data == dict([('a', 'aval')])
+    assert md.data == {'a': 'aval'}
 
     with pytest.warns(FutureWarning):
         md = ci.Cifti2MetaData(metadata={'a': 'aval'})
@@ -57,7 +57,7 @@ def test_cifti2_metadata():
     md['a'] = 'aval'
     assert md['a'] == 'aval'
     assert len(md) == 1
-    assert md.data == dict([('a', 'aval')])
+    assert md.data == {'a': 'aval'}
 
     del md['a']
     assert len(md) == 0
@@ -392,7 +392,7 @@ def test_matrix():
     m[0] = mim_1
     assert list(m.mapped_indices) == [1]
     m.insert(0, mim_0)
-    assert list(sorted(m.mapped_indices)) == [0, 1]
+    assert sorted(m.mapped_indices) == [0, 1]
     assert h.number_of_mapped_indices == 2
     assert h.get_index_map(0) == mim_0
     assert h.get_index_map(1) == mim_1

@@ -1,20 +1,19 @@
-"""Testing gifti objects
-"""
+"""Testing gifti objects"""
+
 import itertools
 import sys
-import warnings
 from io import BytesIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_equal
 
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from ... import load
 from ...fileholders import FileHolder
 from ...nifti1 import data_type_codes
-from ...testing import get_test_data
+from ...testing import deprecated_to, expires, get_test_data
 from .. import (
     GiftiCoordSystem,
     GiftiDataArray,
@@ -275,27 +274,29 @@ def test_labeltable():
     assert len(img.labeltable.labels) == 2
 
 
+@expires('6.0.0')
 def test_metadata():
     md = GiftiMetaData(key='value')
     # Old initialization methods
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         nvpair = GiftiNVPairs('key', 'value')
     with pytest.warns(FutureWarning) as w:
         md2 = GiftiMetaData(nvpair=nvpair)
     assert len(w) == 1
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         md3 = GiftiMetaData.from_dict({'key': 'value'})
     assert md == md2 == md3 == {'key': 'value'}
     # .data as a list of NVPairs is going away
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         assert md.data[0].name == 'key'
+    with deprecated_to('6.0.0'):
         assert md.data[0].value == 'value'
-    assert len(w) == 2
 
 
+@expires('6.0.0')
 def test_metadata_list_interface():
     md = GiftiMetaData(key='value')
-    with pytest.warns(DeprecationWarning):
+    with deprecated_to('6.0.0'):
         mdlist = md.data
     assert len(mdlist) == 1
     assert mdlist[0].name == 'key'
@@ -312,7 +313,7 @@ def test_metadata_list_interface():
     assert md['foo'] == 'bar'
 
     # Append new NVPair
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0.0'):
         nvpair = GiftiNVPairs('key', 'value')
     mdlist.append(nvpair)
     assert len(mdlist) == 2
@@ -327,7 +328,7 @@ def test_metadata_list_interface():
     assert len(md) == 0
 
     # Extension adds multiple keys
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0'):
         foobar = GiftiNVPairs('foo', 'bar')
     mdlist.extend([nvpair, foobar])
     assert len(mdlist) == 2
@@ -335,7 +336,7 @@ def test_metadata_list_interface():
     assert md == {'key': 'value', 'foo': 'bar'}
 
     # Insertion updates list order, though we don't attempt to preserve it in the dict
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0'):
         lastone = GiftiNVPairs('last', 'one')
     mdlist.insert(1, lastone)
     assert len(mdlist) == 3
@@ -358,14 +359,14 @@ def test_metadata_list_interface():
     mypair.value = 'strings'
     assert 'completelynew' not in md
     assert md == {'foo': 'bar', 'last': 'one'}
-    # Check popping from the end (lastone inserted before foobar)
-    lastpair = mdlist.pop()
+    # Check popping from the end (last one inserted before foobar)
+    mdlist.pop()
     assert len(mdlist) == 1
     assert len(md) == 1
     assert md == {'last': 'one'}
 
     # And let's remove an old pair with a new object
-    with pytest.warns(DeprecationWarning) as w:
+    with deprecated_to('6.0'):
         lastoneagain = GiftiNVPairs('last', 'one')
     mdlist.remove(lastoneagain)
     assert len(mdlist) == 0
@@ -422,13 +423,14 @@ def test_gifti_coord(capsys):
     gcs.xform = None
     gcs.print_summary()
     captured = capsys.readouterr()
-    assert captured.out == '\n'.join(
-        [
-            'Dataspace:  NIFTI_XFORM_UNKNOWN',
-            'XFormSpace:  NIFTI_XFORM_UNKNOWN',
-            'Affine Transformation Matrix: ',
-            ' None\n',
-        ]
+    assert (
+        captured.out
+        == """\
+Dataspace:  NIFTI_XFORM_UNKNOWN
+XFormSpace:  NIFTI_XFORM_UNKNOWN
+Affine Transformation Matrix:
+ None
+"""
     )
     gcs.to_xml()
 

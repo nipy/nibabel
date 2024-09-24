@@ -9,7 +9,6 @@
 # Copyright (C) 2011 Christian Haselgrove
 """DICOM filesystem tools"""
 
-
 import contextlib
 import getpass
 import logging
@@ -44,7 +43,6 @@ class VolumeError(DFTError):
 
 
 class InstanceStackError(DFTError):
-
     """bad series of instance numbers"""
 
     def __init__(self, series, i, si):
@@ -161,7 +159,7 @@ class _Series:
         data = numpy.ndarray(
             (len(self.storage_instances), self.rows, self.columns), dtype=numpy.int16
         )
-        for (i, si) in enumerate(self.storage_instances):
+        for i, si in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
             logger.info('reading %d/%d' % (i + 1, len(self.storage_instances)))
@@ -233,17 +231,17 @@ class _StorageInstance:
                             WHERE storage_instance = ?
                             ORDER BY directory, name"""
                 c.execute(query, (self.uid,))
-                val = ['%s/%s' % tuple(row) for row in c]
+                val = ['{}/{}'.format(*tuple(row)) for row in c]
             self.files = val
         return val
 
     def dicom(self):
-        return pydicom.read_file(self.files[0])
+        return pydicom.dcmread(self.files[0])
 
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
-    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=followlinks):
+    for dirpath, dirnames, filenames in os.walk(base_dir, followlinks=followlinks):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError(f'link cycle detected under {base_dir}')
@@ -347,7 +345,7 @@ def _update_dir(c, dir, files, studies, series, storage_instances):
 
 def _update_file(c, path, fname, studies, series, storage_instances):
     try:
-        do = pydicom.read_file(f'{path}/{fname}')
+        do = pydicom.dcmread(f'{path}/{fname}')
     except pydicom.filereader.InvalidDicomError:
         logger.debug('        not a DICOM file')
         return None

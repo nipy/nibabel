@@ -1,4 +1,3 @@
-import unittest
 from unittest import mock
 
 import pytest
@@ -6,6 +5,7 @@ import pytest
 from ..pkg_info import cmp_pkg_version
 
 MODULE_SCHEDULE = [
+    ('7.0.0', ['nibabel.pydicom_compat']),
     ('5.0.0', ['nibabel.keywordonly', 'nibabel.py3k']),
     ('4.0.0', ['nibabel.trackvis']),
     ('3.0.0', ['nibabel.minc', 'nibabel.checkwarns']),
@@ -17,6 +17,8 @@ OBJECT_SCHEDULE = [
     (
         '8.0.0',
         [
+            ('nibabel.casting', 'as_int'),
+            ('nibabel.casting', 'int_to_float'),
             ('nibabel.tmpdirs', 'TemporaryDirectory'),
         ],
     ),

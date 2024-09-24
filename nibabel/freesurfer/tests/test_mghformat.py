@@ -10,6 +10,7 @@
 
 import io
 import os
+import pathlib
 
 import numpy as np
 import pytest
@@ -291,7 +292,7 @@ def test_mgh_load_fileobj():
     # pass the filename to the array proxy, please feel free to change this
     # test.
     img = MGHImage.load(MGZ_FNAME)
-    assert img.dataobj.file_like == MGZ_FNAME
+    assert pathlib.Path(img.dataobj.file_like) == pathlib.Path(MGZ_FNAME)
     # Check fileobj also passed into dataobj
     with ImageOpener(MGZ_FNAME) as fobj:
         contents = fobj.read()
@@ -344,7 +345,7 @@ def test_mghheader_default_structarr():
     for endianness in (None,) + BIG_CODES:
         hdr2 = MGHHeader.default_structarr(endianness=endianness)
         assert hdr2 == hdr
-        assert hdr2.newbyteorder('>') == hdr
+        assert hdr2.view(hdr2.dtype.newbyteorder('>')) == hdr
 
     for endianness in LITTLE_CODES:
         with pytest.raises(ValueError):
@@ -459,6 +460,7 @@ class TestMGHHeader(tws._TestLabeledWrapStruct):
         for endianness in (None,) + LITTLE_CODES:
             with pytest.raises(ValueError):
                 hdr.as_byteswapped(endianness)
+
         # Note that contents is not rechecked on swap / copy
         class DC(self.header_class):
             def check_fix(self, *args, **kwargs):

@@ -7,7 +7,6 @@ import struct
 import warnings
 
 import numpy as np
-from numpy.compat.py3k import asstr
 
 import nibabel as nib
 from nibabel.openers import Opener
@@ -180,7 +179,7 @@ def decode_value_from_name(encoded_name):
     value : int
         Value decoded from the name.
     """
-    encoded_name = asstr(encoded_name)
+    encoded_name = encoded_name.decode('latin1')
     if len(encoded_name) == 0:
         return encoded_name, 0
 
@@ -367,7 +366,6 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.from_data_func(_read)
 
         else:
-
             # Speed up loading by guessing a suitable buffer size.
             with Opener(fileobj) as f:
                 old_file_position = f.tell()
@@ -578,7 +576,7 @@ class TrkFile(TractogramFile):
                 endianness = swapped_code
 
                 # Swap byte order
-                header_rec = header_rec.newbyteorder()
+                header_rec = header_rec.view(header_rec.dtype.newbyteorder())
                 if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
                     msg = (
                         f"Invalid hdr_size: {header_rec['hdr_size']} "
@@ -740,14 +738,18 @@ class TrkFile(TractogramFile):
                     vars[attr] = vars[hdr_field]
 
         nb_scalars = self.header[Field.NB_SCALARS_PER_POINT]
-        scalar_names = [asstr(s) for s in vars['scalar_name'][:nb_scalars] if len(s) > 0]
+        scalar_names = [
+            s.decode('latin-1') for s in vars['scalar_name'][:nb_scalars] if len(s) > 0
+        ]
         vars['scalar_names'] = '\n  '.join(scalar_names)
         nb_properties = self.header[Field.NB_PROPERTIES_PER_STREAMLINE]
-        property_names = [asstr(s) for s in vars['property_name'][:nb_properties] if len(s) > 0]
+        property_names = [
+            s.decode('latin-1') for s in vars['property_name'][:nb_properties] if len(s) > 0
+        ]
         vars['property_names'] = '\n  '.join(property_names)
         # Make all byte strings into strings
         # Fixes recursion error on Python 3.3
-        vars = {k: asstr(v) if hasattr(v, 'decode') else v for k, v in vars.items()}
+        vars = {k: v.decode('latin-1') if hasattr(v, 'decode') else v for k, v in vars.items()}
         return """\
 MAGIC NUMBER: {MAGIC_NUMBER}
 v.{version}
@@ -770,6 +772,4 @@ swap_xy: {swap_xy}
 swap_yz: {swap_yz}
 swap_zx: {swap_zx}
 n_count: {NB_STREAMLINES}
-hdr_size: {hdr_size}""".format(
-            **vars
-        )
+hdr_size: {hdr_size}""".format(**vars)

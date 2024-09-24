@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for loader function"""
+
 import logging
 import pathlib
 import shutil
@@ -24,7 +25,6 @@ from .. import (
     MGHImage,
     Minc1Image,
     Minc2Image,
-    Nifti1Header,
     Nifti1Image,
     Nifti1Pair,
     Nifti2Image,
@@ -40,7 +40,7 @@ from .. import spm2analyze as spm2
 from .. import spm99analyze as spm99
 from ..optpkg import optional_package
 from ..spatialimages import SpatialImage
-from ..testing import expires
+from ..testing import deprecated_to, expires
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import native_code, swapped_code
 
@@ -131,7 +131,7 @@ def test_save_load():
     affine[:3, 3] = [3, 2, 1]
     img = ni1.Nifti1Image(data, affine)
     img.set_data_dtype(npt)
-    with InTemporaryDirectory() as pth:
+    with InTemporaryDirectory():
         nifn = 'an_image.nii'
         sifn = 'another_image.img'
         ni1.save(img, nifn)
@@ -285,7 +285,7 @@ def test_filename_save():
 @expires('5.0.0')
 def test_guessed_image_type():
     # Test whether we can guess the image type from example files
-    with pytest.deprecated_call():
+    with deprecated_to('5.0.0'):
         assert nils.guessed_image_type(pjoin(DATA_PATH, 'example4d.nii.gz')) == Nifti1Image
         assert nils.guessed_image_type(pjoin(DATA_PATH, 'nifti1.hdr')) == Nifti1Pair
         assert nils.guessed_image_type(pjoin(DATA_PATH, 'example_nifti2.nii.gz')) == Nifti2Image

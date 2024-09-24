@@ -1,5 +1,4 @@
-"""Tests for warnings context managers
-"""
+"""Tests for warnings context managers"""
 
 import os
 import sys
@@ -8,6 +7,7 @@ import warnings
 import numpy as np
 import pytest
 
+from ..casting import sctypes
 from ..testing import (
     assert_allclose_safely,
     assert_re_in,
@@ -48,7 +48,7 @@ def test_assert_allclose_safely():
     with pytest.raises(AssertionError):
         assert_allclose_safely(a, b)
     # Test allcloseness of inf, especially np.float128 infs
-    for dtt in np.sctypes['float']:
+    for dtt in sctypes['float']:
         a = np.array([-np.inf, 1, np.inf], dtype=dtt)
         b = np.array([-np.inf, 1, np.inf], dtype=dtt)
         assert_allclose_safely(a, b)
@@ -113,7 +113,7 @@ def test_warn_error():
     with error_warnings():
         with pytest.raises(UserWarning):
             warnings.warn('A test')
-    with error_warnings() as w:  # w not used for anything
+    with error_warnings():
         with pytest.raises(UserWarning):
             warnings.warn('A test')
     assert n_warns == len(warnings.filters)
@@ -133,7 +133,7 @@ def test_warn_ignore():
     with suppress_warnings():
         warnings.warn('Here is a warning, you will not see it')
         warnings.warn('Nor this one', DeprecationWarning)
-    with suppress_warnings() as w:  # w not used
+    with suppress_warnings():
         warnings.warn('Here is a warning, you will not see it')
         warnings.warn('Nor this one', DeprecationWarning)
     assert n_warns == len(warnings.filters)

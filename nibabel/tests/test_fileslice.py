@@ -1,6 +1,5 @@
 """Test slicing of file-like objects"""
 
-
 import time
 from functools import partial
 from io import BytesIO

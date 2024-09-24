@@ -11,9 +11,8 @@ import shutil
 import sys
 import unittest
 from glob import glob
-from os.path import abspath, basename, dirname, exists
+from os.path import abspath, basename, dirname, exists, splitext
 from os.path import join as pjoin
-from os.path import splitext
 
 import numpy as np
 import pytest
@@ -197,13 +196,13 @@ def test_help():
             # needs special treatment since depends on fuse module which
             # might not be available.
             try:
-                import fuse
+                import fuse  # noqa: F401
             except Exception:
                 continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])
         assert code == 0
         assert_re_in(f'.*{cmd}', stdout)
-        assert_re_in('.*Usage', stdout)
+        assert_re_in('.*[uU]sage', stdout)
         # Some third party modules might like to announce some Deprecation
         # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
         if 'warning' not in stderr.lower():
@@ -228,7 +227,7 @@ def test_nib_nifti_dx():
     expected = f"""Picky header check output for "{dirty_hdr}"
 
 pixdim[0] (qfac) should be 1 (default) or -1
-magic string "" is not valid
+magic string '' is not valid
 sform_code 11776 not valid"""
     # Split strings to remove line endings
     assert stdout == expected
@@ -418,7 +417,7 @@ def test_parrec2nii_with_data():
         assert_almost_equal(np.loadtxt('DTI.bvals'), np.sort(DTI_PAR_BVALS))
         img = load('DTI.nii')
         data_sorted = img.get_fdata()
-        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS)], data_sorted)
+        assert_almost_equal(data[..., np.argsort(DTI_PAR_BVALS, kind='stable')], data_sorted)
         del img
 
         # Writes .ordering.csv if requested

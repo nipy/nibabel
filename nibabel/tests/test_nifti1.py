@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti reading package"""
+
 import os
 import struct
 import unittest
@@ -79,7 +80,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         (np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
     )
     if have_binary128():
-        supported_np_types = supported_np_types.union((np.longdouble, np.longcomplex))
+        supported_np_types = supported_np_types.union((np.longdouble, np.clongdouble))
     tana.add_duplicate_types(supported_np_types)
 
     def test_empty(self):
@@ -251,7 +252,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         fhdr, message, raiser = self.log_chk(hdr, 45)
         assert fhdr['magic'] == b'ooh'
         assert (
-            message == 'magic string "ooh" is not valid; '
+            message == "magic string 'ooh' is not valid; "
             'leaving as is, but future errors are likely'
         )
         # For pairs, any offset is OK, but should be divisible by 16
@@ -537,7 +538,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_slice_duration(0.1)
         # We need a function to print out the Nones and floating point
         # values in a predictable way, for the tests below.
-        _stringer = lambda val: val is not None and '%2.1f' % val or None
+        _stringer = lambda val: val is not None and f'{val:2.1f}' or None
         _print_me = lambda s: list(map(_stringer, s))
         # The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']
@@ -731,7 +732,6 @@ def unshear_44(affine):
 
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):
-
     header_class = Nifti1Header
 
     def test_empty(self):
@@ -1169,7 +1169,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
             assert img.get_data_dtype() == alias
             img_rt = bytesio_round_trip(img)
             assert img_rt.get_data_dtype() == effective_dt
-            # Seralizing does not finalize the source image
+            # Serializing does not finalize the source image
             assert img.get_data_dtype() == alias
 
     def test_static_dtype_aliases(self):
@@ -1222,6 +1222,32 @@ def test_ext_eq():
     ext2 = Nifti1Extension('comment', '124')
     assert ext != ext2
     assert not ext == ext2
+
+
+def test_extension_content_access():
+    ext = Nifti1Extension('comment', b'123')
+    # Unmangled content access
+    assert ext.get_content() == b'123'
+
+    # Raw, text and JSON access
+    assert ext.content == b'123'
+    assert ext.text == '123'
+    assert ext.json() == 123
+
+    # Encoding can be set
+    ext.encoding = 'ascii'
+    assert ext.text == '123'
+
+    # Test that encoding errors are caught
+    ascii_ext = Nifti1Extension('comment', 'hôpital'.encode('utf-8'))
+    ascii_ext.encoding = 'ascii'
+    with pytest.raises(UnicodeDecodeError):
+        ascii_ext.text
+
+    json_ext = Nifti1Extension('unknown', b'{"a": 1}')
+    assert json_ext.content == b'{"a": 1}'
+    assert json_ext.text == '{"a": 1}'
+    assert json_ext.json() == {'a': 1}
 
 
 def test_extension_codes():
@@ -1339,7 +1365,7 @@ def test_nifti_dicom_extension():
     dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20, b'LO', 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_implicit_VR is False
     assert dcmext._is_little_endian is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
@@ -1350,7 +1376,7 @@ def test_nifti_dicom_extension():
     # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
     dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
-    assert dcmext._guess_implicit_VR() is True
+    assert dcmext._is_implicit_VR is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert len(dcmext.get_content().values()) == 1
@@ -1362,7 +1388,7 @@ def test_nifti_dicom_extension():
     hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_implicit_VR is False
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert dcmext.get_content()[0x10, 0x20].value == 'NiPy'

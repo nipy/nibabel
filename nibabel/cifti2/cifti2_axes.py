@@ -59,7 +59,7 @@ We can create brain models covering the left cortex and left thalamus using:
 In this very simple case ``bm_cortex`` describes a left cortical surface skipping the second
 out of four vertices. ``bm_thal`` contains all voxels in a 2x2x2 volume.
 
-Brain structure names automatically get converted to valid CIFTI-2 indentifiers using
+Brain structure names automatically get converted to valid CIFTI-2 identifiers using
 :meth:`BrainModelAxis.to_cifti_brain_structure_name`.
 A 1-dimensional mask will be automatically interpreted as a surface element and a 3-dimensional
 mask as a volume element.
@@ -118,6 +118,7 @@ like:
 ...                                     bm_cortex)))
 <class 'nibabel.cifti2.cifti2.Cifti2Header'>
 """
+
 import abc
 from operator import xor
 
@@ -520,7 +521,7 @@ class BrainModelAxis(Axis):
         ValueError: raised if the input name does not match a known anatomical structure in CIFTI-2
         """
         if name in cifti2.CIFTI_BRAIN_STRUCTURES:
-            return name
+            return cifti2.CIFTI_BRAIN_STRUCTURES.ciftiname[name]
         if not isinstance(name, str):
             if len(name) == 1:
                 structure = name[0]
@@ -554,10 +555,10 @@ class BrainModelAxis(Axis):
             proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}'
         else:
             proposed_name = f'CIFTI_STRUCTURE_{structure.upper()}_{orientation.upper()}'
-        if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES:
+        if proposed_name not in cifti2.CIFTI_BRAIN_STRUCTURES.ciftiname:
             raise ValueError(
-                f'{name} was interpreted as {proposed_name}, which is not '
-                'a valid CIFTI brain structure'
+                f'{name} was interpreted as {proposed_name}, '
+                'which is not a valid CIFTI brain structure'
             )
         return proposed_name
 

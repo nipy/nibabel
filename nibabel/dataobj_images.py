@@ -7,20 +7,21 @@ This can either be an actual numpy array, or an object that:
 * returns an array from ``numpy.asanyarray(obj)``;
 * has an attribute or property ``shape``.
 """
+
 from __future__ import annotations
 
 import typing as ty
 
 import numpy as np
 
-from .arrayproxy import ArrayLike
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .fileholders import FileMap
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
+    from .arrayproxy import ArrayLike
+    from .fileholders import FileMap
     from .filename_parser import FileSpec
 
 ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
@@ -437,7 +438,7 @@ class DataobjImage(FileBasedImage):
         Parameters
         ----------
         file_map : dict
-            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            Mapping with (key, value) pairs of (``file_type``, FileHolder
             instance giving file-likes for each file needed for this image
             type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only

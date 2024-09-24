@@ -7,9 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utility functions for analyze-like formats"""
+
 from __future__ import annotations
 
-import io
 import sys
 import typing as ty
 import warnings
@@ -23,7 +23,9 @@ from ._compression import COMPRESSED_FILE_LIKES
 from .casting import OK_FLOATS, shared_range
 from .externals.oset import OrderedSet
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
+    import io
+
     import numpy.typing as npt
 
     Scalar = np.number | float
@@ -440,7 +442,7 @@ def array_from_file(
     True
     """
     if mmap not in (True, False, 'c', 'r', 'r+'):
-        raise ValueError("mmap value should be one of True, False, 'c', " "'r', 'r+'")
+        raise ValueError("mmap value should be one of True, False, 'c', 'r', 'r+'")
     in_dtype = np.dtype(in_dtype)
     # Get file-like object from Opener instance
     infile = getattr(infile, 'fobj', infile)
@@ -623,7 +625,7 @@ def array_to_file(
             # pre scale thresholds
             mn, mx = _dt_min_max(in_dtype, mn, mx)
             mn_out, mx_out = _dt_min_max(out_dtype)
-            pre_clips = max(mn, mn_out), min(mx, mx_out)
+            pre_clips = max(mn, mn_out), min(mx, mx_out)  # type: ignore[type-var]
             return _write_data(data, fileobj, out_dtype, order, pre_clips=pre_clips)
         # In any case, we do not want to check for nans because we've already
         # disallowed scaling that generates nans
@@ -1190,13 +1192,13 @@ def _ftype4scaled_finite(
 @ty.overload
 def finite_range(
     arr: npt.ArrayLike, check_nan: ty.Literal[False] = False
-) -> tuple[Scalar, Scalar]:
-    ...  # pragma: no cover
+) -> tuple[Scalar, Scalar]: ...
 
 
 @ty.overload
-def finite_range(arr: npt.ArrayLike, check_nan: ty.Literal[True]) -> tuple[Scalar, Scalar, bool]:
-    ...  # pragma: no cover
+def finite_range(
+    arr: npt.ArrayLike, check_nan: ty.Literal[True]
+) -> tuple[Scalar, Scalar, bool]: ...
 
 
 def finite_range(

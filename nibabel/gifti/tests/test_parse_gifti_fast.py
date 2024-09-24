@@ -39,9 +39,19 @@ DATA_FILE4 = pjoin(IO_DATA_PATH, 'rh.shape.curv.gii')
 DATA_FILE5 = pjoin(IO_DATA_PATH, 'base64bin.gii')
 DATA_FILE6 = pjoin(IO_DATA_PATH, 'rh.aparc.annot.gii')
 DATA_FILE7 = pjoin(IO_DATA_PATH, 'external.gii')
+DATA_FILE8 = pjoin(IO_DATA_PATH, 'ascii_flat_data.gii')
 
-datafiles = [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6, DATA_FILE7]
-numDA = [2, 1, 1, 1, 2, 1, 2]
+datafiles = [
+    DATA_FILE1,
+    DATA_FILE2,
+    DATA_FILE3,
+    DATA_FILE4,
+    DATA_FILE5,
+    DATA_FILE6,
+    DATA_FILE7,
+    DATA_FILE8,
+]
+numDA = [2, 1, 1, 1, 2, 1, 2, 2]
 
 DATA_FILE1_darr1 = np.array(
     [
@@ -50,7 +60,7 @@ DATA_FILE1_darr1 = np.array(
         [-17.614349, -65.401642, 21.071466],
     ]
 )
-DATA_FILE1_darr2 = np.array([0, 1, 2])
+DATA_FILE1_darr2 = np.array([[0, 1, 2]])
 
 DATA_FILE2_darr1 = np.array(
     [
@@ -152,6 +162,10 @@ DATA_FILE7_darr2 = np.array(
     dtype=np.int32,
 )
 
+DATA_FILE8_darr1 = np.copy(DATA_FILE5_darr1)
+
+DATA_FILE8_darr2 = np.copy(DATA_FILE5_darr2)
+
 
 def assert_default_types(loaded):
     default = loaded.__class__()
@@ -227,7 +241,7 @@ def test_load_dataarray1():
         me = img.darrays[0].meta
         assert 'AnatomicalStructurePrimary' in me
         assert 'AnatomicalStructureSecondary' in me
-        me['AnatomicalStructurePrimary'] == 'CortexLeft'
+        assert me['AnatomicalStructurePrimary'] == 'CortexLeft'
         assert_array_almost_equal(img.darrays[0].coordsys.xform, np.eye(4, 4))
         assert xform_codes.niistring[img.darrays[0].coordsys.dataspace] == 'NIFTI_XFORM_TALAIRACH'
         assert xform_codes.niistring[img.darrays[0].coordsys.xformspace] == 'NIFTI_XFORM_TALAIRACH'
@@ -265,7 +279,7 @@ def test_load_dataarray4():
 def test_dataarray5():
     img5 = load(DATA_FILE5)
     for da in img5.darrays:
-        gifti_endian_codes.byteorder[da.endian] == 'little'
+        assert gifti_endian_codes.byteorder[da.endian] == 'little'
     assert_array_almost_equal(img5.darrays[0].data, DATA_FILE5_darr1)
     assert_array_almost_equal(img5.darrays[1].data, DATA_FILE5_darr2)
     # Round trip tested below
@@ -433,13 +447,13 @@ def test_external_file_failure_cases():
         shutil.copy(DATA_FILE7, '.')
         filename = pjoin(tmpdir, basename(DATA_FILE7))
         with pytest.raises(GiftiParseError):
-            img = load(filename)
+            load(filename)
     # load from in-memory xml string (parser requires it as bytes)
     with open(DATA_FILE7, 'rb') as f:
         xmldata = f.read()
     parser = GiftiImageParser()
     with pytest.raises(GiftiParseError):
-        img = parser.parse(xmldata)
+        parser.parse(xmldata)
 
 
 def test_load_compressed():
@@ -448,3 +462,9 @@ def test_load_compressed():
         img7 = load(fn)
         assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
         assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)
+
+
+def test_load_flat_ascii_data():
+    img = load(DATA_FILE8)
+    assert_array_almost_equal(img.darrays[0].data, DATA_FILE8_darr1)
+    assert_array_almost_equal(img.darrays[1].data, DATA_FILE8_darr2)

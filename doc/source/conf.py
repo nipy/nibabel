@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -30,6 +29,10 @@ except ImportError:
 
 # Check for external Sphinx extensions we depend on
 try:
+    import numpy as np
+except ImportError:
+    raise RuntimeError('Need to install "numpy" package for doc build')
+try:
     import numpydoc
 except ImportError:
     raise RuntimeError('Need to install "numpydoc" package for doc build')
@@ -45,6 +48,11 @@ except ImportError:
     raise RuntimeError(
         'Need nibabel on Python PATH; consider "make htmldoc" from nibabel root directory'
     )
+
+from packaging.version import Version
+
+if Version(np.__version__) >= Version('1.22'):
+    np.set_printoptions(legacy='1.21')
 
 # -- General configuration ----------------------------------------------------
 
@@ -280,7 +288,12 @@ latex_documents = [('index', 'nibabel.tex', 'NiBabel Documentation', 'NiBabel Au
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/3/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy', None),
+    'matplotlib': ('https://matplotlib.org/stable', None),
+}
 
 # Config of plot_directive
 plot_include_source = True

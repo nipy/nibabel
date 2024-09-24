@@ -3,6 +3,7 @@
 Includes version of OrthoSlicer3D code originally written by our own
 Paul Ivanov.
 """
+
 import weakref
 
 import numpy as np
@@ -102,7 +103,7 @@ class OrthoSlicer3D:
             #   |         |     |         |
             #   |         |     |         |
             #   +---------+     +---------+
-            #        A  -->     <--  R
+            #        A  -->          R  -->
             # ^ +---------+     +---------+
             # | |         |     |         |
             #   |  Axial  |     |   Vol   |
@@ -110,7 +111,7 @@ class OrthoSlicer3D:
             #   |         |     |         |
             #   |         |     |         |
             #   +---------+     +---------+
-            #   <--  R          <--  t  -->
+            #        R  -->     <--  t  -->
 
             fig, axes = plt.subplots(2, 2)
             fig.set_size_inches((8, 8), forward=True)
@@ -398,7 +399,8 @@ class OrthoSlicer3D:
         # deal with slicing appropriately
         self._position[:3] = [x, y, z]
         idxs = np.dot(self._inv_affine, self._position)[:3]
-        for ii, (size, idx) in enumerate(zip(self._sizes, idxs)):
+        idxs_new_order = idxs[self._order]
+        for ii, (size, idx) in enumerate(zip(self._sizes, idxs_new_order)):
             self._data_idx[ii] = max(min(int(round(idx)), size - 1), 0)
         for ii in range(3):
             # sagittal: get to S/A
@@ -417,7 +419,7 @@ class OrthoSlicer3D:
             # deal with crosshairs
             loc = self._data_idx[ii]
             if self._flips[ii]:
-                loc = self._sizes[ii] - loc
+                loc = self._sizes[ii] - 1 - loc
             loc = [loc] * 2
             if ii == 0:
                 self._crosshairs[2]['vert'].set_xdata(loc)
@@ -445,7 +447,7 @@ class OrthoSlicer3D:
     # Matplotlib handlers ####################################################
     def _in_axis(self, event):
         """Return axis index if within one of our axes, else None"""
-        if getattr(event, 'inaxes') is None:
+        if event.inaxes is None:
             return None
         for ii, ax in enumerate(self._axes):
             if event.inaxes is ax:
@@ -466,12 +468,17 @@ class OrthoSlicer3D:
         dv *= 1.0 if event.button == 'up' else -1.0
         dv *= -1 if self._flips[ii] else 1
         val = self._data_idx[ii] + dv
+
         if ii == 3:
             self._set_volume_index(val)
         else:
-            coords = [self._data_idx[k] for k in range(3)] + [1.0]
+            coords = [self._data_idx[k] for k in range(3)]
             coords[ii] = val
-            self._set_position(*np.dot(self._affine, coords)[:3])
+            coords_ordered = [0, 0, 0, 1]
+            for k in range(3):
+                coords_ordered[self._order[k]] = coords[k]
+            position = np.dot(self._affine, coords_ordered)[:3]
+            self._set_position(*position)
         self._draw()
 
     def _on_mouse(self, event):
@@ -486,14 +493,18 @@ class OrthoSlicer3D:
             self._set_volume_index(event.xdata)
         else:
             # translate click xdata/ydata to physical position
-            xax, yax = [[1, 2], [0, 2], [0, 1]][ii]
+            xax, yax = [
+                [self._order[1], self._order[2]],
+                [self._order[0], self._order[2]],
+                [self._order[0], self._order[1]],
+            ][ii]
             x, y = event.xdata, event.ydata
-            x = self._sizes[xax] - x if self._flips[xax] else x
-            y = self._sizes[yax] - y if self._flips[yax] else y
-            idxs = [None, None, None, 1.0]
+            x = self._sizes[xax] - x - 1 if self._flips[xax] else x
+            y = self._sizes[yax] - y - 1 if self._flips[yax] else y
+            idxs = np.ones(4)
             idxs[xax] = x
             idxs[yax] = y
-            idxs[ii] = self._data_idx[ii]
+            idxs[self._order[ii]] = self._data_idx[ii]
             self._set_position(*np.dot(self._affine, idxs)[:3])
         self._draw()
 
@@ -501,7 +512,7 @@ class OrthoSlicer3D:
         """Handle mpl keypress events"""
         if event.key is not None and 'escape' in event.key:
             self.close()
-        elif event.key in ['=', '+']:
+        elif event.key in ('=', '+'):
             # increment volume index
             new_idx = min(self._data_idx[3] + 1, self.n_volumes)
             self._set_volume_index(new_idx, update_slices=True)

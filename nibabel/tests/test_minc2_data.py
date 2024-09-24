@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Test we can correctly import example MINC2_PATH files
-"""
+"""Test we can correctly import example MINC2_PATH files"""
 
 import os
 from os.path import join as pjoin

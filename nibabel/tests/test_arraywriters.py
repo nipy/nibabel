@@ -20,14 +20,14 @@ from ..arraywriters import (
     get_slope_inter,
     make_array_writer,
 )
-from ..casting import int_abs, on_powerpc, shared_range, type_info
+from ..casting import int_abs, sctypes, shared_range, type_info
 from ..testing import assert_allclose_safely, suppress_warnings
 from ..volumeutils import _dt_min_max, apply_read_scaling, array_from_file
 
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
-INT_TYPES = np.sctypes['int']
-UINT_TYPES = np.sctypes['uint']
+FLOAT_TYPES = sctypes['float']
+COMPLEX_TYPES = sctypes['complex']
+INT_TYPES = sctypes['int']
+UINT_TYPES = sctypes['uint']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
@@ -61,7 +61,8 @@ def test_arraywriters():
             assert aw.out_dtype == arr.dtype
             assert_array_equal(arr, round_trip(aw))
             # Byteswapped should be OK
-            bs_arr = arr.byteswap().newbyteorder('S')
+            bs_arr = arr.byteswap()
+            bs_arr = bs_arr.view(bs_arr.dtype.newbyteorder('S'))
             bs_aw = klass(bs_arr)
             bs_aw_rt = round_trip(bs_aw)
             # assert against original array because POWER7 was running into
@@ -275,7 +276,7 @@ def test_slope_inter_castable():
         for out_dtt in NUMERIC_TYPES:
             for klass in (ArrayWriter, SlopeArrayWriter, SlopeInterArrayWriter):
                 arr = np.zeros((5,), dtype=in_dtt)
-                aw = klass(arr, out_dtt)  # no error
+                klass(arr, out_dtt)  # no error
     # Test special case of none finite
     # This raises error for ArrayWriter, but not for the others
     arr = np.array([np.inf, np.nan, -np.inf])
@@ -284,8 +285,8 @@ def test_slope_inter_castable():
             in_arr = arr.astype(in_dtt)
             with pytest.raises(WriterError):
                 ArrayWriter(in_arr, out_dtt)
-            aw = SlopeArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
-            aw = SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
+            SlopeArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
+            SlopeInterArrayWriter(arr.astype(in_dtt), out_dtt)  # no error
     for in_dtt, out_dtt, arr, slope_only, slope_inter, neither in (
         (np.float32, np.float32, 1, True, True, True),
         (np.float64, np.float32, 1, True, True, True),

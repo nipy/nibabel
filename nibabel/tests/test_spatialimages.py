@@ -6,10 +6,8 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Testing spatialimages
-"""
+"""Testing spatialimages"""
 
-import warnings
 from io import BytesIO
 
 import numpy as np
@@ -19,13 +17,7 @@ from numpy.testing import assert_array_almost_equal
 from .. import load as top_load
 from ..imageclasses import spatial_axes_first
 from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
-from ..testing import (
-    bytesio_round_trip,
-    clear_and_catch_warnings,
-    expires,
-    memmap_after_ufunc,
-    suppress_warnings,
-)
+from ..testing import bytesio_round_trip, deprecated_to, expires, memmap_after_ufunc
 from ..tmpdirs import InTemporaryDirectory
 
 
@@ -375,7 +367,7 @@ class TestSpatialImage:
         in_data = in_data_template.copy()
         img = img_klass(in_data, None)
         assert in_data is img.dataobj
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             out_data = img.get_data()
         assert in_data is out_data
         # and that uncache has no effect
@@ -388,26 +380,28 @@ class TestSpatialImage:
         rt_img = bytesio_round_trip(img)
         assert in_data is not rt_img.dataobj
         assert (rt_img.dataobj == in_data).all()
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             out_data = rt_img.get_data()
         assert (out_data == in_data).all()
         assert rt_img.dataobj is not out_data
         # cache
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             assert rt_img.get_data() is out_data
         out_data[:] = 42
         rt_img.uncache()
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             assert rt_img.get_data() is not out_data
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             assert (rt_img.get_data() == in_data).all()
 
     def test_slicer(self):
         img_klass = self.image_class
         in_data_template = np.arange(240, dtype=np.int16)
         base_affine = np.eye(4)
-        t_axis = None
-        for dshape in ((4, 5, 6, 2), (8, 5, 6)):    # Time series      # Volume
+        for dshape in (
+            (4, 5, 6, 2),  # Time series
+            (8, 5, 6),  # Volume
+        ):
             in_data = in_data_template.copy().reshape(dshape)
             img = img_klass(in_data, base_affine.copy())
 

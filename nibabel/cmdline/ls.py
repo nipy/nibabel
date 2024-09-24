@@ -110,9 +110,9 @@ def proc_file(f, opts):
     if (
         hasattr(h, 'has_data_slope')
         and (h.has_data_slope or h.has_data_intercept)
-        and not h.get_slope_inter() in [(1.0, 0.0), (None, None)]
+        and not h.get_slope_inter() in ((1.0, 0.0), (None, None))
     ):
-        row += ['@l*%.3g+%.3g' % h.get_slope_inter()]
+        row += ['@l*{:.3g}+{:.3g}'.format(*h.get_slope_inter())]
     else:
         row += ['']
 

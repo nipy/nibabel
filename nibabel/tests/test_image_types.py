@@ -15,19 +15,14 @@ from os.path import join as pjoin
 import numpy as np
 
 from .. import (
-    AnalyzeHeader,
-    AnalyzeImage,
     MGHImage,
     Minc1Image,
     Minc2Image,
-    Nifti1Header,
     Nifti1Image,
     Nifti1Pair,
-    Nifti2Header,
     Nifti2Image,
     Nifti2Pair,
     Spm2AnalyzeImage,
-    Spm99AnalyzeImage,
     all_image_classes,
 )
 
@@ -93,7 +88,6 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
             irrelevant=b'a' * (sizeof_hdr - 1),  # A too-small sniff, query
             bad_sniff=b'a' * sizeof_hdr,  # Bad sniff, should fail
         ).items():
-
             for klass in img_klasses:
                 if klass == expected_img_klass:
                     # Class will load unless you pass a bad sniff,

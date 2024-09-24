@@ -19,6 +19,7 @@
    dwiparams
    structreader
 """
+
 import warnings
 
 warnings.warn(

@@ -25,6 +25,7 @@ What is the image API?
 
 import io
 import pathlib
+import sys
 import warnings
 from functools import partial
 from itertools import product
@@ -39,7 +40,7 @@ _, have_h5py, _ = optional_package('h5py')
 import unittest
 
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal, assert_warns
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
 
 from nibabel.arraywriters import WriterError
 from nibabel.testing import (
@@ -47,8 +48,8 @@ from nibabel.testing import (
     bytesio_filemap,
     bytesio_round_trip,
     clear_and_catch_warnings,
+    deprecated_to,
     expires,
-    nullcontext,
 )
 
 from .. import (
@@ -69,7 +70,7 @@ from .. import (
     minc2,
     parrec,
 )
-from ..deprecator import ExpiredDeprecationError
+from ..casting import sctypes
 from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
 from .test_api_validators import ValidateAPI
@@ -77,10 +78,6 @@ from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
-
-
-def maybe_deprecated(meth_name):
-    return pytest.deprecated_call() if meth_name == 'get_data' else nullcontext()
 
 
 class GenericImageAPI(ValidateAPI):
@@ -172,7 +169,7 @@ class GenericImageAPI(ValidateAPI):
         for path in (fname, pathlib.Path(fname)):
             with InTemporaryDirectory():
                 # Validate that saving or loading a file doesn't use deprecated methods internally
-                with clear_and_catch_warnings() as w:
+                with clear_and_catch_warnings():
                     warnings.filterwarnings(
                         'error', category=DeprecationWarning, module=r'nibabel.*'
                     )
@@ -193,7 +190,7 @@ class GenericImageAPI(ValidateAPI):
     @expires('5.0.0')
     def validate_get_data_deprecated(self, imaker, params):
         img = imaker()
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             data = img.get_data()
         assert_array_equal(np.asanyarray(img.dataobj), data)
 
@@ -245,14 +242,12 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 self._check_array_interface(imaker, meth_name)
             method = getattr(img, meth_name)
             # Data shape is same as image shape
-            with maybe_deprecated(meth_name):
-                assert img.shape == method().shape
+            assert img.shape == method().shape
             # Data ndim is same as image ndim
-            with maybe_deprecated(meth_name):
-                assert img.ndim == method().ndim
+            assert img.ndim == method().ndim
             # Values to get_data caching parameter must be 'fill' or
             # 'unchanged'
-            with maybe_deprecated(meth_name), pytest.raises(ValueError):
+            with pytest.raises(ValueError):
                 method(caching='something')
         # dataobj is read only
         fake_data = np.zeros(img.shape, dtype=img.get_data_dtype())
@@ -276,13 +271,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert not img.in_memory
         # Load with caching='unchanged'
         method = getattr(img, meth_name)
-        with maybe_deprecated(meth_name):
-            data = method(caching='unchanged')
+        data = method(caching='unchanged')
         # Still not cached
         assert not img.in_memory
         # Default load, does caching
-        with maybe_deprecated(meth_name):
-            data = method()
+        data = method()
         # Data now cached. in_memory is True if either of the get_data
         # or get_fdata caches are not-None
         assert img.in_memory
@@ -294,36 +287,30 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # integers, but lets assume that's not true here.
         assert_array_equal(proxy_data, data)
         # Now caching='unchanged' does nothing, returns cached version
-        with maybe_deprecated(meth_name):
-            data_again = method(caching='unchanged')
+        data_again = method(caching='unchanged')
         assert data is data_again
         # caching='fill' does nothing because the cache is already full
-        with maybe_deprecated(meth_name):
-            data_yet_again = method(caching='fill')
+        data_yet_again = method(caching='fill')
         assert data is data_yet_again
         # changing array data does not change proxy data, or reloaded
         # data
         data[:] = 42
         assert_array_equal(proxy_data, proxy_copy)
         assert_array_equal(np.asarray(img.dataobj), proxy_copy)
-        # It does change the result of get_data
-        with maybe_deprecated(meth_name):
-            assert_array_equal(method(), 42)
+        # It does change the result of get_fdata
+        assert_array_equal(method(), 42)
         # until we uncache
         img.uncache()
         # Which unsets in_memory
         assert not img.in_memory
-        with maybe_deprecated(meth_name):
-            assert_array_equal(method(), proxy_copy)
+        assert_array_equal(method(), proxy_copy)
         # Check caching='fill' does cache data
         img = imaker()
         method = getattr(img, meth_name)
         assert not img.in_memory
-        with maybe_deprecated(meth_name):
-            data = method(caching='fill')
+        data = method(caching='fill')
         assert img.in_memory
-        with maybe_deprecated(meth_name):
-            data_again = method()
+        data_again = method()
         assert data is data_again
         # Check that caching refreshes for new floating point type.
         img.uncache()
@@ -367,8 +354,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         get_data_func = method if caching is None else partial(method, caching=caching)
         assert isinstance(img.dataobj, np.ndarray)
         assert img.in_memory
-        with maybe_deprecated(meth_name):
-            data = get_data_func()
+        data = get_data_func()
         # Returned data same object as underlying dataobj if using
         # old ``get_data`` method, or using newer ``get_fdata``
         # method, where original array was float64.
@@ -376,8 +362,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         dataobj_is_data = arr_dtype == np.float64 or method == img.get_data
         # Set something to the output array.
         data[:] = 42
-        with maybe_deprecated(meth_name):
-            get_result_changed = np.all(get_data_func() == 42)
+        get_result_changed = np.all(get_data_func() == 42)
         assert get_result_changed == (dataobj_is_data or caching != 'unchanged')
         if dataobj_is_data:
             assert data is img.dataobj
@@ -386,15 +371,13 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             assert_array_equal(np.asarray(img.dataobj), 42)
             # Uncache has no effect
             img.uncache()
-            with maybe_deprecated(meth_name):
-                assert_array_equal(get_data_func(), 42)
+            assert_array_equal(get_data_func(), 42)
         else:
             assert not data is img.dataobj
             assert not np.all(np.asarray(img.dataobj) == 42)
             # Uncache does have an effect
             img.uncache()
-            with maybe_deprecated(meth_name):
-                assert not np.all(get_data_func() == 42)
+            assert not np.all(get_data_func() == 42)
         # in_memory is always true for array images, regardless of
         # cache state.
         img.uncache()
@@ -403,12 +386,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             return
         # Return original array from get_fdata only if the input array is the
         # requested dtype.
-        float_types = np.sctypes['float']
+        float_types = sctypes['float']
         if arr_dtype not in float_types:
             return
         for float_type in float_types:
-            with maybe_deprecated(meth_name):
-                data = get_data_func(dtype=float_type)
+            data = get_data_func(dtype=float_type)
             assert (data is img.dataobj) == (arr_dtype == float_type)
 
     def validate_shape(self, imaker, params):
@@ -579,6 +561,10 @@ class SerializeMixin:
         del img
         del rt_img
 
+    @pytest.mark.xfail(
+        sys.version_info >= (3, 12),
+        reason='Response type for file: urls is not a stream in Python 3.12',
+    )
     def validate_from_file_url(self, imaker, params):
         tmp_path = self.tmp_path
 

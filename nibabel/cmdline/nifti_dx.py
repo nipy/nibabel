@@ -9,8 +9,7 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Print nifti diagnostics for header files"""
 
-import sys
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 import nibabel as nib
 
@@ -21,15 +20,27 @@ __license__ = 'MIT'
 
 def main(args=None):
     """Go go team"""
-    parser = OptionParser(
-        usage=f'{sys.argv[0]} [FILE ...]\n\n' + __doc__, version='%prog ' + nib.__version__
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument('--version', action='version', version=f'%(prog)s {nib.__version__}')
+    parser.add_argument(
+        '-1',
+        '--nifti1',
+        dest='header_class',
+        action='store_const',
+        const=nib.Nifti1Header,
+        default=nib.Nifti1Header,
     )
-    (opts, files) = parser.parse_args(args=args)
+    parser.add_argument(
+        '-2', '--nifti2', dest='header_class', action='store_const', const=nib.Nifti2Header
+    )
+    parser.add_argument('files', nargs='*', metavar='FILE', help='Nifti file names')
 
-    for fname in files:
+    args = parser.parse_args(args=args)
+
+    for fname in args.files:
         with nib.openers.ImageOpener(fname) as fobj:
-            hdr = fobj.read(nib.nifti1.header_dtype.itemsize)
-        result = nib.Nifti1Header.diagnose_binaryblock(hdr)
+            hdr = fobj.read(args.header_class.template_dtype.itemsize)
+        result = args.header_class.diagnose_binaryblock(hdr)
         if len(result):
             print(f'Picky header check output for "{fname}"\n')
             print(result + '\n')

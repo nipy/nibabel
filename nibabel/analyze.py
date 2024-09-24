@@ -81,6 +81,7 @@ zooms, in particular, negative X zooms.  We did not do this because the image
 can be loaded with and without a default flip, so the saved zoom will not
 constrain the affine.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -514,7 +515,9 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         data = np.asanyarray(data)
         shape = self.get_data_shape()
         if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' % ', '.join(str(s) for s in shape))
+            raise HeaderDataError(
+                'Data should be shape ({})'.format(', '.join(str(s) for s in shape))
+            )
         out_dtype = self.get_data_dtype()
         if rescale:
             try:
@@ -929,7 +932,7 @@ class AnalyzeImage(SpatialImage):
         Parameters
         ----------
         file_map : dict
-            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            Mapping with (key, value) pairs of (``file_type``, FileHolder
             instance giving file-likes for each file needed for this image
             type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only

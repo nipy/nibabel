@@ -1,5 +1,4 @@
 import os
-import tempfile
 import unittest
 import warnings
 from io import BytesIO
@@ -7,7 +6,6 @@ from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.compat.py3k import asbytes
 
 import nibabel as nib
 from nibabel.testing import clear_and_catch_warnings, data_path, error_warnings
@@ -21,7 +19,7 @@ from .test_tractogram import assert_tractogram_equal
 DATA = {}
 
 
-def setup():
+def setup_module():
     global DATA
     DATA['empty_filenames'] = [pjoin(data_path, 'empty' + ext) for ext in FORMATS.keys()]
     DATA['simple_filenames'] = [pjoin(data_path, 'simple' + ext) for ext in FORMATS.keys()]
@@ -84,7 +82,7 @@ def setup():
     )
 
 
-def test_is_supported_detect_format():
+def test_is_supported_detect_format(tmp_path):
     # Test is_supported and detect_format functions
     # Empty file/string
     f = BytesIO()
@@ -96,22 +94,24 @@ def test_is_supported_detect_format():
     # Valid file without extension
     for tfile_cls in FORMATS.values():
         f = BytesIO()
-        f.write(asbytes(tfile_cls.MAGIC_NUMBER))
+        f.write(tfile_cls.MAGIC_NUMBER)
         f.seek(0, os.SEEK_SET)
         assert nib.streamlines.is_supported(f)
         assert nib.streamlines.detect_format(f) is tfile_cls
 
     # Wrong extension but right magic number
     for tfile_cls in FORMATS.values():
-        with tempfile.TemporaryFile(mode='w+b', suffix='.txt') as f:
-            f.write(asbytes(tfile_cls.MAGIC_NUMBER))
+        fpath = tmp_path / 'test.txt'
+        with open(fpath, 'w+b') as f:
+            f.write(tfile_cls.MAGIC_NUMBER)
             f.seek(0, os.SEEK_SET)
             assert nib.streamlines.is_supported(f)
             assert nib.streamlines.detect_format(f) is tfile_cls
 
     # Good extension but wrong magic number
     for ext, tfile_cls in FORMATS.items():
-        with tempfile.TemporaryFile(mode='w+b', suffix=ext) as f:
+        fpath = tmp_path / f'test{ext}'
+        with open(fpath, 'w+b') as f:
             f.write(b'pass')
             f.seek(0, os.SEEK_SET)
             assert not nib.streamlines.is_supported(f)

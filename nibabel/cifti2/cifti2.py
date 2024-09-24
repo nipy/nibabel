@@ -16,6 +16,7 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 
     http://www.nitrc.org/projects/cifti
 """
+
 import re
 from collections import OrderedDict
 from collections.abc import Iterable, MutableMapping, MutableSequence
@@ -30,7 +31,7 @@ from ..dataobj_images import DataobjImage
 from ..filebasedimages import FileBasedHeader, SerializableImage
 from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Header, Nifti2Image
-from ..volumeutils import make_dt_codes
+from ..volumeutils import Recoder, make_dt_codes
 
 
 def _float_01(val):
@@ -80,39 +81,64 @@ CIFTI_SERIESUNIT_TYPES = (
     'RADIAN',
 )
 
-CIFTI_BRAIN_STRUCTURES = (
-    'CIFTI_STRUCTURE_ACCUMBENS_LEFT',
-    'CIFTI_STRUCTURE_ACCUMBENS_RIGHT',
-    'CIFTI_STRUCTURE_ALL_WHITE_MATTER',
-    'CIFTI_STRUCTURE_ALL_GREY_MATTER',
-    'CIFTI_STRUCTURE_AMYGDALA_LEFT',
-    'CIFTI_STRUCTURE_AMYGDALA_RIGHT',
-    'CIFTI_STRUCTURE_BRAIN_STEM',
-    'CIFTI_STRUCTURE_CAUDATE_LEFT',
-    'CIFTI_STRUCTURE_CAUDATE_RIGHT',
-    'CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_LEFT',
-    'CIFTI_STRUCTURE_CEREBELLAR_WHITE_MATTER_RIGHT',
-    'CIFTI_STRUCTURE_CEREBELLUM',
-    'CIFTI_STRUCTURE_CEREBELLUM_LEFT',
-    'CIFTI_STRUCTURE_CEREBELLUM_RIGHT',
-    'CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_LEFT',
-    'CIFTI_STRUCTURE_CEREBRAL_WHITE_MATTER_RIGHT',
-    'CIFTI_STRUCTURE_CORTEX',
-    'CIFTI_STRUCTURE_CORTEX_LEFT',
-    'CIFTI_STRUCTURE_CORTEX_RIGHT',
-    'CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT',
-    'CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT',
-    'CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT',
-    'CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT',
-    'CIFTI_STRUCTURE_OTHER',
-    'CIFTI_STRUCTURE_OTHER_GREY_MATTER',
-    'CIFTI_STRUCTURE_OTHER_WHITE_MATTER',
-    'CIFTI_STRUCTURE_PALLIDUM_LEFT',
-    'CIFTI_STRUCTURE_PALLIDUM_RIGHT',
-    'CIFTI_STRUCTURE_PUTAMEN_LEFT',
-    'CIFTI_STRUCTURE_PUTAMEN_RIGHT',
-    'CIFTI_STRUCTURE_THALAMUS_LEFT',
-    'CIFTI_STRUCTURE_THALAMUS_RIGHT',
+
+def _full_structure(struct: str):
+    """Expands STRUCT_NAME into:
+
+    STRUCT_NAME, CIFTI_STRUCTURE_STRUCT_NAME, StructName
+    """
+    return (
+        struct,
+        f'CIFTI_STRUCTURE_{struct}',
+        ''.join(word.capitalize() for word in struct.split('_')),
+    )
+
+
+CIFTI_BRAIN_STRUCTURES = Recoder(
+    (
+        # For simplicity of comparison, use the ordering from:
+        # https://github.com/Washington-University/workbench/blob/b985f5d/src/Common/StructureEnum.cxx
+        # (name,          ciftiname,                     guiname)
+        # ('CORTEX_LEFT', 'CIFTI_STRUCTURE_CORTEX_LEFT', 'CortexLeft')
+        _full_structure('CORTEX_LEFT'),
+        _full_structure('CORTEX_RIGHT'),
+        _full_structure('CEREBELLUM'),
+        _full_structure('ACCUMBENS_LEFT'),
+        _full_structure('ACCUMBENS_RIGHT'),
+        _full_structure('ALL'),
+        _full_structure('ALL_GREY_MATTER'),
+        _full_structure('ALL_WHITE_MATTER'),
+        _full_structure('AMYGDALA_LEFT'),
+        _full_structure('AMYGDALA_RIGHT'),
+        _full_structure('BRAIN_STEM'),
+        _full_structure('CAUDATE_LEFT'),
+        _full_structure('CAUDATE_RIGHT'),
+        _full_structure('CEREBELLAR_WHITE_MATTER_LEFT'),
+        _full_structure('CEREBELLAR_WHITE_MATTER_RIGHT'),
+        _full_structure('CEREBELLUM_LEFT'),
+        _full_structure('CEREBELLUM_RIGHT'),
+        _full_structure('CEREBRAL_WHITE_MATTER_LEFT'),
+        _full_structure('CEREBRAL_WHITE_MATTER_RIGHT'),
+        _full_structure('CORTEX'),
+        _full_structure('DIENCEPHALON_VENTRAL_LEFT'),
+        _full_structure('DIENCEPHALON_VENTRAL_RIGHT'),
+        _full_structure('HIPPOCAMPUS_LEFT'),
+        _full_structure('HIPPOCAMPUS_RIGHT'),
+        _full_structure('INVALID'),
+        _full_structure('OTHER'),
+        _full_structure('OTHER_GREY_MATTER'),
+        _full_structure('OTHER_WHITE_MATTER'),
+        _full_structure('PALLIDUM_LEFT'),
+        _full_structure('PALLIDUM_RIGHT'),
+        _full_structure('PUTAMEN_LEFT'),
+        _full_structure('PUTAMEN_RIGHT'),
+        ## Also commented out in connectome_wb; unclear if deprecated, planned, or what
+        # _full_structure("SUBCORTICAL_WHITE_MATTER_LEFT")
+        # _full_structure("SUBCORTICAL_WHITE_MATTER_RIGHT")
+        _full_structure('THALAMUS_LEFT'),
+        _full_structure('THALAMUS_RIGHT'),
+    ),
+    fields=('name', 'ciftiname', 'guiname'),
 )
 
 
@@ -943,13 +969,13 @@ class Cifti2BrainModel(xml.XmlSerializable):
     def _to_xml_element(self):
         brain_model = xml.Element('BrainModel')
 
-        for key in [
+        for key in (
             'IndexOffset',
             'IndexCount',
             'ModelType',
             'BrainStructure',
             'SurfaceNumberOfVertices',
-        ]:
+        ):
             attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
@@ -1132,14 +1158,14 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
         mat_ind_map = xml.Element('MatrixIndicesMap')
         dims_as_strings = [str(dim) for dim in self.applies_to_matrix_dimension]
         mat_ind_map.attrib['AppliesToMatrixDimension'] = ','.join(dims_as_strings)
-        for key in [
+        for key in (
             'IndicesMapToDataType',
             'NumberOfSeriesPoints',
             'SeriesExponent',
             'SeriesStart',
             'SeriesStep',
             'SeriesUnit',
-        ]:
+        ):
             attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
@@ -1544,7 +1570,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
 
         self.update_headers()
         header = self._nifti_header
-        extension = Cifti2Extension(content=self.header.to_xml())
+        extension = Cifti2Extension.from_bytes(self.header.to_xml())
         header.extensions = Nifti1Extensions(
             ext for ext in header.extensions if not isinstance(ext, Cifti2Extension)
         )

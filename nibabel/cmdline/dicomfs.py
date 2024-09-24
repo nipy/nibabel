@@ -25,7 +25,7 @@ class dummy_fuse:
 
 
 try:
-    import fuse  # type: ignore
+    import fuse  # type: ignore[import]
 
     uid = os.getuid()
     gid = os.getgid()
@@ -37,7 +37,7 @@ from optparse import Option, OptionParser
 import nibabel as nib
 import nibabel.dft as dft
 
-encoding = locale.getdefaultlocale()[1]
+encoding = locale.getlocale()[1]
 
 fuse.fuse_python_api = (0, 2)
 
@@ -193,9 +193,7 @@ class DICOMFS(fuse.Fuse):
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage='{} [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>'.format(
-            os.path.basename(sys.argv[0])
-        ),
+        usage=f'{os.path.basename(sys.argv[0])} [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>',
         version='%prog ' + nib.__version__,
     )
 

@@ -55,6 +55,7 @@ contributed code and discussion (in rough order of appearance):
 * JB Poline
 * Basile Pinsard
 * `Satrajit Ghosh`_
+* Eric Larson
 * `Nolan Nichols`_
 * Ly Nguyen
 * Philippe Gervais
@@ -125,6 +126,10 @@ contributed code and discussion (in rough order of appearance):
 * Jacob Roberts
 * Horea Christian
 * Fabian Perez
+* Mathieu Scheltienne
+* Reinder Vos de Wael
+* Peter Suter
+* Blake Dewey
 
 License reprise
 ===============

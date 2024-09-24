@@ -11,13 +11,14 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
+
 from __future__ import annotations
 
 import base64
 import sys
 import warnings
 from copy import copy
-from typing import Type, cast
+from typing import cast
 
 import numpy as np
 
@@ -228,7 +229,7 @@ class GiftiLabelTable(xml.XmlSerializable):
             label = xml.SubElement(labeltable, 'Label')
             label.attrib['Key'] = str(ele.key)
             label.text = ele.label
-            for attr in ['Red', 'Green', 'Blue', 'Alpha']:
+            for attr in ('Red', 'Green', 'Blue', 'Alpha'):
                 if getattr(ele, attr.lower(), None) is not None:
                     label.attrib[attr] = str(getattr(ele, attr.lower()))
         return labeltable
@@ -373,7 +374,7 @@ class GiftiCoordSystem(xml.XmlSerializable):
     def print_summary(self):
         print('Dataspace: ', xform_codes.niistring[self.dataspace])
         print('XFormSpace: ', xform_codes.niistring[self.xformspace])
-        print('Affine Transformation Matrix: \n', self.xform)
+        print('Affine Transformation Matrix:\n', self.xform)
 
 
 def _data_tag_element(dataarray, encoding, dtype, ordering):
@@ -597,7 +598,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     # The parser will in due course be a GiftiImageParser, but we can't set
     # that now, because it would result in a circular import.  We set it after
     # the class has been defined, at the end of the class definition.
-    parser: Type[xml.XmlParser]
+    parser: type[xml.XmlParser]
 
     def __init__(
         self,
@@ -745,7 +746,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         >>> triangles_2 = surf_img.agg_data('triangle')
         >>> triangles_3 = surf_img.agg_data(1009)  # Numeric code for pointset
         >>> print(np.array2string(triangles))
-        [0 1 2]
+        [[0 1 2]]
         >>> np.array_equal(triangles, triangles_2)
         True
         >>> np.array_equal(triangles, triangles_3)
@@ -852,7 +853,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
             GIFTI.append(dar._to_xml_element())
         return GIFTI
 
-    def to_xml(self, enc='utf-8', *, mode='strict') -> bytes:
+    def to_xml(self, enc='utf-8', *, mode='strict', **kwargs) -> bytes:
         """Return XML corresponding to image content"""
         if mode == 'strict':
             if any(arr.datatype not in GIFTI_DTYPES for arr in self.darrays):
@@ -882,7 +883,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         header = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/115/gifti.dtd">
 """
-        return header + super().to_xml(enc)
+        return header + super().to_xml(enc, **kwargs)
 
     # Avoid the indirection of going through to_file_map
     def to_bytes(self, enc='utf-8', *, mode='strict'):

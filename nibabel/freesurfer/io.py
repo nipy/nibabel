@@ -1,5 +1,4 @@
-"""Read / write FreeSurfer geometry, morphometry, label, stats, annotation formats
-"""
+"""Read / write FreeSurfer geometry, morphometry, label, stats, annotation formats"""
 from __future__ import annotations
 
 import getpass
@@ -32,7 +31,7 @@ def _fread3(fobj):
     n : int
         A 3 byte int
     """
-    b1, b2, b3 = np.fromfile(fobj, '>u1', 3)
+    b1, b2, b3 = np.fromfile(fobj, '>u1', 3).astype(np.int64)
     return (b1 << 16) + (b2 << 8) + b3
 
 
@@ -64,7 +63,7 @@ def _read_volume_info(fobj):
             return volume_info
 
     volume_info['head'] = head
-    for key in ['valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras']:
+    for key in ('valid', 'filename', 'volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras'):
         pair = fobj.readline().decode('utf-8').split('=')
         if pair[0].strip() != key or len(pair) != 2:
             raise OSError('Error parsing volume info.')

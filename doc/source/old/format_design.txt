@@ -13,7 +13,7 @@ The Image and the Format objects form a `bridge pattern
 diagram
 <https://en.wikipedia.org/wiki/File:Bridge_UML_class_diagram.svg>`_ the
 Image class plays the role of the Abstraction, and the Format plays the
-role of the implementor.
+role of the implementer.
 
 The Format object provides an interface to the underlying file format.
 

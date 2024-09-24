@@ -1,4 +1,5 @@
 """Module to help with deprecating objects and classes"""
+
 from __future__ import annotations
 
 import typing as ty
@@ -7,7 +8,7 @@ import warnings
 from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     P = ty.ParamSpec('P')
 
 

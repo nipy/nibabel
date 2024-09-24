@@ -39,6 +39,11 @@
       "orcid": "0000-0001-9112-9464"
     },
     {
+      "affiliation": "University of Washington: Seattle, WA, United States",
+      "name": "Larson, Eric",
+      "orcid": "0000-0003-4782-5360"
+    },
+    {
       "affiliation": "Dartmouth College: Hanover, NH, United States",
       "name": "Halchenko, Yaroslav O.",
       "orcid": "0000-0003-3456-2493"
@@ -47,11 +52,6 @@
       "affiliation": "Wellcome Centre for Integrative Neuroimaging, University of Oxford, UK",
       "name": "Cottaar, Michiel",
       "orcid": "0000-0003-4679-7724"
-    },
-    {
-      "affiliation": "University of Washington: Seattle, WA, United States",
-      "name": "Larson, Eric",
-      "orcid": "0000-0003-4782-5360"
     },
     {
       "affiliation": "MIT, HMS",
@@ -82,6 +82,11 @@
       "orcid": "0000-0003-4078-2038"
     },
     {
+      "affiliation": "CEA",
+      "name": "Papadopoulos Orfanos, Dimitri",
+      "orcid": "0000-0002-1242-8990"
+    },
+    {
       "affiliation": "Harvard University - Psychology",
       "name": "Kastman, Erik",
       "orcid": "0000-0001-7221-9042"
@@ -108,12 +113,12 @@
       "orcid": "0000-0003-0679-1985"
     },
     {
-      "name": "Madison, Cindee"
+      "affiliation": "Human Neuroscience Platform, Fondation Campus Biotech Geneva, Geneva, Switzerland",
+      "name": "Mathieu Scheltienne",
+      "orcid": "0000-0001-8316-7436"
     },
     {
-      "affiliation": "CEA",
-      "name": "Papadopoulos Orfanos, Dimitri",
-      "orcid": "0000-0002-1242-8990"
+      "name": "Madison, Cindee"
     },
     {
       "name": "S\u00f3lon, Anibal"
@@ -188,6 +193,9 @@
       "orcid": "0000-0002-4849-9811"
     },
     {
+      "name": "Vos de Wael, Reinder"
+    },
+    {
       "affiliation": "SRI International",
       "name": "Nichols, B. Nolan",
       "orcid": "0000-0003-1099-3328"
@@ -239,6 +247,9 @@
       "name": "Nguyen, Ly"
     },
     {
+      "name": "Suter, Peter"
+    },
+    {
       "affiliation": "BrainSpec, Boston, MA",
       "name": "Reddigari, Samir",
       "orcid": "0000-0003-1472-5881"
@@ -259,7 +270,7 @@
       "orcid": "0000-0003-1076-5122"
     },
     {
-      "affiliation": "Universit\u00e9 de Sherbrooke",
+      "affiliation": "Brigham and Women's Hospital, Mass General Brigham/Harvard Medical School",
       "name": "Legarreta, Jon Haitz",
       "orcid": "0000-0002-9661-1396"
     },
@@ -276,6 +287,9 @@
     },
     {
       "name": "Fauber, Bennet"
+    },
+    {
+      "name": "Dewey, Blake"
     },
     {
       "name": "Perez, Fabian"
@@ -377,6 +391,11 @@
     },
     {
       "name": "freec84"
+    },
+    {
+      "affiliation": "Polytechnique Montréal, Montréal, CA",
+      "name": "Newton, Joshua",
+      "orcid": "0009-0005-6963-3812"
     }
   ],
   "keywords": [
