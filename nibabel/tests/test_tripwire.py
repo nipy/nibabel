@@ -18,4 +18,3 @@ def test_tripwire():
     # Check AttributeError can be checked too
     with pytest.raises(AttributeError) as err:
         silly_module_name.__wrapped__
-    assert isinstance(err.value, AttributeError)
