@@ -374,7 +374,7 @@ class GiftiCoordSystem(xml.XmlSerializable):
     def print_summary(self):
         print('Dataspace: ', xform_codes.niistring[self.dataspace])
         print('XFormSpace: ', xform_codes.niistring[self.xformspace])
-        print('Affine Transformation Matrix: \n', self.xform)
+        print('Affine Transformation Matrix:\n', self.xform)
 
 
 def _data_tag_element(dataarray, encoding, dtype, ordering):
