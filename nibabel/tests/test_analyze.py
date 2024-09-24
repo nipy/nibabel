@@ -728,8 +728,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         IC = self.image_class
         # save an image to a file map
         fm = IC.make_file_map()
-        for key in fm:
-            fm[key].fileobj = BytesIO()
+        for value in fm.values():
+            value.fileobj = BytesIO()
         shape = (2, 3, 4)
         data = np.arange(24, dtype=np.int8).reshape(shape)
         affine = np.eye(4)
