@@ -138,12 +138,8 @@ def test_nib_roi_bad_slices(capsys, args, errmsg):
 def test_entrypoint(capsys):
     # Check that we handle missing args as expected
     with mock.patch('sys.argv', ['nib-roi', '--help']):
-        try:
+        with pytest.raises(SystemExit):
             main()
-        except SystemExit:
-            pass
-        else:
-            pytest.fail('argparse exits on --help. If changing to another parser, update test.')
     captured = capsys.readouterr()
     assert captured.out.startswith('usage: nib-roi')
 
