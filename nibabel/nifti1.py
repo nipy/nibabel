@@ -325,15 +325,15 @@ class NiftiExtension(ty.Generic[T]):
     """
 
     code: int
-    encoding: ty.Optional[str] = None
+    encoding: str | None = None
     _content: bytes
-    _object: ty.Optional[T] = None
+    _object: T | None = None
 
     def __init__(
         self,
-        code: ty.Union[int, str],
+        code: int | str,
         content: bytes = b'',
-        object: ty.Optional[T] = None,
+        object: T | None = None,
     ) -> None:
         """
         Parameters
@@ -565,9 +565,9 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
 
     def __init__(
         self,
-        code: ty.Union[int, str],
-        content: ty.Union[bytes, DicomDataset, None] = None,
-        parent_hdr: ty.Optional[Nifti1Header] = None,
+        code: int | str,
+        content: bytes | DicomDataset | None = None,
+        parent_hdr: Nifti1Header | None = None,
     ) -> None:
         """
         Parameters

@@ -1239,7 +1239,7 @@ def test_extension_content_access():
     assert ext.text == '123'
 
     # Test that encoding errors are caught
-    ascii_ext = Nifti1Extension('comment', 'hôpital'.encode('utf-8'))
+    ascii_ext = Nifti1Extension('comment', 'hôpital'.encode())
     ascii_ext.encoding = 'ascii'
     with pytest.raises(UnicodeDecodeError):
         ascii_ext.text
