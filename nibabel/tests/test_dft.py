@@ -58,7 +58,7 @@ def db(monkeypatch):
     and not modify the host filesystem."""
     database = dft._DB(fname=':memory:')
     monkeypatch.setattr(dft, 'DB', database)
-    yield database
+    return database
 
 
 def test_init(db):

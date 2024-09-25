@@ -123,7 +123,7 @@ def test_euler_mat_1():
     assert_array_equal(M, np.eye(3))
 
 
-@pytest.mark.parametrize('x, y, z', eg_rots)
+@pytest.mark.parametrize(('x', 'y', 'z'), eg_rots)
 def test_euler_mat_2(x, y, z):
     M1 = nea.euler2mat(z, y, x)
     M2 = sympy_euler(z, y, x)
@@ -176,7 +176,7 @@ def test_euler_instability():
     assert not np.allclose(M_e, M_e_back)
 
 
-@pytest.mark.parametrize('x, y, z', eg_rots)
+@pytest.mark.parametrize(('x', 'y', 'z'), eg_rots)
 def test_quats(x, y, z):
     M1 = nea.euler2mat(z, y, x)
     quatM = nq.mat2quat(M1)

@@ -37,7 +37,7 @@ def test_cmp_pkg_version_0():
 
 
 @pytest.mark.parametrize(
-    'test_ver, pkg_ver, exp_out',
+    ('test_ver', 'pkg_ver', 'exp_out'),
     [
         ('1.0', '1.0', 0),
         ('1.0.0', '1.0', 0),
@@ -52,8 +52,6 @@ def test_cmp_pkg_version_0():
         ('1.1dev', '1.1', -1),
         ('1.2.1', '1.2.1rc1', 1),
         ('1.2.1rc1', '1.2.1', -1),
-        ('1.2.1rc1', '1.2.1rc', 1),
-        ('1.2.1rc', '1.2.1rc1', -1),
         ('1.2.1rc1', '1.2.1rc', 1),
         ('1.2.1rc', '1.2.1rc1', -1),
         ('1.2.1b', '1.2.1a', 1),

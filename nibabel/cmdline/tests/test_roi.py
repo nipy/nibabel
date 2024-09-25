@@ -119,7 +119,7 @@ def test_nib_roi(tmp_path, inplace):
 
 
 @pytest.mark.parametrize(
-    'args, errmsg',
+    ('args', 'errmsg'),
     (
         (('-i', '1:1'), 'Cannot take zero-length slice'),
         (('-j', '1::2'), 'Downsampling is not supported'),
@@ -138,12 +138,8 @@ def test_nib_roi_bad_slices(capsys, args, errmsg):
 def test_entrypoint(capsys):
     # Check that we handle missing args as expected
     with mock.patch('sys.argv', ['nib-roi', '--help']):
-        try:
+        with pytest.raises(SystemExit):
             main()
-        except SystemExit:
-            pass
-        else:
-            assert False, 'argparse exits on --help. If changing to another parser, update test.'
     captured = capsys.readouterr()
     assert captured.out.startswith('usage: nib-roi')
 

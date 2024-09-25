@@ -125,7 +125,7 @@ def test_slice2volume():
 
 
 @pytest.mark.parametrize(
-    'index, axis',
+    ('index', 'axis'),
     [
         [-1, 0],
         [0, -1],

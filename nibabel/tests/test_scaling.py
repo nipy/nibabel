@@ -25,7 +25,7 @@ DEBUG = True
 
 
 @pytest.mark.parametrize(
-    'in_arr, res',
+    ('in_arr', 'res'),
     [
         ([[-1, 0, 1], [np.inf, np.nan, -np.inf]], (-1, 1)),
         (np.array([[-1, 0, 1], [np.inf, np.nan, -np.inf]]), (-1, 1)),
@@ -36,7 +36,6 @@ DEBUG = True
         ([[np.nan, -1, 2], [-2, np.nan, 1]], (-2, 2)),
         ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
         ([[-np.inf, 2], [np.nan, 1]], (1, 2)),  # good max case
-        ([[np.nan, -np.inf, 2], [-2, np.nan, np.inf]], (-2, 2)),
         ([np.nan], (np.inf, -np.inf)),
         ([np.inf], (np.inf, -np.inf)),
         ([-np.inf], (np.inf, -np.inf)),
@@ -134,7 +133,7 @@ def test_a2f_nan2zero():
 
 
 @pytest.mark.parametrize(
-    'in_type, out_type',
+    ('in_type', 'out_type'),
     [
         (np.int16, np.int16),
         (np.int16, np.int8),
@@ -163,7 +162,7 @@ def test_array_file_scales(in_type, out_type):
 
 
 @pytest.mark.parametrize(
-    'category0, category1, overflow',
+    ('category0', 'category1', 'overflow'),
     [
         # Confirm that, for all ints and uints as input, and all possible outputs,
         # for any simple way of doing the calculation, the result is near enough

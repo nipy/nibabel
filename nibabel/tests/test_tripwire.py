@@ -16,9 +16,5 @@ def test_tripwire():
     with pytest.raises(TripWireError):
         silly_module_name.do_silly_thing
     # Check AttributeError can be checked too
-    try:
+    with pytest.raises(AttributeError) as err:
         silly_module_name.__wrapped__
-    except TripWireError as err:
-        assert isinstance(err, AttributeError)
-    else:
-        raise RuntimeError('No error raised, but expected')

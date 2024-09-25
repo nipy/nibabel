@@ -125,7 +125,7 @@ def test_module_removal():
     for module in _filter(MODULE_SCHEDULE):
         with pytest.raises(ImportError):
             __import__(module)
-            assert False, f'Time to remove {module}'
+            raise AssertionError(f'Time to remove {module}')
 
 
 def test_object_removal():
