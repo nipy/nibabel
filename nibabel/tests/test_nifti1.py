@@ -820,7 +820,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr['qform_code'] = 3
         hdr['sform_code'] = 4
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         return img.from_file_map(img.file_map)

@@ -429,10 +429,9 @@ def fake_shape_dependents(
 
     class PrintBase:
         def __repr__(self):
-            attr_strs = []
-            for attr in dir(self):
-                if attr[0].isupper():
-                    attr_strs.append(f'{attr}={getattr(self, attr)}')
+            attr_strs = [
+                f'{attr}={getattr(self, attr)}' for attr in dir(self) if attr[0].isupper()
+            ]
             return f"{self.__class__.__name__}({', '.join(attr_strs)})"
 
     class DimIdxSeqElem(pydicom.Dataset):

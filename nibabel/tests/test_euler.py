@@ -21,12 +21,8 @@ from .. import quaternions as nq
 FLOAT_EPS = np.finfo(np.float64).eps
 
 # Example rotations """
-eg_rots = []
 params = np.arange(-pi * 2, pi * 2.5, pi / 2)
-for x in params:
-    for y in params:
-        for z in params:
-            eg_rots.append((x, y, z))
+eg_rots = [(x, y, z) for x in params for y in params for z in params]
 
 
 def x_only(x):

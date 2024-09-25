@@ -728,8 +728,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         IC = self.image_class
         # save an image to a file map
         fm = IC.make_file_map()
-        for key, value in fm.items():
-            fm[key].fileobj = BytesIO()
+        for value in fm.values():
+            value.fileobj = BytesIO()
         shape = (2, 3, 4)
         data = np.arange(24, dtype=np.int8).reshape(shape)
         affine = np.eye(4)
@@ -831,7 +831,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         hdr = img.header
         hdr.set_zooms((4, 5, 6))
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
@@ -842,7 +842,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(hdr.get_zooms(), (2, 3, 4))
         # Modify affine in-place? Update on save.
         img.affine[0, 0] = 9
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
@@ -864,7 +864,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(img.get_fdata(), img2.get_fdata())
         assert img.header == img2.header
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_prox = img.from_file_map(img.file_map)

@@ -28,7 +28,7 @@ def test_files_spatialimages():
     ]
     for klass in klasses:
         file_map = klass.make_file_map()
-        for key, value in file_map.items():
+        for value in file_map.values():
             assert value.filename is None
             assert value.fileobj is None
             assert value.pos == 0
@@ -41,7 +41,7 @@ def test_files_spatialimages():
             img = klass(arr.astype(np.float32), aff)
         else:
             img = klass(arr, aff)
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             assert value.filename is None
             assert value.fileobj is None
             assert value.pos == 0
