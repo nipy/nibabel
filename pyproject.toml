@@ -131,6 +131,7 @@ select = [
     "PYI",
     "Q",
     "RSE",
+    "RUF",
     "TCH",
     "UP",
 ]
@@ -158,6 +159,10 @@ ignore = [
     "PT017",
     "PT018",
     "PYI024",
+    "RUF005",
+    "RUF012", # TODO: enable
+    "RUF015",
+    "RUF017", # TODO: enable
     "UP027",  # deprecated
     "UP038",  # https://github.com/astral-sh/ruff/issues/7871
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
