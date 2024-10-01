@@ -309,14 +309,14 @@ class EcatHeader(WrapStruct, SpatialHeader):
         """
         code = self._structarr['patient_orientation'].item()
         if code not in self._patient_orient_codes:
-            raise KeyError('Ecat Orientation CODE %d not recognized' % code)
+            raise KeyError(f'Ecat Orientation CODE {code} not recognized')
         return self._patient_orient_codes[code]
 
     def get_filetype(self):
         """Type of ECAT Matrix File from code stored in header"""
         code = self._structarr['file_type'].item()
         if code not in self._ft_codes:
-            raise KeyError('Ecat Filetype CODE %d not recognized' % code)
+            raise KeyError(f'Ecat Filetype CODE {code} not recognized')
         return self._ft_codes[code]
 
     @classmethod

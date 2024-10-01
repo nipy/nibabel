@@ -281,7 +281,7 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
         zooms = np.asarray(zooms)
         ndims = self._ndims()
         if len(zooms) > ndims:
-            raise HeaderDataError('Expecting %d zoom values' % ndims)
+            raise HeaderDataError(f'Expecting {ndims} zoom values')
         if np.any(zooms[:3] <= 0):
             raise HeaderDataError(
                 f'Spatial (first three) zooms must be positive; got {tuple(zooms[:3])}'

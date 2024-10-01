@@ -699,7 +699,7 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         ndim = dims[0]
         zooms = np.asarray(zooms)
         if len(zooms) != ndim:
-            raise HeaderDataError('Expecting %d zoom values for ndim %d' % (ndim, ndim))
+            raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
         if np.any(zooms < 0):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
@@ -818,11 +818,11 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
             dtype = klass._data_type_codes.dtype[code]
         except KeyError:
             rep.problem_level = 40
-            rep.problem_msg = 'data code %d not recognized' % code
+            rep.problem_msg = f'data code {code} not recognized'
         else:
             if dtype.itemsize == 0:
                 rep.problem_level = 40
-                rep.problem_msg = 'data code %d not supported' % code
+                rep.problem_msg = f'data code {code} not supported'
             else:
                 return hdr, rep
         if fix:

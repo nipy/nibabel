@@ -179,7 +179,7 @@ def get_vector(csa_dict, tag_name, n):
     if len(items) == 0:
         return None
     if len(items) != n:
-        raise ValueError('Expecting %d vector' % n)
+        raise ValueError(f'Expecting {n} vector')
     return np.array(items)
 
 

@@ -284,8 +284,8 @@ class GiftiImageParser(XmlParser):
         if name == 'GIFTI':
             if hasattr(self, 'expected_numDA') and self.expected_numDA != self.img.numDA:
                 warnings.warn(
-                    'Actual # of data arrays does not match '
-                    '# expected: %d != %d.' % (self.expected_numDA, self.img.numDA)
+                    'Actual # of data arrays does not match # expected: '
+                    f'{self.expected_numDA} != {self.img.numDA}.'
                 )
             # remove last element of the list
             self.fsm_state.pop()

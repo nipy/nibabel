@@ -124,7 +124,7 @@ def ornt_transform(start_ornt, end_ornt):
                 result[start_in_idx, :] = [end_in_idx, flip]
                 break
         else:
-            raise ValueError('Unable to find out axis %d in start_ornt' % end_out_idx)
+            raise ValueError(f'Unable to find out axis {end_out_idx} in start_ornt')
     return result
 
 

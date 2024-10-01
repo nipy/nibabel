@@ -373,7 +373,7 @@ class BrainModelAxis(Axis):
         else:
             raise ValueError(
                 'Mask should be either 1-dimensional (for surfaces) or '
-                '3-dimensional (for volumes), not %i-dimensional' % mask.ndim
+                f'3-dimensional (for volumes), not {mask.ndim}-dimensional'
             )
 
     @classmethod
@@ -1519,7 +1519,6 @@ class SeriesAxis(Axis):
             index = self.size + index
         if index >= self.size or index < 0:
             raise IndexError(
-                'index %i is out of range for SeriesAxis with size %i'
-                % (original_index, self.size)
+                f'index {original_index} is out of range for SeriesAxis with size {self.size}'
             )
         return self.start + self.step * index
