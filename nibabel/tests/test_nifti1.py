@@ -578,12 +578,12 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         with pytest.raises(HeaderDataError):
             # all None
             hdr.set_slice_times((None,) * len(times))
-        n_mid_times = times[:]
+        n_mid_times = times.copy()
         n_mid_times[3] = None
         with pytest.raises(HeaderDataError):
             # None in middle
             hdr.set_slice_times(n_mid_times)
-        funny_times = times[:]
+        funny_times = times.copy()
         funny_times[3] = 0.05
         with pytest.raises(HeaderDataError):
             # can't get single slice duration
