@@ -176,7 +176,7 @@ jobs:
           allow-prereleases: true
       - name: Set up Python ${{ matrix.python-version }}
         if: endsWith(matrix.python-version, '-dev')
-        uses: deadsnakes/action@v3.1.0
+        uses: deadsnakes/action@v3.2.0
         with:
           python-version: ${{ matrix.python-version }}
           nogil: true
