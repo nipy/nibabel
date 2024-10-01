@@ -991,8 +991,8 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(data * 3 - 2, MFW(fake_mf)._scale_data(data))
         # Decimals are OK
         for frame in frames:
-            frame.PixelValueTransformationSequence[0].RescaleSlope = Decimal('3')
-            frame.PixelValueTransformationSequence[0].RescaleIntercept = Decimal('-2')
+            frame.PixelValueTransformationSequence[0].RescaleSlope = Decimal(3)
+            frame.PixelValueTransformationSequence[0].RescaleIntercept = Decimal(-2)
         assert_array_equal(data * 3 - 2, MFW(fake_mf)._scale_data(data))
         # A per-frame RWV scaling takes precedence over per-frame PixelValueTransformation
         for frame in frames:
