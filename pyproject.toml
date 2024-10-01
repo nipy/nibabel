@@ -151,7 +151,8 @@ ignore = [
     "C416",
     "PERF203",
     "PIE790",
-    "PT004",
+    "PT004",  # deprecated
+    "PT005",  # deprecated
     "PT007",
     "PT011",
     "PT012",
@@ -162,6 +163,8 @@ ignore = [
     "RUF012", # TODO: enable
     "RUF015",
     "RUF017", # TODO: enable
+    "UP027",  # deprecated
+    "UP038",  # https://github.com/astral-sh/ruff/issues/7871
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
