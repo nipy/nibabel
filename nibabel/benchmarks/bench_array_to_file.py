@@ -11,12 +11,12 @@ Run this benchmark with::
 """
 
 import sys
-from io import BytesIO  # NOQA
+from io import BytesIO  # noqa: F401
 
 import numpy as np
 from numpy.testing import measure
 
-from nibabel.volumeutils import array_to_file  # NOQA
+from nibabel.volumeutils import array_to_file  # noqa: F401
 
 from .butils import print_git_title
 

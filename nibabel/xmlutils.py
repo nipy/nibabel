@@ -9,7 +9,7 @@
 """Thin layer around xml.etree.ElementTree, to abstract nibabel xml support"""
 
 from io import BytesIO
-from xml.etree.ElementTree import Element, SubElement, tostring  # noqa
+from xml.etree.ElementTree import Element, SubElement, tostring  # noqa: F401
 from xml.parsers.expat import ParserCreate
 
 from .filebasedimages import FileBasedHeader
