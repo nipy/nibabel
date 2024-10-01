@@ -465,7 +465,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     dt = _ANNOT_DT
     # This code works with a file version == 2, nothing else
     if ctab_version != 2:
-        raise Exception('Unrecognised .annot file version (%i)', ctab_version)
+        raise Exception(f'Unrecognised .annot file version ({ctab_version})')
     # maximum LUT index present in the file
     max_index = np.fromfile(fobj, dt, 1)[0]
     ctab = np.zeros((max_index, 5), dt)
