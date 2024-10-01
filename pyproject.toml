@@ -135,14 +135,14 @@ select = [
     "UP",
 ]
 ignore = [
-    "B006",  # TODO: enable
-    "B008",  # TODO: enable
+    "B006",   # TODO: enable
+    "B008",   # TODO: enable
     "B007",
     "B011",
-    "B017",  # TODO: enable
+    "B017",   # TODO: enable
     "B018",
     "B020",
-    "B023",  # TODO: enable
+    "B023",   # TODO: enable
     "B028",
     "B904",
     "C401",
@@ -150,13 +150,16 @@ ignore = [
     "C416",
     "PERF203",
     "PIE790",
-    "PT004",
+    "PT004",  # deprecated
+    "PT005",  # deprecated
     "PT007",
     "PT011",
     "PT012",
     "PT017",
     "PT018",
     "PYI024",
+    "UP027",  # deprecated
+    "UP038",  # https://github.com/astral-sh/ruff/issues/7871
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
