@@ -322,7 +322,7 @@ def axcodes2ornt(axcodes, labels=None):
            [ 2.,  1.]])
     """
     labels = list(zip('LPI', 'RAS')) if labels is None else labels
-    allowed_labels = sum([list(L) for L in labels], []) + [None]
+    allowed_labels = sum((list(L) for L in labels), []) + [None]
     if len(allowed_labels) != len(set(allowed_labels)):
         raise ValueError(f'Duplicate labels in {allowed_labels}')
     if not set(axcodes).issubset(allowed_labels):
