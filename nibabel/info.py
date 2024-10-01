@@ -108,4 +108,4 @@ the top of the release notes. Click on the badge for more information.
 
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
 .. _zenodo: https://zenodo.org
-"""  # noqa: E501
+"""
