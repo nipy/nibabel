@@ -565,7 +565,7 @@ class FilterMultiStack(FrameFilter):
                 warnings.warn(
                     'A multi-stack file was passed without an explicit filter, just using lowest StackID'
                 )
-                self._selected = sorted(stack_ids)[0]
+                self._selected = min(stack_ids)
             return True
         return False
 
