@@ -25,7 +25,7 @@ And:
   * if you pass a header into the __init__, then modifying the original
     header will not affect the result of the array return.
 
-These last are to allow the proxy to be re-used with different images.
+These last are to allow the proxy to be reused with different images.
 """
 
 import unittest
