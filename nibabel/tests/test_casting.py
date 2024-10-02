@@ -161,7 +161,7 @@ def test_floor_log2():
 
 
 def test_able_int_type():
-    # The integer type cabable of containing values
+    # The integer type capable of containing values
     for vals, exp_out in (
         ([0, 1], np.uint8),
         ([0, 255], np.uint8),
