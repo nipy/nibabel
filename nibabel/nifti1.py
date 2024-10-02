@@ -1559,7 +1559,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         else:
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code]) if known_intent else 0
-        params = (float(hdr['intent_p%d' % (i + 1)]) for i in range(n_params))
+        params = (float(hdr[f'intent_p{i}']) for i in range(1, n_params + 1))
         name = hdr['intent_name'].item().decode('latin-1')
         return label, tuple(params), name
 
@@ -1632,8 +1632,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         hdr['intent_name'] = name
         all_params = [0] * 3
         all_params[: len(params)] = params[:]
-        for i, param in enumerate(all_params):
-            hdr['intent_p%d' % (i + 1)] = param
+        for i, param in enumerate(all_params, start=1):
+            hdr[f'intent_p{i}'] = param
 
     def get_slice_duration(self):
         """Get slice duration
@@ -1911,7 +1911,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             return hdr, rep
         if magic == hdr.single_magic and offset < hdr.single_vox_offset:
             rep.problem_level = 40
-            rep.problem_msg = 'vox offset %d too low for single file nifti1' % offset
+            rep.problem_msg = f'vox offset {int(offset)} too low for single file nifti1'
             if fix:
                 hdr['vox_offset'] = hdr.single_vox_offset
                 rep.fix_msg = f'setting to minimum value of {hdr.single_vox_offset}'
@@ -1943,7 +1943,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         if code in recoder.value_set():
             return hdr, rep
         rep.problem_level = 30
-        rep.problem_msg = '%s %d not valid' % (code_type, code)
+        rep.problem_msg = f'{code_type} {code} not valid'
         if fix:
             hdr[code_type] = 0
             rep.fix_msg = 'setting to 0'

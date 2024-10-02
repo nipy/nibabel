@@ -266,7 +266,7 @@ def get_data_diff(files, max_abs=0, max_rel=0, dtype=np.float64):
                 diffs1.append({'CMP': 'incompat'})
 
         if any(diffs1):
-            diffs['DATA(diff %d:)' % (i + 1)] = diffs1
+            diffs[f'DATA(diff {i + 1}:)'] = diffs1
 
     return diffs
 
@@ -293,7 +293,7 @@ def display_diff(files, diff):
     output += field_width.format('Field/File')
 
     for i, f in enumerate(files, 1):
-        output += '%d:%s' % (i, filename_width.format(os.path.basename(f)))
+        output += f'{i}:{filename_width.format(os.path.basename(f))}'
 
     output += '\n'
 

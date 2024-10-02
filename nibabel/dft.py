@@ -162,7 +162,7 @@ class _Series:
         for i, si in enumerate(self.storage_instances):
             if i + 1 != si.instance_number:
                 raise InstanceStackError(self, i, si)
-            logger.info('reading %d/%d' % (i + 1, len(self.storage_instances)))
+            logger.info(f'reading {i + 1}/{len(self.storage_instances)}')
             d = self.storage_instances[i].dicom()
             data[i, :, :] = d.pixel_array
 

@@ -10,7 +10,7 @@
 from ..volumeutils import Recoder
 
 # Translate dtype.kind char codes to XML text output strings
-KIND2FMT = {'i': '%i', 'u': '%i', 'f': '%10.6f', 'c': '%10.6f', 'V': ''}
+KIND2FMT = {'i': '%d', 'u': '%d', 'f': '%10.6f', 'c': '%10.6f', 'V': ''}
 
 array_index_order_codes = Recoder(
     (

@@ -124,7 +124,7 @@ def ornt_transform(start_ornt, end_ornt):
                 result[start_in_idx, :] = [end_in_idx, flip]
                 break
         else:
-            raise ValueError('Unable to find out axis %d in start_ornt' % end_out_idx)
+            raise ValueError(f'Unable to find out axis {end_out_idx} in start_ornt')
     return result
 
 
@@ -322,7 +322,7 @@ def axcodes2ornt(axcodes, labels=None):
            [ 2.,  1.]])
     """
     labels = list(zip('LPI', 'RAS')) if labels is None else labels
-    allowed_labels = sum([list(L) for L in labels], []) + [None]
+    allowed_labels = sum(map(list, labels), [None])
     if len(allowed_labels) != len(set(allowed_labels)):
         raise ValueError(f'Duplicate labels in {allowed_labels}')
     if not set(axcodes).issubset(allowed_labels):

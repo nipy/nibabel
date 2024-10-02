@@ -51,7 +51,7 @@ class FileHandle:
         self.direct_io = False
 
     def __str__(self):
-        return 'FileHandle(%d)' % self.fno
+        return f'FileHandle({self.fno})'
 
 
 class DICOMFS(fuse.Fuse):
@@ -85,11 +85,11 @@ class DICOMFS(fuse.Fuse):
                 series_info += f'UID: {series.uid}\n'
                 series_info += f'number: {series.number}\n'
                 series_info += f'description: {series.description}\n'
-                series_info += 'rows: %d\n' % series.rows
-                series_info += 'columns: %d\n' % series.columns
-                series_info += 'bits allocated: %d\n' % series.bits_allocated
-                series_info += 'bits stored: %d\n' % series.bits_stored
-                series_info += 'storage instances: %d\n' % len(series.storage_instances)
+                series_info += f'rows: {series.rows}\n'
+                series_info += f'columns: {series.columns}\n'
+                series_info += f'bits allocated: {series.bits_allocated}\n'
+                series_info += f'bits stored: {series.bits_stored}\n'
+                series_info += f'storage instances: {len(series.storage_instances)}\n'
                 d[series.number] = {
                     'INFO': series_info.encode('ascii', 'replace'),
                     f'{series.number}.nii': (series.nifti_size, series.as_nifti),

@@ -79,7 +79,7 @@ class TestArraySequence(unittest.TestCase):
         # List of ndarrays.
         N = 5
         for ndim in range(1, N + 1):
-            common_shape = tuple([SEQ_DATA['rng'].randint(1, 10) for _ in range(ndim - 1)])
+            common_shape = tuple(SEQ_DATA['rng'].randint(1, 10) for _ in range(ndim - 1))
             data = generate_data(nb_arrays=5, common_shape=common_shape, rng=SEQ_DATA['rng'])
             check_arr_seq(ArraySequence(data), data)
 

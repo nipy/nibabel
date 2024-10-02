@@ -522,7 +522,7 @@ class GiftiDataArray(xml.XmlSerializable):
             },
         )
         for di, dn in enumerate(self.dims):
-            data_array.attrib['Dim%d' % di] = str(dn)
+            data_array.attrib[f'Dim{di}'] = str(dn)
 
         if self.meta is not None:
             data_array.append(self.meta._to_xml_element())

@@ -427,7 +427,7 @@ def _read_annot_ctab_old_format(fobj, n_entries):
     for i in range(n_entries):
         # structure name length + string
         name_length = np.fromfile(fobj, dt, 1)[0]
-        name = np.fromfile(fobj, '|S%d' % name_length, 1)[0]
+        name = np.fromfile(fobj, f'|S{name_length}', 1)[0]
         names.append(name)
         # read RGBT for this entry
         ctab[i, :4] = np.fromfile(fobj, dt, 4)
@@ -465,13 +465,13 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     dt = _ANNOT_DT
     # This code works with a file version == 2, nothing else
     if ctab_version != 2:
-        raise Exception('Unrecognised .annot file version (%i)', ctab_version)
+        raise Exception(f'Unrecognised .annot file version ({ctab_version})')
     # maximum LUT index present in the file
     max_index = np.fromfile(fobj, dt, 1)[0]
     ctab = np.zeros((max_index, 5), dt)
     # orig_tab string length + string
     length = np.fromfile(fobj, dt, 1)[0]
-    np.fromfile(fobj, '|S%d' % length, 1)[0]  # Orig table path
+    np.fromfile(fobj, f'|S{length}', 1)[0]  # Orig table path
     # number of LUT entries present in the file
     entries_to_read = np.fromfile(fobj, dt, 1)[0]
     names = list()
@@ -480,7 +480,7 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
         idx = np.fromfile(fobj, dt, 1)[0]
         # structure name length + string
         name_length = np.fromfile(fobj, dt, 1)[0]
-        name = np.fromfile(fobj, '|S%d' % name_length, 1)[0]
+        name = np.fromfile(fobj, f'|S{name_length}', 1)[0]
         names.append(name)
         # RGBT
         ctab[idx, :4] = np.fromfile(fobj, dt, 4)
@@ -525,7 +525,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         def write_string(s):
             s = (s if isinstance(s, bytes) else s.encode()) + b'\x00'
             write(len(s))
-            write(s, dtype='|S%d' % len(s))
+            write(s, dtype=f'|S{len(s)}')
 
         # Generate annotation values for each ctab entry
         if fill_ctab:

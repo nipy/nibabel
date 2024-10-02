@@ -73,7 +73,7 @@ def get_opt_parser():
                 action='store_true',
                 dest='all_counts',
                 default=False,
-                help='Output all counts, even if number of unique values > %d' % MAX_UNIQUE,
+                help=f'Output all counts, even if number of unique values > {MAX_UNIQUE}',
             ),
             Option(
                 '-z',
@@ -117,7 +117,7 @@ def proc_file(f, opts):
         row += ['']
 
     if hasattr(h, 'extensions') and len(h.extensions):
-        row += ['@l#exts: %d' % len(h.extensions)]
+        row += [f'@l#exts: {len(h.extensions)}']
     else:
         row += ['']
 
@@ -166,16 +166,16 @@ def proc_file(f, opts):
                 d = d.reshape(-1)
             if opts.stats:
                 # just # of elements
-                row += ['@l[%d]' % np.prod(d.shape)]
+                row += [f'@l[{np.prod(d.shape)}]']
                 # stats
                 row += [f'@l[{np.min(d):.2g}, {np.max(d):.2g}]' if len(d) else '-']
             if opts.counts:
                 items, inv = np.unique(d, return_inverse=True)
                 if len(items) > 1000 and not opts.all_counts:
-                    counts = _err('%d uniques. Use --all-counts' % len(items))
+                    counts = _err(f'{len(items)} uniques. Use --all-counts')
                 else:
                     freq = np.bincount(inv)
-                    counts = ' '.join('%g:%d' % (i, f) for i, f in zip(items, freq))
+                    counts = ' '.join(f'{i:g}:{f}' for i, f in zip(items, freq))
                 row += ['@l' + counts]
         except OSError as e:
             verbose(2, f'Failed to obtain stats/counts -- {e}')
