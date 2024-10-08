@@ -35,7 +35,7 @@ def test_csa_header_read():
             data2.add(element)
     assert csa.get_csa_header(data2, 'image') is None
     # Add back the marker - CSA works again
-    data2[(0x29, 0x10)] = DATA[(0x29, 0x10)]
+    data2[0x29, 0x10] = DATA[0x29, 0x10]
     assert csa.is_mosaic(csa.get_csa_header(data2, 'image'))
 
 
