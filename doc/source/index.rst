@@ -130,6 +130,9 @@ contributed code and discussion (in rough order of appearance):
 * Reinder Vos de Wael
 * Peter Suter
 * Blake Dewey
+* Guillaume Becq
+* Joshua Newton
+* Sandro from the Fedora Project
 
 License reprise
 ===============

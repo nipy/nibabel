@@ -16,5 +16,5 @@ def test_tripwire():
     with pytest.raises(TripWireError):
         silly_module_name.do_silly_thing
     # Check AttributeError can be checked too
-    with pytest.raises(AttributeError) as err:
+    with pytest.raises(AttributeError):
         silly_module_name.__wrapped__

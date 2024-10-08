@@ -17,6 +17,7 @@ import typing as ty
 import unittest
 import warnings
 from contextlib import nullcontext
+from importlib.resources import as_file, files
 from itertools import zip_longest
 
 import numpy as np
@@ -28,11 +29,6 @@ from .np_features import memmap_after_ufunc
 
 if ty.TYPE_CHECKING:
     from importlib.resources.abc import Traversable
-
-try:
-    from importlib.resources import as_file, files
-except ImportError:  # PY38
-    from importlib_resources import as_file, files
 
 
 def get_test_data(

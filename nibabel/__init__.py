@@ -170,10 +170,7 @@ def bench(label=None, verbose=1, extra_argv=None):
     code : ExitCode
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
-    try:
-        from importlib.resources import as_file, files
-    except ImportError:
-        from importlib_resources import as_file, files
+    from importlib.resources import as_file, files
 
     args = []
     if extra_argv is not None:

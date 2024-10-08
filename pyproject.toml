@@ -9,10 +9,10 @@ authors = [{ name = "NiBabel developers", email = "neuroimaging@python.org" }]
 maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
 license = { text = "MIT License" }
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-  "numpy >=1.20",
-  "packaging >=17",
+  "numpy >=1.22",
+  "packaging >=20",
   "importlib_resources >=5.12; python_version < '3.12'",
   "typing_extensions >=4.6; python_version < '3.13'",
 ]
@@ -23,11 +23,11 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
 ]
 # Version from setuptools_scm
@@ -53,7 +53,7 @@ parrec2nii = "nibabel.cmdline.parrec2nii:main"
 [project.optional-dependencies]
 all = ["nibabel[dicomfs,minc2,spm,zstd]"]
 # Features
-dicom = ["pydicom >=1.0.0"]
+dicom = ["pydicom >=2.3"]
 dicomfs = ["nibabel[dicom]", "pillow"]
 minc2 = ["h5py"]
 spm = ["scipy"]
@@ -62,7 +62,7 @@ zstd = ["pyzstd >= 0.14.3"]
 # tox should use these with extras instead of duplicating
 doc = [
   "sphinx",
-  "matplotlib>=1.5.3",
+  "matplotlib>=3.5",
   "numpydoc",
   "texext",
   "tomli; python_version < '3.11'",

@@ -81,16 +81,16 @@ is for you.
 Requirements
 ------------
 
-.. check these against pyproject.toml
+.. check these against pyproject.toml / tox.ini
 
-*  Python_ 3.8 or greater
-*  NumPy_ 1.20 or greater
-*  Packaging_ 17.0 or greater
-*  importlib-resources_ 1.3 or greater (or Python 3.9+)
-*  SciPy_ (optional, for full SPM-ANALYZE support)
-*  h5py_ (optional, for MINC2 support)
-*  PyDICOM_ 1.0.0 or greater (optional, for DICOM support)
-*  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
+*  Python_ 3.9 or greater
+*  NumPy_ 1.22 or greater
+*  Packaging_ 20.0 or greater
+*  importlib-resources_ 5.12 or greater (or Python 3.12+)
+*  SciPy_ 1.8 or greater (optional, for full SPM-ANALYZE support)
+*  h5py_ 3.5 or greater (optional, for MINC2 support)
+*  PyDICOM_ 2.3.0 or greater (optional, for DICOM support)
+*  `Python Imaging Library`_ 8.4 or greater (optional, for PNG conversion in DICOMFS)
 *  pytest_ (optional, to run the tests)
 *  sphinx_ (optional, to build the documentation)
 

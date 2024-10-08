@@ -235,7 +235,7 @@ class Recoder:
 endian_codes = Recoder(_endian_codes)
 
 
-class DtypeMapper(ty.Dict[ty.Hashable, ty.Hashable]):
+class DtypeMapper(dict[ty.Hashable, ty.Hashable]):
     """Specialized mapper for numpy dtypes
 
     We pass this mapper into the Recoder class to deal with numpy dtype
