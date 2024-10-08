@@ -1,0 +1,74 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`orientations`
+===================
+.. automodule:: nibabel.orientations
+
+.. currentmodule:: nibabel.orientations
+.. autosummary::
+
+   OrientationError
+   aff2axcodes
+   apply_orientation
+   axcodes2ornt
+   flip_axis
+   inv_ornt_aff
+   io_orientation
+   ornt2axcodes
+   ornt_transform
+
+
+.. currentmodule:: nibabel.orientations
+
+
+:class:`OrientationError`
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: OrientationError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+aff2axcodes
+~~~~~~~~~~~
+
+.. autofunction:: aff2axcodes
+
+apply_orientation
+~~~~~~~~~~~~~~~~~
+
+.. autofunction:: apply_orientation
+
+axcodes2ornt
+~~~~~~~~~~~~
+
+.. autofunction:: axcodes2ornt
+
+flip_axis
+~~~~~~~~~
+
+.. autofunction:: flip_axis
+
+inv_ornt_aff
+~~~~~~~~~~~~
+
+.. autofunction:: inv_ornt_aff
+
+io_orientation
+~~~~~~~~~~~~~~
+
+.. autofunction:: io_orientation
+
+ornt2axcodes
+~~~~~~~~~~~~
+
+.. autofunction:: ornt2axcodes
+
+ornt_transform
+~~~~~~~~~~~~~~
+
+.. autofunction:: ornt_transform
+

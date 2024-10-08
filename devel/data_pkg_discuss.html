@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Principles of data package</a><ul>
+<li><a class="reference internal" href="#summary">Summary</a></li>
+<li><a class="reference internal" href="#motivation">Motivation</a></li>
+<li><a class="reference internal" href="#separation-of-ideas">Separation of ideas</a><ul>
+<li><a class="reference internal" href="#package">Package</a></li>
+<li><a class="reference internal" href="#package-name">Package name</a></li>
+<li><a class="reference internal" href="#package-instantiation">Package instantiation</a></li>
+<li><a class="reference internal" href="#pinstance-revision">Pinstance revision</a></li>
+<li><a class="reference internal" href="#pinstance-revision-id">Pinstance revision id</a></li>
+<li><a class="reference internal" href="#pinstance-tag">Pinstance tag</a></li>
+<li><a class="reference internal" href="#pinstance-version">Pinstance version</a></li>
+<li><a class="reference internal" href="#package-provider-bundle">Package provider bundle</a></li>
+<li><a class="reference internal" href="#provider-bundle-format">Provider bundle format</a></li>
+<li><a class="reference internal" href="#pinstance-release">Pinstance release</a></li>
+<li><a class="reference internal" href="#prundle-discovery">Prundle discovery</a></li>
+<li><a class="reference internal" href="#prundle-discovery-source">Prundle discovery source</a></li>
+<li><a class="reference internal" href="#pinstance-metadata-query">Pinstance metadata query</a></li>
+<li><a class="reference internal" href="#pinstance-metadata-query-source">Pinstance metadata query source</a></li>
+<li><a class="reference internal" href="#pinstance-installation">Pinstance installation</a></li>
+<li><a class="reference internal" href="#data-and-metadata">Data and metadata</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#comparative-terminology">Comparative terminology</a><ul>
+<li><a class="reference internal" href="#compared-to-debian-packaging">Compared to Debian packaging</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#desiderata">Desiderata</a></li>
+<li><a class="reference internal" href="#issues">Issues</a><ul>
+<li><a class="reference internal" href="#dependency-management">Dependency management</a></li>
+<li><a class="reference internal" href="#authentication-and-validation">Authentication and validation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#differences-from-code-packages">Differences from code packages</a></li>
+<li><a class="reference internal" href="#some-usecases">Some usecases</a><ul>
+<li><a class="reference internal" href="#discovery">Discovery</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/data_pkg_discuss.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="principles-of-data-package">
+<span id="data-package-discuss"></span><h1>Principles of data package<a class="headerlink" href="#principles-of-data-package" title="Link to this heading">¶</a></h1>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>This is a discussion of data packages, as they are currently implemented in
+nibabel / nipy.</p>
+<p>This API proved to be very uncomfortable, and we intend to replace it fairly
+soon.  See <code class="docutils literal notranslate"><span class="pre">data_packages.rst</span></code> in the <a class="reference external" href="https://github.com/nipy/nibabel.wiki">nibabel wiki</a> for our current
+thinking, not yet implemented.</p>
+</section>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading">¶</a></h2>
+<p>When developing or using nipy, many data files can be useful.</p>
+<ol class="arabic simple">
+<li><p><em>small test data</em> - very small data files required for routine code testing.
+By small we mean less than 100K, and probably much less.  They have to be
+small because we keep them in the main code repository, and you therefore
+always get them with any download.</p></li>
+<li><p><em>large test data</em>.  These files can be much larger, and don’t come in the
+standard repository.  We use them for tests, but we skip the tests if the
+data are not present.</p></li>
+<li><p><em>template data</em> - data files required for some algorithms to function,
+such as templates or atlases</p></li>
+<li><p><em>example data</em> - data files for running examples.</p></li>
+</ol>
+<p>We need some standard way to provide the larger data sets.  To do this, we are
+here defining the idea of a <em>data package</em>.  This document is a draft
+specification of what a <em>data package</em> looks like and how to use it.</p>
+</section>
+<section id="separation-of-ideas">
+<h2>Separation of ideas<a class="headerlink" href="#separation-of-ideas" title="Link to this heading">¶</a></h2>
+<p>This section needs some healthy beating to make the ideas clearer.  However, in
+the interests of the <a class="reference external" href="http://nipyworld.blogspot.com/2010/11/0saga-software-model.html">0SAGA</a> software model, here are some ideas that may be
+separable.</p>
+<section id="package">
+<h3>Package<a class="headerlink" href="#package" title="Link to this heading">¶</a></h3>
+<p>This idea is rather difficult to define, but is a bit like a data project, that
+is a set of information that the packager believed had something in common.  The
+package then is an abstract idea, and what is in the package could change
+completely over course of the life of the package.  The package then is a little
+bit like a namespace, having itself no content other than a string (the package
+name) and the data it contains.</p>
+</section>
+<section id="package-name">
+<h3>Package name<a class="headerlink" href="#package-name" title="Link to this heading">¶</a></h3>
+<p>This is a string that gives a name to the package.</p>
+</section>
+<section id="package-instantiation">
+<h3>Package instantiation<a class="headerlink" href="#package-instantiation" title="Link to this heading">¶</a></h3>
+<p>By <em>instantiation</em> we mean some particular actual set of data for a particular
+package.  By actual, we mean stuff that can be read as bytes.  As we add and
+remove data from the package, the <em>instantiation</em> changes.  In version control,
+the instantiation would be the particular state of the working tree at any
+moment, whether this has been committed or not.</p>
+<p>It might not be enjoyable, but we’ll call a package instantiation a <em>pinstance</em>.</p>
+</section>
+<section id="pinstance-revision">
+<h3>Pinstance revision<a class="headerlink" href="#pinstance-revision" title="Link to this heading">¶</a></h3>
+<p>A revision is an instantiation of the working tree that has a unique label - the
+<em>revision id</em>.</p>
+</section>
+<section id="pinstance-revision-id">
+<h3>Pinstance revision id<a class="headerlink" href="#pinstance-revision-id" title="Link to this heading">¶</a></h3>
+<p>The <em>revision id</em> is a string that identifies a particular <em>pinstance</em>.  This is
+the equivalent of the revision number in <a class="reference external" href="https://subversion.apache.org">subversion</a>, or the commit hash in
+systems like <a class="reference external" href="https://git-scm.com">git</a> or <a class="reference external" href="https://mercurial.selenic.com">mercurial</a>. There is only one pinstance for any given
+revision id, but there can be more than one revision id for a pinstance.  For
+example, you might have a revision of id ‘200’, delete a file, restore the file,
+call this revision id ‘201’, but they might both refer to the same instantiation
+of the package.  Or they might not, that’s up to you, the author of the package.</p>
+</section>
+<section id="pinstance-tag">
+<h3>Pinstance tag<a class="headerlink" href="#pinstance-tag" title="Link to this heading">¶</a></h3>
+<p>A <em>tag</em> is a memorable string that refers to a particular pinstance.  It differs
+from a revision id only in that there is not likely to be a tag for every
+revision.  It’s possible to imagine pinstances without a revision id but with a
+tag, but perhaps it’s reasonable to restrict tags to refer to revisions.  A
+<em>tag</em> is equivalent to a tag name in git or mercurial - a memorable string that
+refers to a static state of the data.  An example might be a numbered version.
+So, a package may have a revision uniquely identified by a revision id
+<code class="docutils literal notranslate"><span class="pre">af5bd6</span></code>.  We might decide to label this revision <code class="docutils literal notranslate"><span class="pre">release-0.3</span></code> (the
+equivalent of applying a git tag).  <code class="docutils literal notranslate"><span class="pre">release-0.3</span></code> is the tag and <code class="docutils literal notranslate"><span class="pre">af5bd6</span></code> is
+the revision id.  Different sources of the same package might possibly produce
+different tags <a class="footnote-reference brackets" href="#tag-sources" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+</section>
+<section id="pinstance-version">
+<h3>Pinstance version<a class="headerlink" href="#pinstance-version" title="Link to this heading">¶</a></h3>
+<p>A <em>pinstance</em> might also have a version.  A version is just a tag that can be
+compared using some algorithm.</p>
+</section>
+<section id="package-provider-bundle">
+<span id="prundle"></span><h3>Package provider bundle<a class="headerlink" href="#package-provider-bundle" title="Link to this heading">¶</a></h3>
+<p>Maybe we could call this a “prundle”.</p>
+<p>The <em>provider bundle</em> is something that can deliver the bytes of a particular
+pinstance.  For example, if you have a package named “interesting-images”, you
+might have a revision of that package identified by revision id “f745dc2” and
+tagged with “version-0.2”.  There might be a <em>provider bundle</em> of that
+instantiation that is a zipfile <code class="docutils literal notranslate"><span class="pre">interesting-images-version-0.2.zip</span></code>.  There
+might also be a directory on an http server with the same contents
+<code class="docutils literal notranslate"><span class="pre">http://my.server.org/packages/interesting-images/version-9.2</span></code>.  The zipfile
+and the http directory would both be <em>provider bundles</em> of the particular
+instantiation.  When I unpack the zipfile onto my hard disk, I might have a
+directory <code class="docutils literal notranslate"><span class="pre">/my/home/packages/interesting-images/version-0.2</span></code>.  Now this path
+is a provider bundle.</p>
+</section>
+<section id="provider-bundle-format">
+<h3>Provider bundle format<a class="headerlink" href="#provider-bundle-format" title="Link to this heading">¶</a></h3>
+<p>In the example above, the zipfile, the http directory and the local path are
+three different provider bundle formats delivering the same package
+instantiation.  Let’s call those formats:</p>
+<ul class="simple">
+<li><p>zipfile format</p></li>
+<li><p>url-path format</p></li>
+<li><p>local-path format</p></li>
+</ul>
+</section>
+<section id="pinstance-release">
+<h3>Pinstance release<a class="headerlink" href="#pinstance-release" title="Link to this heading">¶</a></h3>
+<p>A release might be a package instantiation that one person has:</p>
+<ol class="arabic simple">
+<li><p>tagged</p></li>
+<li><p>made available as one or more <em>provider bundles</em></p></li>
+</ol>
+</section>
+<section id="prundle-discovery">
+<span id="id2"></span><h3>Prundle discovery<a class="headerlink" href="#prundle-discovery" title="Link to this heading">¶</a></h3>
+<p>We <em>discover</em> a package bundle when we ask a system (local or remote) whether
+they have a package bundle at a given revision, tag, or bundle format.  That
+implies two discoveries - <em>local discovery</em> (is the package bundle on my local
+system, if so where is it?); and <em>remote discovery</em> (is the package bundle on
+your expensive server and if so, how do I get it?).  For the Debian
+distributions, the <code class="docutils literal notranslate"><span class="pre">sources.list</span></code> file identifies sources from which we can
+query for software packages.  Those would be sources for <em>remote discovery</em> in
+our language.</p>
+</section>
+<section id="prundle-discovery-source">
+<h3>Prundle discovery source<a class="headerlink" href="#prundle-discovery-source" title="Link to this heading">¶</a></h3>
+<p>A <em>prundle discovery source</em> is somewhere that can answer prundle discovery
+queries.</p>
+<p>One such thing might be a prundle registry, where an element in the registry
+contains information about a particular prundle.  At a first pass this might
+contain:</p>
+<ul class="simple">
+<li><p>package name</p></li>
+<li><p>bundle format</p></li>
+<li><p>revision id (optional)</p></li>
+<li><p>tag (optional)</p></li>
+</ul>
+<p>Maybe it should also contain information about where the information came from.</p>
+</section>
+<section id="pinstance-metadata-query">
+<h3>Pinstance metadata query<a class="headerlink" href="#pinstance-metadata-query" title="Link to this heading">¶</a></h3>
+<p>We query a pinstance when we know that a particular system (local or remote) has
+a package bundle of the pinstance we want. Then we get some information about
+that pinstance.</p>
+<p>By definition, different prundles relating to the same pinstance have the same
+metadata.</p>
+</section>
+<section id="pinstance-metadata-query-source">
+<h3>Pinstance metadata query source<a class="headerlink" href="#pinstance-metadata-query-source" title="Link to this heading">¶</a></h3>
+<p>A <em>pinstance metadata query source</em> is somewhere that can answer pinstance
+metadata queries.</p>
+<p>Obviously a source may well be both a <em>prundle discovery source</em> and a
+<em>pinstance metadata query source</em>.</p>
+</section>
+<section id="pinstance-installation">
+<h3>Pinstance installation<a class="headerlink" href="#pinstance-installation" title="Link to this heading">¶</a></h3>
+<p>We install a pinstance when we get some prundle containing the pinstance and
+place it on local storage, such that we can <em>discover</em> the prundle on our own
+(local) system.  That is we take some prundle and convert it to a <em>local-path</em>
+format bundle <em>and</em> we register this local-path format bundle to a <em>discovery
+source</em>.</p>
+</section>
+<section id="data-and-metadata">
+<h3>Data and metadata<a class="headerlink" href="#data-and-metadata" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>Pinstance data</dt><dd><p>is the bytes as they are arranged in a particular pinstance.</p>
+</dd>
+<dt>Pinstance metadata</dt><dd><p>is data about the pinstance.  It might include information about what data
+is in the package.</p>
+</dd>
+<dt>Prundle metadata</dt><dd><p>Information about the particular prundle format.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="comparative-terminology">
+<h2>Comparative terminology<a class="headerlink" href="#comparative-terminology" title="Link to this heading">¶</a></h2>
+<p>In which we compare the package terminology above to the terminology of Debian
+packaging.</p>
+<section id="compared-to-debian-packaging">
+<h3>Compared to Debian packaging<a class="headerlink" href="#compared-to-debian-packaging" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>A Debian distribution is a label - such as ‘unstable’ or ‘lenny’ - that refers to a
+set of package revisions that go together.  We have no equivalent.</p></li>
+<li><p>A Debian <em>repository</em> is a set of packages within a distribution that go
+together - e.g. ‘main’ or ‘contrib’.  We probably don’t have an equivalent
+(unless we consider Debian’s repository as being like a very large package
+in our language).</p></li>
+<li><p>A Debian source is a URI giving a location from which you can collect one or
+more repositories. For example, the line: “<a class="reference external" href="http://www.example.com/packages">http://www.example.com/packages</a>
+stable main contrib” in a “sources.list” file refers to the <em>source</em>
+“<a class="reference external" href="http://www.example.com/packages">http://www.example.com/packages</a>” providing <em>distribution</em> “stable” and
+<em>repositories</em> (within stable) of “main” and “contrib”.  In our language the
+combination of URI, distribution and repository would refer to a <em>prundle
+discovery source</em> - that is - something that will answer queries about
+bundles.</p></li>
+<li><p>package probably means the same for us as for Debian - a name - like
+“python-numpy” - that refers to a set of files that go together and should be
+installed together.</p></li>
+<li><p>Debian packages have versions to reflect the different byte contents.  For
+example there might be a .deb file (see below) “some-package-0.11_3-i386.deb”
+for one distribution, and another (with different contents) for another
+distribution - say “some-package-0.12_9-i386.deb”.  The “0.11_3” and “0.12_9”
+parts of the deb filename are what we would call <em>package instantiation tags</em>.</p></li>
+<li><p>A Debian deb file is an archive in a particular format that unpacks to provide
+the files for a particular package version.  We’d call the deb file a <em>package
+bundle</em>, that is in <em>bundle format</em> “deb-format”.</p></li>
+</ul>
+</section>
+</section>
+<section id="desiderata">
+<h2>Desiderata<a class="headerlink" href="#desiderata" title="Link to this heading">¶</a></h2>
+<p>We want to build a package system that is very simple (‘S’ in <a class="reference external" href="http://nipyworld.blogspot.com/2010/11/0saga-software-model.html">0SAGA</a>).  For the
+moment, the main problems we want to solve are: creation of a package
+instantiation, installation of package instantiations, local discovery of
+package instantiations.  For now we are not going to try and solve queries.</p>
+<p>At least local discovery should be so simple that it can be implemented in any
+language, and should not require a particular tool to be installed.  We hope we
+can write a spec that makes all of (creation, installation, local discovery)
+clearly defined, so that it would be simple to write an implementation.
+Obviously we’re going to end up writing our own implementation, or adapting
+someone else’s.  <a class="reference external" href="https://pythonhosted.org/datapkg/">datapkg</a> looks like the best candidate at the moment.</p>
+</section>
+<section id="issues">
+<h2>Issues<a class="headerlink" href="#issues" title="Link to this heading">¶</a></h2>
+<p>From a brief scan of the <a class="reference external" href="https://www.debian.org/doc/manuals/debian-reference/ch02.en.html">debian package management documentation</a>.</p>
+<section id="dependency-management">
+<h3>Dependency management<a class="headerlink" href="#dependency-management" title="Link to this heading">¶</a></h3>
+<p>(no plan at the moment)</p>
+</section>
+<section id="authentication-and-validation">
+<h3>Authentication and validation<a class="headerlink" href="#authentication-and-validation" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Authentication - using signatures to confirm that you made this package.</p></li>
+<li><p>Verification - verify that the contents have not been corrupted or changed
+since the original instantiation.</p></li>
+</ul>
+<p>For dependency and validation, see the <a class="reference external" href="https://wiki.debian.org/SecureApt">Debian secure apt</a> page. One related
+proposal would be:</p>
+<ul class="simple">
+<li><p>Each package instantiation would carry a table of checksums for the files
+within.  Someone using this instantiation would check the checksums to confirm
+that they had the intended content.</p></li>
+<li><p>Authentication would involve some kind of signing of the table of checksums,
+as in the <code class="docutils literal notranslate"><span class="pre">Release.gpg</span></code> file in Debian distributions (<a class="reference external" href="https://wiki.debian.org/SecureApt">Debian secure apt</a>
+again).  This involves taking a checksum of the table of checksums, then using
+our trusted private key to encrypt this checksum, generating a digital
+signature.  The signature is the thing we provide to the user.  The user then
+gets our public key or has it already; they use the key to decrypt the
+signature to get the checksum, and they check the resulting checksum against
+the actual checksum of the checksum table.  The property of the public/private
+key pair is that it is very hard to go backwards. To explain, here’s an
+example. Imagine someone we don’t like has made a version of the package
+instantiation, but wants to persuade the world that we made it.  Their
+contents will have different checksums, and therefore a different checksum for
+the checksum table.  Let’s say the checksum of the new checksum table is <em>X</em>.
+They know that you, the user, will use your own copy of our public key, and
+they can’t get at that.  Their job then, is to make a new encrypted checksum
+(the signature) that will decrypt with our real public key, to equal <em>X</em>.
+That’s going backwards from the desired result <em>X</em> to the signature, and that
+is very hard, if they don’t have our private key.</p></li>
+</ul>
+</section>
+</section>
+<section id="differences-from-code-packages">
+<h2>Differences from code packages<a class="headerlink" href="#differences-from-code-packages" title="Link to this heading">¶</a></h2>
+<p>The obvious differences are:</p>
+<ol class="arabic simple">
+<li><p>Data packages can be very large</p></li>
+<li><p>We have less need for full history tracking (probably)</p></li>
+</ol>
+<p>The size of data packages probably mean that using <a class="reference external" href="https://git-scm.com">git</a> itself will not work
+well.  <a class="reference external" href="https://git-scm.com">git</a> stores (effectively) all previous versions of the files in the
+repository, as zlib compressed blobs.  The working tree is an uncompressed
+instantiation of the current state.  Thus, if we have, over time, had 4
+different versions of a large file with little standard diff relationship to one
+another, the repository will have four zlib compressed versions of the file in
+the <code class="docutils literal notranslate"><span class="pre">.git/objects</span></code> database, and one uncompressed version in the working tree.
+The files in data packages may or may not compress well.</p>
+<p>In contrast to the full <a class="reference external" href="https://git-scm.com">git</a> model, we may want to avoid duplicates of the data.
+We probably won’t by default want to keep all previous versions of the data
+together at least locally.</p>
+<p>We probably do want to be able to keep track of which files are the same across
+different instantiations of the package, in the case where we already have one
+instantiation on local disk, and we are asking for another, with some shared
+files.  We might well want to avoid downloading duplicate data in that case.</p>
+<p>Maybe the way to think of it is of the different costs that become important as
+files get larger.  So the cost for holding a full history becomes very large,
+whereas the benefit decreases a little bit (compared to code).</p>
+</section>
+<section id="some-usecases">
+<h2>Some usecases<a class="headerlink" href="#some-usecases" title="Link to this heading">¶</a></h2>
+<section id="discovery">
+<h3>Discovery<a class="headerlink" href="#discovery" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ourpkg</span> <span class="kn">import</span> <span class="n">default_registry</span>
+
+<span class="n">my_pkg_path</span> <span class="o">=</span> <span class="n">default_registry</span><span class="o">.</span><span class="n">pathfor</span><span class="p">(</span><span class="s1">&#39;mypkg&#39;</span><span class="p">,</span> <span class="s1">&#39;0.3&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">mypkg_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;It looks like mypkg version 0.3 is not installed&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Footnotes</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="tag-sources" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Revision ids could for example be hashes of the package instantiation
+(package contents), so they could be globally unique to the contents,
+wherever the contents was when the identifier was made.  However, <em>tags</em>
+are just names that someone has attached to a particular revision id.  If
+there is more than one person providing versions of a particular package,
+there may not be agreement on the revision that a particular tag is attached
+to.  For example, I might think that <code class="docutils literal notranslate"><span class="pre">release-0.3</span></code> of <code class="docutils literal notranslate"><span class="pre">some-package</span></code>
+refers to package state identified by revision id <code class="docutils literal notranslate"><span class="pre">af5bd6</span></code>, but you might
+think that <code class="docutils literal notranslate"><span class="pre">release-0.3</span></code> of <code class="docutils literal notranslate"><span class="pre">some-package</span></code> refers to some other package
+state.  In this case you and are are both a <em>tag sources</em> for the package.
+The state that particular tag refers to can depend then on the source from
+which the tag came.</p>
+</aside>
+</aside>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

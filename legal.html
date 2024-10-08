@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="NiBabel Development Changelog" href="changelog.html" />
+    <link rel="prev" title="Image voxel orientation" href="image_orientation.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="changelog.html" title="NiBabel Development Changelog"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="image_orientation.html" title="Image voxel orientation"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="manual.html" accesskey="U">NiBabel Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Copyright and Licenses</a><ul>
+<li><a class="reference internal" href="#nibabel">NiBabel</a></li>
+<li><a class="reference internal" href="#rd-party-code-and-data">3rd party code and data</a><ul>
+<li><a class="reference internal" href="#netcdf">NetCDF</a></li>
+<li><a class="reference internal" href="#sphinx-autosummary-extension">Sphinx autosummary extension</a></li>
+<li><a class="reference internal" href="#orderedset">OrderedSet</a></li>
+<li><a class="reference internal" href="#mni-icbm152-t1-tal-nlin-asym-09a">mni_icbm152_t1_tal_nlin_asym_09a</a></li>
+<li><a class="reference internal" href="#philips-par-rec-data">Philips PAR/REC data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="image_orientation.html"
+                          title="previous chapter">Image voxel orientation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="changelog.html"
+                          title="next chapter">NiBabel Development Changelog</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/legal.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="copyright-and-licenses">
+<span id="license"></span><h1>Copyright and Licenses<a class="headerlink" href="#copyright-and-licenses" title="Link to this heading">¶</a></h1>
+<section id="nibabel">
+<h2>NiBabel<a class="headerlink" href="#nibabel" title="Link to this heading">¶</a></h2>
+<p>The nibabel package, including all examples, code snippets and attached
+documentation is covered by the MIT license.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">MIT</span> <span class="n">License</span>
+
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2009</span><span class="o">-</span><span class="mi">2019</span> <span class="n">Matthew</span> <span class="n">Brett</span> <span class="o">&lt;</span><span class="n">matthew</span><span class="o">.</span><span class="n">brett</span><span class="nd">@gmail</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">2013</span> <span class="n">Stephan</span> <span class="n">Gerhard</span> <span class="o">&lt;</span><span class="n">git</span><span class="nd">@unidesign</span><span class="o">.</span><span class="n">ch</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2006</span><span class="o">-</span><span class="mi">2014</span> <span class="n">Michael</span> <span class="n">Hanke</span> <span class="o">&lt;</span><span class="n">michael</span><span class="o">.</span><span class="n">hanke</span><span class="nd">@gmail</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2011</span> <span class="n">Christian</span> <span class="n">Haselgrove</span> <span class="o">&lt;</span><span class="n">christian</span><span class="o">.</span><span class="n">haselgrove</span><span class="nd">@umassmed</span><span class="o">.</span><span class="n">edu</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">2011</span> <span class="n">Jarrod</span> <span class="n">Millman</span> <span class="o">&lt;</span><span class="n">jarrod</span><span class="o">.</span><span class="n">millman</span><span class="nd">@gmail</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2011</span><span class="o">-</span><span class="mi">2019</span> <span class="n">Yaroslav</span> <span class="n">Halchenko</span> <span class="o">&lt;</span><span class="n">debian</span><span class="nd">@onerussian</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2015</span><span class="o">-</span><span class="mi">2019</span> <span class="n">Chris</span> <span class="n">Markiewicz</span> <span class="o">&lt;</span><span class="n">effigies</span><span class="nd">@gmail</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+
+<span class="n">Permission</span> <span class="ow">is</span> <span class="n">hereby</span> <span class="n">granted</span><span class="p">,</span> <span class="n">free</span> <span class="n">of</span> <span class="n">charge</span><span class="p">,</span> <span class="n">to</span> <span class="nb">any</span> <span class="n">person</span> <span class="n">obtaining</span> <span class="n">a</span> <span class="n">copy</span>
+<span class="n">of</span> <span class="n">this</span> <span class="n">software</span> <span class="ow">and</span> <span class="n">associated</span> <span class="n">documentation</span> <span class="n">files</span> <span class="p">(</span><span class="n">the</span> <span class="s2">&quot;Software&quot;</span><span class="p">),</span> <span class="n">to</span> <span class="n">deal</span>
+<span class="ow">in</span> <span class="n">the</span> <span class="n">Software</span> <span class="n">without</span> <span class="n">restriction</span><span class="p">,</span> <span class="n">including</span> <span class="n">without</span> <span class="n">limitation</span> <span class="n">the</span> <span class="n">rights</span>
+<span class="n">to</span> <span class="n">use</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">modify</span><span class="p">,</span> <span class="n">merge</span><span class="p">,</span> <span class="n">publish</span><span class="p">,</span> <span class="n">distribute</span><span class="p">,</span> <span class="n">sublicense</span><span class="p">,</span> <span class="ow">and</span><span class="o">/</span><span class="ow">or</span> <span class="n">sell</span>
+<span class="n">copies</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Software</span><span class="p">,</span> <span class="ow">and</span> <span class="n">to</span> <span class="n">permit</span> <span class="n">persons</span> <span class="n">to</span> <span class="n">whom</span> <span class="n">the</span> <span class="n">Software</span> <span class="ow">is</span>
+<span class="n">furnished</span> <span class="n">to</span> <span class="n">do</span> <span class="n">so</span><span class="p">,</span> <span class="n">subject</span> <span class="n">to</span> <span class="n">the</span> <span class="n">following</span> <span class="n">conditions</span><span class="p">:</span>
+
+<span class="n">The</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span> <span class="ow">and</span> <span class="n">this</span> <span class="n">permission</span> <span class="n">notice</span> <span class="n">shall</span> <span class="n">be</span> <span class="n">included</span> <span class="ow">in</span>
+<span class="nb">all</span> <span class="n">copies</span> <span class="ow">or</span> <span class="n">substantial</span> <span class="n">portions</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Software</span><span class="o">.</span>
+
+<span class="n">THE</span> <span class="n">SOFTWARE</span> <span class="n">IS</span> <span class="n">PROVIDED</span> <span class="s2">&quot;AS IS&quot;</span><span class="p">,</span> <span class="n">WITHOUT</span> <span class="n">WARRANTY</span> <span class="n">OF</span> <span class="n">ANY</span> <span class="n">KIND</span><span class="p">,</span> <span class="n">EXPRESS</span> <span class="n">OR</span>
+<span class="n">IMPLIED</span><span class="p">,</span> <span class="n">INCLUDING</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span> <span class="n">THE</span> <span class="n">WARRANTIES</span> <span class="n">OF</span> <span class="n">MERCHANTABILITY</span><span class="p">,</span>
+<span class="n">FITNESS</span> <span class="n">FOR</span> <span class="n">A</span> <span class="n">PARTICULAR</span> <span class="n">PURPOSE</span> <span class="n">AND</span> <span class="n">NONINFRINGEMENT</span><span class="o">.</span> <span class="n">IN</span> <span class="n">NO</span> <span class="n">EVENT</span> <span class="n">SHALL</span> <span class="n">THE</span>
+<span class="n">AUTHORS</span> <span class="n">OR</span> <span class="n">COPYRIGHT</span> <span class="n">HOLDERS</span> <span class="n">BE</span> <span class="n">LIABLE</span> <span class="n">FOR</span> <span class="n">ANY</span> <span class="n">CLAIM</span><span class="p">,</span> <span class="n">DAMAGES</span> <span class="n">OR</span> <span class="n">OTHER</span>
+<span class="n">LIABILITY</span><span class="p">,</span> <span class="n">WHETHER</span> <span class="n">IN</span> <span class="n">AN</span> <span class="n">ACTION</span> <span class="n">OF</span> <span class="n">CONTRACT</span><span class="p">,</span> <span class="n">TORT</span> <span class="n">OR</span> <span class="n">OTHERWISE</span><span class="p">,</span> <span class="n">ARISING</span> <span class="n">FROM</span><span class="p">,</span>
+<span class="n">OUT</span> <span class="n">OF</span> <span class="n">OR</span> <span class="n">IN</span> <span class="n">CONNECTION</span> <span class="n">WITH</span> <span class="n">THE</span> <span class="n">SOFTWARE</span> <span class="n">OR</span> <span class="n">THE</span> <span class="n">USE</span> <span class="n">OR</span> <span class="n">OTHER</span> <span class="n">DEALINGS</span> <span class="n">IN</span>
+<span class="n">THE</span> <span class="n">SOFTWARE</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="rd-party-code-and-data">
+<h2>3rd party code and data<a class="headerlink" href="#rd-party-code-and-data" title="Link to this heading">¶</a></h2>
+<p>Some code distributed within the nibabel sources was developed by other
+projects. This code is distributed under its respective licenses that are
+listed below.</p>
+<section id="netcdf">
+<h3>NetCDF<a class="headerlink" href="#netcdf" title="Link to this heading">¶</a></h3>
+<p>The netcdf IO module has been taken from SciPy.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">1999</span><span class="o">-</span><span class="mi">2010</span> <span class="n">SciPy</span> <span class="n">Developers</span> <span class="o">&lt;</span><span class="n">scipy</span><span class="o">-</span><span class="n">dev</span><span class="nd">@scipy</span><span class="o">.</span><span class="n">org</span><span class="o">&gt;</span>
+
+<span class="n">Redistribution</span> <span class="ow">and</span> <span class="n">use</span> <span class="ow">in</span> <span class="n">source</span> <span class="ow">and</span> <span class="n">binary</span> <span class="n">forms</span><span class="p">,</span> <span class="k">with</span> <span class="ow">or</span> <span class="n">without</span>
+<span class="n">modification</span><span class="p">,</span> <span class="n">are</span> <span class="n">permitted</span> <span class="n">provided</span> <span class="n">that</span> <span class="n">the</span> <span class="n">following</span> <span class="n">conditions</span> <span class="n">are</span> <span class="n">met</span><span class="p">:</span>
+
+  <span class="n">a</span><span class="o">.</span> <span class="n">Redistributions</span> <span class="n">of</span> <span class="n">source</span> <span class="n">code</span> <span class="n">must</span> <span class="n">retain</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span><span class="p">,</span>
+     <span class="n">this</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span><span class="o">.</span>
+  <span class="n">b</span><span class="o">.</span> <span class="n">Redistributions</span> <span class="ow">in</span> <span class="n">binary</span> <span class="n">form</span> <span class="n">must</span> <span class="n">reproduce</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span>
+     <span class="n">notice</span><span class="p">,</span> <span class="n">this</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span> <span class="ow">in</span> <span class="n">the</span>
+     <span class="n">documentation</span> <span class="ow">and</span><span class="o">/</span><span class="ow">or</span> <span class="n">other</span> <span class="n">materials</span> <span class="n">provided</span> <span class="k">with</span> <span class="n">the</span> <span class="n">distribution</span><span class="o">.</span>
+  <span class="n">c</span><span class="o">.</span> <span class="n">Neither</span> <span class="n">the</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Enthought</span> <span class="n">nor</span> <span class="n">the</span> <span class="n">names</span> <span class="n">of</span> <span class="n">its</span> <span class="n">contributors</span>
+     <span class="n">may</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">endorse</span> <span class="ow">or</span> <span class="n">promote</span> <span class="n">products</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">this</span> <span class="n">software</span>
+     <span class="n">without</span> <span class="n">specific</span> <span class="n">prior</span> <span class="n">written</span> <span class="n">permission</span><span class="o">.</span>
+
+
+<span class="n">THIS</span> <span class="n">SOFTWARE</span> <span class="n">IS</span> <span class="n">PROVIDED</span> <span class="n">BY</span> <span class="n">THE</span> <span class="n">COPYRIGHT</span> <span class="n">HOLDERS</span> <span class="n">AND</span> <span class="n">CONTRIBUTORS</span> <span class="s2">&quot;AS IS&quot;</span>
+<span class="n">AND</span> <span class="n">ANY</span> <span class="n">EXPRESS</span> <span class="n">OR</span> <span class="n">IMPLIED</span> <span class="n">WARRANTIES</span><span class="p">,</span> <span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">THE</span>
+<span class="n">IMPLIED</span> <span class="n">WARRANTIES</span> <span class="n">OF</span> <span class="n">MERCHANTABILITY</span> <span class="n">AND</span> <span class="n">FITNESS</span> <span class="n">FOR</span> <span class="n">A</span> <span class="n">PARTICULAR</span> <span class="n">PURPOSE</span>
+<span class="n">ARE</span> <span class="n">DISCLAIMED</span><span class="o">.</span> <span class="n">IN</span> <span class="n">NO</span> <span class="n">EVENT</span> <span class="n">SHALL</span> <span class="n">THE</span> <span class="n">REGENTS</span> <span class="n">OR</span> <span class="n">CONTRIBUTORS</span> <span class="n">BE</span> <span class="n">LIABLE</span> <span class="n">FOR</span>
+<span class="n">ANY</span> <span class="n">DIRECT</span><span class="p">,</span> <span class="n">INDIRECT</span><span class="p">,</span> <span class="n">INCIDENTAL</span><span class="p">,</span> <span class="n">SPECIAL</span><span class="p">,</span> <span class="n">EXEMPLARY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">CONSEQUENTIAL</span>
+<span class="n">DAMAGES</span> <span class="p">(</span><span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">PROCUREMENT</span> <span class="n">OF</span> <span class="n">SUBSTITUTE</span> <span class="n">GOODS</span> <span class="n">OR</span>
+<span class="n">SERVICES</span><span class="p">;</span> <span class="n">LOSS</span> <span class="n">OF</span> <span class="n">USE</span><span class="p">,</span> <span class="n">DATA</span><span class="p">,</span> <span class="n">OR</span> <span class="n">PROFITS</span><span class="p">;</span> <span class="n">OR</span> <span class="n">BUSINESS</span> <span class="n">INTERRUPTION</span><span class="p">)</span> <span class="n">HOWEVER</span>
+<span class="n">CAUSED</span> <span class="n">AND</span> <span class="n">ON</span> <span class="n">ANY</span> <span class="n">THEORY</span> <span class="n">OF</span> <span class="n">LIABILITY</span><span class="p">,</span> <span class="n">WHETHER</span> <span class="n">IN</span> <span class="n">CONTRACT</span><span class="p">,</span> <span class="n">STRICT</span>
+<span class="n">LIABILITY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">TORT</span> <span class="p">(</span><span class="n">INCLUDING</span> <span class="n">NEGLIGENCE</span> <span class="n">OR</span> <span class="n">OTHERWISE</span><span class="p">)</span> <span class="n">ARISING</span> <span class="n">IN</span> <span class="n">ANY</span> <span class="n">WAY</span>
+<span class="n">OUT</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">USE</span> <span class="n">OF</span> <span class="n">THIS</span> <span class="n">SOFTWARE</span><span class="p">,</span> <span class="n">EVEN</span> <span class="n">IF</span> <span class="n">ADVISED</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">POSSIBILITY</span> <span class="n">OF</span> <span class="n">SUCH</span>
+<span class="n">DAMAGE</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="sphinx-autosummary-extension">
+<h3>Sphinx autosummary extension<a class="headerlink" href="#sphinx-autosummary-extension" title="Link to this heading">¶</a></h3>
+<p>This extension has been copied from NumPy (Jul 16, 2010) as the one shipped with
+Sphinx 0.6 doesn’t work properly.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2007</span><span class="o">-</span><span class="mi">2009</span> <span class="n">Stefan</span> <span class="n">van</span> <span class="n">der</span> <span class="n">Walt</span> <span class="ow">and</span> <span class="n">Sphinx</span> <span class="n">team</span>
+
+<span class="n">Redistribution</span> <span class="ow">and</span> <span class="n">use</span> <span class="ow">in</span> <span class="n">source</span> <span class="ow">and</span> <span class="n">binary</span> <span class="n">forms</span><span class="p">,</span> <span class="k">with</span> <span class="ow">or</span> <span class="n">without</span>
+<span class="n">modification</span><span class="p">,</span> <span class="n">are</span> <span class="n">permitted</span> <span class="n">provided</span> <span class="n">that</span> <span class="n">the</span> <span class="n">following</span> <span class="n">conditions</span> <span class="n">are</span> <span class="n">met</span><span class="p">:</span>
+
+  <span class="n">a</span><span class="o">.</span> <span class="n">Redistributions</span> <span class="n">of</span> <span class="n">source</span> <span class="n">code</span> <span class="n">must</span> <span class="n">retain</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span><span class="p">,</span>
+     <span class="n">this</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span><span class="o">.</span>
+  <span class="n">b</span><span class="o">.</span> <span class="n">Redistributions</span> <span class="ow">in</span> <span class="n">binary</span> <span class="n">form</span> <span class="n">must</span> <span class="n">reproduce</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span>
+     <span class="n">notice</span><span class="p">,</span> <span class="n">this</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span> <span class="ow">in</span> <span class="n">the</span>
+     <span class="n">documentation</span> <span class="ow">and</span><span class="o">/</span><span class="ow">or</span> <span class="n">other</span> <span class="n">materials</span> <span class="n">provided</span> <span class="k">with</span> <span class="n">the</span> <span class="n">distribution</span><span class="o">.</span>
+  <span class="n">c</span><span class="o">.</span> <span class="n">Neither</span> <span class="n">the</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Enthought</span> <span class="n">nor</span> <span class="n">the</span> <span class="n">names</span> <span class="n">of</span> <span class="n">its</span> <span class="n">contributors</span>
+     <span class="n">may</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">endorse</span> <span class="ow">or</span> <span class="n">promote</span> <span class="n">products</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">this</span> <span class="n">software</span>
+     <span class="n">without</span> <span class="n">specific</span> <span class="n">prior</span> <span class="n">written</span> <span class="n">permission</span><span class="o">.</span>
+
+
+<span class="n">THIS</span> <span class="n">SOFTWARE</span> <span class="n">IS</span> <span class="n">PROVIDED</span> <span class="n">BY</span> <span class="n">THE</span> <span class="n">COPYRIGHT</span> <span class="n">HOLDERS</span> <span class="n">AND</span> <span class="n">CONTRIBUTORS</span> <span class="s2">&quot;AS IS&quot;</span>
+<span class="n">AND</span> <span class="n">ANY</span> <span class="n">EXPRESS</span> <span class="n">OR</span> <span class="n">IMPLIED</span> <span class="n">WARRANTIES</span><span class="p">,</span> <span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">THE</span>
+<span class="n">IMPLIED</span> <span class="n">WARRANTIES</span> <span class="n">OF</span> <span class="n">MERCHANTABILITY</span> <span class="n">AND</span> <span class="n">FITNESS</span> <span class="n">FOR</span> <span class="n">A</span> <span class="n">PARTICULAR</span> <span class="n">PURPOSE</span>
+<span class="n">ARE</span> <span class="n">DISCLAIMED</span><span class="o">.</span> <span class="n">IN</span> <span class="n">NO</span> <span class="n">EVENT</span> <span class="n">SHALL</span> <span class="n">THE</span> <span class="n">REGENTS</span> <span class="n">OR</span> <span class="n">CONTRIBUTORS</span> <span class="n">BE</span> <span class="n">LIABLE</span> <span class="n">FOR</span>
+<span class="n">ANY</span> <span class="n">DIRECT</span><span class="p">,</span> <span class="n">INDIRECT</span><span class="p">,</span> <span class="n">INCIDENTAL</span><span class="p">,</span> <span class="n">SPECIAL</span><span class="p">,</span> <span class="n">EXEMPLARY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">CONSEQUENTIAL</span>
+<span class="n">DAMAGES</span> <span class="p">(</span><span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">PROCUREMENT</span> <span class="n">OF</span> <span class="n">SUBSTITUTE</span> <span class="n">GOODS</span> <span class="n">OR</span>
+<span class="n">SERVICES</span><span class="p">;</span> <span class="n">LOSS</span> <span class="n">OF</span> <span class="n">USE</span><span class="p">,</span> <span class="n">DATA</span><span class="p">,</span> <span class="n">OR</span> <span class="n">PROFITS</span><span class="p">;</span> <span class="n">OR</span> <span class="n">BUSINESS</span> <span class="n">INTERRUPTION</span><span class="p">)</span> <span class="n">HOWEVER</span>
+<span class="n">CAUSED</span> <span class="n">AND</span> <span class="n">ON</span> <span class="n">ANY</span> <span class="n">THEORY</span> <span class="n">OF</span> <span class="n">LIABILITY</span><span class="p">,</span> <span class="n">WHETHER</span> <span class="n">IN</span> <span class="n">CONTRACT</span><span class="p">,</span> <span class="n">STRICT</span>
+<span class="n">LIABILITY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">TORT</span> <span class="p">(</span><span class="n">INCLUDING</span> <span class="n">NEGLIGENCE</span> <span class="n">OR</span> <span class="n">OTHERWISE</span><span class="p">)</span> <span class="n">ARISING</span> <span class="n">IN</span> <span class="n">ANY</span> <span class="n">WAY</span>
+<span class="n">OUT</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">USE</span> <span class="n">OF</span> <span class="n">THIS</span> <span class="n">SOFTWARE</span><span class="p">,</span> <span class="n">EVEN</span> <span class="n">IF</span> <span class="n">ADVISED</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">POSSIBILITY</span> <span class="n">OF</span> <span class="n">SUCH</span>
+<span class="n">DAMAGE</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="orderedset">
+<h3>OrderedSet<a class="headerlink" href="#orderedset" title="Link to this heading">¶</a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">nibabel/externals/oset.py</span></code></p>
+<p>Copied from: <a class="reference external" href="https://files.pythonhosted.org/packages/d6/b1/a49498c699a3fda5d635cc1fa222ffc686ea3b5d04b84a3166c4cab0c57b/oset-0.1.3.tar.gz">https://files.pythonhosted.org/packages/d6/b1/a49498c699a3fda5d635cc1fa222ffc686ea3b5d04b84a3166c4cab0c57b/oset-0.1.3.tar.gz</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2009</span><span class="p">,</span> <span class="n">Raymond</span> <span class="n">Hettinger</span><span class="p">,</span> <span class="ow">and</span> <span class="n">others</span> <span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="o">.</span>
+
+<span class="n">Package</span> <span class="n">structured</span> <span class="n">based</span> <span class="n">on</span> <span class="n">the</span> <span class="n">one</span> <span class="n">developed</span> <span class="n">to</span> <span class="n">odict</span> <span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2010</span><span class="p">,</span> <span class="n">BlueDynamics</span> <span class="n">Alliance</span><span class="p">,</span> <span class="n">Austria</span>
+
+<span class="o">-</span> <span class="n">Redistributions</span> <span class="n">of</span> <span class="n">source</span> <span class="n">code</span> <span class="n">must</span> <span class="n">retain</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span><span class="p">,</span> <span class="n">this</span>
+  <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span><span class="o">.</span>
+
+<span class="o">-</span> <span class="n">Redistributions</span> <span class="ow">in</span> <span class="n">binary</span> <span class="n">form</span> <span class="n">must</span> <span class="n">reproduce</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span><span class="p">,</span> <span class="n">this</span>
+  <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">documentation</span> <span class="ow">and</span><span class="o">/</span><span class="ow">or</span>
+  <span class="n">other</span> <span class="n">materials</span> <span class="n">provided</span> <span class="k">with</span> <span class="n">the</span> <span class="n">distribution</span><span class="o">.</span>
+
+<span class="o">-</span> <span class="n">Neither</span> <span class="n">the</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">BlueDynamics</span> <span class="n">Alliance</span> <span class="n">nor</span> <span class="n">the</span> <span class="n">names</span> <span class="n">of</span> <span class="n">its</span>
+  <span class="n">contributors</span> <span class="n">may</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">endorse</span> <span class="ow">or</span> <span class="n">promote</span> <span class="n">products</span> <span class="n">derived</span> <span class="kn">from</span> <span class="nn">this</span>
+  <span class="n">software</span> <span class="n">without</span> <span class="n">specific</span> <span class="n">prior</span> <span class="n">written</span> <span class="n">permission</span><span class="o">.</span>
+
+<span class="n">THIS</span> <span class="n">SOFTWARE</span> <span class="n">IS</span> <span class="n">PROVIDED</span> <span class="n">BY</span> <span class="n">BlueDynamics</span> <span class="n">Alliance</span> <span class="n">AS</span> <span class="n">IS</span> <span class="n">AND</span> <span class="n">ANY</span> <span class="n">EXPRESS</span> <span class="n">OR</span>
+<span class="n">IMPLIED</span> <span class="n">WARRANTIES</span><span class="p">,</span> <span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">THE</span> <span class="n">IMPLIED</span> <span class="n">WARRANTIES</span> <span class="n">OF</span>
+<span class="n">MERCHANTABILITY</span> <span class="n">AND</span> <span class="n">FITNESS</span> <span class="n">FOR</span> <span class="n">A</span> <span class="n">PARTICULAR</span> <span class="n">PURPOSE</span> <span class="n">ARE</span> <span class="n">DISCLAIMED</span><span class="o">.</span> <span class="n">IN</span> <span class="n">NO</span> <span class="n">EVENT</span>
+<span class="n">SHALL</span> <span class="n">BlueDynamics</span> <span class="n">Alliance</span> <span class="n">BE</span> <span class="n">LIABLE</span> <span class="n">FOR</span> <span class="n">ANY</span> <span class="n">DIRECT</span><span class="p">,</span> <span class="n">INDIRECT</span><span class="p">,</span> <span class="n">INCIDENTAL</span><span class="p">,</span>
+<span class="n">SPECIAL</span><span class="p">,</span> <span class="n">EXEMPLARY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">CONSEQUENTIAL</span> <span class="n">DAMAGES</span> <span class="p">(</span><span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span> <span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span>
+<span class="n">PROCUREMENT</span> <span class="n">OF</span> <span class="n">SUBSTITUTE</span> <span class="n">GOODS</span> <span class="n">OR</span> <span class="n">SERVICES</span><span class="p">;</span> <span class="n">LOSS</span> <span class="n">OF</span> <span class="n">USE</span><span class="p">,</span> <span class="n">DATA</span><span class="p">,</span> <span class="n">OR</span> <span class="n">PROFITS</span><span class="p">;</span> <span class="n">OR</span>
+<span class="n">BUSINESS</span> <span class="n">INTERRUPTION</span><span class="p">)</span> <span class="n">HOWEVER</span> <span class="n">CAUSED</span> <span class="n">AND</span> <span class="n">ON</span> <span class="n">ANY</span> <span class="n">THEORY</span> <span class="n">OF</span> <span class="n">LIABILITY</span><span class="p">,</span> <span class="n">WHETHER</span> <span class="n">IN</span>
+<span class="n">CONTRACT</span><span class="p">,</span> <span class="n">STRICT</span> <span class="n">LIABILITY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">TORT</span> <span class="p">(</span><span class="n">INCLUDING</span> <span class="n">NEGLIGENCE</span> <span class="n">OR</span> <span class="n">OTHERWISE</span><span class="p">)</span> <span class="n">ARISING</span>
+<span class="n">IN</span> <span class="n">ANY</span> <span class="n">WAY</span> <span class="n">OUT</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">USE</span> <span class="n">OF</span> <span class="n">THIS</span> <span class="n">SOFTWARE</span><span class="p">,</span> <span class="n">EVEN</span> <span class="n">IF</span> <span class="n">ADVISED</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">POSSIBILITY</span>
+<span class="n">OF</span> <span class="n">SUCH</span> <span class="n">DAMAGE</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="mni-icbm152-t1-tal-nlin-asym-09a">
+<h3>mni_icbm152_t1_tal_nlin_asym_09a<a class="headerlink" href="#mni-icbm152-t1-tal-nlin-asym-09a" title="Link to this heading">¶</a></h3>
+<p>The file <code class="docutils literal notranslate"><span class="pre">doc/source/someone.nii.gz</span></code> is a subsampled version of the file
+<code class="docutils literal notranslate"><span class="pre">mni_icbm152_t1_tal_nlin_asym_09a.nii</span></code> from the MNI non-linear templates
+archive <code class="docutils literal notranslate"><span class="pre">mni_icbm152_t1_tal_nlin_asym_09a</span></code>.  The original image has the
+following license (where ‘softwware’ refers to the image):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="mi">1993</span><span class="o">-</span><span class="mi">2004</span> <span class="n">Louis</span> <span class="n">Collins</span><span class="p">,</span> <span class="n">McConnell</span> <span class="n">Brain</span> <span class="n">Imaging</span> <span class="n">Centre</span><span class="p">,</span>
+<span class="n">Montreal</span> <span class="n">Neurological</span> <span class="n">Institute</span><span class="p">,</span> <span class="n">McGill</span> <span class="n">University</span><span class="o">.</span>
+
+<span class="n">Permission</span> <span class="n">to</span> <span class="n">use</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">modify</span><span class="p">,</span> <span class="ow">and</span> <span class="n">distribute</span> <span class="n">this</span> <span class="n">software</span> <span class="ow">and</span> <span class="n">its</span>
+<span class="n">documentation</span> <span class="k">for</span> <span class="nb">any</span> <span class="n">purpose</span> <span class="ow">and</span> <span class="n">without</span> <span class="n">fee</span> <span class="ow">is</span> <span class="n">hereby</span> <span class="n">granted</span><span class="p">,</span> <span class="n">provided</span>
+<span class="n">that</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span> <span class="n">notice</span> <span class="n">appear</span> <span class="ow">in</span> <span class="nb">all</span> <span class="n">copies</span><span class="o">.</span>  <span class="n">The</span> <span class="n">authors</span> <span class="ow">and</span>
+<span class="n">McGill</span> <span class="n">University</span> <span class="n">make</span> <span class="n">no</span> <span class="n">representations</span> <span class="n">about</span> <span class="n">the</span> <span class="n">suitability</span> <span class="n">of</span> <span class="n">this</span>
+<span class="n">software</span> <span class="k">for</span> <span class="nb">any</span> <span class="n">purpose</span><span class="o">.</span>  <span class="n">It</span> <span class="ow">is</span> <span class="n">provided</span> <span class="s2">&quot;as is&quot;</span> <span class="n">without</span> <span class="n">express</span> <span class="ow">or</span>
+<span class="n">implied</span> <span class="n">warranty</span><span class="o">.</span>  <span class="n">The</span> <span class="n">authors</span> <span class="n">are</span> <span class="ow">not</span> <span class="n">responsible</span> <span class="k">for</span> <span class="nb">any</span> <span class="n">data</span> <span class="n">loss</span><span class="p">,</span>
+<span class="n">equipment</span> <span class="n">damage</span><span class="p">,</span> <span class="nb">property</span> <span class="n">loss</span><span class="p">,</span> <span class="ow">or</span> <span class="n">injury</span> <span class="n">to</span> <span class="n">subjects</span> <span class="ow">or</span> <span class="n">patients</span>
+<span class="n">resulting</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">use</span> <span class="ow">or</span> <span class="n">misuse</span> <span class="n">of</span> <span class="n">this</span> <span class="n">software</span> <span class="n">package</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="philips-par-rec-data">
+<h3>Philips PAR/REC data<a class="headerlink" href="#philips-par-rec-data" title="Link to this heading">¶</a></h3>
+<p>The files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">phantom_EPI_asc_CLEAR_2_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">phantom_EPI_asc_CLEAR_2_1</span><span class="o">.</span><span class="n">REC</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_cor_20APtrans_15RLrot_SENSE_15_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_cor_SENSE_8_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_sag_15AP_SENSE_13_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_sag_15FH_SENSE_12_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_sag_15RL_SENSE_11_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_sag_SENSE_7_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_tra_</span><span class="o">-</span><span class="mi">30</span><span class="n">AP_10RL_20FH_SENSE_14_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_tra_15FH_SENSE_9_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_tra_15RL_SENSE_10_1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">Phantom_EPI_3mm_tra_SENSE_6_1</span><span class="o">.</span><span class="n">PAR</span>
+</pre></div>
+</div>
+<p>are from <a class="reference external" href="http://psydata.ovgu.de/philips_achieva_testfiles">http://psydata.ovgu.de/philips_achieva_testfiles</a>, and released under
+the PDDL version 1.0 available at <a class="reference external" href="http://opendatacommons.org/licenses/pddl/1.0/">http://opendatacommons.org/licenses/pddl/1.0/</a></p>
+<p>The files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">DTI</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">NA</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">T1</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">T2</span><span class="o">-</span><span class="n">interleaved</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">T2</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">T2_</span><span class="o">-</span><span class="n">interleaved</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">T2_</span><span class="o">.</span><span class="n">PAR</span>
+<span class="n">nibabel</span><span class="o">/</span><span class="n">nibabel</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">fieldmap</span><span class="o">.</span><span class="n">PAR</span>
+</pre></div>
+</div>
+<p>are from <a class="reference external" href="https://github.com/yarikoptic/nitest-balls1">https://github.com/yarikoptic/nitest-balls1</a>, also released under the
+the PDDL version 1.0 available at <a class="reference external" href="http://opendatacommons.org/licenses/pddl/1.0/">http://opendatacommons.org/licenses/pddl/1.0/</a></p>
+<blockquote>
+<div><p>nibabel/nibabel/tests/data/umass_anonymized.PAR</p>
+</div></blockquote>
+<p>is courtesy of the University of Massachusetts Medical School, also released
+under the PDDL.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

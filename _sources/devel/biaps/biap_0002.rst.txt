@@ -1,0 +1,176 @@
+.. _biap2:
+
+#################
+BIAP2 - Slicecopy
+#################
+
+:Author: Matthew Brett
+:Status: Rejected
+:Type: Standards
+:Created: 2011-03-26
+
+******
+Status
+******
+
+Alternative implementation as of Nibabel 2.0 with image proxy slicing : see
+http://nipy.org/nibabel/images_and_memory.html#saving-time-and-memory
+
+**********
+Background
+**********
+
+Please see https://github.com/nipy/nibabel/issues#issue/9 for motivation.
+
+Sometimes we have a biiig images and we don't want to load the whole array into
+memory.  In this case it is useful to be able to load as a proxy::
+
+    img = load('my_huge_image.nii')
+
+and then take out individual slices, as in something very approximately like::
+
+    slice0 = img.get_slice(0)
+
+Questions
+=========
+
+Should ``slice0`` be a copy or a view?
+--------------------------------------
+
+As from the previous discussion - :doc:`biap_0001` - an image may be a proxy
+or an array.
+
+If the image is an array, the most natural thing to return is a view.  That is,
+modifying ``slice0`` will modify the underlying array in ``img``.
+
+If the image is a proxy, it would be self-defeating to return a view, because
+that would involve reading the whole image into memory, exactly what we are
+trying to avoid.  So, for a proxied image, we'd nearly always want to return a
+copy.
+
+What slices should the slicing allow?
+-------------------------------------
+
+The ``img.get_slice(0)`` syntax needs us to know what slice 0 is.  In a nifti
+image of 3 dimensions, the first is fastest changing on disk.  To be useful
+``0`` will probably refer to the slowest changing on disk.  Otherwise we'll
+have to load nearly the whole image anyway.  So, for a nifti, 0 should be the
+first slice in the last dimension.
+
+For Minc on the other hand, you can and I (MB) think always do get C ordered
+arrays back, so that the slowest changing dimension in the image array is the
+first. Actually, I don't know how to read a Minc file slice by slice, but the
+general point is that, to know which slice is worth reading, you need to know
+the relationship of the image array dimensions to fastest / slowest on disk.
+
+We could always solve this by assuming that we always want to do this for
+Analyze / Nifti1 files (Fortran ordered).  It's a little ugly of course.
+
+Note that taking the slowest changing slice in a nifti image would be the
+equivalent of taking a slice from the last dimension::
+
+    arr = img.get_data()
+    slice0 = arr[...,0]
+
+In general, we can get contiguous data off disk for the same data as contiguous
+data in memory (perhaps obviously).  So, all of these are contiguous in the
+Fortran ordering case::
+
+    arr[...,0:5]
+    arr[:,:,0]
+    arr[:,0:,0]
+    arr[0:,:,0]
+    arr[:,1,0]
+    arr[1,1,1]
+
+That is, in general, ``:`` up until the first specified dimension, then
+contiguous slices, followed by integer slices.  So, all of these can be read
+directly off disk as slices.  Obviously the rules are the reverse for c-ordered
+arrays.
+
+Option 1: fancy slice object
+============================
+
+It's option 1 because it's the first one I thought of:
+
+.. code:: python
+
+    slice0 = img.slicecopy[...,0]
+
+Here we solve the copy or view problem with 'always copy'.   We solve the 'what
+slicing to allow' by letting the object decide how to do the slicing.  We could
+obviously just do the full load (deproxy the image) and return a copy of the
+sliced array, as in:
+
+.. code:: python
+
+    class SomeImage:
+        class Slicer:
+            def __init__(self, parent):
+                self.parent = parent
+            def __getitem__(self, slicedef):
+                data = parent._data
+                if is_proxy(data) and iscontinguous(slicedef, order='F'):
+                    return read_off_disk_somehow(slicedef, data)
+                data = parent.get_data(unproxy=True)
+                return data.__getitem__(slicedef)
+        def __init__(self, stuff):
+            self.slicecopy = Slicer(self)
+
+The problem with this is that:
+
+.. code:: python
+
+    slice0 = img.slicecopy[...,1]
+
+might unproxy the image.  At the moment, it's rather hidden whether the image
+is proxied or not on the basis that it's an optimization that should be
+transparent.
+
+Option 2: not-fancy method call
+===============================
+
+.. code:: python
+
+    slice0 = img.get_slice(0, copy=True)
+
+'slice or view' solved with explicit keyword.  'which slice' solved by assuming
+you always mean one slice in the last dimension.  Or we could also allow:
+
+.. code:: python
+
+    slices = img.get_slices(slice(0,3), copy=True)
+
+This is ugly, but fairly clear. This simple 'I mean the last dimension' might
+be annoying because it assumes the last dimension is the slowest changing, and
+it does not get to optimize the more complex contiguous cases above.  So we
+could even allow full slicing with stuff like:
+
+.. code:: python
+
+    slice = img.get_slices((slice(None), slice(None), slice(3)), copy=True)
+
+Again - this looks a lot more ugly than the ``slicecopy`` syntax above.
+
+Now, when would you choose ``copy=True``?  I think, when the image is a proxy.
+Otherwise you'd want a view.  Probably.  So what you mean, probably, is
+something like this:
+
+.. code:: python
+
+    slices = img.get_slices(slicedef, copy_if='is_proxy')
+
+But, we've established that for some slices, you're going to have to load the
+whole image anyway.  So in fact probably what you want is to:
+
+#. Take a view if this image is not a proxy
+#. Take a copy if we can read this directly off disk
+#. Unproxy the image if we have to read the whole thing off disk anyway to get
+   the slices we want, on the basis that we have to read the whole thing into
+   memory anyway, we might as well do that and save ourselves lots of disk
+   thrashing getting the individual slices.
+
+Of course that's what option 1 boils down to.  So I think I prefer version 1.
+
+
+.. vim: ft=rst

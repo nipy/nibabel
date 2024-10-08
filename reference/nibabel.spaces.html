@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="viewers" href="nibabel.viewers.html" />
+    <link rel="prev" title="pydicom_compat" href="nibabel.pydicom_compat.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.viewers.html" title="viewers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.pydicom_compat.html" title="pydicom_compat"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spaces</span></code></a><ul>
+<li><a class="reference internal" href="#slice2volume">slice2volume</a><ul>
+<li><a class="reference internal" href="#nibabel.spaces.slice2volume"><code class="docutils literal notranslate"><span class="pre">slice2volume()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vox2out-vox">vox2out_vox</a><ul>
+<li><a class="reference internal" href="#nibabel.spaces.vox2out_vox"><code class="docutils literal notranslate"><span class="pre">vox2out_vox()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.pydicom_compat.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.viewers.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">viewers</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.spaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.spaces">
+<span id="spaces"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">spaces</span></code><a class="headerlink" href="#module-nibabel.spaces" title="Link to this heading">¶</a></h1>
+<p>Routines to work with spaces</p>
+<p>A space is defined by coordinate axes.</p>
+<p>A voxel space can be expressed by a shape implying an array, where the axes are
+the axes of the array.</p>
+<p>A mapped voxel space (mapped voxels) is either:</p>
+<ul class="simple">
+<li><p>an image, with attributes <code class="docutils literal notranslate"><span class="pre">shape</span></code> (the voxel space) and <code class="docutils literal notranslate"><span class="pre">affine</span></code> (the
+mapping), or</p></li>
+<li><p>a length 2 sequence with the same information (shape, affine).</p></li>
+</ul>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.spaces.slice2volume" title="nibabel.spaces.slice2volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice2volume</span></code></a>(index, axis[, shape])</p></td>
+<td><p>Affine expressing selection of a single slice from 3D volume</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.spaces.vox2out_vox" title="nibabel.spaces.vox2out_vox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vox2out_vox</span></code></a>(mapped_voxels[, voxel_sizes])</p></td>
+<td><p>output-aligned shape, affine for input implied by <cite>mapped_voxels</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="slice2volume">
+<h2>slice2volume<a class="headerlink" href="#slice2volume" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.spaces.slice2volume">
+<span class="sig-prename descclassname"><span class="pre">nibabel.spaces.</span></span><span class="sig-name descname"><span class="pre">slice2volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spaces.slice2volume" title="Link to this definition">¶</a></dt>
+<dd><p>Affine expressing selection of a single slice from 3D volume</p>
+<p>Imagine we have taken a slice from an image data array, <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">data[:,</span> <span class="pre">:,</span>
+<span class="pre">index]</span></code>.  This function returns the affine to map the array coordinates of
+<code class="docutils literal notranslate"><span class="pre">s</span></code> to the array coordinates of <code class="docutils literal notranslate"><span class="pre">data</span></code>.</p>
+<p>This can be useful for resampling a single slice from a volume.  For
+example, to resample slice <code class="docutils literal notranslate"><span class="pre">k</span></code> in the space of <code class="docutils literal notranslate"><span class="pre">img1</span></code> from the matching
+spatial voxel values in <code class="docutils literal notranslate"><span class="pre">img2</span></code>, you might do something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">slice_shape</span> <span class="o">=</span> <span class="n">img1</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">slice_aff</span> <span class="o">=</span> <span class="n">slice2volume</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">whole_aff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">img2</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">img1</span><span class="o">.</span><span class="n">affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">slice_aff</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>and then use <code class="docutils literal notranslate"><span class="pre">whole_aff</span></code> in <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>:</p>
+<blockquote>
+<div><p>rzs, trans = to_matvec(whole_aff)
+data = img2.get_fdata()
+new_slice = scipy.ndimage.affine_transform(data, rzs, trans, slice_shape)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>index</strong><span class="classifier">int</span></dt><dd><p>index of selected slice</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">{0, 1, 2}</span></dt><dd><p>axis to which <cite>index</cite> applies</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>slice_aff</strong><span class="classifier">shape (4, 3) affine</span></dt><dd><p>Affine relating input coordinates in a slice to output coordinates in
+the embedded volume</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vox2out-vox">
+<h2>vox2out_vox<a class="headerlink" href="#vox2out-vox" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.spaces.vox2out_vox">
+<span class="sig-prename descclassname"><span class="pre">nibabel.spaces.</span></span><span class="sig-name descname"><span class="pre">vox2out_vox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapped_voxels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spaces.vox2out_vox" title="Link to this definition">¶</a></dt>
+<dd><p>output-aligned shape, affine for input implied by <cite>mapped_voxels</cite></p>
+<p>The input (voxel) space, and the affine mapping to output space, are given
+in <cite>mapped_voxels</cite>.</p>
+<p>The output space is implied by the affine, we don’t need to know what that
+is, we just return something with the same (implied) output space.</p>
+<p>Our job is to work out another voxel space where the voxel array axes and
+the output axes are aligned (top left 3 x 3 of affine is diagonal with all
+positive entries) and which contains all the voxels of the implied input
+image at their correct output space positions, once resampled into the
+output voxel space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>mapped_voxels</strong><span class="classifier">object or length 2 sequence</span></dt><dd><p>If object, has attributes <code class="docutils literal notranslate"><span class="pre">shape</span></code> giving input voxel shape, and
+<code class="docutils literal notranslate"><span class="pre">affine</span></code> giving mapping of input voxels to output space. If length 2
+sequence, elements are (shape, affine) with same meaning as above. The
+affine is a (4, 4) array-like.</p>
+</dd>
+<dt><strong>voxel_sizes</strong><span class="classifier">None or sequence</span></dt><dd><p>Gives the diagonal entries of <cite>output_affine</cite> (except the trailing 1
+for the homogeneous coordinates) (<code class="docutils literal notranslate"><span class="pre">output_affine</span> <span class="pre">==</span> <span class="pre">np.diag(voxel_sizes</span>
+<span class="pre">+</span> <span class="pre">[1])</span></code>). If None, return identity <cite>output_affine</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>output_shape</strong><span class="classifier">sequence</span></dt><dd><p>Shape of output image that has voxel axes aligned to original image
+output space axes, and encloses all the voxel data from the original
+image implied by input shape.</p>
+</dd>
+<dt><strong>output_affine</strong><span class="classifier">(4, 4) array</span></dt><dd><p>Affine of output image that has voxel axes aligned to the output axes
+implied by input affine. Top-left 3 x 3 part of affine is diagonal with
+all positive entries.  The entries come from <cite>voxel_sizes</cite> if
+specified, or are all 1.  If the image is &lt; 3D, then the missing
+dimensions will have a 1 in the matching diagonal.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

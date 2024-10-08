@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction to DICOM" href="dicom/dicom_intro.html" />
+    <link rel="prev" title="Coordinate systems and affines" href="coordinate_systems.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dicom/dicom_intro.html" title="Introduction to DICOM"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="coordinate_systems.html" title="Coordinate systems and affines"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="tutorials.html" accesskey="U">General tutorials</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Radiological vs neurological conventions</a><ul>
+<li><a class="reference internal" href="#neurological-and-radiological-display-convention">Neurological and radiological display convention</a></li>
+<li><a class="reference internal" href="#alignment-of-world-and-voxel-axes">Alignment of world and voxel axes</a></li>
+<li><a class="reference internal" href="#neurological-radiological-voxel-layout">Neurological / radiological voxel layout</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="coordinate_systems.html"
+                          title="previous chapter">Coordinate systems and affines</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dicom/dicom_intro.html"
+                          title="next chapter">Introduction to DICOM</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/neuro_radio_conventions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="radiological-vs-neurological-conventions">
+<h1>Radiological vs neurological conventions<a class="headerlink" href="#radiological-vs-neurological-conventions" title="Link to this heading">¶</a></h1>
+<p>It is relatively common to talk about images being in “radiological” compared
+to “neurological” convention, but the terms can be used in different and
+confusing ways.</p>
+<p>See <a class="reference internal" href="coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a> for background on voxel space, reference space
+and affines.</p>
+<section id="neurological-and-radiological-display-convention">
+<h2>Neurological and radiological display convention<a class="headerlink" href="#neurological-and-radiological-display-convention" title="Link to this heading">¶</a></h2>
+<p>Radiologists like looking at their images with the patient’s left on the right
+of the image.   If they are looking at a brain image, it is as if they were
+looking at the brain slice from the point of view of the patient’s feet.
+Neurologists like looking at brain images with the patient’s right on the
+right of the image.  This perspective is as if the neurologist is looking at
+the slice from the top of the patient’s head.  The convention is one of image
+display. The image can have any voxel arrangement on disk or memory, and any
+output reference space; it is only necessary for the software displaying the
+image to know the reference space and the (probably affine) mapping between
+voxel space and reference space; then the software can work out which voxels
+are on the left or right of the subject and flip the images to the taste of
+the viewer. We could unpack these uses as <em>neurological display convention</em>
+and <em>radiological display convention</em>.</p>
+<p>Here is a very nice graphic by <a class="reference external" href="http://www.mccauslandcenter.sc.edu/crnl/chris-rorden">Chris Rorden</a> showing these display
+conventions, where the 3D rendering behind the sections shows the directions
+that the neurologist and radiologist are thinking of:</p>
+<img alt="_images/rorden_radio_neuro.jpg" src="_images/rorden_radio_neuro.jpg" />
+<p>In the image above, the subject has a stroke in left temporal lobe, causing a
+dark area on the MRI.</p>
+</section>
+<section id="alignment-of-world-and-voxel-axes">
+<h2>Alignment of world and voxel axes<a class="headerlink" href="#alignment-of-world-and-voxel-axes" title="Link to this heading">¶</a></h2>
+<p>As we will see in the next section, radiological and neurological are
+sometimes used to refer to particular alignments of the voxel input axes to
+scanner RAS+ output axes. If we look at the affine mapping between voxel space
+and scanner RAS+, we may find that moving along the first voxel axis by one
+unit results in a equivalent scanner RAS+ movement that is mainly left to
+right.  This can happen with a diagonal 3x3 part of the affine mapping to
+scanner RAS+ (see <a class="reference internal" href="coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">diag_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">3.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                        <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mf">3.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                        <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                        <span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ijk</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1"># moving one unit on the first voxel axis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_affine</span><span class="p">(</span><span class="n">diag_affine</span><span class="p">,</span> <span class="n">ijk</span><span class="p">)</span>
+<span class="go">array([3., 0., 0.])</span>
+</pre></div>
+</div>
+<p>In this case the voxel axes are aligned to the output axes, in the sense that
+moving in a positive direction on the first voxel axis results in increasing
+values on the “R+” output axis, and similarly for the second voxel axis with
+output “A+” and the third voxel axis with output “S+”.</p>
+<p>Some people therefore refer to this alignment of voxel and RAS+ axes as
+<em>RAS voxel axes</em>.</p>
+</section>
+<section id="neurological-radiological-voxel-layout">
+<h2>Neurological / radiological voxel layout<a class="headerlink" href="#neurological-radiological-voxel-layout" title="Link to this heading">¶</a></h2>
+<p>Very confusingly, some people refer to images with RAS voxel axes as having
+“neurological” voxel layout. This is because the simplest way to display
+slices from this voxel array will result in the left of the subject appearing
+towards the left hand side of the screen and therefore neurological display
+convention. If we take a slice <span class="math notranslate nohighlight">\(k\)</span> over the third axis of the image data array
+(<code class="docutils literal notranslate"><span class="pre">img_data[:,</span> <span class="pre">:,</span> <span class="pre">k]</span></code>), the resulting slice will have a first array axis
+going from left to right in terms of spatial position and the second array
+axis going from posterior to anterior.  If we display this image with the
+first axis going from left to right on screen and the second from bottom to
+top, it will have the subject’s right towards the right of the screen, and
+anterior towards the top of the screen, as neurologists like it.  Here we are
+showing the middle slice of <a class="reference download internal" download="" href="_downloads/c16214e490de2a223655d30f4ba78f15/someones_anatomy.nii.gz"><code class="xref download docutils literal notranslate"><span class="pre">an</span> <span class="pre">image</span></code></a> with RAS voxel axes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;downloads/someones_anatomy.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The 3x3 part of the affine is diagonal with all +ve values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[  2.75,   0.  ,   0.  , -78.  ],</span>
+<span class="go">       [  0.  ,   2.75,   0.  , -91.  ],</span>
+<span class="go">       [  0.  ,   0.  ,   2.75, -91.  ],</span>
+<span class="go">       [  0.  ,   0.  ,   0.  ,   1.  ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a_slice</span> <span class="o">=</span> <span class="n">img_data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">28</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Need transpose to put first axis left-right, second bottom-top</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">a_slice</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">)</span>  
+</pre></div>
+</div>
+<figure class="align-default" id="id3">
+<img alt="_images/neuro_radio_conventions-2_00.png" class="plot-directive" src="_images/neuro_radio_conventions-2_00.png" />
+<figcaption>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/5b2b00af981a01f3cc5e81b34ccc8fdb/neuro_radio_conventions-2_00.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/9e0340951323f17d19212a1b25b97064/neuro_radio_conventions-2_00.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/79cc4a050731c618885fe142bc9dfcaf/neuro_radio_conventions-2_00.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id4">
+<img alt="_images/neuro_radio_conventions-2_01.png" class="plot-directive" src="_images/neuro_radio_conventions-2_01.png" />
+<figcaption>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/6be0680a63be0340a581f954a2ec30b9/neuro_radio_conventions-2_01.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/15ee5f982d34b67854edc69ebd5e3772/neuro_radio_conventions-2_01.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/ae8bde362c4868fea3617fb37893ca61/neuro_radio_conventions-2_01.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>This slice does have the voxels from the right of isocenter towards the right
+of the screen, neurology style.</p>
+<p>Similarly, an “LAS” alignment of voxel axes to RAS+ axes would result in an
+image with the left of the subject towards the right of the screen, as
+radiologists like it.  “LAS” voxel axes can also be called “radiological”
+voxel layout for this reason <a class="footnote-reference brackets" href="#memory-layout" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<p>Over time it has become more common for the scanner to generate images with
+almost any orientation of the voxel axes relative to the reference axes.
+Maybe for this reason, the terms “radiological” and “neurological” are less
+commonly used as applied to voxel layout.  We nipyers try to avoid the
+terms neurological or radiological for voxel layout because they can make it
+harder to separate the idea of voxel and reference space axes and the affine
+as a mapping between them.</p>
+<p class="rubric">Footnotes</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="memory-layout" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>We have deliberately not fully defined what we mean by
+“voxel layout” in the text.  Conceptually, an image array could be stored
+in any layout on disk; the definition of the image format specifies how
+the image reader should interpret the data on disk to return the right
+array value for a given voxel coordinate.  The relationship of the values
+on disk to the coordinate values in the array has no bearing on the fact
+that the voxel axes align to the output axes.  In practice the terms RAS /
+neurological and LAS / radiogical as applied to voxel layout appear to
+refer exclusively to the situation where image arrays are stored in
+“Fortran array layout” on disk.  Imagine an image array of shape <span class="math notranslate nohighlight">\((I, J,
+K)\)</span> with values of length <span class="math notranslate nohighlight">\(v\)</span>. For an image of 64-bit floating point
+values, <span class="math notranslate nohighlight">\(v = 8\)</span>. An image array is stored in Fortran array layout only if
+the value for voxel coordinate (1, 0, 0) is <span class="math notranslate nohighlight">\(v\)</span> bytes on disk from the
+value for (0, 0, 0); (0, 1, 0) is <span class="math notranslate nohighlight">\(I * v\)</span> bytes from (0, 0, 0); and (0, 0,
+1) is <span class="math notranslate nohighlight">\(I * J * v\)</span> bytes from (0, 0, 0).  <a class="reference external" href="http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm">Analyze</a> and <a class="reference external" href="http://nifti.nimh.nih.gov">NIfTI</a> images use
+Fortran array layout.</p>
+</aside>
+</aside>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,67 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+API Reference
+=============
+
+.. toctree::
+
+   nibabel.rst
+   nibabel._compression.rst
+   nibabel.affines.rst
+   nibabel.analyze.rst
+   nibabel.arrayproxy.rst
+   nibabel.arraywriters.rst
+   nibabel.batteryrunners.rst
+   nibabel.benchmarks.rst
+   nibabel.brikhead.rst
+   nibabel.caret.rst
+   nibabel.casting.rst
+   nibabel.cifti2.rst
+   nibabel.cmdline.rst
+   nibabel.data.rst
+   nibabel.dataobj_images.rst
+   nibabel.deprecated.rst
+   nibabel.deprecator.rst
+   nibabel.dft.rst
+   nibabel.ecat.rst
+   nibabel.environment.rst
+   nibabel.eulerangles.rst
+   nibabel.filebasedimages.rst
+   nibabel.fileholders.rst
+   nibabel.filename_parser.rst
+   nibabel.fileslice.rst
+   nibabel.fileutils.rst
+   nibabel.freesurfer.rst
+   nibabel.funcs.rst
+   nibabel.gifti.rst
+   nibabel.imageclasses.rst
+   nibabel.imageglobals.rst
+   nibabel.imagestats.rst
+   nibabel.loadsave.rst
+   nibabel.minc1.rst
+   nibabel.minc2.rst
+   nibabel.mriutils.rst
+   nibabel.nicom.rst
+   nibabel.nifti1.rst
+   nibabel.nifti2.rst
+   nibabel.onetime.rst
+   nibabel.openers.rst
+   nibabel.optpkg.rst
+   nibabel.orientations.rst
+   nibabel.parrec.rst
+   nibabel.pointset.rst
+   nibabel.processing.rst
+   nibabel.pydicom_compat.rst
+   nibabel.quaternions.rst
+   nibabel.rstutils.rst
+   nibabel.spaces.rst
+   nibabel.spatialimages.rst
+   nibabel.spm2analyze.rst
+   nibabel.spm99analyze.rst
+   nibabel.streamlines.rst
+   nibabel.tmpdirs.rst
+   nibabel.tripwire.rst
+   nibabel.viewers.rst
+   nibabel.volumeutils.rst
+   nibabel.wrapstruct.rst
+   nibabel.xmlutils.rst

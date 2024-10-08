@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer discussions" href="devdiscuss.html" />
+    <link rel="prev" title="Adding test data" href="add_test_data.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="devdiscuss.html" title="Developer discussions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="add_test_data.html" title="Adding test data"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer documentation page</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">How to add a new image format to nibabel</a><ul>
+<li><a class="reference internal" href="#philosophy">Philosophy</a></li>
+<li><a class="reference internal" href="#helping-us-to-review-your-code">Helping us to review your code</a></li>
+<li><a class="reference internal" href="#the-format-can-be-read-only">The format can be read-only</a></li>
+<li><a class="reference internal" href="#the-image-api">The image API</a></li>
+<li><a class="reference internal" href="#where-to-start-with-the-code">Where to start with the code</a></li>
+<li><a class="reference internal" href="#a-recipe-for-writing-a-new-image-format">A recipe for writing a new image format</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="add_test_data.html"
+                          title="previous chapter">Adding test data</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="devdiscuss.html"
+                          title="next chapter">Developer discussions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/add_image_format.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="how-to-add-a-new-image-format-to-nibabel">
+<h1>How to add a new image format to nibabel<a class="headerlink" href="#how-to-add-a-new-image-format-to-nibabel" title="Link to this heading">¶</a></h1>
+<p>These are some work-in-progress notes in the hope that they will help adding a
+new image format to NiBabel.</p>
+<section id="philosophy">
+<h2>Philosophy<a class="headerlink" href="#philosophy" title="Link to this heading">¶</a></h2>
+<p>As usual, the general idea is to make your image as explicit and transparent
+as possible.</p>
+<p>From the Zen of Python (<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">this</span></code>), these guys spring to mind:</p>
+<ul class="simple">
+<li><p>Explicit is better than implicit.</p></li>
+<li><p>Errors should never pass silently.</p></li>
+<li><p>In the face of ambiguity, refuse the temptation to guess.</p></li>
+<li><p>Now is better than never.</p></li>
+<li><p>If the implementation is hard to explain, it’s a bad idea.</p></li>
+</ul>
+<p>So far we have tried to make the nibabel version of the image as close as
+possible to the way the user of the particular format is expecting to see it.</p>
+<p>For example, the NIfTI format documents describe the image with the first
+dimension of the image data array being the fastest varying in memory (and on
+disk).  Numpy defaults to having the last dimension of the array being the
+fastest varying in memory.  We chose to have the first dimension vary fastest
+in memory to match the conventions in the NIfTI specification.</p>
+</section>
+<section id="helping-us-to-review-your-code">
+<h2>Helping us to review your code<a class="headerlink" href="#helping-us-to-review-your-code" title="Link to this heading">¶</a></h2>
+<p>You are likely to know the image format much much better than the rest of us
+do, but to help you with the code, we will need to learn.  The following will
+really help us get up to speed:</p>
+<ol class="arabic simple">
+<li><p>Links in the code or in the docs to the information on the file format.
+For example, you’ll see the canonical links for the NIfTI 2 format at the
+top of the <a class="reference internal" href="../reference/nibabel.nifti2.html#module-nibabel.nifti2" title="nibabel.nifti2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a> file, in the module docstring;</p></li>
+<li><p>Example files in the format; see <a class="reference internal" href="add_test_data.html"><span class="doc">Adding test data</span></a>;</p></li>
+<li><p>Good test coverage.  The tests help us see how you are expecting the code
+and the format to be used.  We recommend writing the tests first; the tests
+do an excellent job in helping us and you see how the API is going to work.</p></li>
+</ol>
+</section>
+<section id="the-format-can-be-read-only">
+<h2>The format can be read-only<a class="headerlink" href="#the-format-can-be-read-only" title="Link to this heading">¶</a></h2>
+<p>Read-only access to a format is better than no access to a format, and often
+much better.  For example, we can read but not write PAR / REC and MINC files.
+Having the code to read the files makes it easier to work with these files in
+Python, and easier for someone else to add the ability to write the format
+later.</p>
+</section>
+<section id="the-image-api">
+<h2>The image API<a class="headerlink" href="#the-image-api" title="Link to this heading">¶</a></h2>
+<p>An image should conform to the image API.  See the module docstring for
+<a class="reference internal" href="../reference/nibabel.spatialimages.html#module-nibabel.spatialimages" title="nibabel.spatialimages"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a> for a description of the API.</p>
+<p>You should test whether your image does conform to the API by adding a test
+class for your image in <code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.tests.test_image_api</span></code>.  For example, the
+API test for the PAR / REC image format looks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TestPARRECAPI</span><span class="p">(</span><span class="n">LoadImageAPI</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">loader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">parrec</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+    <span class="n">example_images</span> <span class="o">=</span> <span class="n">PARREC_EXAMPLE_IMAGES</span>
+</pre></div>
+</div>
+<p>where your work is to define the <code class="docutils literal notranslate"><span class="pre">EXAMPLE_IMAGES</span></code> list — see the
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.tests.test_parrec</span></code> file for the PAR / REC example images
+definition.</p>
+</section>
+<section id="where-to-start-with-the-code">
+<h2>Where to start with the code<a class="headerlink" href="#where-to-start-with-the-code" title="Link to this heading">¶</a></h2>
+<p>There is no API requirement that a new image format inherit from the general
+<a class="reference internal" href="../reference/nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a> class, but in fact all our image
+formats do inherit from this class.  We strongly suggest you do the same, to
+get many simple methods implemented for free.  You can always override the
+ones you don’t want.</p>
+<p>There is also a generic header class you might consider building on to contain
+your image metadata — <code class="xref py py-class docutils literal notranslate"><span class="pre">Header</span></code>.  See that
+class for the header API.</p>
+<p>The API does not require it, but if it is possible, it may be good to
+implement the image data as loaded from disk as an array proxy.  See the
+docstring of <a class="reference internal" href="../reference/nibabel.arrayproxy.html#module-nibabel.arrayproxy" title="nibabel.arrayproxy"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a> for a description of the API, and see the
+module code for an implementation of the API.  You may be able to use the
+unmodified <a class="reference internal" href="../reference/nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy" title="nibabel.arrayproxy.ArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayProxy</span></code></a> class for your image type.</p>
+<p>If you write a new array proxy class, add tests for the API of the class in
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.tests.test_proxy_api</span></code>.  See
+<code class="xref py py-class docutils literal notranslate"><span class="pre">TestPARRECAPI</span></code> for an example.</p>
+<p>A nibabel image is the association of:</p>
+<ol class="arabic simple">
+<li><p>The image array data (as implemented by an array proxy or a numpy array);</p></li>
+<li><p>An affine relating the image array coordinates to an RAS+ world (see
+<a class="reference internal" href="../coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a>);</p></li>
+<li><p>Image metadata in the form of a header.</p></li>
+</ol>
+<p>Your new image constructor may well be the default from
+<a class="reference internal" href="../reference/nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a>, which looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataobj</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">extra</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_map</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>Your job when loading a file is to create:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dataobj</span></code> - an array or array proxy;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">affine</span></code> - 4 by 4 array relating array coordinates to world coordinates;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">header</span></code> - a metadata container implementing at least <code class="docutils literal notranslate"><span class="pre">get_data_dtype</span></code>,
+<code class="docutils literal notranslate"><span class="pre">get_data_shape</span></code>.</p></li>
+</ol>
+<p>You will likely implement this logic in the <code class="docutils literal notranslate"><span class="pre">from_file_map</span></code> method of the
+image class.  See <a class="reference internal" href="../reference/nibabel.parrec.html#nibabel.parrec.PARRECImage" title="nibabel.parrec.PARRECImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECImage</span></code></a> for an example.</p>
+</section>
+<section id="a-recipe-for-writing-a-new-image-format">
+<h2>A recipe for writing a new image format<a class="headerlink" href="#a-recipe-for-writing-a-new-image-format" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Find one or more examples images;</p></li>
+<li><p>Put them in <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code> or a data submodule (see
+<a class="reference internal" href="add_test_data.html"><span class="doc">Adding test data</span></a>);</p></li>
+<li><p>Create a file <code class="docutils literal notranslate"><span class="pre">nibabel/tests/test_my_format_name_here.py</span></code>;</p></li>
+<li><p>Use some program that can read the format correctly to fill out the needed
+fields for an <code class="docutils literal notranslate"><span class="pre">EXAMPLE_IMAGES</span></code> list (see
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.tests.test_parrec.py</span></code> for example);</p></li>
+<li><p>Add a test class using your <code class="docutils literal notranslate"><span class="pre">EXAMPLE_IMAGES</span></code> to
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.tests.test_image_api</span></code>, using the PARREC image test class as
+an example. Now you have some failing tests — good job!;</p></li>
+<li><p>If you can, extract the metadata information from the test file, so it is
+small enough to fit as a small test file into <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code> (don’t
+forget the license);</p></li>
+<li><p>Write small maybe private functions to extract the header metadata from
+your new test file, testing these functions in
+<code class="docutils literal notranslate"><span class="pre">test_my_format_name_here.py</span></code>.  See <a class="reference internal" href="../reference/nibabel.parrec.html#module-nibabel.parrec" title="nibabel.parrec"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a> for examples;</p></li>
+<li><p>When that is working, try sub-classing <code class="xref py py-class docutils literal notranslate"><span class="pre">Header</span></code>, and working out how
+to make the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and <code class="docutils literal notranslate"><span class="pre">from_fileboj</span></code> methods for that class.  Test
+in <code class="docutils literal notranslate"><span class="pre">test_my_format_name_here.py</span></code>;</p></li>
+<li><p>When that is working, try sub-classing <a class="reference internal" href="../reference/nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a> and working
+out how to load the file with the <code class="docutils literal notranslate"><span class="pre">from_file_map</span></code> class;</p></li>
+<li><p>Now try seeing if you can get your <code class="docutils literal notranslate"><span class="pre">test_image_api.py</span></code> tests to pass;</p></li>
+<li><p>Consider adding more test data files, maybe to a test data repository
+submodule (<a class="reference internal" href="add_test_data.html"><span class="doc">Adding test data</span></a>).  Check you can read these files correctly
+(see <code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.tests.test_parrec_data</span></code> for an example).</p></li>
+<li><p>Ask for advice as early and as often as you can, either with a
+work-in-progress pull request (the easiest way for us to review) or on
+the mailing list or via github issues.</p></li>
+</ol>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

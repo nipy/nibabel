@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="arraywriters" href="nibabel.arraywriters.html" />
+    <link rel="prev" title="spatialimages" href="nibabel.spatialimages.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.arraywriters.html" title="arraywriters"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.spatialimages.html" title="spatialimages"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a><ul>
+<li><a class="reference internal" href="#dtypemapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">DtypeMapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.DtypeMapper"><code class="docutils literal notranslate"><span class="pre">DtypeMapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.DtypeMapper.__init__"><code class="docutils literal notranslate"><span class="pre">DtypeMapper.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#recoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Recoder</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.Recoder"><code class="docutils literal notranslate"><span class="pre">Recoder</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.Recoder.__init__"><code class="docutils literal notranslate"><span class="pre">Recoder.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.volumeutils.Recoder.add_codes"><code class="docutils literal notranslate"><span class="pre">Recoder.add_codes()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.volumeutils.Recoder.fields"><code class="docutils literal notranslate"><span class="pre">Recoder.fields</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.volumeutils.Recoder.keys"><code class="docutils literal notranslate"><span class="pre">Recoder.keys()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.volumeutils.Recoder.value_set"><code class="docutils literal notranslate"><span class="pre">Recoder.value_set()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#apply-read-scaling">apply_read_scaling</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.apply_read_scaling"><code class="docutils literal notranslate"><span class="pre">apply_read_scaling()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#array-from-file">array_from_file</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.array_from_file"><code class="docutils literal notranslate"><span class="pre">array_from_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#array-to-file">array_to_file</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.array_to_file"><code class="docutils literal notranslate"><span class="pre">array_to_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#best-write-scale-ftype">best_write_scale_ftype</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.best_write_scale_ftype"><code class="docutils literal notranslate"><span class="pre">best_write_scale_ftype()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#better-float-of">better_float_of</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.better_float_of"><code class="docutils literal notranslate"><span class="pre">better_float_of()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#finite-range">finite_range</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.finite_range"><code class="docutils literal notranslate"><span class="pre">finite_range()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fname-ext-ul-case">fname_ext_ul_case</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.fname_ext_ul_case"><code class="docutils literal notranslate"><span class="pre">fname_ext_ul_case()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#int-scinter-ftype">int_scinter_ftype</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.int_scinter_ftype"><code class="docutils literal notranslate"><span class="pre">int_scinter_ftype()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#make-dt-codes">make_dt_codes</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.make_dt_codes"><code class="docutils literal notranslate"><span class="pre">make_dt_codes()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pretty-mapping">pretty_mapping</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.pretty_mapping"><code class="docutils literal notranslate"><span class="pre">pretty_mapping()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rec2dict">rec2dict</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.rec2dict"><code class="docutils literal notranslate"><span class="pre">rec2dict()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#seek-tell">seek_tell</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.seek_tell"><code class="docutils literal notranslate"><span class="pre">seek_tell()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shape-zoom-affine">shape_zoom_affine</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.shape_zoom_affine"><code class="docutils literal notranslate"><span class="pre">shape_zoom_affine()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#working-type">working_type</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.working_type"><code class="docutils literal notranslate"><span class="pre">working_type()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#write-zeros">write_zeros</a><ul>
+<li><a class="reference internal" href="#nibabel.volumeutils.write_zeros"><code class="docutils literal notranslate"><span class="pre">write_zeros()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.spatialimages.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.arraywriters.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.volumeutils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.volumeutils">
+<span id="volumeutils"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code><a class="headerlink" href="#module-nibabel.volumeutils" title="Link to this heading">¶</a></h1>
+<p>Utility functions for analyze-like formats</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.DtypeMapper" title="nibabel.volumeutils.DtypeMapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DtypeMapper</span></code></a>()</p></td>
+<td><p>Specialized mapper for numpy dtypes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.Recoder" title="nibabel.volumeutils.Recoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Recoder</span></code></a>(codes, fields, map_maker, ...)</p></td>
+<td><p>class to return canonical code(s) from code or aliases</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.apply_read_scaling" title="nibabel.volumeutils.apply_read_scaling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_read_scaling</span></code></a>(arr[, slope, inter])</p></td>
+<td><p>Apply scaling in <cite>slope</cite> and <cite>inter</cite> to array <cite>arr</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.array_from_file" title="nibabel.volumeutils.array_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">array_from_file</span></code></a>(shape, in_dtype, infile[, ...])</p></td>
+<td><p>Get array from file with specified shape, dtype and file offset</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.array_to_file" title="nibabel.volumeutils.array_to_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">array_to_file</span></code></a>(data, fileobj[, out_dtype, ...])</p></td>
+<td><p>Helper function for writing arrays to file objects</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.best_write_scale_ftype" title="nibabel.volumeutils.best_write_scale_ftype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">best_write_scale_ftype</span></code></a>(arr[, slope, inter, ...])</p></td>
+<td><p>Smallest float type to contain range of <code class="docutils literal notranslate"><span class="pre">arr</span></code> after scaling</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.better_float_of" title="nibabel.volumeutils.better_float_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">better_float_of</span></code></a>(first, second[, default])</p></td>
+<td><p>Return more capable float type of <cite>first</cite> and <cite>second</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.finite_range" title="nibabel.volumeutils.finite_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finite_range</span></code></a>()</p></td>
+<td><p>Get range (min, max) or range and flag (min, max, has_nan) from <cite>arr</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.fname_ext_ul_case" title="nibabel.volumeutils.fname_ext_ul_case"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fname_ext_ul_case</span></code></a>(fname)</p></td>
+<td><p><cite>fname</cite> with ext changed to upper / lower case if file exists</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.int_scinter_ftype" title="nibabel.volumeutils.int_scinter_ftype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_scinter_ftype</span></code></a>(ifmt[, slope, inter, default])</p></td>
+<td><p>float type containing int type <cite>ifmt</cite> * <cite>slope</cite> + <cite>inter</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.make_dt_codes" title="nibabel.volumeutils.make_dt_codes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_dt_codes</span></code></a>(codes_seqs)</p></td>
+<td><p>Create full dt codes Recoder instance from datatype codes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.pretty_mapping" title="nibabel.volumeutils.pretty_mapping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pretty_mapping</span></code></a>(mapping[, getterfunc])</p></td>
+<td><p>Make pretty string from mapping</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.rec2dict" title="nibabel.volumeutils.rec2dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rec2dict</span></code></a>(rec)</p></td>
+<td><p>Convert recarray to dictionary</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.seek_tell" title="nibabel.volumeutils.seek_tell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seek_tell</span></code></a>(fileobj, offset[, write0])</p></td>
+<td><p>Seek in <cite>fileobj</cite> or check we're in the right place already</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.shape_zoom_affine" title="nibabel.volumeutils.shape_zoom_affine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shape_zoom_affine</span></code></a>(shape, zooms[, x_flip])</p></td>
+<td><p>Get affine implied by given shape and zooms</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.volumeutils.working_type" title="nibabel.volumeutils.working_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">working_type</span></code></a>(in_type[, slope, inter])</p></td>
+<td><p>Return array type from applying <cite>slope</cite>, <cite>inter</cite> to array of <cite>in_type</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.volumeutils.write_zeros" title="nibabel.volumeutils.write_zeros"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_zeros</span></code></a>(fileobj, count[, block_size])</p></td>
+<td><p>Write <cite>count</cite> zero bytes to <cite>fileobj</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="dtypemapper">
+<h2><a class="reference internal" href="#nibabel.volumeutils.DtypeMapper" title="nibabel.volumeutils.DtypeMapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">DtypeMapper</span></code></a><a class="headerlink" href="#dtypemapper" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.volumeutils.DtypeMapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">DtypeMapper</span></span><a class="headerlink" href="#nibabel.volumeutils.DtypeMapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Hashable" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hashable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Hashable" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hashable</span></code></a>]</p>
+<p>Specialized mapper for numpy dtypes</p>
+<p>We pass this mapper into the Recoder class to deal with numpy dtype
+hashing.</p>
+<p>The hashing problem is that dtypes that compare equal may not have the same
+hash.  This is true for numpys up to the current at time of writing
+(1.6.0).  For numpy 1.2.1 at least, even dtypes that look exactly the same
+in terms of fields don’t always have the same hash.  This makes dtypes
+difficult to use as keys in a dictionary.</p>
+<p>This class wraps a dictionary in order to implement a __getitem__ to deal
+with dtype hashing. If the key doesn’t appear to be in the mapping, and it
+is a dtype, we compare (using ==) all known dtype keys to the input key,
+and return any matching values for the matching key.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.volumeutils.DtypeMapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.DtypeMapper.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="recoder">
+<h2><a class="reference internal" href="#nibabel.volumeutils.Recoder" title="nibabel.volumeutils.Recoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Recoder</span></code></a><a class="headerlink" href="#recoder" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.volumeutils.Recoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">Recoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">codes:</span> <span class="pre">~typing.Sequence[~typing.Sequence[~typing.Hashable]],</span> <span class="pre">fields:</span> <span class="pre">~typing.Sequence[str]</span> <span class="pre">=</span> <span class="pre">('code',),</span> <span class="pre">map_maker:</span> <span class="pre">type[~typing.Mapping[~typing.Hashable,</span> <span class="pre">~typing.Hashable]]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'dict'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.volumeutils.Recoder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>class to return canonical code(s) from code or aliases</p>
+<p>The concept is a lot easier to read in the implementation and
+tests than it is to explain, so…</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># If you have some codes, and several aliases, like this:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">code1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">aliases1</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;first&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">code2</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="n">aliases2</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;two&#39;</span><span class="p">,</span> <span class="s1">&#39;second&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># You might want to do this:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">codes</span> <span class="o">=</span> <span class="p">[[</span><span class="n">code1</span><span class="p">]</span><span class="o">+</span><span class="n">aliases1</span><span class="p">,[</span><span class="n">code2</span><span class="p">]</span><span class="o">+</span><span class="n">aliases2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span> <span class="o">=</span> <span class="n">Recoder</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="s1">&#39;one&#39;</span><span class="p">]</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="s1">&#39;second&#39;</span><span class="p">]</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Or maybe you have a code, a label and some aliases</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">codes</span><span class="o">=</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;label1&#39;</span><span class="p">,</span><span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;first&#39;</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;label2&#39;</span><span class="p">,</span><span class="s1">&#39;two&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># you might want to get back the code or the label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span> <span class="o">=</span> <span class="n">Recoder</span><span class="p">(</span><span class="n">codes</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">,</span><span class="s1">&#39;label&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="s1">&#39;first&#39;</span><span class="p">]</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="o">.</span><span class="n">code</span><span class="p">[</span><span class="s1">&#39;label1&#39;</span><span class="p">]</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="o">.</span><span class="n">label</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">&#39;label2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># For convenience, you can get the first entered name by</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># indexing the object directly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recodes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>Create recoder object</p>
+<p><code class="docutils literal notranslate"><span class="pre">codes</span></code> give a sequence of code, alias sequences
+<code class="docutils literal notranslate"><span class="pre">fields</span></code> are names by which the entries in these sequences can be
+accessed.</p>
+<p>By default <code class="docutils literal notranslate"><span class="pre">fields</span></code> gives the first column the name
+“code”.  The first column is the vector of first entries
+in each of the sequences found in <code class="docutils literal notranslate"><span class="pre">codes</span></code>.  Thence you can
+get the equivalent first column value with ob.code[value],
+where value can be a first column value, or a value in any of
+the other columns in that sequence.</p>
+<p>You can give other columns names too, and access them in the
+same way - see the examples in the class docstring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>codes</strong><span class="classifier">sequence of sequences</span></dt><dd><p>Each sequence defines values (codes) that are equivalent</p>
+</dd>
+<dt><strong>fields</strong><span class="classifier">{(‘code’,) string sequence}, optional</span></dt><dd><p>names by which elements in sequences can be accessed</p>
+</dd>
+<dt><strong>map_maker: callable, optional</strong></dt><dd><p>constructor for dict-like objects used to store key value pairs.
+Default is <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  <code class="docutils literal notranslate"><span class="pre">map_maker()</span></code> generates an empty mapping.
+The mapping need only implement <code class="docutils literal notranslate"><span class="pre">__getitem__,</span> <span class="pre">__setitem__,</span> <span class="pre">keys,</span>
+<span class="pre">values</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.volumeutils.Recoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">codes:</span> <span class="pre">~typing.Sequence[~typing.Sequence[~typing.Hashable]],</span> <span class="pre">fields:</span> <span class="pre">~typing.Sequence[str]</span> <span class="pre">=</span> <span class="pre">('code',),</span> <span class="pre">map_maker:</span> <span class="pre">type[~typing.Mapping[~typing.Hashable,</span> <span class="pre">~typing.Hashable]]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'dict'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.volumeutils.Recoder.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Create recoder object</p>
+<p><code class="docutils literal notranslate"><span class="pre">codes</span></code> give a sequence of code, alias sequences
+<code class="docutils literal notranslate"><span class="pre">fields</span></code> are names by which the entries in these sequences can be
+accessed.</p>
+<p>By default <code class="docutils literal notranslate"><span class="pre">fields</span></code> gives the first column the name
+“code”.  The first column is the vector of first entries
+in each of the sequences found in <code class="docutils literal notranslate"><span class="pre">codes</span></code>.  Thence you can
+get the equivalent first column value with ob.code[value],
+where value can be a first column value, or a value in any of
+the other columns in that sequence.</p>
+<p>You can give other columns names too, and access them in the
+same way - see the examples in the class docstring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>codes</strong><span class="classifier">sequence of sequences</span></dt><dd><p>Each sequence defines values (codes) that are equivalent</p>
+</dd>
+<dt><strong>fields</strong><span class="classifier">{(‘code’,) string sequence}, optional</span></dt><dd><p>names by which elements in sequences can be accessed</p>
+</dd>
+<dt><strong>map_maker: callable, optional</strong></dt><dd><p>constructor for dict-like objects used to store key value pairs.
+Default is <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  <code class="docutils literal notranslate"><span class="pre">map_maker()</span></code> generates an empty mapping.
+The mapping need only implement <code class="docutils literal notranslate"><span class="pre">__getitem__,</span> <span class="pre">__setitem__,</span> <span class="pre">keys,</span>
+<span class="pre">values</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.volumeutils.Recoder.add_codes">
+<span class="sig-name descname"><span class="pre">add_codes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code_syn_seqs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Hashable" title="(in Python v3.13)"><span class="pre">Hashable</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.Recoder.add_codes" title="Link to this definition">¶</a></dt>
+<dd><p>Add codes to object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>code_syn_seqs</strong><span class="classifier">sequence</span></dt><dd><p>sequence of sequences, where each sequence <code class="docutils literal notranslate"><span class="pre">S</span> <span class="pre">=</span> <span class="pre">code_syn_seqs[n]</span></code>
+for n in 0..len(code_syn_seqs), is a sequence giving values in the
+same order as <code class="docutils literal notranslate"><span class="pre">self.fields</span></code>.  Each S should be at least of the
+same length as <code class="docutils literal notranslate"><span class="pre">self.fields</span></code>.  After this call, if <code class="docutils literal notranslate"><span class="pre">self.fields</span>
+<span class="pre">==</span> <span class="pre">['field1',</span> <span class="pre">'field2'],</span> <span class="pre">then</span> <span class="pre">``self.field1[S[n]]</span> <span class="pre">==</span> <span class="pre">S[0]</span></code> for all
+n in 0..len(S) and <code class="docutils literal notranslate"><span class="pre">self.field2[S[n]]</span> <span class="pre">==</span> <span class="pre">S[1]</span></code> for all n in
+0..len(S).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">code_syn_seqs</span> <span class="o">=</span> <span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rc</span> <span class="o">=</span> <span class="n">Recoder</span><span class="p">(</span><span class="n">code_syn_seqs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rc</span><span class="o">.</span><span class="n">value_set</span><span class="p">()</span> <span class="o">==</span> <span class="nb">set</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rc</span><span class="o">.</span><span class="n">add_codes</span><span class="p">(((</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;three&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;first&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rc</span><span class="o">.</span><span class="n">value_set</span><span class="p">()</span> <span class="o">==</span> <span class="nb">set</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">rc</span><span class="o">.</span><span class="n">value_set</span><span class="p">())</span>  <span class="c1"># set is actually ordered</span>
+<span class="go">OrderedSet([2, 1, 3])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.volumeutils.Recoder.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#nibabel.volumeutils.Recoder.fields" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.volumeutils.Recoder.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.volumeutils.Recoder.keys" title="Link to this definition">¶</a></dt>
+<dd><p>Return all available code and alias values</p>
+<p>Returns same value as <code class="docutils literal notranslate"><span class="pre">obj.field1.keys()</span></code> and, with the
+default initializing <code class="docutils literal notranslate"><span class="pre">fields</span></code> argument of fields=(‘code’,),
+this will return the same as <code class="docutils literal notranslate"><span class="pre">obj.code.keys()</span></code></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">codes</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;repeat value&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">Recoder</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">set</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="s1">&#39;repeat value&#39;</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.volumeutils.Recoder.value_set">
+<span class="sig-name descname"><span class="pre">value_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OrderedSet</span></span></span><a class="headerlink" href="#nibabel.volumeutils.Recoder.value_set" title="Link to this definition">¶</a></dt>
+<dd><p>Return OrderedSet of possible returned values for column</p>
+<p>By default, the column is the first column.</p>
+<p>Returns same values as <code class="docutils literal notranslate"><span class="pre">set(obj.field1.values())</span></code> and,
+with the default initializing``fields`` argument of
+fields=(‘code’,), this will return the same as
+<code class="docutils literal notranslate"><span class="pre">set(obj.code.values())</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">{None, string}</span></dt><dd><p>Where default of none gives result for first column</p>
+</dd>
+<dt><strong>&gt;&gt;&gt; codes = ((1, ‘one’), (2, ‘two’), (1, ‘repeat value’))</strong></dt><dd></dd>
+<dt><strong>&gt;&gt;&gt; vs = Recoder(codes).value_set()</strong></dt><dd></dd>
+<dt><strong>&gt;&gt;&gt; vs == set([1, 2]) # Sets are not ordered, hence this test</strong></dt><dd></dd>
+<dt><strong>True</strong></dt><dd></dd>
+<dt><strong>&gt;&gt;&gt; rc = Recoder(codes, fields=(‘code’, ‘label’))</strong></dt><dd></dd>
+<dt><strong>&gt;&gt;&gt; rc.value_set(‘label’) == set((‘one’, ‘two’, ‘repeat value’))</strong></dt><dd></dd>
+<dt><strong>True</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="apply-read-scaling">
+<h2>apply_read_scaling<a class="headerlink" href="#apply-read-scaling" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.apply_read_scaling">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">apply_read_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scalar</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scalar</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">np.ndarray</span></span></span><a class="headerlink" href="#nibabel.volumeutils.apply_read_scaling" title="Link to this definition">¶</a></dt>
+<dd><p>Apply scaling in <cite>slope</cite> and <cite>inter</cite> to array <cite>arr</cite></p>
+<p>This is for loading the array from a file (as opposed to the reverse
+scaling when saving an array to file)</p>
+<p>Return data will be <code class="docutils literal notranslate"><span class="pre">arr</span> <span class="pre">*</span> <span class="pre">slope</span> <span class="pre">+</span> <span class="pre">inter</span></code>. The trick is that we have to
+find a good precision to use for applying the scaling.  The heuristic is
+that the data is always upcast to the higher of the types from <cite>arr,
+`slope</cite>, <cite>inter</cite> if <cite>slope</cite> and / or <cite>inter</cite> are not default values. If the
+dtype of <cite>arr</cite> is an integer, then we assume the data more or less fills
+the integer range, and upcast to a type such that the min, max of
+<code class="docutils literal notranslate"><span class="pre">arr.dtype</span></code> * scale + inter, will be finite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">array-like</span></dt><dd></dd>
+<dt><strong>slope</strong><span class="classifier">None or float, optional</span></dt><dd><p>slope value to apply to <cite>arr</cite> (<code class="docutils literal notranslate"><span class="pre">arr</span> <span class="pre">*</span> <span class="pre">slope</span> <span class="pre">+</span> <span class="pre">inter</span></code>).  None
+corresponds to a value of 1.0</p>
+</dd>
+<dt><strong>inter</strong><span class="classifier">None or float, optional</span></dt><dd><p>intercept value to apply to <cite>arr</cite> (<code class="docutils literal notranslate"><span class="pre">arr</span> <span class="pre">*</span> <span class="pre">slope</span> <span class="pre">+</span> <span class="pre">inter</span></code>).  None
+corresponds to a value of 0.0</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ret</strong><span class="classifier">array</span></dt><dd><p>array with scaling applied.  Maybe upcast in order to give room for the
+scaling. If scaling is default (1, 0), then <cite>ret</cite> may be <cite>arr</cite> <code class="docutils literal notranslate"><span class="pre">ret</span> <span class="pre">is</span>
+<span class="pre">arr</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="array-from-file">
+<h2>array_from_file<a class="headerlink" href="#array-from-file" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.array_from_file">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">array_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">DT</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'C'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'F'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'F'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'c'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'r'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'r+'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">npt.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">DT</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.array_from_file" title="Link to this definition">¶</a></dt>
+<dd><p>Get array from file with specified shape, dtype and file offset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape</strong><span class="classifier">sequence</span></dt><dd><p>sequence specifying output array shape</p>
+</dd>
+<dt><strong>in_dtype</strong><span class="classifier">numpy dtype</span></dt><dd><p>fully specified numpy dtype, including correct endianness</p>
+</dd>
+<dt><strong>infile</strong><span class="classifier">file-like</span></dt><dd><p>open file-like object implementing at least read() and seek()</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">int, optional</span></dt><dd><p>offset in bytes into <cite>infile</cite> to start reading array data. Default is 0</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">{‘F’, ‘C’} string</span></dt><dd><p>order in which to write data.  Default is ‘F’ (fortran order).</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’, ‘r+’}</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading data.  If
+False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.  If one of {‘c’,
+‘r’, ‘r+’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A <cite>mmap</cite> value of
+True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If <cite>infile</cite> cannot be
+memory-mapped, ignore <cite>mmap</cite> value and read array from file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">array-like</span></dt><dd><p>array like object that can be sliced, containing data</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bio</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">bio</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">))</span>  <span class="c1"># outputs int</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr2</span> <span class="o">=</span> <span class="n">array_from_file</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">bio</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">arr</span> <span class="o">==</span> <span class="n">arr2</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bio</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">bio</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">bio</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr2</span> <span class="o">=</span> <span class="n">array_from_file</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">bio</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">arr</span> <span class="o">==</span> <span class="n">arr2</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="array-to-file">
+<h2>array_to_file<a class="headerlink" href="#array-to-file" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.array_to_file">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">array_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.dtype</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercept</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scalar</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divslope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scalar</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scalar</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Scalar</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'C'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'F'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'F'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan2zero</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.array_to_file" title="Link to this definition">¶</a></dt>
+<dd><p>Helper function for writing arrays to file objects</p>
+<p>Writes arrays as scaled by <cite>intercept</cite> and <cite>divslope</cite>, and clipped
+at (prescaling) <cite>mn</cite> minimum, and <cite>mx</cite> maximum.</p>
+<ul class="simple">
+<li><p>Clip <cite>data</cite> array at min <cite>mn</cite>, max <cite>max</cite> where there are not None -&gt;
+<code class="docutils literal notranslate"><span class="pre">clipped</span></code> (this is <em>pre scale clipping</em>)</p></li>
+<li><p>Scale <code class="docutils literal notranslate"><span class="pre">clipped</span></code> with <code class="docutils literal notranslate"><span class="pre">clipped_scaled</span> <span class="pre">=</span> <span class="pre">(clipped</span> <span class="pre">-</span> <span class="pre">intercept)</span> <span class="pre">/</span>
+<span class="pre">divslope</span></code></p></li>
+<li><p>Clip <code class="docutils literal notranslate"><span class="pre">clipped_scaled</span></code> to fit into range of <cite>out_dtype</cite> (<em>post scale
+clipping</em>) -&gt; <code class="docutils literal notranslate"><span class="pre">clipped_scaled_clipped</span></code></p></li>
+<li><p>If converting to integer <cite>out_dtype</cite> and <cite>nan2zero</cite> is True, set NaN
+values in <code class="docutils literal notranslate"><span class="pre">clipped_scaled_clipped</span></code> to 0</p></li>
+<li><p>Write <code class="docutils literal notranslate"><span class="pre">clipped_scaled_clipped_n2z</span></code> to fileobj <cite>fileobj</cite> starting at
+offset <cite>offset</cite> in memory layout <cite>order</cite></p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array-like</span></dt><dd><p>array or array-like to write.</p>
+</dd>
+<dt><strong>fileobj</strong><span class="classifier">file-like</span></dt><dd><p>file-like object implementing <code class="docutils literal notranslate"><span class="pre">write</span></code> method.</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype, optional</span></dt><dd><p>dtype to write array as.  Data array will be coerced to this dtype
+before writing. If None (default) then use input data type.</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">None or int, optional</span></dt><dd><p>offset into fileobj at which to start writing data. Default is 0. None
+means start at current file position</p>
+</dd>
+<dt><strong>intercept</strong><span class="classifier">scalar, optional</span></dt><dd><p>scalar to subtract from data, before dividing by <code class="docutils literal notranslate"><span class="pre">divslope</span></code>.  Default
+is 0.0</p>
+</dd>
+<dt><strong>divslope</strong><span class="classifier">None or scalar, optional</span></dt><dd><p>scalefactor to <em>divide</em> data by before writing.  Default is 1.0. If
+None, there is no valid data, we write zeros.</p>
+</dd>
+<dt><strong>mn</strong><span class="classifier">scalar, optional</span></dt><dd><p>minimum threshold in (unscaled) data, such that all data below this
+value are set to this value. Default is None (no threshold). The
+typical use is to set -np.inf in the data to have this value (which
+might be the minimum non-finite value in the data).</p>
+</dd>
+<dt><strong>mx</strong><span class="classifier">scalar, optional</span></dt><dd><p>maximum threshold in (unscaled) data, such that all data above this
+value are set to this value. Default is None (no threshold). The
+typical use is to set np.inf in the data to have this value (which
+might be the maximum non-finite value in the data).</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">{‘F’, ‘C’}, optional</span></dt><dd><p>memory order to write array.  Default is ‘F’</p>
+</dd>
+<dt><strong>nan2zero</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to set NaN values to 0 when writing integer output.  Defaults
+to True.  If False, NaNs will be represented as numpy does when
+casting; this depends on the underlying C library and is undefined. In
+practice <cite>nan2zero</cite> == False might be a good choice when you completely
+sure there will be no NaNs in the data. This value ignored for float
+output types.  NaNs are treated as zero <em>before</em> applying <cite>intercept</cite>
+and <cite>divslope</cite> - so an array <code class="docutils literal notranslate"><span class="pre">[np.nan]</span></code> with an <cite>intercept</cite> of 10
+becomes <code class="docutils literal notranslate"><span class="pre">[-10]</span></code> after conversion to integer <cite>out_dtype</cite> with
+<cite>nan2zero</cite> set.  That is because you will likely apply <cite>divslope</cite> and
+<cite>intercept</cite> in reverse order when reading the data back, returning the
+zero you probably expected from the input NaN.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sio</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_to_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sio</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sio</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># outputs 0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_to_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sio</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sio</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_to_file</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">byteswap</span><span class="p">(),</span> <span class="n">sio</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sio</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_to_file</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sio</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sio</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="best-write-scale-ftype">
+<h2>best_write_scale_ftype<a class="headerlink" href="#best-write-scale-ftype" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.best_write_scale_ftype">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">best_write_scale_ftype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr:</span> <span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope:</span> <span class="pre">npt.ArrayLike</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inter:</span> <span class="pre">npt.ArrayLike</span> <span class="pre">=</span> <span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default:</span> <span class="pre">type[np.number]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">np.floating</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.best_write_scale_ftype" title="Link to this definition">¶</a></dt>
+<dd><p>Smallest float type to contain range of <code class="docutils literal notranslate"><span class="pre">arr</span></code> after scaling</p>
+<p>Scaling that will be applied to <code class="docutils literal notranslate"><span class="pre">arr</span></code> is <code class="docutils literal notranslate"><span class="pre">(arr</span> <span class="pre">-</span> <span class="pre">inter)</span> <span class="pre">/</span> <span class="pre">slope</span></code>.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">slope</span></code> and <code class="docutils literal notranslate"><span class="pre">inter</span></code> get promoted to 1D arrays for this
+purpose to avoid the numpy scalar casting rules, which prevent scalars
+upcasting the array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">array-like</span></dt><dd><p>array that will be scaled</p>
+</dd>
+<dt><strong>slope</strong><span class="classifier">array-like, optional</span></dt><dd><p>scalar such that output array will be <code class="docutils literal notranslate"><span class="pre">(arr</span> <span class="pre">-</span> <span class="pre">inter)</span> <span class="pre">/</span> <span class="pre">slope</span></code>.</p>
+</dd>
+<dt><strong>inter</strong><span class="classifier">array-like, optional</span></dt><dd><p>scalar such that output array will be <code class="docutils literal notranslate"><span class="pre">(arr</span> <span class="pre">-</span> <span class="pre">inter)</span> <span class="pre">/</span> <span class="pre">slope</span></code></p>
+</dd>
+<dt><strong>default</strong><span class="classifier">numpy type, optional</span></dt><dd><p>minimum float type to return</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ftype</strong><span class="classifier">numpy type</span></dt><dd><p>Best floating point type for scaling.  If no floating point type
+prevents overflow, return the top floating point type.  If the input
+array <code class="docutils literal notranslate"><span class="pre">arr</span></code> already contains inf values, return the greater of the
+input type and the default type.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best_write_scale_ftype</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Specify higher default return value</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">best_write_scale_ftype</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Even large values that don’t overflow don’t change output</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best_write_scale_ftype</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Scaling &gt; 1 reduces output values, so no upcast needed</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">best_write_scale_ftype</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Scaling &lt; 1 increases values, so upcast may be needed (and is here)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">best_write_scale_ftype</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.5</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="better-float-of">
+<h2>better_float_of<a class="headerlink" href="#better-float-of" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.better_float_of">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">better_float_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first:</span> <span class="pre">npt.DTypeLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second:</span> <span class="pre">npt.DTypeLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default:</span> <span class="pre">type[np.floating]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">np.floating</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.better_float_of" title="Link to this definition">¶</a></dt>
+<dd><p>Return more capable float type of <cite>first</cite> and <cite>second</cite></p>
+<p>Return <cite>default</cite> if neither of <cite>first</cite> or <cite>second</cite> is a float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>first</strong><span class="classifier">numpy type specifier</span></dt><dd><p>Any valid input to <cite>np.dtype()`</cite></p>
+</dd>
+<dt><strong>second</strong><span class="classifier">numpy type specifier</span></dt><dd><p>Any valid input to <cite>np.dtype()`</cite></p>
+</dd>
+<dt><strong>default</strong><span class="classifier">numpy type specifier, optional</span></dt><dd><p>Any valid input to <cite>np.dtype()`</cite></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>better_type</strong><span class="classifier">numpy type</span></dt><dd><p>More capable of <cite>first</cite> or <cite>second</cite> if both are floats; if only one is
+a float return that, otherwise return <cite>default</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">better_float_of</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">better_float_of</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">better_float_of</span><span class="p">(</span><span class="s1">&#39;i2&#39;</span><span class="p">,</span> <span class="s1">&#39;u4&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">better_float_of</span><span class="p">(</span><span class="s1">&#39;i2&#39;</span><span class="p">,</span> <span class="s1">&#39;u4&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="finite-range">
+<h2>finite_range<a class="headerlink" href="#finite-range" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.finite_range">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">finite_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Scalar</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Scalar</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.finite_range" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">finite_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nan</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Scalar</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Scalar</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Get range (min, max) or range and flag (min, max, has_nan) from <cite>arr</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">array-like</span></dt><dd></dd>
+<dt><strong>check_nan</strong><span class="classifier">{False, True}, optional</span></dt><dd><p>Whether to return third output, a bool signaling whether there are NaN
+values in <cite>arr</cite></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mn</strong><span class="classifier">scalar</span></dt><dd><p>minimum of values in (flattened) array</p>
+</dd>
+<dt><strong>mx</strong><span class="classifier">scalar</span></dt><dd><p>maximum of values in (flattened) array</p>
+</dd>
+<dt><strong>has_nan</strong><span class="classifier">bool</span></dt><dd><p>Returned if <cite>check_nan</cite> is True. <cite>has_nan</cite> is True if there are one or
+more NaN values in <cite>arr</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">(-1.0, 1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">check_nan</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">(-1.0, 1.0, True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">(-3, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">(0, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">(1j, (4+1j))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;f1&#39;</span><span class="p">,</span> <span class="s1">&#39;i2&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">finite_range</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">   </span><span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">Can only handle numeric types</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="fname-ext-ul-case">
+<h2>fname_ext_ul_case<a class="headerlink" href="#fname-ext-ul-case" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.fname_ext_ul_case">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">fname_ext_ul_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.fname_ext_ul_case" title="Link to this definition">¶</a></dt>
+<dd><p><cite>fname</cite> with ext changed to upper / lower case if file exists</p>
+<p>Check for existence of <cite>fname</cite>.  If it does exist, return unmodified.  If
+it doesn’t, check for existence of <cite>fname</cite> with case changed from lower to
+upper, or upper to lower.  Return this modified <cite>fname</cite> if it exists.
+Otherwise return <cite>fname</cite> unmodified</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>filename.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mod_fname</strong><span class="classifier">str</span></dt><dd><p>filename, maybe with extension of opposite case</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="int-scinter-ftype">
+<h2>int_scinter_ftype<a class="headerlink" href="#int-scinter-ftype" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.int_scinter_ftype">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">int_scinter_ftype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ifmt:</span> <span class="pre">type[np.integer],</span> <span class="pre">slope:</span> <span class="pre">npt.ArrayLike</span> <span class="pre">=</span> <span class="pre">1.0,</span> <span class="pre">inter:</span> <span class="pre">npt.ArrayLike</span> <span class="pre">=</span> <span class="pre">0.0,</span> <span class="pre">default:</span> <span class="pre">type[np.floating]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">np.floating</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.int_scinter_ftype" title="Link to this definition">¶</a></dt>
+<dd><p>float type containing int type <cite>ifmt</cite> * <cite>slope</cite> + <cite>inter</cite></p>
+<p>Return float type that can represent the max and the min of the <cite>ifmt</cite> type
+after multiplication with <cite>slope</cite> and addition of <cite>inter</cite> with something
+like <code class="docutils literal notranslate"><span class="pre">np.array([imin,</span> <span class="pre">imax],</span> <span class="pre">dtype=ifmt)</span> <span class="pre">*</span> <span class="pre">slope</span> <span class="pre">+</span> <span class="pre">inter</span></code>.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">slope</span></code> and <code class="docutils literal notranslate"><span class="pre">inter</span></code> get promoted to 1D arrays for this
+purpose to avoid the numpy scalar casting rules, which prevent scalars
+upcasting the array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ifmt</strong><span class="classifier">object</span></dt><dd><p>numpy integer type (e.g. np.int32)</p>
+</dd>
+<dt><strong>slope</strong><span class="classifier">float, optional</span></dt><dd><p>slope, default 1.0</p>
+</dd>
+<dt><strong>inter</strong><span class="classifier">float, optional</span></dt><dd><p>intercept, default 0.0</p>
+</dd>
+<dt><strong>default_out</strong><span class="classifier">object, optional</span></dt><dd><p>numpy floating point type, default is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ftype</strong><span class="classifier">object</span></dt><dd><p>numpy floating point type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>It is difficult to make floats overflow with just addition because the
+deltas are so large at the extremes of floating point.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span><span class="o">.</span><span class="n">max</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">==</span> <span class="n">res</span>
+<span class="go">array([ True])</span>
+</pre></div>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">int_scinter_ftype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_scinter_ftype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="mf">1e38</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="make-dt-codes">
+<h2>make_dt_codes<a class="headerlink" href="#make-dt-codes" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.make_dt_codes">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">make_dt_codes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">codes_seqs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nibabel.volumeutils.Recoder" title="nibabel.volumeutils.Recoder"><span class="pre">Recoder</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.make_dt_codes" title="Link to this definition">¶</a></dt>
+<dd><p>Create full dt codes Recoder instance from datatype codes</p>
+<p>Include created numpy dtype (from numpy type) and opposite endian
+numpy dtype</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>codes_seqs</strong><span class="classifier">sequence of sequences</span></dt><dd><p>contained sequences make be length 3 or 4, but must all be the same
+length. Elements are data type code, data type name, and numpy
+type (such as <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>).  The fourth element is the nifti string
+representation of the code (e.g. “NIFTI_TYPE_FLOAT32”)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>rec</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">Recoder</span></code> instance</span></dt><dd><p>Recoder that, by default, returns <code class="docutils literal notranslate"><span class="pre">code</span></code> when indexed with any
+of the corresponding code, name, type, dtype, or swapped dtype.
+You can also index with <code class="docutils literal notranslate"><span class="pre">niistring</span></code> values if codes_seqs had sequences
+of length 4 instead of 3.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="pretty-mapping">
+<h2>pretty_mapping<a class="headerlink" href="#pretty-mapping" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.pretty_mapping">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">pretty_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">K</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">V</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">getterfunc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">ty.Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">K</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">V</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">K</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">V</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.pretty_mapping" title="Link to this definition">¶</a></dt>
+<dd><p>Make pretty string from mapping</p>
+<p>Adjusts text column to print values on basis of longest key.
+Probably only sensible if keys are mainly strings.</p>
+<p>You can pass in a callable that does clever things to get the values
+out of the mapping, given the names.  By default, we just use
+<code class="docutils literal notranslate"><span class="pre">__getitem__</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>mapping</strong><span class="classifier">mapping</span></dt><dd><p>implementing iterator returning keys and .items()</p>
+</dd>
+<dt><strong>getterfunc</strong><span class="classifier">None or callable</span></dt><dd><p>callable taking two arguments, <code class="docutils literal notranslate"><span class="pre">obj</span></code> and <code class="docutils literal notranslate"><span class="pre">key</span></code> where <code class="docutils literal notranslate"><span class="pre">obj</span></code>
+is the passed mapping.  If None, just use <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">obj,</span> <span class="pre">key:</span>
+<span class="pre">obj[key]</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>str</strong><span class="classifier">string</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;a key&#39;</span><span class="p">:</span> <span class="s1">&#39;a value&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">pretty_mapping</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+<span class="go">a key  : a value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">C</span><span class="p">:</span> <span class="c1"># to control ordering, show get_ method</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="nb">iter</span><span class="p">((</span><span class="s1">&#39;short_field&#39;</span><span class="p">,</span><span class="s1">&#39;longer_field&#39;</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;short_field&#39;</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="k">return</span> <span class="mi">0</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;longer_field&#39;</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="k">return</span> <span class="s1">&#39;str&#39;</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">get_longer_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="s1">&#39;method string&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="c1"># Look for any &#39;get_&lt;name&gt;&#39; methods</span>
+<span class="gp">... </span>    <span class="k">try</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="s1">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)()</span>
+<span class="gp">... </span>    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">obj</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">pretty_mapping</span><span class="p">(</span><span class="n">C</span><span class="p">(),</span> <span class="n">getter</span><span class="p">))</span>
+<span class="go">short_field   : 0</span>
+<span class="go">longer_field  : method string</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="rec2dict">
+<h2>rec2dict<a class="headerlink" href="#rec2dict" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.rec2dict">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">rec2dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.generic" title="(in NumPy v2.1)"><span class="pre">generic</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.rec2dict" title="Link to this definition">¶</a></dt>
+<dd><p>Convert recarray to dictionary</p>
+<p>Also converts scalar values to scalars</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>rec</strong><span class="classifier">ndarray</span></dt><dd><p>structured ndarray</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dct</strong><span class="classifier">dict</span></dt><dd><p>dict with key, value pairs as for <cite>rec</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;S10&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rec2dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="seek-tell">
+<h2>seek_tell<a class="headerlink" href="#seek-tell" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.seek_tell">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">seek_tell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">write0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.seek_tell" title="Link to this definition">¶</a></dt>
+<dd><p>Seek in <cite>fileobj</cite> or check we’re in the right place already</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like</span></dt><dd><p>object implementing <code class="docutils literal notranslate"><span class="pre">seek</span></code> and (if seek raises an OSError) <code class="docutils literal notranslate"><span class="pre">tell</span></code></p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">int</span></dt><dd><p>position in file to which to seek</p>
+</dd>
+<dt><strong>write0</strong><span class="classifier">{False, True}, optional</span></dt><dd><p>If True, and standard seek fails, try to write zeros to the file to
+reach <cite>offset</cite>.  This can be useful when writing bz2 files, that cannot
+do write seeks.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="shape-zoom-affine">
+<h2>shape_zoom_affine<a class="headerlink" href="#shape-zoom-affine" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.shape_zoom_affine">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">shape_zoom_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">zooms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_flip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><span class="pre">ndarray</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.shape_zoom_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Get affine implied by given shape and zooms</p>
+<p>We get the translations from the center of the image (implied by
+<cite>shape</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape</strong><span class="classifier">(N,) array-like</span></dt><dd><p>shape of image data. <code class="docutils literal notranslate"><span class="pre">N</span></code> is the number of dimensions</p>
+</dd>
+<dt><strong>zooms</strong><span class="classifier">(N,) array-like</span></dt><dd><p>zooms (voxel sizes) of the image</p>
+</dd>
+<dt><strong>x_flip</strong><span class="classifier">{True, False}</span></dt><dd><p>whether to flip the X row of the affine.  Corresponds to
+radiological storage on disk.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>aff</strong><span class="classifier">(4,4) array</span></dt><dd><p>affine giving correspondence of voxel coordinates to mm
+coordinates, taking the center of the image as origin</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zooms</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shape_zoom_affine</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="go">array([[-3.,  0.,  0.,  3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shape_zoom_affine</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+<span class="go">array([[ 3.,  0.,  0., -3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="working-type">
+<h2>working_type<a class="headerlink" href="#working-type" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.working_type">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">working_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.DTypeLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">np.number</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.volumeutils.working_type" title="Link to this definition">¶</a></dt>
+<dd><p>Return array type from applying <cite>slope</cite>, <cite>inter</cite> to array of <cite>in_type</cite></p>
+<p>Numpy type that results from an array of type <cite>in_type</cite> being combined with
+<cite>slope</cite> and <cite>inter</cite>. It returns something like the dtype type of
+<code class="docutils literal notranslate"><span class="pre">((np.zeros((2,),</span> <span class="pre">dtype=in_type)</span> <span class="pre">-</span> <span class="pre">inter)</span> <span class="pre">/</span> <span class="pre">slope)</span></code>, but ignoring the
+actual values of <cite>slope</cite> and <cite>inter</cite>.</p>
+<p>Note that you would not necessarily get the same type by applying slope and
+inter the other way round.  Also, you’ll see that the order in which slope
+and inter are applied is the opposite of the order in which they are
+passed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>in_type</strong><span class="classifier">numpy type specifier</span></dt><dd><p>Numpy type of input array.  Any valid input for <code class="docutils literal notranslate"><span class="pre">np.dtype()</span></code></p>
+</dd>
+<dt><strong>slope</strong><span class="classifier">scalar, optional</span></dt><dd><p>slope to apply to array.  If 1.0 (default), ignore this value and its
+type.</p>
+</dd>
+<dt><strong>inter</strong><span class="classifier">scalar, optional</span></dt><dd><p>intercept to apply to array.  If 0.0 (default), ignore this value and
+its type.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>wtype: numpy type</dt><dd><p>Numpy type resulting from applying <cite>inter</cite> and <cite>slope</cite> to array of type
+<cite>in_type</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="write-zeros">
+<h2>write_zeros<a class="headerlink" href="#write-zeros" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.volumeutils.write_zeros">
+<span class="sig-prename descclassname"><span class="pre">nibabel.volumeutils.</span></span><span class="sig-name descname"><span class="pre">write_zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8194</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.volumeutils.write_zeros" title="Link to this definition">¶</a></dt>
+<dd><p>Write <cite>count</cite> zero bytes to <cite>fileobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>with <code class="docutils literal notranslate"><span class="pre">write</span></code> method</p>
+</dd>
+<dt><strong>count</strong><span class="classifier">int</span></dt><dd><p>number of bytes to write</p>
+</dd>
+<dt><strong>block_size</strong><span class="classifier">int, optional</span></dt><dd><p>largest continuous block to write.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

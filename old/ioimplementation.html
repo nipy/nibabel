@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Relationship between images and io implementations</a><ul>
+<li><a class="reference internal" href="#summary-and-sign-off">Summary and sign-off</a></li>
+<li><a class="reference internal" href="#images">Images</a></li>
+<li><a class="reference internal" href="#io-implementations">IO implementations</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/old/ioimplementation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="relationship-between-images-and-io-implementations">
+<h1>Relationship between images and io implementations<a class="headerlink" href="#relationship-between-images-and-io-implementations" title="Link to this heading">¶</a></h1>
+<section id="summary-and-sign-off">
+<h2>Summary and sign-off<a class="headerlink" href="#summary-and-sign-off" title="Link to this heading">¶</a></h2>
+<p>These were some meditations about splitting the image into two API parts.</p>
+<p>The first part would be the lower level IO implementation.  This part is
+rather like a fusion of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Header</span></code> and <a class="reference internal" href="../reference/nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy" title="nibabel.arrayproxy.ArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayProxy</span></code></a> objects
+in current nibabel.  It takes care of lower level details like i/o data dtype,
+shape, offset, and it might help with slicing to get the data.  On top of that
+would be a high level interface implementing <code class="docutils literal notranslate"><span class="pre">load</span></code>, <code class="docutils literal notranslate"><span class="pre">save</span></code>, <code class="docutils literal notranslate"><span class="pre">filename</span></code>,
+<code class="docutils literal notranslate"><span class="pre">data</span></code>.  The top-level image also had the novel idea of a <code class="docutils literal notranslate"><span class="pre">mode</span></code> parameter
+which, if <code class="docutils literal notranslate"><span class="pre">'r'</span></code>, would raise an error on attempting to <code class="docutils literal notranslate"><span class="pre">save</span></code>.</p>
+</section>
+<section id="images">
+<h2>Images<a class="headerlink" href="#images" title="Link to this heading">¶</a></h2>
+<p>An image houses the association of the:</p>
+<ul class="simple">
+<li><p>data array</p></li>
+<li><p>affine</p></li>
+<li><p>output space</p></li>
+<li><p>metadata</p></li>
+<li><p>mode</p></li>
+</ul>
+<p>These are straightforward attributes, and have no necessary relationship
+to stuff on disk.</p>
+<p>By ‘’disk’’, we mean, file-like objects - not necessarily on disk.</p>
+<p>The <em>io implementation</em> manages the relationship of images and stuff on
+disk.</p>
+<p>Specifically, it manages <code class="docutils literal notranslate"><span class="pre">load</span></code> of images from disk, and <code class="docutils literal notranslate"><span class="pre">save</span></code> of
+images to disk.</p>
+<p>The user does not see the io implementation unless they ask to.  In
+standard use of images they will not need to do this.</p>
+</section>
+<section id="io-implementations">
+<h2>IO implementations<a class="headerlink" href="#io-implementations" title="Link to this heading">¶</a></h2>
+<p>By use case.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Creating</span> <span class="n">array</span> <span class="n">image</span><span class="p">,</span> <span class="n">saving</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">nibabel.images</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">load</span><span class="p">,</span> <span class="n">save</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img</span><span class="o">.</span><span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+   <span class="o">...</span>
+<span class="n">ImageError</span><span class="p">:</span> <span class="n">no</span> <span class="n">filespec</span> <span class="n">to</span> <span class="n">save</span> <span class="n">to</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+   <span class="o">...</span>
+<span class="n">ImageError</span><span class="p">:</span> <span class="n">no</span> <span class="n">filespec</span> <span class="n">to</span> <span class="n">save</span> <span class="n">to</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img2</span> <span class="o">=</span> <span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="s1">&#39;some_image.nii&#39;</span><span class="p">)</span> <span class="c1"># type guessed from filename</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img2</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">fname</span>
+<span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img</span><span class="o">.</span><span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span> <span class="c1"># still</span>
+<span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;some_filename.nii&#39;</span> <span class="c1"># read only property</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+   <span class="o">...</span>
+<span class="ne">AttributeError</span><span class="p">:</span> <span class="n">can</span><span class="s1">&#39;t set attribute</span>
+
+<span class="n">Load</span><span class="p">,</span> <span class="n">futz</span><span class="p">,</span> <span class="n">save</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img3</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img3</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">fname</span>
+<span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">img3</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">data</span><span class="p">)</span>
+<span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img3</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">99</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img3</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+   <span class="o">...</span>
+<span class="n">ImageError</span><span class="p">:</span> <span class="n">trying</span> <span class="n">to</span> <span class="n">write</span> <span class="n">to</span> <span class="n">read</span> <span class="n">only</span> <span class="n">image</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img3</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;rw&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img3</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">load</span><span class="p">(</span><span class="n">img4</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img4</span><span class="o">.</span><span class="n">mode</span> <span class="c1"># &#39;r&#39; is the default</span>
+<span class="s1">&#39;r&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">mod_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">mod_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">99</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">img4</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">mod_data</span><span class="p">)</span>
+<span class="kc">True</span>
+
+<span class="n">Prepare</span> <span class="n">image</span> <span class="k">for</span> <span class="n">later</span> <span class="n">writing</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img5</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fname2</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img5</span><span class="o">.</span><span class="n">set_filespec</span><span class="p">(</span><span class="n">fname2</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="c1"># then do some things to the image</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">img5</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+<span class="n">This</span> <span class="ow">is</span> <span class="n">an</span> <span class="n">example</span> <span class="n">where</span> <span class="n">you</span> <span class="n">do</span> <span class="n">need</span> <span class="n">the</span> <span class="n">io</span> <span class="n">API</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">nibabel.ioimps</span> <span class="kn">import</span> <span class="n">guessed_imp</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fname3</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ioimp</span> <span class="o">=</span> <span class="n">guessed_imp</span><span class="p">(</span><span class="n">fname3</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ioimp</span><span class="o">.</span><span class="n">set_data_dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ioimp</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span> <span class="c1"># set_data_shape method</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">slice_def</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ioimp</span><span class="o">.</span><span class="n">write_slice</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">slice_def</span><span class="p">],</span> <span class="n">slice_def</span><span class="p">)</span> <span class="c1"># write_slice method</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">slice_def</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ioimp</span><span class="o">.</span><span class="n">write_slice</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">slice_def</span><span class="p">],</span> <span class="n">slice_def</span><span class="p">)</span> <span class="c1"># write_slice method</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+   <span class="o">...</span>
+<span class="n">ImageIOError</span><span class="p">:</span> <span class="n">data</span> <span class="n">write</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">contiguous</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

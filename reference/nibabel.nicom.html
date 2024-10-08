@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="nifti1" href="nibabel.nifti1.html" />
+    <link rel="prev" title="minc2" href="nibabel.minc2.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.nifti1.html" title="nifti1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.minc2.html" title="minc2"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a><ul>
+<li><a class="reference internal" href="#module-nibabel.nicom.ascconv">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.ascconv</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.nicom.csareader">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.csareader</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.nicom.dicomreaders">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.dicomreaders</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.nicom.dicomwrappers">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.dicomwrappers</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.nicom.dwiparams">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.dwiparams</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.nicom.structreader">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.structreader</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.nicom.utils">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.utils</span></code></a><ul>
+<li><a class="reference internal" href="#ascconvparseerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">AscconvParseError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.AscconvParseError"><code class="docutils literal notranslate"><span class="pre">AscconvParseError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.AscconvParseError.__init__"><code class="docutils literal notranslate"><span class="pre">AscconvParseError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.Atom"><code class="docutils literal notranslate"><span class="pre">Atom</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.Atom.__init__"><code class="docutils literal notranslate"><span class="pre">Atom.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#novalue"><code class="xref py py-class docutils literal notranslate"><span class="pre">NoValue</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.NoValue"><code class="docutils literal notranslate"><span class="pre">NoValue</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.NoValue.__init__"><code class="docutils literal notranslate"><span class="pre">NoValue.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#assign2atoms">assign2atoms</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.assign2atoms"><code class="docutils literal notranslate"><span class="pre">assign2atoms()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#obj-from-atoms">obj_from_atoms</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.obj_from_atoms"><code class="docutils literal notranslate"><span class="pre">obj_from_atoms()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parse-ascconv">parse_ascconv</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.ascconv.parse_ascconv"><code class="docutils literal notranslate"><span class="pre">parse_ascconv()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#csaerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">CSAError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.CSAError"><code class="docutils literal notranslate"><span class="pre">CSAError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.CSAError.__init__"><code class="docutils literal notranslate"><span class="pre">CSAError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#csareaderror"><code class="xref py py-class docutils literal notranslate"><span class="pre">CSAReadError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.CSAReadError"><code class="docutils literal notranslate"><span class="pre">CSAReadError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.CSAReadError.__init__"><code class="docutils literal notranslate"><span class="pre">CSAReadError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-acq-mat-txt">get_acq_mat_txt</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_acq_mat_txt"><code class="docutils literal notranslate"><span class="pre">get_acq_mat_txt()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-b-matrix">get_b_matrix</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_b_matrix"><code class="docutils literal notranslate"><span class="pre">get_b_matrix()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-b-value">get_b_value</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_b_value"><code class="docutils literal notranslate"><span class="pre">get_b_value()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-csa-header">get_csa_header</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_csa_header"><code class="docutils literal notranslate"><span class="pre">get_csa_header()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-g-vector">get_g_vector</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_g_vector"><code class="docutils literal notranslate"><span class="pre">get_g_vector()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-ice-dims">get_ice_dims</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_ice_dims"><code class="docutils literal notranslate"><span class="pre">get_ice_dims()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-n-mosaic">get_n_mosaic</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_n_mosaic"><code class="docutils literal notranslate"><span class="pre">get_n_mosaic()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-scalar">get_scalar</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_scalar"><code class="docutils literal notranslate"><span class="pre">get_scalar()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-slice-normal">get_slice_normal</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_slice_normal"><code class="docutils literal notranslate"><span class="pre">get_slice_normal()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-vector">get_vector</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.get_vector"><code class="docutils literal notranslate"><span class="pre">get_vector()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#is-mosaic">is_mosaic</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.is_mosaic"><code class="docutils literal notranslate"><span class="pre">is_mosaic()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nt-str">nt_str</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.nt_str"><code class="docutils literal notranslate"><span class="pre">nt_str()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read">read</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.csareader.read"><code class="docutils literal notranslate"><span class="pre">read()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dicomreaderror"><code class="xref py py-class docutils literal notranslate"><span class="pre">DicomReadError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomreaders.DicomReadError"><code class="docutils literal notranslate"><span class="pre">DicomReadError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomreaders.DicomReadError.__init__"><code class="docutils literal notranslate"><span class="pre">DicomReadError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mosaic-to-nii">mosaic_to_nii</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomreaders.mosaic_to_nii"><code class="docutils literal notranslate"><span class="pre">mosaic_to_nii()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-mosaic-dir">read_mosaic_dir</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomreaders.read_mosaic_dir"><code class="docutils literal notranslate"><span class="pre">read_mosaic_dir()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-mosaic-dwi-dir">read_mosaic_dwi_dir</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomreaders.read_mosaic_dwi_dir"><code class="docutils literal notranslate"><span class="pre">read_mosaic_dwi_dir()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slices-to-series">slices_to_series</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomreaders.slices_to_series"><code class="docutils literal notranslate"><span class="pre">slices_to_series()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#filterdwiiso"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilterDwiIso</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterDwiIso"><code class="docutils literal notranslate"><span class="pre">FilterDwiIso</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterDwiIso.__init__"><code class="docutils literal notranslate"><span class="pre">FilterDwiIso.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterDwiIso.applies"><code class="docutils literal notranslate"><span class="pre">FilterDwiIso.applies()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterDwiIso.keep"><code class="docutils literal notranslate"><span class="pre">FilterDwiIso.keep()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#filtermultistack"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilterMultiStack</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterMultiStack"><code class="docutils literal notranslate"><span class="pre">FilterMultiStack</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterMultiStack.__init__"><code class="docutils literal notranslate"><span class="pre">FilterMultiStack.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterMultiStack.applies"><code class="docutils literal notranslate"><span class="pre">FilterMultiStack.applies()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterMultiStack.keep"><code class="docutils literal notranslate"><span class="pre">FilterMultiStack.keep()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#framefilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameFilter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter"><code class="docutils literal notranslate"><span class="pre">FrameFilter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter.__init__"><code class="docutils literal notranslate"><span class="pre">FrameFilter.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter.applies"><code class="docutils literal notranslate"><span class="pre">FrameFilter.applies()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter.keep"><code class="docutils literal notranslate"><span class="pre">FrameFilter.keep()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mosaicwrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MosaicWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper"><code class="docutils literal notranslate"><span class="pre">MosaicWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.__init__"><code class="docutils literal notranslate"><span class="pre">MosaicWrapper.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.get_unscaled_data"><code class="docutils literal notranslate"><span class="pre">MosaicWrapper.get_unscaled_data()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.image_position"><code class="docutils literal notranslate"><span class="pre">MosaicWrapper.image_position</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.image_shape"><code class="docutils literal notranslate"><span class="pre">MosaicWrapper.image_shape</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.is_mosaic"><code class="docutils literal notranslate"><span class="pre">MosaicWrapper.is_mosaic</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#multiframewrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiframeWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.__init__"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.frame_order"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.frame_order</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.get_unscaled_data"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.get_unscaled_data()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.image_orient_patient"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.image_orient_patient</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.image_position"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.image_position</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.image_shape"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.image_shape</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.is_multiframe"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.is_multiframe</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.scale_factors"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.scale_factors</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.series_signature"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.series_signature</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.vendor"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.vendor</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.voxel_sizes"><code class="docutils literal notranslate"><span class="pre">MultiframeWrapper.voxel_sizes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#siemenswrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">SiemensWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.__init__"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.b_matrix"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.b_matrix</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.is_csa"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.is_csa</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.q_vector"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.q_vector</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.series_signature"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.series_signature</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.slice_normal"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.slice_normal</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.vendor"><code class="docutils literal notranslate"><span class="pre">SiemensWrapper.vendor</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper"><code class="docutils literal notranslate"><span class="pre">Wrapper</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.__init__"><code class="docutils literal notranslate"><span class="pre">Wrapper.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.affine"><code class="docutils literal notranslate"><span class="pre">Wrapper.affine</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.b_matrix"><code class="docutils literal notranslate"><span class="pre">Wrapper.b_matrix</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.b_value"><code class="docutils literal notranslate"><span class="pre">Wrapper.b_value</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.b_vector"><code class="docutils literal notranslate"><span class="pre">Wrapper.b_vector</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.get"><code class="docutils literal notranslate"><span class="pre">Wrapper.get()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.get_data"><code class="docutils literal notranslate"><span class="pre">Wrapper.get_data()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.get_pixel_array"><code class="docutils literal notranslate"><span class="pre">Wrapper.get_pixel_array()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.get_unscaled_data"><code class="docutils literal notranslate"><span class="pre">Wrapper.get_unscaled_data()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.image_orient_patient"><code class="docutils literal notranslate"><span class="pre">Wrapper.image_orient_patient</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.image_position"><code class="docutils literal notranslate"><span class="pre">Wrapper.image_position</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.image_shape"><code class="docutils literal notranslate"><span class="pre">Wrapper.image_shape</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.instance_number"><code class="docutils literal notranslate"><span class="pre">Wrapper.instance_number</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.is_csa"><code class="docutils literal notranslate"><span class="pre">Wrapper.is_csa</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.is_mosaic"><code class="docutils literal notranslate"><span class="pre">Wrapper.is_mosaic</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.is_multiframe"><code class="docutils literal notranslate"><span class="pre">Wrapper.is_multiframe</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.is_same_series"><code class="docutils literal notranslate"><span class="pre">Wrapper.is_same_series()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.q_vector"><code class="docutils literal notranslate"><span class="pre">Wrapper.q_vector</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.rotation_matrix"><code class="docutils literal notranslate"><span class="pre">Wrapper.rotation_matrix</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.scale_factors"><code class="docutils literal notranslate"><span class="pre">Wrapper.scale_factors</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.series_signature"><code class="docutils literal notranslate"><span class="pre">Wrapper.series_signature</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.slice_indicator"><code class="docutils literal notranslate"><span class="pre">Wrapper.slice_indicator</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.slice_normal"><code class="docutils literal notranslate"><span class="pre">Wrapper.slice_normal</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.vendor"><code class="docutils literal notranslate"><span class="pre">Wrapper.vendor</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper.voxel_sizes"><code class="docutils literal notranslate"><span class="pre">Wrapper.voxel_sizes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrappererror"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapperError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperError"><code class="docutils literal notranslate"><span class="pre">WrapperError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperError.__init__"><code class="docutils literal notranslate"><span class="pre">WrapperError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrapperprecisionerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapperPrecisionError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperPrecisionError"><code class="docutils literal notranslate"><span class="pre">WrapperPrecisionError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperPrecisionError.__init__"><code class="docutils literal notranslate"><span class="pre">WrapperPrecisionError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#none-or-close">none_or_close</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.none_or_close"><code class="docutils literal notranslate"><span class="pre">none_or_close()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrapper-from-data">wrapper_from_data</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.wrapper_from_data"><code class="docutils literal notranslate"><span class="pre">wrapper_from_data()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrapper-from-file">wrapper_from_file</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dicomwrappers.wrapper_from_file"><code class="docutils literal notranslate"><span class="pre">wrapper_from_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#b2q">B2q</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dwiparams.B2q"><code class="docutils literal notranslate"><span class="pre">B2q()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nearest-pos-semi-def">nearest_pos_semi_def</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dwiparams.nearest_pos_semi_def"><code class="docutils literal notranslate"><span class="pre">nearest_pos_semi_def()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#q2bg">q2bg</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.dwiparams.q2bg"><code class="docutils literal notranslate"><span class="pre">q2bg()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#unpacker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Unpacker</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.structreader.Unpacker"><code class="docutils literal notranslate"><span class="pre">Unpacker</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.structreader.Unpacker.__init__"><code class="docutils literal notranslate"><span class="pre">Unpacker.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.structreader.Unpacker.read"><code class="docutils literal notranslate"><span class="pre">Unpacker.read()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.structreader.Unpacker.unpack"><code class="docutils literal notranslate"><span class="pre">Unpacker.unpack()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vendor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vendor</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.utils.Vendor"><code class="docutils literal notranslate"><span class="pre">Vendor</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.utils.Vendor.__init__"><code class="docutils literal notranslate"><span class="pre">Vendor.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.utils.Vendor.GE"><code class="docutils literal notranslate"><span class="pre">Vendor.GE</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.utils.Vendor.PHILIPS"><code class="docutils literal notranslate"><span class="pre">Vendor.PHILIPS</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nicom.utils.Vendor.SIEMENS"><code class="docutils literal notranslate"><span class="pre">Vendor.SIEMENS</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#find-private-section">find_private_section</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.utils.find_private_section"><code class="docutils literal notranslate"><span class="pre">find_private_section()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vendor-from-private">vendor_from_private</a><ul>
+<li><a class="reference internal" href="#nibabel.nicom.utils.vendor_from_private"><code class="docutils literal notranslate"><span class="pre">vendor_from_private()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.minc2.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc2</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.nifti1.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.nicom.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.nicom">
+<span id="nicom"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code><a class="headerlink" href="#module-nibabel.nicom" title="Link to this heading">¶</a></h1>
+<p>DICOM reader</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-nibabel.nicom.csareader" title="nibabel.nicom.csareader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">csareader</span></code></a></p></td>
+<td><p>CSA header reader from SPM spec</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#module-nibabel.nicom.dicomreaders" title="nibabel.nicom.dicomreaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dicomreaders</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-nibabel.nicom.dicomwrappers" title="nibabel.nicom.dicomwrappers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dicomwrappers</span></code></a></p></td>
+<td><p>Classes to wrap DICOM objects and files</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#module-nibabel.nicom.dwiparams" title="nibabel.nicom.dwiparams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dwiparams</span></code></a></p></td>
+<td><p>Process diffusion imaging parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-nibabel.nicom.structreader" title="nibabel.nicom.structreader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">structreader</span></code></a></p></td>
+<td><p>Stream-like reader for packed data</p></td>
+</tr>
+</tbody>
+</table>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+</tbody>
+</table>
+<section id="module-nibabel.nicom.ascconv">
+<span id="module-nicom-ascconv"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.ascconv</span></code><a class="headerlink" href="#module-nibabel.nicom.ascconv" title="Link to this heading">¶</a></h2>
+<p>Parse the “ASCCONV” meta data format found in a variety of Siemens MR files.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.ascconv.AscconvParseError" title="nibabel.nicom.ascconv.AscconvParseError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AscconvParseError</span></code></a></p></td>
+<td><p>Error parsing ascconv file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.ascconv.Atom" title="nibabel.nicom.ascconv.Atom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Atom</span></code></a>(op, obj_type, obj_id)</p></td>
+<td><p>Object to hold operation, object type and object identifier</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.ascconv.NoValue" title="nibabel.nicom.ascconv.NoValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NoValue</span></code></a>()</p></td>
+<td><p>Signals no value present</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.ascconv.assign2atoms" title="nibabel.nicom.ascconv.assign2atoms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign2atoms</span></code></a>(assign_ast[, default_class])</p></td>
+<td><p>Parse single assignment ast from ascconv line into atoms</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.ascconv.obj_from_atoms" title="nibabel.nicom.ascconv.obj_from_atoms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obj_from_atoms</span></code></a>(atoms, namespace)</p></td>
+<td><p>Return object defined by list <cite>atoms</cite> in dict-like <cite>namespace</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.ascconv.parse_ascconv" title="nibabel.nicom.ascconv.parse_ascconv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_ascconv</span></code></a>(ascconv_str[, str_delim])</p></td>
+<td><p>Parse the 'ASCCONV' format from <cite>input_str</cite>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.nicom.csareader">
+<span id="module-nicom-csareader"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.csareader</span></code><a class="headerlink" href="#module-nibabel.nicom.csareader" title="Link to this heading">¶</a></h2>
+<p>CSA header reader from SPM spec</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.CSAError" title="nibabel.nicom.csareader.CSAError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CSAError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.CSAReadError" title="nibabel.nicom.csareader.CSAReadError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CSAReadError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_acq_mat_txt" title="nibabel.nicom.csareader.get_acq_mat_txt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_acq_mat_txt</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_b_matrix" title="nibabel.nicom.csareader.get_b_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_b_matrix</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_b_value" title="nibabel.nicom.csareader.get_b_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_b_value</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_csa_header" title="nibabel.nicom.csareader.get_csa_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_csa_header</span></code></a>(dcm_data[, csa_type])</p></td>
+<td><p>Get CSA header information from DICOM header</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_g_vector" title="nibabel.nicom.csareader.get_g_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_g_vector</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_ice_dims" title="nibabel.nicom.csareader.get_ice_dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_dims</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_n_mosaic" title="nibabel.nicom.csareader.get_n_mosaic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_n_mosaic</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_scalar" title="nibabel.nicom.csareader.get_scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_scalar</span></code></a>(csa_dict, tag_name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_slice_normal" title="nibabel.nicom.csareader.get_slice_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_slice_normal</span></code></a>(csa_dict)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.get_vector" title="nibabel.nicom.csareader.get_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vector</span></code></a>(csa_dict, tag_name, n)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.is_mosaic" title="nibabel.nicom.csareader.is_mosaic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_mosaic</span></code></a>(csa_dict)</p></td>
+<td><p>Return True if the data is of Mosaic type</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.nt_str" title="nibabel.nicom.csareader.nt_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nt_str</span></code></a>(s)</p></td>
+<td><p>Strip string to first null</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.csareader.read" title="nibabel.nicom.csareader.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(csa_str)</p></td>
+<td><p>Read CSA header from string <cite>csa_str</cite></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.nicom.dicomreaders">
+<span id="module-nicom-dicomreaders"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.dicomreaders</span></code><a class="headerlink" href="#module-nibabel.nicom.dicomreaders" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomreaders.DicomReadError" title="nibabel.nicom.dicomreaders.DicomReadError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DicomReadError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomreaders.mosaic_to_nii" title="nibabel.nicom.dicomreaders.mosaic_to_nii"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mosaic_to_nii</span></code></a>(dcm_data)</p></td>
+<td><p>Get Nifti file from Siemens</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomreaders.read_mosaic_dir" title="nibabel.nicom.dicomreaders.read_mosaic_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_mosaic_dir</span></code></a>(dicom_path[, globber, ...])</p></td>
+<td><p>Read all Siemens mosaic DICOMs in directory, return arrays, params</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomreaders.read_mosaic_dwi_dir" title="nibabel.nicom.dicomreaders.read_mosaic_dwi_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_mosaic_dwi_dir</span></code></a>(dicom_path[, globber, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomreaders.slices_to_series" title="nibabel.nicom.dicomreaders.slices_to_series"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slices_to_series</span></code></a>(wrappers)</p></td>
+<td><p>Sort sequence of slice wrappers into series</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.nicom.dicomwrappers">
+<span id="module-nicom-dicomwrappers"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.dicomwrappers</span></code><a class="headerlink" href="#module-nibabel.nicom.dicomwrappers" title="Link to this heading">¶</a></h2>
+<p>Classes to wrap DICOM objects and files</p>
+<p>The wrappers encapsulate the capabilities of the different DICOM
+formats.</p>
+<p>They also allow dictionary-like access to named fields.</p>
+<p>For calculated attributes, we return None where needed data is missing.
+It seemed strange to raise an error during attribute processing, other
+than an AttributeError - breaking the ‘properties manifesto’.   So, any
+processing that needs to raise an error, should be in a method, rather
+than in a property, or property-like thing.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterDwiIso" title="nibabel.nicom.dicomwrappers.FilterDwiIso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterDwiIso</span></code></a>()</p></td>
+<td><p>Filter out derived ISOTROPIC frames from DWI series</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterMultiStack" title="nibabel.nicom.dicomwrappers.FilterMultiStack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterMultiStack</span></code></a>([keep_id])</p></td>
+<td><p>Filter out all but one <cite>StackID</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter" title="nibabel.nicom.dicomwrappers.FrameFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FrameFilter</span></code></a>()</p></td>
+<td><p>Base class for defining how to filter out (ignore) frames from a multiframe file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper" title="nibabel.nicom.dicomwrappers.MosaicWrapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MosaicWrapper</span></code></a>(dcm_data[, csa_header, n_mosaic])</p></td>
+<td><p>Class for Siemens mosaic format data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper" title="nibabel.nicom.dicomwrappers.MultiframeWrapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiframeWrapper</span></code></a>(dcm_data[, frame_filters])</p></td>
+<td><p>Wrapper for Enhanced MR Storage SOP Class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper" title="nibabel.nicom.dicomwrappers.SiemensWrapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SiemensWrapper</span></code></a>(dcm_data[, csa_header])</p></td>
+<td><p>Wrapper for Siemens format DICOMs</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper" title="nibabel.nicom.dicomwrappers.Wrapper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Wrapper</span></code></a>(dcm_data)</p></td>
+<td><p>Class to wrap general DICOM files</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperError" title="nibabel.nicom.dicomwrappers.WrapperError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WrapperError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperPrecisionError" title="nibabel.nicom.dicomwrappers.WrapperPrecisionError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WrapperPrecisionError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.none_or_close" title="nibabel.nicom.dicomwrappers.none_or_close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">none_or_close</span></code></a>(val1, val2[, rtol, atol])</p></td>
+<td><p>Match if <cite>val1</cite> and <cite>val2</cite> are both None, or are close</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.wrapper_from_data" title="nibabel.nicom.dicomwrappers.wrapper_from_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wrapper_from_data</span></code></a>(dcm_data[, frame_filters])</p></td>
+<td><p>Create DICOM wrapper from DICOM data object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dicomwrappers.wrapper_from_file" title="nibabel.nicom.dicomwrappers.wrapper_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wrapper_from_file</span></code></a>(file_like, *args, **kwargs)</p></td>
+<td><p>Create DICOM wrapper from <cite>file_like</cite> object</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.nicom.dwiparams">
+<span id="module-nicom-dwiparams"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.dwiparams</span></code><a class="headerlink" href="#module-nibabel.nicom.dwiparams" title="Link to this heading">¶</a></h2>
+<p>Process diffusion imaging parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">q</span></code> is a vector in Q space</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">b</span></code> is a b value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">g</span></code> is the unit vector along the direction of q (the gradient
+direction)</p></li>
+</ul>
+<p>Thus:</p>
+<blockquote>
+<div><p>b = norm(q)</p>
+<p>g = q  / norm(q)</p>
+</div></blockquote>
+<p>(<code class="docutils literal notranslate"><span class="pre">norm(q)</span></code> is the Euclidean norm of <code class="docutils literal notranslate"><span class="pre">q</span></code>)</p>
+<p>The B matrix <code class="docutils literal notranslate"><span class="pre">B</span></code> is a symmetric positive semi-definite matrix.  If
+<code class="docutils literal notranslate"><span class="pre">q_est</span></code> is the closest q vector equivalent to the B matrix, then:</p>
+<blockquote>
+<div><p>B ~ (q_est . q_est.T) / norm(q_est)</p>
+</div></blockquote>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dwiparams.B2q" title="nibabel.nicom.dwiparams.B2q"><code class="xref py py-obj docutils literal notranslate"><span class="pre">B2q</span></code></a>(B[, tol])</p></td>
+<td><p>Estimate q vector from input B matrix <cite>B</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.dwiparams.nearest_pos_semi_def" title="nibabel.nicom.dwiparams.nearest_pos_semi_def"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nearest_pos_semi_def</span></code></a>(B)</p></td>
+<td><p>Least squares positive semi-definite tensor estimation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.dwiparams.q2bg" title="nibabel.nicom.dwiparams.q2bg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">q2bg</span></code></a>(q_vector[, tol])</p></td>
+<td><p>Return b value and q unit vector from q vector <cite>q_vector</cite></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.nicom.structreader">
+<span id="module-nicom-structreader"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.structreader</span></code><a class="headerlink" href="#module-nibabel.nicom.structreader" title="Link to this heading">¶</a></h2>
+<p>Stream-like reader for packed data</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.structreader.Unpacker" title="nibabel.nicom.structreader.Unpacker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unpacker</span></code></a>(buf[, ptr, endian])</p></td>
+<td><p>Class to unpack values from buffer object</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.nicom.utils">
+<span id="module-nicom-utils"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom.utils</span></code><a class="headerlink" href="#module-nibabel.nicom.utils" title="Link to this heading">¶</a></h2>
+<p>Utilities for working with DICOM datasets</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.utils.Vendor" title="nibabel.nicom.utils.Vendor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Vendor</span></code></a>(value[, names, module, qualname, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nicom.utils.find_private_section" title="nibabel.nicom.utils.find_private_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_private_section</span></code></a>(dcm_data, group_no, creator)</p></td>
+<td><p>Return start element in group <cite>group_no</cite> given creator name <cite>creator</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nicom.utils.vendor_from_private" title="nibabel.nicom.utils.vendor_from_private"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vendor_from_private</span></code></a>(dcm_data)</p></td>
+<td><p>Try to determine the vendor by looking for specific private tags</p></td>
+</tr>
+</tbody>
+</table>
+<section id="ascconvparseerror">
+<h3><a class="reference internal" href="#nibabel.nicom.ascconv.AscconvParseError" title="nibabel.nicom.ascconv.AscconvParseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AscconvParseError</span></code></a><a class="headerlink" href="#ascconvparseerror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.AscconvParseError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.ascconv.</span></span><span class="sig-name descname"><span class="pre">AscconvParseError</span></span><a class="headerlink" href="#nibabel.nicom.ascconv.AscconvParseError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Error parsing ascconv file</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.AscconvParseError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.AscconvParseError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="atom">
+<h3><a class="reference internal" href="#nibabel.nicom.ascconv.Atom" title="nibabel.nicom.ascconv.Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a><a class="headerlink" href="#atom" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.Atom">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.ascconv.</span></span><span class="sig-name descname"><span class="pre">Atom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.Atom" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Object to hold operation, object type and object identifier</p>
+<p>An atom represents an element in an expression.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="o">.</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">c</span>
+</pre></div>
+</div>
+<p>has four elements.  We call these elements “atoms”.</p>
+<p>We represent objects (like <code class="docutils literal notranslate"><span class="pre">a</span></code>) as dicts for convenience.</p>
+<p>The last element (<code class="docutils literal notranslate"><span class="pre">.c</span></code>) is an <code class="docutils literal notranslate"><span class="pre">op</span> <span class="pre">=</span> <span class="pre">ast.Attribute</span></code> operation where the
+object type (<cite>obj_type</cite>) of <code class="docutils literal notranslate"><span class="pre">c</span></code> is not constrained (we can’t tell from
+the operation what type it is).  The <cite>obj_id</cite> is the name of the object –
+“c”.</p>
+<p>The second to last element <code class="docutils literal notranslate"><span class="pre">[0]</span></code>, is <code class="docutils literal notranslate"><span class="pre">op</span> <span class="pre">=</span> <span class="pre">ast.Subscript</span></code>, with object type
+dict (we know from the subsequent operation <code class="docutils literal notranslate"><span class="pre">.c</span></code> that this must be an
+object, we represent the object by a dict).  The <cite>obj_id</cite> is the index 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>op</strong><span class="classifier">{‘name’, ‘attr’, ‘list’}</span></dt><dd><p>Assignment type.  Assignment to name (root namespace), attribute or
+list element.</p>
+</dd>
+<dt><strong>obj_type</strong><span class="classifier">{list, dict, other}</span></dt><dd><p>Object type being assigned to.</p>
+</dd>
+<dt><strong>obj_id</strong><span class="classifier">str or int</span></dt><dd><p>Key (<code class="docutils literal notranslate"><span class="pre">obj_type</span> <span class="pre">is</span> <span class="pre">dict</span></code>) or index (<code class="docutils literal notranslate"><span class="pre">obj_type</span> <span class="pre">is</span> <span class="pre">list</span></code>)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.Atom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">op</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.Atom.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="novalue">
+<h3><a class="reference internal" href="#nibabel.nicom.ascconv.NoValue" title="nibabel.nicom.ascconv.NoValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">NoValue</span></code></a><a class="headerlink" href="#novalue" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.NoValue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.ascconv.</span></span><span class="sig-name descname"><span class="pre">NoValue</span></span><a class="headerlink" href="#nibabel.nicom.ascconv.NoValue" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Signals no value present</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.NoValue.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.NoValue.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="assign2atoms">
+<h3>assign2atoms<a class="headerlink" href="#assign2atoms" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.assign2atoms">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.ascconv.</span></span><span class="sig-name descname"><span class="pre">assign2atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assign_ast</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_class=&lt;class</span> <span class="pre">'int'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.assign2atoms" title="Link to this definition">¶</a></dt>
+<dd><p>Parse single assignment ast from ascconv line into atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>assign_ast</strong><span class="classifier">assignment statement ast</span></dt><dd><p>ast derived from single line of ascconv file.</p>
+</dd>
+<dt><strong>default_class</strong><span class="classifier">class, optional</span></dt><dd><p>Class that will create an object where we cannot yet know the object
+type in the assignment.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>atoms</strong><span class="classifier">list</span></dt><dd><p>List of <code class="xref py py-class docutils literal notranslate"><span class="pre">atoms</span></code>.  See docstring for <code class="xref py py-class docutils literal notranslate"><span class="pre">atoms</span></code>.  Defines
+left to right sequence of assignment in <cite>line_ast</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="obj-from-atoms">
+<h3>obj_from_atoms<a class="headerlink" href="#obj-from-atoms" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.obj_from_atoms">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.ascconv.</span></span><span class="sig-name descname"><span class="pre">obj_from_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.obj_from_atoms" title="Link to this definition">¶</a></dt>
+<dd><p>Return object defined by list <cite>atoms</cite> in dict-like <cite>namespace</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>atoms</strong><span class="classifier">list</span></dt><dd><p>List of <code class="xref py py-class docutils literal notranslate"><span class="pre">atoms</span></code></p>
+</dd>
+<dt><strong>namespace</strong><span class="classifier">dict-like</span></dt><dd><p>Namespace in which object will be defined.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>obj_root</strong><span class="classifier">object</span></dt><dd><p>Namespace such that we can set a desired value to the object defined in
+<cite>atoms</cite> with <code class="docutils literal notranslate"><span class="pre">obj_root[obj_key]</span> <span class="pre">=</span> <span class="pre">value</span></code>.</p>
+</dd>
+<dt><strong>obj_key</strong><span class="classifier">str or int</span></dt><dd><p>Index into list or key into dictionary for <cite>obj_root</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="parse-ascconv">
+<h3>parse_ascconv<a class="headerlink" href="#parse-ascconv" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.ascconv.parse_ascconv">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.ascconv.</span></span><span class="sig-name descname"><span class="pre">parse_ascconv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ascconv_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str_delim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&quot;'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.ascconv.parse_ascconv" title="Link to this definition">¶</a></dt>
+<dd><p>Parse the ‘ASCCONV’ format from <cite>input_str</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ascconv_str</strong><span class="classifier">str</span></dt><dd><p>The string we are parsing</p>
+</dd>
+<dt><strong>str_delim</strong><span class="classifier">str, optional</span></dt><dd><p>String delimiter.  Typically ‘”’ or ‘””’</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>prot_dict</strong><span class="classifier">OrderedDict</span></dt><dd><p>Meta data pulled from the ASCCONV section.</p>
+</dd>
+<dt><strong>attrs</strong><span class="classifier">OrderedDict</span></dt><dd><p>Any attributes stored in the ‘ASCCONV BEGIN’ line</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>AsconvParseError</dt><dd><p>A line of the ASCCONV section could not be parsed.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="csaerror">
+<h3><a class="reference internal" href="#nibabel.nicom.csareader.CSAError" title="nibabel.nicom.csareader.CSAError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CSAError</span></code></a><a class="headerlink" href="#csaerror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.CSAError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">CSAError</span></span><a class="headerlink" href="#nibabel.nicom.csareader.CSAError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.CSAError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.CSAError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="csareaderror">
+<h3><a class="reference internal" href="#nibabel.nicom.csareader.CSAReadError" title="nibabel.nicom.csareader.CSAReadError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CSAReadError</span></code></a><a class="headerlink" href="#csareaderror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.CSAReadError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">CSAReadError</span></span><a class="headerlink" href="#nibabel.nicom.csareader.CSAReadError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.csareader.CSAError" title="nibabel.nicom.csareader.CSAError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CSAError</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.CSAReadError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.CSAReadError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="get-acq-mat-txt">
+<h3>get_acq_mat_txt<a class="headerlink" href="#get-acq-mat-txt" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_acq_mat_txt">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_acq_mat_txt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_acq_mat_txt" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-b-matrix">
+<h3>get_b_matrix<a class="headerlink" href="#get-b-matrix" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_b_matrix">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_b_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_b_matrix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-b-value">
+<h3>get_b_value<a class="headerlink" href="#get-b-value" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_b_value">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_b_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_b_value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-csa-header">
+<h3>get_csa_header<a class="headerlink" href="#get-csa-header" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_csa_header">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_csa_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csa_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_csa_header" title="Link to this definition">¶</a></dt>
+<dd><p>Get CSA header information from DICOM header</p>
+<p>Return None if the header does not contain CSA information of the
+specified <cite>csa_type</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">dicom.Dataset</span></dt><dd><p>DICOM dataset.  Should implement <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> and, if initial check
+for presence of <code class="docutils literal notranslate"><span class="pre">dcm_data[(0x29,</span> <span class="pre">0x10)]</span></code> passes, should satisfy
+interface for <code class="docutils literal notranslate"><span class="pre">find_private_section</span></code>.</p>
+</dd>
+<dt><strong>csa_type</strong><span class="classifier">{‘image’, ‘series’}, optional</span></dt><dd><p>Type of CSA field to read; default is ‘image’</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>csa_info</strong><span class="classifier">None or dict</span></dt><dd><p>Parsed CSA field of <cite>csa_type</cite> or None, if we cannot find the CSA
+information.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-g-vector">
+<h3>get_g_vector<a class="headerlink" href="#get-g-vector" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_g_vector">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_g_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_g_vector" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-ice-dims">
+<h3>get_ice_dims<a class="headerlink" href="#get-ice-dims" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_ice_dims">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_ice_dims</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_ice_dims" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-n-mosaic">
+<h3>get_n_mosaic<a class="headerlink" href="#get-n-mosaic" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_n_mosaic">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_n_mosaic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_n_mosaic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-scalar">
+<h3>get_scalar<a class="headerlink" href="#get-scalar" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_scalar">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_scalar" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-slice-normal">
+<h3>get_slice_normal<a class="headerlink" href="#get-slice-normal" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_slice_normal">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_slice_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_slice_normal" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="get-vector">
+<h3>get_vector<a class="headerlink" href="#get-vector" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.get_vector">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">get_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.get_vector" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="is-mosaic">
+<h3>is_mosaic<a class="headerlink" href="#is-mosaic" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.is_mosaic">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">is_mosaic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.is_mosaic" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if the data is of Mosaic type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>csa_dict</strong><span class="classifier">dict</span></dt><dd><p>dict containing read CSA data</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tf</strong><span class="classifier">bool</span></dt><dd><p>True if the <cite>dcm_data</cite> appears to be of Siemens mosaic type,
+False otherwise</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="nt-str">
+<h3>nt_str<a class="headerlink" href="#nt-str" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.nt_str">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">nt_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.nt_str" title="Link to this definition">¶</a></dt>
+<dd><p>Strip string to first null</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">bytes</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sdash</strong><span class="classifier">str</span></dt><dd><p>s stripped to first occurrence of null (0)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read">
+<h3>read<a class="headerlink" href="#read" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.csareader.read">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.csareader.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csa_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.csareader.read" title="Link to this definition">¶</a></dt>
+<dd><p>Read CSA header from string <cite>csa_str</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>csa_str</strong><span class="classifier">str</span></dt><dd><p>byte string containing CSA header information</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>header</strong><span class="classifier">dict</span></dt><dd><p>header information as dict, where <cite>header</cite> has fields (at least)
+<code class="docutils literal notranslate"><span class="pre">type,</span> <span class="pre">n_tags,</span> <span class="pre">tags</span></code>.  <code class="docutils literal notranslate"><span class="pre">header['tags']</span></code> is also a dictionary
+with one key, value pair for each tag in the header.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="dicomreaderror">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomreaders.DicomReadError" title="nibabel.nicom.dicomreaders.DicomReadError"><code class="xref py py-class docutils literal notranslate"><span class="pre">DicomReadError</span></code></a><a class="headerlink" href="#dicomreaderror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomreaders.DicomReadError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomreaders.</span></span><span class="sig-name descname"><span class="pre">DicomReadError</span></span><a class="headerlink" href="#nibabel.nicom.dicomreaders.DicomReadError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomreaders.DicomReadError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomreaders.DicomReadError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="mosaic-to-nii">
+<h3>mosaic_to_nii<a class="headerlink" href="#mosaic-to-nii" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomreaders.mosaic_to_nii">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomreaders.</span></span><span class="sig-name descname"><span class="pre">mosaic_to_nii</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomreaders.mosaic_to_nii" title="Link to this definition">¶</a></dt>
+<dd><p>Get Nifti file from Siemens</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>dcm_data</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">dicom.DataSet</span></code></span></dt><dd><p>DICOM header / image as read by <code class="docutils literal notranslate"><span class="pre">dicom</span></code> package</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">Nifti1Image</span></code></span></dt><dd><p>Nifti image object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-mosaic-dir">
+<h3>read_mosaic_dir<a class="headerlink" href="#read-mosaic-dir" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomreaders.read_mosaic_dir">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomreaders.</span></span><span class="sig-name descname"><span class="pre">read_mosaic_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globber</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*.dcm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_is_dwi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomreaders.read_mosaic_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Read all Siemens mosaic DICOMs in directory, return arrays, params</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dicom_path</strong><span class="classifier">str</span></dt><dd><p>path containing mosaic DICOM images</p>
+</dd>
+<dt><strong>globber</strong><span class="classifier">str, optional</span></dt><dd><p>glob to apply within <cite>dicom_path</cite> to select DICOM files.  Default
+is <code class="docutils literal notranslate"><span class="pre">*.dcm</span></code></p>
+</dd>
+<dt><strong>check_is_dwi</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, raises an error if we don’t find DWI information in the
+DICOM headers.</p>
+</dd>
+<dt><strong>dicom_kwargs</strong><span class="classifier">None or dict</span></dt><dd><p>Extra keyword arguments to pass to the pydicom <code class="docutils literal notranslate"><span class="pre">dcmread</span></code> function.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">4D array</span></dt><dd><p>data array with last dimension being acquisition. If there were N
+acquisitions, each of shape (X, Y, Z), <cite>data</cite> will be shape (X,
+Y, Z, N)</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">(4,4) array</span></dt><dd><p>affine relating 3D voxel space in data to RAS world space</p>
+</dd>
+<dt><strong>b_values</strong><span class="classifier">(N,) array</span></dt><dd><p>b values for each acquisition.  nan if we did not find diffusion
+information for these images.</p>
+</dd>
+<dt><strong>unit_gradients</strong><span class="classifier">(N, 3) array</span></dt><dd><p>gradient directions of unit length for each acquisition.  (nan,
+nan, nan) if we did not find diffusion information.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-mosaic-dwi-dir">
+<h3>read_mosaic_dwi_dir<a class="headerlink" href="#read-mosaic-dwi-dir" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomreaders.read_mosaic_dwi_dir">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomreaders.</span></span><span class="sig-name descname"><span class="pre">read_mosaic_dwi_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dicom_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">globber</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*.dcm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dicom_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomreaders.read_mosaic_dwi_dir" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="slices-to-series">
+<h3>slices_to_series<a class="headerlink" href="#slices-to-series" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomreaders.slices_to_series">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomreaders.</span></span><span class="sig-name descname"><span class="pre">slices_to_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wrappers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomreaders.slices_to_series" title="Link to this definition">¶</a></dt>
+<dd><p>Sort sequence of slice wrappers into series</p>
+<p>This follows the SPM model fairly closely</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>wrappers</strong><span class="classifier">sequence</span></dt><dd><p>sequence of <code class="docutils literal notranslate"><span class="pre">Wrapper</span></code> objects for sorting into volumes</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>series</strong><span class="classifier">sequence</span></dt><dd><p>sequence of sequences of wrapper objects, where each sequence is
+wrapper objects comprising a series, sorted into slice order</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="filterdwiiso">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterDwiIso" title="nibabel.nicom.dicomwrappers.FilterDwiIso"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilterDwiIso</span></code></a><a class="headerlink" href="#filterdwiiso" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterDwiIso">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">FilterDwiIso</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterDwiIso" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter" title="nibabel.nicom.dicomwrappers.FrameFilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameFilter</span></code></a></p>
+<p>Filter out derived ISOTROPIC frames from DWI series</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterDwiIso.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterDwiIso.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterDwiIso.applies">
+<span class="sig-name descname"><span class="pre">applies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_wrp</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterDwiIso.applies" title="Link to this definition">¶</a></dt>
+<dd><p>Returns true if the filter should be applied to a dataset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterDwiIso.keep">
+<span class="sig-name descname"><span class="pre">keep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterDwiIso.keep" title="Link to this definition">¶</a></dt>
+<dd><p>Return true if the frame should be kept</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="filtermultistack">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FilterMultiStack" title="nibabel.nicom.dicomwrappers.FilterMultiStack"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilterMultiStack</span></code></a><a class="headerlink" href="#filtermultistack" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterMultiStack">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">FilterMultiStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keep_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterMultiStack" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter" title="nibabel.nicom.dicomwrappers.FrameFilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameFilter</span></code></a></p>
+<p>Filter out all but one <cite>StackID</cite></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterMultiStack.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keep_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterMultiStack.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterMultiStack.applies">
+<span class="sig-name descname"><span class="pre">applies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_wrp</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterMultiStack.applies" title="Link to this definition">¶</a></dt>
+<dd><p>Returns true if the filter should be applied to a dataset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FilterMultiStack.keep">
+<span class="sig-name descname"><span class="pre">keep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FilterMultiStack.keep" title="Link to this definition">¶</a></dt>
+<dd><p>Return true if the frame should be kept</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="framefilter">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.FrameFilter" title="nibabel.nicom.dicomwrappers.FrameFilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameFilter</span></code></a><a class="headerlink" href="#framefilter" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FrameFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">FrameFilter</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FrameFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for defining how to filter out (ignore) frames from a multiframe file</p>
+<p>It is guaranteed that the <cite>applies</cite> method will on a dataset before the <cite>keep</cite> method
+is called on any of the frames inside.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FrameFilter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FrameFilter.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FrameFilter.applies">
+<span class="sig-name descname"><span class="pre">applies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_wrp</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FrameFilter.applies" title="Link to this definition">¶</a></dt>
+<dd><p>Returns true if the filter should be applied to a dataset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.FrameFilter.keep">
+<span class="sig-name descname"><span class="pre">keep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.FrameFilter.keep" title="Link to this definition">¶</a></dt>
+<dd><p>Return true if the frame should be kept</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="mosaicwrapper">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MosaicWrapper" title="nibabel.nicom.dicomwrappers.MosaicWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MosaicWrapper</span></code></a><a class="headerlink" href="#mosaicwrapper" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MosaicWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">MosaicWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csa_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_mosaic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MosaicWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper" title="nibabel.nicom.dicomwrappers.SiemensWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">SiemensWrapper</span></code></a></p>
+<p>Class for Siemens mosaic format data</p>
+<p>Mosaic format is a way of storing a 3D image in a 2D slice - and
+it’s as simple as you’d imagine it would be - just storing the slices
+in a mosaic similar to a light-box print.</p>
+<p>We need to allow for this when getting the data and (because of an
+idiosyncrasy in the way Siemens stores the images) calculating the
+position of the first voxel.</p>
+<p>Adds attributes:</p>
+<ul class="simple">
+<li><p>n_mosaic : int</p></li>
+<li><p>mosaic_size : int</p></li>
+</ul>
+<p>Initialize Siemens Mosaic wrapper</p>
+<p>The Siemens-specific information is in the <cite>csa_header</cite>, either
+passed in here, or read from the input <cite>dcm_data</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  If <cite>csa_header</cite>
+is None, it should also be possible for to extract a CSA header from
+<cite>dcm_data</cite>. Usually this will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object
+resulting from reading a DICOM file.  A dict should also work.</p>
+</dd>
+<dt><strong>csa_header</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>mapping giving values for Siemens CSA image sub-header.</p>
+</dd>
+<dt><strong>n_mosaic</strong><span class="classifier">None or int, optional</span></dt><dd><p>number of images in mosaic.  If None, try to get this number
+from <cite>csa_header</cite>.  If this fails, raise an error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MosaicWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csa_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_mosaic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize Siemens Mosaic wrapper</p>
+<p>The Siemens-specific information is in the <cite>csa_header</cite>, either
+passed in here, or read from the input <cite>dcm_data</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  If <cite>csa_header</cite>
+is None, it should also be possible for to extract a CSA header from
+<cite>dcm_data</cite>. Usually this will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object
+resulting from reading a DICOM file.  A dict should also work.</p>
+</dd>
+<dt><strong>csa_header</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>mapping giving values for Siemens CSA image sub-header.</p>
+</dd>
+<dt><strong>n_mosaic</strong><span class="classifier">None or int, optional</span></dt><dd><p>number of images in mosaic.  If None, try to get this number
+from <cite>csa_header</cite>.  If this fails, raise an error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MosaicWrapper.get_unscaled_data">
+<span class="sig-name descname"><span class="pre">get_unscaled_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.get_unscaled_data" title="Link to this definition">¶</a></dt>
+<dd><p>Get scaled image data from DICOMs</p>
+<p>Resorts data block from mosaic to 3D</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array</span></dt><dd><p>array with data as scaled from any scaling in the DICOM
+fields.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The apparent image in the DICOM file is a 2D array that consists of
+blocks, that are the output 2D slices.  Let’s call the original array
+the <em>slab</em>, and the contained slices <em>slices</em>.   The slices are of
+pixel dimension <code class="docutils literal notranslate"><span class="pre">n_slice_rows</span></code> x <code class="docutils literal notranslate"><span class="pre">n_slice_cols</span></code>.  The slab is of
+pixel dimension <code class="docutils literal notranslate"><span class="pre">n_slab_rows</span></code> x <code class="docutils literal notranslate"><span class="pre">n_slab_cols</span></code>.  Because the
+arrangement of blocks in the slab is defined as being square, the
+number of blocks per slab row and slab column is the same.  Let
+<code class="docutils literal notranslate"><span class="pre">n_blocks</span></code> be the number of blocks contained in the slab.  There is
+also <code class="docutils literal notranslate"><span class="pre">n_slices</span></code> - the number of slices actually collected, some
+number &lt;= <code class="docutils literal notranslate"><span class="pre">n_blocks</span></code>.  We have the value <code class="docutils literal notranslate"><span class="pre">n_slices</span></code> from the
+‘NumberOfImagesInMosaic’ field of the Siemens private (CSA) header.
+<code class="docutils literal notranslate"><span class="pre">n_row_blocks</span></code> and <code class="docutils literal notranslate"><span class="pre">n_col_blocks</span></code> are therefore given by
+<code class="docutils literal notranslate"><span class="pre">ceil(sqrt(n_slices))</span></code>, and <code class="docutils literal notranslate"><span class="pre">n_blocks</span></code> is <code class="docutils literal notranslate"><span class="pre">n_row_blocks</span> <span class="pre">**</span> <span class="pre">2</span></code>.
+Also <code class="docutils literal notranslate"><span class="pre">n_slice_rows</span> <span class="pre">==</span> <span class="pre">n_slab_rows</span> <span class="pre">/</span> <span class="pre">n_row_blocks</span></code>, etc.  Using these
+numbers we can therefore reconstruct the slices from the 2D DICOM pixel
+array.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MosaicWrapper.image_position">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_position</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.image_position" title="Link to this definition">¶</a></dt>
+<dd><p>Return position of first voxel in data block</p>
+<p>Adjusts Siemens mosaic position vector for bug in mosaic format
+position.  See <code class="docutils literal notranslate"><span class="pre">dicom_mosaic</span></code> in doc/theory for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img_pos</strong><span class="classifier">(3,) array</span></dt><dd><p>position in mm of voxel (0,0,0) in Mosaic array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MosaicWrapper.image_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_shape</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.image_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Return image shape as returned by <code class="docutils literal notranslate"><span class="pre">get_data()</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MosaicWrapper.is_mosaic">
+<span class="sig-name descname"><span class="pre">is_mosaic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MosaicWrapper.is_mosaic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="multiframewrapper">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper" title="nibabel.nicom.dicomwrappers.MultiframeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiframeWrapper</span></code></a><a class="headerlink" href="#multiframewrapper" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">MultiframeWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper" title="nibabel.nicom.dicomwrappers.Wrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wrapper</span></code></a></p>
+<p>Wrapper for Enhanced MR Storage SOP Class</p>
+<p>Tested with Philips’ Enhanced DICOM implementation.</p>
+<p>The specification for the Enhanced MR image IOP / SOP began life as <a class="reference external" href="ftp://medical.nema.org/medical/dicom/final/sup49_ft.pdf">DICOM
+supplement 49</a>,
+but as of 2016 it is part of the standard. In particular see:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_A.36">A.36 Enhanced MR Information Object Definitions</a>;</p></li>
+<li><p><a class="reference external" href="http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16">C.7.6.16 Multi-Frame Functional Groups Module</a>;</p></li>
+<li><p><a class="reference external" href="http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17">C.7.6.17 Multi-Frame Dimension Module</a>.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>is_multiframe</strong><span class="classifier">boolean</span></dt><dd><p>Identifies <cite>dcmdata</cite> as multi-frame</p>
+</dd>
+<dt><strong>frames</strong><span class="classifier">sequence</span></dt><dd><p>A sequence of <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> objects populated by the
+<code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset.PerFrameFunctionalGroupsSequence</span></code> attribute</p>
+</dd>
+<dt><strong>shared</strong><span class="classifier">object</span></dt><dd><p>The first (and only) <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object from a
+<code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset.SharedFunctionalgroupSequence</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>vendor(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>frame_order(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>image_shape(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>image_orient_patient(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>voxel_sizes(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>image_position(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>series_signature(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>scale_factors(self)</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>get_data(self)</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Initializes MultiframeWrapper</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  Usually this
+will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object resulting from reading a
+DICOM file.</p>
+</dd>
+<dt><strong>frame_filters</strong><span class="classifier">Iterable of FrameFilter</span></dt><dd><p>defines which frames inside the dataset should be ignored. If None then
+<cite>dicomwrappers.DEFAULT_FRAME_FILTERS</cite> will be used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initializes MultiframeWrapper</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  Usually this
+will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object resulting from reading a
+DICOM file.</p>
+</dd>
+<dt><strong>frame_filters</strong><span class="classifier">Iterable of FrameFilter</span></dt><dd><p>defines which frames inside the dataset should be ignored. If None then
+<cite>dicomwrappers.DEFAULT_FRAME_FILTERS</cite> will be used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.frame_order">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">frame_order</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.frame_order" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.get_unscaled_data">
+<span class="sig-name descname"><span class="pre">get_unscaled_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.get_unscaled_data" title="Link to this definition">¶</a></dt>
+<dd><p>Return pixel array that is potentially reshaped, but without any scaling</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array</span></dt><dd><p>array with raw pixel data from DICOM</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.image_orient_patient">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_orient_patient</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.image_orient_patient" title="Link to this definition">¶</a></dt>
+<dd><p>Note that this is _not_ LR flipped</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.image_position">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_position</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.image_position" title="Link to this definition">¶</a></dt>
+<dd><p>Return position of first voxel in data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img_pos</strong><span class="classifier">(3,) array</span></dt><dd><p>position in mm of voxel (0,0) in image array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.image_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_shape</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.image_shape" title="Link to this definition">¶</a></dt>
+<dd><p>The array shape as it will be returned by <code class="docutils literal notranslate"><span class="pre">get_data()</span></code></p>
+<p>The shape is determined by the <em>Rows</em> DICOM attribute, <em>Columns</em>
+DICOM attribute, and the set of frame indices given by the
+<em>FrameContentSequence[0].DimensionIndexValues</em> DICOM attribute of each
+element in the <em>PerFrameFunctionalGroupsSequence</em>.  The first two
+axes of the returned shape correspond to the rows, and columns
+respectively. The remaining axes correspond to those of the frame
+indices with order preserved.</p>
+<p>What each axis in the frame indices refers to is given by the
+corresponding entry in the <em>DimensionIndexSequence</em> DICOM attribute.
+<strong>WARNING</strong>: Any axis referring to the <em>StackID</em> DICOM attribute will
+have been removed from the frame indices in determining the shape. This
+is because only a file containing a single stack is currently allowed by
+this wrapper.</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>C.7.6.16 Multi-Frame Functional Groups Module:
+<a class="reference external" href="http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16">http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16</a></p></li>
+<li><p>C.7.6.17 Multi-Frame Dimension Module:
+<a class="reference external" href="http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17">http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17</a></p></li>
+<li><p>Diagram of DimensionIndexSequence and DimensionIndexValues:
+<a class="reference external" href="http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#figure_C.7.6.17-1">http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#figure_C.7.6.17-1</a></p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.is_multiframe">
+<span class="sig-name descname"><span class="pre">is_multiframe</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.is_multiframe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.scale_factors">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale_factors</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.scale_factors" title="Link to this definition">¶</a></dt>
+<dd><p>Return <cite>(2, N)</cite> array of slope/intercept pairs</p>
+<p>If there is a single global scale factor then <cite>N</cite> will be one, otherwise it will
+be the number of frames</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.series_signature">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">series_signature</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.series_signature" title="Link to this definition">¶</a></dt>
+<dd><p>Signature for matching slices into series</p>
+<p>We use <cite>signature</cite> in <code class="docutils literal notranslate"><span class="pre">self.is_same_series(other)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signature</strong><span class="classifier">dict</span></dt><dd><p>with values of 2-element sequences, where first element is
+value, and second element is function to compare this value
+with another.  This allows us to pass things like arrays,
+that might need to be <code class="docutils literal notranslate"><span class="pre">allclose</span></code> instead of equal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.vendor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vendor</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.vendor" title="Link to this definition">¶</a></dt>
+<dd><p>The vendor of the instrument that produced the DICOM</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.MultiframeWrapper.voxel_sizes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">voxel_sizes</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.MultiframeWrapper.voxel_sizes" title="Link to this definition">¶</a></dt>
+<dd><p>Get i, j, k voxel sizes</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="siemenswrapper">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.SiemensWrapper" title="nibabel.nicom.dicomwrappers.SiemensWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">SiemensWrapper</span></code></a><a class="headerlink" href="#siemenswrapper" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">SiemensWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csa_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper" title="nibabel.nicom.dicomwrappers.Wrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wrapper</span></code></a></p>
+<p>Wrapper for Siemens format DICOMs</p>
+<p>Adds attributes:</p>
+<ul class="simple">
+<li><p>csa_header : mapping</p></li>
+<li><p>b_matrix : (3,3) array</p></li>
+<li><p>q_vector : (3,) array</p></li>
+</ul>
+<p>Initialize Siemens wrapper</p>
+<p>The Siemens-specific information is in the <cite>csa_header</cite>, either
+passed in here, or read from the input <cite>dcm_data</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  If <cite>csa_header</cite>
+is None, it should also be possible to extract a CSA header from
+<cite>dcm_data</cite>. Usually this will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object
+resulting from reading a DICOM file.</p>
+</dd>
+<dt><strong>csa_header</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>mapping giving values for Siemens CSA image sub-header.  If
+None, we try and read the CSA information from <cite>dcm_data</cite>.
+If this fails, we fall back to an empty dict.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csa_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize Siemens wrapper</p>
+<p>The Siemens-specific information is in the <cite>csa_header</cite>, either
+passed in here, or read from the input <cite>dcm_data</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  If <cite>csa_header</cite>
+is None, it should also be possible to extract a CSA header from
+<cite>dcm_data</cite>. Usually this will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object
+resulting from reading a DICOM file.</p>
+</dd>
+<dt><strong>csa_header</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>mapping giving values for Siemens CSA image sub-header.  If
+None, we try and read the CSA information from <cite>dcm_data</cite>.
+If this fails, we fall back to an empty dict.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.b_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">b_matrix</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.b_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Get DWI B matrix referring to voxel space</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B</strong><span class="classifier">(3,3) array or None</span></dt><dd><p>B matrix in <em>voxel</em> orientation space.  Returns None if this is
+not a Siemens header with the required information.  We return
+None if this is a b0 acquisition</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.is_csa">
+<span class="sig-name descname"><span class="pre">is_csa</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.is_csa" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.q_vector">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">q_vector</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.q_vector" title="Link to this definition">¶</a></dt>
+<dd><p>Get DWI q vector referring to voxel space</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>q: (3,) array</dt><dd><p>Estimated DWI q vector in <em>voxel</em> orientation space.  Returns
+None if this is not (detectably) a DWI</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.series_signature">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">series_signature</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.series_signature" title="Link to this definition">¶</a></dt>
+<dd><p>Add ICE dims from CSA header to signature</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.slice_normal">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">slice_normal</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.slice_normal" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.SiemensWrapper.vendor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vendor</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.SiemensWrapper.vendor" title="Link to this definition">¶</a></dt>
+<dd><p>The vendor of the instrument that produced the DICOM</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="wrapper">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.Wrapper" title="nibabel.nicom.dicomwrappers.Wrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wrapper</span></code></a><a class="headerlink" href="#wrapper" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">Wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to wrap general DICOM files</p>
+<p>Methods:</p>
+<ul class="simple">
+<li><p>get_data()</p></li>
+<li><p>get_unscaled_data()</p></li>
+<li><p>get_pixel_array()</p></li>
+<li><p>is_same_series(other)</p></li>
+<li><p>__getitem__ : return attributes from <cite>dcm_data</cite></p></li>
+<li><p>get(key[, default]) - as usual given __getitem__ above</p></li>
+</ul>
+<p>Attributes and things that look like attributes:</p>
+<ul class="simple">
+<li><p>affine : (4, 4) array</p></li>
+<li><p>dcm_data : object</p></li>
+<li><p>image_shape : tuple</p></li>
+<li><p>image_orient_patient : (3,2) array</p></li>
+<li><p>slice_normal : (3,) array</p></li>
+<li><p>rotation_matrix : (3,3) array</p></li>
+<li><p>voxel_sizes : tuple length 3</p></li>
+<li><p>image_position : sequence length 3</p></li>
+<li><p>slice_indicator : float</p></li>
+<li><p>series_signature : tuple</p></li>
+<li><p>scale_factors : (N, 2) array</p></li>
+<li><p>vendor : Vendor</p></li>
+</ul>
+<p>Initialize wrapper</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  Usually this
+will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object resulting from reading a
+DICOM file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize wrapper</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dcm_data</strong><span class="classifier">object</span></dt><dd><p>object should allow ‘get’ and ‘__getitem__’ access.  Usually this
+will be a <code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> object resulting from reading a
+DICOM file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.affine">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">affine</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.affine" title="Link to this definition">¶</a></dt>
+<dd><p>Mapping between voxel and DICOM coordinate system</p>
+<p>(4, 4) affine matrix giving transformation between voxels in data array
+and mm in the DICOM patient coordinate system.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.b_matrix">
+<span class="sig-name descname"><span class="pre">b_matrix</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.b_matrix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.b_value">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">b_value</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.b_value" title="Link to this definition">¶</a></dt>
+<dd><p>Return b value for diffusion or None if not available</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.b_vector">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">b_vector</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.b_vector" title="Link to this definition">¶</a></dt>
+<dd><p>Return b vector for diffusion or None if not available</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.get" title="Link to this definition">¶</a></dt>
+<dd><p>Get values from underlying dicom data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.get_data" title="Link to this definition">¶</a></dt>
+<dd><p>Get potentially scaled and reshaped image data from DICOMs</p>
+<p>We return the data as DICOM understands it, first dimension is
+rows, second dimension is columns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array</span></dt><dd><p>array with data as scaled from any scaling in the DICOM
+fields.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.get_pixel_array">
+<span class="sig-name descname"><span class="pre">get_pixel_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.get_pixel_array" title="Link to this definition">¶</a></dt>
+<dd><p>Return raw pixel array without reshaping or scaling</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array</span></dt><dd><p>array with raw pixel data from DICOM</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.get_unscaled_data">
+<span class="sig-name descname"><span class="pre">get_unscaled_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.get_unscaled_data" title="Link to this definition">¶</a></dt>
+<dd><p>Return pixel array that is potentially reshaped, but without any scaling</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array</span></dt><dd><p>array with raw pixel data from DICOM</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.image_orient_patient">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_orient_patient</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.image_orient_patient" title="Link to this definition">¶</a></dt>
+<dd><p>Note that this is _not_ LR flipped</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.image_position">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_position</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.image_position" title="Link to this definition">¶</a></dt>
+<dd><p>Return position of first voxel in data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img_pos</strong><span class="classifier">(3,) array</span></dt><dd><p>position in mm of voxel (0,0) in image array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.image_shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">image_shape</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.image_shape" title="Link to this definition">¶</a></dt>
+<dd><p>The array shape as it will be returned by <code class="docutils literal notranslate"><span class="pre">get_data()</span></code></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.instance_number">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instance_number</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.instance_number" title="Link to this definition">¶</a></dt>
+<dd><p>Just because we use this a lot for sorting</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.is_csa">
+<span class="sig-name descname"><span class="pre">is_csa</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.is_csa" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.is_mosaic">
+<span class="sig-name descname"><span class="pre">is_mosaic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.is_mosaic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.is_multiframe">
+<span class="sig-name descname"><span class="pre">is_multiframe</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.is_multiframe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.is_same_series">
+<span class="sig-name descname"><span class="pre">is_same_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.is_same_series" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if <cite>other</cite> appears to be in same series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>other</strong><span class="classifier">object</span></dt><dd><p>object with <code class="docutils literal notranslate"><span class="pre">series_signature</span></code> attribute that is a
+mapping.  Usually it’s a <code class="docutils literal notranslate"><span class="pre">Wrapper</span></code> or sub-class instance.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tf</strong><span class="classifier">bool</span></dt><dd><p>True if <cite>other</cite> might be in the same series as <cite>self</cite>, False
+otherwise.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.q_vector">
+<span class="sig-name descname"><span class="pre">q_vector</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.q_vector" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.rotation_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotation_matrix</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.rotation_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Return rotation matrix between array indices and mm</p>
+<p>Note that we swap the two columns of the ‘ImageOrientPatient’
+when we create the rotation matrix.  This is takes into account
+the slightly odd ij transpose construction of the DICOM
+orientation fields - see doc/theory/dicom_orientaiton.rst.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.scale_factors">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scale_factors</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.scale_factors" title="Link to this definition">¶</a></dt>
+<dd><p>Return (2, N) array of slope/intercept pairs</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.series_signature">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">series_signature</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.series_signature" title="Link to this definition">¶</a></dt>
+<dd><p>Signature for matching slices into series</p>
+<p>We use <cite>signature</cite> in <code class="docutils literal notranslate"><span class="pre">self.is_same_series(other)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>signature</strong><span class="classifier">dict</span></dt><dd><p>with values of 2-element sequences, where first element is
+value, and second element is function to compare this value
+with another.  This allows us to pass things like arrays,
+that might need to be <code class="docutils literal notranslate"><span class="pre">allclose</span></code> instead of equal</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.slice_indicator">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">slice_indicator</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.slice_indicator" title="Link to this definition">¶</a></dt>
+<dd><p>A number that is higher for higher slices in Z</p>
+<p>Comparing this number between two adjacent slices should give a
+difference equal to the voxel size in Z.</p>
+<p>See doc/theory/dicom_orientation for description</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.slice_normal">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">slice_normal</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.slice_normal" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.vendor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vendor</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.vendor" title="Link to this definition">¶</a></dt>
+<dd><p>The vendor of the instrument that produced the DICOM</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.Wrapper.voxel_sizes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">voxel_sizes</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.Wrapper.voxel_sizes" title="Link to this definition">¶</a></dt>
+<dd><p>voxel sizes for array as returned by <code class="docutils literal notranslate"><span class="pre">get_data()</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="wrappererror">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperError" title="nibabel.nicom.dicomwrappers.WrapperError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapperError</span></code></a><a class="headerlink" href="#wrappererror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.WrapperError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">WrapperError</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.WrapperError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.WrapperError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.WrapperError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="wrapperprecisionerror">
+<h3><a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperPrecisionError" title="nibabel.nicom.dicomwrappers.WrapperPrecisionError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapperPrecisionError</span></code></a><a class="headerlink" href="#wrapperprecisionerror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.WrapperPrecisionError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">WrapperPrecisionError</span></span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.WrapperPrecisionError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nicom.dicomwrappers.WrapperError" title="nibabel.nicom.dicomwrappers.WrapperError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapperError</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.WrapperPrecisionError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.WrapperPrecisionError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="none-or-close">
+<h3>none_or_close<a class="headerlink" href="#none-or-close" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.none_or_close">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">none_or_close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.none_or_close" title="Link to this definition">¶</a></dt>
+<dd><p>Match if <cite>val1</cite> and <cite>val2</cite> are both None, or are close</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val1</strong><span class="classifier">None or array-like</span></dt><dd></dd>
+<dt><strong>val2</strong><span class="classifier">None or array-like</span></dt><dd></dd>
+<dt><strong>rtol</strong><span class="classifier">float, optional</span></dt><dd><p>Relative tolerance; see <code class="docutils literal notranslate"><span class="pre">np.allclose</span></code></p>
+</dd>
+<dt><strong>atol</strong><span class="classifier">float, optional</span></dt><dd><p>Absolute tolerance; see <code class="docutils literal notranslate"><span class="pre">np.allclose</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tf</strong><span class="classifier">bool</span></dt><dd><p>True iff (both <cite>val1</cite> and <cite>val2</cite> are None) or (<cite>val1</cite> and <cite>val2</cite>
+are close arrays, as detected by <code class="docutils literal notranslate"><span class="pre">np.allclose</span></code> with parameters
+<cite>rtol</cite> and <cite>atal</cite>).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">none_or_close</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">none_or_close</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">none_or_close</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">none_or_close</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">none_or_close</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="wrapper-from-data">
+<h3>wrapper_from_data<a class="headerlink" href="#wrapper-from-data" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.wrapper_from_data">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">wrapper_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.wrapper_from_data" title="Link to this definition">¶</a></dt>
+<dd><p>Create DICOM wrapper from DICOM data object</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>dcm_data</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">dicom.dataset.Dataset</span></code> instance or similar</span></dt><dd><p>Object allowing attribute access, with DICOM attributes.
+Probably a dataset as read by <code class="docutils literal notranslate"><span class="pre">pydicom</span></code>.</p>
+</dd>
+<dt><strong>frame_filters</strong></dt><dd><p>Optionally override the <cite>frame_filters</cite> used to create a <cite>MultiFrameWrapper</cite></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>dcm_w</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">dicomwrappers.Wrapper</span></code> or subclass</span></dt><dd><p>DICOM wrapper corresponding to DICOM data type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="wrapper-from-file">
+<h3>wrapper_from_file<a class="headerlink" href="#wrapper-from-file" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dicomwrappers.wrapper_from_file">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dicomwrappers.</span></span><span class="sig-name descname"><span class="pre">wrapper_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dicomwrappers.wrapper_from_file" title="Link to this definition">¶</a></dt>
+<dd><p>Create DICOM wrapper from <cite>file_like</cite> object</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_like</strong><span class="classifier">object</span></dt><dd><p>filename string or file-like object, pointing to a valid DICOM
+file readable by <code class="docutils literal notranslate"><span class="pre">pydicom</span></code></p>
+</dd>
+<dt><strong>*args</strong><span class="classifier">positional</span></dt><dd><p>args to <code class="docutils literal notranslate"><span class="pre">dicom.dcmread</span></code> command.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword</span></dt><dd><p>args to <code class="docutils literal notranslate"><span class="pre">dicom.dcmread</span></code> command.  <code class="docutils literal notranslate"><span class="pre">force=True</span></code> might be a
+likely keyword argument.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>dcm_w</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">dicomwrappers.Wrapper</span></code> or subclass</span></dt><dd><p>DICOM wrapper corresponding to DICOM data type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="b2q">
+<h3>B2q<a class="headerlink" href="#b2q" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dwiparams.B2q">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dwiparams.</span></span><span class="sig-name descname"><span class="pre">B2q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dwiparams.B2q" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate q vector from input B matrix <cite>B</cite></p>
+<p>We require that the input <cite>B</cite> is symmetric positive definite.</p>
+<p>Because the solution is a square root, the sign of the returned
+vector is arbitrary.  We set the vector to have a positive x
+component by convention.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>B</strong><span class="classifier">(3,3) array-like</span></dt><dd><p>B matrix - symmetric. We do not check the symmetry.</p>
+</dd>
+<dt><strong>tol</strong><span class="classifier">None or float</span></dt><dd><p>absolute tolerance below which to consider eigenvalues of the B
+matrix to be small enough not to worry about them being negative,
+in check for positive semi-definite-ness.  None (default) results
+in a fairly tight numerical threshold proportional to the maximum
+eigenvalue</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>q</strong><span class="classifier">(3,) vector</span></dt><dd><p>Estimated q vector from B matrix <cite>B</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="nearest-pos-semi-def">
+<h3>nearest_pos_semi_def<a class="headerlink" href="#nearest-pos-semi-def" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dwiparams.nearest_pos_semi_def">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dwiparams.</span></span><span class="sig-name descname"><span class="pre">nearest_pos_semi_def</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dwiparams.nearest_pos_semi_def" title="Link to this definition">¶</a></dt>
+<dd><p>Least squares positive semi-definite tensor estimation</p>
+<p>Reference: Niethammer M, San Jose Estepar R, Bouix S, Shenton M,
+Westin CF.  On diffusion tensor estimation. Conf Proc IEEE Eng Med
+Biol Soc.  2006;1:2622-5. PubMed PMID: 17946125; PubMed Central
+PMCID: PMC2791793.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>B</strong><span class="classifier">(3,3) array-like</span></dt><dd><p>B matrix - symmetric. We do not check the symmetry.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>npds</strong><span class="classifier">(3,3) array</span></dt><dd><p>Estimated nearest positive semi-definite array to matrix <cite>B</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nearest_pos_semi_def</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+<span class="go">array([[0.75, 0.  , 0.  ],</span>
+<span class="go">       [0.  , 0.75, 0.  ],</span>
+<span class="go">       [0.  , 0.  , 0.  ]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="q2bg">
+<h3>q2bg<a class="headerlink" href="#q2bg" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.dwiparams.q2bg">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.dwiparams.</span></span><span class="sig-name descname"><span class="pre">q2bg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.dwiparams.q2bg" title="Link to this definition">¶</a></dt>
+<dd><p>Return b value and q unit vector from q vector <cite>q_vector</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q_vector</strong><span class="classifier">(3,) array-like</span></dt><dd><p>q vector</p>
+</dd>
+<dt><strong>tol</strong><span class="classifier">float, optional</span></dt><dd><p>q vector L2 norm below which <cite>q_vector</cite> considered to be <cite>b_value</cite> of
+zero, and therefore <cite>g_vector</cite> also considered to zero.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>b_value</strong><span class="classifier">float</span></dt><dd><p>L2 Norm of <cite>q_vector</cite> or 0 if L2 norm &lt; <cite>tol</cite></p>
+</dd>
+<dt><strong>g_vector</strong><span class="classifier">shape (3,) ndarray</span></dt><dd><p><cite>q_vector</cite> / <cite>b_value</cite> or 0 if L2 norma &lt; <cite>tol</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">q2bg</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">(1.0, array([1., 0., 0.]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q2bg</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">(10.0, array([0., 1., 0.]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q2bg</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">(0.0, array([0., 0., 0.]))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="unpacker">
+<h3><a class="reference internal" href="#nibabel.nicom.structreader.Unpacker" title="nibabel.nicom.structreader.Unpacker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Unpacker</span></code></a><a class="headerlink" href="#unpacker" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.structreader.Unpacker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.structreader.</span></span><span class="sig-name descname"><span class="pre">Unpacker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.structreader.Unpacker" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to unpack values from buffer object</p>
+<p>The buffer object is usually a string. Caches compiled <a class="reference external" href="https://docs.python.org/3/library/struct.html#module-struct" title="(in Python v3.13)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">struct</span></code></a>
+format strings so that repeated unpacking with the same format
+string should be faster than using <code class="docutils literal notranslate"><span class="pre">struct.unpack</span></code> directly.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;1234567890&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upk</span> <span class="o">=</span> <span class="n">Unpacker</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upk</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;2s&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="sa">b</span><span class="s1">&#39;12&#39;</span><span class="p">,)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upk</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;2s&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="sa">b</span><span class="s1">&#39;34&#39;</span><span class="p">,)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upk</span><span class="o">.</span><span class="n">ptr</span>
+<span class="go">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upk</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;567&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upk</span><span class="o">.</span><span class="n">ptr</span>
+<span class="go">7</span>
+</pre></div>
+</div>
+<p>Initialize unpacker</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>buf</strong><span class="classifier">buffer</span></dt><dd><p>object implementing buffer protocol (e.g. str)</p>
+</dd>
+<dt><strong>ptr</strong><span class="classifier">int, optional</span></dt><dd><p>offset at which to begin reads from <cite>buf</cite></p>
+</dd>
+<dt><strong>endian</strong><span class="classifier">None or str, optional</span></dt><dd><p>endian code to prepend to format, as for <code class="docutils literal notranslate"><span class="pre">unpack</span></code> endian
+codes.  None (the default) corresponds to the default
+behavior of <code class="docutils literal notranslate"><span class="pre">struct</span></code> - assuming system endian unless you
+specify the byte order specifically in the format string
+passed to <code class="docutils literal notranslate"><span class="pre">unpack</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.structreader.Unpacker.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.structreader.Unpacker.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize unpacker</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>buf</strong><span class="classifier">buffer</span></dt><dd><p>object implementing buffer protocol (e.g. str)</p>
+</dd>
+<dt><strong>ptr</strong><span class="classifier">int, optional</span></dt><dd><p>offset at which to begin reads from <cite>buf</cite></p>
+</dd>
+<dt><strong>endian</strong><span class="classifier">None or str, optional</span></dt><dd><p>endian code to prepend to format, as for <code class="docutils literal notranslate"><span class="pre">unpack</span></code> endian
+codes.  None (the default) corresponds to the default
+behavior of <code class="docutils literal notranslate"><span class="pre">struct</span></code> - assuming system endian unless you
+specify the byte order specifically in the format string
+passed to <code class="docutils literal notranslate"><span class="pre">unpack</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.structreader.Unpacker.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.structreader.Unpacker.read" title="Link to this definition">¶</a></dt>
+<dd><p>Return byte string of length <cite>n_bytes</cite> at current position</p>
+<p>Returns sub-string from <code class="docutils literal notranslate"><span class="pre">self.buf</span></code> and updates <code class="docutils literal notranslate"><span class="pre">self.ptr</span></code> to the
+position after the read data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_bytes</strong><span class="classifier">int, optional</span></dt><dd><p>number of bytes to read.  Can be -1 (the default) in which
+case we return all the remaining bytes in <code class="docutils literal notranslate"><span class="pre">self.buf</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">byte string</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.structreader.Unpacker.unpack">
+<span class="sig-name descname"><span class="pre">unpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.structreader.Unpacker.unpack" title="Link to this definition">¶</a></dt>
+<dd><p>Unpack values from contained buffer</p>
+<p>Unpacks values from <code class="docutils literal notranslate"><span class="pre">self.buf</span></code> and updates <code class="docutils literal notranslate"><span class="pre">self.ptr</span></code> to the
+position after the read data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fmt</strong><span class="classifier">str</span></dt><dd><p>format string as for <code class="docutils literal notranslate"><span class="pre">unpack</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>values</strong><span class="classifier">tuple</span></dt><dd><p>values as unpacked from <code class="docutils literal notranslate"><span class="pre">self.buf</span></code> according to <cite>fmt</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="vendor">
+<h3><a class="reference internal" href="#nibabel.nicom.utils.Vendor" title="nibabel.nicom.utils.Vendor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vendor</span></code></a><a class="headerlink" href="#vendor" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.Vendor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nicom.utils.</span></span><span class="sig-name descname"><span class="pre">Vendor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=&lt;not</span> <span class="pre">given&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.utils.Vendor" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.Vendor.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.utils.Vendor.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.Vendor.GE">
+<span class="sig-name descname"><span class="pre">GE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#nibabel.nicom.utils.Vendor.GE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.Vendor.PHILIPS">
+<span class="sig-name descname"><span class="pre">PHILIPS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#nibabel.nicom.utils.Vendor.PHILIPS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.Vendor.SIEMENS">
+<span class="sig-name descname"><span class="pre">SIEMENS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#nibabel.nicom.utils.Vendor.SIEMENS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="find-private-section">
+<h3>find_private_section<a class="headerlink" href="#find-private-section" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.find_private_section">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.utils.</span></span><span class="sig-name descname"><span class="pre">find_private_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_no</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creator</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.utils.find_private_section" title="Link to this definition">¶</a></dt>
+<dd><p>Return start element in group <cite>group_no</cite> given creator name <cite>creator</cite></p>
+<p>Private attribute tags need to announce where they will go by putting a tag
+in the private group (here <cite>group_no</cite>) between elements 1 and 0xFF.  The
+element number of these tags give the start of matching information, in the
+higher tag numbers.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>dcm_data</strong><span class="classifier">dicom <code class="docutils literal notranslate"><span class="pre">dataset</span></code></span></dt><dd><p>Iterating over <cite>dcm_data</cite> produces <code class="docutils literal notranslate"><span class="pre">elements</span></code> with attributes
+<code class="docutils literal notranslate"><span class="pre">tag</span></code>, <code class="docutils literal notranslate"><span class="pre">VR</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code></p>
+</dd>
+<dt><strong>group_no</strong><span class="classifier">int</span></dt><dd><p>Group number in which to search</p>
+</dd>
+<dt><strong>creator</strong><span class="classifier">str or bytes or regex</span></dt><dd><p>Name of section - e.g. ‘SIEMENS CSA HEADER’ - or regex to search for
+section name.  Regex used via <code class="docutils literal notranslate"><span class="pre">creator.search(element_value)</span></code> where
+<code class="docutils literal notranslate"><span class="pre">element_value</span></code> is the value of the data element.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>element_start</strong><span class="classifier">int</span></dt><dd><p>Element number at which named section starts.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vendor-from-private">
+<h3>vendor_from_private<a class="headerlink" href="#vendor-from-private" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nicom.utils.vendor_from_private">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nicom.utils.</span></span><span class="sig-name descname"><span class="pre">vendor_from_private</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dcm_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nicom.utils.vendor_from_private" title="Link to this definition">¶</a></dt>
+<dd><p>Try to determine the vendor by looking for specific private tags</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

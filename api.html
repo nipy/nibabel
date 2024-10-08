@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="nibabel" href="reference/nibabel.html" />
+    <link rel="prev" title="dcm2nii algorithms" href="dicom/dcm2nii_algorithms.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="reference/nibabel.html" title="nibabel"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dicom/dcm2nii_algorithms.html" title="dcm2nii algorithms"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">API Documentation</a><ul>
+<li><a class="reference internal" href="#file-formats">File Formats</a></li>
+<li><a class="reference internal" href="#image-utilities">Image Utilities</a></li>
+<li><a class="reference internal" href="#float-integer-conversion">Float / integer conversion</a></li>
+<li><a class="reference internal" href="#system-utilities">System utilities</a></li>
+<li><a class="reference internal" href="#miscellaneous-helpers">Miscellaneous Helpers</a></li>
+<li><a class="reference internal" href="#alphabetical-api-reference">Alphabetical API reference</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dicom/dcm2nii_algorithms.html"
+                          title="previous chapter">dcm2nii algorithms</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="reference/nibabel.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="api-documentation">
+<span id="api"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Link to this heading">¶</a></h1>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.html#module-nibabel" title="nibabel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nibabel</span></code></a></p></td>
+<td><p>Read and write access to common neuroimaging file formats, including: <a href="#id1"><span class="problematic" id="id2">ANALYZE_</span></a> (plain, SPM99, SPM2 and later), <a href="#id3"><span class="problematic" id="id4">GIFTI_</span></a>, <a href="#id5"><span class="problematic" id="id6">NIfTI1_</span></a>, <a href="#id7"><span class="problematic" id="id8">NIfTI2_</span></a>, <a href="#id9"><span class="problematic" id="id10">`CIFTI-2`_</span></a>, <a href="#id11"><span class="problematic" id="id12">MINC1_</span></a>, <a href="#id13"><span class="problematic" id="id14">MINC2_</span></a>, <a href="#id15"><span class="problematic" id="id16">`AFNI BRIK/HEAD`_</span></a>, <a href="#id17"><span class="problematic" id="id18">ECAT_</span></a> and Philips PAR/REC.</p></td>
+</tr>
+</tbody>
+</table>
+<section id="file-formats">
+<h2>File Formats<a class="headerlink" href="#file-formats" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.analyze.html#module-nibabel.analyze" title="nibabel.analyze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">analyze</span></code></a></p></td>
+<td><p>Read / write access to the basic Mayo Analyze format</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.spm2analyze.html#module-nibabel.spm2analyze" title="nibabel.spm2analyze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></p></td>
+<td><p>Read / write access to SPM2 version of analyze image format</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.spm99analyze.html#module-nibabel.spm99analyze" title="nibabel.spm99analyze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></p></td>
+<td><p>Read / write access to SPM99 version of analyze image format</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.cifti2.html#module-nibabel.cifti2" title="nibabel.cifti2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cifti2</span></code></a></p></td>
+<td><p>CIFTI-2 format IO</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.gifti.html#module-nibabel.gifti" title="nibabel.gifti"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gifti</span></code></a></p></td>
+<td><p>GIfTI format IO</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.freesurfer.html#module-nibabel.freesurfer" title="nibabel.freesurfer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">freesurfer</span></code></a></p></td>
+<td><p>Reading functions for freesurfer files</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.minc1.html#module-nibabel.minc1" title="nibabel.minc1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minc1</span></code></a></p></td>
+<td><p>Read MINC1 format images</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.minc2.html#module-nibabel.minc2" title="nibabel.minc2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minc2</span></code></a></p></td>
+<td><p>Preliminary MINC2 support</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.nicom.html#module-nibabel.nicom" title="nibabel.nicom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nicom</span></code></a></p></td>
+<td><p>DICOM reader</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.nifti1.html#module-nibabel.nifti1" title="nibabel.nifti1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nifti1</span></code></a></p></td>
+<td><p>Read / write access to NIfTI1 image format</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.nifti2.html#module-nibabel.nifti2" title="nibabel.nifti2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nifti2</span></code></a></p></td>
+<td><p>Read / write access to NIfTI2 image format</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.ecat.html#module-nibabel.ecat" title="nibabel.ecat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ecat</span></code></a></p></td>
+<td><p>Read ECAT format images</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.parrec.html#module-nibabel.parrec" title="nibabel.parrec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parrec</span></code></a></p></td>
+<td><p>Read images in PAR/REC format</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.streamlines.html#module-nibabel.streamlines" title="nibabel.streamlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">streamlines</span></code></a></p></td>
+<td><p>Multiformat-capable streamline format read / write interface</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="image-utilities">
+<h2>Image Utilities<a class="headerlink" href="#image-utilities" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.eulerangles.html#module-nibabel.eulerangles" title="nibabel.eulerangles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eulerangles</span></code></a></p></td>
+<td><p>Module implementing Euler angle rotations and their conversions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.funcs.html#module-nibabel.funcs" title="nibabel.funcs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">funcs</span></code></a></p></td>
+<td><p>Processor functions for images</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.imageclasses.html#module-nibabel.imageclasses" title="nibabel.imageclasses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imageclasses</span></code></a></p></td>
+<td><p>Define supported image classes and names</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.imageglobals.html#module-nibabel.imageglobals" title="nibabel.imageglobals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imageglobals</span></code></a></p></td>
+<td><p>Defaults for images and headers</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.loadsave.html#module-nibabel.loadsave" title="nibabel.loadsave"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadsave</span></code></a></p></td>
+<td><p>Utilities to load and save image objects</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.orientations.html#module-nibabel.orientations" title="nibabel.orientations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">orientations</span></code></a></p></td>
+<td><p>Utilities for calculating and applying affine orientations</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.quaternions.html#module-nibabel.quaternions" title="nibabel.quaternions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quaternions</span></code></a></p></td>
+<td><p>Functions to operate on, or return, quaternions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.spatialimages.html#module-nibabel.spatialimages" title="nibabel.spatialimages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spatialimages</span></code></a></p></td>
+<td><p>A simple spatial image class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.volumeutils.html#module-nibabel.volumeutils" title="nibabel.volumeutils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">volumeutils</span></code></a></p></td>
+<td><p>Utility functions for analyze-like formats</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="float-integer-conversion">
+<h2>Float / integer conversion<a class="headerlink" href="#float-integer-conversion" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.arraywriters.html#module-nibabel.arraywriters" title="nibabel.arraywriters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arraywriters</span></code></a></p></td>
+<td><p>Array writer objects</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.casting.html#module-nibabel.casting" title="nibabel.casting"><code class="xref py py-obj docutils literal notranslate"><span class="pre">casting</span></code></a></p></td>
+<td><p>Utilities for casting numpy values in various ways</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="system-utilities">
+<h2>System utilities<a class="headerlink" href="#system-utilities" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.data.html#module-nibabel.data" title="nibabel.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p>Utilities to find files from NIPY data packages</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.environment.html#module-nibabel.environment" title="nibabel.environment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environment</span></code></a></p></td>
+<td><p>Settings from the system environment relevant to NIPY</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="miscellaneous-helpers">
+<h2>Miscellaneous Helpers<a class="headerlink" href="#miscellaneous-helpers" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.arrayproxy.html#module-nibabel.arrayproxy" title="nibabel.arrayproxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></p></td>
+<td><p>Array proxy base class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.affines.html#module-nibabel.affines" title="nibabel.affines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">affines</span></code></a></p></td>
+<td><p>Utility routines for working with points and affine transforms</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.batteryrunners.html#module-nibabel.batteryrunners" title="nibabel.batteryrunners"><code class="xref py py-obj docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></p></td>
+<td><p>Battery runner classes and Report classes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.data.html#module-nibabel.data" title="nibabel.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p>Utilities to find files from NIPY data packages</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.dft.html#module-nibabel.dft" title="nibabel.dft"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dft</span></code></a></p></td>
+<td><p>DICOM filesystem tools</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.fileholders.html#module-nibabel.fileholders" title="nibabel.fileholders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fileholders</span></code></a></p></td>
+<td><p>Fileholder class</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.filename_parser.html#module-nibabel.filename_parser" title="nibabel.filename_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filename_parser</span></code></a></p></td>
+<td><p>Create filename pairs, triplets etc, with expected extensions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.fileslice.html#module-nibabel.fileslice" title="nibabel.fileslice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fileslice</span></code></a></p></td>
+<td><p>Utilities for getting array slices out of file-like objects</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.onetime.html#module-nibabel.onetime" title="nibabel.onetime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">onetime</span></code></a></p></td>
+<td><p>Descriptor support for NIPY</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.openers.html#module-nibabel.openers" title="nibabel.openers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">openers</span></code></a></p></td>
+<td><p>Context manager openers for various fileobject types</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.optpkg.html#module-nibabel.optpkg" title="nibabel.optpkg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optpkg</span></code></a></p></td>
+<td><p>Routines to support optional packages</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.rstutils.html#module-nibabel.rstutils" title="nibabel.rstutils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rstutils</span></code></a></p></td>
+<td><p>ReStructured Text utilities</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.tmpdirs.html#module-nibabel.tmpdirs" title="nibabel.tmpdirs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmpdirs</span></code></a></p></td>
+<td><p>Contexts for <em>with</em> statement providing temporary directories</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="reference/nibabel.tripwire.html#module-nibabel.tripwire" title="nibabel.tripwire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tripwire</span></code></a></p></td>
+<td><p>Class to raise error for missing modules or other misfortunes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reference/nibabel.wrapstruct.html#module-nibabel.wrapstruct" title="nibabel.wrapstruct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wrapstruct</span></code></a></p></td>
+<td><p>Class to wrap numpy structured array</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="alphabetical-api-reference">
+<h2>Alphabetical API reference<a class="headerlink" href="#alphabetical-api-reference" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel._compression.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">_compression</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.affines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.arrayproxy.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.arraywriters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.batteryrunners.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.benchmarks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.brikhead.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.caret.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">caret</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.casting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.cifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.cmdline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.dataobj_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.deprecated.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecated</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.deprecator.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.dft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.ecat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.eulerangles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.filebasedimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.fileholders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.filename_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.fileslice.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.fileutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.freesurfer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.funcs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.gifti.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.imageclasses.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageclasses</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.imageglobals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageglobals</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.imagestats.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imagestats</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.loadsave.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.minc1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.minc2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.mriutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mriutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.nicom.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.nifti1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.nifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.onetime.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.openers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.optpkg.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.orientations.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.parrec.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.pointset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pointset</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.processing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.pydicom_compat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.quaternions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.rstutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rstutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.spaces.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spaces</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.spatialimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.spm2analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.spm99analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.streamlines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.tmpdirs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.tripwire.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.viewers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">viewers</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.volumeutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.wrapstruct.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/nibabel.xmlutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">xmlutils</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

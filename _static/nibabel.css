@@ -1,0 +1,42 @@
+@import url("./sphinxdoc.css");
+
+body {
+    background-color: #E5E2E2;
+}
+
+div.sphinxsidebar {
+    position: relative;
+}
+
+div.sphinxsidebar h4, div.sphinxsidebar h3 {
+    background-color: #2F83C8;
+}
+
+h1,h2,h3,h4,h5 {
+    color: #2F83C8;
+}
+
+h1 { margin-top: 10px; font-size: 200%; }
+h2 { font-size: 160%; }
+h3 { font-size: 140%; }
+h4 { font-size: 120%; }
+h5 { font-size: 110%; }
+h6 { font-size: 100%; }
+
+table {
+    margin: 0 0 0 0;
+}
+
+div.footer {
+    background-color: #CEC890;
+}
+
+
+div.body {
+    background-color: white;
+}
+
+.sphinxsidebarwrapper {
+    /* don't let anything exceed sidebar boundaries */
+    overflow: hidden;
+}

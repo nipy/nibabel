@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="NiBabel" href="index.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="NiBabel"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">NiBabel</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="installation.html"
+                          title="next chapter">Installation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/manual.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="nibabel-manual">
+<span id="manual"></span><h1>NiBabel Manual<a class="headerlink" href="#nibabel-manual" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installer-and-packages">Installer and packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#pip-and-the-python-package-index">pip and the Python package index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#debian-ubuntu">Debian/Ubuntu</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#install-a-development-version">Install a development version</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#get-the-development-sources">Get the development sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id2">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#validating-your-install">Validating your install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel_images.html">Nibabel images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nibabel_images.html#the-image-object">The image object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel_images.html#the-image-header">The image header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel_images.html#the-image-data-array">The image data array</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="nibabel_images.html#array-proxies-and-proxy-images">Array proxies and proxy images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nibabel_images.html#array-images">Array images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nibabel_images.html#getting-the-image-data-the-easy-way">Getting the image data the easy way</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nibabel_images.html#proxies-and-caching">Proxies and caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nibabel_images.html#image-slicing">Image slicing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel_images.html#loading-and-saving">Loading and saving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel_images.html#details-of-files-and-images">Details of files and images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="images_and_memory.html">Images and memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="images_and_memory.html#using-in-memory-to-check-the-state-of-the-cache">Using <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> to check the state of the cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="images_and_memory.html#using-uncache">Using <code class="docutils literal notranslate"><span class="pre">uncache</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="images_and_memory.html#saving-memory">Saving memory</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="images_and_memory.html#uncache-the-array">Uncache the array</a></li>
+<li class="toctree-l3"><a class="reference internal" href="images_and_memory.html#use-the-array-proxy-instead-of-get-fdata">Use the array proxy instead of <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="images_and_memory.html#use-the-caching-keyword-to-get-fdata">Use the <code class="docutils literal notranslate"><span class="pre">caching</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="images_and_memory.html#saving-time-and-memory">Saving time and memory</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nifti_images.html">Working with NIfTI images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nifti_images.html#preliminaries">Preliminaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nifti_images.html#example-nifti-images">Example NIfTI images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nifti_images.html#the-nifti-header">The NIfTI header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nifti_images.html#the-nifti-affines">The NIfTI affines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="nifti_images.html#the-sform-affine">The sform affine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nifti_images.html#the-qform-affine">The qform affine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nifti_images.html#the-fall-back-header-affine">The fall-back header affine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nifti_images.html#choosing-the-image-affine">Choosing the image affine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nifti_images.html#default-sform-and-qform-codes">Default sform and qform codes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nifti_images.html#data-scaling">Data scaling</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="image_orientation.html">Image voxel orientation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal.html">Copyright and Licenses</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="legal.html#nibabel">NiBabel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="legal.html#rd-party-code-and-data">3rd party code and data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="legal.html#netcdf">NetCDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="legal.html#sphinx-autosummary-extension">Sphinx autosummary extension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="legal.html#orderedset">OrderedSet</a></li>
+<li class="toctree-l3"><a class="reference internal" href="legal.html#mni-icbm152-t1-tal-nlin-asym-09a">mni_icbm152_t1_tal_nlin_asym_09a</a></li>
+<li class="toctree-l3"><a class="reference internal" href="legal.html#philips-par-rec-data">Philips PAR/REC data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">NiBabel Development Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#nibabel-releases">Nibabel releases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tuesday-8-october-2024">5.3.0 (Tuesday 8 October 2024)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#new-features">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#enhancements">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#bug-fixes">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#maintenance">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#api-changes-and-deprecations">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-26-february-2024">5.2.1 (Monday 26 February 2024)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id1">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id2">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id3">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-11-december-2023">5.2.0 (Monday 11 December 2023)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id4">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id5">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id6">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#documentation">Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id7">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id8">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-3-april-2023">5.1.0 (Monday 3 April 2023)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id9">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id10">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id11">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#sunday-12-february-2023">5.0.1 (Sunday 12 February 2023)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id12">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id13">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-9-january-2023">5.0.0 (Monday 9 January 2023)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id14">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id15">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id16">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id17">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id18">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-31-august-2022">4.0.2 (Wednesday 31 August 2022)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id19">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id20">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#saturday-18-june-2022">4.0.1 (Saturday 18 June 2022)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id21">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id22">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id23">4.0.0 (Saturday 18 June 2022)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id24">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id25">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id26">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id27">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id28">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-7-february-2022">3.2.2 (Monday 7 February 2022)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id29">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id30">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#saturday-28-november-2020">3.2.1 (Saturday 28 November 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id31">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tuesday-20-october-2020">3.2.0 (Tuesday 20 October 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id32">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id33">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id34">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id35">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id36">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#friday-26-june-2020">3.1.1 (Friday 26 June 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id37">Bug fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-20-april-2020">3.1.0 (Monday 20 April 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id38">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id39">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id40">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id41">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-8-april-2020">2.5.2 (Wednesday 8 April 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id42">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id43">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-9-march-2020">3.0.2 (Monday 9 March 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id44">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id45">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-27-january-2020">3.0.1 (Monday 27 January 2020)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id46">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id47">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-18-december-2019">3.0.0 (Wednesday 18 December 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id48">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id49">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id50">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id51">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id52">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-23-september-2019">2.5.1 (Monday 23 September 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id53">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id54">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id55">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id56">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#sunday-4-august-2019">2.5.0 (Sunday 4 August 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id57">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id58">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id59">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id60">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-27-may-2019">2.4.1 (Monday 27 May 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id61">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id62">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id63">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id64">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-1-april-2019">2.4.0 (Monday 1 April 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id65">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id66">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id67">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id68">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-16-january-2019">2.3.3 (Wednesday 16 January 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id69">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-2-january-2019">2.3.2 (Wednesday 2 January 2019)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id70">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id71">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id72">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id73">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tuesday-16-october-2018">2.3.1 (Tuesday 16 October 2018)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id74">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id75">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id76">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id77">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tuesday-12-june-2018">2.3 (Tuesday 12 June 2018)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id78">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id79">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id80">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id81">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id82">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-22-november-2017">2.2.1 (Wednesday 22 November 2017)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id83">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id84">Maintenance</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#friday-13-october-2017">2.2 (Friday 13 October 2017)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id85">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id86">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id87">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id88">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id89">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-22-august-2016">2.1 (Monday 22 August 2016)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id90">New features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id91">Enhancements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id92">Bug fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id93">Maintenance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="changelog.html#id94">API changes and deprecations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#monday-23-november-2015">2.0.2 (Monday 23 November 2015)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#saturday-27-june-2015">2.0.1 (Saturday 27 June 2015)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tuesday-9-december-2014">2.0.0 (Tuesday 9 December 2014)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tuesday-11-september-2012">1.3.0 (Tuesday 11 September 2012)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-27-june-2012">1.2.2 (Wednesday 27 June 2012)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-13-june-2012">1.2.1 (Wednesday 13 June 2012)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#sunday-6-may-2012">1.2.0 (Sunday 6 May 2012)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thursday-28-april-2011">1.1.0 (Thursday 28 April 2011)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thursday-14-april-2011">1.0.2 (Thursday 14 April 2011)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wednesday-23-feb-2011">1.0.1 (Wednesday 23 Feb 2011)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thursday-13-oct-2010">1.0.0 (Thursday, 13, Oct 2010)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#pynifti-releases">PyNifti releases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tue-6-jul-2010">0.20100706.1 (Tue, 6 Jul 2010)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#mon-12-apr-2010">0.20100412.1 (Mon, 12 Apr 2010)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tue-3-mar-2009">0.20090303.1 (Tue, 3 Mar 2009)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thu-5-feb-2009">0.20090205.1 (Thu, 5 Feb 2009)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#fri-17-oct-2008">0.20081017.1 (Fri, 17 Oct 2008)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thu-7-jul-2008">0.20080710.1 (Thu, 7 Jul 2008)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tue-30-jun-2008">0.20080630.1 (Tue, 30 Jun 2008)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tue-24-jun-2008">0.20080624.1 (Tue, 24 Jun 2008)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#sun-30-sep-2007">0.20070930.1 (Sun, 30 Sep 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#mon-17-sep-2007">0.20070917.1 (Mon, 17 Sep 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wed-5-sep-2007">0.20070905.1  (Wed, 5 Sep 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#fri-3-aug-2007">0.20070803.1 (Fri, 3 Aug 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wed-25-apr-2007">0.20070425.1 (Wed, 25 Apr 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thu-15-mar-2007">0.20070315.1 (Thu, 15 Mar 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#thu-1-mar-2007">0.20070301.2 (Thu, 1 Mar 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#id95">0.20070301.1 (Thu, 1 Mar 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tue-20-feb-2007">0.20070220.1 (Tue, 20 Feb 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#wed-14-feb-2007">0.20070214.1 (Wed, 14 Feb 2007)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#tue-14-nov-2006">0.20061114 (Tue, 14 Nov 2006)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

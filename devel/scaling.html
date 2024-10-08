@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BrainVoyager file formats" href="bv_formats.html" />
+    <link rel="prev" title="Keeping track of whether images have been modified since load" href="modified_images.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bv_formats.html" title="BrainVoyager file formats"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modified_images.html" title="Keeping track of whether images have been modified since load"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="devdiscuss.html" accesskey="U">Developer discussions</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="modified_images.html"
+                          title="previous chapter">Keeping track of whether images have been modified since load</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="bv_formats.html"
+                          title="next chapter">BrainVoyager file formats</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/scaling.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="scalefactors-and-intercepts">
+<h1>Scalefactors and intercepts<a class="headerlink" href="#scalefactors-and-intercepts" title="Link to this heading">¶</a></h1>
+<p>SPM Analyze and nifti1 images have <em>scalefactors</em>.  nifti1 images also have
+<em>intercepts</em>.  If <code class="docutils literal notranslate"><span class="pre">A</span></code> is an array in memory, and <code class="docutils literal notranslate"><span class="pre">S</span></code> is the array that will
+be written to disk, then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">intercept</span><span class="p">)</span> <span class="o">/</span> <span class="n">scalefactor</span>
+</pre></div>
+</div>
+<p>and <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">==</span> <span class="pre">S</span></code> if <code class="docutils literal notranslate"><span class="pre">R</span></code> is already the data dtype we need to write.</p>
+<p>If we load the image from disk, we exactly recover <code class="docutils literal notranslate"><span class="pre">S</span></code> (and <code class="docutils literal notranslate"><span class="pre">R</span></code>).  To get
+something approximating <code class="docutils literal notranslate"><span class="pre">A</span></code> (say <code class="docutils literal notranslate"><span class="pre">Aprime</span></code>) we apply the intercept and
+scalefactor:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Aprime</span> <span class="o">=</span> <span class="p">(</span><span class="n">S</span> <span class="o">*</span> <span class="n">scalefactor</span><span class="p">)</span> <span class="o">+</span> <span class="n">intercept</span>
+</pre></div>
+</div>
+<p>In a perfect world <code class="docutils literal notranslate"><span class="pre">A</span></code> would be exactly the same as <code class="docutils literal notranslate"><span class="pre">Aprime</span></code>.  However
+<code class="docutils literal notranslate"><span class="pre">scalefactor</span></code> and <code class="docutils literal notranslate"><span class="pre">intercept</span></code> are floating point values.  With floating
+point, if <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">(a</span> <span class="pre">-</span> <span class="pre">b)</span> <span class="pre">/</span> <span class="pre">c;</span> <span class="pre">p</span> <span class="pre">=</span> <span class="pre">(r</span> <span class="pre">*</span> <span class="pre">c)</span> <span class="pre">+</span> <span class="pre">b</span></code> it is not necessarily true that
+<code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">==</span> <span class="pre">a</span></code>. For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">e</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="n">c</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span> <span class="o">*</span> <span class="n">c</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">==</span> <span class="n">a</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>So there will be some error in this reconstruction, even when <code class="docutils literal notranslate"><span class="pre">R</span></code> is the same
+type as <code class="docutils literal notranslate"><span class="pre">S</span></code>.</p>
+<p>More common is the situation where <code class="docutils literal notranslate"><span class="pre">R</span></code> is a different type from <code class="docutils literal notranslate"><span class="pre">S</span></code>.  If
+<code class="docutils literal notranslate"><span class="pre">R</span></code> is of type <code class="docutils literal notranslate"><span class="pre">r_dtype</span></code>, <code class="docutils literal notranslate"><span class="pre">S</span></code> is of type <code class="docutils literal notranslate"><span class="pre">s_dtype</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cast_function(R,</span> <span class="pre">dtype)</span></code> is some function that casts <code class="docutils literal notranslate"><span class="pre">R</span></code> to the desired
+type <code class="docutils literal notranslate"><span class="pre">dtype</span></code>, then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">intercept</span><span class="p">)</span> <span class="o">/</span> <span class="n">scalefactor</span>
+<span class="n">S</span> <span class="o">=</span> <span class="n">cast_function</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">s_dtype</span><span class="p">)</span>
+<span class="n">R_prime</span> <span class="o">=</span> <span class="n">cast_function</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">r_dtype</span><span class="p">)</span>
+<span class="n">A_prime</span> <span class="o">=</span> <span class="p">(</span><span class="n">R_prime</span> <span class="o">*</span> <span class="n">scalefactor</span><span class="p">)</span> <span class="o">+</span> <span class="n">intercept</span>
+</pre></div>
+</div>
+<p>The type of <code class="docutils literal notranslate"><span class="pre">R</span></code> will depend on what numpy did for upcasting <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">intercept,</span>
+<span class="pre">scalefactor</span></code>.</p>
+<p>In order that <code class="docutils literal notranslate"><span class="pre">cast_function(S,</span> <span class="pre">r_dtype)</span></code> can best reverse <code class="docutils literal notranslate"><span class="pre">cast_function(R,</span>
+<span class="pre">s_dtype)</span></code>, the second needs to know the type of <code class="docutils literal notranslate"><span class="pre">R</span></code>, which is not stored. The
+type of <code class="docutils literal notranslate"><span class="pre">R</span></code> depends on the types of <code class="docutils literal notranslate"><span class="pre">A</span></code> and of <code class="docutils literal notranslate"><span class="pre">intercept,</span> <span class="pre">scalefactor</span></code>.
+We don’t know the type of <code class="docutils literal notranslate"><span class="pre">A</span></code> because it is not stored.</p>
+<p><code class="docutils literal notranslate"><span class="pre">R</span></code> is likely to be a floating point type because of the application of
+scalefactor and intercept. If <code class="docutils literal notranslate"><span class="pre">(intercept,</span> <span class="pre">scalefactor)</span></code> are not the identity
+(0, 1), then we can ensure that <code class="docutils literal notranslate"><span class="pre">R</span></code> is at minimum the type of the <code class="docutils literal notranslate"><span class="pre">intercept,</span>
+<span class="pre">scalefactor</span></code> by making these be at least 1D arrays, so that floating point
+types will upcast in <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">=</span> <span class="pre">(A</span> <span class="pre">-</span> <span class="pre">intercept)</span> <span class="pre">/</span> <span class="pre">scalefactor</span></code>.</p>
+<p>The cast of <code class="docutils literal notranslate"><span class="pre">R</span></code> to <code class="docutils literal notranslate"><span class="pre">S</span></code> and back to <code class="docutils literal notranslate"><span class="pre">R_prime</span></code> can lose resolution if the
+types of <code class="docutils literal notranslate"><span class="pre">R</span></code> and <code class="docutils literal notranslate"><span class="pre">S</span></code> have different resolution.</p>
+<p>Our job is to select:</p>
+<ul class="simple">
+<li><p>scalefactor</p></li>
+<li><p>intercept</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cast_function</span></code></p></li>
+</ul>
+<p>such that we minimize some measure of difference between <code class="docutils literal notranslate"><span class="pre">A</span></code> and
+<code class="docutils literal notranslate"><span class="pre">A_prime</span></code>.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

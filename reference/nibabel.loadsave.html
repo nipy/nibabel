@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="orientations" href="nibabel.orientations.html" />
+    <link rel="prev" title="imageglobals" href="nibabel.imageglobals.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.orientations.html" title="orientations"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.imageglobals.html" title="imageglobals"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a><ul>
+<li><a class="reference internal" href="#guessed-image-type">guessed_image_type</a><ul>
+<li><a class="reference internal" href="#nibabel.loadsave.guessed_image_type"><code class="docutils literal notranslate"><span class="pre">guessed_image_type()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#load">load</a><ul>
+<li><a class="reference internal" href="#nibabel.loadsave.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-img-data">read_img_data</a><ul>
+<li><a class="reference internal" href="#nibabel.loadsave.read_img_data"><code class="docutils literal notranslate"><span class="pre">read_img_data()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#save">save</a><ul>
+<li><a class="reference internal" href="#nibabel.loadsave.save"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.imageglobals.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageglobals</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.orientations.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.loadsave.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.loadsave">
+<span id="loadsave"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code><a class="headerlink" href="#module-nibabel.loadsave" title="Link to this heading">¶</a></h1>
+<p>Utilities to load and save image objects</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.loadsave.guessed_image_type" title="nibabel.loadsave.guessed_image_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">guessed_image_type</span></code></a>(filename)</p></td>
+<td><p>Guess image type from file <cite>filename</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.loadsave.load" title="nibabel.loadsave.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(filename, **kwargs)</p></td>
+<td><p>Load file given filename, guessing at file type</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.loadsave.read_img_data" title="nibabel.loadsave.read_img_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_img_data</span></code></a>(img[, prefer])</p></td>
+<td><p>Read data from image associated with files</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.loadsave.save" title="nibabel.loadsave.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(img, filename, **kwargs)</p></td>
+<td><p>Save an image to file adapting format to <cite>filename</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="guessed-image-type">
+<h2>guessed_image_type<a class="headerlink" href="#guessed-image-type" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.loadsave.guessed_image_type">
+<span class="sig-prename descclassname"><span class="pre">nibabel.loadsave.</span></span><span class="sig-name descname"><span class="pre">guessed_image_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.loadsave.guessed_image_type" title="Link to this definition">¶</a></dt>
+<dd><p>Guess image type from file <cite>filename</cite></p>
+<p>guessed_image_type deprecated.</p>
+<ul class="simple">
+<li><p>deprecated from version: 3.2</p></li>
+<li><p>Raises &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 5.0</p></li>
+</ul>
+</dd></dl>
+
+</section>
+<section id="load">
+<h2>load<a class="headerlink" href="#load" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.loadsave.load">
+<span class="sig-prename descclassname"><span class="pre">nibabel.loadsave.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><span class="pre">FileBasedImage</span></a></span></span><a class="headerlink" href="#nibabel.loadsave.load" title="Link to this definition">¶</a></dt>
+<dd><p>Load file given filename, guessing at file type</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str or os.PathLike</span></dt><dd><p>specification of file to load</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>Keyword arguments to format-specific load</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">SpatialImage</span></code></span></dt><dd><p>Image of guessed type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-img-data">
+<h2>read_img_data<a class="headerlink" href="#read-img-data" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.loadsave.read_img_data">
+<span class="sig-prename descclassname"><span class="pre">nibabel.loadsave.</span></span><span class="sig-name descname"><span class="pre">read_img_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scaled'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.loadsave.read_img_data" title="Link to this definition">¶</a></dt>
+<dd><p>Read data from image associated with files</p>
+<p>read_img_data deprecated. Please use <code class="docutils literal notranslate"><span class="pre">img.dataobj.get_unscaled()</span></code> instead.</p>
+<ul class="simple">
+<li><p>deprecated from version: 3.2</p></li>
+<li><p>Raises &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 5.0</p></li>
+</ul>
+</dd></dl>
+
+</section>
+<section id="save">
+<h2>save<a class="headerlink" href="#save" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.loadsave.save">
+<span class="sig-prename descclassname"><span class="pre">nibabel.loadsave.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><span class="pre">FileBasedImage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.loadsave.save" title="Link to this definition">¶</a></dt>
+<dd><p>Save an image to file adapting format to <cite>filename</cite></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">SpatialImage</span></code></span></dt><dd><p>image to save</p>
+</dd>
+<dt><strong>filename</strong><span class="classifier">str or os.PathLike</span></dt><dd><p>filename (often implying filenames) to which to save <cite>img</cite>.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>Keyword arguments to format-specific save</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

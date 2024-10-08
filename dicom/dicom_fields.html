@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Siemens mosaic format" href="dicom_mosaic.html" />
+    <link rel="prev" title="Defining the DICOM orientation" href="dicom_orientation.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dicom_mosaic.html" title="Siemens mosaic format"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dicom_orientation.html" title="Defining the DICOM orientation"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">DICOM fields</a><ul>
+<li><a class="reference internal" href="#fields-for-ordering-dicom-files-into-images">Fields for ordering DICOM files into images</a></li>
+<li><a class="reference internal" href="#multi-frame-images">Multi-frame images</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dicom_orientation.html"
+                          title="previous chapter">Defining the DICOM orientation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dicom_mosaic.html"
+                          title="next chapter">Siemens mosaic format</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dicom/dicom_fields.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dicom-fields">
+<span id="id1"></span><h1>DICOM fields<a class="headerlink" href="#dicom-fields" title="Link to this heading">¶</a></h1>
+<p>In which we pick out some interesting fields in the DICOM header.</p>
+<p>We’re getting the information mainly from the standard <a class="reference external" href="ftp://medical.nema.org/medical/dicom/2011/11_03pu3.pdf">DICOM object
+definitions</a></p>
+<p>We won’t talk about the orientation, patient position-type fields here
+because we’ve covered those somewhat in <a class="reference internal" href="dicom_orientation.html#dicom-orientation"><span class="std std-ref">DICOM voxel to patient coordinate system mapping</span></a>.</p>
+<section id="fields-for-ordering-dicom-files-into-images">
+<h2>Fields for ordering DICOM files into images<a class="headerlink" href="#fields-for-ordering-dicom-files-into-images" title="Link to this heading">¶</a></h2>
+<p>You’ll see some discussion of this in <a class="reference internal" href="spm_dicom.html#spm-dicom"><span class="std std-ref">SPM DICOM conversion</span></a>.</p>
+<p>Section 7.3.1: general series module</p>
+<ul class="simple">
+<li><p>Modality (0008,0060) - Type of equipment that originally acquired the
+data used to create the images in this Series. See C.7.3.1.1.1 for
+Defined Terms.</p></li>
+<li><p>Series Instance UID (0020,000E) - Unique identifier of the Series.</p></li>
+<li><p>Series Number (0020,0011) - A number that identifies this Series.</p></li>
+<li><p>Series Time (0008,0031) - Time the Series started.</p></li>
+</ul>
+<p>Section C.7.6.1:</p>
+<ul class="simple">
+<li><p>Instance Number (0020,0013) - A number that identifies this image.</p></li>
+<li><p>Acquisition Number (0020,0012) - A number identifying the single
+continuous gathering of data over a period of time that resulted in
+this image.</p></li>
+<li><p>Acquisition Time (0008,0032) - The time the acquisition of data that
+resulted in this image started</p></li>
+</ul>
+<p>Section C.7.6.2.1.2:</p>
+<p>Slice Location (0020,1041) is defined as the relative position of the
+image plane expressed in mm. This information is relative to an
+unspecified implementation specific reference point.</p>
+<p>Section C.8.3.1 MR Image Module</p>
+<ul class="simple">
+<li><p>Slice Thickness (0018,0050) - Nominal reconstructed slice thickness,
+in mm.</p></li>
+</ul>
+<p>Section C.8.3.1 MR Image Module</p>
+<ul class="simple">
+<li><p>Spacing Between Slices (0018,0088) - Spacing between slices, in
+mm. The spacing is measured from the center-tocenter of each slice.</p></li>
+<li><p>Temporal Position Identifier (0020,0100) - Temporal order of a dynamic
+or functional set of Images.</p></li>
+<li><p>Number of Temporal Positions (0020,0105) - Total number of temporal
+positions prescribed.</p></li>
+<li><p>Temporal Resolution (0020,0110) - Time delta between Images in a
+dynamic or functional set of images</p></li>
+</ul>
+</section>
+<section id="multi-frame-images">
+<h2>Multi-frame images<a class="headerlink" href="#multi-frame-images" title="Link to this heading">¶</a></h2>
+<p>An image for which the pixel data is a continuous stream of sequential frames.</p>
+<p>Section C.7.6.6: Multi-Frame Module</p>
+<ul class="simple">
+<li><p>Number of Frames (0028,0008) - Number of frames in a Multi-frame
+Image.</p></li>
+<li><p>Frame Increment Pointer (0028,0009) - Contains the Data Element Tag of
+the attribute that is used as the frame increment in Multi-frame pixel
+data.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

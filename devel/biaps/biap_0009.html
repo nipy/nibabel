@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="BIAP X — Template and Instructions" href="biap_template.html" />
+    <link rel="prev" title="BIAP8 - Always load image data as floating point" href="biap_0008.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biap_template.html" title="BIAP X — Template and Instructions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0008.html" title="BIAP8 - Always load image data as floating point"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP9 - The Coordinate Image API</a><ul>
+<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#surface-data-is-generally-kept-separate-from-geometric-metadata">Surface data is generally kept separate from geometric metadata</a></li>
+<li><a class="reference internal" href="#terminology">Terminology</a></li>
+<li><a class="reference internal" href="#currently-supported-surface-formats">Currently supported surface formats</a></li>
+<li><a class="reference internal" href="#other-relevant-formats">Other relevant formats</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#desiderata-for-an-api-supporting-surfaces">Desiderata for an API supporting surfaces</a><ul>
+<li><a class="reference internal" href="#prominent-use-cases">Prominent use cases</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#proposal">Proposal</a><ul>
+<li><a class="reference internal" href="#modeling">Modeling</a></li>
+<li><a class="reference internal" href="#smoothing">Smoothing</a></li>
+<li><a class="reference internal" href="#plotting">Plotting</a></li>
+<li><a class="reference internal" href="#subsampling-cifti-2">Subsampling CIFTI-2</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0008.html"
+                          title="previous chapter">BIAP8 - Always load image data as floating point</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biap_template.html"
+                          title="next chapter">BIAP X — Template and Instructions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_0009.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap9-the-coordinate-image-api">
+<span id="biap9"></span><h1>BIAP9 - The Coordinate Image API<a class="headerlink" href="#biap9-the-coordinate-image-api" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Chris Markiewicz</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>Draft</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Standards</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>2021-09-16</p>
+</dd>
+</dl>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<section id="surface-data-is-generally-kept-separate-from-geometric-metadata">
+<h3>Surface data is generally kept separate from geometric metadata<a class="headerlink" href="#surface-data-is-generally-kept-separate-from-geometric-metadata" title="Link to this heading">¶</a></h3>
+<p>In contrast to volumetric data, whose geometry can be fully encoded in the
+shape of a data array and a 4x4 affine matrix, data sampled to a surface
+require the location of each sample to be explicitly represented by a
+coordinate. In practice, the most common approach is to have a geometry file
+and a data file.</p>
+<p>A geometry file consists of a vertex coordinate array and a triangle array
+describing the adjacency of vertices, while a data file is an n-dimensional
+array with one axis corresponding to vertex.</p>
+<p>Keeping these files separate is a pragmatic optimization to avoid costly
+reproductions of geometric data, but presents an administrative burden to
+direct consumers of the data.</p>
+</section>
+<section id="terminology">
+<h3>Terminology<a class="headerlink" href="#terminology" title="Link to this heading">¶</a></h3>
+<p>For the purposes of this BIAP, the following terms are used:</p>
+<ul class="simple">
+<li><p>Coordinate - a triplet of floating point values in RAS+ space</p></li>
+<li><p>Vertex - an index into a table of coordinates</p></li>
+<li><p>Triangle (or face) - a triplet of adjacent vertices (A-B-C);
+the normal vector for the face is (<span class="math notranslate nohighlight">\(\overline{AB}\times\overline{AC}\)</span>)</p></li>
+<li><p>Topology - vertex adjacency data, independent of vertex coordinates,
+typically in the form of a list of triangles</p></li>
+<li><p>Geometry - topology + a specific set of coordinates for a surface</p></li>
+<li><p>Parcel - a subset of vertices; can be the full topology. Special cases include:
+* Patch - a connected parcel
+* Decimated mesh - a parcel that has a desired density of vertices</p></li>
+<li><p>Parcel sequence - an ordered set of parcels</p></li>
+<li><p>Data array - an n-dimensional array with one axis corresponding to the
+vertices (typical) OR faces (more rare) in a patch sequence</p></li>
+</ul>
+</section>
+<section id="currently-supported-surface-formats">
+<h3>Currently supported surface formats<a class="headerlink" href="#currently-supported-surface-formats" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>FreeSurfer</dt><dd><ul>
+<li><p>Geometry (e.g. <code class="docutils literal notranslate"><span class="pre">lh.pial</span></code>):
+<a class="reference internal" href="../../reference/nibabel.freesurfer.html#nibabel.freesurfer.io.read_geometry" title="nibabel.freesurfer.io.read_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_geometry()</span></code></a> /
+<a class="reference internal" href="../../reference/nibabel.freesurfer.html#nibabel.freesurfer.io.write_geometry" title="nibabel.freesurfer.io.write_geometry"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_geometry()</span></code></a></p></li>
+<li><dl class="simple">
+<dt>Data</dt><dd><ul>
+<li><p>Morphometry:
+<a class="reference internal" href="../../reference/nibabel.freesurfer.html#nibabel.freesurfer.io.read_morph_data" title="nibabel.freesurfer.io.read_morph_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_morph_data()</span></code></a> /
+<a class="reference internal" href="../../reference/nibabel.freesurfer.html#nibabel.freesurfer.io.write_morph_data" title="nibabel.freesurfer.io.write_morph_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_morph_data()</span></code></a></p></li>
+<li><p>Labels: <a class="reference internal" href="../../reference/nibabel.freesurfer.html#nibabel.freesurfer.io.read_label" title="nibabel.freesurfer.io.read_label"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_label()</span></code></a></p></li>
+<li><p>MGH: <a class="reference internal" href="../../reference/nibabel.freesurfer.html#nibabel.freesurfer.mghformat.MGHImage" title="nibabel.freesurfer.mghformat.MGHImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHImage</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>GIFTI: <a class="reference internal" href="../../reference/nibabel.gifti.html#nibabel.gifti.gifti.GiftiImage" title="nibabel.gifti.gifti.GiftiImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">GiftiImage</span></code></a></dt><dd><ul>
+<li><p>Every image contains a collection of data arrays, which may be
+coordinates, topology, or data (further subdivided by type and intent)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>CIFTI-2: <a class="reference internal" href="../../reference/nibabel.cifti2.html#nibabel.cifti2.cifti2.Cifti2Image" title="nibabel.cifti2.cifti2.Cifti2Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cifti2Image</span></code></a></dt><dd><ul>
+<li><p>Pure data array, with image header containing flexible axes</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">BrainModelAxis</span></code> is a subspace sequence including patches for
+each hemisphere (cortex without the medial wall) and subcortical
+structures defined by indices into three-dimensional array and an
+affine matrix</p></li>
+<li><p>Geometry referred to by an associated <code class="docutils literal notranslate"><span class="pre">wb.spec</span></code> file
+(no current implementation in NiBabel)</p></li>
+<li><p>Possible to have one with no geometric information, e.g., parcels x time</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="other-relevant-formats">
+<h3>Other relevant formats<a class="headerlink" href="#other-relevant-formats" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>MNE’s STC (source time course) format. Contains:</dt><dd><ul>
+<li><p>Subject name (resolvable with a FreeSurfer <code class="docutils literal notranslate"><span class="pre">SUBJECTS_DIR</span></code>)</p></li>
+<li><p>Index arrays into left and right hemisphere surfaces (subspace sequence)</p></li>
+<li><p>Data, one of:
+* ndarray of shape <code class="docutils literal notranslate"><span class="pre">(n_verts,</span> <span class="pre">n_times)</span></code>
+* tuple of ndarrays of shapes <code class="docutils literal notranslate"><span class="pre">(n_verts,</span> <span class="pre">n_sensors)</span></code> and <code class="docutils literal notranslate"><span class="pre">(n_sensors,</span> <span class="pre">n_times)</span></code></p></li>
+<li><p>Time start</p></li>
+<li><p>Time step</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="desiderata-for-an-api-supporting-surfaces">
+<h2>Desiderata for an API supporting surfaces<a class="headerlink" href="#desiderata-for-an-api-supporting-surfaces" title="Link to this heading">¶</a></h2>
+<p>The following are provisional guiding principles:</p>
+<ol class="arabic simple">
+<li><p>A surface image (data array) should carry a reference to geometric metadata
+that is easily transferred to a new image.</p></li>
+<li><p>Partial images (data only or geometry only) should be possible. Absence of
+components should have a well-defined signature, such as a property that is
+<code class="docutils literal notranslate"><span class="pre">None</span></code> or a specific <code class="docutils literal notranslate"><span class="pre">Exception</span></code> is raised.</p></li>
+<li><p>All arrays (coordinates, triangles, data arrays) should be proxied to
+avoid excess memory consumption</p></li>
+<li><p>Selecting among coordinates (e.g., gray/white boundary, inflated surface)
+for a single topology should be possible.</p></li>
+<li><p>Combining multiple brain structures (canonically, left and right hemispheres)
+in memory should be easy; serializing to file may be format-specific.</p></li>
+<li><p>Splitting a data array into independent patches that can be separately
+operated on and serialized should be possible.</p></li>
+</ol>
+<section id="prominent-use-cases">
+<h3>Prominent use cases<a class="headerlink" href="#prominent-use-cases" title="Link to this heading">¶</a></h3>
+<p>We consider the following use cases for working with surface data.
+A good API will make retrieving the components needed for each use case
+straightforward, as well as storing the results in new images.</p>
+<ul class="simple">
+<li><p>Arithmetic/modeling - per-vertex mathematical operations</p></li>
+<li><p>Smoothing - topology/geometry-respecting smoothing</p></li>
+<li><p>Plotting - paint the data array as a texture on a surface</p></li>
+<li><p>Decimation - subsampling a topology (possibly a subset, possibly with
+interpolated vertex locations)</p></li>
+<li><p>Resampling to a geometrically-aligned surface
+* Downsampling by decimating, smoothing, resampling
+* Inter-subject resampling by using <code class="docutils literal notranslate"><span class="pre">?h.sphere.reg</span></code></p></li>
+<li><p>Interpolation of per-vertex and per-face data arrays</p></li>
+</ul>
+<p>When possible, we prefer to expose NumPy <code class="docutils literal notranslate"><span class="pre">ndarray</span></code>s and
+allow use of numpy, scipy, scikit-learn. In some cases, it may
+make sense for NiBabel to provide methods.</p>
+</section>
+</section>
+<section id="proposal">
+<h2>Proposal<a class="headerlink" href="#proposal" title="Link to this heading">¶</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">CoordinateImage</span></code> is an N-dimensional array, where one axis corresponds
+to a sequence of points in one or more parcels.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CoordinateImage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    header : a file-specific header</span>
+<span class="sd">    coordaxis : ``CoordinateAxis``</span>
+<span class="sd">    dataobj : array-like</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="k">class</span> <span class="nc">CoordinateAxis</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parcels : list of ``Parcel`` objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">load_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Associate parcels to ``Pointset`` structures</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slicer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a sub-sampled CoordinateAxis containing structures</span>
+<span class="sd">        matching the indices provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parcel</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the indices in the full axis that correspond to the</span>
+<span class="sd">        requested parcel. If indices are provided, further subsample</span>
+<span class="sd">        the requested parcel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="k">class</span> <span class="nc">Parcel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">    structure : ``Pointset``</span>
+<span class="sd">    indices : object that selects a subset of coordinates in structure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>To describe coordinate geometry, the following structures are proposed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Pointset</span><span class="p">:</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Number of coordinates &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Nx3 array of coordinates in RAS+ space &quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">TriangularMesh</span><span class="p">(</span><span class="n">Pointset</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Number of faces &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Mx3 array of indices into coordinate table &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coords</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_triangles</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; List of surface names that can be passed to</span>
+<span class="sd">        ``get_{coords,triangles,mesh}``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">decimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return a TriangularMesh with a smaller number of vertices that</span>
+<span class="sd">        preserves the geometry of the original &quot;&quot;&quot;</span>
+        <span class="c1"># To be overridden when a format provides optimization opportunities</span>
+
+
+<span class="k">class</span> <span class="nc">NdGrid</span><span class="p">(</span><span class="n">Pointset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape : 3-tuple</span>
+<span class="sd">        number of coordinates in each dimension of grid</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">get_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; 4x4 array &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">NdGrid</span></code> class allows raveled volumetric data to be treated the same as
+triangular mesh or other coordinate data.</p>
+<p>Finally, a structure for containing a collection of related geometric files is
+defined:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GeometryCollection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    structures : dict</span>
+<span class="sd">        Mapping from structure names to ``Pointset``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_spec</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">pathlike</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Load a collection of geometries from a specification. &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>The canonical example of a geometry collection is a left hemisphere mesh,
+right hemisphere mesh.</p>
+<p>Here we present common use cases:</p>
+<section id="modeling">
+<h3>Modeling<a class="headerlink" href="#modeling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nilearn.glm.first_level</span> <span class="kn">import</span> <span class="n">make_first_level_design_matrix</span><span class="p">,</span> <span class="n">run_glm</span>
+
+<span class="n">bold</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">&quot;/data/func/hemi-L_bold.func.gii&quot;</span><span class="p">)</span>
+<span class="n">dm</span> <span class="o">=</span> <span class="n">make_first_level_design_matrix</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">labels</span><span class="p">,</span> <span class="n">results</span> <span class="o">=</span> <span class="n">run_glm</span><span class="p">(</span><span class="n">bold</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">dm</span><span class="p">)</span>
+<span class="n">betas</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;betas&quot;</span><span class="p">],</span> <span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">,</span> <span class="n">bold</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">betas</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="s2">&quot;/data/stats/hemi-L_betas.mgz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, no reference to the surface structure is needed, as the operations
+occur on a per-vertex basis.
+The coordinate axis and header are preserved to ensure that any metadata is
+not lost.</p>
+<p>Here we assume that <code class="docutils literal notranslate"><span class="pre">CoordinateImage</span></code> is able to make the appropriate
+translations between formats (GIFTI, MGH). This is not guaranteed in the final
+API.</p>
+</section>
+<section id="smoothing">
+<h3>Smoothing<a class="headerlink" href="#smoothing" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bold</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">&quot;/data/func/hemi-L_bold.func.gii&quot;</span><span class="p">)</span>
+<span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">({</span><span class="s2">&quot;lh&quot;</span><span class="p">:</span> <span class="s2">&quot;/data/anat/hemi-L_midthickness.surf.gii&quot;</span><span class="p">})</span>
+<span class="c1"># Not implementing networkx weighted graph here, so assume we have a function</span>
+<span class="c1"># that retrieves a graph for each structure</span>
+<span class="n">graphs</span> <span class="o">=</span> <span class="n">get_graphs</span><span class="p">(</span><span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">)</span>
+<span class="n">distances</span> <span class="o">=</span> <span class="n">distance_matrix</span><span class="p">(</span><span class="n">graphs</span><span class="p">[</span><span class="s1">&#39;lh&#39;</span><span class="p">])</span>  <span class="c1"># n_coords x n_coords matrix</span>
+<span class="n">weights</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">gaussian</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">sigma</span><span class="p">))</span>
+<span class="c1"># Wildly inefficient smoothing algorithm</span>
+<span class="n">smoothed</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">weights</span> <span class="o">@</span> <span class="n">bold</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">,</span> <span class="n">bold</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">smoothed</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/data/func/hemi-L_smooth-</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">_bold.func.gii&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plotting">
+<h3>Plotting<a class="headerlink" href="#plotting" title="Link to this heading">¶</a></h3>
+<p>Nilearn currently provides a
+<a class="reference external" href="https://nilearn.github.io/modules/generated/nilearn.plotting.plot_surf.html">plot_surf</a> function.
+With the proposed API, we could interface as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_surf_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s2">&quot;inflated&quot;</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">nilearn.plotting</span> <span class="kn">import</span> <span class="n">plot_surf</span>
+    <span class="n">coords</span><span class="p">,</span> <span class="n">triangles</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">parcels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_mesh</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">surface</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">plot_surf</span><span class="p">((</span><span class="n">triangles</span><span class="p">,</span> <span class="n">coords</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="n">tstats</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">&quot;/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz&quot;</span><span class="p">)</span>
+<span class="c1"># Assume a GeometryCollection that reads a FreeSurfer subject directory</span>
+<span class="n">fs_subject</span> <span class="o">=</span> <span class="n">FreeSurferSubject</span><span class="o">.</span><span class="n">from_spec</span><span class="p">(</span><span class="s2">&quot;/data/subjects/fsaverage5&quot;</span><span class="p">)</span>
+<span class="n">tstats</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">(</span><span class="n">fs_subject</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="s2">&quot;lh&quot;</span><span class="p">))</span>
+<span class="n">plot_surf_img</span><span class="p">(</span><span class="n">tstats</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="subsampling-cifti-2">
+<h3>Subsampling CIFTI-2<a class="headerlink" href="#subsampling-cifti-2" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sub-01_task-rest_bold.dtseries.nii&quot;</span><span class="p">)</span>  <span class="c1"># Assume CIFTI CoordinateImage</span>
+<span class="n">parcel</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sub-fsLR_hemi-L_label-DLPFC_mask.label.gii&quot;</span><span class="p">)</span> <span class="c1"># GiftiImage</span>
+<span class="n">structure</span> <span class="o">=</span> <span class="n">parcel</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;AnatomicalStructurePrimary&#39;</span><span class="p">]</span> <span class="c1"># &quot;CortexLeft&quot;</span>
+<span class="n">vtx_idcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">parcel</span><span class="o">.</span><span class="n">agg_data</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">dlpfc_idcs</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">get_indices</span><span class="p">(</span><span class="n">parcel</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">vtx_idcs</span><span class="p">)</span>
+
+<span class="c1"># Subsampled coordinate axes will override any duplicate information from header</span>
+<span class="n">dlpfc_img</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">[</span><span class="n">dlpfc_idcs</span><span class="p">],</span> <span class="n">img</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">[</span><span class="n">dlpfc_idcs</span><span class="p">],</span> <span class="n">img</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+
+<span class="c1"># Now load geometry so we can plot</span>
+<span class="n">wbspec</span> <span class="o">=</span> <span class="n">CaretSpec</span><span class="p">(</span><span class="s2">&quot;fsLR.wb.spec&quot;</span><span class="p">)</span>
+<span class="n">dlpfc_img</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">(</span><span class="n">wbspec</span><span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

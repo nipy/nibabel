@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Adding test data" href="../add_test_data.html" />
+    <link rel="prev" title="BIAP9 - The Coordinate Image API" href="biap_0009.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../add_test_data.html" title="Adding test data"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0009.html" title="BIAP9 - The Coordinate Image API"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP X — Template and Instructions</a><ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#motivation-and-scope">Motivation and Scope</a></li>
+<li><a class="reference internal" href="#usage-and-impact">Usage and Impact</a></li>
+<li><a class="reference internal" href="#backward-compatibility">Backward compatibility</a></li>
+<li><a class="reference internal" href="#detailed-description">Detailed description</a></li>
+<li><a class="reference internal" href="#related-work">Related Work</a></li>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+<li><a class="reference internal" href="#alternatives">Alternatives</a></li>
+<li><a class="reference internal" href="#discussion">Discussion</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0009.html"
+                          title="previous chapter">BIAP9 - The Coordinate Image API</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../add_test_data.html"
+                          title="next chapter">Adding test data</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_template.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap-x-template-and-instructions">
+<span id="biap-template"></span><h1>BIAP X — Template and Instructions<a class="headerlink" href="#biap-x-template-and-instructions" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>&lt;list of authors’ real names and optionally, email addresses&gt;</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>&lt;Draft | Active | Accepted | Deferred | Rejected | Withdrawn | Final | Superseded&gt;</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>&lt;Standards Track | Process&gt;</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>&lt;date created on, in yyyy-mm-dd format&gt;</p>
+</dd>
+<dt class="field-odd">Resolution<span class="colon">:</span></dt>
+<dd class="field-odd"><p>&lt;url&gt; (required for Accepted | Rejected | Withdrawn)</p>
+</dd>
+</dl>
+<section id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Link to this heading">¶</a></h2>
+<p>The abstract should be a short description of what the BIAP will achieve.</p>
+<p>Note that the — in the title is an elongated dash, not -.</p>
+</section>
+<section id="motivation-and-scope">
+<h2>Motivation and Scope<a class="headerlink" href="#motivation-and-scope" title="Link to this heading">¶</a></h2>
+<p>This section describes the need for the proposed change. It should describe
+the existing problem, who it affects, what it is trying to solve, and why.
+This section should explicitly address the scope of and key requirements for
+the proposed change.</p>
+</section>
+<section id="usage-and-impact">
+<h2>Usage and Impact<a class="headerlink" href="#usage-and-impact" title="Link to this heading">¶</a></h2>
+<p>This section describes how users of Nibabel will use features described in this
+BIAP. It should be comprised mainly of code examples that wouldn’t be possible
+without acceptance and implementation of this BIAP, as well as the impact the
+proposed changes would have on the ecosystem. This section should be written
+from the perspective of the users of Nibabel, and the benefits it will provide
+them; and as such, it should include implementation details only if
+necessary to explain the functionality.</p>
+</section>
+<section id="backward-compatibility">
+<h2>Backward compatibility<a class="headerlink" href="#backward-compatibility" title="Link to this heading">¶</a></h2>
+<p>This section describes the ways in which the BIAP breaks backward compatibility.</p>
+<p>The mailing list post will contain the BIAP up to and including this section.
+Its purpose is to provide a high-level summary to users who are not interested
+in detailed technical discussion, but may have opinions around, e.g., usage and
+impact.</p>
+</section>
+<section id="detailed-description">
+<h2>Detailed description<a class="headerlink" href="#detailed-description" title="Link to this heading">¶</a></h2>
+<p>This section should provide a detailed description of the proposed change.
+It should include examples of how the new functionality would be used,
+intended use-cases and pseudo-code illustrating its use.</p>
+</section>
+<section id="related-work">
+<h2>Related Work<a class="headerlink" href="#related-work" title="Link to this heading">¶</a></h2>
+<p>This section should list relevant and/or similar technologies, possibly in other
+libraries. It does not need to be comprehensive, just list the major examples of
+prior and relevant art.</p>
+</section>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h2>
+<p>This section lists the major steps required to implement the BIAP.  Where
+possible, it should be noted where one step is dependent on another, and which
+steps may be optionally omitted.  Where it makes sense, each step should
+include a link to related pull requests as the implementation progresses.</p>
+<p>Any pull requests or development branches containing work on this BIAP should
+be linked to from here.  (A BIAP does not need to be implemented in a single
+pull request if it makes sense to implement it in discrete phases).</p>
+</section>
+<section id="alternatives">
+<h2>Alternatives<a class="headerlink" href="#alternatives" title="Link to this heading">¶</a></h2>
+<p>If there were any alternative solutions to solving the same problem, they should
+be discussed here, along with a justification for the chosen approach.</p>
+</section>
+<section id="discussion">
+<h2>Discussion<a class="headerlink" href="#discussion" title="Link to this heading">¶</a></h2>
+<p>This section may just be a bullet list including links to any discussions
+regarding the BIAP:</p>
+<ul class="simple">
+<li><p>This includes links to mailing list threads or relevant GitHub issues.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

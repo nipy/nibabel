@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="BIAP3 - A JSON nifti header extension" href="biap_0003.html" />
+    <link rel="prev" title="BIAP1 - Towards immutable images" href="biap_0001.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biap_0003.html" title="BIAP3 - A JSON nifti header extension"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0001.html" title="BIAP1 - Towards immutable images"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP2 - Slicecopy</a><ul>
+<li><a class="reference internal" href="#status">Status</a></li>
+<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#questions">Questions</a><ul>
+<li><a class="reference internal" href="#should-slice0-be-a-copy-or-a-view">Should <code class="docutils literal notranslate"><span class="pre">slice0</span></code> be a copy or a view?</a></li>
+<li><a class="reference internal" href="#what-slices-should-the-slicing-allow">What slices should the slicing allow?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#option-1-fancy-slice-object">Option 1: fancy slice object</a></li>
+<li><a class="reference internal" href="#option-2-not-fancy-method-call">Option 2: not-fancy method call</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0001.html"
+                          title="previous chapter">BIAP1 - Towards immutable images</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biap_0003.html"
+                          title="next chapter">BIAP3 - A JSON nifti header extension</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_0002.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap2-slicecopy">
+<span id="biap2"></span><h1>BIAP2 - Slicecopy<a class="headerlink" href="#biap2-slicecopy" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Matthew Brett</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rejected</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Standards</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>2011-03-26</p>
+</dd>
+</dl>
+<section id="status">
+<h2>Status<a class="headerlink" href="#status" title="Link to this heading">¶</a></h2>
+<p>Alternative implementation as of Nibabel 2.0 with image proxy slicing : see
+<a class="reference external" href="http://nipy.org/nibabel/images_and_memory.html#saving-time-and-memory">http://nipy.org/nibabel/images_and_memory.html#saving-time-and-memory</a></p>
+</section>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p>Please see <a class="reference external" href="https://github.com/nipy/nibabel/issues#issue/9">https://github.com/nipy/nibabel/issues#issue/9</a> for motivation.</p>
+<p>Sometimes we have a biiig images and we don’t want to load the whole array into
+memory.  In this case it is useful to be able to load as a proxy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_huge_image.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and then take out individual slices, as in something very approximately like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">slice0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="questions">
+<h3>Questions<a class="headerlink" href="#questions" title="Link to this heading">¶</a></h3>
+<section id="should-slice0-be-a-copy-or-a-view">
+<h4>Should <code class="docutils literal notranslate"><span class="pre">slice0</span></code> be a copy or a view?<a class="headerlink" href="#should-slice0-be-a-copy-or-a-view" title="Link to this heading">¶</a></h4>
+<p>As from the previous discussion - <a class="reference internal" href="biap_0001.html"><span class="doc">BIAP1 - Towards immutable images</span></a> - an image may be a proxy
+or an array.</p>
+<p>If the image is an array, the most natural thing to return is a view.  That is,
+modifying <code class="docutils literal notranslate"><span class="pre">slice0</span></code> will modify the underlying array in <code class="docutils literal notranslate"><span class="pre">img</span></code>.</p>
+<p>If the image is a proxy, it would be self-defeating to return a view, because
+that would involve reading the whole image into memory, exactly what we are
+trying to avoid.  So, for a proxied image, we’d nearly always want to return a
+copy.</p>
+</section>
+<section id="what-slices-should-the-slicing-allow">
+<h4>What slices should the slicing allow?<a class="headerlink" href="#what-slices-should-the-slicing-allow" title="Link to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">img.get_slice(0)</span></code> syntax needs us to know what slice 0 is.  In a nifti
+image of 3 dimensions, the first is fastest changing on disk.  To be useful
+<code class="docutils literal notranslate"><span class="pre">0</span></code> will probably refer to the slowest changing on disk.  Otherwise we’ll
+have to load nearly the whole image anyway.  So, for a nifti, 0 should be the
+first slice in the last dimension.</p>
+<p>For Minc on the other hand, you can and I (MB) think always do get C ordered
+arrays back, so that the slowest changing dimension in the image array is the
+first. Actually, I don’t know how to read a Minc file slice by slice, but the
+general point is that, to know which slice is worth reading, you need to know
+the relationship of the image array dimensions to fastest / slowest on disk.</p>
+<p>We could always solve this by assuming that we always want to do this for
+Analyze / Nifti1 files (Fortran ordered).  It’s a little ugly of course.</p>
+<p>Note that taking the slowest changing slice in a nifti image would be the
+equivalent of taking a slice from the last dimension:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arr</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+<span class="n">slice0</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In general, we can get contiguous data off disk for the same data as contiguous
+data in memory (perhaps obviously).  So, all of these are contiguous in the
+Fortran ordering case:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arr</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">arr</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">arr</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:,</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">:,:,</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">arr</span><span class="p">[:,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>That is, in general, <code class="docutils literal notranslate"><span class="pre">:</span></code> up until the first specified dimension, then
+contiguous slices, followed by integer slices.  So, all of these can be read
+directly off disk as slices.  Obviously the rules are the reverse for c-ordered
+arrays.</p>
+</section>
+</section>
+<section id="option-1-fancy-slice-object">
+<h3>Option 1: fancy slice object<a class="headerlink" href="#option-1-fancy-slice-object" title="Link to this heading">¶</a></h3>
+<p>It’s option 1 because it’s the first one I thought of:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">slice0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">slicecopy</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Here we solve the copy or view problem with ‘always copy’.   We solve the ‘what
+slicing to allow’ by letting the object decide how to do the slicing.  We could
+obviously just do the full load (deproxy the image) and return a copy of the
+sliced array, as in:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SomeImage</span><span class="p">:</span>
+    <span class="k">class</span> <span class="nc">Slicer</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slicedef</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">_data</span>
+            <span class="k">if</span> <span class="n">is_proxy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">and</span> <span class="n">iscontinguous</span><span class="p">(</span><span class="n">slicedef</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">read_off_disk_somehow</span><span class="p">(</span><span class="n">slicedef</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">unproxy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">slicedef</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stuff</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slicecopy</span> <span class="o">=</span> <span class="n">Slicer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The problem with this is that:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">slice0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">slicecopy</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>might unproxy the image.  At the moment, it’s rather hidden whether the image
+is proxied or not on the basis that it’s an optimization that should be
+transparent.</p>
+</section>
+<section id="option-2-not-fancy-method-call">
+<h3>Option 2: not-fancy method call<a class="headerlink" href="#option-2-not-fancy-method-call" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">slice0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>‘slice or view’ solved with explicit keyword.  ‘which slice’ solved by assuming
+you always mean one slice in the last dimension.  Or we could also allow:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">slices</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_slices</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is ugly, but fairly clear. This simple ‘I mean the last dimension’ might
+be annoying because it assumes the last dimension is the slowest changing, and
+it does not get to optimize the more complex contiguous cases above.  So we
+could even allow full slicing with stuff like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">slice</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_slices</span><span class="p">((</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">3</span><span class="p">)),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again - this looks a lot more ugly than the <code class="docutils literal notranslate"><span class="pre">slicecopy</span></code> syntax above.</p>
+<p>Now, when would you choose <code class="docutils literal notranslate"><span class="pre">copy=True</span></code>?  I think, when the image is a proxy.
+Otherwise you’d want a view.  Probably.  So what you mean, probably, is
+something like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">slices</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_slices</span><span class="p">(</span><span class="n">slicedef</span><span class="p">,</span> <span class="n">copy_if</span><span class="o">=</span><span class="s1">&#39;is_proxy&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>But, we’ve established that for some slices, you’re going to have to load the
+whole image anyway.  So in fact probably what you want is to:</p>
+<ol class="arabic simple">
+<li><p>Take a view if this image is not a proxy</p></li>
+<li><p>Take a copy if we can read this directly off disk</p></li>
+<li><p>Unproxy the image if we have to read the whole thing off disk anyway to get
+the slices we want, on the basis that we have to read the whole thing into
+memory anyway, we might as well do that and save ourselves lots of disk
+thrashing getting the individual slices.</p></li>
+</ol>
+<p>Of course that’s what option 1 boils down to.  So I think I prefer version 1.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

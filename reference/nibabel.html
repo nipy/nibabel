@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="analyze" href="nibabel.analyze.html" />
+    <link rel="prev" title="API Documentation" href="../api.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.analyze.html" title="analyze"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../api.html" title="API Documentation"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#mailing-list">Mailing List</a></li>
+<li><a class="reference internal" href="#license">License</a></li>
+<li><a class="reference internal" href="#citation">Citation</a></li>
+<li><a class="reference internal" href="#quickstart">Quickstart</a></li>
+<li><a class="reference internal" href="#bench">bench</a><ul>
+<li><a class="reference internal" href="#nibabel.bench"><code class="docutils literal notranslate"><span class="pre">bench()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-info">get_info</a><ul>
+<li><a class="reference internal" href="#nibabel.get_info"><code class="docutils literal notranslate"><span class="pre">get_info()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#test">test</a><ul>
+<li><a class="reference internal" href="#nibabel.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../api.html"
+                          title="previous chapter">API Documentation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.analyze.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel">
+<span id="nibabel"></span><h1><a class="reference internal" href="#module-nibabel" title="nibabel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a><a class="headerlink" href="#module-nibabel" title="Link to this heading">¶</a></h1>
+<p>Read and write access to common neuroimaging file formats, including:
+<a class="reference external" href="http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm">ANALYZE</a> (plain, SPM99, SPM2 and later), <a class="reference external" href="https://www.nitrc.org/projects/gifti">GIFTI</a>, <a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/">NIfTI1</a>, <a class="reference external" href="http://nifti.nimh.nih.gov/nifti-2/">NIfTI2</a>, <a class="reference external" href="https://www.nitrc.org/projects/cifti/">CIFTI-2</a>,
+<a class="reference external" href="https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference">MINC1</a>, <a class="reference external" href="https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference">MINC2</a>, <a class="reference external" href="https://afni.nimh.nih.gov/pub/dist/src/README.attributes">AFNI BRIK/HEAD</a>, <a class="reference external" href="http://xmedcon.sourceforge.net/Docs/Ecat">ECAT</a> and Philips PAR/REC.
+In addition, NiBabel also supports <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu">FreeSurfer</a>’s <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat">MGH</a>, geometry, annotation and
+morphometry files, and provides some limited support for <a class="reference external" href="http://medical.nema.org/">DICOM</a>.</p>
+<p>NiBabel’s API gives full or selective access to header information (metadata),
+and image data is made available via NumPy arrays. For more information, see
+NiBabel’s <a class="reference external" href="http://nipy.org/nibabel">documentation site</a> and <a class="reference external" href="https://nipy.org/nibabel/api.html">API reference</a>.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p>To install NiBabel’s <a class="reference external" href="https://pypi.python.org/pypi/NiBabel">current release</a> with <code class="docutils literal notranslate"><span class="pre">pip</span></code>, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">nibabel</span>
+</pre></div>
+</div>
+<p>To install the latest development version, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nipy</span><span class="o">/</span><span class="n">nibabel</span>
+</pre></div>
+</div>
+<p>When working on NiBabel itself, it may be useful to install in “editable” mode:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nipy</span><span class="o">/</span><span class="n">nibabel</span><span class="o">.</span><span class="n">git</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">./</span><span class="n">nibabel</span>
+</pre></div>
+</div>
+<p>For more information on previous releases, see the <a class="reference external" href="https://github.com/nipy/NiBabel/releases">release archive</a> or
+<a class="reference external" href="https://nipy.org/nibabel/changelog.html">development changelog</a>.</p>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<p>During development, we recommend using <a class="reference external" href="https://tox.wiki">tox</a> to run nibabel tests:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nipy</span><span class="o">/</span><span class="n">nibabel</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">nibabel</span>
+<span class="n">tox</span>
+</pre></div>
+</div>
+<p>To test an installed version of nibabel, install the test dependencies
+and run <a class="reference external" href="https://docs.pytest.org">pytest</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">nibabel</span><span class="p">[</span><span class="n">test</span><span class="p">]</span>
+<span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">nibabel</span>
+</pre></div>
+</div>
+<p>For more information, consult the <a class="reference external" href="https://nipy.org/nibabel/devel/devguide.html">developer guidelines</a>.</p>
+</section>
+<section id="mailing-list">
+<h2>Mailing List<a class="headerlink" href="#mailing-list" title="Link to this heading">¶</a></h2>
+<p>Please send any questions or suggestions to the <a class="reference external" href="https://mail.python.org/mailman/listinfo/neuroimaging">neuroimaging mailing list</a>.</p>
+</section>
+<section id="license">
+<h2>License<a class="headerlink" href="#license" title="Link to this heading">¶</a></h2>
+<p>NiBabel is licensed under the terms of the <a class="reference external" href="https://github.com/nipy/nibabel/blob/master/COPYING#nibabel">MIT license</a>.
+Some code included with NiBabel is licensed under the <a class="reference external" href="https://opensource.org/licenses/BSD-3-Clause">BSD license</a>.
+For more information, please see the <a class="reference external" href="https://github.com/nipy/nibabel/blob/master/COPYING">COPYING</a> file.</p>
+</section>
+<section id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Link to this heading">¶</a></h2>
+<p>NiBabel releases have a <a class="reference external" href="https://zenodo.org">Zenodo</a> <a class="reference external" href="https://en.wikipedia.org/wiki/Digital_object_identifier">Digital Object Identifier</a> (DOI) badge at
+the top of the release notes. Click on the badge for more information.</p>
+</section>
+<section id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+
+<span class="n">img1</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_file.nii&#39;</span><span class="p">)</span>
+<span class="n">img2</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;other_file.nii.gz&#39;</span><span class="p">)</span>
+<span class="n">img3</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;spm_file.img&#39;</span><span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">img1</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="n">affine</span> <span class="o">=</span> <span class="n">img1</span><span class="o">.</span><span class="n">affine</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">img1</span><span class="p">)</span>
+
+<span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img1</span><span class="p">,</span> <span class="s1">&#39;my_file_copy.nii.gz&#39;</span><span class="p">)</span>
+
+<span class="n">new_image</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">new_image</span><span class="p">,</span> <span class="s1">&#39;new_image.nii.gz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more detailed information see the <a class="reference internal" href="../manual.html#manual"><span class="std std-ref">NiBabel Manual</span></a>.</p>
+</section>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.bench" title="nibabel.bench"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench</span></code></a>([label, verbose, extra_argv])</p></td>
+<td><p>Run benchmarks for nibabel using pytest</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.get_info" title="nibabel.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.test" title="nibabel.test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test</span></code></a>([label, verbose, extra_argv, doctests, ...])</p></td>
+<td><p>Run tests for nibabel using pytest</p></td>
+</tr>
+</tbody>
+</table>
+<section id="bench">
+<h2>bench<a class="headerlink" href="#bench" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.bench">
+<span class="sig-prename descclassname"><span class="pre">nibabel.</span></span><span class="sig-name descname"><span class="pre">bench</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.bench" title="Link to this definition">¶</a></dt>
+<dd><p>Run benchmarks for nibabel using pytest</p>
+<p>The protocol mimics the <code class="docutils literal notranslate"><span class="pre">numpy.testing.NoseTester.bench()</span></code>.
+Not all features are currently implemented.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>label</strong><span class="classifier">None</span></dt><dd><p>Unused.</p>
+</dd>
+<dt><strong>verbose: int, optional</strong></dt><dd><p>Verbosity value for test outputs. Positive values increase verbosity, and
+negative values decrease it. Default is 1.</p>
+</dd>
+<dt><strong>extra_argv</strong><span class="classifier">list, optional</span></dt><dd><p>List with any extra arguments to pass to pytest.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>code</strong><span class="classifier">ExitCode</span></dt><dd><p>Returns the result of running the tests as a <code class="docutils literal notranslate"><span class="pre">pytest.ExitCode</span></code> enum</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-info">
+<h2>get_info<a class="headerlink" href="#get-info" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.get_info">
+<span class="sig-prename descclassname"><span class="pre">nibabel.</span></span><span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.get_info" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="test">
+<h2>test<a class="headerlink" href="#test" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.test">
+<span class="sig-prename descclassname"><span class="pre">nibabel.</span></span><span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doctests</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.test" title="Link to this definition">¶</a></dt>
+<dd><p>Run tests for nibabel using pytest</p>
+<p>The protocol mimics the <code class="docutils literal notranslate"><span class="pre">numpy.testing.NoseTester.test()</span></code>.
+Not all features are currently implemented.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>label</strong><span class="classifier">None</span></dt><dd><p>Unused.</p>
+</dd>
+<dt><strong>verbose: int, optional</strong></dt><dd><p>Verbosity value for test outputs. Positive values increase verbosity, and
+negative values decrease it. Default is 1.</p>
+</dd>
+<dt><strong>extra_argv</strong><span class="classifier">list, optional</span></dt><dd><p>List with any extra arguments to pass to pytest.</p>
+</dd>
+<dt><strong>doctests: bool, optional</strong></dt><dd><p>If True, run doctests in module. Default is False.</p>
+</dd>
+<dt><strong>coverage: bool, optional</strong></dt><dd><p>If True, report coverage of NumPy code. Default is False.
+(This requires the
+<a class="reference external" href="https://nedbatchelder.com/code/modules/coveragehtml">coverage module</a>).</p>
+</dd>
+<dt><strong>raise_warnings</strong><span class="classifier">None</span></dt><dd><p>Unused.</p>
+</dd>
+<dt><strong>timer</strong><span class="classifier">False</span></dt><dd><p>Unused.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>code</strong><span class="classifier">ExitCode</span></dt><dd><p>Returns the result of running the tests as a <code class="docutils literal notranslate"><span class="pre">pytest.ExitCode</span></code> enum</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

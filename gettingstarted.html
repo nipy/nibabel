@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Nibabel images" href="nibabel_images.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel_images.html" title="Nibabel images"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="manual.html" accesskey="U">NiBabel Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="installation.html"
+                          title="previous chapter">Installation</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel_images.html"
+                          title="next chapter">Nibabel images</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gettingstarted.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="getting-started">
+<span id="gettingstarted"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
+<p>NiBabel supports an ever growing collection of neuroimaging file formats. Every
+file format format has its own features and peculiarities that need to be taken
+care of to get the most out of it. To this end, NiBabel offers both high-level
+format-independent access to neuroimages, as well as an API with various levels
+of format-specific access to all available information in a particular file
+format.  The following examples show some of NiBabel’s capabilities and give
+you an idea of the API.</p>
+<p>For more detail on the API, see <a class="reference internal" href="nibabel_images.html"><span class="doc">Nibabel images</span></a>.</p>
+<p>When loading an image, NiBabel tries to figure out the image format from the
+filename. An image in a known format can easily be loaded by simply passing its
+filename to the <code class="docutils literal notranslate"><span class="pre">load</span></code> function.</p>
+<p>To start the code examples, we load some useful libraries:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+<p>Then we fine the nibabel directory containing the example data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.testing</span> <span class="kn">import</span> <span class="n">data_path</span>
+</pre></div>
+</div>
+<p>There is a NIfTI file in this directory called <code class="docutils literal notranslate"><span class="pre">example4d.nii.gz</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can import nibabel and load the image:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_filename</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A NiBabel image knows about its shape:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 2)</span>
+</pre></div>
+</div>
+<p>It also records the data type of the data as stored on disk. In this case the
+data on disk are 16 bit signed integers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">()</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The image has an affine transformation that determines the world-coordinates of
+the image elements (see <a class="reference internal" href="coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">affine</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(4, 4)</span>
+</pre></div>
+</div>
+<p>This information is available without the need to load anything of the main
+image data into the memory. Of course there is also access to the image data as
+a <a class="reference external" href="http://www.numpy.org">NumPy</a> array</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="go">&lt;... &#39;numpy.ndarray&#39;&gt;</span>
+</pre></div>
+</div>
+<p>The complete information embedded in an image header is available via a
+format-specific header object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">header</span>
+</pre></div>
+</div>
+<p>In case of this <a class="reference external" href="http://nifti.nimh.nih.gov">NIfTI</a> file it allows accessing all NIfTI-specific information,
+e.g.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_xyzt_units</span><span class="p">()</span>
+<span class="go">(&#39;mm&#39;, &#39;sec&#39;)</span>
+</pre></div>
+</div>
+<p>Corresponding “setter” methods allow modifying a header, while ensuring its
+compliance with the file format specifications.</p>
+<p>In some situations we need even more flexibility and, for those with great
+courage, NiBabel also offers access to the raw header information</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">raw</span> <span class="o">=</span> <span class="n">hdr</span><span class="o">.</span><span class="n">structarr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw</span><span class="p">[</span><span class="s1">&#39;xyzt_units&#39;</span><span class="p">]</span>
+<span class="go">array(10, dtype=uint8)</span>
+</pre></div>
+</div>
+<p>This lowest level of the API is designed for people who know the file format
+well enough to work with its internal data, and comes without any safety-net.</p>
+<p>Creating a new image in some file format is also easy. At a minimum it only
+needs some image data and an image coordinate transformation (affine):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">()</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get_xyzt_units</span><span class="p">()</span>
+<span class="go">(&#39;unknown&#39;, &#39;unknown&#39;)</span>
+</pre></div>
+</div>
+<p>In this case, we used the identity matrix as the affine transformation. The
+image header is initialized from the provided data array (i.e. shape, dtype)
+and all other values are set to reasonable defaults.</p>
+<p>Saving this new image to a file is trivial:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;build&#39;</span><span class="p">,</span> <span class="s1">&#39;test4d.nii.gz&#39;</span><span class="p">))</span>  
+</pre></div>
+</div>
+<p>This short introduction only gave a quick overview of NiBabel’s capabilities.
+Please have a look at the <a class="reference internal" href="api.html#api"><span class="std std-ref">API Documentation</span></a> for more details about supported file
+formats and their features.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Core Developer Guide" href="../devel/core_developer.html" />
+    <link rel="prev" title="Maintainer workflow" href="maintainer_workflow.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../devel/core_developer.html" title="Core Developer Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="maintainer_workflow.html" title="Maintainer workflow"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../devel/index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../devel/devguide.html" >NiBabel Developer Guidelines</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="index.html" accesskey="U">Working with <em>nibabel</em> source code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">git resources</a><ul>
+<li><a class="reference internal" href="#tutorials-and-summaries">Tutorials and summaries</a></li>
+<li><a class="reference internal" href="#advanced-git-workflow">Advanced git workflow</a></li>
+<li><a class="reference internal" href="#manual-pages-online">Manual pages online</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="maintainer_workflow.html"
+                          title="previous chapter">Maintainer workflow</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../devel/core_developer.html"
+                          title="next chapter">Core Developer Guide</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/gitwash/git_resources.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="git-resources">
+<span id="id1"></span><h1>git resources<a class="headerlink" href="#git-resources" title="Link to this heading">¶</a></h1>
+<section id="tutorials-and-summaries">
+<h2>Tutorials and summaries<a class="headerlink" href="#tutorials-and-summaries" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://help.github.com">github help</a> has an excellent series of how-to guides.</p></li>
+<li><p><a class="reference external" href="https://guides.github.com/">learn.github</a> has an excellent series of tutorials</p></li>
+<li><p>The <a class="reference external" href="https://progit.org/">pro git book</a> is a good in-depth book on git.</p></li>
+<li><p>A <a class="reference external" href="https://github.com/guides/git-cheat-sheet">git cheat sheet</a> is a page giving summaries of common commands.</p></li>
+<li><p>The <a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/user-manual.html">git user manual</a></p></li>
+<li><p>The <a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/gittutorial.html">git tutorial</a></p></li>
+<li><p>The <a class="reference external" href="https://git-scm.com/book/en/v2">git community book</a></p></li>
+<li><p><a class="reference external" href="http://www.gitready.com/">git ready</a> — a nice series of tutorials</p></li>
+<li><p><a class="reference external" href="http://www.gitcasts.com/">git casts</a> — video snippets giving git how-tos.</p></li>
+<li><p><a class="reference external" href="http://www-cs-students.stanford.edu/~blynn/gitmagic/index.html">git magic</a> — extended introduction with intermediate detail</p></li>
+<li><p>The <a class="reference external" href="http://tom.preston-werner.com/2009/05/19/the-git-parable.html">git parable</a> is an easy read explaining the concepts behind git.</p></li>
+<li><p><a class="reference external" href="https://matthew-brett.github.io/pydagogue/foundation.html">git foundation</a> expands on the <a class="reference external" href="http://tom.preston-werner.com/2009/05/19/the-git-parable.html">git parable</a>.</p></li>
+<li><p>Fernando Perez’ git page — <a class="reference external" href="http://www.fperez.org/py4science/git.html">Fernando’s git page</a> — many
+links and tips</p></li>
+<li><p>A good but technical page on <a class="reference external" href="http://www.sbf5.com/~cduan/technical/git/">git concepts</a></p></li>
+<li><p><a class="reference external" href="https://git-scm.com/course/svn.html">git svn crash course</a>: git for those of us used to <a class="reference external" href="https://subversion.apache.org/">subversion</a></p></li>
+</ul>
+</section>
+<section id="advanced-git-workflow">
+<h2>Advanced git workflow<a class="headerlink" href="#advanced-git-workflow" title="Link to this heading">¶</a></h2>
+<p>There are many ways of working with git; here are some posts on the
+rules of thumb that other projects have come up with:</p>
+<ul class="simple">
+<li><p>Linus Torvalds on <a class="reference external" href="http://kerneltrap.org/Linux/Git_Management">git management</a></p></li>
+<li><p>Linus Torvalds on <a class="reference external" href="https://www.mail-archive.com/dri-devel&#64;lists.sourceforge.net/msg39091.html">linux git workflow</a> .  Summary; use the git tools
+to make the history of your edits as clean as possible; merge from
+upstream edits as little as possible in branches where you are doing
+active development.</p></li>
+</ul>
+</section>
+<section id="manual-pages-online">
+<h2>Manual pages online<a class="headerlink" href="#manual-pages-online" title="Link to this heading">¶</a></h2>
+<p>You can get these on your own machine with (e.g) <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">help</span> <span class="pre">push</span></code> or
+(same thing) <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--help</span></code>, but, for convenience, here are the
+online manual pages for some common commands:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-add.html">git add</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-branch.html">git branch</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-checkout.html">git checkout</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-clone.html">git clone</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-commit.html">git commit</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-config.html">git config</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-diff.html">git diff</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-log.html">git log</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-pull.html">git pull</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-push.html">git push</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-remote.html">git remote</a></p></li>
+<li><p><a class="reference external" href="https://www.kernel.org/pub/software/scm/git/docs/git-status.html">git status</a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

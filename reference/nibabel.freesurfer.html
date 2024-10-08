@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="minc1" href="nibabel.minc1.html" />
+    <link rel="prev" title="gifti" href="nibabel.gifti.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.minc1.html" title="minc1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.gifti.html" title="gifti"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a><ul>
+<li><a class="reference internal" href="#module-nibabel.freesurfer.io">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer.io</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.freesurfer.mghformat">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer.mghformat</span></code></a><ul>
+<li><a class="reference internal" href="#read-annot">read_annot</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.read_annot"><code class="docutils literal notranslate"><span class="pre">read_annot()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-geometry">read_geometry</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.read_geometry"><code class="docutils literal notranslate"><span class="pre">read_geometry()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-label">read_label</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.read_label"><code class="docutils literal notranslate"><span class="pre">read_label()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-morph-data">read_morph_data</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.read_morph_data"><code class="docutils literal notranslate"><span class="pre">read_morph_data()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#write-annot">write_annot</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.write_annot"><code class="docutils literal notranslate"><span class="pre">write_annot()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#write-geometry">write_geometry</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.write_geometry"><code class="docutils literal notranslate"><span class="pre">write_geometry()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#write-morph-data">write_morph_data</a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.io.write_morph_data"><code class="docutils literal notranslate"><span class="pre">write_morph_data()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mgherror"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHError"><code class="docutils literal notranslate"><span class="pre">MGHError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHError.__init__"><code class="docutils literal notranslate"><span class="pre">MGHError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mghheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader"><code class="docutils literal notranslate"><span class="pre">MGHHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.__init__"><code class="docutils literal notranslate"><span class="pre">MGHHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.as_byteswapped"><code class="docutils literal notranslate"><span class="pre">MGHHeader.as_byteswapped()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.chk_version"><code class="docutils literal notranslate"><span class="pre">MGHHeader.chk_version()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.copy"><code class="docutils literal notranslate"><span class="pre">MGHHeader.copy()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.data_from_fileobj"><code class="docutils literal notranslate"><span class="pre">MGHHeader.data_from_fileobj()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.default_structarr"><code class="docutils literal notranslate"><span class="pre">MGHHeader.default_structarr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.diagnose_binaryblock"><code class="docutils literal notranslate"><span class="pre">MGHHeader.diagnose_binaryblock()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.from_fileobj"><code class="docutils literal notranslate"><span class="pre">MGHHeader.from_fileobj()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.from_header"><code class="docutils literal notranslate"><span class="pre">MGHHeader.from_header()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_affine"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_best_affine"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_best_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_bytespervox"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_data_bytespervox()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_dtype"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_data_dtype()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_offset"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_data_offset()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_shape"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_data_shape()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_size"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_data_size()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_footer_offset"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_footer_offset()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_ras2vox"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_ras2vox()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_slope_inter"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_slope_inter()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_vox2ras"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_vox2ras()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_vox2ras_tkr"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_vox2ras_tkr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.get_zooms"><code class="docutils literal notranslate"><span class="pre">MGHHeader.get_zooms()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.guessed_endian"><code class="docutils literal notranslate"><span class="pre">MGHHeader.guessed_endian()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.set_data_dtype"><code class="docutils literal notranslate"><span class="pre">MGHHeader.set_data_dtype()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.set_data_shape"><code class="docutils literal notranslate"><span class="pre">MGHHeader.set_data_shape()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.set_zooms"><code class="docutils literal notranslate"><span class="pre">MGHHeader.set_zooms()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.template_dtype"><code class="docutils literal notranslate"><span class="pre">MGHHeader.template_dtype</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.writeftr_to"><code class="docutils literal notranslate"><span class="pre">MGHHeader.writeftr_to()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader.writehdr_to"><code class="docutils literal notranslate"><span class="pre">MGHHeader.writehdr_to()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mghimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage"><code class="docutils literal notranslate"><span class="pre">MGHImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.__init__"><code class="docutils literal notranslate"><span class="pre">MGHImage.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.ImageArrayProxy"><code class="docutils literal notranslate"><span class="pre">MGHImage.ImageArrayProxy</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.files_types"><code class="docutils literal notranslate"><span class="pre">MGHImage.files_types</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.filespec_to_file_map"><code class="docutils literal notranslate"><span class="pre">MGHImage.filespec_to_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">MGHImage.from_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.header_class"><code class="docutils literal notranslate"><span class="pre">MGHImage.header_class</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.makeable"><code class="docutils literal notranslate"><span class="pre">MGHImage.makeable</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.rw"><code class="docutils literal notranslate"><span class="pre">MGHImage.rw</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.to_file_map"><code class="docutils literal notranslate"><span class="pre">MGHImage.to_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">MGHImage.valid_exts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.gifti.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.minc1.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.freesurfer.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.freesurfer">
+<span id="freesurfer"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code><a class="headerlink" href="#module-nibabel.freesurfer" title="Link to this heading">¶</a></h1>
+<p>Reading functions for freesurfer files</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+</tbody>
+</table>
+<section id="module-nibabel.freesurfer.io">
+<span id="module-freesurfer-io"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer.io</span></code><a class="headerlink" href="#module-nibabel.freesurfer.io" title="Link to this heading">¶</a></h2>
+<p>Read / write FreeSurfer geometry, morphometry, label, annotation formats</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.read_annot" title="nibabel.freesurfer.io.read_annot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_annot</span></code></a>(filepath[, orig_ids])</p></td>
+<td><p>Read in a Freesurfer annotation from a <code class="docutils literal notranslate"><span class="pre">.annot</span></code> file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.read_geometry" title="nibabel.freesurfer.io.read_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_geometry</span></code></a>(filepath[, read_metadata, ...])</p></td>
+<td><p>Read a triangular format Freesurfer surface mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.read_label" title="nibabel.freesurfer.io.read_label"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_label</span></code></a>(filepath[, read_scalars])</p></td>
+<td><p>Load in a Freesurfer .label file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.read_morph_data" title="nibabel.freesurfer.io.read_morph_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_morph_data</span></code></a>(filepath)</p></td>
+<td><p>Read a Freesurfer morphometry data file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.write_annot" title="nibabel.freesurfer.io.write_annot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_annot</span></code></a>(filepath, labels, ctab, names[, ...])</p></td>
+<td><p>Write out a &quot;new-style&quot; Freesurfer annotation file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.write_geometry" title="nibabel.freesurfer.io.write_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_geometry</span></code></a>(filepath, coords, faces[, ...])</p></td>
+<td><p>Write a triangular format Freesurfer surface mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.freesurfer.io.write_morph_data" title="nibabel.freesurfer.io.write_morph_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_morph_data</span></code></a>(file_like, values[, fnum])</p></td>
+<td><p>Write Freesurfer morphometry data <cite>values</cite> to file-like <cite>file_like</cite></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.freesurfer.mghformat">
+<span id="module-freesurfer-mghformat"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer.mghformat</span></code><a class="headerlink" href="#module-nibabel.freesurfer.mghformat" title="Link to this heading">¶</a></h2>
+<p>Header and image reading / writing functions for MGH image format</p>
+<p>Author: Krish Subramaniam</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHError" title="nibabel.freesurfer.mghformat.MGHError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MGHError</span></code></a></p></td>
+<td><p>Exception for MGH format related problems.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader" title="nibabel.freesurfer.mghformat.MGHHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MGHHeader</span></code></a>([binaryblock, check])</p></td>
+<td><p>Class for MGH format header</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage" title="nibabel.freesurfer.mghformat.MGHImage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MGHImage</span></code></a>(dataobj, affine[, header, extra, ...])</p></td>
+<td><p>Class for MGH format image</p></td>
+</tr>
+</tbody>
+</table>
+<section id="read-annot">
+<h3>read_annot<a class="headerlink" href="#read-annot" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.read_annot">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">read_annot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.read_annot" title="Link to this definition">¶</a></dt>
+<dd><p>Read in a Freesurfer annotation from a <code class="docutils literal notranslate"><span class="pre">.annot</span></code> file.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">.annot</span></code> file contains a sequence of vertices with a label (also known
+as an “annotation value”) associated with each vertex, and then a sequence
+of colors corresponding to each label.</p>
+<p>Annotation file format versions 1 and 2 are supported, corresponding to
+the “old-style” and “new-style” color table layout.</p>
+<p>Note that the output color table <code class="docutils literal notranslate"><span class="pre">ctab</span></code> is in RGBT form, where T
+(transparency) is 255 - alpha.</p>
+<dl class="simple">
+<dt>See:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation">https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/freesurfer/freesurfer/blob/dev/matlab/read_annotation.m">https://github.com/freesurfer/freesurfer/blob/dev/matlab/read_annotation.m</a></p></li>
+<li><p><a class="reference external" href="https://github.com/freesurfer/freesurfer/blob/8b88b34/utils/colortab.c">https://github.com/freesurfer/freesurfer/blob/8b88b34/utils/colortab.c</a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to annotation file.</p>
+</dd>
+<dt><strong>orig_ids</strong><span class="classifier">bool</span></dt><dd><p>Whether to return the vertex ids as stored in the annotation
+file or the positional colortable ids. With orig_ids=False
+vertices with no id have an id set to -1.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>labels</strong><span class="classifier">ndarray, shape (n_vertices,)</span></dt><dd><p>Annotation id at each vertex. If a vertex does not belong
+to any label and orig_ids=False, its id will be set to -1.</p>
+</dd>
+<dt><strong>ctab</strong><span class="classifier">ndarray, shape (n_labels, 5)</span></dt><dd><p>RGBT + label id colortable array.</p>
+</dd>
+<dt><strong>names</strong><span class="classifier">list of bytes</span></dt><dd><p>The names of the labels. The length of the list is n_labels.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-geometry">
+<h3>read_geometry<a class="headerlink" href="#read-geometry" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.read_geometry">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">read_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_stamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.read_geometry" title="Link to this definition">¶</a></dt>
+<dd><p>Read a triangular format Freesurfer surface mesh.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to surface file.</p>
+</dd>
+<dt><strong>read_metadata</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, read and return metadata as key-value pairs.</p>
+<p>Valid keys:</p>
+<ul class="simple">
+<li><p>‘head’ : array of int</p></li>
+<li><p>‘valid’ : str</p></li>
+<li><p>‘filename’ : str</p></li>
+<li><p>‘volume’ : array of int, shape (3,)</p></li>
+<li><p>‘voxelsize’ : array of float, shape (3,)</p></li>
+<li><p>‘xras’ : array of float, shape (3,)</p></li>
+<li><p>‘yras’ : array of float, shape (3,)</p></li>
+<li><p>‘zras’ : array of float, shape (3,)</p></li>
+<li><p>‘cras’ : array of float, shape (3,)</p></li>
+</ul>
+</dd>
+<dt><strong>read_stamp</strong><span class="classifier">bool, optional</span></dt><dd><p>Return the comment from the file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>coords</strong><span class="classifier">numpy array</span></dt><dd><p>nvtx x 3 array of vertex (x, y, z) coordinates.</p>
+</dd>
+<dt><strong>faces</strong><span class="classifier">numpy array</span></dt><dd><p>nfaces x 3 array of defining mesh triangles.</p>
+</dd>
+<dt><strong>volume_info</strong><span class="classifier">OrderedDict</span></dt><dd><p>Returned only if <cite>read_metadata</cite> is True.  Key-value pairs found in the
+geometry file.</p>
+</dd>
+<dt><strong>create_stamp</strong><span class="classifier">str</span></dt><dd><p>Returned only if <cite>read_stamp</cite> is True.  The comment added by the
+program that saved the file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-label">
+<h3>read_label<a class="headerlink" href="#read-label" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.read_label">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">read_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_scalars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.read_label" title="Link to this definition">¶</a></dt>
+<dd><p>Load in a Freesurfer .label file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to label file.</p>
+</dd>
+<dt><strong>read_scalars</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, read and return scalars associated with each vertex.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>label_array</strong><span class="classifier">numpy array</span></dt><dd><p>Array with indices of vertices included in label.</p>
+</dd>
+<dt><strong>scalar_array</strong><span class="classifier">numpy array (floats)</span></dt><dd><p>Only returned if <cite>read_scalars</cite> is True.  Array of scalar data for each
+vertex.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-morph-data">
+<h3>read_morph_data<a class="headerlink" href="#read-morph-data" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.read_morph_data">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">read_morph_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.read_morph_data" title="Link to this definition">¶</a></dt>
+<dd><p>Read a Freesurfer morphometry data file.</p>
+<p>This function reads in what Freesurfer internally calls “curv” file types,
+(e.g. ?h. curv, ?h.thickness), but as that has the potential to cause
+confusion where “curv” also refers to the surface curvature values,
+we refer to these files as “morphometry” files with PySurfer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to morphometry file</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>curv</strong><span class="classifier">numpy array</span></dt><dd><p>Vector representation of surface morpometry values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="write-annot">
+<h3>write_annot<a class="headerlink" href="#write-annot" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.write_annot">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">write_annot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctab</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_ctab</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.write_annot" title="Link to this definition">¶</a></dt>
+<dd><p>Write out a “new-style” Freesurfer annotation file.</p>
+<p>Note that the color table <code class="docutils literal notranslate"><span class="pre">ctab</span></code> is in RGBT form, where T (transparency)
+is 255 - alpha.</p>
+<dl class="simple">
+<dt>See:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation">https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles#Annotation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/freesurfer/freesurfer/blob/dev/matlab/write_annotation.m">https://github.com/freesurfer/freesurfer/blob/dev/matlab/write_annotation.m</a></p></li>
+<li><p><a class="reference external" href="https://github.com/freesurfer/freesurfer/blob/8b88b34/utils/colortab.c">https://github.com/freesurfer/freesurfer/blob/8b88b34/utils/colortab.c</a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to annotation file to be written</p>
+</dd>
+<dt><strong>labels</strong><span class="classifier">ndarray, shape (n_vertices,)</span></dt><dd><p>Annotation id at each vertex.</p>
+</dd>
+<dt><strong>ctab</strong><span class="classifier">ndarray, shape (n_labels, 5)</span></dt><dd><p>RGBT + label id colortable array.</p>
+</dd>
+<dt><strong>names</strong><span class="classifier">list of str</span></dt><dd><p>The names of the labels. The length of the list is n_labels.</p>
+</dd>
+<dt><strong>fill_ctab</strong><span class="classifier">{True, False} optional</span></dt><dd><p>If True, the annotation values for each vertex  are automatically
+generated. In this case, the provided <cite>ctab</cite> may have shape
+(n_labels, 4) or (n_labels, 5) - if the latter, the final column is
+ignored.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="write-geometry">
+<h3>write_geometry<a class="headerlink" href="#write-geometry" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.write_geometry">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">write_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_stamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.write_geometry" title="Link to this definition">¶</a></dt>
+<dd><p>Write a triangular format Freesurfer surface mesh.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to surface file.</p>
+</dd>
+<dt><strong>coords</strong><span class="classifier">numpy array</span></dt><dd><p>nvtx x 3 array of vertex (x, y, z) coordinates.</p>
+</dd>
+<dt><strong>faces</strong><span class="classifier">numpy array</span></dt><dd><p>nfaces x 3 array of defining mesh triangles.</p>
+</dd>
+<dt><strong>create_stamp</strong><span class="classifier">str, optional</span></dt><dd><p>User/time stamp (default: “created by &lt;user&gt; on &lt;ctime&gt;”)</p>
+</dd>
+<dt><strong>volume_info</strong><span class="classifier">dict-like or None, optional</span></dt><dd><p>Key-value pairs to encode at the end of the file.</p>
+<p>Valid keys:</p>
+<ul class="simple">
+<li><p>‘head’ : array of int</p></li>
+<li><p>‘valid’ : str</p></li>
+<li><p>‘filename’ : str</p></li>
+<li><p>‘volume’ : array of int, shape (3,)</p></li>
+<li><p>‘voxelsize’ : array of float, shape (3,)</p></li>
+<li><p>‘xras’ : array of float, shape (3,)</p></li>
+<li><p>‘yras’ : array of float, shape (3,)</p></li>
+<li><p>‘zras’ : array of float, shape (3,)</p></li>
+<li><p>‘cras’ : array of float, shape (3,)</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="write-morph-data">
+<h3>write_morph_data<a class="headerlink" href="#write-morph-data" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.freesurfer.io.write_morph_data">
+<span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.io.</span></span><span class="sig-name descname"><span class="pre">write_morph_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fnum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.io.write_morph_data" title="Link to this definition">¶</a></dt>
+<dd><p>Write Freesurfer morphometry data <cite>values</cite> to file-like <cite>file_like</cite></p>
+<p>Equivalent to FreeSurfer’s <a class="reference external" href="https://github.com/neurodebian/freesurfer/blob/debian-sloppy/matlab/write_curv.m">write_curv.m</a></p>
+<p>See also:
+<a class="reference external" href="http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm#CurvNew">http://www.grahamwideman.com/gw/brain/fs/surfacefileformats.htm#CurvNew</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_like</strong><span class="classifier">file-like</span></dt><dd><p>String containing path of file to be written, or file-like object, open
+in binary write (<cite>‘wb’</cite> mode, implementing the <cite>write</cite> method)</p>
+</dd>
+<dt><strong>values</strong><span class="classifier">array-like</span></dt><dd><p>Surface morphometry values.  Shape must be (N,), (N, 1), (1, N) or (N,
+1, 1)</p>
+</dd>
+<dt><strong>fnum</strong><span class="classifier">int, optional</span></dt><dd><p>Number of faces in the associated surface.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="mgherror">
+<h3><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHError" title="nibabel.freesurfer.mghformat.MGHError"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHError</span></code></a><a class="headerlink" href="#mgherror" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.mghformat.</span></span><span class="sig-name descname"><span class="pre">MGHError</span></span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Exception for MGH format related problems.</p>
+<p>To be raised whenever MGH is not happy, or we are not happy with
+MGH.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="mghheader">
+<h3><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader" title="nibabel.freesurfer.mghformat.MGHHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHHeader</span></code></a><a class="headerlink" href="#mghheader" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.mghformat.</span></span><span class="sig-name descname"><span class="pre">MGHHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.wrapstruct.html#nibabel.wrapstruct.LabeledWrapStruct" title="nibabel.wrapstruct.LabeledWrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">LabeledWrapStruct</span></code></a>, <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialHeader" title="nibabel.spatialimages.SpatialHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialHeader</span></code></a></p>
+<p>Class for MGH format header</p>
+<p>The header also consists of the footer data which MGH places after the data
+chunk.</p>
+<p>Initialize header from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into header.  By default, None, in
+which case we insert the default empty header block</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of header in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize header from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into header.  By default, None, in
+which case we insert the default empty header block</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of header in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.as_byteswapped">
+<span class="sig-name descname"><span class="pre">as_byteswapped</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.as_byteswapped" title="Link to this definition">¶</a></dt>
+<dd><p>Return new object with given <code class="docutils literal notranslate"><span class="pre">endianness</span></code></p>
+<p>If big endian, returns a copy of the object. Otherwise raises ValueError.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>endianness</strong><span class="classifier">None or string, optional</span></dt><dd><p>endian code to which to swap.  None means swap from current
+endianness, and is the default</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>wstr</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">MGHHeader</span></code></span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">MGHHeader</span></code> object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.chk_version">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">chk_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.chk_version" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Return copy of structure</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.data_from_fileobj">
+<span class="sig-name descname"><span class="pre">data_from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.data_from_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Read data array from <cite>fileobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like</span></dt><dd><p>Must be open, and implement <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code> methods</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">ndarray</span></dt><dd><p>data array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.default_structarr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_structarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.default_structarr" title="Link to this definition">¶</a></dt>
+<dd><p>Return header data for empty header</p>
+<p>Ignores byte order; always big endian</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.diagnose_binaryblock">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">diagnose_binaryblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.diagnose_binaryblock" title="Link to this definition">¶</a></dt>
+<dd><p>Run checks over binary data, return string</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.from_fileobj">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.from_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>classmethod for loading a MGH fileobject</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.from_header">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.from_header" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create MGH header from another MGH header</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_affine">
+<span class="sig-name descname"><span class="pre">get_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Get the affine transform from the header information.</p>
+<p>MGH format doesn’t store the transform directly. Instead it’s gleaned
+from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
+Pxyz_c ) and the dimensions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_best_affine">
+<span class="sig-name descname"><span class="pre">get_best_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_best_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Get the affine transform from the header information.</p>
+<p>MGH format doesn’t store the transform directly. Instead it’s gleaned
+from the zooms ( delta ), direction cosines ( Mdc ), RAS centers (
+Pxyz_c ) and the dimensions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_data_bytespervox">
+<span class="sig-name descname"><span class="pre">get_data_bytespervox</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_bytespervox" title="Link to this definition">¶</a></dt>
+<dd><p>Get the number of bytes per voxel of the data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_data_dtype">
+<span class="sig-name descname"><span class="pre">get_data_dtype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_dtype" title="Link to this definition">¶</a></dt>
+<dd><p>Get numpy dtype for MGH data</p>
+<p>For examples see <code class="docutils literal notranslate"><span class="pre">set_data_dtype</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_data_offset">
+<span class="sig-name descname"><span class="pre">get_data_offset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Return offset into data file to read data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_data_shape">
+<span class="sig-name descname"><span class="pre">get_data_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Get shape of data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_data_size">
+<span class="sig-name descname"><span class="pre">get_data_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_data_size" title="Link to this definition">¶</a></dt>
+<dd><p>Get the number of bytes the data chunk occupies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_footer_offset">
+<span class="sig-name descname"><span class="pre">get_footer_offset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_footer_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Return offset where the footer resides.
+Occurs immediately after the data chunk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_ras2vox">
+<span class="sig-name descname"><span class="pre">get_ras2vox</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_ras2vox" title="Link to this definition">¶</a></dt>
+<dd><p>return the inverse get_affine()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_slope_inter">
+<span class="sig-name descname"><span class="pre">get_slope_inter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_slope_inter" title="Link to this definition">¶</a></dt>
+<dd><p>MGH format does not do scaling?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_vox2ras">
+<span class="sig-name descname"><span class="pre">get_vox2ras</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_vox2ras" title="Link to this definition">¶</a></dt>
+<dd><p>return the get_affine()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_vox2ras_tkr">
+<span class="sig-name descname"><span class="pre">get_vox2ras_tkr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_vox2ras_tkr" title="Link to this definition">¶</a></dt>
+<dd><p>Get the vox2ras-tkr transform. See “Torig” here:
+<a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems">https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems</a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.get_zooms">
+<span class="sig-name descname"><span class="pre">get_zooms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.get_zooms" title="Link to this definition">¶</a></dt>
+<dd><p>Get zooms from header</p>
+<p>Returns the spacing of voxels in the x, y, and z dimensions.
+For four-dimensional files, a fourth zoom is included, equal to the
+repetition time (TR) in ms (see <a class="reference external" href="mghformat">The MGH/MGZ Volume Format</a>).</p>
+<p>To access only the spatial zooms, use <cite>hdr[‘delta’]</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">tuple</span></dt><dd><p>tuple of header zoom values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.guessed_endian">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">guessed_endian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.guessed_endian" title="Link to this definition">¶</a></dt>
+<dd><p>MGHHeader data must be big-endian</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.set_data_dtype">
+<span class="sig-name descname"><span class="pre">set_data_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datatype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.set_data_dtype" title="Link to this definition">¶</a></dt>
+<dd><p>Set numpy dtype for data from code or dtype or type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.set_data_shape">
+<span class="sig-name descname"><span class="pre">set_data_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.set_data_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Set shape of data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape</strong><span class="classifier">sequence</span></dt><dd><p>sequence of integers specifying data array shape</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.set_zooms">
+<span class="sig-name descname"><span class="pre">set_zooms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zooms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.set_zooms" title="Link to this definition">¶</a></dt>
+<dd><p>Set zooms into header fields</p>
+<p>Sets the spacing of voxels in the x, y, and z dimensions.
+For four-dimensional files, a temporal zoom (repetition time, or TR, in
+ms) may be provided as a fourth sequence element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zooms</strong><span class="classifier">sequence</span></dt><dd><p>sequence of floats specifying spatial and (optionally) temporal
+zooms</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.template_dtype">
+<span class="sig-name descname"><span class="pre">template_dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('version',</span> <span class="pre">'&gt;i4'),</span> <span class="pre">('dims',</span> <span class="pre">'&gt;i4',</span> <span class="pre">(4,)),</span> <span class="pre">('type',</span> <span class="pre">'&gt;i4'),</span> <span class="pre">('dof',</span> <span class="pre">'&gt;i4'),</span> <span class="pre">('goodRASFlag',</span> <span class="pre">'&gt;i2'),</span> <span class="pre">('delta',</span> <span class="pre">'&gt;f4',</span> <span class="pre">(3,)),</span> <span class="pre">('Mdc',</span> <span class="pre">'&gt;f4',</span> <span class="pre">(3,</span> <span class="pre">3)),</span> <span class="pre">('Pxyz_c',</span> <span class="pre">'&gt;f4',</span> <span class="pre">(3,)),</span> <span class="pre">('tr',</span> <span class="pre">'&gt;f4'),</span> <span class="pre">('flip_angle',</span> <span class="pre">'&gt;f4'),</span> <span class="pre">('te',</span> <span class="pre">'&gt;f4'),</span> <span class="pre">('ti',</span> <span class="pre">'&gt;f4'),</span> <span class="pre">('fov',</span> <span class="pre">'&gt;f4')])</span></em><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.template_dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.writeftr_to">
+<span class="sig-name descname"><span class="pre">writeftr_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.writeftr_to" title="Link to this definition">¶</a></dt>
+<dd><p>Write footer to fileobj</p>
+<p>Footer data is located after the data chunk. So move there and write.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>Should implement <code class="docutils literal notranslate"><span class="pre">write</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code> method</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHHeader.writehdr_to">
+<span class="sig-name descname"><span class="pre">writehdr_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHHeader.writehdr_to" title="Link to this definition">¶</a></dt>
+<dd><p>Write header to fileobj</p>
+<p>Write starts at the beginning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>Should implement <code class="docutils literal notranslate"><span class="pre">write</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code> method</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="mghimage">
+<h3><a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHImage" title="nibabel.freesurfer.mghformat.MGHImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHImage</span></code></a><a class="headerlink" href="#mghimage" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.freesurfer.mghformat.</span></span><span class="sig-name descname"><span class="pre">MGHImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a>, <a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.SerializableImage" title="nibabel.filebasedimages.SerializableImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SerializableImage</span></code></a></p>
+<p>Class for MGH format image</p>
+<p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.ImageArrayProxy">
+<span class="sig-name descname"><span class="pre">ImageArrayProxy</span></span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.ImageArrayProxy" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy" title="nibabel.arrayproxy.ArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayProxy</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.files_types">
+<span class="sig-name descname"><span class="pre">files_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">'.mgh'),)</span></em><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.files_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.filespec_to_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">filespec_to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filespec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.filespec_to_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Make <cite>file_map</cite> for this class from filename <cite>filespec</cite></p>
+<p>Class method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filespec</strong><span class="classifier">str or os.PathLike</span></dt><dd><p>Filename that might be for this image file type.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">dict</span></dt><dd><p><cite>file_map</cite> dict with (key, value) pairs of (<code class="docutils literal notranslate"><span class="pre">file_type</span></code>,
+FileHolder instance), where <code class="docutils literal notranslate"><span class="pre">file_type</span></code> is a string giving the
+type of the contained file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ImageFileError</dt><dd><p>if <cite>filespec</cite> is not recognizable as being a filename for this
+image type.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.from_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.from_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create image from mapping in <code class="docutils literal notranslate"><span class="pre">file_map</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">dict</span></dt><dd><p>Mapping with (key, value) pairs of (<code class="docutils literal notranslate"><span class="pre">file_type</span></code>, FileHolder
+instance giving file-likes for each file needed for this image
+type.</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+If <code class="docutils literal notranslate"><span class="pre">file_map</span></code> refers to an open file handle, this setting has no
+effect. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">MGHImage instance</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.header_class">
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.header_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.freesurfer.mghformat.MGHHeader" title="nibabel.freesurfer.mghformat.MGHHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">MGHHeader</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.makeable">
+<span class="sig-name descname"><span class="pre">makeable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.makeable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.rw">
+<span class="sig-name descname"><span class="pre">rw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.rw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.to_file_map">
+<span class="sig-name descname"><span class="pre">to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.to_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Write image to <cite>file_map</cite> or contained <code class="docutils literal notranslate"><span class="pre">self.file_map</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>files mapping.  If None (default) use object’s <code class="docutils literal notranslate"><span class="pre">file_map</span></code>
+attribute instead</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.freesurfer.mghformat.MGHImage.valid_exts">
+<span class="sig-name descname"><span class="pre">valid_exts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.mgh',</span> <span class="pre">'.mgz')</span></em><a class="headerlink" href="#nibabel.freesurfer.mghformat.MGHImage.valid_exts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

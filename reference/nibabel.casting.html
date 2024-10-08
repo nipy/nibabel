@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="data" href="nibabel.data.html" />
+    <link rel="prev" title="arraywriters" href="nibabel.arraywriters.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.data.html" title="data"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.arraywriters.html" title="arraywriters"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a><ul>
+<li><a class="reference internal" href="#castingerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">CastingError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.casting.CastingError"><code class="docutils literal notranslate"><span class="pre">CastingError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.casting.CastingError.__init__"><code class="docutils literal notranslate"><span class="pre">CastingError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#floatingerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">FloatingError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.casting.FloatingError"><code class="docutils literal notranslate"><span class="pre">FloatingError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.casting.FloatingError.__init__"><code class="docutils literal notranslate"><span class="pre">FloatingError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#able-int-type">able_int_type</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.able_int_type"><code class="docutils literal notranslate"><span class="pre">able_int_type()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#as-int">as_int</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.as_int"><code class="docutils literal notranslate"><span class="pre">as_int()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#best-float">best_float</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.best_float"><code class="docutils literal notranslate"><span class="pre">best_float()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ceil-exact">ceil_exact</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.ceil_exact"><code class="docutils literal notranslate"><span class="pre">ceil_exact()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#float-to-int">float_to_int</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.float_to_int"><code class="docutils literal notranslate"><span class="pre">float_to_int()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#floor-exact">floor_exact</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.floor_exact"><code class="docutils literal notranslate"><span class="pre">floor_exact()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#floor-log2">floor_log2</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.floor_log2"><code class="docutils literal notranslate"><span class="pre">floor_log2()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#have-binary128">have_binary128</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.have_binary128"><code class="docutils literal notranslate"><span class="pre">have_binary128()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#int-abs">int_abs</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.int_abs"><code class="docutils literal notranslate"><span class="pre">int_abs()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#int-to-float">int_to_float</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.int_to_float"><code class="docutils literal notranslate"><span class="pre">int_to_float()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#longdouble-lte-float64">longdouble_lte_float64</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.longdouble_lte_float64"><code class="docutils literal notranslate"><span class="pre">longdouble_lte_float64()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#longdouble-precision-improved">longdouble_precision_improved</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.longdouble_precision_improved"><code class="docutils literal notranslate"><span class="pre">longdouble_precision_improved()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ok-floats">ok_floats</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.ok_floats"><code class="docutils literal notranslate"><span class="pre">ok_floats()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#on-powerpc">on_powerpc</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.on_powerpc"><code class="docutils literal notranslate"><span class="pre">on_powerpc()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shared-range">shared_range</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.shared_range"><code class="docutils literal notranslate"><span class="pre">shared_range()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#type-info">type_info</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.type_info"><code class="docutils literal notranslate"><span class="pre">type_info()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ulp">ulp</a><ul>
+<li><a class="reference internal" href="#nibabel.casting.ulp"><code class="docutils literal notranslate"><span class="pre">ulp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.arraywriters.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.data.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.casting.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.casting">
+<span id="casting"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code><a class="headerlink" href="#module-nibabel.casting" title="Link to this heading">¶</a></h1>
+<p>Utilities for casting numpy values in various ways</p>
+<p>Most routines work round some numpy oddities in floating point precision and
+casting.  Others work round numpy casting to and from python ints</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.CastingError" title="nibabel.casting.CastingError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CastingError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.FloatingError" title="nibabel.casting.FloatingError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FloatingError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.able_int_type" title="nibabel.casting.able_int_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">able_int_type</span></code></a>(values)</p></td>
+<td><p>Find the smallest integer numpy type to contain sequence <cite>values</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.as_int" title="nibabel.casting.as_int"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_int</span></code></a>(x[, check])</p></td>
+<td><p>Return python integer representation of number</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.best_float" title="nibabel.casting.best_float"><code class="xref py py-obj docutils literal notranslate"><span class="pre">best_float</span></code></a>()</p></td>
+<td><p>Floating point type with best precision</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.ceil_exact" title="nibabel.casting.ceil_exact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceil_exact</span></code></a>(val, flt_type)</p></td>
+<td><p>Return nearest exact integer &gt;= <cite>val</cite> in float type <cite>flt_type</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.float_to_int" title="nibabel.casting.float_to_int"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float_to_int</span></code></a>(arr, int_type[, nan2zero, infmax])</p></td>
+<td><p>Convert floating point array <cite>arr</cite> to type <cite>int_type</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.floor_exact" title="nibabel.casting.floor_exact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">floor_exact</span></code></a>(val, flt_type)</p></td>
+<td><p>Return nearest exact integer &lt;= <cite>val</cite> in float type <cite>flt_type</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.floor_log2" title="nibabel.casting.floor_log2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">floor_log2</span></code></a>(x)</p></td>
+<td><p>floor of log2 of abs(<cite>x</cite>)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.have_binary128" title="nibabel.casting.have_binary128"><code class="xref py py-obj docutils literal notranslate"><span class="pre">have_binary128</span></code></a>()</p></td>
+<td><p>True if we have a binary128 IEEE longdouble</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.int_abs" title="nibabel.casting.int_abs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_abs</span></code></a>(arr)</p></td>
+<td><p>Absolute values of array taking care of max negative int values</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.int_to_float" title="nibabel.casting.int_to_float"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_to_float</span></code></a>(val, flt_type)</p></td>
+<td><p>Convert integer <cite>val</cite> to floating point type <cite>flt_type</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.longdouble_lte_float64" title="nibabel.casting.longdouble_lte_float64"><code class="xref py py-obj docutils literal notranslate"><span class="pre">longdouble_lte_float64</span></code></a>()</p></td>
+<td><p>Return True if longdouble appears to have the same precision as float64</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.longdouble_precision_improved" title="nibabel.casting.longdouble_precision_improved"><code class="xref py py-obj docutils literal notranslate"><span class="pre">longdouble_precision_improved</span></code></a>()</p></td>
+<td><p>True if longdouble precision increased since initial import</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.ok_floats" title="nibabel.casting.ok_floats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ok_floats</span></code></a>()</p></td>
+<td><p>Return floating point types sorted by precision</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.on_powerpc" title="nibabel.casting.on_powerpc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_powerpc</span></code></a>()</p></td>
+<td><p>True if we are running on a Power PC platform</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.shared_range" title="nibabel.casting.shared_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_range</span></code></a>(flt_type, int_type)</p></td>
+<td><p>Min and max in float type that are &gt;=min, &lt;=max in integer type</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.casting.type_info" title="nibabel.casting.type_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_info</span></code></a>(np_type)</p></td>
+<td><p>Return dict with min, max, nexp, nmant, width for numpy type <cite>np_type</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.casting.ulp" title="nibabel.casting.ulp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ulp</span></code></a>([val])</p></td>
+<td><p>Return gap between <cite>val</cite> and nearest representable number of same type</p></td>
+</tr>
+</tbody>
+</table>
+<section id="castingerror">
+<h2><a class="reference internal" href="#nibabel.casting.CastingError" title="nibabel.casting.CastingError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CastingError</span></code></a><a class="headerlink" href="#castingerror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.casting.CastingError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">CastingError</span></span><a class="headerlink" href="#nibabel.casting.CastingError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.casting.CastingError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.CastingError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="floatingerror">
+<h2><a class="reference internal" href="#nibabel.casting.FloatingError" title="nibabel.casting.FloatingError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FloatingError</span></code></a><a class="headerlink" href="#floatingerror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.casting.FloatingError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">FloatingError</span></span><a class="headerlink" href="#nibabel.casting.FloatingError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.casting.FloatingError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.FloatingError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="able-int-type">
+<h2>able_int_type<a class="headerlink" href="#able-int-type" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.able_int_type">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">able_int_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.able_int_type" title="Link to this definition">¶</a></dt>
+<dd><p>Find the smallest integer numpy type to contain sequence <cite>values</cite></p>
+<p>Prefers uint to int if minimum is &gt;= 0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>values</strong><span class="classifier">sequence</span></dt><dd><p>sequence of integer values</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>itype</strong><span class="classifier">None or numpy type</span></dt><dd><p>numpy integer type or None if no integer type holds all <cite>values</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">able_int_type</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">able_int_type</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="as-int">
+<h2>as_int<a class="headerlink" href="#as-int" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.as_int">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">as_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.as_int" title="Link to this definition">¶</a></dt>
+<dd><p>Return python integer representation of number</p>
+<p>as_int() is deprecated. Use int() instead.</p>
+<ul class="simple">
+<li><p>deprecated from version: 5.2.0</p></li>
+<li><p>Will raise &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 7.0.0</p></li>
+</ul>
+<p>This is useful because the numpy int(val) mechanism is broken for large
+values in np.longdouble.</p>
+<p>It is also useful to work around a numpy 1.4.1 bug in conversion of uints
+to python ints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">object</span></dt><dd><p>integer, unsigned integer or floating point value</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">{True, False}</span></dt><dd><p>If True, raise error for values that are not integers</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">int</span></dt><dd><p>Python integer</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">as_int</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">as_int</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="go">-2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">as_int</span><span class="p">(</span><span class="mf">2.1</span><span class="p">)</span> 
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">FloatingError</span>: <span class="n">Not an integer: 2.1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">as_int</span><span class="p">(</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="best-float">
+<h2>best_float<a class="headerlink" href="#best-float" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.best_float">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">best_float</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.best_float" title="Link to this definition">¶</a></dt>
+<dd><p>Floating point type with best precision</p>
+<p>This is nearly always np.longdouble, except on Windows, where np.longdouble
+is Intel80 storage, but with float64 precision for calculations.  In that
+case we return float64 on the basis it’s the fastest and smallest at the
+highest precision.</p>
+<p>SPARC float128 also proved so slow that we prefer float64.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>best_type</strong><span class="classifier">numpy type</span></dt><dd><p>floating point type with highest precision</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Needs to run without error for module import, because it is called in
+<code class="docutils literal notranslate"><span class="pre">ok_floats</span></code> below, and therefore in setting module global <code class="docutils literal notranslate"><span class="pre">OK_FLOATS</span></code>.</p>
+</dd></dl>
+
+</section>
+<section id="ceil-exact">
+<h2>ceil_exact<a class="headerlink" href="#ceil-exact" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.ceil_exact">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">ceil_exact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flt_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.ceil_exact" title="Link to this definition">¶</a></dt>
+<dd><p>Return nearest exact integer &gt;= <cite>val</cite> in float type <cite>flt_type</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val</strong><span class="classifier">int</span></dt><dd><p>We have to pass val as an int rather than the floating point type
+because large integers cast as floating point may be rounded by the
+casting process.</p>
+</dd>
+<dt><strong>flt_type</strong><span class="classifier">numpy type</span></dt><dd><p>numpy float type.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ceil_val</strong><span class="classifier">object</span></dt><dd><p>value of same floating point type as <cite>val</cite>, that is the nearest exact
+integer in this type such that <cite>floor_val</cite> &gt;= <cite>val</cite>.  Thus if <cite>val</cite> is
+exact in <cite>flt_type</cite>, <cite>ceil_val</cite> == <cite>val</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Obviously 2 is within the range of representable integers for float32</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ceil_exact</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<p>As is 2**24-1 (the number of significand digits is 23 + 1 implicit)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ceil_exact</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">1</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>But 2**24+1 gives a number that float32 can’t represent exactly</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ceil_exact</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">+</span><span class="mi">2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>As for the numpy ceil function, negatives ceil towards inf</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ceil_exact</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="float-to-int">
+<h2>float_to_int<a class="headerlink" href="#float-to-int" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.float_to_int">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">float_to_int</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan2zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.float_to_int" title="Link to this definition">¶</a></dt>
+<dd><p>Convert floating point array <cite>arr</cite> to type <cite>int_type</cite></p>
+<ul class="simple">
+<li><p>Rounds numbers to nearest integer</p></li>
+<li><p>Clips values to prevent overflows when casting</p></li>
+<li><p>Converts NaN to 0 (for <cite>nan2zero</cite> == True)</p></li>
+</ul>
+<p>Casting floats to integers is delicate because the result is undefined
+and platform specific for float values outside the range of <cite>int_type</cite>.
+Define <code class="docutils literal notranslate"><span class="pre">shared_min</span></code> to be the minimum value that can be exactly
+represented in both the float type of <cite>arr</cite> and <cite>int_type</cite>. Define
+<cite>shared_max</cite> to be the equivalent maximum value.  To avoid undefined
+results we threshold <cite>arr</cite> at <code class="docutils literal notranslate"><span class="pre">shared_min</span></code> and <code class="docutils literal notranslate"><span class="pre">shared_max</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">array-like</span></dt><dd><p>Array of floating point type</p>
+</dd>
+<dt><strong>int_type</strong><span class="classifier">object</span></dt><dd><p>Numpy integer type</p>
+</dd>
+<dt><strong>nan2zero</strong><span class="classifier">{True, False, None}</span></dt><dd><p>Whether to convert NaN value to zero.  Default is True.  If False, and
+NaNs are present, raise CastingError. If None, do not check for NaN
+values and pass through directly to the <code class="docutils literal notranslate"><span class="pre">astype</span></code> casting mechanism.
+In this last case, the resulting value is undefined.</p>
+</dd>
+<dt><strong>infmax</strong><span class="classifier">{False, True}</span></dt><dd><p>If True, set np.inf values in <cite>arr</cite> to be <cite>int_type</cite> integer maximum
+value, -np.inf as <cite>int_type</cite> integer minimum.  If False, set +/- infs
+to be <code class="docutils literal notranslate"><span class="pre">shared_min</span></code>, <code class="docutils literal notranslate"><span class="pre">shared_max</span></code> as defined above.  Therefore False
+gives faster conversion at the expense of infs that are further from
+infinity.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>iarr</strong><span class="classifier">ndarray</span></dt><dd><p>of type <cite>int_type</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Numpy relies on the C library to cast from float to int using the standard
+<code class="docutils literal notranslate"><span class="pre">astype</span></code> method of the array.</p>
+<p>Quoting from section F4 of the C99 standard:</p>
+<blockquote>
+<div><p>If the floating value is infinite or NaN or if the integral part of the
+floating value exceeds the range of the integer type, then the
+“invalid” floating-point exception is raised and the resulting value
+is unspecified.</p>
+</div></blockquote>
+<p>Hence we threshold at <code class="docutils literal notranslate"><span class="pre">shared_min</span></code> and <code class="docutils literal notranslate"><span class="pre">shared_max</span></code> to avoid casting to
+values that are undefined.</p>
+<p>See: <a class="reference external" href="https://en.wikipedia.org/wiki/C99">https://en.wikipedia.org/wiki/C99</a> . There are links to the C99
+standard from that page.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">float_to_int</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+<span class="go">array([     0,  32767, -32768,      1,      7], dtype=int16)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="floor-exact">
+<h2>floor_exact<a class="headerlink" href="#floor-exact" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.floor_exact">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">floor_exact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flt_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.floor_exact" title="Link to this definition">¶</a></dt>
+<dd><p>Return nearest exact integer &lt;= <cite>val</cite> in float type <cite>flt_type</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val</strong><span class="classifier">int</span></dt><dd><p>We have to pass val as an int rather than the floating point type
+because large integers cast as floating point may be rounded by the
+casting process.</p>
+</dd>
+<dt><strong>flt_type</strong><span class="classifier">numpy type</span></dt><dd><p>numpy float type.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>floor_val</strong><span class="classifier">object</span></dt><dd><p>value of same floating point type as <cite>val</cite>, that is the nearest exact
+integer in this type such that <cite>floor_val</cite> &lt;= <cite>val</cite>.  Thus if <cite>val</cite> is
+exact in <cite>flt_type</cite>, <cite>floor_val</cite> == <cite>val</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Obviously 2 is within the range of representable integers for float32</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">floor_exact</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<p>As is 2**24-1 (the number of significand digits is 23 + 1 implicit)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">floor_exact</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">1</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>But 2**24+1 gives a number that float32 can’t represent exactly</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">floor_exact</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="o">**</span><span class="mi">24</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>As for the numpy floor function, negatives floor towards -inf</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">floor_exact</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="o">**</span><span class="mi">24</span><span class="o">-</span><span class="mi">2</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="floor-log2">
+<h2>floor_log2<a class="headerlink" href="#floor-log2" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.floor_log2">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">floor_log2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.floor_log2" title="Link to this definition">¶</a></dt>
+<dd><p>floor of log2 of abs(<cite>x</cite>)</p>
+<p>Embarrassingly, from <a class="reference external" href="https://en.wikipedia.org/wiki/Binary_logarithm">https://en.wikipedia.org/wiki/Binary_logarithm</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">int</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>L</strong><span class="classifier">None or int</span></dt><dd><p>floor of base 2 log of <cite>x</cite>.  None if <cite>x</cite> == 0.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">floor_log2</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">9</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">9</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">floor_log2</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">**</span><span class="mi">9</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">floor_log2</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="go">-1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">floor_log2</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="have-binary128">
+<h2>have_binary128<a class="headerlink" href="#have-binary128" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.have_binary128">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">have_binary128</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.have_binary128" title="Link to this definition">¶</a></dt>
+<dd><p>True if we have a binary128 IEEE longdouble</p>
+</dd></dl>
+
+</section>
+<section id="int-abs">
+<h2>int_abs<a class="headerlink" href="#int-abs" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.int_abs">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">int_abs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.int_abs" title="Link to this definition">¶</a></dt>
+<dd><p>Absolute values of array taking care of max negative int values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>arr</strong><span class="classifier">array-like</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>abs_arr</strong><span class="classifier">array</span></dt><dd><p>array the same shape as <cite>arr</cite> in which all negative numbers have been
+changed to positive numbers with the magnitude.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This kind of thing is confusing in base numpy:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span><span class="p">))</span>
+<span class="go">-128</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">int_abs</span></code> fixes that:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">int_abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">(</span><span class="o">-</span><span class="mi">128</span><span class="p">))</span>
+<span class="go">128</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">128</span><span class="p">,</span> <span class="mi">127</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">))</span>
+<span class="go">array([128, 127], dtype=uint8)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">int_abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">128</span><span class="p">,</span> <span class="mi">127</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+<span class="go">array([128., 127.], dtype=float32)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="int-to-float">
+<h2>int_to_float<a class="headerlink" href="#int-to-float" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.int_to_float">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">int_to_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flt_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.int_to_float" title="Link to this definition">¶</a></dt>
+<dd><p>Convert integer <cite>val</cite> to floating point type <cite>flt_type</cite></p>
+<p>int_to_float(…, dt) is deprecated. Use dt() instead.</p>
+<ul class="simple">
+<li><p>deprecated from version: 5.2.0</p></li>
+<li><p>Will raise &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 7.0.0</p></li>
+</ul>
+<p>Why is this so complicated?</p>
+<p>At least in numpy &lt;= 1.6.1, numpy longdoubles do not correctly convert to
+ints, and ints do not correctly convert to longdoubles.  Specifically, in
+both cases, the values seem to go through float64 conversion on the way, so
+to convert better, we need to split into float64s and sum up the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val</strong><span class="classifier">int</span></dt><dd><p>Integer value</p>
+</dd>
+<dt><strong>flt_type</strong><span class="classifier">object</span></dt><dd><p>numpy floating point type</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>f</strong><span class="classifier">numpy scalar</span></dt><dd><p>of type <cite>flt_type</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">int_to_float</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="longdouble-lte-float64">
+<h2>longdouble_lte_float64<a class="headerlink" href="#longdouble-lte-float64" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.longdouble_lte_float64">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">longdouble_lte_float64</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.longdouble_lte_float64" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if longdouble appears to have the same precision as float64</p>
+</dd></dl>
+
+</section>
+<section id="longdouble-precision-improved">
+<h2>longdouble_precision_improved<a class="headerlink" href="#longdouble-precision-improved" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.longdouble_precision_improved">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">longdouble_precision_improved</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.longdouble_precision_improved" title="Link to this definition">¶</a></dt>
+<dd><p>True if longdouble precision increased since initial import</p>
+<p>This can happen on Windows compiled with MSVC.  It may be because libraries
+compiled with mingw (longdouble is Intel80) get linked to numpy compiled
+with MSVC (longdouble is Float64)</p>
+</dd></dl>
+
+</section>
+<section id="ok-floats">
+<h2>ok_floats<a class="headerlink" href="#ok-floats" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.ok_floats">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">ok_floats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.ok_floats" title="Link to this definition">¶</a></dt>
+<dd><p>Return floating point types sorted by precision</p>
+<p>Remove longdouble if it has no higher precision than float64</p>
+</dd></dl>
+
+</section>
+<section id="on-powerpc">
+<h2>on_powerpc<a class="headerlink" href="#on-powerpc" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.on_powerpc">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">on_powerpc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.on_powerpc" title="Link to this definition">¶</a></dt>
+<dd><p>True if we are running on a Power PC platform</p>
+<p>Has to deal with older Macs and IBM POWER7 series among others</p>
+</dd></dl>
+
+</section>
+<section id="shared-range">
+<h2>shared_range<a class="headerlink" href="#shared-range" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.shared_range">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">shared_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flt_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.shared_range" title="Link to this definition">¶</a></dt>
+<dd><p>Min and max in float type that are &gt;=min, &lt;=max in integer type</p>
+<p>This is not as easy as it sounds, because the float type may not be able to
+exactly represent the max or min integer values, so we have to find the
+next exactly representable floating point value to do the thresholding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>flt_type</strong><span class="classifier">dtype specifier</span></dt><dd><p>A dtype specifier referring to a numpy floating point type.  For
+example, <code class="docutils literal notranslate"><span class="pre">f4</span></code>, <code class="docutils literal notranslate"><span class="pre">np.dtype('f4')</span></code>, <code class="docutils literal notranslate"><span class="pre">np.float32</span></code> are equivalent.</p>
+</dd>
+<dt><strong>int_type</strong><span class="classifier">dtype specifier</span></dt><dd><p>A dtype specifier referring to a numpy integer type.  For example,
+<code class="docutils literal notranslate"><span class="pre">i4</span></code>, <code class="docutils literal notranslate"><span class="pre">np.dtype('i4')</span></code>, <code class="docutils literal notranslate"><span class="pre">np.int32</span></code> are equivalent</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mn</strong><span class="classifier">object</span></dt><dd><p>Number of type <cite>flt_type</cite> that is the minimum value in the range of
+<cite>int_type</cite>, such that <code class="docutils literal notranslate"><span class="pre">mn.astype(int_type)</span></code> &gt;= min of <cite>int_type</cite></p>
+</dd>
+<dt><strong>mx</strong><span class="classifier">object</span></dt><dd><p>Number of type <cite>flt_type</cite> that is the maximum value in the range of
+<cite>int_type</cite>, such that <code class="docutils literal notranslate"><span class="pre">mx.astype(int_type)</span></code> &lt;= max of <cite>int_type</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shared_range</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="o">-</span><span class="mf">2147483648.0</span><span class="p">,</span> <span class="mf">2147483520.0</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shared_range</span><span class="p">(</span><span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="o">-</span><span class="mf">2147483648.0</span><span class="p">,</span> <span class="mf">2147483520.0</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="type-info">
+<h2>type_info<a class="headerlink" href="#type-info" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.type_info">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">type_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">np_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.type_info" title="Link to this definition">¶</a></dt>
+<dd><p>Return dict with min, max, nexp, nmant, width for numpy type <cite>np_type</cite></p>
+<p>Type can be integer in which case nexp and nmant are None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>np_type</strong><span class="classifier">numpy type specifier</span></dt><dd><p>Any specifier for a numpy dtype</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>info</strong><span class="classifier">dict</span></dt><dd><p>with fields <code class="docutils literal notranslate"><span class="pre">min</span></code> (minimum value), <code class="docutils literal notranslate"><span class="pre">max</span></code> (maximum value), <code class="docutils literal notranslate"><span class="pre">nexp</span></code>
+(exponent width), <code class="docutils literal notranslate"><span class="pre">nmant</span></code> (significand precision not including
+implicit first digit), <code class="docutils literal notranslate"><span class="pre">minexp</span></code> (minimum exponent), <code class="docutils literal notranslate"><span class="pre">maxexp</span></code>
+(maximum exponent), <code class="docutils literal notranslate"><span class="pre">width</span></code> (width in bytes). (<code class="docutils literal notranslate"><span class="pre">nexp</span></code>, <code class="docutils literal notranslate"><span class="pre">nmant</span></code>,
+<code class="docutils literal notranslate"><span class="pre">minexp</span></code>, <code class="docutils literal notranslate"><span class="pre">maxexp</span></code>) are None for integer types. Both <code class="docutils literal notranslate"><span class="pre">min</span></code> and
+<code class="docutils literal notranslate"><span class="pre">max</span></code> are of type <cite>np_type</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>FloatingError</dt><dd><p>for floating point types we don’t recognize</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>You might be thinking that <code class="docutils literal notranslate"><span class="pre">np.finfo</span></code> does this job, and it does, except
+for PPC long doubles (<a class="reference external" href="https://github.com/numpy/numpy/issues/2669">https://github.com/numpy/numpy/issues/2669</a>) and
+float96 on Windows compiled with Mingw. This routine protects against such
+errors in <code class="docutils literal notranslate"><span class="pre">np.finfo</span></code> by only accepting values that we know are likely to
+be correct.</p>
+</dd></dl>
+
+</section>
+<section id="ulp">
+<h2>ulp<a class="headerlink" href="#ulp" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.casting.ulp">
+<span class="sig-prename descclassname"><span class="pre">nibabel.casting.</span></span><span class="sig-name descname"><span class="pre">ulp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.casting.ulp" title="Link to this definition">¶</a></dt>
+<dd><p>Return gap between <cite>val</cite> and nearest representable number of same type</p>
+<p>This is the value of a unit in the last place (ULP), and is similar in
+meaning to the MATLAB eps function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>val</strong><span class="classifier">scalar, optional</span></dt><dd><p>scalar value of any numpy type.  Default is 1.0 (float64)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ulp_val</strong><span class="classifier">scalar</span></dt><dd><p>gap between <cite>val</cite> and nearest representable number of same type</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The wikipedia article on machine epsilon points out that the term <em>epsilon</em>
+can be used in the sense of a unit in the last place (ULP), or as the
+maximum relative rounding error.  The MATLAB <code class="docutils literal notranslate"><span class="pre">eps</span></code> function uses the ULP
+meaning, but this function is <code class="docutils literal notranslate"><span class="pre">ulp</span></code> rather than <code class="docutils literal notranslate"><span class="pre">eps</span></code> to avoid
+confusion between different meanings of <em>eps</em>.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

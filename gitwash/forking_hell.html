@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Set up your fork" href="set_up_fork.html" />
+    <link rel="prev" title="Git for development" href="git_development.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="set_up_fork.html" title="Set up your fork"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="git_development.html" title="Git for development"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../devel/index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../devel/devguide.html" >NiBabel Developer Guidelines</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="index.html" >Working with <em>nibabel</em> source code</a> &#187;</li>
+          <li class="nav-item nav-item-4"><a href="git_development.html" accesskey="U">Git for development</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Making your own copy (fork) of nibabel</a><ul>
+<li><a class="reference internal" href="#set-up-and-configure-a-github-account">Set up and configure a github account</a></li>
+<li><a class="reference internal" href="#create-your-own-forked-copy-of-nibabel">Create your own forked copy of nibabel</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="git_development.html"
+                          title="previous chapter">Git for development</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="set_up_fork.html"
+                          title="next chapter">Set up your fork</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/gitwash/forking_hell.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="making-your-own-copy-fork-of-nibabel">
+<span id="forking"></span><h1>Making your own copy (fork) of nibabel<a class="headerlink" href="#making-your-own-copy-fork-of-nibabel" title="Link to this heading">¶</a></h1>
+<p>You need to do this only once.  The instructions here are very similar
+to the instructions at <a class="reference external" href="https://help.github.com/articles/fork-a-repo/">https://help.github.com/articles/fork-a-repo/</a> —
+please see that page for more detail.  We’re repeating some of it here just to
+give the specifics for the <a class="reference external" href="http://nipy.org/nibabel">nibabel</a> project, and to suggest some default names.</p>
+<section id="set-up-and-configure-a-github-account">
+<h2>Set up and configure a github account<a class="headerlink" href="#set-up-and-configure-a-github-account" title="Link to this heading">¶</a></h2>
+<p>If you don’t have a github account, go to the github page, and make one.</p>
+<p>You then need to configure your account to allow write access — see
+the <code class="docutils literal notranslate"><span class="pre">Generating</span> <span class="pre">SSH</span> <span class="pre">keys</span></code> help on <a class="reference external" href="https://help.github.com">github help</a>.</p>
+</section>
+<section id="create-your-own-forked-copy-of-nibabel">
+<h2>Create your own forked copy of <a class="reference external" href="http://nipy.org/nibabel">nibabel</a><a class="headerlink" href="#create-your-own-forked-copy-of-nibabel" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p>Log into your github account.</p></li>
+<li><p>Go to the <a class="reference external" href="http://nipy.org/nibabel">nibabel</a> github home at <a class="reference external" href="https://github.com/nipy/nibabel">nibabel github</a>.</p></li>
+<li><p>Click on the <em>fork</em> button:</p>
+<img alt="../_images/forking_button.png" src="../_images/forking_button.png" />
+<p>Now, after a short pause and some ‘Hardcore forking action’, you
+should find yourself at the home page for your own forked copy of <a class="reference external" href="http://nipy.org/nibabel">nibabel</a>.</p>
+</li>
+</ol>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

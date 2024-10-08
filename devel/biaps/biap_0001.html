@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="BIAP2 - Slicecopy" href="biap_0002.html" />
+    <link rel="prev" title="BIAP 0 - Purpose and process" href="biap_0000.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biap_0002.html" title="BIAP2 - Slicecopy"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0000.html" title="BIAP 0 - Purpose and process"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP1 - Towards immutable images</a><ul>
+<li><a class="reference internal" href="#resolution">Resolution</a></li>
+<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#array-images">Array images</a></li>
+<li><a class="reference internal" href="#proxy-images">Proxy images</a></li>
+<li><a class="reference internal" href="#issues-for-design">Issues for design</a></li>
+<li><a class="reference internal" href="#use-cases">Use cases</a><ul>
+<li><a class="reference internal" href="#loading-images-minimizing-memory">Loading images, minimizing memory</a></li>
+<li><a class="reference internal" href="#loading-images-maximizing-speed">Loading images, maximizing speed</a></li>
+<li><a class="reference internal" href="#loading-images-assert-not-modified">Loading images, assert not modified</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#array-images-proxy-images-copy-view">Array images, proxy images, copy, view</a><ul>
+<li><a class="reference internal" href="#when-do-you-want-a-copy-and-when-do-you-want-a-view">When do you want a copy and when do you want a view?</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#proposal">Proposal</a></li>
+<li><a class="reference internal" href="#questions">Questions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0000.html"
+                          title="previous chapter">BIAP 0 - Purpose and process</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biap_0002.html"
+                          title="next chapter">BIAP2 - Slicecopy</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_0001.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap1-towards-immutable-images">
+<span id="biap1"></span><h1>BIAP1 - Towards immutable images<a class="headerlink" href="#biap1-towards-immutable-images" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Matthew Brett</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rejected</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Standards</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>2011-03-23</p>
+</dd>
+</dl>
+<section id="resolution">
+<h2>Resolution<a class="headerlink" href="#resolution" title="Link to this heading">¶</a></h2>
+<p>Retired as of nibabel 2.0 in favor of exposed <cite>dataobj</cite> property.  See:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://nipy.org/nibabel/nibabel_images.html#the-image-data-array">http://nipy.org/nibabel/nibabel_images.html#the-image-data-array</a></p></li>
+<li><p><a class="reference external" href="http://nipy.org/nibabel/images_and_memory.html">http://nipy.org/nibabel/images_and_memory.html</a></p></li>
+</ul>
+<p>See image <cite>in_memory</cite> attribute and <cite>uncache</cite> method.</p>
+<p>We haven’t implemented an <cite>is_as_loaded</cite> attribute yet.</p>
+</section>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p>Nibabel implicitly has two types of images</p>
+<ul class="simple">
+<li><p>array images</p></li>
+<li><p>proxy images</p></li>
+</ul>
+<section id="array-images">
+<h3>Array images<a class="headerlink" href="#array-images" title="Link to this heading">¶</a></h3>
+<p>Array images are the images you get from a typical constructor call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">img</span></code> here is an array image, that is to say that, internally, the private
+<code class="docutils literal notranslate"><span class="pre">img._data</span></code> attribute is reference to <code class="docutils literal notranslate"><span class="pre">arr</span></code> above.  <code class="docutils literal notranslate"><span class="pre">img.get_data()</span></code> just
+returns <code class="docutils literal notranslate"><span class="pre">img._data</span></code>.   If you modify <code class="docutils literal notranslate"><span class="pre">arr</span></code>, you will modify the result of
+<code class="docutils literal notranslate"><span class="pre">img.get_data()</span></code>.</p>
+</section>
+<section id="proxy-images">
+<h3>Proxy images<a class="headerlink" href="#proxy-images" title="Link to this heading">¶</a></h3>
+<p>Proxy images are what you get from a call to <code class="docutils literal notranslate"><span class="pre">load</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">px_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It’s a proxy image in the sense that, internally, <code class="docutils literal notranslate"><span class="pre">px_arr._data</span></code> is a proxy
+object that does not yet contain an array, but can get an array by the
+application of:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">actual_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">px_img</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is in fact what <code class="docutils literal notranslate"><span class="pre">px_img.get_data()</span></code> does.  Actually,
+<code class="docutils literal notranslate"><span class="pre">px_img.get_data()</span></code> also stores the read array in <code class="docutils literal notranslate"><span class="pre">px_img._data</span></code>, so that:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">px_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.nii&#39;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">px_img</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="c1"># it&#39;s a proxy</span>
+<span class="n">actual_arr</span> <span class="o">=</span> <span class="n">px_img</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">px_img</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="c1"># it&#39;s an array now</span>
+</pre></div>
+</div>
+<p>So, at this point, if you change <code class="docutils literal notranslate"><span class="pre">actual_arr</span></code> you’ll also be changing
+<code class="docutils literal notranslate"><span class="pre">px_img._data</span></code> and therefore the result of <code class="docutils literal notranslate"><span class="pre">px_img.get_data()</span></code>.</p>
+<p>In other words, <code class="docutils literal notranslate"><span class="pre">actual_arr</span> <span class="pre">=</span> <span class="pre">px_img.get_data()</span></code> turns the proxy image into an
+array image.</p>
+</section>
+<section id="issues-for-design">
+<h3>Issues for design<a class="headerlink" href="#issues-for-design" title="Link to this heading">¶</a></h3>
+<p>The code at the moment is a little bit confusing because:</p>
+<ul class="simple">
+<li><p>there isn’t an explicit API to check if you have an array image or a proxy
+image and</p></li>
+<li><p>there isn’t anywhere in the docs that you can go and see this distinction.</p></li>
+</ul>
+</section>
+<section id="use-cases">
+<h3>Use cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h3>
+<section id="loading-images-minimizing-memory">
+<h4>Loading images, minimizing memory<a class="headerlink" href="#loading-images-minimizing-memory" title="Link to this heading">¶</a></h4>
+<p>I want to load lots of images, or several large images.  I’m going to do
+something with the image data.  I want to minimize memory use.  This tempts me
+to do something like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">large_img1</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;large1.nii&#39;</span><span class="p">)</span>
+<span class="n">large_img2</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;large2.nii&#39;</span><span class="p">)</span>
+<span class="n">li1_mean</span> <span class="o">=</span> <span class="n">large_img1</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">li2_mean</span> <span class="o">=</span> <span class="n">large_img2</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The problem with the current design is that, after the <code class="docutils literal notranslate"><span class="pre">li1_mean</span> <span class="pre">=</span></code> line,
+<code class="docutils literal notranslate"><span class="pre">large_img1</span></code> got unproxied, and there’s a huge array inside it.</p>
+</section>
+<section id="loading-images-maximizing-speed">
+<h4>Loading images, maximizing speed<a class="headerlink" href="#loading-images-maximizing-speed" title="Link to this heading">¶</a></h4>
+<p>On the other hand, I might want to do the same thing, but each call to unproxy
+the data (loading off disk, applying scalefactors) will be expensive.  So, when
+I do <code class="docutils literal notranslate"><span class="pre">li1_mean</span> <span class="pre">=</span> <span class="pre">large_img1.get_data().mean()</span></code> I want any subsequent call to
+to <code class="docutils literal notranslate"><span class="pre">large_img1.get_data()</span></code> to be much faster.  This is the case at the moment,
+at the expense of the memory hit above.</p>
+</section>
+<section id="loading-images-assert-not-modified">
+<h4>Loading images, assert not modified<a class="headerlink" href="#loading-images-assert-not-modified" title="Link to this heading">¶</a></h4>
+<p>In pipelines in particular, we frequently want to load images, maybe have a
+look at some parameters, and then pass that image <em>filename</em> to some other
+program such as SPM or FSL.  At the moment we’ve got a problem:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.nii&#39;</span><span class="p">)</span>
+<span class="c1"># do stuff</span>
+<span class="n">run_spm_thing_on</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> <span class="c1"># is &#39;img&#39; the same as test.nii?</span>
+</pre></div>
+</div>
+<p>The problem is that when the routine <code class="docutils literal notranslate"><span class="pre">run_spn_thing</span></code> receives <code class="docutils literal notranslate"><span class="pre">img</span></code>, it
+can know that <code class="docutils literal notranslate"><span class="pre">img</span></code> has a filename, <code class="docutils literal notranslate"><span class="pre">test.nii</span></code>, but it can’t currently
+know if <code class="docutils literal notranslate"><span class="pre">img</span></code> is the same object that it was when it was loaded.  That is,
+it can’t know whether <code class="docutils literal notranslate"><span class="pre">test.img</span></code> still corresponds to <code class="docutils literal notranslate"><span class="pre">img</span></code> or not.  In
+practice that means that <code class="docutils literal notranslate"><span class="pre">run_spm_thing</span></code> will need to save every <code class="docutils literal notranslate"><span class="pre">img</span></code> to
+another file before passing that filename to the SPM routine, just in case
+<code class="docutils literal notranslate"><span class="pre">img</span></code> has been modified.  So, we would like a <em>dirty bit</em> for the image,
+something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Not implemented yet</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">img</span><span class="o">.</span><span class="n">is_as_loaded</span><span class="p">():</span>
+    <span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="s1">&#39;some_filename.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The last line, like it or not, modifies <code class="docutils literal notranslate"><span class="pre">img</span></code> in-place.</p>
+</section>
+</section>
+<section id="array-images-proxy-images-copy-view">
+<h3>Array images, proxy images, copy, view<a class="headerlink" href="#array-images-proxy-images-copy-view" title="Link to this heading">¶</a></h3>
+<p>With thanks to Roberto Viviani for some clarifying thoughts on the nipy
+mailing list.</p>
+<p>At the moment, <code class="docutils literal notranslate"><span class="pre">img.get_data()</span></code> always returns a reference to an array.
+That is, whenever you call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then, if you modify <code class="docutils literal notranslate"><span class="pre">data</span></code> you will modify the next result of
+<code class="docutils literal notranslate"><span class="pre">img.get_data()</span></code>.</p>
+<p>In particular, the interface currently intends that there should be no
+functional difference between proxied images and non-proxied images.  The
+proposal below exposes a functional difference between them.</p>
+<section id="when-do-you-want-a-copy-and-when-do-you-want-a-view">
+<h4>When do you want a copy and when do you want a view?<a class="headerlink" href="#when-do-you-want-a-copy-and-when-do-you-want-a-view" title="Link to this heading">¶</a></h4>
+<p>This is a discussion of this proposal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>compared to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">unproxy</span><span class="o">=</span><span class="kc">True</span><span class="o">|</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Summary:</p>
+<ul class="simple">
+<li><p>array images - you nearly always want a view</p></li>
+<li><p>proxy images - you may want a copy, but you want a copy only because you
+want to leave the image as a proxy. You might want to leave the image as a
+proxy because you want to be sure the image corresponds to the file, or save
+memory.</p></li>
+</ul>
+<p>For array images, it doesn’t make sense to return a copy from
+<code class="docutils literal notranslate"><span class="pre">img.get_data()</span></code>, because it buys you nothing that you would not get from
+<code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">img.get_data().copy()</span></code>.  This is because you can’t save memory (the
+image already contains the whole array), and it won’t help you be sure that
+the image has not been modified compared to the original array, because there
+may be references to the array that existed before the image was made, that
+can be used to modify the data.  So, for array images, you always want a
+reference, or you want to do a manual copy, as above.</p>
+<p>For proxied images, it does make sense to get a copy, because a) you want to
+preserve memory by not unproxying the image, and / or b) you want to be able
+to be sure that the file associated with the image still corresponds to the
+data.</p>
+<p>For the <code class="docutils literal notranslate"><span class="pre">img.get_data(copy=False)</span></code> proposal, on a proxied image, the
+<code class="docutils literal notranslate"><span class="pre">copy=False</span></code> call, in order to return a view, must <em>implicitly</em> unproxy the
+image.</p>
+<p>Similarly, <code class="docutils literal notranslate"><span class="pre">img.get_data(unproxy=False)</span></code> must <em>implicitly</em> copy the image.</p>
+<p>It seems to me (MB) that an implicit copy is familiar to a numpy user, but the
+implicit unproxying may be less obvious.</p>
+<p>My (MBs) reasons then for preferring ‘unproxy’ to ‘copy=True’ or ‘copy=False’
+or get_data_copy() is that ‘unproxy’ is closer to how I think the user would
+think about deciding what they wanted to do.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">unproxy=False</span></code> case covers the situation where you want to preserve
+memory.  It doesn’t fully cover the cases where we want to keep track of when
+the image data has been modified.</p>
+<p>Here there are three cases:</p>
+<ul>
+<li><p>array image, instantiated with an array; the image data can be modified
+using the array reference passed into the image - we can’t know whether the
+data has been modified without doing hashing or similar.</p></li>
+<li><p>proxy image; the array data is still in the file, so we know it corresponds
+to the file.</p></li>
+<li><p>proxy images that have been converted to array images, but have not passed
+out a reference to the data.  Let’s call these <em>shy unproxied</em> images.  For
+example, with an API like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.nii&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>the <code class="docutils literal notranslate"><span class="pre">img</span></code> is now an array image, but there’s no public reference to the
+internal array object.  Someone could get one by cheating with <code class="docutils literal notranslate"><span class="pre">ref</span> <span class="pre">=</span>
+<span class="pre">img._data</span></code>, but, we don’t need to worry about that - following Python’s “mess
+around if you like but take the consequences” philosophy.</p>
+</li>
+</ul>
+</section>
+</section>
+<section id="proposal">
+<h3>Proposal<a class="headerlink" href="#proposal" title="Link to this heading">¶</a></h3>
+<p>An <code class="docutils literal notranslate"><span class="pre">is_proxy</span></code> property:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span><span class="o">.</span><span class="n">is_proxy</span>
+</pre></div>
+</div>
+<p>This is just for clarity.</p>
+<p>Allow the user to specify what unproxying they want with a kwarg to
+<code class="docutils literal notranslate"><span class="pre">get_data()</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arr</span> <span class="o">=</span> <span class="n">large_img1</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">unproxy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>for proxied images, <code class="docutils literal notranslate"><span class="pre">unproxy=False</span></code> would leave the underlying array data
+as a pointer to the file.  The returned <code class="docutils literal notranslate"><span class="pre">arr</span></code> would be therefore a copy of
+the data as loaded from file, and <code class="docutils literal notranslate"><span class="pre">arr[0]</span> <span class="pre">=</span> <span class="pre">99</span></code> would have no effect on
+the data in the image.  <code class="docutils literal notranslate"><span class="pre">unproxy=True</span></code> would convert the proxy image into
+an array image (load the data into memory, return reference).  Here <code class="docutils literal notranslate"><span class="pre">arr[0]</span>
+<span class="pre">=</span> <span class="pre">99</span></code> would affect the data in the image</p></li>
+<li><p>for array images, <code class="docutils literal notranslate"><span class="pre">unproxy</span></code> would always be ignored.</p></li>
+</ul>
+<p>Thus <code class="docutils literal notranslate"><span class="pre">unproxy=True</span></code> in fact means,
+<code class="docutils literal notranslate"><span class="pre">unproxy_if_this_is_a_proxy_do_nothing_otherwise</span></code>.</p>
+<p>The default would continue to be <code class="docutils literal notranslate"><span class="pre">unproxy=True</span></code> so that the proxied image
+would continue, by default, to behave the same way as an unproxied image
+(<code class="docutils literal notranslate"><span class="pre">get_data</span></code> returns a view).</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">img.is_proxy</span></code> is True, then we know that the array data has not changed.
+We then need to be sure that the <code class="docutils literal notranslate"><span class="pre">header</span></code> and <code class="docutils literal notranslate"><span class="pre">affine</span></code> data haven’t
+changed. We might be able to do this with default <code class="docutils literal notranslate"><span class="pre">copy</span></code> kwargs to the
+<code class="docutils literal notranslate"><span class="pre">get_header</span></code> and <code class="docutils literal notranslate"><span class="pre">get_affine</span></code> methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hdr</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_header</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># will be default</span>
+<span class="n">aff</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_affine</span><span class="p">(</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># will be default</span>
+</pre></div>
+</div>
+<p>We could also do that by caching the original header and affine, but the
+header in particular can be rather large.</p>
+<p>For the next version of nibabel, for backwards compatibility, we’ll set
+<code class="docutils literal notranslate"><span class="pre">copy=False</span></code> to be the default, but warn about the upcoming change.  After
+that we’ll set <code class="docutils literal notranslate"><span class="pre">copy=True</span></code> as the default.</p>
+<p>Now we can know whether the image has been modified, because if <code class="docutils literal notranslate"><span class="pre">get_header</span></code>
+and <code class="docutils literal notranslate"><span class="pre">get_affine</span></code> have only been called with <code class="docutils literal notranslate"><span class="pre">copy=True</span></code> and <code class="docutils literal notranslate"><span class="pre">img.is_proxy</span>
+<span class="pre">==</span> <span class="pre">True</span></code> - then it must be the same as when loaded.</p>
+<p>This leads to an <code class="docutils literal notranslate"><span class="pre">is_as_loaded</span></code> property:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">is_as_loaded</span><span class="p">:</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;tempname.nii&#39;</span>
+    <span class="n">save</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="s1">&#39;tempname.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="questions">
+<h3>Questions<a class="headerlink" href="#questions" title="Link to this heading">¶</a></h3>
+<p>Should there also be a <code class="docutils literal notranslate"><span class="pre">set_header</span></code> and <code class="docutils literal notranslate"><span class="pre">set_affine</span></code> method?</p>
+<p>The header may conflict with the affine.  So, would we need something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">hdr_affine_from</span><span class="o">=</span><span class="s1">&#39;affine&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or some other nasty syntax.  Or can we avoid this and just do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">img2</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span> <span class="n">new_affine</span><span class="p">,</span> <span class="n">new_header</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>?</p>
+<p>How about the names in the proposal?  <code class="docutils literal notranslate"><span class="pre">is_proxy</span></code>; <code class="docutils literal notranslate"><span class="pre">unproxy=True</span></code>?</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

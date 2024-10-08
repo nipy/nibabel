@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="NiBabel Developer Guidelines" href="devguide.html" />
+    <link rel="prev" title="Introduction to DICOM" href="../dicom/dicom_intro.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="devguide.html" title="NiBabel Developer Guidelines"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../dicom/dicom_intro.html" title="Introduction to DICOM"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../dicom/dicom_intro.html"
+                          title="previous chapter">Introduction to DICOM</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="devguide.html"
+                          title="next chapter">NiBabel Developer Guidelines</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="developer-documentation-page">
+<span id="devindex"></span><h1>Developer documentation page<a class="headerlink" href="#developer-documentation-page" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="devguide.html">NiBabel Developer Guidelines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#nibabel-source-code">NiBabel source code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#git-repository">Git Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#style-guide">Style guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#changelog">Changelog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devguide.html#code-of-conduct">Community guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core_developer.html">Core Developer Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core_developer.html#reviewing">Reviewing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core_developer.html#closing-issues-and-pull-requests">Closing issues and pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core_developer.html#further-resources">Further resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core_developer.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="governance.html">Governance and Decision Making</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="governance.html#abstract">Abstract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="governance.html#roles-and-responsibilities">Roles And Responsibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="governance.html#decision-making-process">Decision Making Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="governance.html#enhancement-proposals-biaps">Enhancement Proposals (BIAPs)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="governance.html#acknowledgments">Acknowledgments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="roadmap.html#background">Background</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="biaps/index.html">BIAPs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0000.html">BIAP 0 - Purpose and process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0001.html">BIAP1 - Towards immutable images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0002.html">BIAP2 - Slicecopy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0003.html">BIAP3 - A JSON nifti header extension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0004.html">BIAP4 - Merging nibabel and dcmstack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0005.html">BIAP5 - A streamlines converter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0006.html">BIAP6 - Identifying image axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0007.html">BIAP7 - Loading multiple images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0008.html">BIAP8 - Always load image data as floating point</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biaps/biap_0009.html">BIAP9 - The Coordinate Image API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="add_test_data.html">Adding test data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="add_test_data.html#small-files">Small files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_test_data.html#files-with-open-licenses">Files with open licenses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_test_data.html#adding-the-file-to-nibabel-tests-data">Adding the file to <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_test_data.html#adding-as-a-submodule-to-nibabel-data">Adding as a submodule to <code class="docutils literal notranslate"><span class="pre">nibabel-data</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="add_image_format.html">How to add a new image format to nibabel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="add_image_format.html#philosophy">Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_image_format.html#helping-us-to-review-your-code">Helping us to review your code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_image_format.html#the-format-can-be-read-only">The format can be read-only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_image_format.html#the-image-api">The image API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_image_format.html#where-to-start-with-the-code">Where to start with the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="add_image_format.html#a-recipe-for-writing-a-new-image-format">A recipe for writing a new image format</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="devdiscuss.html">Developer discussions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="spm_use.html">Image use-cases in SPM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modified_images.html">Keeping track of whether images have been modified since load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scaling.html">Scalefactors and intercepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bv_formats.html">BrainVoyager file formats</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="make_release.html">A guide to making a nibabel release</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="make_release.html#release-checklist">Release checklist</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_testing.html">Advanced Testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced_testing.html#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_testing.html#long-running-tests">Long-running tests</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

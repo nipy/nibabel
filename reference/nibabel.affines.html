@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="batteryrunners" href="nibabel.batteryrunners.html" />
+    <link rel="prev" title="arrayproxy" href="nibabel.arrayproxy.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.batteryrunners.html" title="batteryrunners"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.arrayproxy.html" title="arrayproxy"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a><ul>
+<li><a class="reference internal" href="#affineerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">AffineError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.affines.AffineError"><code class="docutils literal notranslate"><span class="pre">AffineError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.affines.AffineError.__init__"><code class="docutils literal notranslate"><span class="pre">AffineError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#append-diag">append_diag</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.append_diag"><code class="docutils literal notranslate"><span class="pre">append_diag()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#apply-affine">apply_affine</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.apply_affine"><code class="docutils literal notranslate"><span class="pre">apply_affine()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dot-reduce">dot_reduce</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.dot_reduce"><code class="docutils literal notranslate"><span class="pre">dot_reduce()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#from-matvec">from_matvec</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.from_matvec"><code class="docutils literal notranslate"><span class="pre">from_matvec()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#obliquity">obliquity</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.obliquity"><code class="docutils literal notranslate"><span class="pre">obliquity()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rescale-affine">rescale_affine</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.rescale_affine"><code class="docutils literal notranslate"><span class="pre">rescale_affine()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#to-matvec">to_matvec</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.to_matvec"><code class="docutils literal notranslate"><span class="pre">to_matvec()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voxel-sizes">voxel_sizes</a><ul>
+<li><a class="reference internal" href="#nibabel.affines.voxel_sizes"><code class="docutils literal notranslate"><span class="pre">voxel_sizes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.arrayproxy.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.batteryrunners.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.affines.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.affines">
+<span id="affines"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code><a class="headerlink" href="#module-nibabel.affines" title="Link to this heading">¶</a></h1>
+<p>Utility routines for working with points and affine transforms</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.affines.AffineError" title="nibabel.affines.AffineError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffineError</span></code></a></p></td>
+<td><p>Errors in calculating or using affines</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.affines.append_diag" title="nibabel.affines.append_diag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_diag</span></code></a>(aff, steps[, starts])</p></td>
+<td><p>Add diagonal elements <cite>steps</cite> and translations <cite>starts</cite> to affine</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.affines.apply_affine" title="nibabel.affines.apply_affine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_affine</span></code></a>(aff, pts[, inplace])</p></td>
+<td><p>Apply affine matrix <cite>aff</cite> to points <cite>pts</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.affines.dot_reduce" title="nibabel.affines.dot_reduce"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot_reduce</span></code></a>(*args)</p></td>
+<td><p>Apply numpy dot product function from right to left on arrays</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.affines.from_matvec" title="nibabel.affines.from_matvec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_matvec</span></code></a>(matrix[, vector])</p></td>
+<td><p>Combine a matrix and vector into an homogeneous affine</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.affines.obliquity" title="nibabel.affines.obliquity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obliquity</span></code></a>(affine)</p></td>
+<td><p>Estimate the <em>obliquity</em> an affine's axes represent</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.affines.rescale_affine" title="nibabel.affines.rescale_affine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rescale_affine</span></code></a>(affine, shape, zooms[, new_shape])</p></td>
+<td><p>Return a new affine matrix with updated voxel sizes (zooms)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.affines.to_matvec" title="nibabel.affines.to_matvec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_matvec</span></code></a>(transform)</p></td>
+<td><p>Split a transform into its matrix and vector components</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.affines.voxel_sizes" title="nibabel.affines.voxel_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voxel_sizes</span></code></a>(affine)</p></td>
+<td><p>Return voxel size for each input axis given <cite>affine</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="affineerror">
+<h2><a class="reference internal" href="#nibabel.affines.AffineError" title="nibabel.affines.AffineError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AffineError</span></code></a><a class="headerlink" href="#affineerror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.affines.AffineError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">AffineError</span></span><a class="headerlink" href="#nibabel.affines.AffineError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Errors in calculating or using affines</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.affines.AffineError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.AffineError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="append-diag">
+<h2>append_diag<a class="headerlink" href="#append-diag" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.append_diag">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">append_diag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.append_diag" title="Link to this definition">¶</a></dt>
+<dd><p>Add diagonal elements <cite>steps</cite> and translations <cite>starts</cite> to affine</p>
+<p>Typical use is in expanding 4x4 affines to larger dimensions.  Nipy is the
+main consumer because it uses NxM affines, whereas we generally only use
+4x4 affines; the routine is here for convenience.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>aff</strong><span class="classifier">2D array</span></dt><dd><p>N by M affine matrix</p>
+</dd>
+<dt><strong>steps</strong><span class="classifier">scalar or sequence</span></dt><dd><p>diagonal elements to append.</p>
+</dd>
+<dt><strong>starts</strong><span class="classifier">scalar or sequence</span></dt><dd><p>elements to append to last column of <cite>aff</cite>, representing translations
+corresponding to the <cite>steps</cite>. If empty, expands to a vector of zeros
+of the same length as <cite>steps</cite></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>aff_plus</strong><span class="classifier">2D array</span></dt><dd><p>Now P by Q where L = <code class="docutils literal notranslate"><span class="pre">len(steps)</span></code> and P == N+L, Q=N+L</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aff</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">append_diag</span><span class="p">(</span><span class="n">aff</span><span class="p">,</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">99</span><span class="p">,</span><span class="mi">100</span><span class="p">])</span>
+<span class="go">array([[  0.,   1.,   2.,   0.,   0.,   0.],</span>
+<span class="go">       [  3.,   4.,   5.,   0.,   0.,   0.],</span>
+<span class="go">       [  6.,   7.,   8.,   0.,   0.,   0.],</span>
+<span class="go">       [  0.,   0.,   0.,   9.,   0.,  99.],</span>
+<span class="go">       [  0.,   0.,   0.,   0.,  10., 100.],</span>
+<span class="go">       [  0.,   0.,   0.,   0.,   0.,   1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="apply-affine">
+<h2>apply_affine<a class="headerlink" href="#apply-affine" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.apply_affine">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">apply_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.apply_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Apply affine matrix <cite>aff</cite> to points <cite>pts</cite></p>
+<p>Returns result of application of <cite>aff</cite> to the <em>right</em> of <cite>pts</cite>.  The
+coordinate dimension of <cite>pts</cite> should be the last.</p>
+<p>For the 3D case, <cite>aff</cite> will be shape (4,4) and <cite>pts</cite> will have final axis
+length 3 - maybe it will just be N by 3. The return value is the
+transformed points, in this case:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">aff</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">],</span> <span class="n">pts</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">aff</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="n">transformed_pts</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">T</span>
+</pre></div>
+</div>
+<p>This routine is more general than 3D, in that <cite>aff</cite> can have any shape
+(N,N), and <cite>pts</cite> can have any shape, as long as the last dimension is for
+the coordinates, and is therefore length N-1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>aff</strong><span class="classifier">(N, N) array-like</span></dt><dd><p>Homogeneous affine, for 3D points, will be 4 by 4. Contrary to first
+appearance, the affine will be applied on the left of <cite>pts</cite>.</p>
+</dd>
+<dt><strong>pts</strong><span class="classifier">(…, N-1) array-like</span></dt><dd><p>Points, where the last dimension contains the coordinates of each
+point.  For 3D, the last dimension will be length 3.</p>
+</dd>
+<dt><strong>inplace</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, attempt to apply the affine directly to <code class="docutils literal notranslate"><span class="pre">pts</span></code>.
+If False, or in-place application fails, a freshly allocated
+array will be returned.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>transformed_pts</strong><span class="classifier">(…, N-1) array</span></dt><dd><p>transformed points</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">11</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">12</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_affine</span><span class="p">(</span><span class="n">aff</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span> 
+<span class="go">array([[14, 14, 24],</span>
+<span class="go">       [16, 17, 28],</span>
+<span class="go">       [20, 23, 36],</span>
+<span class="go">       [24, 29, 44]]...)</span>
+</pre></div>
+</div>
+<p>Just to show that in the simple 3D case, it is equivalent to:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">aff</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">],</span> <span class="n">pts</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="n">aff</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">T</span> 
+<span class="go">array([[14, 14, 24],</span>
+<span class="go">       [16, 17, 28],</span>
+<span class="go">       [20, 23, 36],</span>
+<span class="go">       [24, 29, 44]]...)</span>
+</pre></div>
+</div>
+<p>But <cite>pts</cite> can be a more complicated shape:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_affine</span><span class="p">(</span><span class="n">aff</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span> 
+<span class="go">array([[[14, 14, 24],</span>
+<span class="go">        [16, 17, 28]],</span>
+
+<span class="go">       [[20, 23, 36],</span>
+<span class="go">        [24, 29, 44]]]...)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="dot-reduce">
+<h2>dot_reduce<a class="headerlink" href="#dot-reduce" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.dot_reduce">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">dot_reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.dot_reduce" title="Link to this definition">¶</a></dt>
+<dd><p>Apply numpy dot product function from right to left on arrays</p>
+<p>For passed arrays <span class="math notranslate nohighlight">\(A, B, C, ... Z\)</span> returns <span class="math notranslate nohighlight">\(A \dot B \dot C ...
+\dot Z\)</span> where “.” is the numpy array dot product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>**args</strong><span class="classifier">arrays</span></dt><dd><p>Arrays that can be passed to numpy <code class="docutils literal notranslate"><span class="pre">dot</span></code> function</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>dot_product</strong><span class="classifier">array</span></dt><dd><p>If there are N arguments, result of <code class="docutils literal notranslate"><span class="pre">arg[0].dot(arg[1].dot(arg[2].dot</span>
+<span class="pre">...</span>&#160; <span class="pre">arg[N-2].dot(arg[N-1])))...</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="from-matvec">
+<h2>from_matvec<a class="headerlink" href="#from-matvec" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.from_matvec">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">from_matvec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.from_matvec" title="Link to this definition">¶</a></dt>
+<dd><p>Combine a matrix and vector into an homogeneous affine</p>
+<p>Combine a rotation / scaling / shearing matrix and translation vector into
+a transform in homogeneous coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>matrix</strong><span class="classifier">array-like</span></dt><dd><p>An NxM array representing the the linear part of the transform.
+A transform from an M-dimensional space to an N-dimensional space.</p>
+</dd>
+<dt><strong>vector</strong><span class="classifier">None or array-like, optional</span></dt><dd><p>None or an (N,) array representing the translation. None corresponds to
+an (N,) array of zeros.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>xform</strong><span class="classifier">array</span></dt><dd><p>An (N+1, M+1) homogeneous transform matrix.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#nibabel.affines.to_matvec" title="nibabel.affines.to_matvec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_matvec</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">from_matvec</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]),</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">])</span>
+<span class="go">array([[ 2,  0,  0,  9],</span>
+<span class="go">       [ 0,  3,  0, 10],</span>
+<span class="go">       [ 0,  0,  4, 11],</span>
+<span class="go">       [ 0,  0,  0,  1]])</span>
+</pre></div>
+</div>
+<p>The <cite>vector</cite> argument is optional:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">from_matvec</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span>
+<span class="go">array([[2, 0, 0, 0],</span>
+<span class="go">       [0, 3, 0, 0],</span>
+<span class="go">       [0, 0, 4, 0],</span>
+<span class="go">       [0, 0, 0, 1]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="obliquity">
+<h2>obliquity<a class="headerlink" href="#obliquity" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.obliquity">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">obliquity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.obliquity" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate the <em>obliquity</em> an affine’s axes represent</p>
+<p>The term <em>obliquity</em> is defined here as the rotation of those axes with
+respect to the cardinal axes.
+This implementation is inspired by <a class="reference external" href="https://github.com/afni/afni/blob/b6a9f7a21c1f3231ff09efbd861f8975ad48e525/src/thd_coords.c#L660-L698">AFNI’s implementation</a>.
+For further details about <em>obliquity</em>, check <a class="reference external" href="https://sscc.nimh.nih.gov/sscc/dglen/Obliquity">AFNI’s documentation</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>affine</strong><span class="classifier">2D array-like</span></dt><dd><p>Affine transformation array.  Usually shape (4, 4), but can be any 2D
+array.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>angles</strong><span class="classifier">1D array-like</span></dt><dd><p>The <em>obliquity</em> of each axis with respect to the cardinal axes, in radians.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="rescale-affine">
+<h2>rescale_affine<a class="headerlink" href="#rescale-affine" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.rescale_affine">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">rescale_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zooms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.rescale_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new affine matrix with updated voxel sizes (zooms)</p>
+<p>This function preserves the rotations and shears of the original
+affine, as well as the RAS location of the central voxel of the
+image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>affine</strong><span class="classifier">(N, N) array-like</span></dt><dd><p>NxN transform matrix in homogeneous coordinates representing an affine
+transformation from an (N-1)-dimensional space to an (N-1)-dimensional
+space. An example is a 4x4 transform representing rotations and
+translations in 3 dimensions.</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">(N-1,) array-like</span></dt><dd><p>The extent of the (N-1) dimensions of the original space</p>
+</dd>
+<dt><strong>zooms</strong><span class="classifier">(N-1,) array-like</span></dt><dd><p>The size of voxels of the output affine</p>
+</dd>
+<dt><strong>new_shape</strong><span class="classifier">(N-1,) array-like, optional</span></dt><dd><p>The extent of the (N-1) dimensions of the space described by the
+new affine. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, use <code class="docutils literal notranslate"><span class="pre">shape</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>affine</strong><span class="classifier">(N, N) array</span></dt><dd><p>A new affine transform with the specified voxel sizes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="to-matvec">
+<h2>to_matvec<a class="headerlink" href="#to-matvec" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.to_matvec">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">to_matvec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.to_matvec" title="Link to this definition">¶</a></dt>
+<dd><p>Split a transform into its matrix and vector components</p>
+<p>The transformation must be represented in homogeneous coordinates and is
+split into its rotation matrix and translation vector components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>transform</strong><span class="classifier">array-like</span></dt><dd><p>NxM transform matrix in homogeneous coordinates representing an affine
+transformation from an (N-1)-dimensional space to an (M-1)-dimensional
+space. An example is a 4x4 transform representing rotations and
+translations in 3 dimensions. A 4x3 matrix can represent a
+2-dimensional plane embedded in 3 dimensional space.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>matrix</strong><span class="classifier">(N-1, M-1) array</span></dt><dd><p>Matrix component of <cite>transform</cite></p>
+</dd>
+<dt><strong>vector</strong><span class="classifier">(M-1,) array</span></dt><dd><p>Vector component of <cite>transform</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#nibabel.affines.from_matvec" title="nibabel.affines.from_matvec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_matvec</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aff</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">to_matvec</span><span class="p">(</span><span class="n">aff</span><span class="p">)</span>
+<span class="go">(array([[2, 0, 0],</span>
+<span class="go">       [0, 3, 0],</span>
+<span class="go">       [0, 0, 4]]), array([ 9, 10, 11]))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="voxel-sizes">
+<h2>voxel_sizes<a class="headerlink" href="#voxel-sizes" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.affines.voxel_sizes">
+<span class="sig-prename descclassname"><span class="pre">nibabel.affines.</span></span><span class="sig-name descname"><span class="pre">voxel_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.affines.voxel_sizes" title="Link to this definition">¶</a></dt>
+<dd><p>Return voxel size for each input axis given <cite>affine</cite></p>
+<p>The <cite>affine</cite> is the mapping between array (voxel) coordinates and mm
+(world) coordinates.</p>
+<p>The voxel size for the first voxel (array) axis is the distance moved in
+world coordinates when moving one unit along the first voxel (array) axis.
+This is the distance between the world coordinate of voxel (0, 0, 0) and
+the world coordinate of voxel (1, 0, 0).  The world coordinate vector of
+voxel coordinate vector (0, 0, 0) is given by <code class="docutils literal notranslate"><span class="pre">v0</span> <span class="pre">=</span> <span class="pre">affine.dot((0,</span> <span class="pre">0,</span> <span class="pre">0,</span>
+<span class="pre">1)[:3]</span></code>.  The world coordinate vector of voxel vector (1, 0, 0) is
+<code class="docutils literal notranslate"><span class="pre">v1_ax1</span> <span class="pre">=</span> <span class="pre">affine.dot((1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">1))[:3]</span></code>.  The final 1 in the voxel
+vectors and the <code class="docutils literal notranslate"><span class="pre">[:3]</span></code> at the end are because the affine works on
+homogeneous coordinates.  The translations part of the affine is <code class="docutils literal notranslate"><span class="pre">trans</span> <span class="pre">=</span>
+<span class="pre">affine[:3,</span> <span class="pre">3]</span></code>, and the rotations, zooms and shearing part of the affine
+is <code class="docutils literal notranslate"><span class="pre">rzs</span> <span class="pre">=</span> <span class="pre">affine[:3,</span> <span class="pre">:3]</span></code>. Because of the final 1 in the input voxel
+vector, <code class="docutils literal notranslate"><span class="pre">v0</span> <span class="pre">==</span> <span class="pre">rzs.dot((0,</span> <span class="pre">0,</span> <span class="pre">0))</span> <span class="pre">+</span> <span class="pre">trans</span></code>, and <code class="docutils literal notranslate"><span class="pre">v1_ax1</span> <span class="pre">==</span> <span class="pre">rzs.dot((1,</span>
+<span class="pre">0,</span> <span class="pre">0))</span> <span class="pre">+</span> <span class="pre">trans</span></code>, and the difference vector is <code class="docutils literal notranslate"><span class="pre">rzs.dot((0,</span> <span class="pre">0,</span> <span class="pre">0))</span> <span class="pre">-</span>
+<span class="pre">rzs.dot((1,</span> <span class="pre">0,</span> <span class="pre">0))</span> <span class="pre">==</span> <span class="pre">rzs.dot((1,</span> <span class="pre">0,</span> <span class="pre">0))</span> <span class="pre">==</span> <span class="pre">rzs[:,</span> <span class="pre">0]</span></code>.  The distance
+vectors in world coordinates between (0, 0, 0) and (1, 0, 0), (0, 1, 0),
+(0, 0, 1) are given by <code class="docutils literal notranslate"><span class="pre">rzs.dot(np.eye(3))</span> <span class="pre">=</span> <span class="pre">rzs</span></code>.  The voxel sizes are
+the Euclidean lengths of the distance vectors.  So, the voxel sizes are
+the Euclidean lengths of the columns of the affine (excluding the last row
+and column of the affine).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>affine</strong><span class="classifier">2D array-like</span></dt><dd><p>Affine transformation array.  Usually shape (4, 4), but can be any 2D
+array.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vox_sizes</strong><span class="classifier">1D array</span></dt><dd><p>Voxel sizes for each input axis of affine.  Usually 1D array length 3,
+but in general has length (N-1) where input <cite>affine</cite> is shape (M, N).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

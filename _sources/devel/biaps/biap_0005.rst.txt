@@ -1,0 +1,160 @@
+.. _biap5:
+
+###############################
+BIAP5 - A streamlines converter
+###############################
+
+:Author: Marc-Alexandre Côté
+:Status: Draft
+:Type: Standards
+:Created: 2013-09-03
+
+The first objective of this proposal is to add support to other streamlines
+format. The second objective is to be able to easily convert from one file
+format to another.
+
+**********
+Motivation
+**********
+
+There are a couple of different formats for saving streamlines to a file.
+Currently, NiBabel only support one of them: `TRK
+<http://www.trackvis.org/docs/?subsect=fileformat>`_ from `Trackvis
+<http://www.trackvis.org>`_. NiBabel could greatly benefit from supporting
+other formats:
+`TCK <http://www.brain.org.au/software/mrtrix/appendix/mrtrix.html#tracks>`_
+(`MRtrix <http://www.brain.org.au/software/mrtrix/>`_),
+`VTK <http://www.vtk.org/VTK/img/file-formats.pdf>`_
+(`Camino <http://cmic.cs.ucl.ac.uk/camino/>`_, `MITK <http://www.mitk.org/>`_)
+and more. Moreover, being able to move from one format to another would be
+convenient. To ease the conversion process, a generic format from which to
+inherit and some common header fields would be necessary. This is similar to
+what NiBabel already has for neuroimages.
+
+After implementing this proposal, users could load and use streamlines file like this::
+
+    >>> import nibabel as nib
+    >>> f = nib.streamlines.load('my_trk.trk', lazy_load=False)
+    >>> type(f)
+    nibabel.streamlines.base_format.Streamlines
+    >>> f.points
+    [array([ [1, 1, 1],
+             [2, 2, 2],
+             [3, 3, 3] ]),
+     array([ [4, 4, 4],
+             [5, 5, 5] ])]
+    >>> nib.streamlines.convert('my_trk.trk', 'my_tck.tck')
+    >>> f2 = nib.streamlines.load('my_trk.tck', lazy_load=False)
+    >>> type(f2)
+    nibabel.streamlines.base_format.Streamlines
+    >>> f2.points
+    [array([ [1, 1, 1],
+             [2, 2, 2],
+             [3, 3, 3] ]),
+     array([ [4, 4, 4],
+             [5, 5, 5] ])]
+
+Of course, similar functions will be available for 'scalars' (per point) and 'properties' (per streamline) as defined in the TrackVis format. A simple example to save three streamlines with no scalars nor properties would look like this::
+
+    >>> import nibabel as nib
+    >>> points = [np.arange(1*3).reshape((1,3)),
+                  np.arange(2*3).reshape((2,3)),
+                  np.arange(5*3).reshape((5,3))]
+    >>> streamlines = nib.streamlines.Streamlines(points)
+    >>> nib.streamlines.save(streamlines, 'data1.trk')  # Default TRK header is used but updated with streamlines information.
+
+    >>> FA = nib.load('FA.nii')
+    >>> streamlines.header = nib.streamlines.header.from_nifti(FA)  # Uses information of the FA to create an header.
+    >>> nib.streamlines.save(streamlines, 'data2.trk')  # Streamlines' header is used but also updated with streamlines information.
+
+    >>> from nib.streamlines.header import VOXEL_ORDER, VOXEL_SIZES
+    >>> hdr = nib.streamlines.TrkFile.get_empty_header()  # Default TRK header
+    >>> hdr[VOXEL_ORDER] = "LAS"
+    >>> hdr[VOXEL_SIZES] = (2, 2, 2)
+    >>> streamlines.header = hdr
+    >>> nib.streamlines.save(streamlines, 'data3.trk')  # Uses hdr to create a TRK header.
+
+********
+Overview
+********
+
+All code related to managing streamlines should be kept in a separate folder:
+``nibabel.streamlines``. A first file, ``base_format.py``, would contain base
+classes acting as general interfaces from which new streamlines file format
+will inherit.
+
+Streamlines would be represented by its own class ``Streamlines`` which will
+have three main properties: ``points``, ``scalars`` and ``properties``.
+Streamlines objects can be iterate over producing tuple of ``points``,
+``scalars`` and ``properties`` for each streamline.
+
+The generic class ``StreamlinesFile`` would look like this:
+
+.. code:: python
+
+    class StreamlinesFile:
+        @classmethod
+        def get_magic_number(cls):
+            raise NotImplementedError()
+
+        @classmethod
+        def is_correct_format(cls, fileobj):
+            raise NotImplementedError()
+
+        @classmethod
+        def get_empty_header(cls):
+            raise NotImplementedError()
+
+        @classmethod
+        def load(cls, fileobj, lazy_load=True):
+            raise NotImplementedError()
+
+        @classmethod
+        def save(cls, streamlines, fileobj):
+            raise NotImplementedError()
+
+        @staticmethod
+        def pretty_print(streamlines):
+            raise NotImplementedError()
+
+When inheriting from a base class, a specific streamline format class should know how to do its i/o, in particular how to iterate through the streamlines without loading the whole file into memory.
+
+Once, the right interface is in place, the conversion part should be quite easy. Moreover, the conversion could be done without loading the input file entirely into memory thanks to generators. Actually, the convert function should looks like this:
+
+.. code:: python
+
+    def convert(in_fileobj, out_filename):
+        # Loading part
+        streamlines_file = detect_format(in_fileobj)
+        streamlines = streamlines_file.load(in_fileobj, lazy_load=True)
+
+        # Saving part
+        streamlines_file = detect_format(out_filename)
+        streamlines_file.save(streamlines, out_filename)
+
+Of course, this implies some sort of general header compatibility between every format.
+
+
+******
+Issues
+******
+
+Header
+======
+
+Like it is done in NiBabel, headers should be defined using the
+``numpy.dtype``. This consists of a list of tuples, each one containing
+information (name, datatype and shape) about one field of the header. Once
+loaded, the header will acted as a dictionary using the name of each field as
+the key. Ideally, header of different formats would be the same, but it is
+not. To avoid manually writing each possible conversion between header
+formats, a general architecture should be put in place.
+
+One solution is to define some sort of ``CommonHeader`` containing an enum of the most common field (i.e. NB_FIBERS, VOXEL_SIZES, DIMENSIONS, etc). Like that, instead of specifying a field's name in the header definition, the suited enum constant should be used if there is one, otherwise the name is hard coded to a string representing the field. It should be make clear, in the documentation of ``CommonHeader``, what is the expected value of a common field.
+
+***********
+Future Work
+***********
+
+A first interesting subclass would be the ``DynamicStreamlineFile`` offering
+a way to append streamlines to an existing file when format permits it.

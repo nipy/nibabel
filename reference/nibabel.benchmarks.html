@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="brikhead" href="nibabel.brikhead.html" />
+    <link rel="prev" title="_compression" href="nibabel._compression.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.brikhead.html" title="brikhead"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel._compression.html" title="_compression"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks</span></code></a><ul>
+<li><a class="reference internal" href="#module-nibabel.benchmarks.bench_array_to_file">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_array_to_file</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.benchmarks.bench_arrayproxy_slicing">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_arrayproxy_slicing</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.benchmarks.bench_fileslice">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_fileslice</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.benchmarks.bench_finite_range">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_finite_range</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.benchmarks.bench_load_save">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_load_save</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.benchmarks.butils">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.butils</span></code></a><ul>
+<li><a class="reference internal" href="#bench-array-to-file">bench_array_to_file</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.bench_array_to_file.bench_array_to_file"><code class="docutils literal notranslate"><span class="pre">bench_array_to_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bench-arrayproxy-slicing">bench_arrayproxy_slicing</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.bench_arrayproxy_slicing.bench_arrayproxy_slicing"><code class="docutils literal notranslate"><span class="pre">bench_arrayproxy_slicing()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bench-fileslice">bench_fileslice</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.bench_fileslice.bench_fileslice"><code class="docutils literal notranslate"><span class="pre">bench_fileslice()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#run-slices">run_slices</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.bench_fileslice.run_slices"><code class="docutils literal notranslate"><span class="pre">run_slices()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bench-finite-range">bench_finite_range</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.bench_finite_range.bench_finite_range"><code class="docutils literal notranslate"><span class="pre">bench_finite_range()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bench-load-save">bench_load_save</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.bench_load_save.bench_load_save"><code class="docutils literal notranslate"><span class="pre">bench_load_save()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#print-git-title">print_git_title</a><ul>
+<li><a class="reference internal" href="#nibabel.benchmarks.butils.print_git_title"><code class="docutils literal notranslate"><span class="pre">print_git_title()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel._compression.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">_compression</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.brikhead.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.benchmarks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.benchmarks">
+<span id="benchmarks"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks</span></code><a class="headerlink" href="#module-nibabel.benchmarks" title="Link to this heading">¶</a></h1>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+</tbody>
+</table>
+<section id="module-nibabel.benchmarks.bench_array_to_file">
+<span id="module-benchmarks-bench-array-to-file"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_array_to_file</span></code><a class="headerlink" href="#module-nibabel.benchmarks.bench_array_to_file" title="Link to this heading">¶</a></h2>
+<p>Benchmarks for array_to_file routine</p>
+<p>Run benchmarks with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="n">nib</span><span class="o">.</span><span class="n">bench</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run this benchmark with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">c</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">pytest</span><span class="o">.</span><span class="n">benchmark</span><span class="o">.</span><span class="n">ini</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">bench_array_to_file</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.benchmarks.bench_array_to_file.bench_array_to_file" title="nibabel.benchmarks.bench_array_to_file.bench_array_to_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench_array_to_file</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.benchmarks.bench_arrayproxy_slicing">
+<span id="module-benchmarks-bench-arrayproxy-slicing"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_arrayproxy_slicing</span></code><a class="headerlink" href="#module-nibabel.benchmarks.bench_arrayproxy_slicing" title="Link to this heading">¶</a></h2>
+<p>Benchmarks for ArrayProxy slicing of gzipped and non-gzipped files</p>
+<p>Run benchmarks with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="n">nib</span><span class="o">.</span><span class="n">bench</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run this benchmark with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">c</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">pytest</span><span class="o">.</span><span class="n">benchmark</span><span class="o">.</span><span class="n">ini</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">bench_arrayproxy_slicing</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.benchmarks.bench_arrayproxy_slicing.bench_arrayproxy_slicing" title="nibabel.benchmarks.bench_arrayproxy_slicing.bench_arrayproxy_slicing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench_arrayproxy_slicing</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.benchmarks.bench_fileslice">
+<span id="module-benchmarks-bench-fileslice"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_fileslice</span></code><a class="headerlink" href="#module-nibabel.benchmarks.bench_fileslice" title="Link to this heading">¶</a></h2>
+<p>Benchmarks for fileslicing</p>
+<blockquote>
+<div><p>import nibabel as nib
+nib.bench()</p>
+</div></blockquote>
+<p>Run this benchmark with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">c</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">pytest</span><span class="o">.</span><span class="n">benchmark</span><span class="o">.</span><span class="n">ini</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">bench_fileslice</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.benchmarks.bench_fileslice.bench_fileslice" title="nibabel.benchmarks.bench_fileslice.bench_fileslice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench_fileslice</span></code></a>([bytes, file_, gz, bz2, zst])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.benchmarks.bench_fileslice.run_slices" title="nibabel.benchmarks.bench_fileslice.run_slices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_slices</span></code></a>(file_like[, repeat, offset, order])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.benchmarks.bench_finite_range">
+<span id="module-benchmarks-bench-finite-range"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_finite_range</span></code><a class="headerlink" href="#module-nibabel.benchmarks.bench_finite_range" title="Link to this heading">¶</a></h2>
+<p>Benchmarks for finite_range routine</p>
+<p>Run benchmarks with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="n">nib</span><span class="o">.</span><span class="n">bench</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run this benchmark with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">c</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">pytest</span><span class="o">.</span><span class="n">benchmark</span><span class="o">.</span><span class="n">ini</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">bench_finite_range</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.benchmarks.bench_finite_range.bench_finite_range" title="nibabel.benchmarks.bench_finite_range.bench_finite_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench_finite_range</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.benchmarks.bench_load_save">
+<span id="module-benchmarks-bench-load-save"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.bench_load_save</span></code><a class="headerlink" href="#module-nibabel.benchmarks.bench_load_save" title="Link to this heading">¶</a></h2>
+<p>Benchmarks for load and save of image arrays</p>
+<p>Run benchmarks with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="n">nib</span><span class="o">.</span><span class="n">bench</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run this benchmark with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">c</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">pytest</span><span class="o">.</span><span class="n">benchmark</span><span class="o">.</span><span class="n">ini</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">&gt;/</span><span class="n">benchmarks</span><span class="o">/</span><span class="n">bench_load_save</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.benchmarks.bench_load_save.bench_load_save" title="nibabel.benchmarks.bench_load_save.bench_load_save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench_load_save</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.benchmarks.butils">
+<span id="module-benchmarks-butils"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks.butils</span></code><a class="headerlink" href="#module-nibabel.benchmarks.butils" title="Link to this heading">¶</a></h2>
+<p>Benchmarking utilities</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.benchmarks.butils.print_git_title" title="nibabel.benchmarks.butils.print_git_title"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_git_title</span></code></a>(title)</p></td>
+<td><p>Prints title string with git hash if possible, and underline</p></td>
+</tr>
+</tbody>
+</table>
+<section id="bench-array-to-file">
+<h3>bench_array_to_file<a class="headerlink" href="#bench-array-to-file" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.bench_array_to_file.bench_array_to_file">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.bench_array_to_file.</span></span><span class="sig-name descname"><span class="pre">bench_array_to_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.bench_array_to_file.bench_array_to_file" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="bench-arrayproxy-slicing">
+<h3>bench_arrayproxy_slicing<a class="headerlink" href="#bench-arrayproxy-slicing" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.bench_arrayproxy_slicing.bench_arrayproxy_slicing">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.bench_arrayproxy_slicing.</span></span><span class="sig-name descname"><span class="pre">bench_arrayproxy_slicing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.bench_arrayproxy_slicing.bench_arrayproxy_slicing" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="bench-fileslice">
+<h3>bench_fileslice<a class="headerlink" href="#bench-fileslice" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.bench_fileslice.bench_fileslice">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.bench_fileslice.</span></span><span class="sig-name descname"><span class="pre">bench_fileslice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bz2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.bench_fileslice.bench_fileslice" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="run-slices">
+<h3>run_slices<a class="headerlink" href="#run-slices" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.bench_fileslice.run_slices">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.bench_fileslice.</span></span><span class="sig-name descname"><span class="pre">run_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.bench_fileslice.run_slices" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="bench-finite-range">
+<h3>bench_finite_range<a class="headerlink" href="#bench-finite-range" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.bench_finite_range.bench_finite_range">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.bench_finite_range.</span></span><span class="sig-name descname"><span class="pre">bench_finite_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.bench_finite_range.bench_finite_range" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="bench-load-save">
+<h3>bench_load_save<a class="headerlink" href="#bench-load-save" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.bench_load_save.bench_load_save">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.bench_load_save.</span></span><span class="sig-name descname"><span class="pre">bench_load_save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.bench_load_save.bench_load_save" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="print-git-title">
+<h3>print_git_title<a class="headerlink" href="#print-git-title" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.benchmarks.butils.print_git_title">
+<span class="sig-prename descclassname"><span class="pre">nibabel.benchmarks.butils.</span></span><span class="sig-name descname"><span class="pre">print_git_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.benchmarks.butils.print_git_title" title="Link to this definition">¶</a></dt>
+<dd><p>Prints title string with git hash if possible, and underline</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

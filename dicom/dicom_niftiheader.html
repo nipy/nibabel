@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="dcm2nii algorithms" href="dcm2nii_algorithms.html" />
+    <link rel="prev" title="SPM DICOM conversion" href="spm_dicom.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dcm2nii_algorithms.html" title="dcm2nii algorithms"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="spm_dicom.html" title="SPM DICOM conversion"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="spm_dicom.html"
+                          title="previous chapter">SPM DICOM conversion</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dcm2nii_algorithms.html"
+                          title="next chapter">dcm2nii algorithms</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dicom/dicom_niftiheader.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dicom-tags-in-the-nifti-header">
+<span id="dicom-niftiheader"></span><h1>DICOM Tags in the NIfTI Header<a class="headerlink" href="#dicom-tags-in-the-nifti-header" title="Link to this heading">¶</a></h1>
+<p>NIfTI images include an extended header (see the <a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html">NIfTI Extensions Standard</a>)
+to store, amongst others, DICOM tags and attributes. When NiBabel loads a NIfTI
+file containing DICOM information (a NIfTI extension with <code class="docutils literal notranslate"><span class="pre">ecode</span> <span class="pre">==</span> <span class="pre">2</span></code>), it
+parses it and returns a pydicom dataset as the content of the NIfTI extension.
+This can be read and written to in order to facilitate communication with
+software that uses specific DICOM codes found in the NIfTI header.</p>
+<p>For example, the commercial PMOD software stores the Frame Start and Duration
+times of images using the DICOM tags (0055, 1001) and (0055, 1004). Here’s an
+example of an image created in PMOD with those stored times accessed through
+nibabel.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="o">&gt;&gt;</span> <span class="n">nim</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;pmod_pet.nii&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;</span> <span class="n">dcmext</span> <span class="o">=</span> <span class="n">nim</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="o">&gt;&gt;</span> <span class="n">dcmext</span>
+<span class="n">Nifti1Extension</span><span class="p">(</span><span class="s1">&#39;dicom&#39;</span><span class="p">,</span> <span class="s1">&#39;(0054, 1001) Units                               CS: &#39;</span><span class="n">Bq</span><span class="o">/</span><span class="n">ml</span><span class="s1">&#39;</span>
+<span class="p">(</span><span class="mi">0055</span><span class="p">,</span> <span class="mi">0010</span><span class="p">)</span> <span class="n">Private</span> <span class="n">Creator</span>                     <span class="n">LO</span><span class="p">:</span> <span class="s1">&#39;PMOD_1&#39;</span>
+<span class="p">(</span><span class="mi">0055</span><span class="p">,</span> <span class="mi">1001</span><span class="p">)</span> <span class="p">[</span><span class="n">Frame</span> <span class="n">Start</span> <span class="n">Times</span> <span class="n">Vector</span><span class="p">]</span>          <span class="n">FD</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mf">13720.0</span><span class="p">,</span> <span class="mf">14320.0</span><span class="p">]</span>
+<span class="p">(</span><span class="mi">0055</span><span class="p">,</span> <span class="mi">1004</span><span class="p">)</span> <span class="p">[</span><span class="n">Frame</span> <span class="n">Durations</span> <span class="p">(</span><span class="n">ms</span><span class="p">)</span> <span class="n">Vector</span><span class="p">]</span>       <span class="n">FD</span><span class="p">:</span> <span class="p">[</span><span class="mf">30000.0</span><span class="p">,</span> <span class="mf">30000.0</span><span class="p">,</span> <span class="mf">30000.0</span><span class="p">,</span><span class="mf">600000.0</span><span class="p">,</span> <span class="mf">600000.0</span><span class="p">]</span><span class="s1">&#39;))</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>(0054, 1001)</p></td>
+<td><p>Units</p></td>
+<td><p>CS: ‘Bq/ml’</p></td>
+</tr>
+<tr class="row-odd"><td><p>(0055, 0010)</p></td>
+<td><p>Private Creator</p></td>
+<td><p>LO: ‘PMOD_1’</p></td>
+</tr>
+<tr class="row-even"><td><p>(0055, 1001)</p></td>
+<td><p>[Frame Start Times Vector]</p></td>
+<td><p>FD: [0.0, 30.0, 60.0, …, 13720.0, 14320.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>(0055, 1004)</p></td>
+<td><p>[Frame Durations (ms) Vector]</p></td>
+<td><p>FD: [30000.0, 30000.0, 30000.0, …, 600000.0, 600000.0</p></td>
+</tr>
+</tbody>
+</table>
+<p>Access each value as you would with pydicom:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">dcmext</span><span class="o">.</span><span class="n">get_content</span><span class="p">()</span>
+<span class="o">&gt;&gt;</span> <span class="n">start_times</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mh">0x0055</span><span class="p">,</span> <span class="mh">0x1001</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="o">&gt;&gt;</span> <span class="n">durations</span>   <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mh">0x0055</span><span class="p">,</span> <span class="mh">0x1004</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<p>Creating a PMOD-compatible header is just as easy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="n">nim</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;pet.nii&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;</span> <span class="n">nim</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">extensions</span>
+<span class="p">[]</span>
+<span class="o">&gt;&gt;</span> <span class="kn">from</span> <span class="nn">dicom.dataset</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="o">&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">()</span>
+<span class="o">&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">add_new</span><span class="p">((</span><span class="mh">0x0054</span><span class="p">,</span><span class="mh">0x1001</span><span class="p">),</span><span class="s1">&#39;CS&#39;</span><span class="p">,</span><span class="s1">&#39;Bq/ml&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">add_new</span><span class="p">((</span><span class="mh">0x0055</span><span class="p">,</span><span class="mh">0x0010</span><span class="p">),</span><span class="s1">&#39;LO&#39;</span><span class="p">,</span><span class="s1">&#39;PMOD_1&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">add_new</span><span class="p">((</span><span class="mh">0x0055</span><span class="p">,</span><span class="mh">0x1001</span><span class="p">),</span><span class="s1">&#39;FD&#39;</span><span class="p">,[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">30.</span><span class="p">,</span><span class="mf">60.</span><span class="p">,</span><span class="mf">13720.</span><span class="p">,</span><span class="mf">14320.</span><span class="p">])</span>
+<span class="o">&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">add_new</span><span class="p">((</span><span class="mh">0x0055</span><span class="p">,</span><span class="mh">0x1004</span><span class="p">),</span><span class="s1">&#39;FD&#39;</span><span class="p">,[</span><span class="mf">30000.</span><span class="p">,</span><span class="mf">30000.</span><span class="p">,</span><span class="mf">30000.</span><span class="p">,</span><span class="mf">600000.</span><span class="p">,</span><span class="mf">600000.</span><span class="p">])</span>
+<span class="o">&gt;&gt;</span> <span class="n">dcmext</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">nifti1</span><span class="o">.</span><span class="n">Nifti1DicomExtension</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">ds</span><span class="p">)</span>  <span class="c1"># Use DICOM ecode 2</span>
+<span class="o">&gt;&gt;</span> <span class="n">nim</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dcmext</span><span class="p">)</span>
+<span class="o">&gt;&gt;</span> <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">nim</span><span class="p">,</span><span class="s1">&#39;pet_withdcm.nii&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Be careful! Many imaging tools don’t maintain information in the extended
+header, so it’s possible [likely] that this information may be lost during
+routine use. You’ll have to keep track, and re-write the information if
+required.</p>
+<p>Optional Dependency Note: If pydicom is not installed, nibabel uses a generic
+<a class="reference internal" href="../reference/nibabel.nifti1.html#nibabel.nifti1.Nifti1Extension" title="nibabel.nifti1.Nifti1Extension"><code class="xref py py-class docutils literal notranslate"><span class="pre">nibabel.nifti1.Nifti1Extension</span></code></a> header instead of parsing DICOM data.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

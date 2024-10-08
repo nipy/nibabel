@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="fileslice" href="nibabel.fileslice.html" />
+    <link rel="prev" title="fileholders" href="nibabel.fileholders.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.fileslice.html" title="fileslice"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.fileholders.html" title="fileholders"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a><ul>
+<li><a class="reference internal" href="#typesfilenameserror"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypesFilenamesError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.filename_parser.TypesFilenamesError"><code class="docutils literal notranslate"><span class="pre">TypesFilenamesError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.filename_parser.TypesFilenamesError.__init__"><code class="docutils literal notranslate"><span class="pre">TypesFilenamesError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parse-filename">parse_filename</a><ul>
+<li><a class="reference internal" href="#nibabel.filename_parser.parse_filename"><code class="docutils literal notranslate"><span class="pre">parse_filename()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#splitext-addext">splitext_addext</a><ul>
+<li><a class="reference internal" href="#nibabel.filename_parser.splitext_addext"><code class="docutils literal notranslate"><span class="pre">splitext_addext()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#types-filenames">types_filenames</a><ul>
+<li><a class="reference internal" href="#nibabel.filename_parser.types_filenames"><code class="docutils literal notranslate"><span class="pre">types_filenames()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.fileholders.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.fileslice.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.filename_parser.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.filename_parser">
+<span id="filename-parser"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code><a class="headerlink" href="#module-nibabel.filename_parser" title="Link to this heading">¶</a></h1>
+<p>Create filename pairs, triplets etc, with expected extensions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.filename_parser.TypesFilenamesError" title="nibabel.filename_parser.TypesFilenamesError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypesFilenamesError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.filename_parser.parse_filename" title="nibabel.filename_parser.parse_filename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_filename</span></code></a>(filename, types_exts, ...[, ...])</p></td>
+<td><p>Split filename into fileroot, extension, trailing suffix; guess type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.filename_parser.splitext_addext" title="nibabel.filename_parser.splitext_addext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">splitext_addext</span></code></a>(filename[, addexts, match_case])</p></td>
+<td><p>Split <code class="docutils literal notranslate"><span class="pre">/pth/fname.ext.gz</span></code> into <code class="docutils literal notranslate"><span class="pre">/pth/fname,</span> <span class="pre">.ext,</span> <span class="pre">.gz</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.filename_parser.types_filenames" title="nibabel.filename_parser.types_filenames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">types_filenames</span></code></a>(template_fname, types_exts)</p></td>
+<td><p>Return filenames with standard extensions from template name</p></td>
+</tr>
+</tbody>
+</table>
+<section id="typesfilenameserror">
+<h2><a class="reference internal" href="#nibabel.filename_parser.TypesFilenamesError" title="nibabel.filename_parser.TypesFilenamesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypesFilenamesError</span></code></a><a class="headerlink" href="#typesfilenameserror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.filename_parser.TypesFilenamesError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.filename_parser.</span></span><span class="sig-name descname"><span class="pre">TypesFilenamesError</span></span><a class="headerlink" href="#nibabel.filename_parser.TypesFilenamesError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.filename_parser.TypesFilenamesError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filename_parser.TypesFilenamesError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="parse-filename">
+<h2>parse_filename<a class="headerlink" href="#parse-filename" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.filename_parser.parse_filename">
+<span class="sig-prename descclassname"><span class="pre">nibabel.filename_parser.</span></span><span class="sig-name descname"><span class="pre">parse_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types_exts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filename_parser.parse_filename" title="Link to this definition">¶</a></dt>
+<dd><p>Split filename into fileroot, extension, trailing suffix; guess type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str or os.PathLike</span></dt><dd><p>filename in which to search for type extensions</p>
+</dd>
+<dt><strong>types_exts</strong><span class="classifier">sequence of sequences</span></dt><dd><p>sequence of (name, extension) str sequences defining type to
+extension mapping.</p>
+</dd>
+<dt><strong>trailing_suffixes</strong><span class="classifier">sequence of strings</span></dt><dd><p>suffixes that should be ignored when looking for
+extensions</p>
+</dd>
+<dt><strong>match_case</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, match case of extensions and trailing suffixes when
+searching in <cite>filename</cite>, otherwise do case-insensitive match.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>pth</strong><span class="classifier">str</span></dt><dd><p>path with any matching extensions or trailing suffixes removed</p>
+</dd>
+<dt><strong>ext</strong><span class="classifier">str</span></dt><dd><p>If there were any matching extensions, in <cite>types_exts</cite> return
+that; otherwise return extension derived from
+<code class="docutils literal notranslate"><span class="pre">os.path.splitext</span></code>.</p>
+</dd>
+<dt><strong>trailing</strong><span class="classifier">str</span></dt><dd><p>If there were any matching <cite>trailing_suffixes</cite> return that
+matching suffix, otherwise ‘’</p>
+</dd>
+<dt><strong>guessed_type</strong><span class="classifier">str</span></dt><dd><p>If we found a matching extension in <cite>types_exts</cite> return the
+corresponding <code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">types_exts</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;t1&#39;</span><span class="p">,</span> <span class="s1">&#39;ext1&#39;</span><span class="p">),(</span><span class="s1">&#39;t2&#39;</span><span class="p">,</span> <span class="s1">&#39;ext2&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_filename</span><span class="p">(</span><span class="s1">&#39;/path/fname.funny&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">,</span> <span class="p">())</span>
+<span class="go">(&#39;/path/fname&#39;, &#39;.funny&#39;, None, None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_filename</span><span class="p">(</span><span class="s1">&#39;/path/fnameext2&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">,</span> <span class="p">())</span>
+<span class="go">(&#39;/path/fname&#39;, &#39;ext2&#39;, None, &#39;t2&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_filename</span><span class="p">(</span><span class="s1">&#39;/path/fnameext2&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">,))</span>
+<span class="go">(&#39;/path/fname&#39;, &#39;ext2&#39;, None, &#39;t2&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_filename</span><span class="p">(</span><span class="s1">&#39;/path/fnameext2.gz&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">,))</span>
+<span class="go">(&#39;/path/fname&#39;, &#39;ext2&#39;, &#39;.gz&#39;, &#39;t2&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="splitext-addext">
+<h2>splitext_addext<a class="headerlink" href="#splitext-addext" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.filename_parser.splitext_addext">
+<span class="sig-prename descclassname"><span class="pre">nibabel.filename_parser.</span></span><span class="sig-name descname"><span class="pre">splitext_addext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addexts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">('.gz',</span> <span class="pre">'.bz2',</span> <span class="pre">'.zst')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filename_parser.splitext_addext" title="Link to this definition">¶</a></dt>
+<dd><p>Split <code class="docutils literal notranslate"><span class="pre">/pth/fname.ext.gz</span></code> into <code class="docutils literal notranslate"><span class="pre">/pth/fname,</span> <span class="pre">.ext,</span> <span class="pre">.gz</span></code></p>
+<p>where <code class="docutils literal notranslate"><span class="pre">.gz</span></code> may be any of passed <cite>addext</cite> trailing suffixes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str or os.PathLike</span></dt><dd><p>filename that may end in any or none of <cite>addexts</cite></p>
+</dd>
+<dt><strong>match_case</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, match case of <cite>addexts</cite> and <cite>filename</cite>, otherwise do
+case-insensitive match.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>froot</strong><span class="classifier">str</span></dt><dd><p>Root of filename - e.g. <code class="docutils literal notranslate"><span class="pre">/pth/fname</span></code> in example above</p>
+</dd>
+<dt><strong>ext</strong><span class="classifier">str</span></dt><dd><p>Extension, where extension is not in <cite>addexts</cite> - e.g. <code class="docutils literal notranslate"><span class="pre">.ext</span></code> in
+example above</p>
+</dd>
+<dt><strong>addext</strong><span class="classifier">str</span></dt><dd><p>Any suffixes appearing in <cite>addext</cite> occurring at end of filename</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">splitext_addext</span><span class="p">(</span><span class="s1">&#39;fname.ext.gz&#39;</span><span class="p">)</span>
+<span class="go">(&#39;fname&#39;, &#39;.ext&#39;, &#39;.gz&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">splitext_addext</span><span class="p">(</span><span class="s1">&#39;fname.ext&#39;</span><span class="p">)</span>
+<span class="go">(&#39;fname&#39;, &#39;.ext&#39;, &#39;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">splitext_addext</span><span class="p">(</span><span class="s1">&#39;fname.ext.foo&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;.foo&#39;</span><span class="p">,</span> <span class="s1">&#39;.bar&#39;</span><span class="p">))</span>
+<span class="go">(&#39;fname&#39;, &#39;.ext&#39;, &#39;.foo&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="types-filenames">
+<h2>types_filenames<a class="headerlink" href="#types-filenames" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.filename_parser.types_filenames">
+<span class="sig-prename descclassname"><span class="pre">nibabel.filename_parser.</span></span><span class="sig-name descname"><span class="pre">types_filenames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template_fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types_exts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">('.gz',</span> <span class="pre">'.bz2')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enforce_extensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filename_parser.types_filenames" title="Link to this definition">¶</a></dt>
+<dd><p>Return filenames with standard extensions from template name</p>
+<p>The typical case is returning image and header filenames for an
+Analyze image, that expects an ‘image’ file type with extension <code class="docutils literal notranslate"><span class="pre">.img</span></code>,
+and a ‘header’ file type, with extension <code class="docutils literal notranslate"><span class="pre">.hdr</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>template_fname</strong><span class="classifier">str or os.PathLike</span></dt><dd><p>template filename from which to construct output dict of
+filenames, with given <cite>types_exts</cite> type to extension mapping.  If
+<code class="docutils literal notranslate"><span class="pre">self.enforce_extensions</span></code> is True, then filename must have one
+of the defined extensions from the types list.  If
+<code class="docutils literal notranslate"><span class="pre">self.enforce_extensions</span></code> is False, then the other filenames
+are guessed at by adding extensions to the base filename.
+Ignored suffixes (from <cite>trailing_suffixes</cite>) append themselves to
+the end of all the filenames.</p>
+</dd>
+<dt><strong>types_exts</strong><span class="classifier">sequence of sequences</span></dt><dd><p>sequence of (name, extension) str sequences defining type to
+extension mapping.</p>
+</dd>
+<dt><strong>trailing_suffixes</strong><span class="classifier">sequence of strings, optional</span></dt><dd><p>suffixes that should be ignored when looking for
+extensions - default is <code class="docutils literal notranslate"><span class="pre">('.gz',</span> <span class="pre">'.bz2')</span></code></p>
+</dd>
+<dt><strong>enforce_extensions</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>If True, raise an error when attempting to set value to
+type which has the wrong extension</p>
+</dd>
+<dt><strong>match_case</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, match case of extensions and trailing suffixes when
+searching in <cite>template_fname</cite>, otherwise do case-insensitive
+match.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>types_fnames</strong><span class="classifier">dict</span></dt><dd><p>dict with types as keys, and generated filenames as values.  The
+types are given by the first elements of the tuples in
+<cite>types_exts</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">types_exts</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;t1&#39;</span><span class="p">,</span><span class="s1">&#39;.ext1&#39;</span><span class="p">),(</span><span class="s1">&#39;t2&#39;</span><span class="p">,</span> <span class="s1">&#39;.ext2&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tfns</span> <span class="o">=</span> <span class="n">types_filenames</span><span class="p">(</span><span class="s1">&#39;/path/test.ext1&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tfns</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;t1&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/test.ext1&#39;</span><span class="p">,</span> <span class="s1">&#39;t2&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/test.ext2&#39;</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Bare file roots without extensions get them added</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tfns</span> <span class="o">=</span> <span class="n">types_filenames</span><span class="p">(</span><span class="s1">&#39;/path/test&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tfns</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;t1&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/test.ext1&#39;</span><span class="p">,</span> <span class="s1">&#39;t2&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/test.ext2&#39;</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>With enforce_extensions == False, allow first type to have any
+extension.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tfns</span> <span class="o">=</span> <span class="n">types_filenames</span><span class="p">(</span><span class="s1">&#39;/path/test.funny&#39;</span><span class="p">,</span> <span class="n">types_exts</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">enforce_extensions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tfns</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;t1&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/test.funny&#39;</span><span class="p">,</span> <span class="s1">&#39;t2&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/test.ext2&#39;</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

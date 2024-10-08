@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Making your own copy (fork) of nibabel" href="forking_hell.html" />
+    <link rel="prev" title="Making a patch" href="patching.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="forking_hell.html" title="Making your own copy (fork) of nibabel"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="patching.html" title="Making a patch"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../devel/index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../devel/devguide.html" >NiBabel Developer Guidelines</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="index.html" accesskey="U">Working with <em>nibabel</em> source code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="patching.html"
+                          title="previous chapter">Making a patch</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="forking_hell.html"
+                          title="next chapter">Making your own copy (fork) of nibabel</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/gitwash/git_development.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="git-for-development">
+<span id="git-development"></span><h1>Git for development<a class="headerlink" href="#git-for-development" title="Link to this heading">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="forking_hell.html">Making your own copy (fork) of nibabel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="forking_hell.html#set-up-and-configure-a-github-account">Set up and configure a github account</a></li>
+<li class="toctree-l2"><a class="reference internal" href="forking_hell.html#create-your-own-forked-copy-of-nibabel">Create your own forked copy of nibabel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="set_up_fork.html">Set up your fork</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="set_up_fork.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set_up_fork.html#in-detail">In detail</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configure_git.html">Configure git</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configure_git.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configure_git.html#in-detail">In detail</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development_workflow.html">Development workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#workflow-summary">Workflow summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#consider-deleting-your-master-branch">Consider deleting your master branch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#update-the-mirror-of-trunk">Update the mirror of trunk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#make-a-new-feature-branch">Make a new feature branch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#the-editing-workflow">The editing workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#ask-for-your-changes-to-be-reviewed-or-merged">Ask for your changes to be reviewed or merged</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development_workflow.html#some-other-things-you-might-want-to-do">Some other things you might want to do</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="maintainer_workflow.html">Maintainer workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="maintainer_workflow.html#integrating-changes">Integrating changes</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="spatialimages" href="nibabel.spatialimages.html" />
+    <link rel="prev" title="orientations" href="nibabel.orientations.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.spatialimages.html" title="spatialimages"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.orientations.html" title="orientations"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code></a><ul>
+<li><a class="reference internal" href="#angle-axis2mat">angle_axis2mat</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.angle_axis2mat"><code class="docutils literal notranslate"><span class="pre">angle_axis2mat()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#angle-axis2quat">angle_axis2quat</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.angle_axis2quat"><code class="docutils literal notranslate"><span class="pre">angle_axis2quat()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#conjugate">conjugate</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.conjugate"><code class="docutils literal notranslate"><span class="pre">conjugate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#eye">eye</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.eye"><code class="docutils literal notranslate"><span class="pre">eye()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fillpositive">fillpositive</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.fillpositive"><code class="docutils literal notranslate"><span class="pre">fillpositive()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#inverse">inverse</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.inverse"><code class="docutils literal notranslate"><span class="pre">inverse()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#isunit">isunit</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.isunit"><code class="docutils literal notranslate"><span class="pre">isunit()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mat2quat">mat2quat</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.mat2quat"><code class="docutils literal notranslate"><span class="pre">mat2quat()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mult">mult</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.mult"><code class="docutils literal notranslate"><span class="pre">mult()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nearly-equivalent">nearly_equivalent</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.nearly_equivalent"><code class="docutils literal notranslate"><span class="pre">nearly_equivalent()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#norm">norm</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.norm"><code class="docutils literal notranslate"><span class="pre">norm()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#quat2angle-axis">quat2angle_axis</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.quat2angle_axis"><code class="docutils literal notranslate"><span class="pre">quat2angle_axis()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#quat2mat">quat2mat</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.quat2mat"><code class="docutils literal notranslate"><span class="pre">quat2mat()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rotate-vector">rotate_vector</a><ul>
+<li><a class="reference internal" href="#nibabel.quaternions.rotate_vector"><code class="docutils literal notranslate"><span class="pre">rotate_vector()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.orientations.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.spatialimages.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.quaternions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.quaternions">
+<span id="quaternions"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code><a class="headerlink" href="#module-nibabel.quaternions" title="Link to this heading">¶</a></h1>
+<p>Functions to operate on, or return, quaternions</p>
+<p>The module also includes functions for the closely related angle, axis
+pair as a specification for rotation.</p>
+<p>Quaternions here consist of 4 values <code class="docutils literal notranslate"><span class="pre">w,</span> <span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">z</span></code>, where <code class="docutils literal notranslate"><span class="pre">w</span></code> is the
+real (scalar) part, and <code class="docutils literal notranslate"><span class="pre">x,</span> <span class="pre">y,</span> <span class="pre">z</span></code> are the complex (vector) part.</p>
+<p>Note - rotation matrices here apply to column vectors, that is,
+they are applied on the left of the vector.  For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.quaternions</span> <span class="kn">import</span> <span class="n">quat2mat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1"># 180 degree rotation around axis 0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">quat2mat</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="c1"># from this module</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># column vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">vec</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.angle_axis2mat" title="nibabel.quaternions.angle_axis2mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">angle_axis2mat</span></code></a>(theta, vector[, is_normalized])</p></td>
+<td><p>Rotation matrix of angle <cite>theta</cite> around <cite>vector</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.angle_axis2quat" title="nibabel.quaternions.angle_axis2quat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">angle_axis2quat</span></code></a>(theta, vector[, is_normalized])</p></td>
+<td><p>Quaternion for rotation of angle <cite>theta</cite> around <cite>vector</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.conjugate" title="nibabel.quaternions.conjugate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conjugate</span></code></a>(q)</p></td>
+<td><p>Conjugate of quaternion</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.eye" title="nibabel.quaternions.eye"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eye</span></code></a>()</p></td>
+<td><p>Return identity quaternion</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.fillpositive" title="nibabel.quaternions.fillpositive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fillpositive</span></code></a>(xyz[, w2_thresh])</p></td>
+<td><p>Compute unit quaternion from last 3 values</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.inverse" title="nibabel.quaternions.inverse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inverse</span></code></a>(q)</p></td>
+<td><p>Return multiplicative inverse of quaternion <cite>q</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.isunit" title="nibabel.quaternions.isunit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isunit</span></code></a>(q)</p></td>
+<td><p>Return True is this is very nearly a unit quaternion</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.mat2quat" title="nibabel.quaternions.mat2quat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mat2quat</span></code></a>(M)</p></td>
+<td><p>Calculate quaternion corresponding to given rotation matrix</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.mult" title="nibabel.quaternions.mult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mult</span></code></a>(q1, q2)</p></td>
+<td><p>Multiply two quaternions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.nearly_equivalent" title="nibabel.quaternions.nearly_equivalent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nearly_equivalent</span></code></a>(q1, q2[, rtol, atol])</p></td>
+<td><p>Returns True if <cite>q1</cite> and <cite>q2</cite> give near equivalent transforms</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.norm" title="nibabel.quaternions.norm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">norm</span></code></a>(q)</p></td>
+<td><p>Return norm of quaternion</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.quat2angle_axis" title="nibabel.quaternions.quat2angle_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quat2angle_axis</span></code></a>(quat[, identity_thresh])</p></td>
+<td><p>Convert quaternion to rotation of angle around axis</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.quaternions.quat2mat" title="nibabel.quaternions.quat2mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quat2mat</span></code></a>(q)</p></td>
+<td><p>Calculate rotation matrix corresponding to quaternion</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.quaternions.rotate_vector" title="nibabel.quaternions.rotate_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_vector</span></code></a>(v, q)</p></td>
+<td><p>Apply transformation in quaternion <cite>q</cite> to vector <cite>v</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="angle-axis2mat">
+<h2>angle_axis2mat<a class="headerlink" href="#angle-axis2mat" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.angle_axis2mat">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">angle_axis2mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.angle_axis2mat" title="Link to this definition">¶</a></dt>
+<dd><p>Rotation matrix of angle <cite>theta</cite> around <cite>vector</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>theta</strong><span class="classifier">scalar</span></dt><dd><p>angle of rotation</p>
+</dd>
+<dt><strong>vector</strong><span class="classifier">3 element sequence</span></dt><dd><p>vector specifying axis for rotation.</p>
+</dd>
+<dt><strong>is_normalized</strong><span class="classifier">bool, optional</span></dt><dd><p>True if vector is already normalized (has norm of 1).  Default
+False</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>mat</strong><span class="classifier">array shape (3,3)</span></dt><dd><p>rotation matrix for specified rotation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>From: <a class="reference external" href="https://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle">https://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle</a></p>
+</dd></dl>
+
+</section>
+<section id="angle-axis2quat">
+<h2>angle_axis2quat<a class="headerlink" href="#angle-axis2quat" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.angle_axis2quat">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">angle_axis2quat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.angle_axis2quat" title="Link to this definition">¶</a></dt>
+<dd><p>Quaternion for rotation of angle <cite>theta</cite> around <cite>vector</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>theta</strong><span class="classifier">scalar</span></dt><dd><p>angle of rotation</p>
+</dd>
+<dt><strong>vector</strong><span class="classifier">3 element sequence</span></dt><dd><p>vector specifying axis for rotation.</p>
+</dd>
+<dt><strong>is_normalized</strong><span class="classifier">bool, optional</span></dt><dd><p>True if vector is already normalized (has norm of 1).  Default
+False</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>quat</strong><span class="classifier">4 element sequence of symbols</span></dt><dd><p>quaternion giving specified rotation</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Formula from <a class="reference external" href="http://mathworld.wolfram.com/EulerParameters.html">http://mathworld.wolfram.com/EulerParameters.html</a></p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">angle_axis2quat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="conjugate">
+<h2>conjugate<a class="headerlink" href="#conjugate" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.conjugate">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">conjugate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.conjugate" title="Link to this definition">¶</a></dt>
+<dd><p>Conjugate of quaternion</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, i, j, k of quaternion</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>conjq</strong><span class="classifier">array shape (4,)</span></dt><dd><p>w, i, j, k of conjugate of <cite>q</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="eye">
+<h2>eye<a class="headerlink" href="#eye" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.eye">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">eye</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.eye" title="Link to this definition">¶</a></dt>
+<dd><p>Return identity quaternion</p>
+</dd></dl>
+
+</section>
+<section id="fillpositive">
+<h2>fillpositive<a class="headerlink" href="#fillpositive" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.fillpositive">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">fillpositive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w2_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.fillpositive" title="Link to this definition">¶</a></dt>
+<dd><p>Compute unit quaternion from last 3 values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>xyz</strong><span class="classifier">iterable</span></dt><dd><p>iterable containing 3 values, corresponding to quaternion x, y, z</p>
+</dd>
+<dt><strong>w2_thresh</strong><span class="classifier">None or float, optional</span></dt><dd><p>threshold to determine if w squared is non-zero.
+If None (default) then w2_thresh set equal to
+3 * <code class="docutils literal notranslate"><span class="pre">np.finfo(xyz.dtype).eps</span></code>, if possible, otherwise
+3 * <code class="docutils literal notranslate"><span class="pre">np.finfo(np.float64).eps</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>wxyz</strong><span class="classifier">array shape (4,)</span></dt><dd><p>Full 4 values of quaternion</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If w, x, y, z are the values in the full quaternion, assumes w is
+positive.</p>
+<p>Gives error if w*w is estimated to be negative</p>
+<p>w = 0 corresponds to a 180 degree rotation</p>
+<p>The unit quaternion specifies that np.dot(wxyz, wxyz) == 1.</p>
+<p>If w is positive (assumed here), w is given by:</p>
+<p>w = np.sqrt(1.0-(x*x+y*y+z*z))</p>
+<p>w2 = 1.0-(x*x+y*y+z*z) can be near zero, which will lead to
+numerical instability in sqrt.  Here we use the system maximum
+float type to reduce numerical instability</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wxyz</span> <span class="o">=</span> <span class="n">fillpositive</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">wxyz</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wxyz</span> <span class="o">=</span> <span class="n">fillpositive</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># Corner case; w is 0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">wxyz</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wxyz</span><span class="p">,</span> <span class="n">wxyz</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="inverse">
+<h2>inverse<a class="headerlink" href="#inverse" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.inverse">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.inverse" title="Link to this definition">¶</a></dt>
+<dd><p>Return multiplicative inverse of quaternion <cite>q</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, i, j, k of quaternion</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>invq</strong><span class="classifier">array shape (4,)</span></dt><dd><p>w, i, j, k of quaternion inverse</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="isunit">
+<h2>isunit<a class="headerlink" href="#isunit" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.isunit">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">isunit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.isunit" title="Link to this definition">¶</a></dt>
+<dd><p>Return True is this is very nearly a unit quaternion</p>
+</dd></dl>
+
+</section>
+<section id="mat2quat">
+<h2>mat2quat<a class="headerlink" href="#mat2quat" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.mat2quat">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">mat2quat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.mat2quat" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate quaternion corresponding to given rotation matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>M</strong><span class="classifier">array-like</span></dt><dd><p>3x3 rotation matrix</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>q</strong><span class="classifier">(4,) array</span></dt><dd><p>closest quaternion to input matrix, having positive q[0]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Method claimed to be robust to numerical errors in M</p>
+<p>Constructs quaternion by calculating maximum eigenvector for matrix
+K (constructed from input <cite>M</cite>).  Although this is not tested, a
+maximum eigenvalue of 1 corresponds to a valid rotation.</p>
+<p>A quaternion q*-1 corresponds to the same rotation as q; thus the
+sign of the reconstructed quaternion is arbitrary, and we return
+quaternions with positive w (q[0]).</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion">https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion</a></p></li>
+<li><p>Bar-Itzhack, Itzhack Y. (2000), “New method for extracting the
+quaternion from a rotation matrix”, AIAA Journal of Guidance,
+Control and Dynamics 23(6):1085-1087 (Engineering Note), ISSN
+0731-5090</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">mat2quat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="c1"># Identity rotation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">mat2quat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="c1"># 180 degree rotn around axis 0</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="mult">
+<h2>mult<a class="headerlink" href="#mult" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.mult">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">mult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.mult" title="Link to this definition">¶</a></dt>
+<dd><p>Multiply two quaternions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q1</strong><span class="classifier">4 element sequence</span></dt><dd></dd>
+<dt><strong>q2</strong><span class="classifier">4 element sequence</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>q12</strong><span class="classifier">shape (4,) array</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>See : <a class="reference external" href="https://en.wikipedia.org/wiki/Quaternions#Hamilton_product">https://en.wikipedia.org/wiki/Quaternions#Hamilton_product</a></p>
+</dd></dl>
+
+</section>
+<section id="nearly-equivalent">
+<h2>nearly_equivalent<a class="headerlink" href="#nearly-equivalent" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.nearly_equivalent">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">nearly_equivalent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.nearly_equivalent" title="Link to this definition">¶</a></dt>
+<dd><p>Returns True if <cite>q1</cite> and <cite>q2</cite> give near equivalent transforms</p>
+<p><cite>q1</cite> may be nearly numerically equal to <cite>q2</cite>, or nearly equal to <cite>q2</cite> * -1
+(because a quaternion multiplied by -1 gives the same transform).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q1</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, x, y, z of first quaternion</p>
+</dd>
+<dt><strong>q2</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, x, y, z of second quaternion</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>equiv</strong><span class="classifier">bool</span></dt><dd><p>True if <cite>q1</cite> and <cite>q2</cite> are nearly equivalent, False otherwise</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">q1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nearly_equivalent</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nearly_equivalent</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nearly_equivalent</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="norm">
+<h2>norm<a class="headerlink" href="#norm" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.norm">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.norm" title="Link to this definition">¶</a></dt>
+<dd><p>Return norm of quaternion</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, i, j, k of quaternion</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>n</strong><span class="classifier">scalar</span></dt><dd><p>quaternion norm</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="quat2angle-axis">
+<h2>quat2angle_axis<a class="headerlink" href="#quat2angle-axis" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.quat2angle_axis">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">quat2angle_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.quat2angle_axis" title="Link to this definition">¶</a></dt>
+<dd><p>Convert quaternion to rotation of angle around axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>quat</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, x, y, z forming quaternion</p>
+</dd>
+<dt><strong>identity_thresh</strong><span class="classifier">None or scalar, optional</span></dt><dd><p>threshold below which the norm of the vector part of the
+quaternion (x, y, z) is deemed to be 0, leading to the identity
+rotation.  None (the default) leads to a threshold estimated
+based on the precision of the input.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>theta</strong><span class="classifier">scalar</span></dt><dd><p>angle of rotation</p>
+</dd>
+<dt><strong>vector</strong><span class="classifier">array shape (3,)</span></dt><dd><p>axis around which rotation occurs</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>A quaternion for which x, y, z are all equal to 0, is an identity
+rotation.  In this case we return a 0 angle and an  arbitrary
+vector, here [1, 0, 0]</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">theta</span><span class="p">,</span> <span class="n">vec</span> <span class="o">=</span> <span class="n">quat2angle_axis</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vec</span>
+<span class="go">array([1., 0., 0.])</span>
+</pre></div>
+</div>
+<p>If this is an identity rotation, we return a zero angle and an
+arbitrary vector</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">quat2angle_axis</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="go">(0.0, array([1., 0., 0.]))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="quat2mat">
+<h2>quat2mat<a class="headerlink" href="#quat2mat" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.quat2mat">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">quat2mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.quat2mat" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate rotation matrix corresponding to quaternion</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>q</strong><span class="classifier">4 element array-like</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>M</strong><span class="classifier">(3,3) array</span></dt><dd><p>Rotation matrix corresponding to input quaternion <em>q</em></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Rotation matrix applies to column vectors, and is applied to the
+left of coordinate vectors.  The algorithm here allows non-unit
+quaternions.</p>
+<p class="rubric">References</p>
+<p>Algorithm from
+<a class="reference external" href="https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion">https://en.wikipedia.org/wiki/Rotation_matrix#Quaternion</a></p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">quat2mat</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="c1"># Identity quaternion</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">quat2mat</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="c1"># 180 degree rotn around axis 0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="rotate-vector">
+<h2>rotate_vector<a class="headerlink" href="#rotate-vector" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.quaternions.rotate_vector">
+<span class="sig-prename descclassname"><span class="pre">nibabel.quaternions.</span></span><span class="sig-name descname"><span class="pre">rotate_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.quaternions.rotate_vector" title="Link to this definition">¶</a></dt>
+<dd><p>Apply transformation in quaternion <cite>q</cite> to vector <cite>v</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>v</strong><span class="classifier">3 element sequence</span></dt><dd><p>3 dimensional vector</p>
+</dd>
+<dt><strong>q</strong><span class="classifier">4 element sequence</span></dt><dd><p>w, i, j, k of quaternion</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vdash</strong><span class="classifier">array shape (3,)</span></dt><dd><p><cite>v</cite> rotated by quaternion <cite>q</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>See:
+<a class="reference external" href="https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions">https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Describing_rotations_with_quaternions</a></p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Defining the DICOM orientation" href="dicom_orientation.html" />
+    <link rel="prev" title="DICOM concepts and implementations" href="dicom.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dicom_orientation.html" title="Defining the DICOM orientation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dicom.html" title="DICOM concepts and implementations"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">DICOM information</a></li>
+<li><a class="reference internal" href="#sample-images">Sample images</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dicom.html"
+                          title="previous chapter">DICOM concepts and implementations</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dicom_orientation.html"
+                          title="next chapter">Defining the DICOM orientation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dicom/dicom_info.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dicom-information">
+<h1>DICOM information<a class="headerlink" href="#dicom-information" title="Link to this heading">¶</a></h1>
+<p><a class="reference external" href="http://medical.nema.org/">DICOM</a> is a large and sometimes confusing imaging data format.</p>
+<p>In the other pages in this series we try and document our understanding of
+various aspects of DICOM relevant to converting to formats such as <a class="reference external" href="http://nifti.nimh.nih.gov">NIfTI</a> .</p>
+<p>There are a large number of <a class="reference external" href="http://medical.nema.org/">DICOM</a> image conversion programs already,
+partly because it is a complicated format with features that vary from
+manufacturer to manufacturer.</p>
+<p>We use the excellent <a class="reference external" href="http://www.pydicom.org/">PyDICOM</a> as our back-end for reading DICOM.</p>
+<p>Here is a selected list of other tools and relevant resources:</p>
+<ul class="simple">
+<li><p>Grassroots DICOM : <a class="reference external" href="http://gdcm.sourceforge.net/wiki/">GDCM</a> .  It is C++ code wrapped with <a class="reference external" href="http://www.swig.org">swig</a> and so
+callable from Python.  <a class="reference external" href="http://www.itk.org/">ITK</a> apparently uses it for DICOM conversion.
+<a class="reference external" href="http://www.opensource.org/licenses/bsd-license.php">BSD</a> license.</p></li>
+<li><p><a class="reference external" href="http://www.cabiatl.com/mricro/mricron/dcm2nii.html">dcm2nii</a> - a <a class="reference external" href="http://www.opensource.org/licenses/bsd-license.php">BSD</a> licensed converter by Chris Rorden. As usual, Chris
+has done an excellent job of documentation, and it is well
+battle-tested.  There’s a nice set of example data to test against and
+a list of other DICOM software.  The <a class="reference external" href="http://www.cabiatl.com/mricro/mricron/install.html">MRIcron install</a> page points to
+the source code.  Chris has also put effort into extracting diffusion
+parameters from the DICOM images.</p></li>
+<li><p><a class="reference external" href="http://www.fil.ion.ucl.ac.uk/spm/software/spm8">SPM8</a> - SPM has a stable and robust general DICOM conversion tool
+implemented in the <code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code> and <code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code>
+scripts.  The conversions don’t try to get the diffusion parameters.
+The code is particularly useful because it has been well-tested and is
+written in <a class="reference external" href="https://www.mathworks.com">Matlab</a> - and so is relatively easy to read.  <a class="reference external" href="https://www.gnu.org/licenses/gpl.html">GPL</a> license.
+We’ve described some of the algorithms that SPM uses for DICOM
+conversion in <a class="reference internal" href="spm_dicom.html#spm-dicom"><span class="std std-ref">SPM DICOM conversion</span></a>.</p></li>
+<li><p><a class="reference external" href="http://www.slicer.org/slicerWiki/index.php/Modules:DicomToNRRD-3.4">DICOM2Nrrd</a>: a command line converter to convert DICOM images to <a class="reference external" href="http://teem.sourceforge.net/nrrd/format.html">Nrrd</a>
+format.  You can call the command from within the <a class="reference external" href="http://www.slicer.org/">Slicer</a> GUI.  It
+does have algorithms for getting diffusion information from the DICOM
+headers, and has been tested with Philips, GE and Siemens data. It’s
+not clear whether it yet supports the <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>.  <a class="reference external" href="http://www.opensource.org/licenses/bsd-license.php">BSD</a> style
+license.</p></li>
+<li><p>The famous Philips cookbook: <a class="reference external" href="https://www.archive.org/details/DicomCookbook">https://www.archive.org/details/DicomCookbook</a></p></li>
+<li><p><a class="reference external" href="http://dicom.online.fr/fr/dicomlinks.htm">http://dicom.online.fr/fr/dicomlinks.htm</a></p></li>
+</ul>
+</section>
+<section id="sample-images">
+<h1>Sample images<a class="headerlink" href="#sample-images" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference external" href="http://www.barre.nom.fr/medical/samples/">http://www.barre.nom.fr/medical/samples/</a></p></li>
+<li><p><a class="reference external" href="http://pubimage.hcuge.ch:8080/">http://pubimage.hcuge.ch:8080/</a></p></li>
+<li><p>Via links from the <a class="reference external" href="http://www.cabiatl.com/mricro/mricron/dcm2nii.html">dcm2nii</a> page.</p></li>
+</ul>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

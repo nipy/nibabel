@@ -1,0 +1,284 @@
+.. _biap6:
+
+##############################
+BIAP6 - Identifying image axes
+##############################
+
+:Author: Matthew Brett
+:Status: Draft
+:Type: Standards
+:Created: 2015-07-11
+
+**********
+Background
+**********
+
+Image axes can have meaningful labels.
+
+For example in a typical 4D NIfTI file, as we move along the 4th dimension in
+the image array, we are also moving in time.  For example, this would be the
+first volume (in time):
+
+.. code:: python
+
+    img = nibabel.load('my_4d.nii')
+    data = img.get_data()
+    vol0 = data[..., 0]
+
+and this would be second volume in time:
+
+.. code:: python
+
+    vol1 = data[..., 1]
+
+It would therefore be reasonable to label the 4th axis of this image as 'time'
+or 't'.
+
+We need to know which axis is the "time" axis for many reasons, including
+being able to select whole image volumes to align during motion correction,
+and doing spatial smoothing, where we want to avoid smoothing along the time
+dimension.
+
+It is common to acquire MRI images one slice at a time.  In a 3D or 4D NIfTI,
+the 3rd axis often contains these slices.  So this these would be the first
+and second slices of data collected by the scanner:
+
+.. code:: python
+
+    slice0 = vol0[:, :, 0]
+    slice1 = vol0[:, :, 1]
+
+In this case we might refer to the 3rd axis as the "slice" axis.  We might
+care about knowing the "slice" axis, because we do processing specific to the
+slice axis, such as slice-timing correction.
+
+For an individual 2D slice, MRI physicists distinguish between the image axis
+encoded during a single continual readout of the signal (frequency encoding
+direction) and the image axis encoded in a series of stepwise changes in the
+phase encode gradient (phase encoding direction).  We care about the phase
+encoding direction because we usually correct for image distortion only along
+this direction.
+
+Let us say that the first axis is the frequency encoding axis, and the second
+is the phase encoding axis.  Now we can label all four of our axes:
+
+* "frequency";
+* "phase";
+* "slice";
+* "time".
+
+In fact the NIfTI format can store this information.  NIfTI specifies that the
+fourth image dimension should have units in terms of time (seconds), frequency
+(Hertz, radians per second) or concentration (parts per million), where the
+value difference between elements on the fourth axis is in
+``img.header['pixdim'][4]``, and the units of this difference are available in
+``img.header['xyzt_units']``.  The field ``img.header['dim_info']`` can
+identify the frequency, phase and slice-encoding axes.
+
+Time axis as the fourth axis
+============================
+
+In the NIfTI standard, time must be the fourth dimension.
+
+In fact, the NIfTI standard specifies that the fourth axis *must* be time.  If
+we want to store more than one volume that do not differ across time, then we
+have to set the 4th dimension to be length 1, and have 5th dimension have
+length > 1.  Quoting from the standard::
+
+   In NIFTI-1 files, dimensions 1,2,3 are for space, dimension 4 is for time,
+   and dimension 5 is for storing multiple values at each spatiotemporal
+   voxel.
+
+This arrangement happens in practice.  For example, SPM deformation fields
+have three values for each voxel (x, y, z displacement), and have shape (I, J,
+K, 1, 3):
+
+.. code:: python
+
+    In [7]: img = nib.load('y_highres001.nii')
+    In [8]: img.shape
+    Out[8]: (121, 145, 121, 1, 3)
+
+So, for correctly written NIfTI images, we can identify time by the fact that
+it is the fourth axis.
+
+MGH format also appears to use the fourth dimension for time. The dimensions
+are listed in order ``width, height, depth, nframes`` and "frames" is always
+the slowest changing dimension in the image data buffer. Of course, in numpy,
+this does not tell us which axis this must be in the returned array, but at
+least the ``load_mgh.m`` MATLAB function (see `MGH format`_) returns the frame
+axis as the last axis, as does nibabel.
+
+The ECAT and PAR / REC formats seem to be primarily based on and stored as
+slices (2D arrays) which can then be concatenated to form volumes, implying a
+slowest-changing axis of volume.  Nibabel currently arranges PAR images with
+volume as the 4th and last axis.
+
+On the other hand, the MINC format:
+
+#. gives specific names to the image data axes so we can directly find the
+   time axis
+#. expects (given the common ordering of these names in MINC files) that the
+   time axis will be first::
+
+       In [31]: mnc2 = h5py.File('nibabel/tests/data/minc2_4d.mnc', 'r')['minc-2.0']
+       In [32]: mnc2['dimensions'].values()
+       Out[32]:
+       [<HDF5 dataset "time": shape (2,), type "<f8">,
+       <HDF5 dataset "xspace": shape (), type "<i4">,
+       <HDF5 dataset "yspace": shape (), type "<i4">,
+       <HDF5 dataset "zspace": shape (), type "<i4">]
+
+This reflects MINC's lineage as C-library, where the C convention is for the
+first axis in an array is the slowest changing. ``arr[0]`` in a C-convention
+4D array would be the first volume, where time (volume) is the slowest
+changing axis.
+
+MINC2 uses HDF5 storage, and HDF5 uses C storage order for standard contiguous
+arrays on disk - see "7.3.2.5. C versus Fortran Dataspaces" in `chapter 7 of
+the HDF5 user guide
+<http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html>`_.
+
+BrainVoyager `STC <STC format definition>`_ files store data in (fastest to
+slowest changing) order: columns (of slice); rows (of slice); time; slice.  The
+`VTC <VTC format definition>`_ stores the data in the (fast to slow) order:
+time; Anterior->Posterior; Superior->Inferior; Left->Right.
+
+Images can have more than four axes
+===================================
+
+We've already seen the example of NIfTI images where the 4th axis is length 1
+and the 5th axis is length 3, encoding a deformation field.
+
+This is a trick NIfTI uses to allow us to identify the "time" axis.
+
+We can also have (rarely) images of 5D, where the time axis has length > 1.
+For example, some MR acquisitions take two echoes per time point, so we might
+have an image of shape (64, 64, 32, 200, 2), where the fourth axis is time and
+the fifth axis is echo number.
+
+The current nibabel convention
+==============================
+
+The nibabel rule of thumb has been that, when we return an image array, it
+should be in the order described in the format's user documentation.
+
+So, for NIfTI format images, the image dimension sizes are listed in fastest
+to slowest changing order, implying that the expected array to be returned
+will have that same axis order.  Time is always the fourth (rather than the
+first) dimension of a 4D NIfTI.  Nibabel NIfTI images return the array in that
+order, and the time / volume axis is the last in a 4D nibabel NIfTI image
+array.
+
+On the other hand MINC clearly expects that the axes will be returned in the
+order the axes are listed in the MINC file.  This is also (usually) the
+slowest-to-fastest changing order in the underlying file, and by convention,
+the first axis is the time axis.  Nibabel MINC images return the array in this
+same order with the time / volume axis first, but in general it returns the
+array with the axes in the order listed in the MINC file.
+
+We don't currently have BrainVoyager support, so this will be a decision we
+have to make before finalizing the API.
+
+Distinguishing time and volume
+==============================
+
+A *volume* is a complete set of slices making up one brain image.
+
+In NIfTI:
+
+* 3D image: volume == image array i.e. ``arr[:, :, :]``;
+* > 3D image: volume == a single slice over the final dim > 3 dimensions
+  e.g.: ``arr[:, :, :, 2]`` (4D); ``arr[:, :, :, 0, 3]`` (5D).
+
+We saw above that the MGH format refers to a volume (in our sense) as a
+*frame*.  ECAT has the same usage - a frame is a 3D volume. The fmristat
+software uses frame in the same sense, e.g., `line 32 of example.m
+<https://github.com/matthew-brett/fmristat/blob/64ad8bf/fmristat/example.m#L32>`_.
+
+Unfortunately DICOM appears to use "frame" to mean a 2D slice.  For example,
+here is the definition of a "multi-frame image"::
+
+    3.8.9 Multi-frame image:
+        Image that contains multiple two-dimensional pixel planes.
+
+From `PS 3.3 of the 2011 DICOM standard
+<http://medical.nema.org/Dicom/2011/11_03pu.pdf>`_.
+
+**********************************
+Possible solutions to finding axes
+**********************************
+
+A general solution for finding axes would be to attach axis labels to the
+returned image data array, or to the image object.
+
+A less general solution would be to identify the time axis by convention - say
+- by being the fourth axis in a 4D array.
+
+Finding the time axis is an urgent problem, because we are currently
+considering utility routines for (spatial) smoothing, and viewing images, that
+need to know which axis is time.
+
+General solution: associating axes and labels
+=============================================
+
+Possible options:
+
+* Add a property `time_axis_index` to the image class.  This always returns 3
+  (4th axis) for images other than MINC.  For MINC, it returns the index of
+  the image dimension labeled ``time``;
+* Add a property `axis_labels` to the image class.  By default, most image
+  types return `'i', 'j', 'k', 'time'`.  MINC returns the image dimension
+  labels;
+* Copy or depend on datarray_ (no other dependencies) or `xray` (depends on
+  Pandas).  Use these to attach labels directly to the image data array axes.
+  These labels could then be preserved through operations like slicing.
+
+Using convention : enforcing time as 4th axis
+=============================================
+
+This solution could be implemented as well as the solution using labels.
+
+At the moment, we can always identify the time axis in the NIfTI file, because
+it is the 4th axis in the returned image.
+
+This is probably so for:
+
+* PAR/REC
+* ECAT
+* MGH
+
+but not so for MINC1 or MINC2, where time is typically (?always) the first
+axis.
+
+One option would be to make a new MINC1, MINC2 image class that reorders the
+MINC axes to have time last.  Call these new classes `NiMINC1, NiMINC2`.
+
+In order to avoid surprise, we continue to return MINC1, MINC2 class images
+from `nibabel.load`, but give a ``DeprecationWarning`` when doing this, saying
+that the default load will change in future versions of nibabel, and
+suggesting the `as_niminc=True` keyword-only argument to load, defaulting to
+`as_niminc=False` (giving the current nibabel behavior).
+
+In Nibabel 3.0, we require the `as_niminc` keyword argument.
+
+In Nibabel 4.0, we default to `as_niminc=True`.
+
+We would still have to deal with MINC1, MINC2 images in memory - and therefore
+cannot in general assume that the fourth dimension of any image data array is
+time.  In order to deal with this, routines that need to know the time
+dimension would have to check whether they were dealing with MINC1, MINC2,
+which ends up being similar to the `time_axis_index` option above.
+
+
+.. _MGH format: https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
+.. _BV file format index page: http://support.brainvoyager.com/automation-aamp-development/23-file-formats.html.
+.. _BV file format overview: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/382-developer-guide-26-file-formats-overview.html
+.. _vmr format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html
+.. _STC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/384-developer-guide-26-the-format-of-stc-files.html
+.. _VTC format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html.
+.. _NR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/377-users-guide-23-the-format-of-nr-vmp-files.html;
+.. _AR-VMP format definition: http://support.brainvoyager.com/automation-aamp-development/23-file-formats/376-users-guide-23-the-format-of-ar-vmp-files.html
+.. _SMP format definition: : http://support.brainvoyager.com/automation-aamp-development/23-file-formats/476-the-format-of-smp-files.html.
+.. _datarray: https://pypi.python.org/pypi/datarray
+.. _xray: https://pypi.python.org/pypi/xray

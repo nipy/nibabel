@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="BIAP4 - Merging nibabel and dcmstack" href="biap_0004.html" />
+    <link rel="prev" title="BIAP2 - Slicecopy" href="biap_0002.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biap_0004.html" title="BIAP4 - Merging nibabel and dcmstack"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0002.html" title="BIAP2 - Slicecopy"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP3 - A JSON nifti header extension</a><ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#nifti-extension-types">Nifti extension types</a></li>
+<li><a class="reference internal" href="#alternatives">Alternatives</a></li>
+<li><a class="reference internal" href="#learning-from-nrrds">Learning from NRRDs</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#proposal">Proposal</a><ul>
+<li><a class="reference internal" href="#general-principles">General principles</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+<li><a class="reference internal" href="#the-header-must-contain-the-header-version">The header must contain the header version</a></li>
+<li><a class="reference internal" href="#the-header-will-usually-contain-image-metadata-fields">The header will usually contain image metadata fields</a></li>
+<li><a class="reference internal" href="#questions">Questions</a></li>
+<li><a class="reference internal" href="#the-header-will-usually-contain-axis-names">The header will usually contain axis names</a></li>
+<li><a class="reference internal" href="#the-header-will-often-contain-axis-metadata">The header will often contain axis metadata</a><ul>
+<li><a class="reference internal" href="#the-axis-metadata-element">The axis metadata element</a></li>
+<li><a class="reference internal" href="#the-q-vector-axis-metadata-field">The <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> axis metadata field</a></li>
+<li><a class="reference internal" href="#acquisition-times-field"><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> field</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#acquisition-times-applying-to-slices"><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applying to slices</a></li>
+<li><a class="reference internal" href="#acquisition-times-applying-to-volumes"><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applying to volumes</a></li>
+<li><a class="reference internal" href="#acquisition-times-applying-to-slices-and-volumes"><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applying to slices and volumes</a></li>
+<li><a class="reference internal" href="#axis-meanings-field"><code class="docutils literal notranslate"><span class="pre">axis_meanings</span></code> field</a><ul>
+<li><a class="reference internal" href="#multi-affine-field"><code class="docutils literal notranslate"><span class="pre">multi_affine</span></code> field</a><ul>
+<li><a class="reference internal" href="#use-case">Use case</a></li>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0002.html"
+                          title="previous chapter">BIAP2 - Slicecopy</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biap_0004.html"
+                          title="next chapter">BIAP4 - Merging nibabel and dcmstack</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_0003.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap3-a-json-nifti-header-extension">
+<span id="biap3"></span><h1>BIAP3 - A JSON nifti header extension<a class="headerlink" href="#biap3-a-json-nifti-header-extension" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Matthew Brett, Bob Dougherty</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>Draft</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Standards</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>2011-03-26</p>
+</dd>
+</dl>
+<p>The following Wiki documents should be merged with this one:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/nipy/nibabel/wiki/NIfTI-metadata-extension">NIfTI metadata extension</a></p></li>
+</ul>
+<section id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Link to this heading">¶</a></h2>
+<p>A draft specification of the JSON header for Nibabel.</p>
+</section>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p>DICOM files in particular have a lot of information in them that we might want
+to carry with the image.  There are other image file types like <a class="reference external" href="http://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference">Minc</a> or <a class="reference external" href="http://teem.sourceforge.net/nrrd/descformat.html">Nrrd</a>
+that have information we’d like to support but can’t with standard nifti.</p>
+<p>One obvious place to store this information is in a <a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html">nifti header extension</a>.</p>
+<section id="nifti-extension-types">
+<h3>Nifti extension types<a class="headerlink" href="#nifti-extension-types" title="Link to this heading">¶</a></h3>
+<p>From <a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/documentation/faq#Q19">adding nifti extensions</a>:</p>
+<ul class="simple">
+<li><p>0 = NIFTI_ECODE_IGNORE = unknown private format (not recommended!)</p></li>
+<li><p>2 = NIFTI_ECODE_DICOM = DICOM format (i.e., attribute tags and values):
+<a class="reference external" href="http://medical.nema.org/">http://medical.nema.org/</a></p></li>
+<li><p>4 = NIFTI_ECODE_AFNI = AFNI header attributes: The format of the AFNI
+extension in the NIfTI-1.1 format is described at
+<a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/AFNIextension1/">http://nifti.nimh.nih.gov/nifti-1/AFNIextension1/</a></p></li>
+<li><p>6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no
+additional structure implied</p></li>
+<li><p>8 = NIFTI_ECODE_XCEDE = XCEDE metadata:
+<a class="reference external" href="http://www.nbirn.net/Resources/Users/Applications/xcede/index.htm">http://www.nbirn.net/Resources/Users/Applications/xcede/index.htm</a></p></li>
+<li><p>10 = NIFTI_ECODE_JIMDIMINFO = Dimensional information for the JIM software
+(XML format); contact info is Dr Mark A Horsfield: mah5*AT*leicester.ac.uk.</p></li>
+<li><p>12 = NIFTI_ECODE_WORKFLOW_FWDS = Fiswidget XML pipeline descriptions;
+documented at
+<a class="reference external" href="http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html">http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html</a>
+; contact info is Kate Fissell: fissell+*AT*pitt.edu.</p></li>
+</ul>
+</section>
+<section id="alternatives">
+<h3>Alternatives<a class="headerlink" href="#alternatives" title="Link to this heading">¶</a></h3>
+<p>Summary: we need probably need our own extension format</p>
+<p>There is a DICOM type extension - code 2.  This might be OK for DICOM but:</p>
+<ol class="arabic simple">
+<li><p>We probably don’t want to have to dump the entire DICOM header for every
+DICOM image.  If we don’t that means we have to edit the DICOM header, and</p></li>
+<li><p>The DICOM format is awful to work with, so it is not a pleasant prospect
+making a new DICOM header for images (like Minc) that aren’t DICOM to start
+with.</p></li>
+<li><p>I (MB) can’t find any evidence that it’s being used in the wild.</p></li>
+<li><p>It’s not completely clear what format the data should be in. See <a class="reference external" href="http://nifti.nimh.nih.gov/board/read.php?f=1&amp;i=2077&amp;t=2069">this
+nifti thread</a>.</p></li>
+</ol>
+<p>The AFNI extension format looks as if it is specific to AFNI.</p>
+<p>The XCEDE format looks rather heavy.  I’m (MB) trying to work out where the
+most current schema is.  Candidates are <a class="reference external" href="http://www.nitrc.org/projects/bxh_xcede_tools/">bxh-xcede-tools</a> and the <a class="reference external" href="http://www.xcede.org/XCEDE.html">xcede
+website</a>. We’d need to validate the XML with the schema. It appears the
+python standard library doesn’t support that so we’d need extra XML tools as a
+dependency.</p>
+<p><a class="reference external" href="http://www.xinapse.com/Manual/index.html">JIM</a> is closed source.</p>
+<p>fiswidgets seems to have been quiet recently.  The link for code 12 is dead, I
+had to go back to the <a class="reference external" href="http://www.archive.org">http://www.archive.org</a> to get <a class="reference external" href="http://replay.waybackmachine.org/20060514073534/http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html">an old copy</a>
+and that didn’t have the DTD or example links that we need to understand the
+format.</p>
+</section>
+<section id="learning-from-nrrds">
+<h3>Learning from NRRDs<a class="headerlink" href="#learning-from-nrrds" title="Link to this heading">¶</a></h3>
+<p>Gordon Kindlmann’s <a class="reference external" href="http://teem.sourceforge.net/nrrd/descformat.html">NRRD</a> format has gone through a few versions and has
+considerable use particularly by the <a class="reference external" href="http://www.slicer.org">3D slicer</a> team.  I’ve tried to
+summarize the NRRD innovations not properly covered by nifti in
+[[nifti-nrrd]].</p>
+</section>
+</section>
+<section id="proposal">
+<h2>Proposal<a class="headerlink" href="#proposal" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="http://json.org/">JSON</a>, as y’all know, encodes strings, numbers, objects
+and arrays, An object is like a Python dict, with strings as keys, and an
+array is like a Python list.</p>
+<p>In what follows, I will build dicts and lists corresponding to the objects and
+arrays of the JSON header. In each case, the <code class="docutils literal notranslate"><span class="pre">json.dumps</span></code> of the given Python
+object gives the corresponding JSON string.</p>
+<p>I’ll use the term <em>field</em> to refer to a (key, value) pair from a Python dict /
+JSON object.</p>
+<section id="general-principles">
+<h3>General principles<a class="headerlink" href="#general-principles" title="Link to this heading">¶</a></h3>
+<p>We specify image axes by name in the header, and give the correspondence of the
+names to the image array axes by the order of the names. This is the
+<code class="docutils literal notranslate"><span class="pre">axis_names</span></code> field at the top level of the header.</p>
+<p>If the user transposes or otherwise reorders the axes of the data array, the
+header should change only in the ordering of the axis names in
+<code class="docutils literal notranslate"><span class="pre">axis_names</span></code>.  Call this the “axis transpose” principle.</p>
+<p>The JSON header should make sense as a key, value pair store for DICOM
+fields using a standard way of selecting DICOM fields – the <em>simple DICOM</em>
+principle.</p>
+<p>The NIfTI image also contains the standard image metadata in the NIfTI header
+C-struct (the standard NIfTI header).  Nibabel and Nipy will write JSON
+headers correctly, and so the information in the NIfTI C-struct should always
+match the information in the JSON header.  Other software may write the JSON
+incorrectly, or copy the JSON header into another image to which it may not
+apply, but other software should always set the C-struct correctly. For that
+reason the C-struct always overrides the JSON header, unless the C-struct has
+values implying “not-set” or “don’t know”.  This is the <em>C-struct primacy</em>
+principle.</p>
+</section>
+<section id="see-also">
+<h3>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p><a class="reference external" href="http://json-ld.org/">JSON-LD</a> - provides a way of using json that can be
+mapped into the Resource Description Framework (RDF). It is highly
+recommended to take a look at the <a class="reference external" href="http://www.w3.org/TR/rdf11-primer/">RDF Primer</a> to get a sense of why we might want
+to use JSON-LD/RDF, but essentially it boils down to a couple points:</p>
+<ul>
+<li><p>JSON keys are turned into URIs</p></li>
+<li><p>URIs can dereference to a Web URL with additional documentation, such as a
+definition, a pretty label (e.g., <code class="docutils literal notranslate"><span class="pre">nipy_header_version</span></code> has_label
+<code class="docutils literal notranslate"><span class="pre">&quot;NIPY</span> <span class="pre">Header</span> <span class="pre">Version&quot;</span></code>), etc.</p></li>
+<li><p>The URI link to documentation makes the meaning of your JSON keys
+explicit, in a machine readable way (i.e., the json key becomes a
+“resource” on the Web that avoids name clashes)</p></li>
+<li><p>JSON-LD/RDF has a full query language called <a class="reference external" href="http://www.w3.org/TR/sparql11-query/">SPARQL</a> and a python library called
+<a class="reference external" href="https://rdflib.readthedocs.org/en/latest/">RDFLib</a> that acts as a
+parser, serializer, database, and query engine.</p></li>
+<li><p>In the example below, the <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> section provides the namespace
+prefix <code class="docutils literal notranslate"><span class="pre">dcm</span></code> as a placeholder for the URL
+<code class="docutils literal notranslate"><span class="pre">http://neurolex.org/wiki/Category:</span></code>, thus <code class="docutils literal notranslate"><span class="pre">dcm:Echo_Time</span></code>
+dereferences to <a class="reference external" href="http://neurolex.org/wiki/Category:Echo_Time">http://neurolex.org/wiki/Category:Echo_Time</a> where
+additional documentation is provided:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;@context&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;dcm&quot;</span><span class="p">:</span> <span class="s2">&quot;http://neurolex.org/wiki/Category:#&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;dcm:Echo_Time&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+  <span class="s2">&quot;dcm:Repetition_Time&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="the-header-must-contain-the-header-version">
+<h3>The header must contain the header version<a class="headerlink" href="#the-header-must-contain-the-header-version" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We chose the name “nipy_header_version” in the hope that this would not often
+occur in an unrelated JSON file.</p>
+<ul class="simple">
+<li><p>First version will be “1.0”.</p></li>
+<li><p>Versioning will use <a class="reference external" href="http://semver.org">Semantic Versioning</a> of form
+<code class="docutils literal notranslate"><span class="pre">major.minor[.patch[-extra]]</span></code> where <code class="docutils literal notranslate"><span class="pre">major</span></code>, <code class="docutils literal notranslate"><span class="pre">minor</span></code>, <code class="docutils literal notranslate"><span class="pre">patch</span></code> are
+all integers, <code class="docutils literal notranslate"><span class="pre">extra</span></code> may be a string, and both <code class="docutils literal notranslate"><span class="pre">patch</span></code> and <code class="docutils literal notranslate"><span class="pre">extra</span></code>
+are optional.  Header versions with the same <code class="docutils literal notranslate"><span class="pre">major</span></code> value are <a class="reference external" href="https://en.wikipedia.org/wiki/Forward_compatibility">forwards
+compatible</a> – that
+is, a reader that can read a header with a particular major version should
+be able to read any header with that major version.  Specifically, any
+changes to the header format within major version number should allow older
+readers of that major version to read the header correctly, but can expand
+on the information in the header, so that older readers can safely ignore
+new information in the header.</p></li>
+<li><p>All fields other than <code class="docutils literal notranslate"><span class="pre">nipy_header_version</span></code> are optional.  The dict in
+<code class="docutils literal notranslate"><span class="pre">hdr</span></code> above is therefore the minimal valid header.</p></li>
+</ul>
+</section>
+<section id="the-header-will-usually-contain-image-metadata-fields">
+<h3>The header will usually contain image metadata fields<a class="headerlink" href="#the-header-will-usually-contain-image-metadata-fields" title="Link to this heading">¶</a></h3>
+<p>The base level header will usually also have image metadata fields giving
+information about the whole image. A field is an “image metadata field” if it
+is defined at the top level of the header.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">Manufacturer</span><span class="o">=</span><span class="s2">&quot;SIEMENS&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All image metadata fields are optional.</p>
+<p>As for all keys in this standard, IM (Image Metadata) keys are case sensitive.
+IM keys that begin with a capital letter must be from the DICOM data
+dictionary standard short names (DICOM keyword). Call these “DICOM IM keys”.
+This is to conform to the <em>simple DICOM</em> principle.</p>
+<p>Keys beginning with “extended” will be read and written, but not further
+processed by a header reader / writer.  If you want to put extra fields into
+the header that are outside this standard you could use a dict / object of
+form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">extended</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">my_field1</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">my_field2</span><span class="o">=</span><span class="s1">&#39;a string&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">extended_mysoft</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">mysoft_one</span><span class="o">=</span><span class="s1">&#39;expensive&#39;</span><span class="p">,</span> <span class="n">mysoft_two</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Values for DICOM IM keys are constrained by the DICOM standard.  This standard
+constrains values for (“nipy_header_version”, “axis_names”, “axis_metadata”).
+Other values have no constraint.</p>
+</section>
+<section id="questions">
+<h3>Questions<a class="headerlink" href="#questions" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p>Should all DICOM values be allowed?</p></li>
+<li><p>Should DICOM values be allowed at this level that in fact refer to a
+particular axis, and therefore might go in the <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> elements?</p></li>
+<li><p>How should we relate the DICOM standard values to JSON?  For example, how
+should we store dates and times?  One option would be to use the new DICOM
+JSON encoding for DICOM values, but omitting the tag and value
+representation (VR).  For example, the <a class="reference external" href="ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf">DICOM JSON spec</a> has:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;00080070&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;vr&quot;</span><span class="p">:</span> <span class="s2">&quot;LO&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;SIEMENS&quot;</span> <span class="p">]</span>
+<span class="p">},</span>
+</pre></div>
+</div>
+<p>but we might prefer:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Manufacturer&quot;</span><span class="p">:</span> <span class="s2">&quot;SIEMENS&quot;</span>
+</pre></div>
+</div>
+<p>Using the DICOM data dictionary we can reconstruct the necessary tag and VR,
+so our version is lossless if the DICOM keyword exists in the DICOM data
+dictionary. Of course this may well not be true for private tags, or if the
+keyword comes from a DICOM dictionary that is later than the one we are
+using to look up the keyword. For the latter, we could make sure we’re
+always using the latest dictionary. For the private tags, we might want to
+recode these in any case, maybe using our own dictionary.  Maybe it is
+unlikely we will want to reconstruct the private tags of a DICOM file from
+the JSON.  Comments welcome.</p>
+</li>
+</ul>
+</section>
+<section id="the-header-will-usually-contain-axis-names">
+<h3>The header will usually contain axis names<a class="headerlink" href="#the-header-will-usually-contain-axis-names" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">axis_names</span></code> is a list of strings corresponding to the axes of the image data
+to which the header refers.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The names must be valid Python identifiers (should not begin with a digit, nor
+contain spaces etc).</p>
+<p>There must be the same number of names as axes in the image to which the header
+refers.  For example, the header above is valid for a 4D image but invalid for a
+3D or 5D image.</p>
+<p>The names appear in fastest-slowest order in which the image data is stored on
+disk.  The first name in <code class="docutils literal notranslate"><span class="pre">axis_names</span></code> corresponds to the axis over which
+the data on disk varies fastest, and the last corresponds to the axis over which
+the data varies slowest.</p>
+<p>For a NIfTI image, nibabel (and nipy) will create an image where the axes have
+this same fastest to slowest ordering in memory.  For example, let’s say the
+read image is called <code class="docutils literal notranslate"><span class="pre">img</span></code>. <code class="docutils literal notranslate"><span class="pre">img</span></code> has shape (4, 5, 6, 10), and a 2-byte
+datatype such as int16. In the case of the NIfTI default fastest-slowest ordered
+array, the distance in memory between <code class="docutils literal notranslate"><span class="pre">img[0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> and <code class="docutils literal notranslate"><span class="pre">img[1,</span> <span class="pre">0,</span> <span class="pre">0,</span>
+<span class="pre">0]</span></code> is 2 bytes, and the distance between <code class="docutils literal notranslate"><span class="pre">img[0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> and <code class="docutils literal notranslate"><span class="pre">img[0,</span> <span class="pre">0,</span> <span class="pre">0,</span>
+<span class="pre">1]</span></code> is 4 * 5 * 6 * 2 = 240 bytes.  The names in <code class="docutils literal notranslate"><span class="pre">axis_names</span></code> will then refer
+to the first, second, third and fourth axes respectively. In the example above,
+“frequency” is the first axis and “time” is the last.</p>
+<p><code class="docutils literal notranslate"><span class="pre">axis_names</span></code> is optional only if <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> is empty or absent.
+Otherwise, the <code class="docutils literal notranslate"><span class="pre">set()</span></code> of <code class="docutils literal notranslate"><span class="pre">axis_names</span></code> must be a superset of the union of
+all axis names specified in the <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> fields of <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code>
+elements.</p>
+</section>
+<section id="the-header-will-often-contain-axis-metadata">
+<h3>The header will often contain axis metadata<a class="headerlink" href="#the-header-will-often-contain-axis-metadata" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> is a list of <em>axis metadata elements</em>.</p>
+<p>Each <em>axis metadata element</em> in the <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> list gives data that
+applies to a particular axis, or combination of axes.  <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> can
+be empty:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</pre></div>
+</div>
+<p>We prefer you delete this section if it is empty, to avoid clutter, but hey,
+mi casa, su casa.</p>
+<section id="the-axis-metadata-element">
+<h4>The axis metadata element<a class="headerlink" href="#the-axis-metadata-element" title="Link to this heading">¶</a></h4>
+<p>An axis metadata element must contain a field <code class="docutils literal notranslate"><span class="pre">applies_to</span></code>, with a value that
+is a list that contains one or more values from <code class="docutils literal notranslate"><span class="pre">axis_names</span></code>.  From the above
+example, the following would be valid axis metadata elements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>           <span class="p">])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> field plays the role of a dictionary key for each axis
+metadata element, where the rest of the fields in the element are a dict
+giving the value.  For example, in Python (but not in JSON, we could
+represent the above as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>               <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">{},</span>
+<span class="gp">... </span>               <span class="s1">&#39;slice&#39;</span><span class="p">:</span> <span class="p">{},</span>
+<span class="gp">... </span>               <span class="p">(</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">):</span> <span class="p">{},</span>
+<span class="gp">... </span>           <span class="p">])</span>
+</pre></div>
+</div>
+<p>We can’t do this in JSON because all object fields must be strings, so we
+cannot represent the key <code class="docutils literal notranslate"><span class="pre">('slice',</span> <span class="pre">'time')</span></code> directly. The
+<code class="docutils literal notranslate"><span class="pre">applies_to</span></code> field allows us to do that in JSON.  See below for why we
+might want to specify more than one axis.</p>
+</div>
+<p>As for image metadata keys, keys that begin with a capital letter are DICOM
+standard keywords.</p>
+<p>A single axis name for <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> specifies that any axis metadata values in
+the element apply to the named axis.</p>
+<p>In this case, axis metadata values may be:</p>
+<ul class="simple">
+<li><p>a scalar. The value applies to every point along the corresponding image
+axis OR</p></li>
+<li><p>a vector of length N (where N is the length of the corresponding image
+axis).  Value <span class="math notranslate nohighlight">\(v_i\)</span> in the vector <span class="math notranslate nohighlight">\(v\)</span> corresponds to the image slice at
+point <span class="math notranslate nohighlight">\(i\)</span> on the corresponding axis OR</p></li>
+<li><p>an array of shape (1, …) where “…” can be any further shape, expressing
+a vector or array that applies to all points on the given axis, OR</p></li>
+<li><p>an array of shape (N, …) where “…” can be any further shape.  The (N,
+…) array N vectors or arrays with one (vector or array) corresponding to
+each point in the image axis.</p></li>
+</ul>
+<p>More than one axis name for <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> specifies that any values in the
+element apply to the combination of the given axes.</p>
+<p>In the case of more than one axis for <code class="docutils literal notranslate"><span class="pre">applies_to</span></code>, the axis metadata values
+apply to the Cartesian product of the image axis values.  For example, if the
+values of <code class="docutils literal notranslate"><span class="pre">applies_to</span></code> == <code class="docutils literal notranslate"><span class="pre">['slice',</span> <span class="pre">'time']</span></code>, and the slice and time axes
+in the array are lengths (6, 10) respectively, then the values apply to all
+combinations of the 6 possible values for slice indices and the 10 possible
+values for the time indices (ie apply to all 6x10=60 values).  The axis metadata
+values in this case can be:</p>
+<ul class="simple">
+<li><p>a scalar. The value applies to every combination of (slice, time)</p></li>
+<li><p>an array of shape (S, T) (where S is the length of the slice axis and T is
+the length of the time axis).  Value <span class="math notranslate nohighlight">\(a_{i,j}\)</span> in the array <span class="math notranslate nohighlight">\(a\)</span> corresponds
+to the image slice at point <span class="math notranslate nohighlight">\(i\)</span> on the slice axis and <span class="math notranslate nohighlight">\(j\)</span> on the time axis.</p></li>
+<li><p>an array of shape (S, T, …) where “…” can be any further shape.  The (S,
+T, …) case gives N vectors or arrays with one vector / array corresponding
+to each combination of slice, time points in the image,</p></li>
+</ul>
+<p>In contrast to the single axis case, we do not allow length 1 axes, to
+indicate a value constant across an axis.  For example, we do not allow shape
+(1, T) arrays to indicate a value constant across slice but varying across
+time, as this should be specified with the single time axis metadata element.</p>
+<p>In general, for a given value <code class="docutils literal notranslate"><span class="pre">applies_to</span></code>, we can take the corresponding
+axis lengths:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shape_of_image</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">axis_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">image_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">applies_to</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">axis_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">shape_of_image</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axis_indices</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">axis_lengths</span>
+<span class="go">[6, 10]</span>
+</pre></div>
+</div>
+<p>The axis metadata value can therefore be of shape:</p>
+<ul class="simple">
+<li><p>() (a scalar) (a scalar value for every combination of points);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis_lengths</span></code> (a scalar value for each combination of points);</p></li>
+<li><p>[1] + <code class="docutils literal notranslate"><span class="pre">any_other_list</span></code> if <code class="docutils literal notranslate"><span class="pre">len(axis_lengths)</span> <span class="pre">==</span> <span class="pre">1</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis_lengths</span> <span class="pre">+</span> <span class="pre">any_other_list</span></code> (an array or vector corresponding to each
+combination of points, where the shape of the array or vector is given by
+<code class="docutils literal notranslate"><span class="pre">any_other_list</span></code>)</p></li>
+</ul>
+<p>For any unique ordered combination of axis names, there can only be on axis
+metadata element.  For example, this is valid:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># VALID</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>           <span class="p">])</span>
+</pre></div>
+</div>
+<p>This is not, because of the repeated combination of axis names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOT VALID because of repeated axis combination</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>           <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="the-q-vector-axis-metadata-field">
+<span id="q-vector"></span><h4>The <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> axis metadata field<a class="headerlink" href="#the-q-vector-axis-metadata-field" title="Link to this heading">¶</a></h4>
+<p>We define an axis metadata field <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> which gives the q vector
+corresponding to the diffusion gradients applied.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> should apply to (<code class="docutils literal notranslate"><span class="pre">applies_to</span></code>) one axis, where that axis is
+the image volume axis.   The <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> is a dict / object with two fields,
+<code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code> and <code class="docutils literal notranslate"><span class="pre">array</span></code>.</p>
+<p>If there are T volumes then the array will be of shape (T, 3).  One row from
+this array corresponds to the direction of the diffusion gradient with axes
+oriented to the three spatial axes of the data.  To preserve the <em>axis
+transpose</em> principle, the <code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code> field value is a list of the
+spatial image axes to which the first, second and third column of the
+<code class="docutils literal notranslate"><span class="pre">array</span></code> refer.</p>
+<p>For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">q_vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>                  <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                  <span class="n">array</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span>                          <span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s1">&#39;q_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(10, 3)</span>
+</pre></div>
+</div>
+<p>An individual (3,) vector is the unit vector expressing the direction of the
+gradient, multiplied by the scalar b value of the gradient. In the example,
+there are three b == 0 scans (corresponding to volumes 0, 4, 8), with the rest
+having b value of 1000.</p>
+<p>The first value corresponds to the direction along the first named image axis
+(‘frequency’), the second value to direction along the second named axis
+(‘phase’), and the third to direction along the ‘slice’ axis.</p>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> is always specified in the axes of the image. This is
+the same convention as FSL uses for its <code class="docutils literal notranslate"><span class="pre">bvals</span></code> and <code class="docutils literal notranslate"><span class="pre">bvecs</span></code> files.</p>
+</section>
+<section id="acquisition-times-field">
+<h4><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> field<a class="headerlink" href="#acquisition-times-field" title="Link to this heading">¶</a></h4>
+<p>This gives a list of times of acquisition of each spatial unit of data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> can apply to (<code class="docutils literal notranslate"><span class="pre">applies_to</span></code>) slices or to volumes or to
+both.</p>
+<p>Units are milliseconds and can be expressed as integers or as floating point.
+Milliseconds is a reasonable choice for units because a Python integer can
+decode / encode any integer number in the JSON correctly, a signed 32-bit int
+can encode to around 6000 hours, and a 32-bit float can encode to 23 hours
+without loss of precision.</p>
+</section>
+</section>
+<section id="acquisition-times-applying-to-slices">
+<h3><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applying to slices<a class="headerlink" href="#acquisition-times-applying-to-slices" title="Link to this heading">¶</a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applies to an image axis representing slices, then the
+array should be of shape (S,) where S is the number of slices. Each value
+<span class="math notranslate nohighlight">\(a_i\)</span> represents the time of acquisition of slice <span class="math notranslate nohighlight">\(i\)</span>, relative to the start
+of the volume, in milliseconds. For example, to specify an ascending
+sequential slice acquisition scheme:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>We use “slice” as the axis name here, but any name is valid.</p>
+<p>NIfTI 1 and 2 can encode some slice acquisition times using a somewhat
+complicated scheme, but they cannot - for example - encode multi-slice
+acquisitions, and NIfTI slice time encoding is rarely set.  According to the
+<em>C-struct primacy</em> principle, if the slice timing is set, it overrides this
+<code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> field.  Slice timing is set in the C-struct if the
+<a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/slice_code.html">slice_code</a>
+in the C-struct is other than 0 (=unknown).  The specific slice times from the
+C-struct also depend on C-struct fields <code class="docutils literal notranslate"><span class="pre">slice_start</span></code> and <code class="docutils literal notranslate"><span class="pre">slice_end</span></code>.</p>
+</section>
+<section id="acquisition-times-applying-to-volumes">
+<h3><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applying to volumes<a class="headerlink" href="#acquisition-times-applying-to-volumes" title="Link to this heading">¶</a></h3>
+<p>When <cite>acquisition_times`</cite> applies to a volume axis, it is a list of times of
+acquisition of each volume in milliseconds relative to the beginning of the
+acquisition of the run.</p>
+<p>These values can be useful for recording runs with missing or otherwise
+not-continuous time data.</p>
+<p>We use “time” as the axis name, but any name is valid.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The NIfTI C-struct can encode a non-zero start point for volumes, using the
+<a class="reference external" href="http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/toffset.html">toffset</a>
+field.  If this is not-zero, and not equal to the first value in
+<code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code>, JSON acquisition times applying to volumes are ignored.
+The C-struct <code class="docutils literal notranslate"><span class="pre">slice_code</span></code> field (see above) is not relevant to volume times,
+and can have any value.</p>
+</section>
+<section id="acquisition-times-applying-to-slices-and-volumes">
+<h3><code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applying to slices and volumes<a class="headerlink" href="#acquisition-times-applying-to-slices-and-volumes" title="Link to this heading">¶</a></h3>
+<p>When <cite>acquisition_times`</cite> applies to both a slice and a volume axis, it is a
+list of times of acquisition of each slice in each volume in milliseconds
+relative to the beginning of the acquisition of the run.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">acquisition_times</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">],</span>
+<span class="gp">... </span>                                    <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">210</span><span class="p">],</span>
+<span class="gp">... </span>                                    <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">220</span><span class="p">],</span>
+<span class="gp">... </span>                                    <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">130</span><span class="p">,</span> <span class="mi">230</span><span class="p">],</span>
+<span class="gp">... </span>                                    <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">140</span><span class="p">,</span> <span class="mi">240</span><span class="p">]]</span>
+<span class="gp">... </span>          <span class="p">)</span>
+</pre></div>
+</div>
+<p>This meaning becomes invalid with non-zero and conflicting values for
+<code class="docutils literal notranslate"><span class="pre">slice_code</span></code> or <code class="docutils literal notranslate"><span class="pre">toffset</span></code> in the C-struct.  Conflicting values are values
+different from those implied from a strict per-volume repetition of the
+acquisition times from <code class="docutils literal notranslate"><span class="pre">slice_code,</span> <span class="pre">slice_start,</span> <span class="pre">slice_end</span></code>, starting at
+<code class="docutils literal notranslate"><span class="pre">toffset</span></code>.</p>
+</section>
+<section id="axis-meanings-field">
+<h3><code class="docutils literal notranslate"><span class="pre">axis_meanings</span></code> field<a class="headerlink" href="#axis-meanings-field" title="Link to this heading">¶</a></h3>
+<p>So far we are allowing any axis to be a slice or volume axis, but it might be
+nice to check.  One way of doing this is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mytime&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;myslice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>In this case we can assert that <code class="docutils literal notranslate"><span class="pre">acquisition_times</span></code> applies to an axis with
+meanings that include “slice” or that it applies to an axis with meaning
+“volume”.  For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Should raise an error on reading full JSON</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;myslice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Being able to specify meanings that apply to more than one axis might also
+help for the situation where there is more than one frequency axis:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency1&quot;</span><span class="p">,</span> <span class="s2">&quot;frequency2&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency1&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency2&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>           <span class="p">])</span>
+</pre></div>
+</div>
+<p>We can also check that space axes really are space axes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;space&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;space&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;space&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">q_vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>                       <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]))</span>
+<span class="gp">... </span>               <span class="p">])</span>
+</pre></div>
+</div>
+<p>For the <code class="docutils literal notranslate"><span class="pre">q_vector</span></code> field, we can check that all of the <code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code> axes
+(“frequency”, “phase”, “slice”) do in fact have meaning “space”.</p>
+<p>For this check to pass, either of these must be true:</p>
+<ul class="simple">
+<li><p>no axes are labeled with the meaning “space” OR</p></li>
+<li><p>the only three axes with label “space” are those named in <code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code>.</p></li>
+</ul>
+<section id="multi-affine-field">
+<h4><code class="docutils literal notranslate"><span class="pre">multi_affine</span></code> field<a class="headerlink" href="#multi-affine-field" title="Link to this heading">¶</a></h4>
+<section id="use-case">
+<h5>Use case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h5>
+<p>When doing motion correction on a 4D image, we calculate the required affine
+transformation from, say, the second image to the first image; the
+third image to the first image; etc. If there are N volumes in the 4D image,
+we would need to store N-1 affine transformations.  If we have registered to
+the mean volume of the volume series instead of one of the volumes in the
+volume series, then we need to store all N transforms.</p>
+<p>We often want to store this set of required transformations with the image,
+but NIfTI does not allow us to do that.  SPM therefore stores these transforms
+in a separate MATLAB-format <code class="docutils literal notranslate"><span class="pre">.mat</span></code> file.  We currently don’t read these
+transformations because we have no API in nibabel to present or store multiple
+affines.</p>
+</section>
+<section id="implementation">
+<h5>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h5>
+<p>Assume the 4D volume has T time points (volumes).</p>
+<p>There are two ways we could implement the multi-affines. The first would be to
+have (T x 3 x 4) <code class="docutils literal notranslate"><span class="pre">array</span></code> of affines, with one for each volume / time point,
+and a <code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code> field specifying the input axes for the affine.  This
+is the same general idea as the <cite>q_vector</cite> field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">multi_affine</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>                   <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                   <span class="n">array</span> <span class="o">=</span> <span class="p">[[[</span>   <span class="mf">2.86</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.7</span> <span class="p">,</span>    <span class="mf">0.83</span><span class="p">,</span>  <span class="o">-</span><span class="mf">80.01</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.71</span><span class="p">,</span>    <span class="mf">2.91</span><span class="p">,</span>    <span class="mf">0.01</span><span class="p">,</span> <span class="o">-</span><span class="mf">114.59</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.54</span><span class="p">,</span>    <span class="mf">0.13</span><span class="p">,</span>    <span class="mf">4.42</span><span class="p">,</span>  <span class="o">-</span><span class="mf">54.34</span><span class="p">]],</span>
+<span class="gp">... </span>                             <span class="p">[[</span>   <span class="mf">2.87</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.38</span><span class="p">,</span>    <span class="mf">1.19</span><span class="p">,</span>  <span class="o">-</span><span class="mf">92.77</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.31</span><span class="p">,</span>    <span class="mf">2.97</span><span class="p">,</span>    <span class="mf">0.45</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.87</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.82</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.2</span> <span class="p">,</span>    <span class="mf">4.32</span><span class="p">,</span>  <span class="o">-</span><span class="mf">33.89</span><span class="p">]],</span>
+<span class="gp">... </span>                             <span class="p">[[</span>   <span class="mf">2.97</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.39</span><span class="p">,</span>    <span class="mf">0.31</span><span class="p">,</span>  <span class="o">-</span><span class="mf">78.95</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.33</span><span class="p">,</span>    <span class="mf">2.9</span> <span class="p">,</span>    <span class="mf">1.06</span><span class="p">,</span> <span class="o">-</span><span class="mf">116.99</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.29</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.68</span><span class="p">,</span>    <span class="mf">4.36</span><span class="p">,</span>  <span class="o">-</span><span class="mf">36.41</span><span class="p">]],</span>
+<span class="gp">... </span>                             <span class="p">[[</span>   <span class="mf">2.93</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.5</span> <span class="p">,</span>    <span class="mf">0.61</span><span class="p">,</span>  <span class="o">-</span><span class="mf">78.02</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.4</span> <span class="p">,</span>    <span class="mf">2.9</span> <span class="p">,</span>    <span class="mf">0.99</span><span class="p">,</span> <span class="o">-</span><span class="mf">118.9</span> <span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.5</span> <span class="p">,</span>   <span class="o">-</span><span class="mf">0.59</span><span class="p">,</span>    <span class="mf">4.35</span><span class="p">,</span>  <span class="o">-</span><span class="mf">33.61</span><span class="p">]],</span>
+<span class="gp">... </span>                             <span class="p">[[</span>   <span class="mf">2.95</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.44</span><span class="p">,</span>    <span class="mf">0.49</span><span class="p">,</span>  <span class="o">-</span><span class="mf">77.86</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.3</span> <span class="p">,</span>    <span class="mf">2.78</span><span class="p">,</span>    <span class="mf">1.62</span><span class="p">,</span> <span class="o">-</span><span class="mf">125.83</span><span class="p">],</span>
+<span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.46</span><span class="p">,</span>   <span class="o">-</span><span class="mf">1.03</span><span class="p">,</span>    <span class="mf">4.17</span><span class="p">,</span>  <span class="o">-</span><span class="mf">21.66</span><span class="p">]]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s1">&#39;multi_affine&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 3, 4)</span>
+</pre></div>
+</div>
+<p>This obeys the axis transpose principle, because the spatial axes are
+specified.  If the user transposes the image, the order of axis names in
+<code class="docutils literal notranslate"><span class="pre">axis_names</span></code>  changes, but the correspondence between axis names and affine
+columns is still correctly encoded in the <code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code>.</p>
+<p>Another option would be to partially follow the <a class="reference external" href="http://teem.sourceforge.net/nrrd/format.html">NRRD format</a> in giving the column vectors
+from the affine to the axis to which they apply, and split the translation
+into a separate offset vector:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">output_vector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.86</span><span class="p">,</span> <span class="mf">0.71</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.54</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.87</span><span class="p">,</span> <span class="mf">0.31</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.82</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.97</span><span class="p">,</span> <span class="mf">0.33</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.29</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.93</span><span class="p">,</span> <span class="mf">0.4</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.95</span><span class="p">,</span> <span class="mf">0.3</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.46</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">])),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">output_vector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.7</span> <span class="p">,</span> <span class="mf">2.91</span><span class="p">,</span>  <span class="mf">0.13</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.38</span><span class="p">,</span> <span class="mf">2.97</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span> <span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.39</span><span class="p">,</span> <span class="mf">2.9</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.68</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.5</span> <span class="p">,</span> <span class="mf">2.9</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.59</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.44</span><span class="p">,</span> <span class="mf">2.78</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.03</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">])),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">output_vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.83</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">4.42</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">1.19</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">4.32</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.31</span><span class="p">,</span> <span class="mf">1.06</span><span class="p">,</span> <span class="mf">4.36</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.61</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mf">4.35</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.49</span><span class="p">,</span> <span class="mf">1.62</span><span class="p">,</span> <span class="mf">4.17</span><span class="p">],</span>
+<span class="gp">... </span>                                <span class="p">])),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">output_offset</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">80.01</span><span class="p">,</span> <span class="o">-</span><span class="mf">114.59</span><span class="p">,</span> <span class="o">-</span><span class="mf">54.34</span><span class="p">],</span>
+<span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">92.77</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.87</span><span class="p">,</span> <span class="o">-</span><span class="mf">33.89</span><span class="p">],</span>
+<span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">78.95</span><span class="p">,</span> <span class="o">-</span><span class="mf">116.99</span><span class="p">,</span> <span class="o">-</span><span class="mf">36.41</span><span class="p">],</span>
+<span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">78.02</span><span class="p">,</span> <span class="o">-</span><span class="mf">118.9</span><span class="p">,</span>  <span class="o">-</span><span class="mf">33.61</span><span class="p">],</span>
+<span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">77.86</span><span class="p">,</span> <span class="o">-</span><span class="mf">125.83</span><span class="p">,</span> <span class="o">-</span><span class="mf">21.66</span><span class="p">],</span>
+<span class="gp">... </span>                             <span class="p">])],</span>
+<span class="gp">... </span>          <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;output_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;output_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;output_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="s1">&#39;output_offset&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 3)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

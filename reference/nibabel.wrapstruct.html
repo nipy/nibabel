@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="index.html" />
+    <link rel="prev" title="tripwire" href="nibabel.tripwire.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="API Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.tripwire.html" title="tripwire"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code></a><ul>
+<li><a class="reference internal" href="#id1">wrapstruct</a><ul>
+<li><a class="reference internal" href="#mappingness">Mappingness</a></li>
+<li><a class="reference internal" href="#consistency-checks">Consistency checks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#labeledwrapstruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">LabeledWrapStruct</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct"><code class="docutils literal notranslate"><span class="pre">LabeledWrapStruct</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct.__init__"><code class="docutils literal notranslate"><span class="pre">LabeledWrapStruct.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct.get_value_label"><code class="docutils literal notranslate"><span class="pre">LabeledWrapStruct.get_value_label()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStruct</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct"><code class="docutils literal notranslate"><span class="pre">WrapStruct</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.__init__"><code class="docutils literal notranslate"><span class="pre">WrapStruct.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.as_byteswapped"><code class="docutils literal notranslate"><span class="pre">WrapStruct.as_byteswapped()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.binaryblock"><code class="docutils literal notranslate"><span class="pre">WrapStruct.binaryblock</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.check_fix"><code class="docutils literal notranslate"><span class="pre">WrapStruct.check_fix()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.copy"><code class="docutils literal notranslate"><span class="pre">WrapStruct.copy()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.default_structarr"><code class="docutils literal notranslate"><span class="pre">WrapStruct.default_structarr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.diagnose_binaryblock"><code class="docutils literal notranslate"><span class="pre">WrapStruct.diagnose_binaryblock()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.endianness"><code class="docutils literal notranslate"><span class="pre">WrapStruct.endianness</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.from_fileobj"><code class="docutils literal notranslate"><span class="pre">WrapStruct.from_fileobj()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.get"><code class="docutils literal notranslate"><span class="pre">WrapStruct.get()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.guessed_endian"><code class="docutils literal notranslate"><span class="pre">WrapStruct.guessed_endian()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.items"><code class="docutils literal notranslate"><span class="pre">WrapStruct.items()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.keys"><code class="docutils literal notranslate"><span class="pre">WrapStruct.keys()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.structarr"><code class="docutils literal notranslate"><span class="pre">WrapStruct.structarr</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.template_dtype"><code class="docutils literal notranslate"><span class="pre">WrapStruct.template_dtype</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.values"><code class="docutils literal notranslate"><span class="pre">WrapStruct.values()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct.write_to"><code class="docutils literal notranslate"><span class="pre">WrapStruct.write_to()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrapstructerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStructError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStructError"><code class="docutils literal notranslate"><span class="pre">WrapStructError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.wrapstruct.WrapStructError.__init__"><code class="docutils literal notranslate"><span class="pre">WrapStructError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.tripwire.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="next chapter">API Reference</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.wrapstruct.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.wrapstruct">
+<span id="wrapstruct"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code><a class="headerlink" href="#module-nibabel.wrapstruct" title="Link to this heading">¶</a></h1>
+<p>Class to wrap numpy structured array</p>
+<section id="id1">
+<h2>wrapstruct<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="#nibabel.wrapstruct.WrapStruct" title="nibabel.wrapstruct.WrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStruct</span></code></a> class is a wrapper around a numpy structured array
+type.</p>
+<p>It implements:</p>
+<ul class="simple">
+<li><p>Mappingness from the underlying structured array fields</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from_fileobj</span></code>, <code class="docutils literal notranslate"><span class="pre">write_to</span></code> methods to read and write data to fileobj</p></li>
+<li><p>A mechanism for setting checks and fixes to the data on object creation</p></li>
+<li><p>Endianness guessing, and on-the-fly swapping</p></li>
+</ul>
+<p>The <a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct" title="nibabel.wrapstruct.LabeledWrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">LabeledWrapStruct</span></code></a> subclass adds:</p>
+<ul class="simple">
+<li><p>A pretty printing mechanism whereby field values can be displayed as
+corresponding strings (see <a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct.get_value_label" title="nibabel.wrapstruct.LabeledWrapStruct.get_value_label"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LabeledWrapStruct.get_value_label()</span></code></a> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">LabeledWrapStruct.__str_()</span></code>)</p></li>
+</ul>
+<section id="mappingness">
+<h3>Mappingness<a class="headerlink" href="#mappingness" title="Link to this heading">¶</a></h3>
+<p>You can access and set fields of the contained structarr using standard
+__getitem__ / __setitem__ syntax:</p>
+<blockquote>
+<div><p>wrapped[‘field’] = 10</p>
+</div></blockquote>
+<p>Wrapped structures also implement general mappingness:</p>
+<blockquote>
+<div><p>wrapped.keys()
+wrapped.items()
+wrapped.values()</p>
+</div></blockquote>
+<p>Properties:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">endianness</span> <span class="p">(</span><span class="n">read</span> <span class="n">only</span><span class="p">)</span>
+<span class="o">.</span><span class="n">binaryblock</span> <span class="p">(</span><span class="n">read</span> <span class="n">only</span><span class="p">)</span>
+<span class="o">.</span><span class="n">structarr</span> <span class="p">(</span><span class="n">read</span> <span class="n">only</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">as_byteswapped</span><span class="p">(</span><span class="n">endianness</span><span class="p">)</span>
+<span class="o">.</span><span class="n">check_fix</span><span class="p">()</span>
+<span class="o">.</span><span class="fm">__str__</span>
+<span class="o">.</span><span class="fm">__eq__</span>
+<span class="o">.</span><span class="fm">__ne__</span>
+<span class="o">.</span><span class="n">get_value_label</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Class methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">diagnose_binaryblock</span>
+<span class="o">.</span><span class="n">as_byteswapped</span><span class="p">(</span><span class="n">endianness</span><span class="p">)</span>
+<span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>
+<span class="o">.</span><span class="n">from_fileobj</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>
+<span class="o">.</span><span class="n">default_structarr</span><span class="p">()</span> <span class="o">-</span> <span class="k">return</span> <span class="n">default</span> <span class="n">structured</span> <span class="n">array</span>
+<span class="o">.</span><span class="n">guessed_endian</span><span class="p">(</span><span class="n">structarr</span><span class="p">)</span> <span class="o">-</span> <span class="k">return</span> <span class="n">guessed</span> <span class="n">endian</span> <span class="n">code</span> <span class="kn">from</span> <span class="nn">this</span> <span class="n">structarr</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Class variables:</dt><dd><p>template_dtype - native endian version of dtype for contained structarr</p>
+</dd>
+</dl>
+</section>
+<section id="consistency-checks">
+<h3>Consistency checks<a class="headerlink" href="#consistency-checks" title="Link to this heading">¶</a></h3>
+<p>We have a file, and we would like information as to whether there are any
+problems with the binary data in this file, and whether they are fixable.
+<code class="docutils literal notranslate"><span class="pre">WrapStruct</span></code> can hold checks for internal consistency of the contained data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="o">.</span><span class="n">from_fileobj</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;myfile.bin&#39;</span><span class="p">),</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">dx_result</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="o">.</span><span class="n">diagnose_binaryblock</span><span class="p">(</span><span class="n">wrapped</span><span class="o">.</span><span class="n">binaryblock</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will run all known checks, with no fixes, returning a string with
+diagnostic output. See below for the <code class="docutils literal notranslate"><span class="pre">check=False</span></code> flag.</p>
+<p>In creating a <code class="docutils literal notranslate"><span class="pre">WrapStruct</span></code> object, we often want to check the consistency of
+the contained data.  The checks can test for problems of various levels of
+severity.  If the problem is severe enough, it should raise an Error.  So, with
+data that is consistent - no error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="o">.</span><span class="n">from_fileobj</span><span class="p">(</span><span class="n">good_fileobj</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>whereas:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="o">.</span><span class="n">from_fileobj</span><span class="p">(</span><span class="n">bad_fileobj</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>would raise some error, with output to logging (see below).</p>
+<p>If we want the created object, come what may:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hdr</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="o">.</span><span class="n">from_fileobj</span><span class="p">(</span><span class="n">bad_fileobj</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We set the error level (the level of problem that the <code class="docutils literal notranslate"><span class="pre">check=True</span></code>
+versions will accept as OK) from global defaults:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="n">nib</span><span class="o">.</span><span class="n">imageglobals</span><span class="o">.</span><span class="n">error_level</span> <span class="o">=</span> <span class="mi">30</span>
+</pre></div>
+</div>
+<p>The same for logging:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nib</span><span class="o">.</span><span class="n">imageglobals</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+</pre></div>
+</div>
+</section>
+</section>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct" title="nibabel.wrapstruct.LabeledWrapStruct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LabeledWrapStruct</span></code></a>([binaryblock, endianness, ...])</p></td>
+<td><p>A WrapStruct with some fields having value labels for printing etc</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct" title="nibabel.wrapstruct.WrapStruct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WrapStruct</span></code></a>([binaryblock, endianness, check])</p></td>
+<td><p>Initialize WrapStruct from binary data block</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.wrapstruct.WrapStructError" title="nibabel.wrapstruct.WrapStructError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WrapStructError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<section id="labeledwrapstruct">
+<h2><a class="reference internal" href="#nibabel.wrapstruct.LabeledWrapStruct" title="nibabel.wrapstruct.LabeledWrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">LabeledWrapStruct</span></code></a><a class="headerlink" href="#labeledwrapstruct" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.LabeledWrapStruct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.wrapstruct.</span></span><span class="sig-name descname"><span class="pre">LabeledWrapStruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.LabeledWrapStruct" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.wrapstruct.WrapStruct" title="nibabel.wrapstruct.WrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStruct</span></code></a></p>
+<p>A WrapStruct with some fields having value labels for printing etc</p>
+<p>Initialize WrapStruct from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into object.  By default, None, in
+which case we insert the default empty block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of binary data in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span> <span class="c1"># a default structure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(0, dtype=int16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(1, dtype=int16)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.LabeledWrapStruct.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.LabeledWrapStruct.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize WrapStruct from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into object.  By default, None, in
+which case we insert the default empty block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of binary data in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span> <span class="c1"># a default structure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(0, dtype=int16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(1, dtype=int16)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.LabeledWrapStruct.get_value_label">
+<span class="sig-name descname"><span class="pre">get_value_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fieldname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.LabeledWrapStruct.get_value_label" title="Link to this definition">¶</a></dt>
+<dd><p>Returns label for coded field</p>
+<p>A coded field is an int field containing codes that stand for
+discrete values that also have string labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fieldname</strong><span class="classifier">str</span></dt><dd><p>name of header field to get label for</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>label</strong><span class="classifier">str</span></dt><dd><p>label for code value in header field <cite>fieldname</cite></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>if field is not coded.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.volumeutils</span> <span class="kn">import</span> <span class="n">Recoder</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">recoder</span> <span class="o">=</span> <span class="n">Recoder</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;one&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;two&#39;</span><span class="p">)),</span> <span class="p">(</span><span class="s1">&#39;code&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">C</span><span class="p">(</span><span class="n">LabeledWrapStruct</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">template_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;datatype&#39;</span><span class="p">,</span> <span class="s1">&#39;i2&#39;</span><span class="p">)])</span>
+<span class="gp">... </span>    <span class="n">_field_recoders</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">datatype</span> <span class="o">=</span> <span class="n">recoder</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span>  <span class="o">=</span> <span class="n">C</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_value_label</span><span class="p">(</span><span class="s1">&#39;datatype&#39;</span><span class="p">)</span>
+<span class="go">&#39;&lt;unknown code 0&gt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;datatype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_value_label</span><span class="p">(</span><span class="s1">&#39;datatype&#39;</span><span class="p">)</span>
+<span class="go">&#39;two&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id2">
+<h2><a class="reference internal" href="#nibabel.wrapstruct.WrapStruct" title="nibabel.wrapstruct.WrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStruct</span></code></a><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.wrapstruct.</span></span><span class="sig-name descname"><span class="pre">WrapStruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Initialize WrapStruct from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into object.  By default, None, in
+which case we insert the default empty block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of binary data in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span> <span class="c1"># a default structure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(0, dtype=int16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(1, dtype=int16)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize WrapStruct from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into object.  By default, None, in
+which case we insert the default empty block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of binary data in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span> <span class="c1"># a default structure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(0, dtype=int16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(1, dtype=int16)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.as_byteswapped">
+<span class="sig-name descname"><span class="pre">as_byteswapped</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.as_byteswapped" title="Link to this definition">¶</a></dt>
+<dd><p>return new byteswapped object with given <code class="docutils literal notranslate"><span class="pre">endianness</span></code></p>
+<p>Guaranteed to make a copy even if endianness is the same as
+the current endianness.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>endianness</strong><span class="classifier">None or string, optional</span></dt><dd><p>endian code to which to swap.  None means swap from current
+endianness, and is the default</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>wstr</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">WrapStruct</span></code></span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">WrapStruct</span></code> object with given endianness</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span> <span class="o">=</span> <span class="n">wstr</span><span class="o">.</span><span class="n">as_byteswapped</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span> <span class="o">=</span> <span class="n">wstr</span><span class="o">.</span><span class="n">as_byteswapped</span><span class="p">(</span><span class="n">swapped_code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span> <span class="ow">is</span> <span class="n">wstr</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span> <span class="o">==</span> <span class="n">wstr</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If you write to the resulting byteswapped data, it does not
+change the original.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bs_wstr</span> <span class="o">==</span> <span class="n">wstr</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>If you swap to the same endianness, it returns a copy</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nbs_wstr</span> <span class="o">=</span> <span class="n">wstr</span><span class="o">.</span><span class="n">as_byteswapped</span><span class="p">(</span><span class="n">native_code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nbs_wstr</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nbs_wstr</span> <span class="ow">is</span> <span class="n">wstr</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.binaryblock">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">binaryblock</span></span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.binaryblock" title="Link to this definition">¶</a></dt>
+<dd><p>binary block of data as string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">string</span></dt><dd><p>string giving binary data block</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Make default empty structure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">wstr</span><span class="o">.</span><span class="n">binaryblock</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.check_fix">
+<span class="sig-name descname"><span class="pre">check_fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.check_fix" title="Link to this definition">¶</a></dt>
+<dd><p>Check structured data with checks</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>logger</strong><span class="classifier">None or logging.Logger</span></dt><dd></dd>
+<dt><strong>error_level</strong><span class="classifier">None or int</span></dt><dd><p>Level of error severity at which to raise error.  Any error of
+severity &gt;= <cite>error_level</cite> will cause an exception.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Return copy of structure</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr2</span> <span class="o">=</span> <span class="n">wstr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr2</span> <span class="ow">is</span> <span class="n">wstr</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr2</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="go">array(3, dtype=int16)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.default_structarr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_structarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.default_structarr" title="Link to this definition">¶</a></dt>
+<dd><p>Return structured array for default structure with given endianness</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.diagnose_binaryblock">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">diagnose_binaryblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.diagnose_binaryblock" title="Link to this definition">¶</a></dt>
+<dd><p>Run checks over binary data, return string</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.endianness">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">endianness</span></span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.endianness" title="Link to this definition">¶</a></dt>
+<dd><p>endian code of binary data</p>
+<p>The endianness code gives the current byte order
+interpretation of the binary data.</p>
+<p class="rubric">Notes</p>
+<p>Endianness gives endian interpretation of binary data. It is
+read only because the only common use case is to set the
+endianness on initialization, or occasionally byteswapping the
+data - but this is done via the as_byteswapped method</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">code</span> <span class="o">=</span> <span class="n">wstr</span><span class="o">.</span><span class="n">endianness</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">code</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.from_fileobj">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.from_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Return read structure with given or guessed endiancode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>Needs to implement <code class="docutils literal notranslate"><span class="pre">read</span></code> method</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">None or endian code, optional</span></dt><dd><p>Code specifying endianness of read data</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>wstr</strong><span class="classifier">WrapStruct object</span></dt><dd><p>WrapStruct object initialized from data in fileobj</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.get" title="Link to this definition">¶</a></dt>
+<dd><p>Return value for the key k if present or d otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.guessed_endian">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">guessed_endian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.guessed_endian" title="Link to this definition">¶</a></dt>
+<dd><p>Guess intended endianness from mapping-like <code class="docutils literal notranslate"><span class="pre">mapping</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>wstr</strong><span class="classifier">mapping-like</span></dt><dd><p>Something implementing a mapping.  We will guess the endianness
+from looking at the field values</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>endianness</strong><span class="classifier">{‘&lt;’, ‘&gt;’}</span></dt><dd><p>Guessed endianness of binary data in <code class="docutils literal notranslate"><span class="pre">wstr</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.items" title="Link to this definition">¶</a></dt>
+<dd><p>Return items from structured data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.keys" title="Link to this definition">¶</a></dt>
+<dd><p>Return keys from structured data</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.structarr">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">structarr</span></span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.structarr" title="Link to this definition">¶</a></dt>
+<dd><p>Structured data, with data fields</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span> <span class="c1"># with default data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">an_int</span> <span class="o">=</span> <span class="n">wstr1</span><span class="o">.</span><span class="n">structarr</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr1</span><span class="o">.</span><span class="n">structarr</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">   </span><span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.template_dtype">
+<span class="sig-name descname"><span class="pre">template_dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('integer',</span> <span class="pre">'&lt;i2')])</span></em><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.template_dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.values" title="Link to this definition">¶</a></dt>
+<dd><p>Return values from structured data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStruct.write_to">
+<span class="sig-name descname"><span class="pre">write_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStruct.write_to" title="Link to this definition">¶</a></dt>
+<dd><p>Write structure to fileobj</p>
+<p>Write starts at fileobj current file position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>Should implement <code class="docutils literal notranslate"><span class="pre">write</span></code> method</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span> <span class="o">=</span> <span class="n">WrapStruct</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">str_io</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wstr</span><span class="o">.</span><span class="n">binaryblock</span> <span class="o">==</span> <span class="n">str_io</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="wrapstructerror">
+<h2><a class="reference internal" href="#nibabel.wrapstruct.WrapStructError" title="nibabel.wrapstruct.WrapStructError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStructError</span></code></a><a class="headerlink" href="#wrapstructerror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStructError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.wrapstruct.</span></span><span class="sig-name descname"><span class="pre">WrapStructError</span></span><a class="headerlink" href="#nibabel.wrapstruct.WrapStructError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.wrapstruct.WrapStructError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.wrapstruct.WrapStructError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

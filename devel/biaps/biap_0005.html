@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="BIAP6 - Identifying image axes" href="biap_0006.html" />
+    <link rel="prev" title="BIAP4 - Merging nibabel and dcmstack" href="biap_0004.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biap_0006.html" title="BIAP6 - Identifying image axes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0004.html" title="BIAP4 - Merging nibabel and dcmstack"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP5 - A streamlines converter</a><ul>
+<li><a class="reference internal" href="#motivation">Motivation</a></li>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#issues">Issues</a><ul>
+<li><a class="reference internal" href="#header">Header</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#future-work">Future Work</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0004.html"
+                          title="previous chapter">BIAP4 - Merging nibabel and dcmstack</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biap_0006.html"
+                          title="next chapter">BIAP6 - Identifying image axes</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_0005.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap5-a-streamlines-converter">
+<span id="biap5"></span><h1>BIAP5 - A streamlines converter<a class="headerlink" href="#biap5-a-streamlines-converter" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Marc-Alexandre Côté</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>Draft</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Standards</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>2013-09-03</p>
+</dd>
+</dl>
+<p>The first objective of this proposal is to add support to other streamlines
+format. The second objective is to be able to easily convert from one file
+format to another.</p>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading">¶</a></h2>
+<p>There are a couple of different formats for saving streamlines to a file.
+Currently, NiBabel only support one of them: <a class="reference external" href="http://www.trackvis.org/docs/?subsect=fileformat">TRK</a> from <a class="reference external" href="http://www.trackvis.org">Trackvis</a>. NiBabel could greatly benefit from supporting
+other formats:
+<a class="reference external" href="http://www.brain.org.au/software/mrtrix/appendix/mrtrix.html#tracks">TCK</a>
+(<a class="reference external" href="http://www.brain.org.au/software/mrtrix/">MRtrix</a>),
+<a class="reference external" href="http://www.vtk.org/VTK/img/file-formats.pdf">VTK</a>
+(<a class="reference external" href="http://cmic.cs.ucl.ac.uk/camino/">Camino</a>, <a class="reference external" href="http://www.mitk.org/">MITK</a>)
+and more. Moreover, being able to move from one format to another would be
+convenient. To ease the conversion process, a generic format from which to
+inherit and some common header fields would be necessary. This is similar to
+what NiBabel already has for neuroimages.</p>
+<p>After implementing this proposal, users could load and use streamlines file like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_trk.trk&#39;</span><span class="p">,</span> <span class="n">lazy_load</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">nibabel.streamlines.base_format.Streamlines</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">points</span>
+<span class="go">[array([ [1, 1, 1],</span>
+<span class="go">         [2, 2, 2],</span>
+<span class="go">         [3, 3, 3] ]),</span>
+<span class="go"> array([ [4, 4, 4],</span>
+<span class="go">         [5, 5, 5] ])]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;my_trk.trk&#39;</span><span class="p">,</span> <span class="s1">&#39;my_tck.tck&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_trk.tck&#39;</span><span class="p">,</span> <span class="n">lazy_load</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">f2</span><span class="p">)</span>
+<span class="go">nibabel.streamlines.base_format.Streamlines</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2</span><span class="o">.</span><span class="n">points</span>
+<span class="go">[array([ [1, 1, 1],</span>
+<span class="go">         [2, 2, 2],</span>
+<span class="go">         [3, 3, 3] ]),</span>
+<span class="go"> array([ [4, 4, 4],</span>
+<span class="go">         [5, 5, 5] ])]</span>
+</pre></div>
+</div>
+<p>Of course, similar functions will be available for ‘scalars’ (per point) and ‘properties’ (per streamline) as defined in the TrackVis format. A simple example to save three streamlines with no scalars nor properties would look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)),</span>
+<span class="go">              np.arange(2*3).reshape((2,3)),</span>
+<span class="go">              np.arange(5*3).reshape((5,3))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">streamlines</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">Streamlines</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="s1">&#39;data1.trk&#39;</span><span class="p">)</span>  <span class="c1"># Default TRK header is used but updated with streamlines information.</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">FA</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;FA.nii&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">streamlines</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">from_nifti</span><span class="p">(</span><span class="n">FA</span><span class="p">)</span>  <span class="c1"># Uses information of the FA to create an header.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="s1">&#39;data2.trk&#39;</span><span class="p">)</span>  <span class="c1"># Streamlines&#39; header is used but also updated with streamlines information.</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nib.streamlines.header</span> <span class="kn">import</span> <span class="n">VOXEL_ORDER</span><span class="p">,</span> <span class="n">VOXEL_SIZES</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">TrkFile</span><span class="o">.</span><span class="n">get_empty_header</span><span class="p">()</span>  <span class="c1"># Default TRK header</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="n">VOXEL_ORDER</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;LAS&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="n">VOXEL_SIZES</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">streamlines</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">hdr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">streamlines</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="s1">&#39;data3.trk&#39;</span><span class="p">)</span>  <span class="c1"># Uses hdr to create a TRK header.</span>
+</pre></div>
+</div>
+</section>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>All code related to managing streamlines should be kept in a separate folder:
+<code class="docutils literal notranslate"><span class="pre">nibabel.streamlines</span></code>. A first file, <code class="docutils literal notranslate"><span class="pre">base_format.py</span></code>, would contain base
+classes acting as general interfaces from which new streamlines file format
+will inherit.</p>
+<p>Streamlines would be represented by its own class <code class="docutils literal notranslate"><span class="pre">Streamlines</span></code> which will
+have three main properties: <code class="docutils literal notranslate"><span class="pre">points</span></code>, <code class="docutils literal notranslate"><span class="pre">scalars</span></code> and <code class="docutils literal notranslate"><span class="pre">properties</span></code>.
+Streamlines objects can be iterate over producing tuple of <code class="docutils literal notranslate"><span class="pre">points</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scalars</span></code> and <code class="docutils literal notranslate"><span class="pre">properties</span></code> for each streamline.</p>
+<p>The generic class <code class="docutils literal notranslate"><span class="pre">StreamlinesFile</span></code> would look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">StreamlinesFile</span><span class="p">:</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_magic_number</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">is_correct_format</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fileobj</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_empty_header</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fileobj</span><span class="p">,</span> <span class="n">lazy_load</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">streamlines</span><span class="p">,</span> <span class="n">fileobj</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">pretty_print</span><span class="p">(</span><span class="n">streamlines</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>When inheriting from a base class, a specific streamline format class should know how to do its i/o, in particular how to iterate through the streamlines without loading the whole file into memory.</p>
+<p>Once, the right interface is in place, the conversion part should be quite easy. Moreover, the conversion could be done without loading the input file entirely into memory thanks to generators. Actually, the convert function should looks like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">in_fileobj</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">):</span>
+    <span class="c1"># Loading part</span>
+    <span class="n">streamlines_file</span> <span class="o">=</span> <span class="n">detect_format</span><span class="p">(</span><span class="n">in_fileobj</span><span class="p">)</span>
+    <span class="n">streamlines</span> <span class="o">=</span> <span class="n">streamlines_file</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_fileobj</span><span class="p">,</span> <span class="n">lazy_load</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Saving part</span>
+    <span class="n">streamlines_file</span> <span class="o">=</span> <span class="n">detect_format</span><span class="p">(</span><span class="n">out_filename</span><span class="p">)</span>
+    <span class="n">streamlines_file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">streamlines</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Of course, this implies some sort of general header compatibility between every format.</p>
+</section>
+<section id="issues">
+<h2>Issues<a class="headerlink" href="#issues" title="Link to this heading">¶</a></h2>
+<section id="header">
+<h3>Header<a class="headerlink" href="#header" title="Link to this heading">¶</a></h3>
+<p>Like it is done in NiBabel, headers should be defined using the
+<code class="docutils literal notranslate"><span class="pre">numpy.dtype</span></code>. This consists of a list of tuples, each one containing
+information (name, datatype and shape) about one field of the header. Once
+loaded, the header will acted as a dictionary using the name of each field as
+the key. Ideally, header of different formats would be the same, but it is
+not. To avoid manually writing each possible conversion between header
+formats, a general architecture should be put in place.</p>
+<p>One solution is to define some sort of <code class="docutils literal notranslate"><span class="pre">CommonHeader</span></code> containing an enum of the most common field (i.e. NB_FIBERS, VOXEL_SIZES, DIMENSIONS, etc). Like that, instead of specifying a field’s name in the header definition, the suited enum constant should be used if there is one, otherwise the name is hard coded to a string representing the field. It should be make clear, in the documentation of <code class="docutils literal notranslate"><span class="pre">CommonHeader</span></code>, what is the expected value of a common field.</p>
+</section>
+</section>
+<section id="future-work">
+<h2>Future Work<a class="headerlink" href="#future-work" title="Link to this heading">¶</a></h2>
+<p>A first interesting subclass would be the <code class="docutils literal notranslate"><span class="pre">DynamicStreamlineFile</span></code> offering
+a way to append streamlines to an existing file when format permits it.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

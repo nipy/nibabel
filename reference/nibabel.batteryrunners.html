@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="dft" href="nibabel.dft.html" />
+    <link rel="prev" title="affines" href="nibabel.affines.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.dft.html" title="dft"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.affines.html" title="affines"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a><ul>
+<li><a class="reference internal" href="#more-about-checks">More about <code class="docutils literal notranslate"><span class="pre">checks</span></code></a></li>
+<li><a class="reference internal" href="#batteryrunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatteryRunner</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.batteryrunners.BatteryRunner"><code class="docutils literal notranslate"><span class="pre">BatteryRunner</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.batteryrunners.BatteryRunner.__init__"><code class="docutils literal notranslate"><span class="pre">BatteryRunner.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.batteryrunners.BatteryRunner.check_fix"><code class="docutils literal notranslate"><span class="pre">BatteryRunner.check_fix()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.batteryrunners.BatteryRunner.check_only"><code class="docutils literal notranslate"><span class="pre">BatteryRunner.check_only()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#report"><code class="xref py py-class docutils literal notranslate"><span class="pre">Report</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.batteryrunners.Report"><code class="docutils literal notranslate"><span class="pre">Report</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.batteryrunners.Report.__init__"><code class="docutils literal notranslate"><span class="pre">Report.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.batteryrunners.Report.log_raise"><code class="docutils literal notranslate"><span class="pre">Report.log_raise()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.batteryrunners.Report.message"><code class="docutils literal notranslate"><span class="pre">Report.message</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.batteryrunners.Report.write_raise"><code class="docutils literal notranslate"><span class="pre">Report.write_raise()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.affines.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.dft.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.batteryrunners.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.batteryrunners">
+<span id="batteryrunners"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code><a class="headerlink" href="#module-nibabel.batteryrunners" title="Link to this heading">¶</a></h1>
+<p>Battery runner classes and Report classes</p>
+<p>These classes / objects are for generic checking / fixing batteries</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">BatteryRunner</span></code> class will run a series of checks on a single
+object.</p>
+<p>A check is a callable, of signature <code class="docutils literal notranslate"><span class="pre">func(obj,</span> <span class="pre">fix=False)</span></code> which
+returns a tuple <code class="docutils literal notranslate"><span class="pre">(obj,</span> <span class="pre">Report)</span></code> for <code class="docutils literal notranslate"><span class="pre">func(obj,</span> <span class="pre">False)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">func(obj,</span> <span class="pre">True)</span></code>, where the obj may be a modified object, or a
+different object, if <code class="docutils literal notranslate"><span class="pre">fix==True</span></code>.</p>
+<p>To run checks only, and return problem report objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.batteryrunners</span> <span class="kn">import</span> <span class="n">BatteryRunner</span><span class="p">,</span> <span class="n">Report</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">chk</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> <span class="c1"># minimal check</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="n">Report</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">btrun</span> <span class="o">=</span> <span class="n">BatteryRunner</span><span class="p">((</span><span class="n">chk</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reports</span> <span class="o">=</span> <span class="n">btrun</span><span class="o">.</span><span class="n">check_only</span><span class="p">(</span><span class="s1">&#39;a string&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To run checks and fixes, returning fixed object and problem report
+sequence, with possible fix messages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fixed_obj</span><span class="p">,</span> <span class="n">report_seq</span> <span class="o">=</span> <span class="n">btrun</span><span class="o">.</span><span class="n">check_fix</span><span class="p">(</span><span class="s1">&#39;a string&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Reports are iterable things, where the elements in the iterations are
+<code class="docutils literal notranslate"><span class="pre">Problems</span></code>, with attributes <code class="docutils literal notranslate"><span class="pre">error</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_level</span></code>,
+<code class="docutils literal notranslate"><span class="pre">problem_msg</span></code>, and possibly empty <code class="docutils literal notranslate"><span class="pre">fix_msg</span></code>.  The <code class="docutils literal notranslate"><span class="pre">problem_level</span></code>
+is an integer, giving the level of problem, from 0 (no problem) to 50
+(very bad problem).  The levels follow the log levels from the logging
+module (e.g 40 equivalent to “error” level, 50 to “critical”).  The
+<code class="docutils literal notranslate"><span class="pre">error</span></code> can be one of <code class="docutils literal notranslate"><span class="pre">None</span></code> if no error to suggest, or an Exception
+class that the user might consider raising for this situation.  The
+<code class="docutils literal notranslate"><span class="pre">problem_msg</span></code> and <code class="docutils literal notranslate"><span class="pre">fix_msg</span></code> are human readable strings that should
+explain what happened.</p>
+<section id="more-about-checks">
+<h2>More about <code class="docutils literal notranslate"><span class="pre">checks</span></code><a class="headerlink" href="#more-about-checks" title="Link to this heading">¶</a></h2>
+<p>Checks are callables returning objects and reports, like <code class="docutils literal notranslate"><span class="pre">chk</span></code> below,
+such that:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">obj</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">chk</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">obj</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">chk</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For example, for the Analyze header, we need to check the datatype:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">chk_datatype</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">HeaderDataError</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;datatype&#39;</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="o">.</span><span class="n">_data_type_codes</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">problem_msg</span> <span class="o">=</span> <span class="s1">&#39;data code not recognized&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">void</span><span class="p">:</span>
+            <span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span> <span class="o">=</span> <span class="mi">40</span>
+            <span class="n">rep</span><span class="o">.</span><span class="n">problem_msg</span> <span class="o">=</span> <span class="s1">&#39;data code not supported&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">rep</span>
+    <span class="k">if</span> <span class="n">fix</span><span class="p">:</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">fix_problem_msg</span> <span class="o">=</span> <span class="s1">&#39;not attempting fix&#39;</span>
+    <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">rep</span>
+</pre></div>
+</div>
+<p>or the bitpix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">chk_bitpix</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">HeaderDataError</span><span class="p">)</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;datatype&#39;</span><span class="p">])</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="o">.</span><span class="n">_data_type_codes</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">problem_msg</span> <span class="o">=</span> <span class="s1">&#39;no valid datatype to fix bitpix&#39;</span>
+        <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">rep</span>
+    <span class="n">bitpix</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">*</span> <span class="mi">8</span>
+    <span class="k">if</span> <span class="n">bitpix</span> <span class="o">==</span> <span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;bitpix&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">rep</span>
+    <span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">rep</span><span class="o">.</span><span class="n">problem_msg</span> <span class="o">=</span> <span class="s1">&#39;bitpix does not match datatype&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fix</span><span class="p">:</span>
+        <span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;bitpix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bitpix</span> <span class="c1"># inplace modification</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">fix_msg</span> <span class="o">=</span> <span class="s1">&#39;setting bitpix to match datatype&#39;</span>
+    <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">ret</span>
+</pre></div>
+</div>
+<p>or the pixdims:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">chk_pixdims</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="n">hdr</span><span class="p">,</span> <span class="n">HeaderDataError</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;pixdim&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">rep</span>
+    <span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="n">rep</span><span class="o">.</span><span class="n">problem_msg</span> <span class="o">=</span> <span class="s1">&#39;pixdim[1,2,3] should be positive&#39;</span>
+    <span class="k">if</span> <span class="n">fix</span><span class="p">:</span>
+        <span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;pixdim&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;pixdim&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">rep</span><span class="o">.</span><span class="n">fix_msg</span> <span class="o">=</span> <span class="s1">&#39;setting to abs of pixdim values&#39;</span>
+    <span class="k">return</span> <span class="n">hdr</span><span class="p">,</span> <span class="n">rep</span>
+</pre></div>
+</div>
+</section>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.batteryrunners.BatteryRunner" title="nibabel.batteryrunners.BatteryRunner"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BatteryRunner</span></code></a>(checks)</p></td>
+<td><p>Class to run set of checks</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.batteryrunners.Report" title="nibabel.batteryrunners.Report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Report</span></code></a>([error, problem_level, problem_msg, ...])</p></td>
+<td><p>Initialize report with values</p></td>
+</tr>
+</tbody>
+</table>
+<section id="batteryrunner">
+<h2><a class="reference internal" href="#nibabel.batteryrunners.BatteryRunner" title="nibabel.batteryrunners.BatteryRunner"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatteryRunner</span></code></a><a class="headerlink" href="#batteryrunner" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.BatteryRunner">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.batteryrunners.</span></span><span class="sig-name descname"><span class="pre">BatteryRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.BatteryRunner" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to run set of checks</p>
+<p>Initialize instance from sequence of <cite>checks</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>checks</strong><span class="classifier">sequence</span></dt><dd><p>sequence of checks, where checks are callables matching
+signature <code class="docutils literal notranslate"><span class="pre">obj,</span> <span class="pre">rep</span> <span class="pre">=</span> <span class="pre">chk(obj,</span> <span class="pre">fix=False)</span></code>.  Checks are run
+in the order they are passed.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">chk</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> <span class="c1"># minimal check</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="n">Report</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">btrun</span> <span class="o">=</span> <span class="n">BatteryRunner</span><span class="p">((</span><span class="n">chk</span><span class="p">,))</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.BatteryRunner.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.BatteryRunner.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize instance from sequence of <cite>checks</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>checks</strong><span class="classifier">sequence</span></dt><dd><p>sequence of checks, where checks are callables matching
+signature <code class="docutils literal notranslate"><span class="pre">obj,</span> <span class="pre">rep</span> <span class="pre">=</span> <span class="pre">chk(obj,</span> <span class="pre">fix=False)</span></code>.  Checks are run
+in the order they are passed.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">chk</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span> <span class="c1"># minimal check</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="n">Report</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">btrun</span> <span class="o">=</span> <span class="n">BatteryRunner</span><span class="p">((</span><span class="n">chk</span><span class="p">,))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.BatteryRunner.check_fix">
+<span class="sig-name descname"><span class="pre">check_fix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.BatteryRunner.check_fix" title="Link to this definition">¶</a></dt>
+<dd><p>Run checks, with fixes, on <cite>obj</cite> returning <cite>obj</cite>, reports</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>obj</strong><span class="classifier">anything</span></dt><dd><p>object on which to run checks, fixes</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>obj</strong><span class="classifier">anything</span></dt><dd><p>possibly modified or replaced <cite>obj</cite>, after fixes</p>
+</dd>
+<dt><strong>reports</strong><span class="classifier">sequence</span></dt><dd><p>sequence of reports on checks, fixes</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.BatteryRunner.check_only">
+<span class="sig-name descname"><span class="pre">check_only</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.BatteryRunner.check_only" title="Link to this definition">¶</a></dt>
+<dd><p>Run checks on <cite>obj</cite> returning reports</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>obj</strong><span class="classifier">anything</span></dt><dd><p>object on which to run checks</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>reports</strong><span class="classifier">sequence</span></dt><dd><p>sequence of report objects reporting on result of running
+checks (without fixes) on <cite>obj</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="report">
+<h2><a class="reference internal" href="#nibabel.batteryrunners.Report" title="nibabel.batteryrunners.Report"><code class="xref py py-class docutils literal notranslate"><span class="pre">Report</span></code></a><a class="headerlink" href="#report" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.Report">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.batteryrunners.</span></span><span class="sig-name descname"><span class="pre">Report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error=&lt;class</span> <span class="pre">'Exception'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_level=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_msg=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_msg=''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.Report" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Initialize report with values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>error</strong><span class="classifier">None or Exception</span></dt><dd><p>Error to raise if raising error for this check.  If None,
+no error can be raised for this check (it was probably
+normal).</p>
+</dd>
+<dt><strong>problem_level</strong><span class="classifier">int</span></dt><dd><p>level of problem.  From 0 (no problem) to 50 (severe
+problem).  If the report originates from a fix, then this
+is the level of the problem remaining after the fix.
+Default is 0</p>
+</dd>
+<dt><strong>problem_msg</strong><span class="classifier">string</span></dt><dd><p>String describing problem detected. Default is ‘’</p>
+</dd>
+<dt><strong>fix_msg</strong><span class="classifier">string</span></dt><dd><p>String describing any fix applied.  Default is ‘’.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span>
+<span class="go">10</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.Report.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error=&lt;class</span> <span class="pre">'Exception'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_level=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_msg=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_msg=''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.Report.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize report with values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>error</strong><span class="classifier">None or Exception</span></dt><dd><p>Error to raise if raising error for this check.  If None,
+no error can be raised for this check (it was probably
+normal).</p>
+</dd>
+<dt><strong>problem_level</strong><span class="classifier">int</span></dt><dd><p>level of problem.  From 0 (no problem) to 50 (severe
+problem).  If the report originates from a fix, then this
+is the level of the problem remaining after the fix.
+Default is 0</p>
+</dd>
+<dt><strong>problem_msg</strong><span class="classifier">string</span></dt><dd><p>String describing problem detected. Default is ‘’</p>
+</dd>
+<dt><strong>fix_msg</strong><span class="classifier">string</span></dt><dd><p>String describing any fix applied.  Default is ‘’.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span> <span class="o">=</span> <span class="n">Report</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rep</span><span class="o">.</span><span class="n">problem_level</span>
+<span class="go">10</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.Report.log_raise">
+<span class="sig-name descname"><span class="pre">log_raise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.Report.log_raise" title="Link to this definition">¶</a></dt>
+<dd><p>Log problem, raise error if problem &gt;= <cite>error_level</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>logger</strong><span class="classifier">log</span></dt><dd><p>log object, implementing <code class="docutils literal notranslate"><span class="pre">log</span></code> method</p>
+</dd>
+<dt><strong>error_level</strong><span class="classifier">int, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">self.problem_level</span></code> &gt;= <cite>error_level</cite>, raise error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.Report.message">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">message</span></span><a class="headerlink" href="#nibabel.batteryrunners.Report.message" title="Link to this definition">¶</a></dt>
+<dd><p>formatted message string, including fix message if present</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.batteryrunners.Report.write_raise">
+<span class="sig-name descname"><span class="pre">write_raise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.batteryrunners.Report.write_raise" title="Link to this definition">¶</a></dt>
+<dd><p>Write report to <cite>stream</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>stream</strong><span class="classifier">file-like</span></dt><dd><p>implementing <code class="docutils literal notranslate"><span class="pre">write</span></code> method</p>
+</dd>
+<dt><strong>error_level</strong><span class="classifier">int, optional</span></dt><dd><p>level at which to raise error for problem detected in
+<code class="docutils literal notranslate"><span class="pre">self</span></code></p>
+</dd>
+<dt><strong>log_level</strong><span class="classifier">int, optional</span></dt><dd><p>Such that if <cite>log_level</cite> is &gt;= <code class="docutils literal notranslate"><span class="pre">self.problem_level</span></code> we
+write the report to <cite>stream</cite>, otherwise we write nothing.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

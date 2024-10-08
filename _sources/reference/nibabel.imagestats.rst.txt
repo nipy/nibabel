@@ -1,0 +1,25 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`imagestats`
+=================
+.. automodule:: nibabel.imagestats
+
+.. currentmodule:: nibabel.imagestats
+.. autosummary::
+
+   count_nonzero_voxels
+   mask_volume
+
+
+.. currentmodule:: nibabel.imagestats
+
+count_nonzero_voxels
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: count_nonzero_voxels
+
+mask_volume
+~~~~~~~~~~~
+
+.. autofunction:: mask_volume
+

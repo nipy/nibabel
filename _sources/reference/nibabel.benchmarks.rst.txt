@@ -1,0 +1,133 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`benchmarks`
+=================
+.. automodule:: nibabel.benchmarks
+
+.. currentmodule:: nibabel.benchmarks
+.. autosummary::
+
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`benchmarks.bench_array_to_file`
+---------------------------------------------
+.. automodule:: nibabel.benchmarks.bench_array_to_file
+
+.. currentmodule:: nibabel.benchmarks.bench_array_to_file
+.. autosummary::
+
+   bench_array_to_file
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`benchmarks.bench_arrayproxy_slicing`
+--------------------------------------------------
+.. automodule:: nibabel.benchmarks.bench_arrayproxy_slicing
+
+.. currentmodule:: nibabel.benchmarks.bench_arrayproxy_slicing
+.. autosummary::
+
+   bench_arrayproxy_slicing
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`benchmarks.bench_fileslice`
+-----------------------------------------
+.. automodule:: nibabel.benchmarks.bench_fileslice
+
+.. currentmodule:: nibabel.benchmarks.bench_fileslice
+.. autosummary::
+
+   bench_fileslice
+   run_slices
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`benchmarks.bench_finite_range`
+--------------------------------------------
+.. automodule:: nibabel.benchmarks.bench_finite_range
+
+.. currentmodule:: nibabel.benchmarks.bench_finite_range
+.. autosummary::
+
+   bench_finite_range
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`benchmarks.bench_load_save`
+-----------------------------------------
+.. automodule:: nibabel.benchmarks.bench_load_save
+
+.. currentmodule:: nibabel.benchmarks.bench_load_save
+.. autosummary::
+
+   bench_load_save
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`benchmarks.butils`
+--------------------------------
+.. automodule:: nibabel.benchmarks.butils
+
+.. currentmodule:: nibabel.benchmarks.butils
+.. autosummary::
+
+   print_git_title
+
+
+.. currentmodule:: nibabel.benchmarks
+
+
+.. currentmodule:: nibabel.benchmarks.bench_array_to_file
+
+bench_array_to_file
+~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: bench_array_to_file
+
+
+.. currentmodule:: nibabel.benchmarks.bench_arrayproxy_slicing
+
+bench_arrayproxy_slicing
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: bench_arrayproxy_slicing
+
+
+.. currentmodule:: nibabel.benchmarks.bench_fileslice
+
+bench_fileslice
+~~~~~~~~~~~~~~~
+
+.. autofunction:: bench_fileslice
+
+run_slices
+~~~~~~~~~~
+
+.. autofunction:: run_slices
+
+
+.. currentmodule:: nibabel.benchmarks.bench_finite_range
+
+bench_finite_range
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: bench_finite_range
+
+
+.. currentmodule:: nibabel.benchmarks.bench_load_save
+
+bench_load_save
+~~~~~~~~~~~~~~~
+
+.. autofunction:: bench_load_save
+
+
+.. currentmodule:: nibabel.benchmarks.butils
+
+print_git_title
+~~~~~~~~~~~~~~~
+
+.. autofunction:: print_git_title
+

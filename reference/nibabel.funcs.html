@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="imageclasses" href="nibabel.imageclasses.html" />
+    <link rel="prev" title="eulerangles" href="nibabel.eulerangles.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.imageclasses.html" title="imageclasses"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.eulerangles.html" title="eulerangles"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code></a><ul>
+<li><a class="reference internal" href="#as-closest-canonical">as_closest_canonical</a><ul>
+<li><a class="reference internal" href="#nibabel.funcs.as_closest_canonical"><code class="docutils literal notranslate"><span class="pre">as_closest_canonical()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#concat-images">concat_images</a><ul>
+<li><a class="reference internal" href="#nibabel.funcs.concat_images"><code class="docutils literal notranslate"><span class="pre">concat_images()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#four-to-three">four_to_three</a><ul>
+<li><a class="reference internal" href="#nibabel.funcs.four_to_three"><code class="docutils literal notranslate"><span class="pre">four_to_three()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#squeeze-image">squeeze_image</a><ul>
+<li><a class="reference internal" href="#nibabel.funcs.squeeze_image"><code class="docutils literal notranslate"><span class="pre">squeeze_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.eulerangles.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.imageclasses.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageclasses</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.funcs.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.funcs">
+<span id="funcs"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code><a class="headerlink" href="#module-nibabel.funcs" title="Link to this heading">¶</a></h1>
+<p>Processor functions for images</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.funcs.as_closest_canonical" title="nibabel.funcs.as_closest_canonical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_closest_canonical</span></code></a>(img[, enforce_diag])</p></td>
+<td><p>Return <cite>img</cite> with data reordered to be closest to canonical</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.funcs.concat_images" title="nibabel.funcs.concat_images"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_images</span></code></a>(images[, check_affines, axis])</p></td>
+<td><p>Concatenate images in list to single image, along specified dimension</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.funcs.four_to_three" title="nibabel.funcs.four_to_three"><code class="xref py py-obj docutils literal notranslate"><span class="pre">four_to_three</span></code></a>(img)</p></td>
+<td><p>Create 3D images from 4D image by slicing over last axis</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.funcs.squeeze_image" title="nibabel.funcs.squeeze_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">squeeze_image</span></code></a>(img)</p></td>
+<td><p>Return image, remove axes length 1 at end of image shape</p></td>
+</tr>
+</tbody>
+</table>
+<section id="as-closest-canonical">
+<h2>as_closest_canonical<a class="headerlink" href="#as-closest-canonical" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.funcs.as_closest_canonical">
+<span class="sig-prename descclassname"><span class="pre">nibabel.funcs.</span></span><span class="sig-name descname"><span class="pre">as_closest_canonical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enforce_diag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.funcs.as_closest_canonical" title="Link to this definition">¶</a></dt>
+<dd><p>Return <cite>img</cite> with data reordered to be closest to canonical</p>
+<p>Canonical order is the ordering of the output axes.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">spatialimage</span></code></span></dt><dd></dd>
+<dt><strong>enforce_diag</strong><span class="classifier">{False, True}, optional</span></dt><dd><p>If True, before transforming image, check if the resulting image
+affine will be close to diagonal, and if not, raise an error</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>canonical_img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">spatialimage</span></code></span></dt><dd><p>Version of <cite>img</cite> where the underlying array may have been
+reordered and / or flipped so that axes 0,1,2 are those axes in
+the input data that are, respectively, closest to the output axis
+orientation.  We modify the affine accordingly.  If <cite>img</cite> is
+already has the correct data ordering, we just return <cite>img</cite>
+unmodified.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="concat-images">
+<h2>concat_images<a class="headerlink" href="#concat-images" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.funcs.concat_images">
+<span class="sig-prename descclassname"><span class="pre">nibabel.funcs.</span></span><span class="sig-name descname"><span class="pre">concat_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_affines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.funcs.concat_images" title="Link to this definition">¶</a></dt>
+<dd><p>Concatenate images in list to single image, along specified dimension</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>images</strong><span class="classifier">sequence</span></dt><dd><p>sequence of <code class="docutils literal notranslate"><span class="pre">SpatialImage</span></code> or filenames of the same dimensionalitys</p>
+</dd>
+<dt><strong>check_affines</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>If True, then check that all the affines for <cite>images</cite> are nearly
+the same, raising a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> otherwise.  Default is True</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">None or int, optional</span></dt><dd><p>If None, concatenates on a new dimension.  This requires all images to
+be the same shape.  If not None, concatenates on the specified
+dimension.  This requires all images to be the same shape, except on
+the specified dimension.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>concat_img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">SpatialImage</span></code></span></dt><dd><p>New image resulting from concatenating <cite>images</cite> across last
+dimension</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="four-to-three">
+<h2>four_to_three<a class="headerlink" href="#four-to-three" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.funcs.four_to_three">
+<span class="sig-prename descclassname"><span class="pre">nibabel.funcs.</span></span><span class="sig-name descname"><span class="pre">four_to_three</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.funcs.four_to_three" title="Link to this definition">¶</a></dt>
+<dd><p>Create 3D images from 4D image by slicing over last axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">image</span></dt><dd><p>4D image instance of some class with methods <code class="docutils literal notranslate"><span class="pre">get_data</span></code>,
+<code class="docutils literal notranslate"><span class="pre">header</span></code> and <code class="docutils literal notranslate"><span class="pre">affine</span></code>, and a class constructor
+allowing klass(data, affine, header)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>imgs</strong><span class="classifier">list</span></dt><dd><p>list of 3D images</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="squeeze-image">
+<h2>squeeze_image<a class="headerlink" href="#squeeze-image" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.funcs.squeeze_image">
+<span class="sig-prename descclassname"><span class="pre">nibabel.funcs.</span></span><span class="sig-name descname"><span class="pre">squeeze_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.funcs.squeeze_image" title="Link to this definition">¶</a></dt>
+<dd><p>Return image, remove axes length 1 at end of image shape</p>
+<p>For example, an image may have shape (10,20,30,1,1).  In this case
+squeeze will result in an image with shape (10,20,30).  See doctests
+for further description of behavior.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">SpatialImage</span></code></span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>squeezed_img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">SpatialImage</span></code></span></dt><dd><p>Copy of img, such that data, and data shape have been squeezed,
+for dimensions &gt; 3rd, and at the end of the shape list</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span> <span class="o">=</span> <span class="n">squeeze_image</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If the data are 3D then last dimensions of 1 are ignored</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">ni1</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span> <span class="o">=</span> <span class="n">squeeze_image</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Only <em>final</em> dimensions of 1 are squeezed</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nf</span><span class="o">.</span><span class="n">ni1</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span> <span class="o">=</span> <span class="n">squeeze_image</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

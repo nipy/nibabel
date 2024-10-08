@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Making a patch" href="patching.html" />
+    <link rel="prev" title="Install git" href="git_install.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="patching.html" title="Making a patch"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="git_install.html" title="Install git"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../devel/index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../devel/devguide.html" >NiBabel Developer Guidelines</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="index.html" accesskey="U">Working with <em>nibabel</em> source code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Following the latest source</a><ul>
+<li><a class="reference internal" href="#get-the-local-copy-of-the-code">Get the local copy of the code</a></li>
+<li><a class="reference internal" href="#updating-the-code">Updating the code</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="git_install.html"
+                          title="previous chapter">Install git</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="patching.html"
+                          title="next chapter">Making a patch</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/gitwash/following_latest.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="following-the-latest-source">
+<span id="following-latest"></span><h1>Following the latest source<a class="headerlink" href="#following-the-latest-source" title="Link to this heading">¶</a></h1>
+<p>These are the instructions if you just want to follow the latest
+<em>nibabel</em> source, but you don’t need to do any development for now.</p>
+<p>The steps are:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="git_install.html#install-git"><span class="std std-ref">Install git</span></a></p></li>
+<li><p>get local copy of the git repository from github</p></li>
+<li><p>update local copy from time to time</p></li>
+</ul>
+<section id="get-the-local-copy-of-the-code">
+<h2>Get the local copy of the code<a class="headerlink" href="#get-the-local-copy-of-the-code" title="Link to this heading">¶</a></h2>
+<p>From the command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">nipy</span><span class="o">/</span><span class="n">nibabel</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>You now have a copy of the code tree in the new <code class="docutils literal notranslate"><span class="pre">nibabel</span></code> directory.</p>
+</section>
+<section id="updating-the-code">
+<h2>Updating the code<a class="headerlink" href="#updating-the-code" title="Link to this heading">¶</a></h2>
+<p>From time to time you may want to pull down the latest code.  Do this with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">nibabel</span>
+<span class="n">git</span> <span class="n">pull</span>
+</pre></div>
+</div>
+<p>The tree in <code class="docutils literal notranslate"><span class="pre">nibabel</span></code> will now have the latest changes from the initial
+repository.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

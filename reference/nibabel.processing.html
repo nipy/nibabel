@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pydicom_compat" href="nibabel.pydicom_compat.html" />
+    <link rel="prev" title="pointset" href="nibabel.pointset.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.pydicom_compat.html" title="pydicom_compat"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.pointset.html" title="pointset"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code></a><ul>
+<li><a class="reference internal" href="#adapt-affine">adapt_affine</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.adapt_affine"><code class="docutils literal notranslate"><span class="pre">adapt_affine()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#conform">conform</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.conform"><code class="docutils literal notranslate"><span class="pre">conform()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fwhm2sigma">fwhm2sigma</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.fwhm2sigma"><code class="docutils literal notranslate"><span class="pre">fwhm2sigma()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#resample-from-to">resample_from_to</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.resample_from_to"><code class="docutils literal notranslate"><span class="pre">resample_from_to()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#resample-to-output">resample_to_output</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.resample_to_output"><code class="docutils literal notranslate"><span class="pre">resample_to_output()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sigma2fwhm">sigma2fwhm</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.sigma2fwhm"><code class="docutils literal notranslate"><span class="pre">sigma2fwhm()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#smooth-image">smooth_image</a><ul>
+<li><a class="reference internal" href="#nibabel.processing.smooth_image"><code class="docutils literal notranslate"><span class="pre">smooth_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.pointset.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pointset</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.pydicom_compat.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.processing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.processing">
+<span id="processing"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code><a class="headerlink" href="#module-nibabel.processing" title="Link to this heading">¶</a></h1>
+<p>Image processing functions</p>
+<p>Image processing functions for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>smoothing</p></li>
+<li><p>resampling</p></li>
+<li><p>converting SD to and from FWHM</p></li>
+</ul>
+</div></blockquote>
+<p>Smoothing and resampling routines need scipy.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.processing.adapt_affine" title="nibabel.processing.adapt_affine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adapt_affine</span></code></a>(affine, n_dim)</p></td>
+<td><p>Adapt input / output dimensions of spatial <cite>affine</cite> for <cite>n_dims</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.processing.conform" title="nibabel.processing.conform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conform</span></code></a>(from_img[, out_shape, voxel_size, ...])</p></td>
+<td><p>Resample image to <code class="docutils literal notranslate"><span class="pre">out_shape</span></code> with voxels of size <code class="docutils literal notranslate"><span class="pre">voxel_size</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.processing.fwhm2sigma" title="nibabel.processing.fwhm2sigma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fwhm2sigma</span></code></a>(fwhm)</p></td>
+<td><p>Convert a FWHM value to sigma in a Gaussian kernel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.processing.resample_from_to" title="nibabel.processing.resample_from_to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resample_from_to</span></code></a>(from_img, to_vox_map[, ...])</p></td>
+<td><p>Resample image <cite>from_img</cite> to mapped voxel space <cite>to_vox_map</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.processing.resample_to_output" title="nibabel.processing.resample_to_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resample_to_output</span></code></a>(in_img[, voxel_sizes, ...])</p></td>
+<td><p>Resample image <cite>in_img</cite> to output voxel axes (world space)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.processing.sigma2fwhm" title="nibabel.processing.sigma2fwhm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sigma2fwhm</span></code></a>(sigma)</p></td>
+<td><p>Convert a sigma in a Gaussian kernel to a FWHM value</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.processing.smooth_image" title="nibabel.processing.smooth_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_image</span></code></a>(img, fwhm[, mode, cval, out_class])</p></td>
+<td><p>Smooth image <cite>img</cite> along voxel axes by FWHM <cite>fwhm</cite> millimeters</p></td>
+</tr>
+</tbody>
+</table>
+<section id="adapt-affine">
+<h2>adapt_affine<a class="headerlink" href="#adapt-affine" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.adapt_affine">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">adapt_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_dim</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.adapt_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Adapt input / output dimensions of spatial <cite>affine</cite> for <cite>n_dims</cite></p>
+<p>Adapts a spatial (4, 4) affine that is being applied to an image with fewer
+than 3 spatial dimensions, or more than 3 dimensions.  If there are more
+than three dimensions, assume an identity transformation for these
+dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>affine</strong><span class="classifier">array-like</span></dt><dd><p>affine transform. Usually shape (4, 4).  For what follows <code class="docutils literal notranslate"><span class="pre">N,</span> <span class="pre">M</span> <span class="pre">=</span>
+<span class="pre">affine.shape</span></code></p>
+</dd>
+<dt><strong>n_dims</strong><span class="classifier">int</span></dt><dd><p>Number of dimensions of underlying array, and therefore number of input
+dimensions for affine.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>adapted</strong><span class="classifier">shape (M, n_dims+1) array</span></dt><dd><p>Affine array adapted to number of input dimensions.  Columns of the
+affine corresponding to missing input dimensions have been dropped,
+columns corresponding to extra input dimensions have an extra identity
+column added</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="conform">
+<h2>conform<a class="headerlink" href="#conform" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.conform">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">conform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(256,</span> <span class="pre">256,</span> <span class="pre">256)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">1.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RAS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.conform" title="Link to this definition">¶</a></dt>
+<dd><p>Resample image to <code class="docutils literal notranslate"><span class="pre">out_shape</span></code> with voxels of size <code class="docutils literal notranslate"><span class="pre">voxel_size</span></code>.</p>
+<p>Using the default arguments, this function is meant to replicate most parts
+of FreeSurfer’s <code class="docutils literal notranslate"><span class="pre">mri_convert</span> <span class="pre">--conform</span></code> command. Specifically, this
+function:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Resamples data to <code class="docutils literal notranslate"><span class="pre">output_shape</span></code></p></li>
+<li><p>Resamples voxel sizes to <code class="docutils literal notranslate"><span class="pre">voxel_size</span></code></p></li>
+<li><p>Reorients to RAS (<code class="docutils literal notranslate"><span class="pre">mri_convert</span> <span class="pre">--conform</span></code> reorients to LIA)</p></li>
+</ul>
+</div></blockquote>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">mri_convert</span> <span class="pre">--conform</span></code>, this command does not:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Transform data to range [0, 255]</p></li>
+<li><p>Cast to unsigned eight-bit integer</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>from_img</strong><span class="classifier">object</span></dt><dd><p>Object having attributes <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>, <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code> and
+<code class="docutils literal notranslate"><span class="pre">shape</span></code>. If <cite>out_class</cite> is not None, <code class="docutils literal notranslate"><span class="pre">img.__class__</span></code> should be able
+to construct an image from data, affine and header.</p>
+</dd>
+<dt><strong>out_shape</strong><span class="classifier">sequence, optional</span></dt><dd><p>The shape of the output volume. Default is (256, 256, 256).</p>
+</dd>
+<dt><strong>voxel_size</strong><span class="classifier">sequence, optional</span></dt><dd><p>The size in millimeters of the voxels in the resampled output. Default
+is 1mm isotropic.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, optional</span></dt><dd><p>The order of the spline interpolation, default is 3.  The order has to
+be in the range 0-5 (see <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>)</p>
+</dd>
+<dt><strong>cval</strong><span class="classifier">scalar, optional</span></dt><dd><p>Value used for points outside the boundaries of the input if
+<code class="docutils literal notranslate"><span class="pre">mode='constant'</span></code>. Default is 0.0 (see
+<code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>)</p>
+</dd>
+<dt><strong>orientation</strong><span class="classifier">str, optional</span></dt><dd><p>Orientation of output image. Default is “RAS”.</p>
+</dd>
+<dt><strong>out_class</strong><span class="classifier">None or SpatialImage class, optional</span></dt><dd><p>Class of output image.  If None, use <code class="docutils literal notranslate"><span class="pre">from_img.__class__</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out_img</strong><span class="classifier">object</span></dt><dd><p>Image of instance specified by <cite>out_class</cite>, containing data output from
+resampling <cite>from_img</cite> into axes aligned to the output space of
+<code class="docutils literal notranslate"><span class="pre">from_img.affine</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="fwhm2sigma">
+<h2>fwhm2sigma<a class="headerlink" href="#fwhm2sigma" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.fwhm2sigma">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">fwhm2sigma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fwhm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.fwhm2sigma" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a FWHM value to sigma in a Gaussian kernel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fwhm</strong><span class="classifier">array-like</span></dt><dd><p>FWHM value or values</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sigma</strong><span class="classifier">array or float</span></dt><dd><p>sigma values corresponding to <cite>fwhm</cite> values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sigma</span> <span class="o">=</span> <span class="n">fwhm2sigma</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sigmae</span> <span class="o">=</span> <span class="n">fwhm2sigma</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sigma</span> <span class="o">==</span> <span class="n">sigmae</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="resample-from-to">
+<h2>resample_from_to<a class="headerlink" href="#resample-from-to" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.resample_from_to">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">resample_from_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_vox_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode='constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_class=&lt;class</span> <span class="pre">'nibabel.nifti1.Nifti1Image'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.resample_from_to" title="Link to this definition">¶</a></dt>
+<dd><p>Resample image <cite>from_img</cite> to mapped voxel space <cite>to_vox_map</cite></p>
+<p>Resample using N-d spline interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>from_img</strong><span class="classifier">object</span></dt><dd><p>Object having attributes <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>, <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code> and
+<code class="docutils literal notranslate"><span class="pre">shape</span></code>. If <cite>out_class</cite> is not None, <code class="docutils literal notranslate"><span class="pre">img.__class__</span></code> should be able
+to construct an image from data, affine and header.</p>
+</dd>
+<dt><strong>to_vox_map</strong><span class="classifier">image object or length 2 sequence</span></dt><dd><p>If object, has attributes <code class="docutils literal notranslate"><span class="pre">shape</span></code> giving input voxel shape, and
+<code class="docutils literal notranslate"><span class="pre">affine</span></code> giving mapping of input voxels to output space. If length 2
+sequence, elements are (shape, affine) with same meaning as above. The
+affine is a (4, 4) array-like.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, optional</span></dt><dd><p>The order of the spline interpolation, default is 3.  The order has to
+be in the range 0-5 (see <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>)</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str, optional</span></dt><dd><p>Points outside the boundaries of the input are filled according
+to the given mode (‘constant’, ‘nearest’, ‘reflect’ or ‘wrap’).
+Default is ‘constant’ (see <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>)</p>
+</dd>
+<dt><strong>cval</strong><span class="classifier">scalar, optional</span></dt><dd><p>Value used for points outside the boundaries of the input if
+<code class="docutils literal notranslate"><span class="pre">mode='constant'</span></code>. Default is 0.0 (see
+<code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>)</p>
+</dd>
+<dt><strong>out_class</strong><span class="classifier">None or SpatialImage class, optional</span></dt><dd><p>Class of output image.  If None, use <code class="docutils literal notranslate"><span class="pre">from_img.__class__</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out_img</strong><span class="classifier">object</span></dt><dd><p>Image of instance specified by <cite>out_class</cite>, containing data output from
+resampling <cite>from_img</cite> into axes aligned to the output space of
+<code class="docutils literal notranslate"><span class="pre">from_img.affine</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="resample-to-output">
+<h2>resample_to_output<a class="headerlink" href="#resample-to-output" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.resample_to_output">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">resample_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_sizes=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode='constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_class=&lt;class</span> <span class="pre">'nibabel.nifti1.Nifti1Image'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.resample_to_output" title="Link to this definition">¶</a></dt>
+<dd><p>Resample image <cite>in_img</cite> to output voxel axes (world space)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>in_img</strong><span class="classifier">object</span></dt><dd><p>Object having attributes <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>, <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code>. If
+<cite>out_class</cite> is not None, <code class="docutils literal notranslate"><span class="pre">img.__class__</span></code> should be able to construct
+an image from data, affine and header.</p>
+</dd>
+<dt><strong>voxel_sizes</strong><span class="classifier">None or sequence</span></dt><dd><p>Gives the diagonal entries of <code class="docutils literal notranslate"><span class="pre">out_img.affine`</span> <span class="pre">(except</span> <span class="pre">the</span> <span class="pre">trailing</span> <span class="pre">1</span>
+<span class="pre">for</span> <span class="pre">the</span> <span class="pre">homogeneous</span> <span class="pre">coordinates)</span> <span class="pre">(``out_img.affine</span> <span class="pre">==</span>
+<span class="pre">np.diag(voxel_sizes</span> <span class="pre">+</span> <span class="pre">[1])</span></code>). If None, return identity
+<cite>out_img.affine</cite>.  If scalar, interpret as vector <code class="docutils literal notranslate"><span class="pre">[voxel_sizes]</span> <span class="pre">*</span>
+<span class="pre">len(in_img.shape)</span></code>.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, optional</span></dt><dd><p>The order of the spline interpolation, default is 3.  The order has to
+be in the range 0-5 (see <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>).</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str, optional</span></dt><dd><p>Points outside the boundaries of the input are filled according to the
+given mode (‘constant’, ‘nearest’, ‘reflect’ or ‘wrap’).  Default is
+‘constant’ (see <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>).</p>
+</dd>
+<dt><strong>cval</strong><span class="classifier">scalar, optional</span></dt><dd><p>Value used for points outside the boundaries of the input if
+<code class="docutils literal notranslate"><span class="pre">mode='constant'</span></code>. Default is 0.0 (see
+<code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>).</p>
+</dd>
+<dt><strong>out_class</strong><span class="classifier">None or SpatialImage class, optional</span></dt><dd><p>Class of output image.  If None, use <code class="docutils literal notranslate"><span class="pre">in_img.__class__</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out_img</strong><span class="classifier">object</span></dt><dd><p>Image of instance specified by <cite>out_class</cite>, containing data output from
+resampling <cite>in_img</cite> into axes aligned to the output space of
+<code class="docutils literal notranslate"><span class="pre">in_img.affine</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="sigma2fwhm">
+<h2>sigma2fwhm<a class="headerlink" href="#sigma2fwhm" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.sigma2fwhm">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">sigma2fwhm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.sigma2fwhm" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a sigma in a Gaussian kernel to a FWHM value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sigma</strong><span class="classifier">array-like</span></dt><dd><p>sigma value or values</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fwhm</strong><span class="classifier">array or float</span></dt><dd><p>fwhm values corresponding to <cite>sigma</cite> values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fwhm</span> <span class="o">=</span> <span class="n">sigma2fwhm</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fwhms</span> <span class="o">=</span> <span class="n">sigma2fwhm</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fwhm</span> <span class="o">==</span> <span class="n">fwhms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="smooth-image">
+<h2>smooth_image<a class="headerlink" href="#smooth-image" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.processing.smooth_image">
+<span class="sig-prename descclassname"><span class="pre">nibabel.processing.</span></span><span class="sig-name descname"><span class="pre">smooth_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fwhm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode='nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cval=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_class=&lt;class</span> <span class="pre">'nibabel.nifti1.Nifti1Image'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.processing.smooth_image" title="Link to this definition">¶</a></dt>
+<dd><p>Smooth image <cite>img</cite> along voxel axes by FWHM <cite>fwhm</cite> millimeters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">object</span></dt><dd><p>Object having attributes <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>, <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code> and
+<code class="docutils literal notranslate"><span class="pre">shape</span></code>. If <cite>out_class</cite> is not None, <code class="docutils literal notranslate"><span class="pre">img.__class__</span></code> should be able
+to construct an image from data, affine and header.</p>
+</dd>
+<dt><strong>fwhm</strong><span class="classifier">scalar or length 3 sequence</span></dt><dd><p>FWHM <em>in mm</em> over which to smooth.  The smoothing applies to the voxel
+axes, not to the output axes, but is in millimeters.  The function
+adjusts the FWHM to voxels using the voxel sizes calculated from the
+affine. A scalar implies the same smoothing across the spatial
+dimensions of the image, but 0 smoothing over any further dimensions
+such as time.  A vector should be the same length as the number of
+image dimensions.</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str, optional</span></dt><dd><p>Points outside the boundaries of the input are filled according
+to the given mode (‘constant’, ‘nearest’, ‘reflect’ or ‘wrap’).
+Default is ‘nearest’. This is different from the default for
+<code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>, which is ‘constant’. ‘nearest’
+might be a better choice when smoothing to the edge of an image where
+there is still strong brain signal, otherwise this signal will get
+blurred towards zero.</p>
+</dd>
+<dt><strong>cval</strong><span class="classifier">scalar, optional</span></dt><dd><p>Value used for points outside the boundaries of the input if
+<code class="docutils literal notranslate"><span class="pre">mode='constant'</span></code>. Default is 0.0 (see
+<code class="docutils literal notranslate"><span class="pre">scipy.ndimage.affine_transform</span></code>).</p>
+</dd>
+<dt><strong>out_class</strong><span class="classifier">None or SpatialImage class, optional</span></dt><dd><p>Class of output image.  If None, use <code class="docutils literal notranslate"><span class="pre">img.__class__</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>smoothed_img</strong><span class="classifier">object</span></dt><dd><p>Image of instance specified by <cite>out_class</cite>, containing data output from
+smoothing <cite>img</cite> data by given FWHM kernel.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

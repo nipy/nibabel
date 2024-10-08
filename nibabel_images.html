@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Images and memory" href="images_and_memory.html" />
+    <link rel="prev" title="Getting Started" href="gettingstarted.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="images_and_memory.html" title="Images and memory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gettingstarted.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="manual.html" accesskey="U">NiBabel Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Nibabel images</a><ul>
+<li><a class="reference internal" href="#the-image-object">The image object</a></li>
+<li><a class="reference internal" href="#the-image-header">The image header</a></li>
+<li><a class="reference internal" href="#the-image-data-array">The image data array</a><ul>
+<li><a class="reference internal" href="#array-proxies-and-proxy-images">Array proxies and proxy images</a></li>
+<li><a class="reference internal" href="#array-images">Array images</a></li>
+<li><a class="reference internal" href="#getting-the-image-data-the-easy-way">Getting the image data the easy way</a></li>
+<li><a class="reference internal" href="#proxies-and-caching">Proxies and caching</a></li>
+<li><a class="reference internal" href="#image-slicing">Image slicing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#loading-and-saving">Loading and saving</a></li>
+<li><a class="reference internal" href="#details-of-files-and-images">Details of files and images</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="gettingstarted.html"
+                          title="previous chapter">Getting Started</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="images_and_memory.html"
+                          title="next chapter">Images and memory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/nibabel_images.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="nibabel-images">
+<h1>Nibabel images<a class="headerlink" href="#nibabel-images" title="Link to this heading">¶</a></h1>
+<p>A nibabel image object is the association of three things:</p>
+<ul class="simple">
+<li><p>an N-D array containing the image <em>data</em>;</p></li>
+<li><p>a (4, 4) <em>affine</em> matrix mapping array coordinates to coordinates in some
+RAS+ world coordinate space (<a class="reference internal" href="coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a>);</p></li>
+<li><p>image metadata in the form of a <em>header</em>.</p></li>
+</ul>
+<section id="the-image-object">
+<h2>The image object<a class="headerlink" href="#the-image-object" title="Link to this heading">¶</a></h2>
+<p>First we load some libraries we are going to need for the examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+<p>There is an example image in the nibabel distribution.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.testing</span> <span class="kn">import</span> <span class="n">data_path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We load the file to create a nibabel <em>image object</em>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The object <code class="docutils literal notranslate"><span class="pre">img</span></code> is an instance of a nibabel image. In fact it is an
+instance of a nibabel <a class="reference internal" href="reference/nibabel.nifti1.html#nibabel.nifti1.Nifti1Image" title="nibabel.nifti1.Nifti1Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">nibabel.nifti1.Nifti1Image</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span>
+<span class="go">&lt;nibabel.nifti1.Nifti1Image object at ...&gt;</span>
+</pre></div>
+</div>
+<p>As with any Python object, you can inspect <code class="docutils literal notranslate"><span class="pre">img</span></code> to see what attributes it
+has.  We recommend using IPython tab completion for this, but here are some
+examples of interesting attributes:</p>
+<p><code class="docutils literal notranslate"><span class="pre">dataobj</span></code> is the object pointing to the image array data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">&lt;nibabel.arrayproxy.ArrayProxy object at ...&gt;</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="#array-proxies"><span class="std std-ref">Array proxies and proxy images</span></a> for more on why this is an array <em>proxy</em>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">affine</span></code> is the affine array relating array coordinates from the image data
+array to coordinates in some RAS+ world coordinate system
+(<a class="reference internal" href="coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set numpy to print only 2 decimal digits for neatness</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[ -2.  ,   0.  ,   0.  , 117.86],</span>
+<span class="go">       [ -0.  ,   1.97,  -0.36, -35.72],</span>
+<span class="go">       [  0.  ,   0.32,   2.17,  -7.25],</span>
+<span class="go">       [  0.  ,   0.  ,   0.  ,   1.  ]])</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">header</span></code> contains the metadata for this image.  In this case it is
+specifically NIfTI metadata:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">header</span>
+<span class="go">&lt;nibabel.nifti1.Nifti1Header object at ...&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="the-image-header">
+<h2>The image header<a class="headerlink" href="#the-image-header" title="Link to this heading">¶</a></h2>
+<p>The header of an image contains the image metadata.  The information in the
+header will differ between different image formats.  For example, the header
+information for a NIfTI1 format file differs from the header information for a
+MINC format file.</p>
+<p>Our image is a NIfTI1 format image, and it therefore has a NIfTI1 format
+header:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">header</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>                           
+<span class="go">&lt;class &#39;nibabel.nifti1.Nifti1Header&#39;&gt; object, endian=&#39;&lt;&#39;</span>
+<span class="go">sizeof_hdr      : 348</span>
+<span class="go">data_type       : b&#39;&#39;</span>
+<span class="go">db_name         : b&#39;&#39;</span>
+<span class="go">extents         : 0</span>
+<span class="go">session_error   : 0</span>
+<span class="go">regular         : b&#39;r&#39;</span>
+<span class="go">dim_info        : 57</span>
+<span class="go">dim             : [  4 128  96  24   2   1   1   1]</span>
+<span class="go">intent_p1       : 0.0</span>
+<span class="go">intent_p2       : 0.0</span>
+<span class="go">intent_p3       : 0.0</span>
+<span class="go">intent_code     : none</span>
+<span class="go">datatype        : int16</span>
+<span class="go">bitpix          : 16</span>
+<span class="go">slice_start     : 0</span>
+<span class="go">pixdim          : [   -1.      2.      2.      2.2  2000.      1.      1.      1. ]</span>
+<span class="go">vox_offset      : 0.0</span>
+<span class="go">scl_slope       : nan</span>
+<span class="go">scl_inter       : nan</span>
+<span class="go">slice_end       : 23</span>
+<span class="go">slice_code      : unknown</span>
+<span class="go">xyzt_units      : 10</span>
+<span class="go">cal_max         : 1162.0</span>
+<span class="go">cal_min         : 0.0</span>
+<span class="go">slice_duration  : 0.0</span>
+<span class="go">toffset         : 0.0</span>
+<span class="go">glmax           : 0</span>
+<span class="go">glmin           : 0</span>
+<span class="go">descrip         : b&#39;FSL3.3\x00 v2.25 NIfTI-1 Single file format&#39;</span>
+<span class="go">aux_file        : b&#39;&#39;</span>
+<span class="go">qform_code      : scanner</span>
+<span class="go">sform_code      : scanner</span>
+<span class="go">quatern_b       : -1.94510681403e-26</span>
+<span class="go">quatern_c       : -0.996708512306</span>
+<span class="go">quatern_d       : -0.081068739295</span>
+<span class="go">qoffset_x       : 117.855102539</span>
+<span class="go">qoffset_y       : -35.7229423523</span>
+<span class="go">qoffset_z       : -7.24879837036</span>
+<span class="go">srow_x          : [  -2.      0.      0.    117.86]</span>
+<span class="go">srow_y          : [ -0.     1.97  -0.36 -35.72]</span>
+<span class="go">srow_z          : [ 0.    0.32  2.17 -7.25]</span>
+<span class="go">intent_name     : b&#39;&#39;</span>
+<span class="go">magic           : b&#39;n+1&#39;</span>
+</pre></div>
+</div>
+<p>The header of any image will normally have the following methods:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_data_shape()</span></code> to get the output shape of the image data array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">())</span>
+<span class="go">(128, 96, 24, 2)</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_data_dtype()</span></code> to get the numpy data type in which the image data is
+stored (or will be stored if you save the image):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">())</span>
+<span class="go">int16</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_zooms()</span></code> to get the voxel sizes in millimeters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">())</span>
+<span class="go">(2.0, 2.0, 2.19999..., 2000.0)</span>
+</pre></div>
+</div>
+<p>The last value of <code class="docutils literal notranslate"><span class="pre">header.get_zooms()</span></code> is the time between scans in
+milliseconds; this is the equivalent of voxel size on the time axis.</p>
+</li>
+</ul>
+</section>
+<section id="the-image-data-array">
+<h2>The image data array<a class="headerlink" href="#the-image-data-array" title="Link to this heading">¶</a></h2>
+<p>The image data array is a little more complicated, because the image array can
+be stored in the image object as a numpy array or stored on disk for you to
+access later via an <em>array proxy</em>.</p>
+<section id="array-proxies-and-proxy-images">
+<span id="array-proxies"></span><h3>Array proxies and proxy images<a class="headerlink" href="#array-proxies-and-proxy-images" title="Link to this heading">¶</a></h3>
+<p>When you load an image from disk, as we did here, the data is likely to be
+accessible via an array proxy.  An array <a class="reference external" href="https://en.wikipedia.org/wiki/Proxy_pattern">proxy</a> is not the array itself but
+something that represents the array, and can provide the array when we ask for
+it.</p>
+<p>Our image does have an array proxy, as we have already seen:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">&lt;nibabel.arrayproxy.ArrayProxy object at ...&gt;</span>
+</pre></div>
+</div>
+<p>The array proxy allows us to create the image object without immediately
+loading all the array data from disk.</p>
+<p>Images with an array proxy object like this one are called <em>proxy images</em>
+because the image data is not yet an array, but the array proxy points to
+(proxies) the array data on disk.</p>
+<p>You can test if the image has a array proxy like this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">is_proxy</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</section>
+<section id="array-images">
+<h3>Array images<a class="headerlink" href="#array-images" title="Link to this heading">¶</a></h3>
+<p>We can also create images from numpy arrays.  For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">array_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case the image array data is already a numpy array, and there is no
+version of the array on disk.  The <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> property of the image is the
+array itself rather than a proxy for the array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">array([[[ 0,  1,  2,  3],</span>
+<span class="go">        [ 4,  5,  6,  7],</span>
+<span class="go">        [ 8,  9, 10, 11]],</span>
+
+<span class="go">       [[12, 13, 14, 15],</span>
+<span class="go">        [16, 17, 18, 19],</span>
+<span class="go">        [20, 21, 22, 23]]], dtype=int16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span><span class="o">.</span><span class="n">dataobj</span> <span class="ow">is</span> <span class="n">array_data</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">dataobj</span></code> is an array, not an array proxy, so:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">is_proxy</span><span class="p">(</span><span class="n">array_img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-the-image-data-the-easy-way">
+<h3>Getting the image data the easy way<a class="headerlink" href="#getting-the-image-data-the-easy-way" title="Link to this heading">¶</a></h3>
+<p>For either type of image (array or proxy) you can always get the data with the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">get_fdata()</span></code> method.</p>
+<p>For the array image, <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> just returns the data array, if it’s already the required floating point type (default 64-bit float).  If it isn’t that type, <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> casts it to one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">image_data</span> <span class="o">=</span> <span class="n">array_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The cast to floating point means the array is not the one attached to the image:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">image_data</span> <span class="ow">is</span> <span class="n">array_img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Here’s an image backed by a floating point array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">farray_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">image_data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">farray_data</span> <span class="o">=</span> <span class="n">farray_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">farray_data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>There was no cast, so the array returned is exactly the array attached to the
+image:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">farray_data</span> <span class="ow">is</span> <span class="n">farray_img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>For the proxy image, the <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> method fetches the array data from
+disk using the proxy, and returns the array.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">image_data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 2)</span>
+</pre></div>
+</div>
+<p>The image <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> property is still a proxy object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">&lt;nibabel.arrayproxy.ArrayProxy object at ...&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="proxies-and-caching">
+<span id="proxies-caching"></span><h3>Proxies and caching<a class="headerlink" href="#proxies-and-caching" title="Link to this heading">¶</a></h3>
+<p>You may not want to keep loading the image data off disk every time
+you call <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> on a proxy image. By default, when you call
+<code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> the first time on a proxy image, the image object keeps a
+cached copy of the loaded array.  The next time you call <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code>,
+the image returns the array from cache rather than loading it from disk again.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The returned data is the same (cached) copy we returned before:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="ow">is</span> <span class="n">image_data</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="images_and_memory.html"><span class="doc">Images and memory</span></a> for more details on managing image memory and
+controlling the image cache.</p>
+</section>
+<section id="image-slicing">
+<span id="id1"></span><h3>Image slicing<a class="headerlink" href="#image-slicing" title="Link to this heading">¶</a></h3>
+<p>At times it is useful to manipulate an image’s shape while keeping it in the
+same coordinate system.
+The <code class="docutils literal notranslate"><span class="pre">slicer</span></code> attribute provides an array-slicing interface to produce new
+images with an appropriately adjusted header, such that the data at a given
+RAS+ location is unchanged.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cropped_img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">slicer</span><span class="p">[</span><span class="mi">32</span><span class="p">:</span><span class="o">-</span><span class="mi">32</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cropped_img</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(64, 96, 24, 2)</span>
+</pre></div>
+</div>
+<p>The data is identical to cropping the data block directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">cropped_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()[</span><span class="mi">32</span><span class="p">:</span><span class="o">-</span><span class="mi">32</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>However, unused data did not need to be loaded into memory or scaled.
+Additionally, the image affine was adjusted so that the X-translation is
+32 voxels (64mm) less:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cropped_img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[ -2.  ,   0.  ,   0.  ,  53.86],</span>
+<span class="go">       [ -0.  ,   1.97,  -0.36, -35.72],</span>
+<span class="go">       [  0.  ,   0.32,   2.17,  -7.25],</span>
+<span class="go">       [  0.  ,   0.  ,   0.  ,   1.  ]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">affine</span> <span class="o">-</span> <span class="n">cropped_img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[ 0.,  0.,  0., 64.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.]])</span>
+</pre></div>
+</div>
+<p>Another use for the slicer object is to choose specific volumes from a
+time series:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vol0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">slicer</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vol0</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24)</span>
+</pre></div>
+</div>
+<p>Or a selection of volumes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">slicer</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">slicer</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 2)</span>
+</pre></div>
+</div>
+<p>It is also possible to use an integer step when slicing, downsampling
+the image without filtering.
+Note that this <em>will induce artifacts</em> in the frequency spectrum
+(<a class="reference external" href="wikipediaaliasing">aliasing</a>) along any axis that is down-sampled.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">downsampled</span> <span class="o">=</span> <span class="n">vol0</span><span class="o">.</span><span class="n">slicer</span><span class="p">[::</span><span class="mi">2</span><span class="p">,</span> <span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsampled</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()</span>
+<span class="go">(4.0, 4.0, 4.399998)</span>
+</pre></div>
+</div>
+<p>Finally, an image can be flipped along an axis, maintaining an appropriate
+affine matrix:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">orientations</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+<span class="go">(&#39;L&#39;, &#39;A&#39;, &#39;S&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ras</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">slicer</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">orientations</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">ras</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+<span class="go">(&#39;R&#39;, &#39;A&#39;, &#39;S&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ras</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[  2.  ,   0.  ,   0.  , 117.86],</span>
+<span class="go">       [  0.  ,   1.97,  -0.36, -35.72],</span>
+<span class="go">       [ -0.  ,   0.32,   2.17,  -7.25],</span>
+<span class="go">       [  0.  ,   0.  ,   0.  ,   1.  ]])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="loading-and-saving">
+<h2>Loading and saving<a class="headerlink" href="#loading-and-saving" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">save</span></code> and <code class="docutils literal notranslate"><span class="pre">load</span></code> functions in nibabel should do all the work for you:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">array_img</span><span class="p">,</span> <span class="s1">&#39;my_image.nii&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_image.nii&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3, 4)</span>
+</pre></div>
+</div>
+<p>You can also use the <code class="docutils literal notranslate"><span class="pre">to_filename</span></code> method:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="s1">&#39;my_image_again.nii&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_image_again.nii&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3, 4)</span>
+</pre></div>
+</div>
+<p>You can get and set the filename with <code class="docutils literal notranslate"><span class="pre">get_filename()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">set_filename()</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span><span class="o">.</span><span class="n">set_filename</span><span class="p">(</span><span class="s1">&#39;another_image.nii&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span><span class="o">.</span><span class="n">get_filename</span><span class="p">()</span>
+<span class="go">&#39;another_image.nii&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="details-of-files-and-images">
+<h2>Details of files and images<a class="headerlink" href="#details-of-files-and-images" title="Link to this heading">¶</a></h2>
+<p>If an image can be loaded or saved on disk, the image will have an attribute
+called <code class="docutils literal notranslate"><span class="pre">file_map</span></code>.  <code class="docutils literal notranslate"><span class="pre">img.file_map</span></code> is a dictionary where the keys are the
+names of the files that the image uses to load / save on disk, and the values
+are <code class="docutils literal notranslate"><span class="pre">FileHolder</span></code> objects, that usually contain the filenames that the image
+has been loaded from or saved to.  In the case of a NiFTI1 single file, this
+is just a single image file with a <code class="docutils literal notranslate"><span class="pre">.nii</span></code> or <code class="docutils literal notranslate"><span class="pre">.nii.gz</span></code> extension:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">img_again</span><span class="o">.</span><span class="n">file_map</span><span class="p">)</span>
+<span class="go">[&#39;image&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_again</span><span class="o">.</span><span class="n">file_map</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
+<span class="go">&#39;another_image.nii&#39;</span>
+</pre></div>
+</div>
+<p>Other file types need more than one file to make up the image.  The NiFTI1
+pair type is one example.  NIfTI pair images have one file containing the
+header information and another containing the image array data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pair_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Pair</span><span class="p">(</span><span class="n">array_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">pair_img</span><span class="p">,</span> <span class="s1">&#39;my_pair_image.img&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">pair_img</span><span class="o">.</span><span class="n">file_map</span><span class="p">)</span>
+<span class="go">[&#39;header&#39;, &#39;image&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pair_img</span><span class="o">.</span><span class="n">file_map</span><span class="p">[</span><span class="s1">&#39;header&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
+<span class="go">&#39;my_pair_image.hdr&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pair_img</span><span class="o">.</span><span class="n">file_map</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
+<span class="go">&#39;my_pair_image.img&#39;</span>
+</pre></div>
+</div>
+<p>The older Analyze format also has a separate header and image file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ana_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">AnalyzeImage</span><span class="p">(</span><span class="n">array_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">ana_img</span><span class="o">.</span><span class="n">file_map</span><span class="p">)</span>
+<span class="go">[&#39;header&#39;, &#39;image&#39;]</span>
+</pre></div>
+</div>
+<p>It is the contents of the <code class="docutils literal notranslate"><span class="pre">file_map</span></code> that gets changed when you use
+<code class="docutils literal notranslate"><span class="pre">set_filename</span></code> or <code class="docutils literal notranslate"><span class="pre">to_filename</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ana_img</span><span class="o">.</span><span class="n">set_filename</span><span class="p">(</span><span class="s1">&#39;analyze_image.img&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ana_img</span><span class="o">.</span><span class="n">file_map</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
+<span class="go">&#39;analyze_image.img&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ana_img</span><span class="o">.</span><span class="n">file_map</span><span class="p">[</span><span class="s1">&#39;header&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
+<span class="go">&#39;analyze_image.hdr&#39;</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

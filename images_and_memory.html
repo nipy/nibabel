@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Working with NIfTI images" href="nifti_images.html" />
+    <link rel="prev" title="Nibabel images" href="nibabel_images.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nifti_images.html" title="Working with NIfTI images"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel_images.html" title="Nibabel images"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="manual.html" accesskey="U">NiBabel Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Images and memory</a><ul>
+<li><a class="reference internal" href="#using-in-memory-to-check-the-state-of-the-cache">Using <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> to check the state of the cache</a></li>
+<li><a class="reference internal" href="#using-uncache">Using <code class="docutils literal notranslate"><span class="pre">uncache</span></code></a></li>
+<li><a class="reference internal" href="#saving-memory">Saving memory</a><ul>
+<li><a class="reference internal" href="#uncache-the-array">Uncache the array</a></li>
+<li><a class="reference internal" href="#use-the-array-proxy-instead-of-get-fdata">Use the array proxy instead of <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code></a></li>
+<li><a class="reference internal" href="#use-the-caching-keyword-to-get-fdata">Use the <code class="docutils literal notranslate"><span class="pre">caching</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#saving-time-and-memory">Saving time and memory</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel_images.html"
+                          title="previous chapter">Nibabel images</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nifti_images.html"
+                          title="next chapter">Working with NIfTI images</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/images_and_memory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="images-and-memory">
+<h1>Images and memory<a class="headerlink" href="#images-and-memory" title="Link to this heading">¶</a></h1>
+<p>We saw in <a class="reference internal" href="nibabel_images.html"><span class="doc">Nibabel images</span></a> that images loaded from disk are usually
+<em>proxy images</em>. Proxy images are images that have a <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> property that
+is not a numpy array, but an <em>array proxy</em> that can fetch the array data from
+disk.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.testing</span> <span class="kn">import</span> <span class="n">data_path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span>
+<span class="go">&lt;nibabel.arrayproxy.ArrayProxy object at ...&gt;</span>
+</pre></div>
+</div>
+<p>Nibabel does not load the image array from the proxy when you <code class="docutils literal notranslate"><span class="pre">load</span></code> the
+image.  It waits until you ask for the array data.  The standard way to ask
+for the array data is to call the <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> method:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 2)</span>
+</pre></div>
+</div>
+<p>We also saw in <a class="reference internal" href="nibabel_images.html#proxies-caching"><span class="std std-ref">Proxies and caching</span></a> that this call to <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> will
+(by default) load the array data into an internal image cache.  The image
+returns the cached copy on the next call to <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="ow">is</span> <span class="n">data_again</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>This behavior is convenient if you want quick and repeated access to the image
+array data.  The down-side is that the image keeps a reference to the image
+data array, so the array can’t be cleared from memory until the image object
+gets deleted.  You might prefer to keep loading the array from disk instead of
+keeping the cached copy in the image.</p>
+<p>This page describes ways of using the image array proxies to save memory and
+time.</p>
+<section id="using-in-memory-to-check-the-state-of-the-cache">
+<h2>Using <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> to check the state of the cache<a class="headerlink" href="#using-in-memory-to-check-the-state-of-the-cache" title="Link to this heading">¶</a></h2>
+<p>You can use the <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> property to check if the image has cached the
+array.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> property is always True for array images, because the image
+data is always an array in memory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">array_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>For a proxy image, the <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> property is False when the array is not
+in cache, and True when it is in cache:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</section>
+<section id="using-uncache">
+<h2>Using <code class="docutils literal notranslate"><span class="pre">uncache</span></code><a class="headerlink" href="#using-uncache" title="Link to this heading">¶</a></h2>
+<p>As y’all know, the proxy image has the array in cache, <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> returns
+the cached array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="ow">is</span> <span class="n">data</span>  <span class="c1"># same array returned from cache</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>You can uncache a proxy image with the <code class="docutils literal notranslate"><span class="pre">uncache()</span></code> method:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">uncache</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_once_more</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_once_more</span> <span class="ow">is</span> <span class="n">data</span>  <span class="c1"># a new copy read from disk</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">uncache()</span></code> has no effect if the image is an array image, or if the cache is
+already empty.</p>
+<p>You need to be careful when you modify arrays returned by <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> on
+proxy images, because <code class="docutils literal notranslate"><span class="pre">uncache</span></code> will then change the result you get back
+from <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>  <span class="c1"># array cached and returned</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">99</span>  <span class="c1"># modify returned array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>  <span class="c1"># return cached array</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># cached array modified</span>
+<span class="go">99.0</span>
+</pre></div>
+</div>
+<p>So far the proxy image behaves the same as an array image.  <code class="docutils literal notranslate"><span class="pre">uncache()</span></code> has
+no effect on an array image, but it does have an effect on the returned array
+of a proxy image:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span><span class="o">.</span><span class="n">uncache</span><span class="p">()</span>  <span class="c1"># cached array discarded from proxy image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_once_more</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>  <span class="c1"># new copy of array loaded</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_once_more</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># array modifications discarded</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="saving-memory">
+<h2>Saving memory<a class="headerlink" href="#saving-memory" title="Link to this heading">¶</a></h2>
+<section id="uncache-the-array">
+<h3>Uncache the array<a class="headerlink" href="#uncache-the-array" title="Link to this heading">¶</a></h3>
+<p>If you do not want the image to keep the array in its internal cache, you can
+use the <code class="docutils literal notranslate"><span class="pre">uncache()</span></code> method:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">uncache</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="use-the-array-proxy-instead-of-get-fdata">
+<h3>Use the array proxy instead of <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code><a class="headerlink" href="#use-the-array-proxy-instead-of-get-fdata" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> property of a proxy image is an array proxy.  We can ask the
+proxy to return the array directly by passing <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> to the numpy
+<code class="docutils literal notranslate"><span class="pre">asarray</span></code> function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">proxy_img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">data_array</span><span class="p">)</span>
+<span class="go">&lt;... &#39;numpy.ndarray&#39;&gt;</span>
+</pre></div>
+</div>
+<p>This also works for array images, because <code class="docutils literal notranslate"><span class="pre">np.asarray</span></code> returns the array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">array_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">array_img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">data_array</span><span class="p">)</span>
+<span class="go">&lt;... &#39;numpy.ndarray&#39;&gt;</span>
+</pre></div>
+</div>
+<p>If you want to avoid caching you can avoid <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> and always use
+<code class="docutils literal notranslate"><span class="pre">np.asarray(img.dataobj)</span></code>.</p>
+</section>
+<section id="use-the-caching-keyword-to-get-fdata">
+<h3>Use the <code class="docutils literal notranslate"><span class="pre">caching</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code><a class="headerlink" href="#use-the-caching-keyword-to-get-fdata" title="Link to this heading">¶</a></h3>
+<p>The default behavior of the <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> function is to always fill the
+cache, if it is empty.  This corresponds to the default <code class="docutils literal notranslate"><span class="pre">'fill'</span></code> value
+to the <code class="docutils literal notranslate"><span class="pre">caching</span></code> keyword.  So, this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>  <span class="c1"># default caching=&#39;fill&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>is the same as this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="s1">&#39;fill&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Sometimes you may want to avoid filling the cache, if it is empty. In this
+case, you can use <code class="docutils literal notranslate"><span class="pre">caching='unchanged'</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="s1">&#39;unchanged&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">caching='unchanged'</span></code> will leave the cache full if it is already full.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="s1">&#39;fill&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="s1">&#39;unchanged&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>See the <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_fdata()</span> <span class="pre">docstring</span></code> for more detail.</p>
+</section>
+</section>
+<section id="saving-time-and-memory">
+<h2>Saving time and memory<a class="headerlink" href="#saving-time-and-memory" title="Link to this heading">¶</a></h2>
+<p>You can use the array proxy to get slices of data from disk in an efficient
+way.</p>
+<p>The array proxy API allows you to do slicing on the proxy.  In most cases this
+will mean that you only load the data from disk that you actually need, often
+saving both time and memory.</p>
+<p>For example, let us say you only wanted the second volume from the example
+dataset.  You could do this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vol1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vol1</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24)</span>
+</pre></div>
+</div>
+<p>The problem is that you had to load the whole data array into memory before
+throwing away the first volume and keeping the second.</p>
+<p>You can use array proxy slicing to do this more efficiently:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">proxy_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vol1</span> <span class="o">=</span> <span class="n">proxy_img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vol1</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 96, 24)</span>
+</pre></div>
+</div>
+<p>The slicing call in <code class="docutils literal notranslate"><span class="pre">proxy_img.dataobj[...,</span> <span class="pre">1]</span></code> will only load the data from
+disk that you need to fill the memory of <code class="docutils literal notranslate"><span class="pre">vol1</span></code>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

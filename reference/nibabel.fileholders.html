@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="filename_parser" href="nibabel.filename_parser.html" />
+    <link rel="prev" title="dft" href="nibabel.dft.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.filename_parser.html" title="filename_parser"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.dft.html" title="dft"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a><ul>
+<li><a class="reference internal" href="#fileholder"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileHolder</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolder"><code class="docutils literal notranslate"><span class="pre">FileHolder</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolder.__init__"><code class="docutils literal notranslate"><span class="pre">FileHolder.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolder.file_like"><code class="docutils literal notranslate"><span class="pre">FileHolder.file_like</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolder.get_prepare_fileobj"><code class="docutils literal notranslate"><span class="pre">FileHolder.get_prepare_fileobj()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolder.same_file_as"><code class="docutils literal notranslate"><span class="pre">FileHolder.same_file_as()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fileholdererror"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileHolderError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolderError"><code class="docutils literal notranslate"><span class="pre">FileHolderError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.fileholders.FileHolderError.__init__"><code class="docutils literal notranslate"><span class="pre">FileHolderError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#copy-file-map">copy_file_map</a><ul>
+<li><a class="reference internal" href="#nibabel.fileholders.copy_file_map"><code class="docutils literal notranslate"><span class="pre">copy_file_map()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.dft.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.filename_parser.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.fileholders.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.fileholders">
+<span id="fileholders"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code><a class="headerlink" href="#module-nibabel.fileholders" title="Link to this heading">¶</a></h1>
+<p>Fileholder class</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileHolder</span></code></a>([filename, fileobj, pos])</p></td>
+<td><p>class to contain filename, fileobj and file position</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileholders.FileHolderError" title="nibabel.fileholders.FileHolderError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileHolderError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileholders.copy_file_map" title="nibabel.fileholders.copy_file_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy_file_map</span></code></a>(file_map)</p></td>
+<td><p>Copy mapping of fileholders given by <cite>file_map</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="fileholder">
+<h2><a class="reference internal" href="#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileHolder</span></code></a><a class="headerlink" href="#fileholder" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.fileholders.</span></span><span class="sig-name descname"><span class="pre">FileHolder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileholders.FileHolder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>class to contain filename, fileobj and file position</p>
+<p>Initialize FileHolder instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str, optional</span></dt><dd><p>filename.  Default is None</p>
+</dd>
+<dt><strong>fileobj</strong><span class="classifier">file-like object, optional</span></dt><dd><p>Should implement at least ‘seek’ (for the purposes for this
+class).  Default is None</p>
+</dd>
+<dt><strong>pos</strong><span class="classifier">int, optional</span></dt><dd><p>position in filename or fileobject at which to start reading
+or writing data; defaults to 0</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileholders.FileHolder.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize FileHolder instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str, optional</span></dt><dd><p>filename.  Default is None</p>
+</dd>
+<dt><strong>fileobj</strong><span class="classifier">file-like object, optional</span></dt><dd><p>Should implement at least ‘seek’ (for the purposes for this
+class).  Default is None</p>
+</dd>
+<dt><strong>pos</strong><span class="classifier">int, optional</span></dt><dd><p>position in filename or fileobject at which to start reading
+or writing data; defaults to 0</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolder.file_like">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">file_like</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#nibabel.fileholders.FileHolder.file_like" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">self.fileobj</span></code> if not None, otherwise <code class="docutils literal notranslate"><span class="pre">self.filename</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolder.get_prepare_fileobj">
+<span class="sig-name descname"><span class="pre">get_prepare_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="nibabel.openers.html#nibabel.openers.ImageOpener" title="nibabel.openers.ImageOpener"><span class="pre">ImageOpener</span></a></span></span><a class="headerlink" href="#nibabel.fileholders.FileHolder.get_prepare_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Return fileobj if present, or return fileobj from filename</p>
+<p>Set position to that given in self.pos</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>*args</strong><span class="classifier">tuple</span></dt><dd><p>positional arguments to file open.  Ignored if there is a
+defined <code class="docutils literal notranslate"><span class="pre">self.fileobj</span></code>.  These might include the mode, such
+as ‘rb’</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">dict</span></dt><dd><p>named arguments to file open.  Ignored if there is a
+defined <code class="docutils literal notranslate"><span class="pre">self.fileobj</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>object has position set (via <code class="docutils literal notranslate"><span class="pre">fileobj.seek()</span></code>) to
+<code class="docutils literal notranslate"><span class="pre">self.pos</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolder.same_file_as">
+<span class="sig-name descname"><span class="pre">same_file_as</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="headerlink" href="#nibabel.fileholders.FileHolder.same_file_as" title="Link to this definition">¶</a></dt>
+<dd><p>Test if <cite>self</cite> refers to same files / fileobj as <cite>other</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>other</strong><span class="classifier">object</span></dt><dd><p>object with <cite>filename</cite> and <cite>fileobj</cite> attributes</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tf</strong><span class="classifier">bool</span></dt><dd><p>True if <cite>other</cite> has the same filename (or both have None) and the
+same fileobj (or both have None</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="fileholdererror">
+<h2><a class="reference internal" href="#nibabel.fileholders.FileHolderError" title="nibabel.fileholders.FileHolderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileHolderError</span></code></a><a class="headerlink" href="#fileholdererror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolderError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.fileholders.</span></span><span class="sig-name descname"><span class="pre">FileHolderError</span></span><a class="headerlink" href="#nibabel.fileholders.FileHolderError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.fileholders.FileHolderError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileholders.FileHolderError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="copy-file-map">
+<h2>copy_file_map<a class="headerlink" href="#copy-file-map" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileholders.copy_file_map">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileholders.</span></span><span class="sig-name descname"><span class="pre">copy_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.13)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.13)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.fileholders.copy_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Copy mapping of fileholders given by <cite>file_map</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">mapping</span></dt><dd><p>mapping of <code class="docutils literal notranslate"><span class="pre">FileHolder</span></code> instances</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fm_copy</strong><span class="classifier">dict</span></dt><dd><p>Copy of <cite>file_map</cite>, using shallow copy of <code class="docutils literal notranslate"><span class="pre">FileHolder</span></code>s</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

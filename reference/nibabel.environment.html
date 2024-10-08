@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="arrayproxy" href="nibabel.arrayproxy.html" />
+    <link rel="prev" title="data" href="nibabel.data.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.arrayproxy.html" title="arrayproxy"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.data.html" title="data"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a><ul>
+<li><a class="reference internal" href="#get-home-dir">get_home_dir</a><ul>
+<li><a class="reference internal" href="#nibabel.environment.get_home_dir"><code class="docutils literal notranslate"><span class="pre">get_home_dir()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-nipy-system-dir">get_nipy_system_dir</a><ul>
+<li><a class="reference internal" href="#nibabel.environment.get_nipy_system_dir"><code class="docutils literal notranslate"><span class="pre">get_nipy_system_dir()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-nipy-user-dir">get_nipy_user_dir</a><ul>
+<li><a class="reference internal" href="#nibabel.environment.get_nipy_user_dir"><code class="docutils literal notranslate"><span class="pre">get_nipy_user_dir()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.data.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.arrayproxy.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.environment.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.environment">
+<span id="environment"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code><a class="headerlink" href="#module-nibabel.environment" title="Link to this heading">¶</a></h1>
+<p>Settings from the system environment relevant to NIPY</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.environment.get_home_dir" title="nibabel.environment.get_home_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_home_dir</span></code></a>()</p></td>
+<td><p>Return the closest possible equivalent to a 'home' directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.environment.get_nipy_system_dir" title="nibabel.environment.get_nipy_system_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_nipy_system_dir</span></code></a>()</p></td>
+<td><p>Get systemwide NIPY configuration file directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.environment.get_nipy_user_dir" title="nibabel.environment.get_nipy_user_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_nipy_user_dir</span></code></a>()</p></td>
+<td><p>Get the NIPY user directory</p></td>
+</tr>
+</tbody>
+</table>
+<section id="get-home-dir">
+<h2>get_home_dir<a class="headerlink" href="#get-home-dir" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.environment.get_home_dir">
+<span class="sig-prename descclassname"><span class="pre">nibabel.environment.</span></span><span class="sig-name descname"><span class="pre">get_home_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.environment.get_home_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Return the closest possible equivalent to a ‘home’ directory.</p>
+<p>The path may not exist; code using this routine should not
+expect the directory to exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>home_dir</strong><span class="classifier">string</span></dt><dd><p>best guess at location of home directory</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-nipy-system-dir">
+<h2>get_nipy_system_dir<a class="headerlink" href="#get-nipy-system-dir" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.environment.get_nipy_system_dir">
+<span class="sig-prename descclassname"><span class="pre">nibabel.environment.</span></span><span class="sig-name descname"><span class="pre">get_nipy_system_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.environment.get_nipy_system_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Get systemwide NIPY configuration file directory</p>
+<p>On posix systems this will be <code class="docutils literal notranslate"><span class="pre">/etc/nipy</span></code>.
+On Windows, the directory is less useful, but by default it will be
+<code class="docutils literal notranslate"><span class="pre">C:\etc\nipy</span></code></p>
+<p>The path may well not exist; code using this routine should not
+expect the directory to exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>nipy_dir</strong><span class="classifier">string</span></dt><dd><p>path to systemwide NIPY configuration directory</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pth</span> <span class="o">=</span> <span class="n">get_nipy_system_dir</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="get-nipy-user-dir">
+<h2>get_nipy_user_dir<a class="headerlink" href="#get-nipy-user-dir" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.environment.get_nipy_user_dir">
+<span class="sig-prename descclassname"><span class="pre">nibabel.environment.</span></span><span class="sig-name descname"><span class="pre">get_nipy_user_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.environment.get_nipy_user_dir" title="Link to this definition">¶</a></dt>
+<dd><p>Get the NIPY user directory</p>
+<p>This uses the logic in <cite>get_home_dir</cite> to find the home directory
+and the adds either .nipy or _nipy to the end of the path.</p>
+<p>We check first in environment variable <code class="docutils literal notranslate"><span class="pre">NIPY_USER_DIR</span></code>, otherwise
+returning the default of <code class="docutils literal notranslate"><span class="pre">&lt;homedir&gt;/.nipy</span></code> (Unix) or
+<code class="docutils literal notranslate"><span class="pre">&lt;homedir&gt;/_nipy</span></code> (Windows)</p>
+<p>The path may well not exist; code using this routine should not
+expect the directory to exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>None</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>nipy_dir</strong><span class="classifier">string</span></dt><dd><p>path to user’s NIPY configuration directory</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pth</span> <span class="o">=</span> <span class="n">get_nipy_user_dir</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

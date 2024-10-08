@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="casting" href="nibabel.casting.html" />
+    <link rel="prev" title="volumeutils" href="nibabel.volumeutils.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.casting.html" title="casting"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.volumeutils.html" title="volumeutils"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a><ul>
+<li><a class="reference internal" href="#arraywriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayWriter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter"><code class="docutils literal notranslate"><span class="pre">ArrayWriter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.__init__"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.array"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.array</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.finite_range"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.finite_range()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.has_nan"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.has_nan</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.out_dtype"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.out_dtype</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.scaling_needed"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.scaling_needed()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter.to_fileobj"><code class="docutils literal notranslate"><span class="pre">ArrayWriter.to_fileobj()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scalingerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScalingError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.ScalingError"><code class="docutils literal notranslate"><span class="pre">ScalingError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.ScalingError.__init__"><code class="docutils literal notranslate"><span class="pre">ScalingError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slopearraywriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlopeArrayWriter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter.__init__"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter.calc_scale"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter.calc_scale()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter.reset"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter.reset()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter.scaling_needed"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter.scaling_needed()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter.slope"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter.slope</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter.to_fileobj"><code class="docutils literal notranslate"><span class="pre">SlopeArrayWriter.to_fileobj()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slopeinterarraywriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlopeInterArrayWriter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter"><code class="docutils literal notranslate"><span class="pre">SlopeInterArrayWriter</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter.__init__"><code class="docutils literal notranslate"><span class="pre">SlopeInterArrayWriter.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter.inter"><code class="docutils literal notranslate"><span class="pre">SlopeInterArrayWriter.inter</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter.reset"><code class="docutils literal notranslate"><span class="pre">SlopeInterArrayWriter.reset()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter.to_fileobj"><code class="docutils literal notranslate"><span class="pre">SlopeInterArrayWriter.to_fileobj()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writererror"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriterError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.WriterError"><code class="docutils literal notranslate"><span class="pre">WriterError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.WriterError.__init__"><code class="docutils literal notranslate"><span class="pre">WriterError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-slope-inter">get_slope_inter</a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.get_slope_inter"><code class="docutils literal notranslate"><span class="pre">get_slope_inter()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#make-array-writer">make_array_writer</a><ul>
+<li><a class="reference internal" href="#nibabel.arraywriters.make_array_writer"><code class="docutils literal notranslate"><span class="pre">make_array_writer()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.volumeutils.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.casting.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.arraywriters.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.arraywriters">
+<span id="arraywriters"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code><a class="headerlink" href="#module-nibabel.arraywriters" title="Link to this heading">¶</a></h1>
+<p>Array writer objects</p>
+<p>Array writers have init signature:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">out_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and methods</p>
+<ul class="simple">
+<li><p>scaling_needed() - returns True if array requires scaling for write</p></li>
+<li><p>finite_range() - returns min, max of self.array</p></li>
+<li><p>to_fileobj(fileobj, offset=None, order=’F’)</p></li>
+</ul>
+<p>They must have attributes / properties of:</p>
+<ul class="simple">
+<li><p>array</p></li>
+<li><p>out_dtype</p></li>
+<li><p>has_nan</p></li>
+</ul>
+<p>They may have attributes:</p>
+<ul class="simple">
+<li><p>slope</p></li>
+<li><p>inter</p></li>
+</ul>
+<p>They are designed to write arrays to a fileobj with reasonable memory
+efficiency.</p>
+<p>Array writers may be able to scale the array or apply an intercept, or do
+something else to make sense of conversions between float and int, or between
+larger ints and smaller.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter" title="nibabel.arraywriters.ArrayWriter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ArrayWriter</span></code></a>(array[, out_dtype])</p></td>
+<td><p>Initialize array writer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.arraywriters.ScalingError" title="nibabel.arraywriters.ScalingError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScalingError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter" title="nibabel.arraywriters.SlopeArrayWriter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SlopeArrayWriter</span></code></a>(array[, out_dtype, ...])</p></td>
+<td><p>ArrayWriter that can use scalefactor for writing arrays</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter" title="nibabel.arraywriters.SlopeInterArrayWriter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SlopeInterArrayWriter</span></code></a>(array[, out_dtype, ...])</p></td>
+<td><p>Array writer that can use slope and intercept to scale array</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.arraywriters.WriterError" title="nibabel.arraywriters.WriterError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WriterError</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.arraywriters.get_slope_inter" title="nibabel.arraywriters.get_slope_inter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_slope_inter</span></code></a>(writer)</p></td>
+<td><p>Return slope, intercept from array writer object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.arraywriters.make_array_writer" title="nibabel.arraywriters.make_array_writer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_array_writer</span></code></a>(data, out_type[, ...])</p></td>
+<td><p>Make array writer instance for array <cite>data</cite> and output type <cite>out_type</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="arraywriter">
+<h2><a class="reference internal" href="#nibabel.arraywriters.ArrayWriter" title="nibabel.arraywriters.ArrayWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayWriter</span></code></a><a class="headerlink" href="#arraywriter" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">ArrayWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Initialize array writer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>array</strong><span class="classifier">array-like</span></dt><dd><p>array-like object</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype</span></dt><dd><p>dtype with which <cite>array</cite> will be written.  For this class,
+<cite>out_dtype`</cite> needs to be the same as the dtype of the input <cite>array</cite>
+or a swapped version of the same.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>This class processes only:</p>
+<ul class="simple">
+<li><p>nan2zero : bool, optional
+Whether to set NaN values to 0 when writing integer output.
+Defaults to True.  If False, NaNs get converted with numpy
+<code class="docutils literal notranslate"><span class="pre">astype</span></code>, and the behavior is undefined.  Ignored for floating
+point output.</p></li>
+<li><p>check_scaling : bool, optional
+If True, check if scaling needed and raise error if so. Default
+is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> 
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">WriterError</span>: <span class="n">Scaling needed but cannot scale</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">check_scaling</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize array writer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>array</strong><span class="classifier">array-like</span></dt><dd><p>array-like object</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype</span></dt><dd><p>dtype with which <cite>array</cite> will be written.  For this class,
+<cite>out_dtype`</cite> needs to be the same as the dtype of the input <cite>array</cite>
+or a swapped version of the same.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>This class processes only:</p>
+<ul class="simple">
+<li><p>nan2zero : bool, optional
+Whether to set NaN values to 0 when writing integer output.
+Defaults to True.  If False, NaNs get converted with numpy
+<code class="docutils literal notranslate"><span class="pre">astype</span></code>, and the behavior is undefined.  Ignored for floating
+point output.</p></li>
+<li><p>check_scaling : bool, optional
+If True, check if scaling needed and raise error if so. Default
+is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> 
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">WriterError</span>: <span class="n">Scaling needed but cannot scale</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">check_scaling</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.array">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">array</span></span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.array" title="Link to this definition">¶</a></dt>
+<dd><p>Return array from arraywriter</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.finite_range">
+<span class="sig-name descname"><span class="pre">finite_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.finite_range" title="Link to this definition">¶</a></dt>
+<dd><p>Return (maybe cached) finite range of data array</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.has_nan">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_nan</span></span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.has_nan" title="Link to this definition">¶</a></dt>
+<dd><p>True if array has NaNs</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.out_dtype">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">out_dtype</span></span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.out_dtype" title="Link to this definition">¶</a></dt>
+<dd><p>Return <cite>out_dtype</cite> from arraywriter</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.scaling_needed">
+<span class="sig-name descname"><span class="pre">scaling_needed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.scaling_needed" title="Link to this definition">¶</a></dt>
+<dd><p>Checks if scaling is needed for input array</p>
+<p>Raises WriterError if no scaling possible.</p>
+<p>The rules are in the code, but:</p>
+<ul class="simple">
+<li><p>If numpy will cast, return False (no scaling needed)</p></li>
+<li><p>If input or output is an object or structured type, raise</p></li>
+<li><p>If input is complex, raise</p></li>
+<li><p>If the output is float, return False</p></li>
+<li><p>If the input array is all zero, return False</p></li>
+<li><p>By now we are casting to (u)int. If the input type is a float, return
+True (we do need scaling)</p></li>
+<li><p>Now input and output types are (u)ints. If the min and max in the
+data are within range of the output type, return False</p></li>
+<li><p>Otherwise return True</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ArrayWriter.to_fileobj">
+<span class="sig-name descname"><span class="pre">to_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.ArrayWriter.to_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Write array into <cite>fileobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd></dd>
+<dt><strong>order</strong><span class="classifier">{‘F’, ‘C’}</span></dt><dd><p>order (Fortran or C) to which to write array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="scalingerror">
+<h2><a class="reference internal" href="#nibabel.arraywriters.ScalingError" title="nibabel.arraywriters.ScalingError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScalingError</span></code></a><a class="headerlink" href="#scalingerror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ScalingError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">ScalingError</span></span><a class="headerlink" href="#nibabel.arraywriters.ScalingError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.arraywriters.WriterError" title="nibabel.arraywriters.WriterError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriterError</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.ScalingError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.ScalingError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="slopearraywriter">
+<h2><a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter" title="nibabel.arraywriters.SlopeArrayWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlopeArrayWriter</span></code></a><a class="headerlink" href="#slopearraywriter" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">SlopeArrayWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler_dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.arraywriters.ArrayWriter" title="nibabel.arraywriters.ArrayWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayWriter</span></code></a></p>
+<p>ArrayWriter that can use scalefactor for writing arrays</p>
+<p>The scalefactor allows the array writer to write floats to int output
+types, and rescale larger ints to smaller.  It can therefore lose
+precision.</p>
+<p>It extends the ArrayWriter class with attribute:</p>
+<ul class="simple">
+<li><p>slope</p></li>
+</ul>
+<p>and methods:</p>
+<ul class="simple">
+<li><p>reset() - reset slope to default (not adapted to self.array)</p></li>
+<li><p>calc_scale() - calculate slope to best write self.array</p></li>
+</ul>
+<p>Initialize array writer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>array</strong><span class="classifier">array-like</span></dt><dd><p>array-like object</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype</span></dt><dd><p>dtype with which <cite>array</cite> will be written.  For this class,
+<cite>out_dtype`</cite> needs to be the same as the dtype of the input <cite>array</cite>
+or a swapped version of the same.</p>
+</dd>
+<dt><strong>calc_scale</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to calculate scaling for writing <cite>array</cite> on initialization.
+If False, then you can calculate this scaling with
+<code class="docutils literal notranslate"><span class="pre">obj.calc_scale()</span></code> - see examples</p>
+</dd>
+<dt><strong>scaler_dtype</strong><span class="classifier">dtype-like, optional</span></dt><dd><p>specifier for numpy dtype for scaling</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>This class processes only:</p>
+<ul class="simple">
+<li><p>nan2zero : bool, optional
+Whether to set NaN values to 0 when writing integer output.
+Defaults to True.  If False, NaNs get converted with numpy
+<code class="docutils literal notranslate"><span class="pre">astype</span></code>, and the behavior is undefined.  Ignored for floating
+point output.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">254</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">calc_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">calc_scale</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler_dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize array writer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>array</strong><span class="classifier">array-like</span></dt><dd><p>array-like object</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype</span></dt><dd><p>dtype with which <cite>array</cite> will be written.  For this class,
+<cite>out_dtype`</cite> needs to be the same as the dtype of the input <cite>array</cite>
+or a swapped version of the same.</p>
+</dd>
+<dt><strong>calc_scale</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to calculate scaling for writing <cite>array</cite> on initialization.
+If False, then you can calculate this scaling with
+<code class="docutils literal notranslate"><span class="pre">obj.calc_scale()</span></code> - see examples</p>
+</dd>
+<dt><strong>scaler_dtype</strong><span class="classifier">dtype-like, optional</span></dt><dd><p>specifier for numpy dtype for scaling</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>This class processes only:</p>
+<ul class="simple">
+<li><p>nan2zero : bool, optional
+Whether to set NaN values to 0 when writing integer output.
+Defaults to True.  If False, NaNs get converted with numpy
+<code class="docutils literal notranslate"><span class="pre">astype</span></code>, and the behavior is undefined.  Ignored for floating
+point output.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">254</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">calc_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">calc_scale</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter.calc_scale">
+<span class="sig-name descname"><span class="pre">calc_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter.calc_scale" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate / set scaling for floats/(u)ints to (u)ints</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Set object to values before any scaling calculation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter.scaling_needed">
+<span class="sig-name descname"><span class="pre">scaling_needed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter.scaling_needed" title="Link to this definition">¶</a></dt>
+<dd><p>Checks if scaling is needed for input array</p>
+<p>Raises WriterError if no scaling possible.</p>
+<p>The rules are in the code, but:</p>
+<ul class="simple">
+<li><p>If numpy will cast, return False (no scaling needed)</p></li>
+<li><p>If input or output is an object or structured type, raise</p></li>
+<li><p>If input is complex, raise</p></li>
+<li><p>If the output is float, return False</p></li>
+<li><p>If the input array is all zero, return False</p></li>
+<li><p>If there is no finite value, return False (the writer will strip the
+non-finite values)</p></li>
+<li><p>By now we are casting to (u)int. If the input type is a float, return
+True (we do need scaling)</p></li>
+<li><p>Now input and output types are (u)ints. If the min and max in the
+data are within range of the output type, return False</p></li>
+<li><p>Otherwise return True</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter.slope">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">slope</span></span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter.slope" title="Link to this definition">¶</a></dt>
+<dd><p>get/set slope</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeArrayWriter.to_fileobj">
+<span class="sig-name descname"><span class="pre">to_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeArrayWriter.to_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Write array into <cite>fileobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd></dd>
+<dt><strong>order</strong><span class="classifier">{‘F’, ‘C’}</span></dt><dd><p>order (Fortran or C) to which to write array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="slopeinterarraywriter">
+<h2><a class="reference internal" href="#nibabel.arraywriters.SlopeInterArrayWriter" title="nibabel.arraywriters.SlopeInterArrayWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlopeInterArrayWriter</span></code></a><a class="headerlink" href="#slopeinterarraywriter" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeInterArrayWriter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">SlopeInterArrayWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler_dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeInterArrayWriter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.arraywriters.SlopeArrayWriter" title="nibabel.arraywriters.SlopeArrayWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlopeArrayWriter</span></code></a></p>
+<p>Array writer that can use slope and intercept to scale array</p>
+<p>The writer can subtract an intercept, and divided by a slope, in order to
+be able to convert floating point values into a (u)int range, or to convert
+larger (u)ints to smaller.</p>
+<p>It extends the ArrayWriter class with attributes:</p>
+<ul class="simple">
+<li><p>inter</p></li>
+<li><p>slope</p></li>
+</ul>
+<p>and methods:</p>
+<ul class="simple">
+<li><p>reset() - reset inter, slope to default (not adapted to self.array)</p></li>
+<li><p>calc_scale() - calculate inter, slope to best write self.array</p></li>
+</ul>
+<p>Initialize array writer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>array</strong><span class="classifier">array-like</span></dt><dd><p>array-like object</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype</span></dt><dd><p>dtype with which <cite>array</cite> will be written.  For this class,
+<cite>out_dtype`</cite> needs to be the same as the dtype of the input <cite>array</cite>
+or a swapped version of the same.</p>
+</dd>
+<dt><strong>calc_scale</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to calculate scaling for writing <cite>array</cite> on initialization.
+If False, then you can calculate this scaling with
+<code class="docutils literal notranslate"><span class="pre">obj.calc_scale()</span></code> - see examples</p>
+</dd>
+<dt><strong>scaler_dtype</strong><span class="classifier">dtype-like, optional</span></dt><dd><p>specifier for numpy dtype for slope, intercept</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>This class processes only:</p>
+<ul class="simple">
+<li><p>nan2zero : bool, optional
+Whether to set NaN values to 0 when writing integer output.
+Defaults to True.  If False, NaNs get converted with numpy
+<code class="docutils literal notranslate"><span class="pre">astype</span></code>, and the behavior is undefined.  Ignored for floating
+point output.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span>
+<span class="go">(1.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">calc_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span>
+<span class="go">(1.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">calc_scale</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeInterArrayWriter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dtype=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler_dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeInterArrayWriter.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize array writer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>array</strong><span class="classifier">array-like</span></dt><dd><p>array-like object</p>
+</dd>
+<dt><strong>out_dtype</strong><span class="classifier">None or dtype</span></dt><dd><p>dtype with which <cite>array</cite> will be written.  For this class,
+<cite>out_dtype`</cite> needs to be the same as the dtype of the input <cite>array</cite>
+or a swapped version of the same.</p>
+</dd>
+<dt><strong>calc_scale</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to calculate scaling for writing <cite>array</cite> on initialization.
+If False, then you can calculate this scaling with
+<code class="docutils literal notranslate"><span class="pre">obj.calc_scale()</span></code> - see examples</p>
+</dd>
+<dt><strong>scaler_dtype</strong><span class="classifier">dtype-like, optional</span></dt><dd><p>specifier for numpy dtype for slope, intercept</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>This class processes only:</p>
+<ul class="simple">
+<li><p>nan2zero : bool, optional
+Whether to set NaN values to 0 when writing integer output.
+Defaults to True.  If False, NaNs get converted with numpy
+<code class="docutils literal notranslate"><span class="pre">astype</span></code>, and the behavior is undefined.  Ignored for floating
+point output.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span>
+<span class="go">(1.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">calc_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span>
+<span class="go">(1.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span><span class="o">.</span><span class="n">calc_scale</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">aw</span><span class="o">.</span><span class="n">slope</span><span class="p">,</span> <span class="n">aw</span><span class="o">.</span><span class="n">inter</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeInterArrayWriter.inter">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">inter</span></span><a class="headerlink" href="#nibabel.arraywriters.SlopeInterArrayWriter.inter" title="Link to this definition">¶</a></dt>
+<dd><p>get/set inter</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeInterArrayWriter.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeInterArrayWriter.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Set object to values before any scaling calculation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.SlopeInterArrayWriter.to_fileobj">
+<span class="sig-name descname"><span class="pre">to_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.SlopeInterArrayWriter.to_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Write array into <cite>fileobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd></dd>
+<dt><strong>order</strong><span class="classifier">{‘F’, ‘C’}</span></dt><dd><p>order (Fortran or C) to which to write array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="writererror">
+<h2><a class="reference internal" href="#nibabel.arraywriters.WriterError" title="nibabel.arraywriters.WriterError"><code class="xref py py-class docutils literal notranslate"><span class="pre">WriterError</span></code></a><a class="headerlink" href="#writererror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.arraywriters.WriterError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">WriterError</span></span><a class="headerlink" href="#nibabel.arraywriters.WriterError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.arraywriters.WriterError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.WriterError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="get-slope-inter">
+<h2>get_slope_inter<a class="headerlink" href="#get-slope-inter" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.arraywriters.get_slope_inter">
+<span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">get_slope_inter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">writer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.get_slope_inter" title="Link to this definition">¶</a></dt>
+<dd><p>Return slope, intercept from array writer object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>writer</strong><span class="classifier">ArrayWriter instance</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>slope</strong><span class="classifier">scalar</span></dt><dd><p>slope in <cite>writer</cite> or 1.0 if not present</p>
+</dd>
+<dt><strong>inter</strong><span class="classifier">scalar</span></dt><dd><p>intercept in <cite>writer</cite> or 0.0 if not present</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_slope_inter</span><span class="p">(</span><span class="n">ArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
+<span class="go">(1.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_slope_inter</span><span class="p">(</span><span class="n">SlopeArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
+<span class="go">(1.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_slope_inter</span><span class="p">(</span><span class="n">SlopeInterArrayWriter</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
+<span class="go">(1.0, 0.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="make-array-writer">
+<h2>make_array_writer<a class="headerlink" href="#make-array-writer" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.arraywriters.make_array_writer">
+<span class="sig-prename descclassname"><span class="pre">nibabel.arraywriters.</span></span><span class="sig-name descname"><span class="pre">make_array_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.arraywriters.make_array_writer" title="Link to this definition">¶</a></dt>
+<dd><p>Make array writer instance for array <cite>data</cite> and output type <cite>out_type</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">array-like</span></dt><dd><p>array for which to create array writer</p>
+</dd>
+<dt><strong>out_type</strong><span class="classifier">dtype-like</span></dt><dd><p>input to numpy dtype to specify array writer output type</p>
+</dd>
+<dt><strong>has_slope</strong><span class="classifier">{True, False}</span></dt><dd><p>If True, array write can use scaling to adapt the array to <cite>out_type</cite></p>
+</dd>
+<dt><strong>has_intercept</strong><span class="classifier">{True, False}</span></dt><dd><p>If True, array write can use intercept to adapt the array to <cite>out_type</cite></p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">other keyword arguments</span></dt><dd><p>to pass to the arraywriter class</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>writer</strong><span class="classifier">arraywriter instance</span></dt><dd><p>Instance of array writer, with class adapted to <cite>has_intercept</cite> and
+<cite>has_slope</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">make_array_writer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">aw</span><span class="p">)</span> <span class="o">==</span> <span class="n">SlopeInterArrayWriter</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">make_array_writer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">aw</span><span class="p">)</span> <span class="o">==</span> <span class="n">SlopeArrayWriter</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aw</span> <span class="o">=</span> <span class="n">make_array_writer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">aw</span><span class="p">)</span> <span class="o">==</span> <span class="n">ArrayWriter</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

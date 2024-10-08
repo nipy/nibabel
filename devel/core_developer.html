@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Governance and Decision Making" href="governance.html" />
+    <link rel="prev" title="git resources" href="../gitwash/git_resources.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="governance.html" title="Governance and Decision Making"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../gitwash/git_resources.html" title="git resources"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer documentation page</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Core Developer Guide</a><ul>
+<li><a class="reference internal" href="#reviewing">Reviewing</a><ul>
+<li><a class="reference internal" href="#how-to-conduct-a-good-review">How to Conduct A Good Review</a></li>
+<li><a class="reference internal" href="#merge-only-changes-you-understand">Merge Only Changes You Understand</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#closing-issues-and-pull-requests">Closing issues and pull requests</a></li>
+<li><a class="reference internal" href="#further-resources">Further resources</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#acknowledgments">Acknowledgments</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../gitwash/git_resources.html"
+                          title="previous chapter">git resources</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="governance.html"
+                          title="next chapter">Governance and Decision Making</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/core_developer.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="core-developer-guide">
+<span id="core-dev"></span><h1>Core Developer Guide<a class="headerlink" href="#core-developer-guide" title="Link to this heading">¶</a></h1>
+<p>As a core developer, you should continue making pull requests
+in accordance with the <a class="reference internal" href="devguide.html#chap-devguide"><span class="std std-ref">NiBabel Developer Guidelines</span></a>.
+You are responsible for shepherding other contributors through the review process.
+You also have the ability to merge or approve other contributors’ pull requests.</p>
+<section id="reviewing">
+<h2>Reviewing<a class="headerlink" href="#reviewing" title="Link to this heading">¶</a></h2>
+<section id="how-to-conduct-a-good-review">
+<h3>How to Conduct A Good Review<a class="headerlink" href="#how-to-conduct-a-good-review" title="Link to this heading">¶</a></h3>
+<p><em>Always</em> be kind to contributors. Nearly all of Nibabel is
+volunteer work, for which we are tremendously grateful. Provide
+constructive criticism on ideas and implementations, and remind
+yourself of how it felt when your own work was being evaluated as a
+novice.</p>
+<p>Nibabel strongly values mentorship in code review.  New users
+often need more handholding, having little to no git
+experience. Repeat yourself liberally, and, if you don’t recognize a
+contributor, point them to our development guide, or other GitHub
+workflow tutorials around the web. Do not assume that they know how
+GitHub works (e.g., many don’t realize that adding a commit
+automatically updates a pull request). Gentle, polite, kind
+encouragement can make the difference between a new core developer and
+an abandoned pull request.</p>
+<p>When reviewing, focus on the following:</p>
+<ol class="arabic simple">
+<li><p><strong>API:</strong> The API is what users see when they first use
+Nibabel. APIs are difficult to change once released, so
+should be simple, consistent with other parts of the library, and
+should avoid side-effects such as changing global state or modifying
+input variables.</p></li>
+<li><p><strong>Documentation:</strong> Any new feature should have a tutorial
+example that not only illustrates but explains it.</p></li>
+<li><p><strong>The algorithm:</strong> You should understand the code being modified or
+added before approving it.  (See <a class="reference internal" href="#merge-only-changes-you-understand">Merge Only Changes You
+Understand</a> below.) Implementations should do what they claim,
+and be simple, readable, and efficient.</p></li>
+<li><p><strong>Tests:</strong> All contributions to the library <em>must</em> be tested, and
+each added line of code should be covered by at least one test. Good
+tests not only execute the code, but explore corner cases.  It is tempting
+not to review tests, but please do so.</p></li>
+</ol>
+<p>Other changes may be <em>nitpicky</em>: spelling mistakes, formatting,
+etc. Do not ask contributors to make these changes, and instead
+make the changes by <a class="reference external" href="https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/committing-changes-to-a-pull-request-branch-created-from-a-fork">pushing to their branch</a>,
+or using GitHub’s <a class="reference external" href="https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/commenting-on-a-pull-request">suggestion</a>
+<a class="reference external" href="https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/incorporating-feedback-in-your-pull-request">feature</a>.
+(The latter is preferred because it gives the contributor a choice in
+whether to accept the changes.)</p>
+<p>Please add a note to a pull request after you push new changes; GitHub
+may not send out notifications for these.</p>
+</section>
+<section id="merge-only-changes-you-understand">
+<h3>Merge Only Changes You Understand<a class="headerlink" href="#merge-only-changes-you-understand" title="Link to this heading">¶</a></h3>
+<p><em>Long-term maintainability</em> is an important concern.  Code doesn’t
+merely have to <em>work</em>, but should be <em>understood</em> by multiple core
+developers.  Changes will have to be made in the future, and the
+original contributor may have moved on.</p>
+<p>Therefore, <em>do not merge a code change unless you understand it</em>. Ask
+for help freely: we have a long history of consulting community
+members, or even external developers, for added insight where needed,
+and see this as a great learning opportunity.</p>
+<p>While we collectively “own” any patches (and bugs!) that become part
+of the code base, you are vouching for changes you merge.  Please take
+that responsibility seriously.</p>
+</section>
+</section>
+<section id="closing-issues-and-pull-requests">
+<h2>Closing issues and pull requests<a class="headerlink" href="#closing-issues-and-pull-requests" title="Link to this heading">¶</a></h2>
+<p>Sometimes, an issue must be closed that was not fully resolved. This can be
+for a number of reasons:</p>
+<ul class="simple">
+<li><p>the person behind the original post has not responded to calls for
+clarification, and none of the core developers have been able to reproduce
+their issue;</p></li>
+<li><p>fixing the issue is difficult, and it is deemed too niche a use case to
+devote sustained effort or prioritize over other issues; or</p></li>
+<li><p>the use case or feature request is something that core developers feel
+does not belong in Nibabel,</p></li>
+</ul>
+<p>among others. Similarly, pull requests sometimes need to be closed without
+merging, because:</p>
+<ul class="simple">
+<li><p>the pull request implements a niche feature that we consider not worth the
+added maintenance burden;</p></li>
+<li><p>the pull request implements a useful feature, but requires significant
+effort to bring up to Nibabel’s standards, and the original
+contributor has moved on, and no other developer can be found to make the
+necessary changes; or</p></li>
+<li><p>the pull request makes changes that make maintenance harder, such as
+increasing the code complexity of a function significantly to implement a
+marginal speedup,</p></li>
+</ul>
+<p>among others.</p>
+<p>All these may be valid reasons for closing, but we must be wary not to alienate
+contributors by closing an issue or pull request without an explanation. When
+closing, your message should:</p>
+<ul class="simple">
+<li><p>explain clearly how the decision was made to close. This is particularly
+important when the decision was made in a community meeting, which does not
+have as visible a record as the comments thread on the issue itself;</p></li>
+<li><p>thank the contributor(s) for their work; and</p></li>
+<li><p>provide a clear path for the contributor or anyone else to appeal the
+decision.</p></li>
+</ul>
+<p>These points help ensure that all contributors feel welcome and empowered to
+keep contributing, regardless of the outcome of past contributions.</p>
+</section>
+<section id="further-resources">
+<h2>Further resources<a class="headerlink" href="#further-resources" title="Link to this heading">¶</a></h2>
+<p>As a core member, you should be familiar with community and developer
+resources such as:</p>
+<ul class="simple">
+<li><p>Our <a class="reference internal" href="devguide.html#chap-devguide"><span class="std std-ref">NiBabel Developer Guidelines</span></a></p></li>
+<li><p>Our <a class="reference internal" href="devguide.html#community-guidelines"><span class="std std-ref">Community guidelines</span></a></p></li>
+<li><p><a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP8</a> for Python style</p></li>
+<li><p><a class="reference external" href="https://www.python.org/dev/peps/pep-0257/">PEP257</a> and the <a class="reference external" href="https://numpy.org/doc/stable/docs/howto_document.html">NumPy
+documentation
+guide</a>
+for docstrings. (NumPy docstrings are a superset of PEP257. You
+should read both.)</p></li>
+<li><p>The Nibabel <a class="reference external" href="https://neurostars.org/tag/nibabel">tag on NeuroStars</a></p></li>
+<li><p>Our <a class="reference external" href="https://mail.python.org/mailman/listinfo/neuroimaging">mailing
+list</a></p></li>
+</ul>
+<p>Please do monitor any of the resources above that you find helpful.</p>
+</section>
+</section>
+<section id="acknowledgments">
+<h1>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Link to this heading">¶</a></h1>
+<p>This document is based on the <a class="reference external" href="https://networkx.org/documentation/latest/developer/core_developer.html">NetworkX Core Developer guide</a>.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

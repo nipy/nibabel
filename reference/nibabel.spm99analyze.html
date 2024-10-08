@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cifti2" href="nibabel.cifti2.html" />
+    <link rel="prev" title="spm2analyze" href="nibabel.spm2analyze.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.cifti2.html" title="cifti2"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.spm2analyze.html" title="spm2analyze"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a><ul>
+<li><a class="reference internal" href="#spm99analyzeheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.__init__"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.get_best_affine"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader.get_best_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.get_origin_affine"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader.get_origin_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.set_origin_from_affine"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader.set_origin_from_affine()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#spm99analyzeimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spm99AnalyzeImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.__init__"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.files_types"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.files_types</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.from_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.has_affine"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.has_affine</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.header_class"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.header_class</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.makeable"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.makeable</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.rw"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.rw</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage.to_file_map"><code class="docutils literal notranslate"><span class="pre">Spm99AnalyzeImage.to_file_map()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#spmanalyzeheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpmAnalyzeHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.__init__"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.default_structarr"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.default_structarr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.get_slope_inter"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.get_slope_inter()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.has_data_intercept"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.has_data_intercept</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.has_data_slope"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.has_data_slope</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.set_slope_inter"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.set_slope_inter()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader.template_dtype"><code class="docutils literal notranslate"><span class="pre">SpmAnalyzeHeader.template_dtype</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.spm2analyze.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.cifti2.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.spm99analyze.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.spm99analyze">
+<span id="spm99analyze"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code><a class="headerlink" href="#module-nibabel.spm99analyze" title="Link to this heading">¶</a></h1>
+<p>Read / write access to SPM99 version of analyze image format</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader" title="nibabel.spm99analyze.Spm99AnalyzeHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader</span></code></a>([binaryblock, ...])</p></td>
+<td><p>Class for SPM99 variant of basic Analyze header</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage" title="nibabel.spm99analyze.Spm99AnalyzeImage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Spm99AnalyzeImage</span></code></a>(dataobj, affine[, header, ...])</p></td>
+<td><p>Class for SPM99 variant of basic Analyze image</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader" title="nibabel.spm99analyze.SpmAnalyzeHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpmAnalyzeHeader</span></code></a>([binaryblock, endianness, ...])</p></td>
+<td><p>Basic scaling Spm Analyze header</p></td>
+</tr>
+</tbody>
+</table>
+<section id="spm99analyzeheader">
+<h2><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader" title="nibabel.spm99analyze.Spm99AnalyzeHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader</span></code></a><a class="headerlink" href="#spm99analyzeheader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.spm99analyze.</span></span><span class="sig-name descname"><span class="pre">Spm99AnalyzeHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader" title="nibabel.spm99analyze.SpmAnalyzeHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpmAnalyzeHeader</span></code></a></p>
+<p>Class for SPM99 variant of basic Analyze header</p>
+<p>SPM99 variant adds the following to basic Analyze format:</p>
+<ul class="simple">
+<li><p>voxel origin;</p></li>
+<li><p>slope scaling of data.</p></li>
+</ul>
+<p>Initialize header from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into header.  By default, None, in
+which case we insert the default empty header block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of header in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">()</span> <span class="c1"># an empty header</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(0,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> <span class="c1"># now with some content</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>We can set the binary block directly via this initialization.
+Here we get it from the header we have just made</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock2</span> <span class="o">=</span> <span class="n">hdr1</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>Empty headers are native endian by default</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>You can pass valid opposite endian headers with the
+<code class="docutils literal notranslate"><span class="pre">endianness</span></code> parameter. Even empty headers can have
+endianness</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">endianness</span><span class="o">=</span><span class="n">swapped_code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If you do not pass an endianness, and you pass some data, we
+will try to guess from the passed data.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock3</span> <span class="o">=</span> <span class="n">hdr3</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize header from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into header.  By default, None, in
+which case we insert the default empty header block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of header in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">()</span> <span class="c1"># an empty header</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(0,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> <span class="c1"># now with some content</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>We can set the binary block directly via this initialization.
+Here we get it from the header we have just made</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock2</span> <span class="o">=</span> <span class="n">hdr1</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>Empty headers are native endian by default</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>You can pass valid opposite endian headers with the
+<code class="docutils literal notranslate"><span class="pre">endianness</span></code> parameter. Even empty headers can have
+endianness</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">endianness</span><span class="o">=</span><span class="n">swapped_code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If you do not pass an endianness, and you pass some data, we
+will try to guess from the passed data.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock3</span> <span class="o">=</span> <span class="n">hdr3</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeHeader.get_best_affine">
+<span class="sig-name descname"><span class="pre">get_best_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.get_best_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Get affine from header, using SPM origin field if sensible</p>
+<p>The default translations are got from the <code class="docutils literal notranslate"><span class="pre">origin</span></code>
+field, if set, or from the center of the image otherwise.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">Spm99AnalyzeHeader</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_zooms</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">default_x_flip</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span> <span class="c1"># from center of image</span>
+<span class="go">array([[-3.,  0.,  0.,  3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span> <span class="c1"># using origin</span>
+<span class="go">array([[-3.,  0.,  0.,  6.],</span>
+<span class="go">       [ 0.,  2.,  0., -6.],</span>
+<span class="go">       [ 0.,  0.,  1., -4.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># unset origin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span> <span class="c1"># from center of image</span>
+<span class="go">array([[-3.,  0.,  0.,  3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeHeader.get_origin_affine">
+<span class="sig-name descname"><span class="pre">get_origin_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.get_origin_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Get affine from header, using SPM origin field if sensible</p>
+<p>The default translations are got from the <code class="docutils literal notranslate"><span class="pre">origin</span></code>
+field, if set, or from the center of the image otherwise.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">Spm99AnalyzeHeader</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_zooms</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">default_x_flip</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span> <span class="c1"># from center of image</span>
+<span class="go">array([[-3.,  0.,  0.,  3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span> <span class="c1"># using origin</span>
+<span class="go">array([[-3.,  0.,  0.,  6.],</span>
+<span class="go">       [ 0.,  2.,  0., -6.],</span>
+<span class="go">       [ 0.,  0.,  1., -4.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># unset origin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span> <span class="c1"># from center of image</span>
+<span class="go">array([[-3.,  0.,  0.,  3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeHeader.set_origin_from_affine">
+<span class="sig-name descname"><span class="pre">set_origin_from_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">affine</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeHeader.set_origin_from_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Set SPM origin to header from affine matrix.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">origin</span></code> field was read but not written by SPM99 and 2.  It was
+used for storing a central voxel coordinate, that could be used in
+aligning the image to some standard position - a proxy for a full
+translation vector that was usually stored in a separate matlab .mat
+file.</p>
+<p>Nifti uses the space occupied by the SPM <code class="docutils literal notranslate"><span class="pre">origin</span></code> field for important
+other information (the transform codes), so writing the origin will
+make the header a confusing Nifti file.  If you work with both Analyze
+and Nifti, you should probably avoid doing this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>affine</strong><span class="classifier">array-like, shape (4,4)</span></dt><dd><p>Affine matrix to set</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">Spm99AnalyzeHeader</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_zooms</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span>
+<span class="go">array([[-3.,  0.,  0.,  3.],</span>
+<span class="go">       [ 0.,  2.,  0., -4.],</span>
+<span class="go">       [ 0.,  0.,  1., -3.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_origin_from_affine</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_origin_affine</span><span class="p">()</span>
+<span class="go">array([[-3.,  0.,  0.,  6.],</span>
+<span class="go">       [ 0.,  2.,  0., -6.],</span>
+<span class="go">       [ 0.,  0.,  1., -4.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="spm99analyzeimage">
+<h2><a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeImage" title="nibabel.spm99analyze.Spm99AnalyzeImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spm99AnalyzeImage</span></code></a><a class="headerlink" href="#spm99analyzeimage" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.spm99analyze.</span></span><span class="sig-name descname"><span class="pre">Spm99AnalyzeImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.analyze.html#nibabel.analyze.AnalyzeImage" title="nibabel.analyze.AnalyzeImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnalyzeImage</span></code></a></p>
+<p>Class for SPM99 variant of basic Analyze image</p>
+<p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.files_types">
+<span class="sig-name descname"><span class="pre">files_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">'.img'),</span> <span class="pre">('header',</span> <span class="pre">'.hdr'),</span> <span class="pre">('mat',</span> <span class="pre">'.mat'))</span></em><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.files_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.from_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.from_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create image from mapping in <code class="docutils literal notranslate"><span class="pre">file_map</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">dict</span></dt><dd><p>Mapping with (key, value) pairs of (<code class="docutils literal notranslate"><span class="pre">file_type</span></code>, FileHolder
+instance giving file-likes for each file needed for this image
+type.</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+If <code class="docutils literal notranslate"><span class="pre">file_map</span></code> refers to an open file handle, this setting has no
+effect. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">Spm99AnalyzeImage instance</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.has_affine">
+<span class="sig-name descname"><span class="pre">has_affine</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.has_affine" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.header_class">
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.header_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.spm99analyze.Spm99AnalyzeHeader" title="nibabel.spm99analyze.Spm99AnalyzeHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spm99AnalyzeHeader</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.makeable">
+<span class="sig-name descname"><span class="pre">makeable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.makeable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.rw">
+<span class="sig-name descname"><span class="pre">rw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.rw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.Spm99AnalyzeImage.to_file_map">
+<span class="sig-name descname"><span class="pre">to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.Spm99AnalyzeImage.to_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Write image to <cite>file_map</cite> or contained <code class="docutils literal notranslate"><span class="pre">self.file_map</span></code></p>
+<p>Extends Analyze <code class="docutils literal notranslate"><span class="pre">to_file_map</span></code> method by writing <code class="docutils literal notranslate"><span class="pre">mat</span></code> file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>files mapping.  If None (default) use object’s <code class="docutils literal notranslate"><span class="pre">file_map</span></code>
+attribute instead</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="spmanalyzeheader">
+<h2><a class="reference internal" href="#nibabel.spm99analyze.SpmAnalyzeHeader" title="nibabel.spm99analyze.SpmAnalyzeHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpmAnalyzeHeader</span></code></a><a class="headerlink" href="#spmanalyzeheader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.spm99analyze.</span></span><span class="sig-name descname"><span class="pre">SpmAnalyzeHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.analyze.html#nibabel.analyze.AnalyzeHeader" title="nibabel.analyze.AnalyzeHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnalyzeHeader</span></code></a></p>
+<p>Basic scaling Spm Analyze header</p>
+<p>Initialize header from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into header.  By default, None, in
+which case we insert the default empty header block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of header in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">()</span> <span class="c1"># an empty header</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(0,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> <span class="c1"># now with some content</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>We can set the binary block directly via this initialization.
+Here we get it from the header we have just made</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock2</span> <span class="o">=</span> <span class="n">hdr1</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>Empty headers are native endian by default</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>You can pass valid opposite endian headers with the
+<code class="docutils literal notranslate"><span class="pre">endianness</span></code> parameter. Even empty headers can have
+endianness</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">endianness</span><span class="o">=</span><span class="n">swapped_code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If you do not pass an endianness, and you pass some data, we
+will try to guess from the passed data.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock3</span> <span class="o">=</span> <span class="n">hdr3</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize header from binary data block</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, string} optional</span></dt><dd><p>binary block to set into header.  By default, None, in
+which case we insert the default empty header block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’,’&gt;’, other endian code} string, optional</span></dt><dd><p>endianness of the binaryblock.  If None, guess endianness
+from the data.</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to check content of header in initialization.
+Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">()</span> <span class="c1"># an empty header</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(0,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span> <span class="c1"># now with some content</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr1</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>We can set the binary block directly via this initialization.
+Here we get it from the header we have just made</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock2</span> <span class="o">=</span> <span class="n">hdr1</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>Empty headers are native endian by default</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr2</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">native_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>You can pass valid opposite endian headers with the
+<code class="docutils literal notranslate"><span class="pre">endianness</span></code> parameter. Even empty headers can have
+endianness</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">endianness</span><span class="o">=</span><span class="n">swapped_code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr3</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If you do not pass an endianness, and you pass some data, we
+will try to guess from the passed data.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binblock3</span> <span class="o">=</span> <span class="n">hdr3</span><span class="o">.</span><span class="n">binaryblock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span> <span class="o">=</span> <span class="n">AnalyzeHeader</span><span class="p">(</span><span class="n">binblock3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr4</span><span class="o">.</span><span class="n">endianness</span> <span class="o">==</span> <span class="n">swapped_code</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.default_structarr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_structarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.default_structarr" title="Link to this definition">¶</a></dt>
+<dd><p>Create empty header binary block with given endianness</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.get_slope_inter">
+<span class="sig-name descname"><span class="pre">get_slope_inter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.get_slope_inter" title="Link to this definition">¶</a></dt>
+<dd><p>Get scalefactor and intercept</p>
+<p>If scalefactor is 0.0 return None to indicate no scalefactor.
+Intercept is always None because SPM99 analyze cannot store intercepts.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.has_data_intercept">
+<span class="sig-name descname"><span class="pre">has_data_intercept</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.has_data_intercept" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.has_data_slope">
+<span class="sig-name descname"><span class="pre">has_data_slope</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.has_data_slope" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.set_slope_inter">
+<span class="sig-name descname"><span class="pre">set_slope_inter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.set_slope_inter" title="Link to this definition">¶</a></dt>
+<dd><p>Set slope and / or intercept into header</p>
+<p>Set slope and intercept for image data, such that, if the image
+data is <code class="docutils literal notranslate"><span class="pre">arr</span></code>, then the scaled image data will be <code class="docutils literal notranslate"><span class="pre">(arr</span> <span class="pre">*</span>
+<span class="pre">slope)</span> <span class="pre">+</span> <span class="pre">inter</span></code></p>
+<p>The SPM Analyze header can’t save an intercept value, and we raise an
+error unless <cite>inter</cite> is None, NaN or 0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>slope</strong><span class="classifier">None or float</span></dt><dd><p>If None, implies <cite>slope</cite> of NaN.  NaN is a signal to the image
+writing routines to rescale on save.  0, Inf, -Inf are invalid and
+cause a HeaderDataError</p>
+</dd>
+<dt><strong>inter</strong><span class="classifier">None or float, optional</span></dt><dd><p>intercept. Must be None, NaN or 0, because SPM99 cannot store
+intercepts.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.spm99analyze.SpmAnalyzeHeader.template_dtype">
+<span class="sig-name descname"><span class="pre">template_dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('sizeof_hdr',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('data_type',</span> <span class="pre">'S10'),</span> <span class="pre">('db_name',</span> <span class="pre">'S18'),</span> <span class="pre">('extents',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('session_error',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('regular',</span> <span class="pre">'S1'),</span> <span class="pre">('hkey_un0',</span> <span class="pre">'S1'),</span> <span class="pre">('dim',</span> <span class="pre">'&lt;i2',</span> <span class="pre">(8,)),</span> <span class="pre">('vox_units',</span> <span class="pre">'S4'),</span> <span class="pre">('cal_units',</span> <span class="pre">'S8'),</span> <span class="pre">('unused1',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('datatype',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('bitpix',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('dim_un0',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('pixdim',</span> <span class="pre">'&lt;f4',</span> <span class="pre">(8,)),</span> <span class="pre">('vox_offset',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('scl_slope',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('funused2',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('funused3',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('cal_max',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('cal_min',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('compressed',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('verified',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('glmax',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('glmin',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('descrip',</span> <span class="pre">'S80'),</span> <span class="pre">('aux_file',</span> <span class="pre">'S24'),</span> <span class="pre">('orient',</span> <span class="pre">'S1'),</span> <span class="pre">('origin',</span> <span class="pre">'&lt;i2',</span> <span class="pre">(5,)),</span> <span class="pre">('generated',</span> <span class="pre">'S10'),</span> <span class="pre">('scannum',</span> <span class="pre">'S10'),</span> <span class="pre">('patient_id',</span> <span class="pre">'S10'),</span> <span class="pre">('exp_date',</span> <span class="pre">'S10'),</span> <span class="pre">('exp_time',</span> <span class="pre">'S10'),</span> <span class="pre">('hist_un0',</span> <span class="pre">'S3'),</span> <span class="pre">('views',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('vols_added',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('start_field',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('field_skip',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('omax',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('omin',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('smax',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('smin',</span> <span class="pre">'&lt;i4')])</span></em><a class="headerlink" href="#nibabel.spm99analyze.SpmAnalyzeHeader.template_dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

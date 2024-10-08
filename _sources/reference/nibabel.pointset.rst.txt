@@ -1,0 +1,65 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`pointset`
+===============
+.. automodule:: nibabel.pointset
+
+.. currentmodule:: nibabel.pointset
+.. autosummary::
+
+   CoordinateArray
+   Grid
+   GridIndices
+   Pointset
+
+
+.. currentmodule:: nibabel.pointset
+
+
+:class:`CoordinateArray`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CoordinateArray
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`Grid`
+~~~~~~~~~~~~~
+
+
+.. autoclass:: Grid
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`GridIndices`
+~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: GridIndices
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`Pointset`
+~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: Pointset
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+

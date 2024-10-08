@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tripwire" href="nibabel.tripwire.html" />
+    <link rel="prev" title="rstutils" href="nibabel.rstutils.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.tripwire.html" title="tripwire"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.rstutils.html" title="rstutils"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code></a><ul>
+<li><a class="reference internal" href="#temporarydirectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">TemporaryDirectory</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.tmpdirs.TemporaryDirectory"><code class="docutils literal notranslate"><span class="pre">TemporaryDirectory</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.tmpdirs.TemporaryDirectory.__init__"><code class="docutils literal notranslate"><span class="pre">TemporaryDirectory.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ingivendirectory">InGivenDirectory</a><ul>
+<li><a class="reference internal" href="#nibabel.tmpdirs.InGivenDirectory"><code class="docutils literal notranslate"><span class="pre">InGivenDirectory()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#intemporarydirectory">InTemporaryDirectory</a><ul>
+<li><a class="reference internal" href="#nibabel.tmpdirs.InTemporaryDirectory"><code class="docutils literal notranslate"><span class="pre">InTemporaryDirectory()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.rstutils.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rstutils</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.tripwire.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.tmpdirs.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.tmpdirs">
+<span id="tmpdirs"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code><a class="headerlink" href="#module-nibabel.tmpdirs" title="Link to this heading">¶</a></h1>
+<p>Contexts for <em>with</em> statement providing temporary directories</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.tmpdirs.TemporaryDirectory" title="nibabel.tmpdirs.TemporaryDirectory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TemporaryDirectory</span></code></a>([suffix, prefix, dir])</p></td>
+<td><p>Create and return a temporary directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.tmpdirs.InGivenDirectory" title="nibabel.tmpdirs.InGivenDirectory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InGivenDirectory</span></code></a>([path])</p></td>
+<td><p>Change directory to given directory for duration of <code class="docutils literal notranslate"><span class="pre">with</span></code> block</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.tmpdirs.InTemporaryDirectory" title="nibabel.tmpdirs.InTemporaryDirectory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InTemporaryDirectory</span></code></a>()</p></td>
+<td><p>Create, return, and change directory to a temporary directory</p></td>
+</tr>
+</tbody>
+</table>
+<section id="temporarydirectory">
+<h2><a class="reference internal" href="#nibabel.tmpdirs.TemporaryDirectory" title="nibabel.tmpdirs.TemporaryDirectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">TemporaryDirectory</span></code></a><a class="headerlink" href="#temporarydirectory" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.tmpdirs.TemporaryDirectory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.tmpdirs.</span></span><span class="sig-name descname"><span class="pre">TemporaryDirectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.tmpdirs.TemporaryDirectory" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TemporaryDirectory</span></code></a></p>
+<p>Create and return a temporary directory.  This has the same
+behavior as mkdtemp but can be used as a context manager.</p>
+<p>Upon exiting the context, the directory and everything contained
+in it are removed.</p>
+<p>Please use the standard library tempfile.TemporaryDirectory</p>
+<ul class="simple">
+<li><p>deprecated from version: 5.0</p></li>
+<li><p>Will raise &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 7.0</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;example_file.txt&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fobj</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;a string</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.tmpdirs.TemporaryDirectory.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.tmpdirs.TemporaryDirectory.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Please use the standard library tempfile.TemporaryDirectory</p>
+<ul class="simple">
+<li><p>deprecated from version: 5.0</p></li>
+<li><p>Will raise &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 7.0</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;example_file.txt&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fobj</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;a string</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="ingivendirectory">
+<h2>InGivenDirectory<a class="headerlink" href="#ingivendirectory" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.tmpdirs.InGivenDirectory">
+<span class="sig-prename descclassname"><span class="pre">nibabel.tmpdirs.</span></span><span class="sig-name descname"><span class="pre">InGivenDirectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.tmpdirs.InGivenDirectory" title="Link to this definition">¶</a></dt>
+<dd><p>Change directory to given directory for duration of <code class="docutils literal notranslate"><span class="pre">with</span></code> block</p>
+<p>Useful when you want to use <cite>InTemporaryDirectory</cite> for the final test, but
+you are still debugging.  For example, you may want to do this in the end:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">InTemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="c1"># do something complicated which might break</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>But indeed the complicated thing does break, and meanwhile the
+<code class="docutils literal notranslate"><span class="pre">InTemporaryDirectory</span></code> context manager wiped out the directory with the
+temporary files that you wanted for debugging.  So, while debugging, you
+replace with something like:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">InGivenDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span> <span class="c1"># Use working directory by default</span>
+<span class="gp">... </span>    <span class="c1"># do something complicated which might break</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>You can then look at the temporary file outputs to debug what is happening,
+fix, and finally replace <code class="docutils literal notranslate"><span class="pre">InGivenDirectory</span></code> with <code class="docutils literal notranslate"><span class="pre">InTemporaryDirectory</span></code>
+again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path</strong><span class="classifier">None or str, optional</span></dt><dd><p>path to change directory to, for duration of <code class="docutils literal notranslate"><span class="pre">with</span></code> block.
+Defaults to <code class="docutils literal notranslate"><span class="pre">os.getcwd()</span></code> if None</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="intemporarydirectory">
+<h2>InTemporaryDirectory<a class="headerlink" href="#intemporarydirectory" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.tmpdirs.InTemporaryDirectory">
+<span class="sig-prename descclassname"><span class="pre">nibabel.tmpdirs.</span></span><span class="sig-name descname"><span class="pre">InTemporaryDirectory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.tmpdirs.InTemporaryDirectory" title="Link to this definition">¶</a></dt>
+<dd><p>Create, return, and change directory to a temporary directory</p>
+<p class="rubric">Notes</p>
+<p>As its name suggests, the class temporarily changes the working
+directory of the Python process, and this is not thread-safe.  We suggest
+using it only for tests.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">InTemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">_</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">&#39;test.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s1">&#39;some text&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s1">&#39;test.txt&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s1">&#39;test.txt&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">==</span> <span class="n">my_cwd</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

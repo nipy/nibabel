@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="caret" href="nibabel.caret.html" />
+    <link rel="prev" title="benchmarks" href="nibabel.benchmarks.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.caret.html" title="caret"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.benchmarks.html" title="benchmarks"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code></a><ul>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#afniarrayproxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIArrayProxy</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIArrayProxy"><code class="docutils literal notranslate"><span class="pre">AFNIArrayProxy</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIArrayProxy.__init__"><code class="docutils literal notranslate"><span class="pre">AFNIArrayProxy.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIArrayProxy.scaling"><code class="docutils literal notranslate"><span class="pre">AFNIArrayProxy.scaling</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#afniheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader"><code class="docutils literal notranslate"><span class="pre">AFNIHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.__init__"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.copy"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.copy()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.from_fileobj"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.from_fileobj()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.from_header"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.from_header()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.get_affine"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.get_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.get_data_offset"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.get_data_offset()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.get_data_scaling"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.get_data_scaling()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.get_slope_inter"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.get_slope_inter()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.get_space"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.get_space()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeader.get_volume_labels"><code class="docutils literal notranslate"><span class="pre">AFNIHeader.get_volume_labels()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#afniheadererror"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIHeaderError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeaderError"><code class="docutils literal notranslate"><span class="pre">AFNIHeaderError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIHeaderError.__init__"><code class="docutils literal notranslate"><span class="pre">AFNIHeaderError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#afniimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage"><code class="docutils literal notranslate"><span class="pre">AFNIImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.__init__"><code class="docutils literal notranslate"><span class="pre">AFNIImage.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.ImageArrayProxy"><code class="docutils literal notranslate"><span class="pre">AFNIImage.ImageArrayProxy</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.files_types"><code class="docutils literal notranslate"><span class="pre">AFNIImage.files_types</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.filespec_to_file_map"><code class="docutils literal notranslate"><span class="pre">AFNIImage.filespec_to_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">AFNIImage.from_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.header_class"><code class="docutils literal notranslate"><span class="pre">AFNIImage.header_class</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.makeable"><code class="docutils literal notranslate"><span class="pre">AFNIImage.makeable</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.rw"><code class="docutils literal notranslate"><span class="pre">AFNIImage.rw</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">AFNIImage.valid_exts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#afniimageerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIImageError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImageError"><code class="docutils literal notranslate"><span class="pre">AFNIImageError</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.AFNIImageError.__init__"><code class="docutils literal notranslate"><span class="pre">AFNIImageError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parse-afni-header">parse_AFNI_header</a><ul>
+<li><a class="reference internal" href="#nibabel.brikhead.parse_AFNI_header"><code class="docutils literal notranslate"><span class="pre">parse_AFNI_header()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.benchmarks.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.caret.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">caret</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.brikhead.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.brikhead">
+<span id="brikhead"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code><a class="headerlink" href="#module-nibabel.brikhead" title="Link to this heading">¶</a></h1>
+<p>Class for reading AFNI BRIK/HEAD datasets</p>
+<p>See <a class="reference external" href="https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html">https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html</a>
+for information on what is required to have a valid BRIK/HEAD dataset.</p>
+<p>Unless otherwise noted, descriptions AFNI attributes in the code refer to this
+document.</p>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<p>In the AFNI HEAD file, the first two values of the attribute DATASET_RANK
+determine the shape of the data array stored in the corresponding BRIK file.
+The first value, DATASET_RANK[0], must be set to 3 denoting a 3D image. The
+second value, DATASET_RANK[1], determines how many “sub-bricks” (in AFNI
+parlance) / volumes there are along the fourth (traditionally, but not
+exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
+am aware) always be &gt;= 1. This permits sub-brick indexing common in AFNI
+programs (e.g., example4d+orig’[0]’).</p>
+</section>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.brikhead.AFNIArrayProxy" title="nibabel.brikhead.AFNIArrayProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFNIArrayProxy</span></code></a>(file_like, header, *[, mmap, ...])</p></td>
+<td><p>Proxy object for AFNI image array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.brikhead.AFNIHeader" title="nibabel.brikhead.AFNIHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFNIHeader</span></code></a>(info)</p></td>
+<td><p>Class for AFNI header</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.brikhead.AFNIHeaderError" title="nibabel.brikhead.AFNIHeaderError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFNIHeaderError</span></code></a></p></td>
+<td><p>Error when reading AFNI HEAD file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.brikhead.AFNIImage" title="nibabel.brikhead.AFNIImage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFNIImage</span></code></a>(dataobj, affine[, header, extra, ...])</p></td>
+<td><p>AFNI Image file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.brikhead.AFNIImageError" title="nibabel.brikhead.AFNIImageError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AFNIImageError</span></code></a></p></td>
+<td><p>Error when reading AFNI BRIK files</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.brikhead.parse_AFNI_header" title="nibabel.brikhead.parse_AFNI_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_AFNI_header</span></code></a>(fobj)</p></td>
+<td><p>Parses <cite>fobj</cite> to extract information from HEAD file</p></td>
+</tr>
+</tbody>
+</table>
+<section id="afniarrayproxy">
+<h2><a class="reference internal" href="#nibabel.brikhead.AFNIArrayProxy" title="nibabel.brikhead.AFNIArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIArrayProxy</span></code></a><a class="headerlink" href="#afniarrayproxy" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIArrayProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.brikhead.</span></span><span class="sig-name descname"><span class="pre">AFNIArrayProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIArrayProxy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy" title="nibabel.arrayproxy.ArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayProxy</span></code></a></p>
+<p>Proxy object for AFNI image array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scaling</strong><span class="classifier">np.ndarray</span></dt><dd><p>Scaling factor (one factor per volume/sub-brick) for data. Default is
+None</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Initialize AFNI array proxy</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>file_like</strong><span class="classifier">file-like object</span></dt><dd><p>File-like object or filename. If file-like object, should implement
+at least <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code>.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">AFNIHeader</span></code> object</span></dt><dd></dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading data.
+If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.  If one of
+{‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A <cite>mmap</cite> value of
+True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If <cite>file_like</cite>
+cannot be memory-mapped, ignore <cite>mmap</cite> value and read array from
+file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+If <code class="docutils literal notranslate"><span class="pre">file_like</span></code> refers to an open file handle, this setting has no
+effect. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIArrayProxy.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIArrayProxy.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize AFNI array proxy</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>file_like</strong><span class="classifier">file-like object</span></dt><dd><p>File-like object or filename. If file-like object, should implement
+at least <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code>.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">AFNIHeader</span></code> object</span></dt><dd></dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading data.
+If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.  If one of
+{‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A <cite>mmap</cite> value of
+True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If <cite>file_like</cite>
+cannot be memory-mapped, ignore <cite>mmap</cite> value and read array from
+file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+If <code class="docutils literal notranslate"><span class="pre">file_like</span></code> refers to an open file handle, this setting has no
+effect. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIArrayProxy.scaling">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">scaling</span></span><a class="headerlink" href="#nibabel.brikhead.AFNIArrayProxy.scaling" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="afniheader">
+<h2><a class="reference internal" href="#nibabel.brikhead.AFNIHeader" title="nibabel.brikhead.AFNIHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIHeader</span></code></a><a class="headerlink" href="#afniheader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.brikhead.</span></span><span class="sig-name descname"><span class="pre">AFNIHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialHeader" title="nibabel.spatialimages.SpatialHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialHeader</span></code></a></p>
+<p>Class for AFNI header</p>
+<p>Initialize AFNI header object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>info</strong><span class="classifier">dict</span></dt><dd><p>Information from HEAD file as obtained by <a class="reference internal" href="#nibabel.brikhead.parse_AFNI_header" title="nibabel.brikhead.parse_AFNI_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_AFNI_header()</span></code></a></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.HEAD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">AFNIHeader</span><span class="p">(</span><span class="n">parse_AFNI_header</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">()</span><span class="o">.</span><span class="n">str</span>
+<span class="go">&#39;&lt;i2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()</span>
+<span class="go">(3.0, 3.0, 3.0, 3.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(33, 41, 25, 3)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize AFNI header object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>info</strong><span class="classifier">dict</span></dt><dd><p>Information from HEAD file as obtained by <a class="reference internal" href="#nibabel.brikhead.parse_AFNI_header" title="nibabel.brikhead.parse_AFNI_header"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_AFNI_header()</span></code></a></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.HEAD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">AFNIHeader</span><span class="p">(</span><span class="n">parse_AFNI_header</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_data_dtype</span><span class="p">()</span><span class="o">.</span><span class="n">str</span>
+<span class="go">&#39;&lt;i2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()</span>
+<span class="go">(3.0, 3.0, 3.0, 3.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(33, 41, 25, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Copy object to independent representation</p>
+<p>The copy should not be affected by any changes to the original
+object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.from_fileobj">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.from_fileobj" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.from_header">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.from_header" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.get_affine">
+<span class="sig-name descname"><span class="pre">get_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.get_affine" title="Link to this definition">¶</a></dt>
+<dd><p>Returns affine of dataset</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.HEAD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">AFNIHeader</span><span class="p">(</span><span class="n">parse_AFNI_header</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_affine</span><span class="p">()</span>
+<span class="go">array([[ -3.    ,  -0.    ,  -0.    ,  49.5   ],</span>
+<span class="go">       [ -0.    ,  -3.    ,  -0.    ,  82.312 ],</span>
+<span class="go">       [  0.    ,   0.    ,   3.    , -52.3511],</span>
+<span class="go">       [  0.    ,   0.    ,   0.    ,   1.    ]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.get_data_offset">
+<span class="sig-name descname"><span class="pre">get_data_offset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.get_data_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Data offset in BRIK file</p>
+<p>Offset is always 0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.get_data_scaling">
+<span class="sig-name descname"><span class="pre">get_data_scaling</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.get_data_scaling" title="Link to this definition">¶</a></dt>
+<dd><p>AFNI applies volume-specific data scaling</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;scaled+tlrc.HEAD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">AFNIHeader</span><span class="p">(</span><span class="n">parse_AFNI_header</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_data_scaling</span><span class="p">()</span>
+<span class="go">array([3.883363e-08])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.get_slope_inter">
+<span class="sig-name descname"><span class="pre">get_slope_inter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.get_slope_inter" title="Link to this definition">¶</a></dt>
+<dd><p>Use <cite>self.get_data_scaling()</cite> instead</p>
+<p>Holdover because <code class="docutils literal notranslate"><span class="pre">AFNIArrayProxy</span></code> (inheriting from <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>)
+requires this functionality so as to not error.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.get_space">
+<span class="sig-name descname"><span class="pre">get_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.get_space" title="Link to this definition">¶</a></dt>
+<dd><p>Return label for anatomical space to which this dataset is aligned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>space</strong><span class="classifier">str</span></dt><dd><p>AFNI “space” designation; one of [ORIG, ANAT, TLRC, MNI]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>There appears to be documentation for these spaces at
+<a class="reference external" href="https://afni.nimh.nih.gov/pub/dist/atlases/elsedemo/AFNI_atlas_spaces.niml">https://afni.nimh.nih.gov/pub/dist/atlases/elsedemo/AFNI_atlas_spaces.niml</a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeader.get_volume_labels">
+<span class="sig-name descname"><span class="pre">get_volume_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeader.get_volume_labels" title="Link to this definition">¶</a></dt>
+<dd><p>Returns volume labels</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>labels</strong><span class="classifier">list of str</span></dt><dd><p>Labels for volumes along fourth dimension</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">header</span> <span class="o">=</span> <span class="n">AFNIHeader</span><span class="p">(</span><span class="n">parse_AFNI_header</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.HEAD&#39;</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">header</span><span class="o">.</span><span class="n">get_volume_labels</span><span class="p">()</span>
+<span class="go">[&#39;#0&#39;, &#39;#1&#39;, &#39;#2&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="afniheadererror">
+<h2><a class="reference internal" href="#nibabel.brikhead.AFNIHeaderError" title="nibabel.brikhead.AFNIHeaderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIHeaderError</span></code></a><a class="headerlink" href="#afniheadererror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeaderError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.brikhead.</span></span><span class="sig-name descname"><span class="pre">AFNIHeaderError</span></span><a class="headerlink" href="#nibabel.brikhead.AFNIHeaderError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.HeaderDataError" title="nibabel.spatialimages.HeaderDataError"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeaderDataError</span></code></a></p>
+<p>Error when reading AFNI HEAD file</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIHeaderError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIHeaderError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="afniimage">
+<h2><a class="reference internal" href="#nibabel.brikhead.AFNIImage" title="nibabel.brikhead.AFNIImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIImage</span></code></a><a class="headerlink" href="#afniimage" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.brikhead.</span></span><span class="sig-name descname"><span class="pre">AFNIImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIImage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a></p>
+<p>AFNI Image file</p>
+<p>Can be loaded from either the BRIK or HEAD file (but MUST specify one!)</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">brik</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.BRIK.gz&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">brik</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(33, 41, 25, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">brik</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[ -3.    ,  -0.    ,  -0.    ,  49.5   ],</span>
+<span class="go">       [ -0.    ,  -3.    ,  -0.    ,  82.312 ],</span>
+<span class="go">       [  0.    ,   0.    ,   3.    , -52.3511],</span>
+<span class="go">       [  0.    ,   0.    ,   0.    ,   1.    ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.HEAD&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">brik</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">())</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIImage.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.ImageArrayProxy">
+<span class="sig-name descname"><span class="pre">ImageArrayProxy</span></span><a class="headerlink" href="#nibabel.brikhead.AFNIImage.ImageArrayProxy" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.brikhead.AFNIArrayProxy" title="nibabel.brikhead.AFNIArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIArrayProxy</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.files_types">
+<span class="sig-name descname"><span class="pre">files_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">'.brik'),</span> <span class="pre">('header',</span> <span class="pre">'.head'))</span></em><a class="headerlink" href="#nibabel.brikhead.AFNIImage.files_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.filespec_to_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">filespec_to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filespec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIImage.filespec_to_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Make <cite>file_map</cite> from filename <cite>filespec</cite></p>
+<p>AFNI BRIK files can be compressed, but HEAD files cannot - see
+afni.nimh.nih.gov/pub/dist/doc/program_help/README.compression.html.
+Thus, if you have AFNI files my_image.HEAD and my_image.BRIK.gz and you
+want to load the AFNI BRIK / HEAD pair, you can specify:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The HEAD filename - e.g., my_image.HEAD</p></li>
+<li><p>The BRIK filename w/o compressed extension - e.g., my_image.BRIK</p></li>
+<li><p>The full BRIK filename - e.g., my_image.BRIK.gz</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filespec</strong><span class="classifier">str</span></dt><dd><p>Filename that might be for this image file type.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">dict</span></dt><dd><p>dict with keys <code class="docutils literal notranslate"><span class="pre">image</span></code> and <code class="docutils literal notranslate"><span class="pre">header</span></code> where values are fileholder
+objects for the respective BRIK and HEAD files</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ImageFileError</dt><dd><p>If <cite>filespec</cite> is not recognizable as being a filename for this
+image type.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.from_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIImage.from_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Creates an AFNIImage instance from <cite>file_map</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">dict</span></dt><dd><p>dict with keys <code class="docutils literal notranslate"><span class="pre">image,</span> <span class="pre">header</span></code> and values being fileholder
+objects for the respective BRIK and HEAD files</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{None, True, False}, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+If <code class="docutils literal notranslate"><span class="pre">file_like</span></code> refers to an open file handle, this setting has no
+effect. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.header_class">
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.brikhead.AFNIImage.header_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.brikhead.AFNIHeader" title="nibabel.brikhead.AFNIHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIHeader</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.makeable">
+<span class="sig-name descname"><span class="pre">makeable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.brikhead.AFNIImage.makeable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.rw">
+<span class="sig-name descname"><span class="pre">rw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.brikhead.AFNIImage.rw" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImage.valid_exts">
+<span class="sig-name descname"><span class="pre">valid_exts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.brik',</span> <span class="pre">'.head')</span></em><a class="headerlink" href="#nibabel.brikhead.AFNIImage.valid_exts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="afniimageerror">
+<h2><a class="reference internal" href="#nibabel.brikhead.AFNIImageError" title="nibabel.brikhead.AFNIImageError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AFNIImageError</span></code></a><a class="headerlink" href="#afniimageerror" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImageError">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.brikhead.</span></span><span class="sig-name descname"><span class="pre">AFNIImageError</span></span><a class="headerlink" href="#nibabel.brikhead.AFNIImageError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.ImageDataError" title="nibabel.spatialimages.ImageDataError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageDataError</span></code></a></p>
+<p>Error when reading AFNI BRIK files</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.brikhead.AFNIImageError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.AFNIImageError.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="parse-afni-header">
+<h2>parse_AFNI_header<a class="headerlink" href="#parse-afni-header" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.brikhead.parse_AFNI_header">
+<span class="sig-prename descclassname"><span class="pre">nibabel.brikhead.</span></span><span class="sig-name descname"><span class="pre">parse_AFNI_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.brikhead.parse_AFNI_header" title="Link to this definition">¶</a></dt>
+<dd><p>Parses <cite>fobj</cite> to extract information from HEAD file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fobj</strong><span class="classifier">file-like object</span></dt><dd><p>AFNI HEAD file object or filename. If file object, should
+implement at least <code class="docutils literal notranslate"><span class="pre">read</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>info</strong><span class="classifier">dict</span></dt><dd><p>Dictionary containing AFNI-style key:value pairs from HEAD file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datadir</span><span class="p">,</span> <span class="s1">&#39;example4d+orig.HEAD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">info</span> <span class="o">=</span> <span class="n">parse_AFNI_header</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;BYTEORDER_STRING&#39;</span><span class="p">])</span>
+<span class="go">LSB_FIRST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;BRICK_TYPES&#39;</span><span class="p">])</span>
+<span class="go">[1, 1, 1]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

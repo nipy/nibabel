@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Radiological vs neurological conventions" href="neuro_radio_conventions.html" />
+    <link rel="prev" title="General tutorials" href="tutorials.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="neuro_radio_conventions.html" title="Radiological vs neurological conventions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tutorials.html" title="General tutorials"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="tutorials.html" accesskey="U">General tutorials</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Coordinate systems and affines</a><ul>
+<li><a class="reference internal" href="#introducing-someone">Introducing Someone</a></li>
+<li><a class="reference internal" href="#voxel-coordinates-are-coordinates-in-the-image-data-array">Voxel coordinates are coordinates in the image data array</a></li>
+<li><a class="reference internal" href="#voxel-coordinates-and-points-in-space">Voxel coordinates and points in space</a></li>
+<li><a class="reference internal" href="#the-scanner-subject-reference-space">The scanner-subject reference space</a><ul>
+<li><a class="reference internal" href="#the-scanner-axes">The scanner axes</a></li>
+<li><a class="reference internal" href="#from-scanner-to-subject">From scanner to subject</a></li>
+<li><a class="reference internal" href="#naming-reference-spaces">Naming reference spaces</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voxel-coordinates-are-in-voxel-space">Voxel coordinates are in voxel space</a></li>
+<li><a class="reference internal" href="#the-affine-matrix-as-a-transformation-between-spaces">The affine matrix as a transformation between spaces</a></li>
+<li><a class="reference internal" href="#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel">The inverse of the affine gives the mapping from scanner to voxel</a></li>
+<li><a class="reference internal" href="#the-affine-by-example">The affine by example</a><ul>
+<li><a class="reference internal" href="#applying-the-affine">Applying the affine</a></li>
+<li><a class="reference internal" href="#the-affine-as-a-series-of-transformations">The affine as a series of transformations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#other-reference-spaces">Other reference spaces</a></li>
+<li><a class="reference internal" href="#nibabel-always-uses-an-ras-output-space">Nibabel always uses an RAS+ output space</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tutorials.html"
+                          title="previous chapter">General tutorials</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="neuro_radio_conventions.html"
+                          title="next chapter">Radiological vs neurological conventions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/coordinate_systems.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="coordinate-systems-and-affines">
+<h1>Coordinate systems and affines<a class="headerlink" href="#coordinate-systems-and-affines" title="Link to this heading">¶</a></h1>
+<p>A nibabel (and nipy) image is the association of three things:</p>
+<ul class="simple">
+<li><p>The <em>image data array</em>: a 3D or 4D <em>array</em> of image data</p></li>
+<li><p>An <em>affine array</em> that tells you the position of the image array data in
+a <em>reference space</em>.</p></li>
+<li><p><em>image metadata</em> (data about the data) describing the image, usually in the
+form of an image <em>header</em>.</p></li>
+</ul>
+<p>This document describes how the <em>affine array</em> describes the position of the
+image data in a reference space.  On the way we will define what we mean by
+reference space, and the reference spaces that Nibabel uses.</p>
+<section id="introducing-someone">
+<h2>Introducing Someone<a class="headerlink" href="#introducing-someone" title="Link to this heading">¶</a></h2>
+<p>We have scanned someone called “Someone”, and we have a two MRI images of
+their brain, a single EPI volume, and a structural scan.  In general we never
+use the person’s name in the image filenames, but we make an
+exception in this case:</p>
+<ul class="simple">
+<li><p><a class="reference download internal" download="" href="_downloads/f76cc5a46e5368e2c779868abc49e497/someones_epi.nii.gz"><code class="xref download docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code></a>.</p></li>
+<li><p><a class="reference download internal" download="" href="_downloads/c16214e490de2a223655d30f4ba78f15/someones_anatomy.nii.gz"><code class="xref download docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code></a>.</p></li>
+</ul>
+<p>We can load up the EPI image to get the image data array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;downloads/someones_epi.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_img_data</span> <span class="o">=</span> <span class="n">epi_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_img_data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(53, 61, 33)</span>
+</pre></div>
+</div>
+<p>Then we have a look at slices over the first, second and third dimensions of
+the array.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">show_slices</span><span class="p">(</span><span class="n">slices</span><span class="p">):</span>
+<span class="gp">... </span><span class="w">   </span><span class="sd">&quot;&quot;&quot; Function to display row of image slices &quot;&quot;&quot;</span>
+<span class="gp">... </span>   <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">))</span>
+<span class="gp">... </span>   <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">slice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slices</span><span class="p">):</span>
+<span class="gp">... </span>       <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="nb">slice</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">slice_0</span> <span class="o">=</span> <span class="n">epi_img_data</span><span class="p">[</span><span class="mi">26</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">slice_1</span> <span class="o">=</span> <span class="n">epi_img_data</span><span class="p">[:,</span> <span class="mi">30</span><span class="p">,</span> <span class="p">:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">slice_2</span> <span class="o">=</span> <span class="n">epi_img_data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">16</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_slices</span><span class="p">([</span><span class="n">slice_0</span><span class="p">,</span> <span class="n">slice_1</span><span class="p">,</span> <span class="n">slice_2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Center slices for EPI image&quot;</span><span class="p">)</span>  
+</pre></div>
+</div>
+<p>(<a class="reference download internal" download="" href="_downloads/b5b25fc5e75398a75b3dee5d03dee056/coordinate_systems-2.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/bb31c24d40cb6a247054fb507ce53e36/coordinate_systems-2.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/a8f112aa4c254d4394f4e73b75e10047/coordinate_systems-2.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
+<figure class="align-default">
+<img alt="_images/coordinate_systems-2.png" class="plot-directive" src="_images/coordinate_systems-2.png" />
+</figure>
+<p>We collected an anatomical image in the same session.  We can load that image
+and look at slices in the three axes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">anat_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;downloads/someones_anatomy.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">anat_img_data</span> <span class="o">=</span> <span class="n">anat_img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">anat_img_data</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(57, 67, 56)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_slices</span><span class="p">([</span><span class="n">anat_img_data</span><span class="p">[</span><span class="mi">28</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span>
+<span class="gp">... </span>             <span class="n">anat_img_data</span><span class="p">[:,</span> <span class="mi">33</span><span class="p">,</span> <span class="p">:],</span>
+<span class="gp">... </span>             <span class="n">anat_img_data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">28</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Center slices for anatomical image&quot;</span><span class="p">)</span>  
+</pre></div>
+</div>
+<figure class="align-default" id="id2">
+<img alt="_images/coordinate_systems-3_00.png" class="plot-directive" src="_images/coordinate_systems-3_00.png" />
+<figcaption>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/f421d045ed7d77d5be5b5aa28544d030/coordinate_systems-3_00.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/dc0e6623b8086a1f47ed26af34e7c6ba/coordinate_systems-3_00.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/e6b45cf94b78c71339be16615ab48886/coordinate_systems-3_00.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id3">
+<img alt="_images/coordinate_systems-3_01.png" class="plot-directive" src="_images/coordinate_systems-3_01.png" />
+<figcaption>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/ce40033060c439c27eb234896af2b1e6/coordinate_systems-3_01.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/2174665309d4572bf9425c62abdb3e82/coordinate_systems-3_01.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/ea07875cb182b05530c1caaa47b509a8/coordinate_systems-3_01.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>As is usually the case, we had a different field of view for the anatomical
+scan, and so the anatomical image has a different shape, size, and orientation
+in the magnet.</p>
+</section>
+<section id="voxel-coordinates-are-coordinates-in-the-image-data-array">
+<h2>Voxel coordinates are coordinates in the image data array<a class="headerlink" href="#voxel-coordinates-are-coordinates-in-the-image-data-array" title="Link to this heading">¶</a></h2>
+<p>As y’all know, a voxel is a pixel with volume.</p>
+<p>In the code above, <code class="docutils literal notranslate"><span class="pre">slice_0</span></code> from the EPI data is a 2D slice from a 3D
+image.  The plot of the EPI slices displays the slices in grayscale (graded
+between black for the minimum value, white for the maximum).  Each pixel in
+the slice grayscale image also represents a voxel, because this 2D image
+represents a slice from the 3D image with a certain thickness.</p>
+<p>The 3D array is therefore also a voxel array.  As for any array, we can select
+particular values by indexing.  For example, we can get the value for the
+middle voxel in the EPI data array like this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n_i</span><span class="p">,</span> <span class="n">n_j</span><span class="p">,</span> <span class="n">n_k</span> <span class="o">=</span> <span class="n">epi_img_data</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">center_i</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>  <span class="c1"># // for integer division</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">center_j</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">center_k</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">center_i</span><span class="p">,</span> <span class="n">center_j</span><span class="p">,</span> <span class="n">center_k</span>
+<span class="go">(26, 30, 16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">center_vox_value</span> <span class="o">=</span> <span class="n">epi_img_data</span><span class="p">[</span><span class="n">center_i</span><span class="p">,</span> <span class="n">center_j</span><span class="p">,</span> <span class="n">center_k</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">center_vox_value</span>
+<span class="go">81.5492877960205...</span>
+</pre></div>
+</div>
+<p>The values (26, 30, 16) are indices into the data array <code class="docutils literal notranslate"><span class="pre">epi_img_data</span></code>. (26,
+30, 16) is therefore a ‘voxel coordinate’ - a coordinate into the voxel array.</p>
+<p>A coordinate is a set of numbers giving positions relative to a set of <em>axes</em>.
+In this case 26 is a position on the first array axis, where the axis is of
+length <code class="docutils literal notranslate"><span class="pre">epi_img_data.shape[0]</span></code>, and therefore goes from 0 to 52
+(<code class="docutils literal notranslate"><span class="pre">epi_img_data.shape</span> <span class="pre">==</span> <span class="pre">(53,</span> <span class="pre">61,</span> <span class="pre">33)</span></code>).  Similarly 30 gives a position on
+the second axis (0 to 60) and 16 is the position on the third axis (0 to 32).</p>
+</section>
+<section id="voxel-coordinates-and-points-in-space">
+<h2>Voxel coordinates and points in space<a class="headerlink" href="#voxel-coordinates-and-points-in-space" title="Link to this heading">¶</a></h2>
+<p>The voxel coordinate tells us almost nothing about where the data came from
+in terms of position in the scanner.  For example, let’s say we have the voxel
+coordinate (26, 30, 16).  Without more information we have no idea whether
+this voxel position is on the left or right of the brain, or came from the
+left or right of the scanner.</p>
+<p>This is because the scanner allows us to collect voxel data in almost any
+arbitrary position and orientation within the magnet.</p>
+<p>In the case of Someone’s EPI, we took transverse slices at a moderate angle to
+the floor to ceiling direction.  This localizer image from the scanner console
+has a red box that shows the position of the slice block for
+<code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> and a blue box for the slice block of
+<code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code>:</p>
+<img alt="_images/localizer.png" id="localizer-image" src="_images/localizer.png" />
+<p>The localizer is oriented to the magnet, so that the left and right borders of
+the image are parallel to the floor of the scanner room, with the left border
+being towards the floor and the right border towards the ceiling.</p>
+<p>You will see from the labels on the localizer that the center of the EPI voxel
+data block (at 26, 30, 16 in <code class="docutils literal notranslate"><span class="pre">epi_img_data</span></code>) is not quite at the center of
+magnet bore (the magnet <em>isocenter</em>).</p>
+<p>We have an anatomical and an EPI scan, and later on we will surely want to be
+able to relate the data from <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> to
+<code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code>.  We can’t easily do this at the moment, because
+we collected the anatomical image with a different field of view and
+orientation to the EPI image, so the voxel coordinates in the EPI image refer
+to different locations in the magnet to the voxel coordinates in the
+anatomical image.</p>
+<p>We solve this problem by keeping track of the relationship of voxel
+coordinates to some <em>reference space</em>.  In particular, the <em>affine array</em>
+stores the relationship between voxel coordinates in the image data array and
+coordinates in the reference space.  We store the relationship of voxel
+coordinates from <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> and the reference space, and also the
+(different) relationship of voxel coordinates in <code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code>
+to the <em>same</em> reference space.  Because we know the relationship of (voxel
+coordinates to the reference space) for both images, we can use this
+information to relate voxel coordinates in <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> to spatially
+equivalent voxel coordinates in <code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code>.</p>
+</section>
+<section id="the-scanner-subject-reference-space">
+<h2>The scanner-subject reference space<a class="headerlink" href="#the-scanner-subject-reference-space" title="Link to this heading">¶</a></h2>
+<p>What does “space” mean in the phrase “reference space”?  The space is defined
+by an ordered set of axes. For our 3D spatial world, it is a set of 3
+independent axes.</p>
+<p>We can decide what space we want to use, by choosing these axes.  We need to
+choose the origin of the axes, their direction and their units.</p>
+<p>To start with, we define a set of three orthogonal <em>scanner axes</em>.</p>
+<section id="the-scanner-axes">
+<h3>The scanner axes<a class="headerlink" href="#the-scanner-axes" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The origin of the axes is at the magnet isocenter. This is coordinate (0, 0,
+0) in our reference space. All three axes pass through the isocenter.</p></li>
+<li><p>The units for all three axes are millimeters.</p></li>
+<li><p>Imagine an observer standing behind the scanner looking through the magnet
+bore towards the end of the scanner bed.  Imagine a line traveling towards
+the observer through the center of the magnet bore, parallel to the bed,
+with the zero point at the magnet isocenter, and positive values closer to
+the observer.  Call this line the <em>scanner-bore</em> axis.</p></li>
+<li><p>Draw a line traveling from the scanner room floor up through the magnet
+isocenter towards the ceiling, at right angles to the scanner bore axis.
+0 is at isocenter and positive values are towards the ceiling.  Call this
+the <em>scanner-floor/ceiling</em> axis.</p></li>
+<li><p>Draw a line at right angles to the other two lines, traveling from the
+observer’s left, parallel to the floor, and through the magnet isocenter to
+the observer’s right.  0 is at isocenter and positive values are to the
+right. Call this the <em>scanner-left/right</em>.</p></li>
+</ul>
+<p>If we make the axes have order (scanner left-right; scanner floor-ceiling;
+scanner bore) then we have an ordered set of 3 axes and therefore the
+definition of a 3D <em>space</em>.  Call the first axis the “X” axis, the second “Y”
+and the third “Z”. A coordinate of <span class="math notranslate nohighlight">\((x, y, z) = (10, -5, -3)\)</span> in this space
+refers to the point in space 10mm to the (fictional observer’s) right of
+isocenter, 5mm towards the floor from the isocenter, and 3mm towards the foot
+of the scanner bed.  This reference space is sometimes known as “scanner XYZ”.
+It was the standard reference space for the predecessor to DICOM, called ACR /
+NEMA 2.0.</p>
+</section>
+<section id="from-scanner-to-subject">
+<h3>From scanner to subject<a class="headerlink" href="#from-scanner-to-subject" title="Link to this heading">¶</a></h3>
+<p>If the subject is lying in the usual position for a brain scan, face up
+and head first in the scanner, then scanner-left/right is also the left-right
+axis of the subject’s head, scanner-floor/ceiling is the posterior-anterior
+axis of the head and scanner-bore is the inferior-superior axis of the head.</p>
+<p>Sometimes the subject is not lying in the standard position.  For example, the
+subject may be lying with their face pointing to the right (in terms of the
+scanner-left/right axis). In that case “scanner XYZ” will not tell us about
+the subject’s left and right, but only the scanner left and right.  We might
+prefer to know where we are in terms of the subject’s left and right.</p>
+<p>To deal with this problem, most reference spaces use subject- or patient-
+centered scanner coordinate systems.  In these systems, the axes are still the
+scanner axes above, but the ordering and direction of the axes comes from the
+position of the subject.  The most common subject-centered scanner coordinate
+system in neuroimaging is called “scanner RAS” (right, anterior, superior).
+Here the scanner axes are reordered and flipped so that the first axis is the
+scanner axis that is closest to the left to right axis of the subject, the
+second is the closest scanner axis to the posterior-anterior axis of the
+subject, and the third is the closest scanner axis to the inferior-superior
+axis of the subject.  For example, if the subject was lying face to the right
+in the scanner, then the first (X) axis of the reference system would be
+scanner-floor/ceiling, but reversed so that positive values are towards the
+floor.  This axis goes from left to right in the subject, with positive values
+to the right.  The second (Y) axis would be scanner-left/right
+(posterior-anterior in the subject), and the Z axis would be scanner-bore
+(inferior-superior).</p>
+</section>
+<section id="naming-reference-spaces">
+<h3>Naming reference spaces<a class="headerlink" href="#naming-reference-spaces" title="Link to this heading">¶</a></h3>
+<p>Reading names of reference spaces can be confusing because of different
+meanings that authors use for the same terms, such as ‘left’ and ‘right’.</p>
+<p>We are using the term “RAS” to mean that the axes are (in terms of the
+subject): left to Right; posterior to Anterior; and inferior to Superior,
+respectively.  Although it is common to call this convention “RAS”, it is not
+quite universal, because some use “R”, “A” and “S” in “RAS” to mean that the
+axes <em>starts</em> on the right, anterior, superior of the subject, rather than
+<em>ending</em> on the right, anterior, superior.  In other words, they would use
+“RAS” to refer to a coordinate system we would call “LPI”.  To be safe, we’ll
+call our interpretation of the RAS convention “RAS+”, meaning that Right,
+Anterior, Superior are all positive values on these axes.</p>
+<p>Some people also use “right” to mean the right hand side when an observer
+looks at the front of the scanner, from the foot the scanner bed.
+Unfortunately, this means that you have to read coordinate system definitions
+carefully if you are not familiar with a particular convention. We nibabel /
+nipy folks agree with most of our brain imaging friends and many of our
+enemies in that we always use “right” to mean the subject’s right.</p>
+</section>
+</section>
+<section id="voxel-coordinates-are-in-voxel-space">
+<h2>Voxel coordinates are in voxel space<a class="headerlink" href="#voxel-coordinates-are-in-voxel-space" title="Link to this heading">¶</a></h2>
+<p>We have not yet made this explicit, but voxel coordinates are also in a space.
+In this case the space is defined by the three voxel axes (first axis, second
+axis, third axis), where 0, 0, 0 is the center of the first voxel in the
+array and the units on the axes are voxels.  Voxel coordinates are therefore
+defined in a reference space called <em>voxel space</em>.</p>
+</section>
+<section id="the-affine-matrix-as-a-transformation-between-spaces">
+<h2>The affine matrix as a transformation between spaces<a class="headerlink" href="#the-affine-matrix-as-a-transformation-between-spaces" title="Link to this heading">¶</a></h2>
+<p>We have voxel coordinates (in voxel space).  We want to get scanner RAS+
+coordinates corresponding to the voxel coordinates.  We need a <em>coordinate
+transform</em> to take us from voxel coordinates to scanner RAS+ coordinates.</p>
+<p>In general, we have some voxel space coordinate <span class="math notranslate nohighlight">\((i, j, k)\)</span>, and we want to
+generate the reference space coordinate <span class="math notranslate nohighlight">\((x, y, z)\)</span>.</p>
+<p>Imagine we had solved this, and we had a coordinate transform function <span class="math notranslate nohighlight">\(f\)</span>
+that accepts a voxel coordinate and returns a coordinate in the reference
+space:</p>
+<div class="math notranslate nohighlight">
+\[(x, y, z) = f(i, j, k)\]</div>
+<p><span class="math notranslate nohighlight">\(f\)</span> accepts a coordinate in the <em>input</em> space and returns a coordinate in the
+<em>output</em> space.  In our case the input space is voxel space and the output
+space is scanner RAS+.</p>
+<p>In theory <span class="math notranslate nohighlight">\(f\)</span> could be a complicated non-linear function, but in practice, we
+know that the scanner collects data on a regular grid.  This means that the
+relationship between <span class="math notranslate nohighlight">\((i, j, k)\)</span> and <span class="math notranslate nohighlight">\((x, y, z)\)</span> is linear (actually
+<em>affine</em>), and can be encoded with linear (actually affine) transformations
+comprising translations, rotations and zooms (<a class="reference external" href="https://en.wikipedia.org/wiki/Linear_transformation">wikipedia linear transform</a>,
+<a class="reference external" href="https://en.wikipedia.org/wiki/Affine_transformation">wikipedia affine transform</a>).</p>
+<p>Scaling (zooming) in three dimensions can be represented by a diagonal 3 by 3
+matrix.  Here’s how to zoom the first dimension by <span class="math notranslate nohighlight">\(p\)</span>, the second by <span class="math notranslate nohighlight">\(q\)</span> and
+the third by <span class="math notranslate nohighlight">\(r\)</span> units:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} =
+\begin{bmatrix}
+p i\\
+q j\\
+r k\\
+\end{bmatrix} =
+\begin{bmatrix}
+p &amp; 0 &amp; 0 \\
+0 &amp; q &amp; 0 \\
+0 &amp; 0 &amp; r \\
+\end{bmatrix}
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix}\end{split}\]</div>
+<p>A rotation in three dimensions can be represented as a 3 by 3 <em>rotation
+matrix</em> (<a class="reference external" href="https://en.wikipedia.org/wiki/Rotation_matrix">wikipedia rotation matrix</a>).  For example, here is a rotation by
+<span class="math notranslate nohighlight">\(\theta\)</span> radians around the third array axis:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} =
+\begin{bmatrix}
+\cos(\theta) &amp;  -\sin(\theta) &amp; 0 \\
+\sin(\theta) &amp; \cos(\theta) &amp; 0 \\
+0 &amp; 0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix}\end{split}\]</div>
+<p>This is a rotation by <span class="math notranslate nohighlight">\(\phi\)</span> radians around the second array axis:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} =
+\begin{bmatrix}
+\cos(\phi) &amp; 0 &amp; \sin(\phi) \\
+0 &amp; 1 &amp; 0 \\
+-\sin(\phi) &amp; 0 &amp; \cos(\phi) \\
+\end{bmatrix}
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix}\end{split}\]</div>
+<p id="rotate-axis-0">A rotation of <span class="math notranslate nohighlight">\(\gamma\)</span> radians around the first array axis:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} =
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 \\
+0 &amp; \cos(\gamma) &amp; -\sin(\gamma) \\
+0 &amp; \sin(\gamma) &amp; \cos(\gamma) \\
+\end{bmatrix}
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix}\end{split}\]</div>
+<p>Zoom and rotation matrices can be combined by matrix multiplication.</p>
+<p>Here’s a scaling of <span class="math notranslate nohighlight">\(p, q, r\)</span> units followed by a rotation of <span class="math notranslate nohighlight">\(\theta\)</span> radians
+around the third axis followed by a rotation of <span class="math notranslate nohighlight">\(\phi\)</span> radians around the
+second axis:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} =
+\begin{bmatrix}
+\cos(\phi) &amp; 0 &amp; \sin(\phi) \\
+0 &amp; 1 &amp; 0 \\
+-\sin(\phi) &amp; 0 &amp; \cos(\phi) \\
+\end{bmatrix}
+\begin{bmatrix}
+\cos(\theta) &amp;  -\sin(\theta) &amp; 0 \\
+\sin(\theta) &amp; \cos(\theta) &amp; 0 \\
+0 &amp; 0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+p &amp; 0 &amp; 0 \\
+0 &amp; q &amp; 0 \\
+0 &amp; 0 &amp; r \\
+\end{bmatrix}
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix}\end{split}\]</div>
+<p>This can also be written:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}M =
+\begin{bmatrix}
+\cos(\phi) &amp; 0 &amp; \sin(\phi) \\
+0 &amp; 1 &amp; 0 \\
+-\sin(\phi) &amp; 0 &amp; \cos(\phi) \\
+\end{bmatrix}
+\begin{bmatrix}
+\cos(\theta) &amp;  -\sin(\theta) &amp; 0 \\
+\sin(\theta) &amp; \cos(\theta) &amp; 0 \\
+0 &amp; 0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+p &amp; 0 &amp; 0 \\
+0 &amp; q &amp; 0 \\
+0 &amp; 0 &amp; r \\
+\end{bmatrix}\end{split}\\\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} = M
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix}\end{split}\end{aligned}\end{align} \]</div>
+<p>This might be obvious because the matrix multiplication is the result of
+applying each transformation in turn on the coordinates output from the
+previous transformation. Combining the transformations into a single matrix
+<span class="math notranslate nohighlight">\(M\)</span> works because matrix multiplication is associative – <span class="math notranslate nohighlight">\(ABCD = (ABC)D\)</span>.</p>
+<p>A translation in three dimensions can be represented as a length 3 vector to
+be added to the length 3 coordinate.  For example, a translation of <span class="math notranslate nohighlight">\(a\)</span> units
+on the first axis, <span class="math notranslate nohighlight">\(b\)</span> on the second and <span class="math notranslate nohighlight">\(c\)</span> on the third might be written
+as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} =
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix} +
+\begin{bmatrix}
+a \\
+b \\
+c \\
+\end{bmatrix}\end{split}\]</div>
+<p>We can write our function <span class="math notranslate nohighlight">\(f\)</span> as a combination of matrix multiplication by
+some 3 by 3 rotation / zoom matrix <span class="math notranslate nohighlight">\(M\)</span> followed by addition of a 3 by 1
+translation vector <span class="math notranslate nohighlight">\((a, b, c)\)</span></p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} = M
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix} +
+\begin{bmatrix}
+a\\
+b\\
+c\\
+\end{bmatrix}\end{split}\]</div>
+<p>We could record the parameters necessary for <span class="math notranslate nohighlight">\(f\)</span> as the 3 by 3 matrix, <span class="math notranslate nohighlight">\(M\)</span>
+and the 3 by 1 vector <span class="math notranslate nohighlight">\((a, b, c)\)</span>.</p>
+<p>In fact, the 4 by 4 image <em>affine array</em> does include exactly this
+information. If <span class="math notranslate nohighlight">\(m_{i,j}\)</span> is the value in row <span class="math notranslate nohighlight">\(i\)</span> column <span class="math notranslate nohighlight">\(j\)</span> of matrix <span class="math notranslate nohighlight">\(M\)</span>,
+then the image affine matrix <span class="math notranslate nohighlight">\(A\)</span> is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A =
+\begin{bmatrix}
+m_{1,1} &amp; m_{1,2} &amp; m_{1,3} &amp; a \\
+m_{2,1} &amp; m_{2,2} &amp; m_{2,3} &amp; b \\
+m_{3,1} &amp; m_{3,2} &amp; m_{3,3} &amp; c \\
+0 &amp; 0 &amp; 0 &amp; 1 \\
+\end{bmatrix}\end{split}\]</div>
+<p>Why the extra row of <span class="math notranslate nohighlight">\([0, 0, 0, 1]\)</span>?  We need this row because we have
+rephrased the combination of rotations / zooms and translations as a
+transformation in <em>homogeneous coordinates</em> (see <a class="reference external" href="https://en.wikipedia.org/wiki/Homogeneous_coordinates">wikipedia homogeneous
+coordinates</a>).  This is a trick that allows us to put the translation part
+into the same matrix as the rotations / zooms, so that both translations and
+rotations / zooms can be applied by matrix multiplication.  In order to make
+this work, we have to add an extra 1 to our input and output coordinate
+vectors:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+1\\
+\end{bmatrix} =
+\begin{bmatrix}
+m_{1,1} &amp; m_{1,2} &amp; m_{1,3} &amp; a \\
+m_{2,1} &amp; m_{2,2} &amp; m_{2,3} &amp; b \\
+m_{3,1} &amp; m_{3,2} &amp; m_{3,3} &amp; c \\
+0 &amp; 0 &amp; 0 &amp; 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+i\\
+j\\
+k\\
+1\\
+\end{bmatrix}\end{split}\]</div>
+<p>This results in the same transformation as applying <span class="math notranslate nohighlight">\(M\)</span> and <span class="math notranslate nohighlight">\((a, b, c)\)</span>
+separately. One advantage of encoding transformations this way is that we can
+combine two sets of [rotations, zooms, translations] by matrix multiplication
+of the two corresponding affine matrices.</p>
+<p>In practice, although it is common to combine 3D transformations using 4 by 4
+affine matrices, we usually <em>apply</em> the transformations by breaking up the
+affine matrix into its component <span class="math notranslate nohighlight">\(M\)</span> matrix and <span class="math notranslate nohighlight">\((a, b, c)\)</span> vector and doing:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+\end{bmatrix} = M
+\begin{bmatrix}
+i\\
+j\\
+k\\
+\end{bmatrix} +
+\begin{bmatrix}
+a\\
+b\\
+c\\
+\end{bmatrix}\end{split}\]</div>
+<p>As long as the last row of the 4 by 4 is <span class="math notranslate nohighlight">\([0, 0, 0, 1]\)</span>, applying the
+transformations in this way is mathematically the same as using the full 4 by
+4 form, without the inconvenience of adding the extra 1 to our input and
+output vectors.</p>
+</section>
+<section id="the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel">
+<h2>The inverse of the affine gives the mapping from scanner to voxel<a class="headerlink" href="#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel" title="Link to this heading">¶</a></h2>
+<p>The affine arrays we have described so far have another pleasant property —
+they are usually invertible.  As y’all know, the inverse of a matrix <span class="math notranslate nohighlight">\(A\)</span> is
+the matrix <span class="math notranslate nohighlight">\(A^{-1}\)</span> such that <span class="math notranslate nohighlight">\(I = A^{-1} A\)</span>, where <span class="math notranslate nohighlight">\(I\)</span> is the identity
+matrix.  Put another way:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}\begin{bmatrix}
+x\\
+y\\
+z\\
+1\\
+\end{bmatrix} = A
+\begin{bmatrix}
+i\\
+j\\
+k\\
+1\\
+\end{bmatrix}\end{split}\\\begin{split}A^{-1}\begin{bmatrix}
+x\\
+y\\
+z\\
+1\\
+\end{bmatrix} = A^{-1} A
+\begin{bmatrix}
+i\\
+j\\
+k\\
+1\\
+\end{bmatrix}\end{split}\\\begin{split}\begin{bmatrix}
+i\\
+j\\
+k\\
+1\\
+\end{bmatrix} = A^{-1}
+\begin{bmatrix}
+x\\
+y\\
+z\\
+1\\
+\end{bmatrix}\end{split}\end{aligned}\end{align} \]</div>
+<p>That means that the inverse of the affine matrix gives the transformation from
+scanner RAS+ coordinates to voxel coordinates in the image data.</p>
+<p>Now imagine we have affine array <span class="math notranslate nohighlight">\(A\)</span> for <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code>, and affine array
+<span class="math notranslate nohighlight">\(B\)</span> for <code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code>.  <span class="math notranslate nohighlight">\(A\)</span> gives the mapping from voxels in the
+image data array of <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> to millimeters in scanner RAS+.  <span class="math notranslate nohighlight">\(B\)</span>
+gives the mapping from voxels in image data array of
+<code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code> to <em>the same</em> scanner RAS+.  Now let’s say we have
+a particular voxel coordinate <span class="math notranslate nohighlight">\((i, j, k)\)</span> in the data array of
+<code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code>, and we want to find the voxel in
+<code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code> that is in the same spatial position.  Call this
+matching voxel coordinate <span class="math notranslate nohighlight">\((i', j', k')\)</span> . We first apply the transform from
+<code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> voxels to scanner RAS+ (<span class="math notranslate nohighlight">\(A\)</span>) and then apply the transform
+from scanner RAS+ to voxels in <code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code> (<span class="math notranslate nohighlight">\(B^{-1}\)</span>):</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{bmatrix}
+i'\\
+j'\\
+k'\\
+1\\
+\end{bmatrix} = B^{-1} A
+\begin{bmatrix}
+i\\
+j\\
+k\\
+1\\
+\end{bmatrix}\end{split}\]</div>
+</section>
+<section id="the-affine-by-example">
+<h2>The affine by example<a class="headerlink" href="#the-affine-by-example" title="Link to this heading">¶</a></h2>
+<p>We can get the affine from the nibabel image object.  Here is the affine for
+the EPI scan:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set numpy to print 3 decimal points and suppress small values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Print the affine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[  3.   ,   0.   ,   0.   , -78.   ],</span>
+<span class="go">       [  0.   ,   2.866,  -0.887, -76.   ],</span>
+<span class="go">       [  0.   ,   0.887,   2.866, -64.   ],</span>
+<span class="go">       [  0.   ,   0.   ,   0.   ,   1.   ]])</span>
+</pre></div>
+</div>
+<p>As you see, the last row is <span class="math notranslate nohighlight">\([0, 0, 0, 1]\)</span></p>
+<section id="applying-the-affine">
+<h3>Applying the affine<a class="headerlink" href="#applying-the-affine" title="Link to this heading">¶</a></h3>
+<p>To make the affine simpler to apply, we split it into <span class="math notranslate nohighlight">\(M\)</span> and <span class="math notranslate nohighlight">\((a, b, c)\)</span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">abc</span> <span class="o">=</span> <span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Then we can define our function <span class="math notranslate nohighlight">\(f\)</span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="gp">... </span><span class="w">   </span><span class="sd">&quot;&quot;&quot; Return X, Y, Z coordinates for i, j, k &quot;&quot;&quot;</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="n">M</span><span class="o">.</span><span class="n">dot</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span> <span class="o">+</span> <span class="n">abc</span>
+</pre></div>
+</div>
+<p>The labels on the <a class="reference internal" href="#localizer-image"><span class="std std-ref">localizer image</span></a> give the impression
+that the center voxel of <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code> was a little above the magnet
+isocenter.  Now we can check:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">epi_vox_center</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">epi_img_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="n">epi_vox_center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">epi_vox_center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">epi_vox_center</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="go">array([ 0.   , -4.205,  8.453])</span>
+</pre></div>
+</div>
+<p>That means the center of the image field of view is at the isocenter of the
+magnet on the left to right axis, and is around 4.2mm posterior to the
+isocenter and ~8.5 mm above the isocenter.</p>
+<p>The parameters in the affine array can therefore give the position of any
+voxel coordinate, relative to the scanner RAS+ reference space.</p>
+<p>We get the same result from applying the affine directly instead of using <span class="math notranslate nohighlight">\(M\)</span>
+and <span class="math notranslate nohighlight">\((a, b, c)\)</span> in our function. As above, we need to add a 1
+to the end of the vector to apply the 4 by 4 affine matrix.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">epi_vox_center</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="go">array([ 0.   , -4.205,  8.453,  1.   ])</span>
+</pre></div>
+</div>
+<p>In fact nibabel has a function <code class="docutils literal notranslate"><span class="pre">apply_affine</span></code> that applies an affine to an
+<span class="math notranslate nohighlight">\((i, j, k)\)</span> point by splitting the affine into <span class="math notranslate nohighlight">\(M\)</span> and <span class="math notranslate nohighlight">\(abc\)</span> then multiplying
+and adding as above:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.affines</span> <span class="kn">import</span> <span class="n">apply_affine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_affine</span><span class="p">(</span><span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">epi_vox_center</span><span class="p">)</span>
+<span class="go">array([ 0.   , -4.205,  8.453])</span>
+</pre></div>
+</div>
+<p>Now we can apply the affine, we can use matrix inversion on the anatomical
+affine to map between voxels in the EPI image and voxels in the anatomical
+image.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="k">as</span> <span class="nn">npl</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">epi_vox2anat_vox</span> <span class="o">=</span> <span class="n">npl</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">anat_img</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>What is the voxel coordinate in the anatomical corresponding to the voxel
+center of the EPI image?</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">apply_affine</span><span class="p">(</span><span class="n">epi_vox2anat_vox</span><span class="p">,</span> <span class="n">epi_vox_center</span><span class="p">)</span>
+<span class="go">array([28.364, 31.562, 36.165])</span>
+</pre></div>
+</div>
+<p>The voxel coordinate of the center voxel of the anatomical image is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">anat_vox_center</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">anat_img_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">anat_vox_center</span>
+<span class="go">array([28. , 33. , 27.5])</span>
+</pre></div>
+</div>
+<p>The voxel location in the anatomical image that matches the center voxel of
+the EPI image is nearly exactly half way across the first axis, a voxel or two
+back from the anatomical voxel center on the second axis, and about 9 voxels
+above the anatomical voxel center.  We can check the <a class="reference internal" href="#localizer-image"><span class="std std-ref">localizer image</span></a> by eye to see whether this makes sense, by seeing how the
+red EPI field of view center relates to the blue anatomical field of view
+center and the blue anatomical image field of view.</p>
+</section>
+<section id="the-affine-as-a-series-of-transformations">
+<h3>The affine as a series of transformations<a class="headerlink" href="#the-affine-as-a-series-of-transformations" title="Link to this heading">¶</a></h3>
+<p>You can think of the image affine as a combination of a series of
+transformations to go from voxel coordinates to mm coordinates in terms of the
+magnet isocenter.  Here is the EPI affine broken down into a series of
+transformations, with the results shown on the localizer image:</p>
+<img alt="_images/illustrating_affine.png" src="_images/illustrating_affine.png" />
+<p>We start by putting the voxel grid onto the isocenter coordinate
+system, so a translation of one voxel equates to a translation of one
+millimeter in the isocenter coordinate system.  Our EPI image would then have
+the black bounding box in the image above.  Next we scale the voxels to
+millimeters by scaling by the voxel size (green bounding box). We could do
+this with an affine:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scaling_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>After applying this affine, when we move one voxel in any direction, we are
+moving 3 millimeters in that direction:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">one_vox_axis_0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">apply_affine</span><span class="p">(</span><span class="n">scaling_affine</span><span class="p">,</span> <span class="n">one_vox_axis_0</span><span class="p">)</span>
+<span class="go">array([3, 0, 0])</span>
+</pre></div>
+</div>
+<p>Next we rotate the scaled voxels around the first axis by 0.3 radians (see
+<a class="reference internal" href="#rotate-axis-0"><span class="std std-ref">rotate around first axis</span></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cos_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sin_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rotation_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">cos_gamma</span><span class="p">,</span> <span class="o">-</span><span class="n">sin_gamma</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">sin_gamma</span><span class="p">,</span> <span class="n">cos_gamma</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_so_far</span> <span class="o">=</span> <span class="n">rotation_affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">scaling_affine</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine_so_far</span>
+<span class="go">array([[ 3.   ,  0.   ,  0.   ,  0.   ],</span>
+<span class="go">       [ 0.   ,  2.866, -0.887,  0.   ],</span>
+<span class="go">       [ 0.   ,  0.887,  2.866,  0.   ],</span>
+<span class="go">       [ 0.   ,  0.   ,  0.   ,  1.   ]])</span>
+</pre></div>
+</div>
+<p>The EPI voxel block coordinates transformed by <code class="docutils literal notranslate"><span class="pre">affine_so_far</span></code> are at the
+position of the yellow box on the figure.</p>
+<p>Finally we translate the 0, 0, 0 coordinate at the bottom, posterior, left
+corner of our array to be at its final position relative to the isocenter,
+which is -78, -76, -64:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">translation_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">78</span><span class="p">],</span>
+<span class="gp">... </span>                               <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">76</span><span class="p">],</span>
+<span class="gp">... </span>                               <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">64</span><span class="p">],</span>
+<span class="gp">... </span>                               <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">whole_affine</span> <span class="o">=</span> <span class="n">translation_affine</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">affine_so_far</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">whole_affine</span>
+<span class="go">array([[  3.   ,   0.   ,   0.   , -78.   ],</span>
+<span class="go">       [  0.   ,   2.866,  -0.887, -76.   ],</span>
+<span class="go">       [  0.   ,   0.887,   2.866, -64.   ],</span>
+<span class="go">       [  0.   ,   0.   ,   0.   ,   1.   ]])</span>
+</pre></div>
+</div>
+<p>This brings the affine-transformed voxel coordinates to the red box on the
+figure, matching the position on the <a class="reference internal" href="#localizer-image"><span class="std std-ref">localizer</span></a>.</p>
+</section>
+</section>
+<section id="other-reference-spaces">
+<h2>Other reference spaces<a class="headerlink" href="#other-reference-spaces" title="Link to this heading">¶</a></h2>
+<p>The scanner RAS+ reference space is a “real-world” space, in the sense that a
+coordinate in this space refers to a position in the real world, in a
+particular scanner in a particular room.</p>
+<p>Imagine that we used some fancy software to register <code class="docutils literal notranslate"><span class="pre">someones_epi.nii.gz</span></code>
+to a template image, such as the Montreal Neurological Institute (MNI)
+template brain.  The registration has moved the voxels around in complicated
+ways — the image has changed shape to match the template brain.  We
+probably do not want to know how the voxel locations relate to the original
+scanner, but how they relate to the template brain. So, what reference space
+should we use?</p>
+<p>In this case we use a space defined in terms of the template brain — the MNI
+reference space.</p>
+<ul class="simple">
+<li><p>The origin (0, 0, 0) point is defined to be the point that the anterior
+commissure of the MNI template brain crosses the midline (the AC point).</p></li>
+<li><p>Axis units are millimeters.</p></li>
+<li><p>The Y axis follows the midline of the MNI brain between the left and right
+hemispheres, going from posterior (negative) to anterior (positive), passing
+through the AC point.  The template defines this line.</p></li>
+<li><p>The Z axis is at right angles to the Y axis, going from inferior (negative)
+to superior (positive), with the superior part of the line passing between
+the two hemispheres.</p></li>
+<li><p>The X axis is a line going from the left side of the brain (negative) to
+right side of the brain (positive), passing through the AC point, and at
+right angles to the Y and Z axes.</p></li>
+</ul>
+<p>These axes are defined with reference to the template.  The exact position of
+the Y axis, for example, is somewhat arbitrary, as is the definition of the
+origin. Left and right are left and right as defined by the template. These
+are the axes and the space that MNI defines for its template.</p>
+<p>A coordinate in this reference system gives a position relative to the
+particular brain template.  It is not a real-world space because it does not
+refer to any particular place but to a position relative to a template.</p>
+<p>The axes are still left to right, posterior to anterior and inferior to
+superior in terms of the template subject.  This is still an RAS+ space —
+the MNI RAS+ space.</p>
+<p>An image aligned to this template will therefore have an affine giving the
+relationship between voxels in the aligned image and the MNI RAS+ space.</p>
+<p>There are other reference spaces. For example, we might align an image to the
+Talairach atlas brain.  This brain has a different shape and size than the MNI
+brain.  The origin is the AC point, but the Y axis passes through the point
+that the posterior commissure crosses the midline (the PC point), giving a
+slightly different trajectory from the MNI Y axis.  Like the MNI RAS+ space,
+the Talairach axes also run left to right, posterior to anterior and inferior
+superior, so this is the Talairach RAS+ space.</p>
+<p>There are conventions other than RAS+ for the reference space.  For example,
+DICOM files map input voxel coordinates to coordinates in scanner LPS+ space.
+Scanner LPS+ space uses the same scanner axes and isocenter as scanner RAS+,
+but the X axis goes from right to the subject’s Left, the Y axis goes from
+anterior to Posterior, and the Z axis goes from inferior to Superior.  A
+positive X coordinate in this space would mean the point was to the subject’s
+<em>left</em> compared to the magnet isocenter.</p>
+</section>
+<section id="nibabel-always-uses-an-ras-output-space">
+<h2>Nibabel always uses an RAS+ output space<a class="headerlink" href="#nibabel-always-uses-an-ras-output-space" title="Link to this heading">¶</a></h2>
+<p>Nibabel images always use RAS+ output coordinates, regardless of the preferred
+output coordinates of the underlying format.  For example, we convert affines
+for DICOM images to output RAS+ coordinates instead of LPS+ coordinates. We
+chose this convention because it is the most popular in neuroimaging; for
+example, it is the standard used by <a class="reference external" href="http://nifti.nimh.nih.gov">NIfTI</a> and <a class="reference external" href="https://www.mcgill.ca/bic/software/minc">MINC</a> formats.</p>
+<p>Nibabel does not enforce a particular RAS+ space. For example, NIfTI images
+contain codes that specify whether the affine maps to scanner or MNI or
+Talairach RAS+ space.  For the moment, you have to consult the specifics of
+each format to find which RAS+ space the affine maps to.</p>
+<p>See also <a class="reference internal" href="neuro_radio_conventions.html"><span class="doc">Radiological vs neurological conventions</span></a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

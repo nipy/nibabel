@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="openers" href="nibabel.openers.html" />
+    <link rel="prev" title="fileslice" href="nibabel.fileslice.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.openers.html" title="openers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.fileslice.html" title="fileslice"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a><ul>
+<li><a class="reference internal" href="#references">References</a></li>
+<li><a class="reference internal" href="#resetmixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResetMixin</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.ResetMixin"><code class="docutils literal notranslate"><span class="pre">ResetMixin</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.onetime.ResetMixin.__init__"><code class="docutils literal notranslate"><span class="pre">ResetMixin.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.onetime.ResetMixin.reset"><code class="docutils literal notranslate"><span class="pre">ResetMixin.reset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.fileslice.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.openers.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.onetime.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.onetime">
+<span id="onetime"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code><a class="headerlink" href="#module-nibabel.onetime" title="Link to this heading">¶</a></h1>
+<p>Descriptor support for NIPY</p>
+<p>Utilities to support special Python descriptors [1,2], in particular
+<a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.cached_property" title="(in Python v3.13)"><code class="xref py py-func docutils literal notranslate"><span class="pre">cached_property()</span></code></a>, which has been available in the Python
+standard library since Python 3.8. We currently maintain aliases from
+earlier names for this descriptor, specifically <cite>OneTimeProperty</cite> and <cite>auto_attr</cite>.</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.cached_property" title="(in Python v3.13)"><code class="xref py py-func docutils literal notranslate"><span class="pre">cached_property()</span></code></a> creates properties that are computed once
+and then stored as regular attributes. They can thus be evaluated
+later in the object’s life cycle, but once evaluated they become normal, static
+attributes with no function call overhead on access or any other constraints.</p>
+<p>A special ResetMixin class is provided to add a .reset() method to users who
+may want to have their objects capable of resetting these computed properties
+to their ‘untriggered’ state.</p>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>[1] How-To Guide for Descriptors, Raymond
+Hettinger. <a class="reference external" href="https://docs.python.org/howto/descriptor.html">https://docs.python.org/howto/descriptor.html</a></p>
+<p>[2] Python data model, <a class="reference external" href="https://docs.python.org/reference/datamodel.html">https://docs.python.org/reference/datamodel.html</a></p>
+</section>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.onetime.ResetMixin" title="nibabel.onetime.ResetMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResetMixin</span></code></a>()</p></td>
+<td><p>A Mixin class to add a .reset() method to users of cached_property.</p></td>
+</tr>
+</tbody>
+</table>
+<section id="resetmixin">
+<h2><a class="reference internal" href="#nibabel.onetime.ResetMixin" title="nibabel.onetime.ResetMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResetMixin</span></code></a><a class="headerlink" href="#resetmixin" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.onetime.ResetMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.onetime.</span></span><span class="sig-name descname"><span class="pre">ResetMixin</span></span><a class="headerlink" href="#nibabel.onetime.ResetMixin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A Mixin class to add a .reset() method to users of cached_property.</p>
+<p>By default, cached properties, once computed, become static.  If they happen
+to depend on other parts of an object and those parts change, their values
+may now be invalid.</p>
+<p>This class offers a .reset() method that users can call <em>explicitly</em> when
+they know the state of their objects may have changed and they want to
+ensure that <em>all</em> their special attributes should be invalidated.  Once
+reset() is called, all their cached properties are reset to their
+<a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.cached_property" title="(in Python v3.13)"><code class="xref py py-func docutils literal notranslate"><span class="pre">cached_property()</span></code></a> descriptors,
+and their accessor functions will be triggered again.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If a class has a set of attributes that are cached_property, but that
+can be initialized from any one of them, do NOT use this mixin!  For
+instance, UniformTimeSeries can be initialized with only sampling_rate
+and t0, sampling_interval and time are auto-computed.  But if you were
+to reset() a UniformTimeSeries, it would lose all 4, and there would be
+then no way to break the circular dependency chains.</p>
+<p>If this becomes a problem in practice (for our analyzer objects it
+isn’t, as they don’t have the above pattern), we can extend reset() to
+check for a _no_reset set of names in the instance which are meant to be
+kept protected.  But for now this is NOT done, so caveat emptor.</p>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">ResetMixin</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@cached_property</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*** y computation executed ***&#39;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">/</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>About to access y twice, the second time no computation is done:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">y</span>
+<span class="go">*** y computation executed ***</span>
+<span class="go">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">y</span>
+<span class="go">5.0</span>
+</pre></div>
+</div>
+<p>Changing x</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">20</span>
+</pre></div>
+</div>
+<p>a.y doesn’t change to 10, since it is a static attribute:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">y</span>
+<span class="go">5.0</span>
+</pre></div>
+</div>
+<p>We now reset a, and this will then force all auto attributes to recompute
+the next time we access them:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>About to access y twice again after reset():</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">y</span>
+<span class="go">*** y computation executed ***</span>
+<span class="go">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">y</span>
+<span class="go">10.0</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.onetime.ResetMixin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.onetime.ResetMixin.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.onetime.ResetMixin.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.onetime.ResetMixin.reset" title="Link to this definition">¶</a></dt>
+<dd><p>Reset all cached_property attributes that may have fired already.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

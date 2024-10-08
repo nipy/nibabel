@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="A guide to making a nibabel release" href="make_release.html" />
+    <link rel="prev" title="Scalefactors and intercepts" href="scaling.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="make_release.html" title="A guide to making a nibabel release"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="scaling.html" title="Scalefactors and intercepts"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="devdiscuss.html" accesskey="U">Developer discussions</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BrainVoyager file formats</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#bv-internal-format-axes">BV internal format axes</a></li>
+<li><a class="reference internal" href="#types-of-bv-files">Types of BV files</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="scaling.html"
+                          title="previous chapter">Scalefactors and intercepts</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="make_release.html"
+                          title="next chapter">A guide to making a nibabel release</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/bv_formats.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="brainvoyager-file-formats">
+<h1>BrainVoyager file formats<a class="headerlink" href="#brainvoyager-file-formats" title="Link to this heading">¶</a></h1>
+<p>With notes on nibabel support.</p>
+<p>PR for some BrainVoyager support at <a class="reference external" href="https://github.com/nipy/nibabel/pull/216">https://github.com/nipy/nibabel/pull/216</a>.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>See :</p>
+<ul class="simple">
+<li><p>All files are little-endian byte order regardless of byte-order on the
+machine writing the data;</p></li>
+<li><p>BV apparently provides a “BVQXtools” library for reading writing BV files in
+MATLAB;</p></li>
+</ul>
+</section>
+<section id="bv-internal-format-axes">
+<span id="bv-internal-axes"></span><h2>BV internal format axes<a class="headerlink" href="#bv-internal-format-axes" title="Link to this heading">¶</a></h2>
+<p>BV files have a internal format that has axes named <cite>X</cite>, <cite>Y</cite> and <cite>Z</cite>.  Quoting
+from the <a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html">VMR format definition</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">BV</span> <span class="n">X</span> <span class="n">front</span> <span class="o">-&gt;</span> <span class="n">back</span> <span class="o">=</span> <span class="n">Y</span> <span class="ow">in</span> <span class="n">Tal</span> <span class="n">space</span>
+<span class="n">BV</span> <span class="n">Y</span> <span class="n">top</span> <span class="o">-&gt;</span> <span class="n">bottom</span> <span class="o">=</span> <span class="n">Z</span> <span class="ow">in</span> <span class="n">Tal</span> <span class="n">space</span>
+<span class="n">BV</span> <span class="n">Z</span> <span class="n">left</span> <span class="o">-&gt;</span> <span class="n">right</span> <span class="o">=</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">Tal</span> <span class="n">space</span>
+</pre></div>
+</div>
+<p>Put another way — the correspondence of BV XYZ to Talairach axes is:</p>
+<ul class="simple">
+<li><p>BV X -&gt; Anterior to Posterior;</p></li>
+<li><p>BV Y -&gt; Superior to Inferior;</p></li>
+<li><p>BV Z -&gt; Left to Right.</p></li>
+</ul>
+<p>or:</p>
+<ul class="simple">
+<li><p>BV X -&gt; Talairach -Y;</p></li>
+<li><p>BV Y -&gt; Talairach -Z;</p></li>
+<li><p>BV Z -&gt; Talairach  X;</p></li>
+</ul>
+<p>Nice!</p>
+</section>
+<section id="types-of-bv-files">
+<h2>Types of BV files<a class="headerlink" href="#types-of-bv-files" title="Link to this heading">¶</a></h2>
+<p>There appear to be 38 BV file types at the time of writing of which 18 appear
+to have a page of description on the <a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats.html">BV file format index page</a>.</p>
+<p>Here are some examples of BV formats:</p>
+<ul class="simple">
+<li><p>FMR — “FMR project files are simple text files containing the information
+defining a functional project created from raw MRI data”.  This text file
+contains meta-data about the functional time course data, stored in one or
+more STC files.  See the <a class="reference external" href="http://support.brainvoyager.com/installation-introduction/23-file-formats/383-developer-guide-26-the-format-of-fmr-files.html">FMR format definition</a>.</p></li>
+<li><p>STC — “A STC file (STC = “slice time course”) contains the functional
+data (time series) of a FMR project.”  The time-course data of a 4D
+(“single-slice”) format STC file are stored on disk in
+fastest-to-slowest-changing order: columns, rows, time, slice.  STC files
+can also contain the data for one single slice (“multi-slice format”), in
+which case the data are in fast-to-slow order: columns, rows, time.  This is
+a raw data file where the relevant meta-data such as image size come from an
+associated FMR format file. See <a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats/384-developer-guide-26-the-format-of-stc-files.html">STC format definition</a>;</p></li>
+<li><p>VTC — “A VTC file contains the functional data (time series) of one
+experimental run (one functional scan) in the space of a 3D anatomical data
+set (VMR), e.g. in Talairach space.”.  See <a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats/379-users-guide-23-the-format-of-vtc-files.html">VTC format definition</a>;
+This is a different format to the STC (raw data in native-space) format.
+The file is a header followed by ints or floats in
+fastest-to-slowest-changing order of: time; BV X; BV Y; BV Z; where BV X, BV
+Y, BV Z refer to the <a class="reference internal" href="#bv-internal-axes"><span class="std std-ref">BV internal format axes</span></a>, and therefore Talairach -Y,
+-Z, X.</p></li>
+<li><p>NR-VMP — “A native resolution volume map (NR-VMP) file contains
+statistical results in 3D format.”. See <a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats/377-users-guide-23-the-format-of-nr-vmp-files.html">NR-VMP format definition</a></p></li>
+<li><p>AR-VMP — “An anatomical-resolution VMP (volume map) file contains
+statistical results in 3D format” at anatomical scan resolution.  See
+<a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats/376-users-guide-23-the-format-of-ar-vmp-files.html">AR-VMP format definition</a>;</p></li>
+<li><p>VMR — ‘high-resolution anatomical MR’ - see <a class="reference external" href="http://support.brainvoyager.com/automation-aamp-development/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html">VMR format definition</a>.</p></li>
+<li><p>MSK — mask file.  Only documentation appears to be
+<a class="reference external" href="http://www.brainvoyager.com/ubb/Forum8/HTML/000087.html">http://www.brainvoyager.com/ubb/Forum8/HTML/000087.html</a></p></li>
+<li><p>SMP — ‘surface map’.  See <a class="reference external" href=":http://support.brainvoyager.com/automation-aamp-development/23-file-formats/476-the-format-of-smp-files.html">SMP format definition</a>. Contains one or more
+“maps”, where a map is a <code class="docutils literal notranslate"><span class="pre">NrOfVertices</span></code> (number of vertices) length vector
+of float64 values.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

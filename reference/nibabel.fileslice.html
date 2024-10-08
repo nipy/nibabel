@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="onetime" href="nibabel.onetime.html" />
+    <link rel="prev" title="filename_parser" href="nibabel.filename_parser.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.onetime.html" title="onetime"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.filename_parser.html" title="filename_parser"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a><ul>
+<li><a class="reference internal" href="#calc-slicedefs">calc_slicedefs</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.calc_slicedefs"><code class="docutils literal notranslate"><span class="pre">calc_slicedefs()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#canonical-slicers">canonical_slicers</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.canonical_slicers"><code class="docutils literal notranslate"><span class="pre">canonical_slicers()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id1">fileslice</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.fileslice"><code class="docutils literal notranslate"><span class="pre">fileslice()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fill-slicer">fill_slicer</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.fill_slicer"><code class="docutils literal notranslate"><span class="pre">fill_slicer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#is-fancy">is_fancy</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.is_fancy"><code class="docutils literal notranslate"><span class="pre">is_fancy()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optimize-read-slicers">optimize_read_slicers</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.optimize_read_slicers"><code class="docutils literal notranslate"><span class="pre">optimize_read_slicers()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optimize-slicer">optimize_slicer</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.optimize_slicer"><code class="docutils literal notranslate"><span class="pre">optimize_slicer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#predict-shape">predict_shape</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.predict_shape"><code class="docutils literal notranslate"><span class="pre">predict_shape()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-segments">read_segments</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.read_segments"><code class="docutils literal notranslate"><span class="pre">read_segments()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slice2len">slice2len</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.slice2len"><code class="docutils literal notranslate"><span class="pre">slice2len()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slice2outax">slice2outax</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.slice2outax"><code class="docutils literal notranslate"><span class="pre">slice2outax()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slicers2segments">slicers2segments</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.slicers2segments"><code class="docutils literal notranslate"><span class="pre">slicers2segments()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#strided-scalar">strided_scalar</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.strided_scalar"><code class="docutils literal notranslate"><span class="pre">strided_scalar()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#threshold-heuristic">threshold_heuristic</a><ul>
+<li><a class="reference internal" href="#nibabel.fileslice.threshold_heuristic"><code class="docutils literal notranslate"><span class="pre">threshold_heuristic()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.filename_parser.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.onetime.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.fileslice.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.fileslice">
+<span id="fileslice"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code><a class="headerlink" href="#module-nibabel.fileslice" title="Link to this heading">¶</a></h1>
+<p>Utilities for getting array slices out of file-like objects</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.calc_slicedefs" title="nibabel.fileslice.calc_slicedefs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_slicedefs</span></code></a>(sliceobj, in_shape, itemsize, ...)</p></td>
+<td><p>Return parameters for slicing array with <cite>sliceobj</cite> given memory layout</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.canonical_slicers" title="nibabel.fileslice.canonical_slicers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canonical_slicers</span></code></a>(sliceobj, shape[, check_inds])</p></td>
+<td><p>Return canonical version of <cite>sliceobj</cite> for array shape <cite>shape</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.fileslice" title="nibabel.fileslice.fileslice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fileslice</span></code></a>(fileobj, sliceobj, shape, dtype[, ...])</p></td>
+<td><p>Slice array in <cite>fileobj</cite> using <cite>sliceobj</cite> slicer and array definitions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.fill_slicer" title="nibabel.fileslice.fill_slicer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_slicer</span></code></a>(slicer, in_len)</p></td>
+<td><p>Return slice object with Nones filled out to match <cite>in_len</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.is_fancy" title="nibabel.fileslice.is_fancy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_fancy</span></code></a>(sliceobj)</p></td>
+<td><p>Returns True if sliceobj is attempting fancy indexing</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.optimize_read_slicers" title="nibabel.fileslice.optimize_read_slicers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimize_read_slicers</span></code></a>(sliceobj, in_shape, ...)</p></td>
+<td><p>Calculates slices to read from disk, and apply after reading</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.optimize_slicer" title="nibabel.fileslice.optimize_slicer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimize_slicer</span></code></a>(slicer, dim_len, all_full, ...)</p></td>
+<td><p>Return maybe modified slice and post-slice slicing for <cite>slicer</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.predict_shape" title="nibabel.fileslice.predict_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_shape</span></code></a>(sliceobj, in_shape)</p></td>
+<td><p>Predict shape of array from slicing array shape <cite>shape</cite> with <cite>sliceobj</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.read_segments" title="nibabel.fileslice.read_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_segments</span></code></a>(fileobj, segments, n_bytes[, lock])</p></td>
+<td><p>Read <cite>n_bytes</cite> byte data implied by <cite>segments</cite> from <cite>fileobj</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.slice2len" title="nibabel.fileslice.slice2len"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice2len</span></code></a>(slicer, in_len)</p></td>
+<td><p>Output length after slicing original length <cite>in_len</cite> with <cite>slicer</cite> Parameters ---------- slicer : slice object in_len : int</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.slice2outax" title="nibabel.fileslice.slice2outax"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice2outax</span></code></a>(ndim, sliceobj)</p></td>
+<td><p>Matching output axes for input array ndim <cite>ndim</cite> and slice <cite>sliceobj</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.slicers2segments" title="nibabel.fileslice.slicers2segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slicers2segments</span></code></a>(read_slicers, in_shape, ...)</p></td>
+<td><p>Get segments from <cite>read_slicers</cite> given <cite>in_shape</cite> and memory steps</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.fileslice.strided_scalar" title="nibabel.fileslice.strided_scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strided_scalar</span></code></a>(shape[, scalar])</p></td>
+<td><p>Return array shape <cite>shape</cite> where all entries point to value <cite>scalar</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.fileslice.threshold_heuristic" title="nibabel.fileslice.threshold_heuristic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">threshold_heuristic</span></code></a>(slicer, dim_len, stride)</p></td>
+<td><p>Whether to force full axis read or contiguous read of stepped slice</p></td>
+</tr>
+</tbody>
+</table>
+<section id="calc-slicedefs">
+<h2>calc_slicedefs<a class="headerlink" href="#calc-slicedefs" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.calc_slicedefs">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">calc_slicedefs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itemsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic=&lt;function</span> <span class="pre">threshold_heuristic&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.calc_slicedefs" title="Link to this definition">¶</a></dt>
+<dd><p>Return parameters for slicing array with <cite>sliceobj</cite> given memory layout</p>
+<p>Calculate the best combination of skips / (read + discard) to use for
+reading the data from disk / memory, then generate corresponding
+<cite>segments</cite>, the disk offsets and read lengths to read the memory.  If we
+have chosen some (read + discard) optimization, then we need to discard the
+surplus values from the read array using <cite>post_slicers</cite>, a slicing tuple
+that takes the array as read from a file-like object, and returns the array
+we want.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code></p>
+</dd>
+<dt><strong>in_shape</strong><span class="classifier">sequence</span></dt><dd><p>shape of underlying array to be sliced</p>
+</dd>
+<dt><strong>itemsize</strong><span class="classifier">int</span></dt><dd><p>element size in array (in bytes)</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">int</span></dt><dd><p>offset of array data in underlying file or memory buffer</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">{‘C’, ‘F’}</span></dt><dd><p>memory layout of underlying array</p>
+</dd>
+<dt><strong>heuristic</strong><span class="classifier">callable, optional</span></dt><dd><p>function taking slice object, dim_len, stride length as arguments,
+returning one of ‘full’, ‘contiguous’, None.  See
+<a class="reference internal" href="#nibabel.fileslice.optimize_slicer" title="nibabel.fileslice.optimize_slicer"><code class="xref py py-func docutils literal notranslate"><span class="pre">optimize_slicer()</span></code></a> and <a class="reference internal" href="#nibabel.fileslice.threshold_heuristic" title="nibabel.fileslice.threshold_heuristic"><code class="xref py py-func docutils literal notranslate"><span class="pre">threshold_heuristic()</span></code></a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>segments</strong><span class="classifier">list</span></dt><dd><p>list of 2 element lists where lists are (offset, length), giving
+absolute memory offset in bytes and number of bytes to read</p>
+</dd>
+<dt><strong>read_shape</strong><span class="classifier">tuple</span></dt><dd><p>shape with which to interpret memory as read from <cite>segments</cite>.
+Interpreting the memory read from <cite>segments</cite> with this shape, and a
+dtype, gives an intermediate array - call this <code class="docutils literal notranslate"><span class="pre">R</span></code></p>
+</dd>
+<dt><strong>post_slicers</strong><span class="classifier">tuple</span></dt><dd><p>Any new slicing to be applied to the array <code class="docutils literal notranslate"><span class="pre">R</span></code> after reading via
+<cite>segments</cite> and reshaping via <cite>read_shape</cite>.  Slices are in terms of
+<cite>read_shape</cite>.  If empty, no new slicing to apply</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="canonical-slicers">
+<h2>canonical_slicers<a class="headerlink" href="#canonical-slicers" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.canonical_slicers">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">canonical_slicers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_inds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.canonical_slicers" title="Link to this definition">¶</a></dt>
+<dd><p>Return canonical version of <cite>sliceobj</cite> for array shape <cite>shape</cite></p>
+<p><cite>sliceobj</cite> is a slicer for an array <code class="docutils literal notranslate"><span class="pre">A</span></code> implied by <cite>shape</cite>.</p>
+<ul class="simple">
+<li><p>Expand <cite>sliceobj</cite> with <code class="docutils literal notranslate"><span class="pre">slice(None)</span></code> to add any missing (implied) axes
+in <cite>sliceobj</cite></p></li>
+<li><p>Find any slicers in <cite>sliceobj</cite> that do a full axis slice and replace by
+<code class="docutils literal notranslate"><span class="pre">slice(None)</span></code></p></li>
+<li><p>Replace any floating point values for slicing with integers</p></li>
+<li><p>Replace negative integer slice values with equivalent positive integers.</p></li>
+</ul>
+<p>Does not handle fancy indexing (indexing with arrays or array-like indices)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code></p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">sequence</span></dt><dd><p>shape of array that will be indexed by <cite>sliceobj</cite></p>
+</dd>
+<dt><strong>check_inds</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to check if integer indices are out of bounds</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>can_slicers</strong><span class="classifier">tuple</span></dt><dd><p>version of <cite>sliceobj</cite> for which Ellipses have been expanded, missing
+(implied) dimensions have been appended, and slice objects equivalent
+to <code class="docutils literal notranslate"><span class="pre">slice(None)</span></code> have been replaced by <code class="docutils literal notranslate"><span class="pre">slice(None)</span></code>, integer axes
+have been checked, and negative indices set to positive equivalent</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id1">
+<h2>fileslice<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.fileslice">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">fileslice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order='C'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic=&lt;function</span> <span class="pre">threshold_heuristic&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.fileslice" title="Link to this definition">¶</a></dt>
+<dd><p>Slice array in <cite>fileobj</cite> using <cite>sliceobj</cite> slicer and array definitions</p>
+<p><cite>fileobj</cite> contains the contiguous binary data for an array <code class="docutils literal notranslate"><span class="pre">A</span></code> of shape,
+dtype, memory layout <cite>shape</cite>, <cite>dtype</cite>, <cite>order</cite>, with the binary data
+starting at file offset <cite>offset</cite>.</p>
+<p>Our job is to return the sliced array <code class="docutils literal notranslate"><span class="pre">A[sliceobj]</span></code> in the most efficient
+way in terms of memory and time.</p>
+<p>Sometimes it will be quicker to read memory that we will later throw away,
+to save time we might lose doing short seeks on <cite>fileobj</cite>.  Call these
+alternatives: (read + discard); and skip.  This routine guesses when to
+(read+discard) or skip using the callable <cite>heuristic</cite>, with a default using
+a hard threshold for the memory gap large enough to prefer a skip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>file-like object, opened for reading in binary mode. Implements
+<code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code>.</p>
+</dd>
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code>.</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">sequence</span></dt><dd><p>shape of full array inside <cite>fileobj</cite>.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">dtype specifier</span></dt><dd><p>dtype of array inside <cite>fileobj</cite>, or input to <code class="docutils literal notranslate"><span class="pre">numpy.dtype</span></code> to specify
+array dtype.</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">int, optional</span></dt><dd><p>offset of array data within <cite>fileobj</cite></p>
+</dd>
+<dt><strong>order</strong><span class="classifier">{‘C’, ‘F’}, optional</span></dt><dd><p>memory layout of array in <cite>fileobj</cite>.</p>
+</dd>
+<dt><strong>heuristic</strong><span class="classifier">callable, optional</span></dt><dd><p>function taking slice object, axis length, stride length as arguments,
+returning one of ‘full’, ‘contiguous’, None.  See
+<a class="reference internal" href="#nibabel.fileslice.optimize_slicer" title="nibabel.fileslice.optimize_slicer"><code class="xref py py-func docutils literal notranslate"><span class="pre">optimize_slicer()</span></code></a> and see <a class="reference internal" href="#nibabel.fileslice.threshold_heuristic" title="nibabel.fileslice.threshold_heuristic"><code class="xref py py-func docutils literal notranslate"><span class="pre">threshold_heuristic()</span></code></a> for an
+example.</p>
+</dd>
+<dt><strong>lock</strong><span class="classifier">{None, threading.Lock, lock-like} optional</span></dt><dd><p>If provided, used to ensure that paired calls to <code class="docutils literal notranslate"><span class="pre">seek</span></code> and <code class="docutils literal notranslate"><span class="pre">read</span></code>
+cannot be interrupted by another thread accessing the same <code class="docutils literal notranslate"><span class="pre">fileobj</span></code>.
+Each thread which accesses the same file via <code class="docutils literal notranslate"><span class="pre">read_segments</span></code> must
+share a lock in order to ensure that the file access is thread-safe.
+A lock does not need to be provided for single-threaded access. The
+default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) results in a lock-like object  (a
+<code class="docutils literal notranslate"><span class="pre">_NullLock</span></code>) which does not do anything.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>sliced_arr</strong><span class="classifier">array</span></dt><dd><p>Array in <cite>fileobj</cite> as sliced with <cite>sliceobj</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="fill-slicer">
+<h2>fill_slicer<a class="headerlink" href="#fill-slicer" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.fill_slicer">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">fill_slicer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slicer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_len</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.fill_slicer" title="Link to this definition">¶</a></dt>
+<dd><p>Return slice object with Nones filled out to match <cite>in_len</cite></p>
+<p>Also fixes too large stop / start values according to slice() slicing
+rules.</p>
+<p>The returned slicer can have a None as <cite>slicer.stop</cite> if <cite>slicer.step</cite> is
+negative and the input <cite>slicer.stop</cite> is None. This is because we can’t
+represent the <code class="docutils literal notranslate"><span class="pre">stop</span></code> as an integer, because -1 has a different meaning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>slicer</strong><span class="classifier">slice object</span></dt><dd></dd>
+<dt><strong>in_len</strong><span class="classifier">int</span></dt><dd><p>length of axis on which <cite>slicer</cite> will be applied</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>can_slicer</strong><span class="classifier">slice object</span></dt><dd><p>slice with start, stop, step set to explicit values, with the exception
+of <code class="docutils literal notranslate"><span class="pre">stop</span></code> for negative step, which is None for the case of slicing
+down through the first element</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="is-fancy">
+<h2>is_fancy<a class="headerlink" href="#is-fancy" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.is_fancy">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">is_fancy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.is_fancy" title="Link to this definition">¶</a></dt>
+<dd><p>Returns True if sliceobj is attempting fancy indexing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>tf: bool</dt><dd><p>True if sliceobj represents fancy indexing, False for basic indexing</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="optimize-read-slicers">
+<h2>optimize_read_slicers<a class="headerlink" href="#optimize-read-slicers" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.optimize_read_slicers">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">optimize_read_slicers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itemsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.optimize_read_slicers" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates slices to read from disk, and apply after reading</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code>.
+Can be assumed to be canonical in the sense of <code class="docutils literal notranslate"><span class="pre">canonical_slicers</span></code></p>
+</dd>
+<dt><strong>in_shape</strong><span class="classifier">sequence</span></dt><dd><p>shape of underlying array to be sliced.  Array for <cite>in_shape</cite> assumed
+to be already in ‘F’ order. Reorder shape / sliceobj for slicing a ‘C’
+array before passing to this function.</p>
+</dd>
+<dt><strong>itemsize</strong><span class="classifier">int</span></dt><dd><p>element size in array (bytes)</p>
+</dd>
+<dt><strong>heuristic</strong><span class="classifier">callable</span></dt><dd><p>function taking slice object, axis length, and stride length as
+arguments, returning one of ‘full’, ‘contiguous’, None.  See
+<a class="reference internal" href="#nibabel.fileslice.optimize_slicer" title="nibabel.fileslice.optimize_slicer"><code class="xref py py-func docutils literal notranslate"><span class="pre">optimize_slicer()</span></code></a>; see <a class="reference internal" href="#nibabel.fileslice.threshold_heuristic" title="nibabel.fileslice.threshold_heuristic"><code class="xref py py-func docutils literal notranslate"><span class="pre">threshold_heuristic()</span></code></a> for an
+example.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>read_slicers</strong><span class="classifier">tuple</span></dt><dd><p><cite>sliceobj</cite> maybe rephrased to fill out dimensions that are better read
+from disk and later trimmed to their original size with <cite>post_slicers</cite>.
+<cite>read_slicers</cite> implies a block of memory to be read from disk. The
+actual disk positions come from <cite>slicers2segments</cite> run over
+<cite>read_slicers</cite>. Includes any <code class="docutils literal notranslate"><span class="pre">newaxis</span></code> dimensions in <cite>sliceobj</cite></p>
+</dd>
+<dt><strong>post_slicers</strong><span class="classifier">tuple</span></dt><dd><p>Any new slicing to be applied to the read array after reading.  The
+<cite>post_slicers</cite> discard any memory that we read to save time, but that
+we don’t need for the slice.  Include any <code class="docutils literal notranslate"><span class="pre">newaxis</span></code> dimension added
+by <cite>sliceobj</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="optimize-slicer">
+<h2>optimize_slicer<a class="headerlink" href="#optimize-slicer" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.optimize_slicer">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">optimize_slicer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slicer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_full</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_slowest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heuristic=&lt;function</span> <span class="pre">threshold_heuristic&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.optimize_slicer" title="Link to this definition">¶</a></dt>
+<dd><p>Return maybe modified slice and post-slice slicing for <cite>slicer</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>slicer</strong><span class="classifier">slice object or int</span></dt><dd></dd>
+<dt><strong>dim_len</strong><span class="classifier">int</span></dt><dd><p>length of axis along which to slice</p>
+</dd>
+<dt><strong>all_full</strong><span class="classifier">bool</span></dt><dd><p>Whether dimensions up until now have been full (all elements)</p>
+</dd>
+<dt><strong>is_slowest</strong><span class="classifier">bool</span></dt><dd><p>Whether this dimension is the slowest changing in memory / on disk</p>
+</dd>
+<dt><strong>stride</strong><span class="classifier">int</span></dt><dd><p>size of one step along this axis</p>
+</dd>
+<dt><strong>heuristic</strong><span class="classifier">callable, optional</span></dt><dd><p>function taking slice object, dim_len, stride length as arguments,
+returning one of ‘full’, ‘contiguous’, None. See
+<a class="reference internal" href="#nibabel.fileslice.threshold_heuristic" title="nibabel.fileslice.threshold_heuristic"><code class="xref py py-func docutils literal notranslate"><span class="pre">threshold_heuristic()</span></code></a> for an example.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>to_read</strong><span class="classifier">slice object or int</span></dt><dd><p>maybe modified slice based on <cite>slicer</cite> expressing what data should be
+read from an underlying file or buffer. <cite>to_read</cite> must always have
+positive <code class="docutils literal notranslate"><span class="pre">step</span></code> (because we don’t want to go backwards in the buffer
+/ file)</p>
+</dd>
+<dt><strong>post_slice</strong><span class="classifier">slice object</span></dt><dd><p>slice to be applied after array has been read.  Applies any
+transformations in <cite>slicer</cite> that have not been applied in <cite>to_read</cite>. If
+axis will be dropped by <cite>to_read</cite> slicing, so no slicing would make
+sense, return string <code class="docutils literal notranslate"><span class="pre">dropped</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This is the heart of the algorithm for making segments from slice objects.</p>
+<p>A contiguous slice is a slice with <code class="docutils literal notranslate"><span class="pre">slice.step</span> <span class="pre">in</span> <span class="pre">(1,</span> <span class="pre">-1)</span></code></p>
+<p>A full slice is a continuous slice returning all elements.</p>
+<p>The main question we have to ask is whether we should transform <cite>to_read</cite>,
+<cite>post_slice</cite> to prefer a full read and partial slice.  We only do this in
+the case of all_full==True.  In this case we might benefit from reading a
+continuous chunk of data even if the slice is not continuous, or reading
+all the data even if the slice is not full. Apply a heuristic <cite>heuristic</cite>
+to decide whether to do this, and adapt <cite>to_read</cite> and <cite>post_slice</cite> slice
+accordingly.</p>
+<p>Otherwise (apart from constraint to be positive) return <cite>to_read</cite> unaltered
+and <cite>post_slice</cite> as <code class="docutils literal notranslate"><span class="pre">slice(None)</span></code></p>
+</dd></dl>
+
+</section>
+<section id="predict-shape">
+<h2>predict_shape<a class="headerlink" href="#predict-shape" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.predict_shape">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">predict_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.predict_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Predict shape of array from slicing array shape <cite>shape</cite> with <cite>sliceobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code></p>
+</dd>
+<dt><strong>in_shape</strong><span class="classifier">sequence</span></dt><dd><p>shape of array that could be sliced by <cite>sliceobj</cite></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out_shape</strong><span class="classifier">tuple</span></dt><dd><p>predicted shape arising from slicing array shape <cite>in_shape</cite> with
+<cite>sliceobj</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="read-segments">
+<h2>read_segments<a class="headerlink" href="#read-segments" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.read_segments">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">read_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.read_segments" title="Link to this definition">¶</a></dt>
+<dd><p>Read <cite>n_bytes</cite> byte data implied by <cite>segments</cite> from <cite>fileobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like object</span></dt><dd><p>Implements <cite>seek</cite> and <cite>read</cite></p>
+</dd>
+<dt><strong>segments</strong><span class="classifier">sequence</span></dt><dd><p>list of 2 sequences where sequences are (offset, length), giving
+absolute file offset in bytes and number of bytes to read</p>
+</dd>
+<dt><strong>n_bytes</strong><span class="classifier">int</span></dt><dd><p>total number of bytes that will be read</p>
+</dd>
+<dt><strong>lock</strong><span class="classifier">{None, threading.Lock, lock-like} optional</span></dt><dd><p>If provided, used to ensure that paired calls to <code class="docutils literal notranslate"><span class="pre">seek</span></code> and <code class="docutils literal notranslate"><span class="pre">read</span></code>
+cannot be interrupted by another thread accessing the same <code class="docutils literal notranslate"><span class="pre">fileobj</span></code>.
+Each thread which accesses the same file via <code class="docutils literal notranslate"><span class="pre">read_segments</span></code> must
+share a lock in order to ensure that the file access is thread-safe.
+A lock does not need to be provided for single-threaded access. The
+default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) results in a lock-like object  (a
+<code class="docutils literal notranslate"><span class="pre">_NullLock</span></code>) which does not do anything.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>buffer</strong><span class="classifier">buffer object</span></dt><dd><p>object implementing buffer protocol, such as byte string or ndarray or
+mmap or ctypes <code class="docutils literal notranslate"><span class="pre">c_char_array</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="slice2len">
+<h2>slice2len<a class="headerlink" href="#slice2len" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.slice2len">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">slice2len</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slicer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_len</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.slice2len" title="Link to this definition">¶</a></dt>
+<dd><p>Output length after slicing original length <cite>in_len</cite> with <cite>slicer</cite>
+Parameters
+———-
+slicer : slice object
+in_len : int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>out_len</strong><span class="classifier">int</span></dt><dd><p>Length after slicing</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Returns same as <code class="docutils literal notranslate"><span class="pre">len(np.arange(in_len)[slicer])</span></code></p>
+</dd></dl>
+
+</section>
+<section id="slice2outax">
+<h2>slice2outax<a class="headerlink" href="#slice2outax" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.slice2outax">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">slice2outax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ndim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sliceobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.slice2outax" title="Link to this definition">¶</a></dt>
+<dd><p>Matching output axes for input array ndim <cite>ndim</cite> and slice <cite>sliceobj</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ndim</strong><span class="classifier">int</span></dt><dd><p>number of axes in input array</p>
+</dd>
+<dt><strong>sliceobj</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>out_ax_inds</strong><span class="classifier">tuple</span></dt><dd><p>Say <code class="docutils literal notranslate"><span class="pre">A`</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">(pretend)</span> <span class="pre">input</span> <span class="pre">array</span> <span class="pre">of</span> <span class="pre">`ndim`</span> <span class="pre">dimensions.</span> <span class="pre">Say</span> <span class="pre">``B</span> <span class="pre">=</span>
+<span class="pre">A[sliceobj]</span></code>.  <cite>out_ax_inds</cite> has one value per axis in <code class="docutils literal notranslate"><span class="pre">A</span></code> giving
+corresponding axis in <code class="docutils literal notranslate"><span class="pre">B</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="slicers2segments">
+<h2>slicers2segments<a class="headerlink" href="#slicers2segments" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.slicers2segments">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">slicers2segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">read_slicers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itemsize</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.slicers2segments" title="Link to this definition">¶</a></dt>
+<dd><p>Get segments from <cite>read_slicers</cite> given <cite>in_shape</cite> and memory steps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>read_slicers</strong><span class="classifier">object</span></dt><dd><p>something that can be used to slice an array as in <code class="docutils literal notranslate"><span class="pre">arr[sliceobj]</span></code>
+Slice objects can by be assumed canonical as in <code class="docutils literal notranslate"><span class="pre">canonical_slicers</span></code>,
+and positive as in <code class="docutils literal notranslate"><span class="pre">_positive_slice</span></code></p>
+</dd>
+<dt><strong>in_shape</strong><span class="classifier">sequence</span></dt><dd><p>shape of underlying array on disk before reading</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier">int</span></dt><dd><p>offset of array data in underlying file or memory buffer</p>
+</dd>
+<dt><strong>itemsize</strong><span class="classifier">int</span></dt><dd><p>element size in array (in bytes)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>segments</strong><span class="classifier">list</span></dt><dd><p>list of 2 element lists where lists are [offset, length], giving
+absolute memory offset in bytes and number of bytes to read</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="strided-scalar">
+<h2>strided_scalar<a class="headerlink" href="#strided-scalar" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.strided_scalar">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">strided_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.strided_scalar" title="Link to this definition">¶</a></dt>
+<dd><p>Return array shape <cite>shape</cite> where all entries point to value <cite>scalar</cite></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape</strong><span class="classifier">sequence</span></dt><dd><p>Shape of output array.</p>
+</dd>
+<dt><strong>scalar</strong><span class="classifier">scalar</span></dt><dd><p>Scalar value with which to fill array.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>strided_arr</strong><span class="classifier">array</span></dt><dd><p>Array of shape <cite>shape</cite> for which all values == <cite>scalar</cite>, built by
+setting all strides of <cite>strided_arr</cite> to 0, so the scalar is broadcast
+out to the full array <cite>shape</cite>. <cite>strided_arr</cite> is flagged as not
+<cite>writeable</cite>.</p>
+<p>The array is set read-only to avoid a numpy error when broadcasting -
+see <a class="reference external" href="https://github.com/numpy/numpy/issues/6491">https://github.com/numpy/numpy/issues/6491</a></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="threshold-heuristic">
+<h2>threshold_heuristic<a class="headerlink" href="#threshold-heuristic" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.fileslice.threshold_heuristic">
+<span class="sig-prename descclassname"><span class="pre">nibabel.fileslice.</span></span><span class="sig-name descname"><span class="pre">threshold_heuristic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slicer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.fileslice.threshold_heuristic" title="Link to this definition">¶</a></dt>
+<dd><p>Whether to force full axis read or contiguous read of stepped slice</p>
+<p>Allows <a class="reference internal" href="#nibabel.fileslice.fileslice" title="nibabel.fileslice.fileslice"><code class="xref py py-func docutils literal notranslate"><span class="pre">fileslice()</span></code></a> to sometimes read memory that it will throw away
+in order to get maximum speed.  In other words, trade memory for fewer disk
+reads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>slicer</strong><span class="classifier">slice object, or int</span></dt><dd><p>If slice, can be assumed to be full as in <code class="docutils literal notranslate"><span class="pre">fill_slicer</span></code></p>
+</dd>
+<dt><strong>dim_len</strong><span class="classifier">int</span></dt><dd><p>length of axis being sliced</p>
+</dd>
+<dt><strong>stride</strong><span class="classifier">int</span></dt><dd><p>memory distance between elements on this axis</p>
+</dd>
+<dt><strong>skip_thresh</strong><span class="classifier">int, optional</span></dt><dd><p>Memory gap threshold in bytes above which to prefer skipping memory
+rather than reading it and later discarding.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>action</strong><span class="classifier">{‘full’, ‘contiguous’, None}</span></dt><dd><p>Gives the suggested optimization for reading the data</p>
+<ul class="simple">
+<li><p>‘full’ - read whole axis</p></li>
+<li><p>‘contiguous’ - read all elements between start and stop</p></li>
+<li><p>None - read only memory needed for output</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Let’s say we are in the middle of reading a file at the start of some
+memory length <span class="math notranslate nohighlight">\(B\)</span> bytes.  We don’t need the memory, and we are considering
+whether to read it anyway (then throw it away) (READ) or stop reading, skip
+<span class="math notranslate nohighlight">\(B\)</span> bytes and restart reading from there (SKIP).</p>
+<p>After trying some more fancy algorithms, a hard threshold (<cite>skip_thresh</cite>)
+for the maximum skip distance seemed to work well, as measured by times on
+<code class="docutils literal notranslate"><span class="pre">nibabel.benchmarks.bench_fileslice</span></code></p>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Copyright and Licenses" href="legal.html" />
+    <link rel="prev" title="Working with NIfTI images" href="nifti_images.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="legal.html" title="Copyright and Licenses"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nifti_images.html" title="Working with NIfTI images"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="manual.html" accesskey="U">NiBabel Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nifti_images.html"
+                          title="previous chapter">Working with NIfTI images</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="legal.html"
+                          title="next chapter">Copyright and Licenses</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/image_orientation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-voxel-orientation">
+<h1>Image voxel orientation<a class="headerlink" href="#image-voxel-orientation" title="Link to this heading">¶</a></h1>
+<p>It is sometimes useful to know the approximate world-space orientations of the
+image voxel axes.</p>
+<p>See <a class="reference internal" href="coordinate_systems.html"><span class="doc">Coordinate systems and affines</span></a> for background on voxel and world axes.</p>
+<p>For example, let’s say we had an image with an identity affine:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>  <span class="c1"># identity affine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">voxel_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">voxel_data</span><span class="p">,</span> <span class="n">affine</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Because the affine is an identity affine, the voxel axes align with the world
+axes.  By convention, nibabel world axes are always in RAS+ orientation (left
+to Right, posterior to Anterior, inferior to Superior).</p>
+<p>Let’s say we took a single line of voxels along the first voxel axis:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">single_line_axis_0</span> <span class="o">=</span> <span class="n">voxel_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The first voxel axis is aligned to the left to Right world axes.  This means
+that the first voxel is towards the left of the world, and the last voxel is
+towards the right of the world.</p>
+<p>Here is a single line in the second axis:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">single_line_axis_1</span> <span class="o">=</span> <span class="n">voxel_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The first voxel in this line is towards the posterior of the world, and the
+last towards the anterior.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">single_line_axis_2</span> <span class="o">=</span> <span class="n">voxel_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+</pre></div>
+</div>
+<p>The first voxel in this line is towards the inferior of the world, and the
+last towards the superior.</p>
+<p>This image therefore has RAS+ <em>voxel</em> axes.</p>
+<p>In other cases, it is not so obvious what the orientations of the axes are.
+For example, here is our example NIfTI 1 file again:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.testing</span> <span class="kn">import</span> <span class="n">data_path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is the affine (to two digits decimal precision):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[ -2.  ,   0.  ,   0.  , 117.86],</span>
+<span class="go">       [ -0.  ,   1.97,  -0.36, -35.72],</span>
+<span class="go">       [  0.  ,   0.32,   2.17,  -7.25],</span>
+<span class="go">       [  0.  ,   0.  ,   0.  ,   1.  ]])</span>
+</pre></div>
+</div>
+<p>What are the orientations of the voxel axes here?</p>
+<p>Nibabel has a routine to tell you, called <code class="docutils literal notranslate"><span class="pre">aff2axcodes</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+<span class="go">(&#39;L&#39;, &#39;A&#39;, &#39;S&#39;)</span>
+</pre></div>
+</div>
+<p>The voxel orientations are nearest to:</p>
+<ol class="arabic simple">
+<li><p>First voxel axis goes from right to Left;</p></li>
+<li><p>Second voxel axis goes from posterior to Anterior;</p></li>
+<li><p>Third voxel axis goes from inferior to Superior.</p></li>
+</ol>
+<p>Sometimes you may want to rearrange the image voxel axes to make them as close
+as possible to RAS+ orientation.  We refer to this voxel orientation as
+<em>canonical</em> voxel orientation, because RAS+ is our canonical world
+orientation. Rearranging the voxel axes means reversing and / or reordering
+the voxel axes.</p>
+<p>You can do the arrangement with <code class="docutils literal notranslate"><span class="pre">as_closest_canonical</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">canonical_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">as_closest_canonical</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">canonical_img</span><span class="o">.</span><span class="n">affine</span>
+<span class="go">array([[   2.  ,    0.  ,    0.  , -136.14],</span>
+<span class="go">       [   0.  ,    1.97,   -0.36,  -35.72],</span>
+<span class="go">       [  -0.  ,    0.32,    2.17,   -7.25],</span>
+<span class="go">       [   0.  ,    0.  ,    0.  ,    1.  ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">aff2axcodes</span><span class="p">(</span><span class="n">canonical_img</span><span class="o">.</span><span class="n">affine</span><span class="p">)</span>
+<span class="go">(&#39;R&#39;, &#39;A&#39;, &#39;S&#39;)</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <script src="../../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="BIAP7 - Loading multiple images" href="biap_0007.html" />
+    <link rel="prev" title="BIAP5 - A streamlines converter" href="biap_0005.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biap_0007.html" title="BIAP7 - Loading multiple images"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biap_0005.html" title="BIAP5 - A streamlines converter"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">BIAPs</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BIAP6 - Identifying image axes</a><ul>
+<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#time-axis-as-the-fourth-axis">Time axis as the fourth axis</a></li>
+<li><a class="reference internal" href="#images-can-have-more-than-four-axes">Images can have more than four axes</a></li>
+<li><a class="reference internal" href="#the-current-nibabel-convention">The current nibabel convention</a></li>
+<li><a class="reference internal" href="#distinguishing-time-and-volume">Distinguishing time and volume</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#possible-solutions-to-finding-axes">Possible solutions to finding axes</a><ul>
+<li><a class="reference internal" href="#general-solution-associating-axes-and-labels">General solution: associating axes and labels</a></li>
+<li><a class="reference internal" href="#using-convention-enforcing-time-as-4th-axis">Using convention : enforcing time as 4th axis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biap_0005.html"
+                          title="previous chapter">BIAP5 - A streamlines converter</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biap_0007.html"
+                          title="next chapter">BIAP7 - Loading multiple images</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/devel/biaps/biap_0006.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="biap6-identifying-image-axes">
+<span id="biap6"></span><h1>BIAP6 - Identifying image axes<a class="headerlink" href="#biap6-identifying-image-axes" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Matthew Brett</p>
+</dd>
+<dt class="field-even">Status<span class="colon">:</span></dt>
+<dd class="field-even"><p>Draft</p>
+</dd>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Standards</p>
+</dd>
+<dt class="field-even">Created<span class="colon">:</span></dt>
+<dd class="field-even"><p>2015-07-11</p>
+</dd>
+</dl>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p>Image axes can have meaningful labels.</p>
+<p>For example in a typical 4D NIfTI file, as we move along the 4th dimension in
+the image array, we are also moving in time.  For example, this would be the
+first volume (in time):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">nibabel</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;my_4d.nii&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+<span class="n">vol0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>and this would be second volume in time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">vol1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>It would therefore be reasonable to label the 4th axis of this image as ‘time’
+or ‘t’.</p>
+<p>We need to know which axis is the “time” axis for many reasons, including
+being able to select whole image volumes to align during motion correction,
+and doing spatial smoothing, where we want to avoid smoothing along the time
+dimension.</p>
+<p>It is common to acquire MRI images one slice at a time.  In a 3D or 4D NIfTI,
+the 3rd axis often contains these slices.  So this these would be the first
+and second slices of data collected by the scanner:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">slice0</span> <span class="o">=</span> <span class="n">vol0</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">slice1</span> <span class="o">=</span> <span class="n">vol0</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In this case we might refer to the 3rd axis as the “slice” axis.  We might
+care about knowing the “slice” axis, because we do processing specific to the
+slice axis, such as slice-timing correction.</p>
+<p>For an individual 2D slice, MRI physicists distinguish between the image axis
+encoded during a single continual readout of the signal (frequency encoding
+direction) and the image axis encoded in a series of stepwise changes in the
+phase encode gradient (phase encoding direction).  We care about the phase
+encoding direction because we usually correct for image distortion only along
+this direction.</p>
+<p>Let us say that the first axis is the frequency encoding axis, and the second
+is the phase encoding axis.  Now we can label all four of our axes:</p>
+<ul class="simple">
+<li><p>“frequency”;</p></li>
+<li><p>“phase”;</p></li>
+<li><p>“slice”;</p></li>
+<li><p>“time”.</p></li>
+</ul>
+<p>In fact the NIfTI format can store this information.  NIfTI specifies that the
+fourth image dimension should have units in terms of time (seconds), frequency
+(Hertz, radians per second) or concentration (parts per million), where the
+value difference between elements on the fourth axis is in
+<code class="docutils literal notranslate"><span class="pre">img.header['pixdim'][4]</span></code>, and the units of this difference are available in
+<code class="docutils literal notranslate"><span class="pre">img.header['xyzt_units']</span></code>.  The field <code class="docutils literal notranslate"><span class="pre">img.header['dim_info']</span></code> can
+identify the frequency, phase and slice-encoding axes.</p>
+<section id="time-axis-as-the-fourth-axis">
+<h3>Time axis as the fourth axis<a class="headerlink" href="#time-axis-as-the-fourth-axis" title="Link to this heading">¶</a></h3>
+<p>In the NIfTI standard, time must be the fourth dimension.</p>
+<p>In fact, the NIfTI standard specifies that the fourth axis <em>must</em> be time.  If
+we want to store more than one volume that do not differ across time, then we
+have to set the 4th dimension to be length 1, and have 5th dimension have
+length &gt; 1.  Quoting from the standard:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="n">NIFTI</span><span class="o">-</span><span class="mi">1</span> <span class="n">files</span><span class="p">,</span> <span class="n">dimensions</span> <span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span> <span class="n">are</span> <span class="k">for</span> <span class="n">space</span><span class="p">,</span> <span class="n">dimension</span> <span class="mi">4</span> <span class="ow">is</span> <span class="k">for</span> <span class="n">time</span><span class="p">,</span>
+<span class="ow">and</span> <span class="n">dimension</span> <span class="mi">5</span> <span class="ow">is</span> <span class="k">for</span> <span class="n">storing</span> <span class="n">multiple</span> <span class="n">values</span> <span class="n">at</span> <span class="n">each</span> <span class="n">spatiotemporal</span>
+<span class="n">voxel</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>This arrangement happens in practice.  For example, SPM deformation fields
+have three values for each voxel (x, y, z displacement), and have shape (I, J,
+K, 1, 3):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;y_highres001.nii&#39;</span><span class="p">)</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="p">(</span><span class="mi">121</span><span class="p">,</span> <span class="mi">145</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So, for correctly written NIfTI images, we can identify time by the fact that
+it is the fourth axis.</p>
+<p>MGH format also appears to use the fourth dimension for time. The dimensions
+are listed in order <code class="docutils literal notranslate"><span class="pre">width,</span> <span class="pre">height,</span> <span class="pre">depth,</span> <span class="pre">nframes</span></code> and “frames” is always
+the slowest changing dimension in the image data buffer. Of course, in numpy,
+this does not tell us which axis this must be in the returned array, but at
+least the <code class="docutils literal notranslate"><span class="pre">load_mgh.m</span></code> MATLAB function (see <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat">MGH format</a>) returns the frame
+axis as the last axis, as does nibabel.</p>
+<p>The ECAT and PAR / REC formats seem to be primarily based on and stored as
+slices (2D arrays) which can then be concatenated to form volumes, implying a
+slowest-changing axis of volume.  Nibabel currently arranges PAR images with
+volume as the 4th and last axis.</p>
+<p>On the other hand, the MINC format:</p>
+<ol class="arabic">
+<li><p>gives specific names to the image data axes so we can directly find the
+time axis</p></li>
+<li><p>expects (given the common ordering of these names in MINC files) that the
+time axis will be first:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">31</span><span class="p">]:</span> <span class="n">mnc2</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;nibabel/tests/data/minc2_4d.mnc&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)[</span><span class="s1">&#39;minc-2.0&#39;</span><span class="p">]</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">32</span><span class="p">]:</span> <span class="n">mnc2</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">32</span><span class="p">]:</span>
+<span class="p">[</span><span class="o">&lt;</span><span class="n">HDF5</span> <span class="n">dataset</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">shape</span> <span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="nb">type</span> <span class="s2">&quot;&lt;f8&quot;</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="o">&lt;</span><span class="n">HDF5</span> <span class="n">dataset</span> <span class="s2">&quot;xspace&quot;</span><span class="p">:</span> <span class="n">shape</span> <span class="p">(),</span> <span class="nb">type</span> <span class="s2">&quot;&lt;i4&quot;</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="o">&lt;</span><span class="n">HDF5</span> <span class="n">dataset</span> <span class="s2">&quot;yspace&quot;</span><span class="p">:</span> <span class="n">shape</span> <span class="p">(),</span> <span class="nb">type</span> <span class="s2">&quot;&lt;i4&quot;</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="o">&lt;</span><span class="n">HDF5</span> <span class="n">dataset</span> <span class="s2">&quot;zspace&quot;</span><span class="p">:</span> <span class="n">shape</span> <span class="p">(),</span> <span class="nb">type</span> <span class="s2">&quot;&lt;i4&quot;</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>This reflects MINC’s lineage as C-library, where the C convention is for the
+first axis in an array is the slowest changing. <code class="docutils literal notranslate"><span class="pre">arr[0]</span></code> in a C-convention
+4D array would be the first volume, where time (volume) is the slowest
+changing axis.</p>
+<p>MINC2 uses HDF5 storage, and HDF5 uses C storage order for standard contiguous
+arrays on disk - see “7.3.2.5. C versus Fortran Dataspaces” in <a class="reference external" href="http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html">chapter 7 of
+the HDF5 user guide</a>.</p>
+<p>BrainVoyager <a class="reference external" href="STCformatdefinition">STC</a> files store data in (fastest to
+slowest changing) order: columns (of slice); rows (of slice); time; slice.  The
+<a class="reference external" href="VTCformatdefinition">VTC</a> stores the data in the (fast to slow) order:
+time; Anterior-&gt;Posterior; Superior-&gt;Inferior; Left-&gt;Right.</p>
+</section>
+<section id="images-can-have-more-than-four-axes">
+<h3>Images can have more than four axes<a class="headerlink" href="#images-can-have-more-than-four-axes" title="Link to this heading">¶</a></h3>
+<p>We’ve already seen the example of NIfTI images where the 4th axis is length 1
+and the 5th axis is length 3, encoding a deformation field.</p>
+<p>This is a trick NIfTI uses to allow us to identify the “time” axis.</p>
+<p>We can also have (rarely) images of 5D, where the time axis has length &gt; 1.
+For example, some MR acquisitions take two echoes per time point, so we might
+have an image of shape (64, 64, 32, 200, 2), where the fourth axis is time and
+the fifth axis is echo number.</p>
+</section>
+<section id="the-current-nibabel-convention">
+<h3>The current nibabel convention<a class="headerlink" href="#the-current-nibabel-convention" title="Link to this heading">¶</a></h3>
+<p>The nibabel rule of thumb has been that, when we return an image array, it
+should be in the order described in the format’s user documentation.</p>
+<p>So, for NIfTI format images, the image dimension sizes are listed in fastest
+to slowest changing order, implying that the expected array to be returned
+will have that same axis order.  Time is always the fourth (rather than the
+first) dimension of a 4D NIfTI.  Nibabel NIfTI images return the array in that
+order, and the time / volume axis is the last in a 4D nibabel NIfTI image
+array.</p>
+<p>On the other hand MINC clearly expects that the axes will be returned in the
+order the axes are listed in the MINC file.  This is also (usually) the
+slowest-to-fastest changing order in the underlying file, and by convention,
+the first axis is the time axis.  Nibabel MINC images return the array in this
+same order with the time / volume axis first, but in general it returns the
+array with the axes in the order listed in the MINC file.</p>
+<p>We don’t currently have BrainVoyager support, so this will be a decision we
+have to make before finalizing the API.</p>
+</section>
+<section id="distinguishing-time-and-volume">
+<h3>Distinguishing time and volume<a class="headerlink" href="#distinguishing-time-and-volume" title="Link to this heading">¶</a></h3>
+<p>A <em>volume</em> is a complete set of slices making up one brain image.</p>
+<p>In NIfTI:</p>
+<ul class="simple">
+<li><p>3D image: volume == image array i.e. <code class="docutils literal notranslate"><span class="pre">arr[:,</span> <span class="pre">:,</span> <span class="pre">:]</span></code>;</p></li>
+<li><p>&gt; 3D image: volume == a single slice over the final dim &gt; 3 dimensions
+e.g.: <code class="docutils literal notranslate"><span class="pre">arr[:,</span> <span class="pre">:,</span> <span class="pre">:,</span> <span class="pre">2]</span></code> (4D); <code class="docutils literal notranslate"><span class="pre">arr[:,</span> <span class="pre">:,</span> <span class="pre">:,</span> <span class="pre">0,</span> <span class="pre">3]</span></code> (5D).</p></li>
+</ul>
+<p>We saw above that the MGH format refers to a volume (in our sense) as a
+<em>frame</em>.  ECAT has the same usage - a frame is a 3D volume. The fmristat
+software uses frame in the same sense, e.g., <a class="reference external" href="https://github.com/matthew-brett/fmristat/blob/64ad8bf/fmristat/example.m#L32">line 32 of example.m</a>.</p>
+<p>Unfortunately DICOM appears to use “frame” to mean a 2D slice.  For example,
+here is the definition of a “multi-frame image”:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">3.8.9</span> <span class="n">Multi</span><span class="o">-</span><span class="n">frame</span> <span class="n">image</span><span class="p">:</span>
+    <span class="n">Image</span> <span class="n">that</span> <span class="n">contains</span> <span class="n">multiple</span> <span class="n">two</span><span class="o">-</span><span class="n">dimensional</span> <span class="n">pixel</span> <span class="n">planes</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>From <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3 of the 2011 DICOM standard</a>.</p>
+</section>
+</section>
+<section id="possible-solutions-to-finding-axes">
+<h2>Possible solutions to finding axes<a class="headerlink" href="#possible-solutions-to-finding-axes" title="Link to this heading">¶</a></h2>
+<p>A general solution for finding axes would be to attach axis labels to the
+returned image data array, or to the image object.</p>
+<p>A less general solution would be to identify the time axis by convention - say
+- by being the fourth axis in a 4D array.</p>
+<p>Finding the time axis is an urgent problem, because we are currently
+considering utility routines for (spatial) smoothing, and viewing images, that
+need to know which axis is time.</p>
+<section id="general-solution-associating-axes-and-labels">
+<h3>General solution: associating axes and labels<a class="headerlink" href="#general-solution-associating-axes-and-labels" title="Link to this heading">¶</a></h3>
+<p>Possible options:</p>
+<ul class="simple">
+<li><p>Add a property <cite>time_axis_index</cite> to the image class.  This always returns 3
+(4th axis) for images other than MINC.  For MINC, it returns the index of
+the image dimension labeled <code class="docutils literal notranslate"><span class="pre">time</span></code>;</p></li>
+<li><p>Add a property <cite>axis_labels</cite> to the image class.  By default, most image
+types return <cite>‘i’, ‘j’, ‘k’, ‘time’</cite>.  MINC returns the image dimension
+labels;</p></li>
+<li><p>Copy or depend on <a class="reference external" href="https://pypi.python.org/pypi/datarray">datarray</a> (no other dependencies) or <cite>xray</cite> (depends on
+Pandas).  Use these to attach labels directly to the image data array axes.
+These labels could then be preserved through operations like slicing.</p></li>
+</ul>
+</section>
+<section id="using-convention-enforcing-time-as-4th-axis">
+<h3>Using convention : enforcing time as 4th axis<a class="headerlink" href="#using-convention-enforcing-time-as-4th-axis" title="Link to this heading">¶</a></h3>
+<p>This solution could be implemented as well as the solution using labels.</p>
+<p>At the moment, we can always identify the time axis in the NIfTI file, because
+it is the 4th axis in the returned image.</p>
+<p>This is probably so for:</p>
+<ul class="simple">
+<li><p>PAR/REC</p></li>
+<li><p>ECAT</p></li>
+<li><p>MGH</p></li>
+</ul>
+<p>but not so for MINC1 or MINC2, where time is typically (?always) the first
+axis.</p>
+<p>One option would be to make a new MINC1, MINC2 image class that reorders the
+MINC axes to have time last.  Call these new classes <cite>NiMINC1, NiMINC2</cite>.</p>
+<p>In order to avoid surprise, we continue to return MINC1, MINC2 class images
+from <cite>nibabel.load</cite>, but give a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> when doing this, saying
+that the default load will change in future versions of nibabel, and
+suggesting the <cite>as_niminc=True</cite> keyword-only argument to load, defaulting to
+<cite>as_niminc=False</cite> (giving the current nibabel behavior).</p>
+<p>In Nibabel 3.0, we require the <cite>as_niminc</cite> keyword argument.</p>
+<p>In Nibabel 4.0, we default to <cite>as_niminc=True</cite>.</p>
+<p>We would still have to deal with MINC1, MINC2 images in memory - and therefore
+cannot in general assume that the fourth dimension of any image data array is
+time.  In order to deal with this, routines that need to know the time
+dimension would have to check whether they were dealing with MINC1, MINC2,
+which ends up being similar to the <cite>time_axis_index</cite> option above.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

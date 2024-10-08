@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="optpkg" href="nibabel.optpkg.html" />
+    <link rel="prev" title="onetime" href="nibabel.onetime.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.optpkg.html" title="optpkg"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.onetime.html" title="onetime"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a><ul>
+<li><a class="reference internal" href="#deterministicgzipfile"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeterministicGzipFile</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.DeterministicGzipFile"><code class="docutils literal notranslate"><span class="pre">DeterministicGzipFile</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.DeterministicGzipFile.__init__"><code class="docutils literal notranslate"><span class="pre">DeterministicGzipFile.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fileish"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fileish</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.Fileish"><code class="docutils literal notranslate"><span class="pre">Fileish</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.Fileish.__init__"><code class="docutils literal notranslate"><span class="pre">Fileish.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Fileish.read"><code class="docutils literal notranslate"><span class="pre">Fileish.read()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Fileish.write"><code class="docutils literal notranslate"><span class="pre">Fileish.write()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#imageopener"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOpener</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.ImageOpener"><code class="docutils literal notranslate"><span class="pre">ImageOpener</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.ImageOpener.__init__"><code class="docutils literal notranslate"><span class="pre">ImageOpener.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.ImageOpener.compress_ext_map"><code class="docutils literal notranslate"><span class="pre">ImageOpener.compress_ext_map</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#opener"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opener</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.Opener"><code class="docutils literal notranslate"><span class="pre">Opener</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.openers.Opener.__init__"><code class="docutils literal notranslate"><span class="pre">Opener.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.bz2_def"><code class="docutils literal notranslate"><span class="pre">Opener.bz2_def</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.close"><code class="docutils literal notranslate"><span class="pre">Opener.close()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.close_if_mine"><code class="docutils literal notranslate"><span class="pre">Opener.close_if_mine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.closed"><code class="docutils literal notranslate"><span class="pre">Opener.closed</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.compress_ext_icase"><code class="docutils literal notranslate"><span class="pre">Opener.compress_ext_icase</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.compress_ext_map"><code class="docutils literal notranslate"><span class="pre">Opener.compress_ext_map</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.default_compresslevel"><code class="docutils literal notranslate"><span class="pre">Opener.default_compresslevel</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.default_level_or_option"><code class="docutils literal notranslate"><span class="pre">Opener.default_level_or_option</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.default_zst_compresslevel"><code class="docutils literal notranslate"><span class="pre">Opener.default_zst_compresslevel</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.fileno"><code class="docutils literal notranslate"><span class="pre">Opener.fileno()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.fobj"><code class="docutils literal notranslate"><span class="pre">Opener.fobj</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.gz_def"><code class="docutils literal notranslate"><span class="pre">Opener.gz_def</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.mode"><code class="docutils literal notranslate"><span class="pre">Opener.mode</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.name"><code class="docutils literal notranslate"><span class="pre">Opener.name</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.read"><code class="docutils literal notranslate"><span class="pre">Opener.read()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.readinto"><code class="docutils literal notranslate"><span class="pre">Opener.readinto()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.seek"><code class="docutils literal notranslate"><span class="pre">Opener.seek()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.tell"><code class="docutils literal notranslate"><span class="pre">Opener.tell()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.write"><code class="docutils literal notranslate"><span class="pre">Opener.write()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.openers.Opener.zstd_def"><code class="docutils literal notranslate"><span class="pre">Opener.zstd_def</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.onetime.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.optpkg.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.openers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.openers">
+<span id="openers"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code><a class="headerlink" href="#module-nibabel.openers" title="Link to this heading">¶</a></h1>
+<p>Context manager openers for various fileobject types</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.openers.DeterministicGzipFile" title="nibabel.openers.DeterministicGzipFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DeterministicGzipFile</span></code></a>([filename, mode, ...])</p></td>
+<td><p>Deterministic variant of GzipFile</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.openers.Fileish" title="nibabel.openers.Fileish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Fileish</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.openers.ImageOpener" title="nibabel.openers.ImageOpener"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImageOpener</span></code></a>(fileish, *args, **kwargs)</p></td>
+<td><p>Opener-type class to collect extra compressed extensions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.openers.Opener" title="nibabel.openers.Opener"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Opener</span></code></a>(fileish, *args, **kwargs)</p></td>
+<td><p>Class to accept, maybe open, and context-manage file-likes / filenames</p></td>
+</tr>
+</tbody>
+</table>
+<section id="deterministicgzipfile">
+<h2><a class="reference internal" href="#nibabel.openers.DeterministicGzipFile" title="nibabel.openers.DeterministicGzipFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeterministicGzipFile</span></code></a><a class="headerlink" href="#deterministicgzipfile" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.openers.DeterministicGzipFile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.openers.</span></span><span class="sig-name descname"><span class="pre">DeterministicGzipFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mode</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compresslevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.FileIO" title="(in Python v3.13)"><span class="pre">io.FileIO</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mtime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.DeterministicGzipFile" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/gzip.html#gzip.GzipFile" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">GzipFile</span></code></a></p>
+<p>Deterministic variant of GzipFile</p>
+<p>This writer does not add filename information to the header, and defaults
+to a modification time (<code class="docutils literal notranslate"><span class="pre">mtime</span></code>) of 0 seconds.</p>
+<p>Constructor for the GzipFile class.</p>
+<p>At least one of fileobj and filename must be given a
+non-trivial value.</p>
+<p>The new class instance is based on fileobj, which can be a regular
+file, an io.BytesIO object, or any other object which simulates a file.
+It defaults to None, in which case filename is opened to provide
+a file object.</p>
+<p>When fileobj is not None, the filename argument is only used to be
+included in the gzip file header, which may include the original
+filename of the uncompressed file.  It defaults to the filename of
+fileobj, if discernible; otherwise, it defaults to the empty string,
+and in this case the original filename is not included in the header.</p>
+<p>The mode argument can be any of ‘r’, ‘rb’, ‘a’, ‘ab’, ‘w’, ‘wb’, ‘x’, or
+‘xb’ depending on whether the file will be read or written.  The default
+is the mode of fileobj if discernible; otherwise, the default is ‘rb’.
+A mode of ‘r’ is equivalent to one of ‘rb’, and similarly for ‘w’ and
+‘wb’, ‘a’ and ‘ab’, and ‘x’ and ‘xb’.</p>
+<p>The compresslevel argument is an integer from 0 to 9 controlling the
+level of compression; 1 is fastest and produces the least compression,
+and 9 is slowest and produces the most compression. 0 is no compression
+at all. The default is 9.</p>
+<p>The mtime argument is an optional numeric timestamp to be written
+to the last modification time field in the stream when compressing.
+If omitted or None, the current time is used.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.DeterministicGzipFile.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mode</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compresslevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.FileIO" title="(in Python v3.13)"><span class="pre">io.FileIO</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mtime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.DeterministicGzipFile.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Constructor for the GzipFile class.</p>
+<p>At least one of fileobj and filename must be given a
+non-trivial value.</p>
+<p>The new class instance is based on fileobj, which can be a regular
+file, an io.BytesIO object, or any other object which simulates a file.
+It defaults to None, in which case filename is opened to provide
+a file object.</p>
+<p>When fileobj is not None, the filename argument is only used to be
+included in the gzip file header, which may include the original
+filename of the uncompressed file.  It defaults to the filename of
+fileobj, if discernible; otherwise, it defaults to the empty string,
+and in this case the original filename is not included in the header.</p>
+<p>The mode argument can be any of ‘r’, ‘rb’, ‘a’, ‘ab’, ‘w’, ‘wb’, ‘x’, or
+‘xb’ depending on whether the file will be read or written.  The default
+is the mode of fileobj if discernible; otherwise, the default is ‘rb’.
+A mode of ‘r’ is equivalent to one of ‘rb’, and similarly for ‘w’ and
+‘wb’, ‘a’ and ‘ab’, and ‘x’ and ‘xb’.</p>
+<p>The compresslevel argument is an integer from 0 to 9 controlling the
+level of compression; 1 is fastest and produces the least compression,
+and 9 is slowest and produces the most compression. 0 is no compression
+at all. The default is 9.</p>
+<p>The mtime argument is an optional numeric timestamp to be written
+to the last modification time field in the stream when compressing.
+If omitted or None, the current time is used.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="fileish">
+<h2><a class="reference internal" href="#nibabel.openers.Fileish" title="nibabel.openers.Fileish"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fileish</span></code></a><a class="headerlink" href="#fileish" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.openers.Fileish">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.openers.</span></span><span class="sig-name descname"><span class="pre">Fileish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.Fileish" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Fileish.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.Fileish.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Fileish.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a></span></span><a class="headerlink" href="#nibabel.openers.Fileish.read" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Fileish.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.openers.Fileish.write" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="imageopener">
+<h2><a class="reference internal" href="#nibabel.openers.ImageOpener" title="nibabel.openers.ImageOpener"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageOpener</span></code></a><a class="headerlink" href="#imageopener" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.openers.ImageOpener">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.openers.</span></span><span class="sig-name descname"><span class="pre">ImageOpener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">IOBase</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.ImageOpener" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.openers.Opener" title="nibabel.openers.Opener"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opener</span></code></a></p>
+<p>Opener-type class to collect extra compressed extensions</p>
+<p>A trivial sub-class of opener to which image classes can add extra
+extensions with custom openers, such as compressed openers.</p>
+<p>To add an extension, add a line to the class definition (not __init__):</p>
+<blockquote>
+<div><p>ImageOpener.compress_ext_map[ext] = func_def</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">ext</span></code> is a file extension beginning with ‘.’ and should be included in
+the image class’s <code class="docutils literal notranslate"><span class="pre">valid_exts</span></code> tuple.</p>
+<p><code class="docutils literal notranslate"><span class="pre">func_def</span></code> is a <cite>(function, (args,))</cite> tuple, where <cite>function accepts a
+filename as the first parameter, and `args</cite> defines the other arguments
+that <cite>function</cite> accepts. These arguments must be any (unordered) subset of
+<cite>mode</cite>, <cite>compresslevel</cite>, and <cite>buffering</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.ImageOpener.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">IOBase</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.ImageOpener.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.ImageOpener.compress_ext_map">
+<span class="sig-name descname"><span class="pre">compress_ext_map</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">OpenerDef</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'.bz2':</span> <span class="pre">(&lt;class</span> <span class="pre">'bz2.BZ2File'&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'buffering',</span> <span class="pre">'compresslevel')),</span> <span class="pre">'.gz':</span> <span class="pre">(&lt;function</span> <span class="pre">_gzip_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'compresslevel',</span> <span class="pre">'mtime',</span> <span class="pre">'keep_open')),</span> <span class="pre">'.mgz':</span> <span class="pre">(&lt;function</span> <span class="pre">_gzip_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'compresslevel',</span> <span class="pre">'mtime',</span> <span class="pre">'keep_open')),</span> <span class="pre">'.zst':</span> <span class="pre">(&lt;function</span> <span class="pre">_zstd_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'level_or_option',</span> <span class="pre">'zstd_dict')),</span> <span class="pre">None:</span> <span class="pre">(&lt;built-in</span> <span class="pre">function</span> <span class="pre">open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'buffering'))}</span></em><a class="headerlink" href="#nibabel.openers.ImageOpener.compress_ext_map" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="opener">
+<h2><a class="reference internal" href="#nibabel.openers.Opener" title="nibabel.openers.Opener"><code class="xref py py-class docutils literal notranslate"><span class="pre">Opener</span></code></a><a class="headerlink" href="#opener" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.openers.Opener">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.openers.</span></span><span class="sig-name descname"><span class="pre">Opener</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">IOBase</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.Opener" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to accept, maybe open, and context-manage file-likes / filenames</p>
+<p>Provides context manager to close files that the constructor opened for
+you.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileish</strong><span class="classifier">str or file-like</span></dt><dd><p>if str, then open with suitable opening method. If file-like, accept as
+is</p>
+</dd>
+<dt><strong>*args</strong><span class="classifier">positional arguments</span></dt><dd><p>passed to opening method when <cite>fileish</cite> is str.  <code class="docutils literal notranslate"><span class="pre">mode</span></code>, if not
+specified, is <cite>rb</cite>.  <code class="docutils literal notranslate"><span class="pre">compresslevel</span></code>, if relevant, and not specified,
+is set from class variable <code class="docutils literal notranslate"><span class="pre">default_compresslevel</span></code>. <code class="docutils literal notranslate"><span class="pre">keep_open</span></code>, if
+relevant, and not specified, is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keyword arguments</span></dt><dd><p>passed to opening method when <cite>fileish</cite> is str.  Change of defaults as
+for *args</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">IOBase</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.openers.Opener.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.bz2_def">
+<span class="sig-name descname"><span class="pre">bz2_def</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;class</span> <span class="pre">'bz2.BZ2File'&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'buffering',</span> <span class="pre">'compresslevel'))</span></em><a class="headerlink" href="#nibabel.openers.Opener.bz2_def" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.close" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.close_if_mine">
+<span class="sig-name descname"><span class="pre">close_if_mine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.close_if_mine" title="Link to this definition">¶</a></dt>
+<dd><p>Close <code class="docutils literal notranslate"><span class="pre">self.fobj</span></code> iff we opened it in the constructor</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.closed">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">closed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><a class="headerlink" href="#nibabel.openers.Opener.closed" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.compress_ext_icase">
+<span class="sig-name descname"><span class="pre">compress_ext_icase</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nibabel.openers.Opener.compress_ext_icase" title="Link to this definition">¶</a></dt>
+<dd><p>whether to ignore case looking for compression extensions</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.compress_ext_map">
+<span class="sig-name descname"><span class="pre">compress_ext_map</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">OpenerDef</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'.bz2':</span> <span class="pre">(&lt;class</span> <span class="pre">'bz2.BZ2File'&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'buffering',</span> <span class="pre">'compresslevel')),</span> <span class="pre">'.gz':</span> <span class="pre">(&lt;function</span> <span class="pre">_gzip_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'compresslevel',</span> <span class="pre">'mtime',</span> <span class="pre">'keep_open')),</span> <span class="pre">'.zst':</span> <span class="pre">(&lt;function</span> <span class="pre">_zstd_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'level_or_option',</span> <span class="pre">'zstd_dict')),</span> <span class="pre">None:</span> <span class="pre">(&lt;built-in</span> <span class="pre">function</span> <span class="pre">open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'buffering'))}</span></em><a class="headerlink" href="#nibabel.openers.Opener.compress_ext_map" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.default_compresslevel">
+<span class="sig-name descname"><span class="pre">default_compresslevel</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#nibabel.openers.Opener.default_compresslevel" title="Link to this definition">¶</a></dt>
+<dd><p>default compression level when writing gz and bz2 files</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.default_level_or_option">
+<span class="sig-name descname"><span class="pre">default_level_or_option</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'r':</span> <span class="pre">None,</span> <span class="pre">'rb':</span> <span class="pre">None,</span> <span class="pre">'w':</span> <span class="pre">3,</span> <span class="pre">'wb':</span> <span class="pre">3}</span></em><a class="headerlink" href="#nibabel.openers.Opener.default_level_or_option" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.default_zst_compresslevel">
+<span class="sig-name descname"><span class="pre">default_zst_compresslevel</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#nibabel.openers.Opener.default_zst_compresslevel" title="Link to this definition">¶</a></dt>
+<dd><p>default option for zst files</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.fileno">
+<span class="sig-name descname"><span class="pre">fileno</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.fileno" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.fobj">
+<span class="sig-name descname"><span class="pre">fobj</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><span class="pre">io.IOBase</span></a></em><a class="headerlink" href="#nibabel.openers.Opener.fobj" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.gz_def">
+<span class="sig-name descname"><span class="pre">gz_def</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">_gzip_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'compresslevel',</span> <span class="pre">'mtime',</span> <span class="pre">'keep_open'))</span></em><a class="headerlink" href="#nibabel.openers.Opener.gz_def" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.mode">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#nibabel.openers.Opener.mode" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#nibabel.openers.Opener.name" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">self.fobj.name</span></code> or self._name if not present</p>
+<p>self._name will be None if object was created with a fileobj, otherwise
+it will be the filename.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.read" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.readinto">
+<span class="sig-name descname"><span class="pre">readinto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">WriteableBuffer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.readinto" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.seek">
+<span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">whence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.seek" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.tell">
+<span class="sig-name descname"><span class="pre">tell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.tell" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.openers.Opener.write" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.openers.Opener.zstd_def">
+<span class="sig-name descname"><span class="pre">zstd_def</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">_zstd_open&gt;,</span> <span class="pre">('mode',</span> <span class="pre">'level_or_option',</span> <span class="pre">'zstd_dict'))</span></em><a class="headerlink" href="#nibabel.openers.Opener.zstd_def" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

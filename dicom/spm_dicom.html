@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DICOM Tags in the NIfTI Header" href="dicom_niftiheader.html" />
+    <link rel="prev" title="Siemens format DICOM with CSA header" href="siemens_csa.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dicom_niftiheader.html" title="DICOM Tags in the NIfTI Header"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="siemens_csa.html" title="Siemens format DICOM with CSA header"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">SPM DICOM conversion</a><ul>
+<li><a class="reference internal" href="#spm-dicom-dict-mat"><code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code></a></li>
+<li><a class="reference internal" href="#spm-dicom-headers-m"><code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code></a><ul>
+<li><a class="reference internal" href="#file-opening">File opening</a></li>
+<li><a class="reference internal" href="#tag-read-for-philips-integra">tag read for Philips Integra</a></li>
+<li><a class="reference internal" href="#tag-length">Tag length</a></li>
+<li><a class="reference internal" href="#sq-vr-type-sequence-of-items-type"><code class="docutils literal notranslate"><span class="pre">SQ</span></code> VR type (Sequence of items type)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#spm-dicom-convert-m"><code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code></a><ul>
+<li><a class="reference internal" href="#file-categorization">File categorization</a></li>
+<li><a class="reference internal" href="#sorting-files-into-volumes">Sorting files into volumes</a><ul>
+<li><a class="reference internal" href="#first-pass">First pass</a></li>
+<li><a class="reference internal" href="#second-pass">Second pass</a></li>
+<li><a class="reference internal" href="#final-check">Final check</a></li>
+<li><a class="reference internal" href="#possible-volume-resort">Possible volume resort</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writing-dicom-volumes">Writing DICOM volumes</a><ul>
+<li><a class="reference internal" href="#making-the-affine">Making the affine</a></li>
+<li><a class="reference internal" href="#writing-the-voxel-data">Writing the voxel data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="siemens_csa.html"
+                          title="previous chapter">Siemens format DICOM with CSA header</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dicom_niftiheader.html"
+                          title="next chapter">DICOM Tags in the NIfTI Header</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dicom/spm_dicom.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="spm-dicom-conversion">
+<span id="spm-dicom"></span><h1>SPM DICOM conversion<a class="headerlink" href="#spm-dicom-conversion" title="Link to this heading">¶</a></h1>
+<p>These are some notes on the algorithms that <a class="reference external" href="http://www.fil.ion.ucl.ac.uk/spm">SPM</a> uses to convert from
+<a class="reference external" href="http://medical.nema.org/">DICOM</a> to <a class="reference external" href="http://nifti.nimh.nih.gov">nifti</a>.  There are other notes in <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>.</p>
+<p>The relevant SPM files are <code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code>,
+<code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code> and <code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code>.  These notes refer
+the version in SPM8, as of around January 2010.</p>
+<section id="spm-dicom-dict-mat">
+<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code><a class="headerlink" href="#spm-dicom-dict-mat" title="Link to this heading">¶</a></h2>
+<p>This is obviously a Matlab <code class="docutils literal notranslate"><span class="pre">.mat</span></code> file.  It contains variables
+<code class="docutils literal notranslate"><span class="pre">group</span></code> and <code class="docutils literal notranslate"><span class="pre">element</span></code>, and <code class="docutils literal notranslate"><span class="pre">values</span></code>, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is a struct
+array, one element per (group, element) pair, with fields <code class="docutils literal notranslate"><span class="pre">name</span></code> and
+<code class="docutils literal notranslate"><span class="pre">vr</span></code> (the last a cell array).</p>
+</section>
+<section id="spm-dicom-headers-m">
+<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code><a class="headerlink" href="#spm-dicom-headers-m" title="Link to this heading">¶</a></h2>
+<p>Reads the given DICOM files into a struct.  It looks like this was
+written by John Ahsburner (JA).  Relevant fixes are:</p>
+<section id="file-opening">
+<h3>File opening<a class="headerlink" href="#file-opening" title="Link to this heading">¶</a></h3>
+<p>When opening the DICOM file, SPM (subfunction <code class="docutils literal notranslate"><span class="pre">readdicomfile</span></code>)</p>
+<ol class="arabic simple">
+<li><p>opens as little endian</p></li>
+<li><p>reads 4 characters starting at pos 128</p></li>
+<li><p>checks if these are <code class="docutils literal notranslate"><span class="pre">DICM</span></code>; if so then continues file read;
+otherwise, tests to see if this is what SPM calls <em>truncated DICOM
+file format</em> - lacking 128 byte lead in and <code class="docutils literal notranslate"><span class="pre">DICM</span></code> string:</p>
+<ol class="arabic simple">
+<li><p>Seeks to beginning of file</p></li>
+<li><p>Reads two unsigned short values into <code class="docutils literal notranslate"><span class="pre">group</span></code> and <code class="docutils literal notranslate"><span class="pre">tag</span></code></p></li>
+<li><p>If the (<code class="docutils literal notranslate"><span class="pre">group</span></code>, <code class="docutils literal notranslate"><span class="pre">element</span></code>) pair exist in
+<code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code>, then set file pointer to 0 and continue
+read with <code class="docutils literal notranslate"><span class="pre">read_dicom</span></code> subfunction..</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">group</span></code> == 8 and <code class="docutils literal notranslate"><span class="pre">element</span></code> == 0, this is apparently the
+signature for a ‘GE Twin+excite’ for which JA notes there is no
+documentation; set file pointer to 0 and continue read with
+<code class="docutils literal notranslate"><span class="pre">read_dicom</span></code> subfunction.</p></li>
+<li><p>Otherwise - crash out with error saying that this is not DICOM file.</p></li>
+</ol>
+</li>
+</ol>
+</section>
+<section id="tag-read-for-philips-integra">
+<h3>tag read for Philips Integra<a class="headerlink" href="#tag-read-for-philips-integra" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">read_dicom</span></code> subfunction reads a tag, then has a loop during which
+the tag is processed (by setting values into the return structure).  At
+the end of the loop, it reads the next tag.  The loop breaks when the
+current tag is empty, or is the item delimitation tag (group=FFFE,
+element=E00D).</p>
+<p>After it has broken out of the loop, if the last tag was (FFFE, E00D)
+(item delimitation tag), and the tag length was not 0, then SPM sets the
+file pointer back by 4 bytes from the current position.  JA comments
+that he didn’t find that in the standard, but that it seemed to be
+needed for the Philips Integra.</p>
+</section>
+<section id="tag-length">
+<h3>Tag length<a class="headerlink" href="#tag-length" title="Link to this heading">¶</a></h3>
+<p>Tag lengths as read in <code class="docutils literal notranslate"><span class="pre">read_tag</span></code> subfunction.  If current format is
+explicit (as in ‘explicit little endian’):</p>
+<ol class="arabic simple">
+<li><p>For VR of x00x00, then group, element must be (FFFE, E00D) (item
+delimitation tag). JA comments that GE ‘ImageDelimitationItem’ has
+no VR, just 4 0 bytes.  In this case the tag length is zero, and we
+read another two bytes ahead.</p></li>
+</ol>
+<p>There’s a check for not-even tag length.  If not even:</p>
+<ol class="arabic simple">
+<li><p>4294967295 appears to be OK - and decoded as Inf for tag length.</p></li>
+<li><p>13 appears to mean 10 and is reset to be 10</p></li>
+<li><p>Any other odd number is not valid and gives a tag length of 0</p></li>
+</ol>
+</section>
+<section id="sq-vr-type-sequence-of-items-type">
+<h3><code class="docutils literal notranslate"><span class="pre">SQ</span></code> VR type (Sequence of items type)<a class="headerlink" href="#sq-vr-type-sequence-of-items-type" title="Link to this heading">¶</a></h3>
+<p>tag length of 13 set to tag length 10.</p>
+</section>
+</section>
+<section id="spm-dicom-convert-m">
+<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code><a class="headerlink" href="#spm-dicom-convert-m" title="Link to this heading">¶</a></h2>
+<p>Written by John Ashburner and Jesper Andersson.</p>
+<section id="file-categorization">
+<h3>File categorization<a class="headerlink" href="#file-categorization" title="Link to this heading">¶</a></h3>
+<p>SPM makes a special case of Siemens ‘spectroscopy images’.  These are
+images that have ‘SOPClassUID’ == ‘1.3.12.2.1107.5.9.1’ and the private
+tag of (29, 1210); for these it pulls out the affine, and writes a
+volume of ones corresponding to the acquisition planes.</p>
+<p>For images that are not spectroscopy:</p>
+<ul class="simple">
+<li><p>Discards images that do not have any of (‘MR’, ‘PT’, ‘CT’) in ‘Modality’ field.</p></li>
+<li><p>Discards images lacking any of ‘StartOfPixelData’, ‘SamplesperPixel’,
+‘Rows’, ‘Columns’, ‘BitsAllocated’, ‘BitsStored’, ‘HighBit’,
+‘PixelRespresentation’</p></li>
+<li><p>Discards images lacking any of ‘PixelSpacing’, ‘ImagePositionPatient’,
+‘ImageOrientationPatient’ - presumably on the basis that SPM cannot
+reconstruct the affine.</p></li>
+<li><p>Fields ‘SeriesNumber’, ‘AcquisitionNumber’ and ‘InstanceNumber’ are
+set to 1 if absent.</p></li>
+</ul>
+<p>Next SPM distinguishes between <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a> and standard DICOM.</p>
+<p>Mosaic images are those with the Siemens private tag:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1009</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Image</span> <span class="n">Header</span> <span class="n">Version</span><span class="p">]</span>          <span class="n">OB</span><span class="p">:</span> <span class="s1">&#39;20100114&#39;</span>
+</pre></div>
+</div>
+<p>and a readable CSA header (see <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>), and with
+non-empty fields from that header of ‘AcquisitionMatrixText’,
+‘NumberOfImagesInMosaic’, and with non-zero ‘NumberOfImagesInMosaic’.  The
+rest are standard DICOM.</p>
+<p>For converting mosaic format, see <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>.  The rest of this
+page refers to standard (slice by slice) DICOMs.</p>
+</section>
+<section id="sorting-files-into-volumes">
+<span id="spm-volume-sorting"></span><h3>Sorting files into volumes<a class="headerlink" href="#sorting-files-into-volumes" title="Link to this heading">¶</a></h3>
+<section id="first-pass">
+<h4>First pass<a class="headerlink" href="#first-pass" title="Link to this heading">¶</a></h4>
+<p>Take first header, put as start of first volume.   For each subsequent header:</p>
+<ol class="arabic simple">
+<li><p>Get <code class="docutils literal notranslate"><span class="pre">ICE_Dims</span></code> if present.  Look for Siemens ‘CSAImageHeaderInfo’,
+check it has a ‘name’ field, then pull dimensions out of ‘ICE_Dims’
+field in form of 9 integers separated by ‘_’, where ‘X’ in this
+string replaced by ‘-1’ - giving ‘ICE1’</p></li>
+</ol>
+<p>Then, for each currently identified volume:</p>
+<ol class="arabic simple">
+<li><p>If we have ICE1 above, and we do have ‘CSAIMageHeaderInfo’, with a
+‘name’, in the first header in this volume, then extract ICE dims in
+the same way as above, for the first header in this volume, and check
+whether all but ICE1[6:8] are the same as ICE2.  Set flag that all
+ICE dims are identical for this volume.  Set this flag to True if we
+did not have ICE1 or CSA information.</p></li>
+<li><p>Match the current header to the current volume iff the following match:</p>
+<ol class="arabic simple">
+<li><p>SeriesNumber</p></li>
+<li><p>Rows</p></li>
+<li><p>Columns</p></li>
+<li><p>ImageOrientationPatient (to tolerance of sum squared difference 1e-4)</p></li>
+<li><p>PixelSpacing (to tolerance of sum squared difference 1e-4)</p></li>
+<li><p>ICE dims as defined above</p></li>
+<li><p>ImageType (iff imagetype exists in both)</p></li>
+<li><p>SequenceName (iff sequencename exists in both)</p></li>
+<li><p>SeriesInstanceUID (iff exists in both)</p></li>
+<li><p>EchoNumbers (iff exists in both)</p></li>
+</ol>
+</li>
+<li><p>If the current header matches the current volume, insert it there,
+otherwise make a new volume for this header</p></li>
+</ol>
+</section>
+<section id="second-pass">
+<span id="spm-second-pass"></span><h4>Second pass<a class="headerlink" href="#second-pass" title="Link to this heading">¶</a></h4>
+<p>We now have a list of volumes, where each volume is a list of headers
+that may match.</p>
+<p>For each volume:</p>
+<ol class="arabic simple">
+<li><p>Estimate the z direction cosine by (effectively) finding the cross
+product of the x and y direction cosines contained in
+‘ImageOrientationPatient’ - call this <code class="docutils literal notranslate"><span class="pre">z_dir_cos</span></code></p></li>
+<li><p>For each header in this volume, get the z coordinate by taking the
+dot product of the ‘ImagePositionPatient’ vector and <code class="docutils literal notranslate"><span class="pre">z_dir_cos</span></code>
+(see <a class="reference internal" href="dicom_orientation.html#dicom-z-from-slice"><span class="std std-ref">Working out the Z coordinates for a set of slices</span></a>).</p></li>
+<li><p>Sort the headers according to this estimated z coordinate.</p></li>
+<li><p>If this volume is more than one slice, and there are any slices with
+the same z coordinate (as defined above), run the
+<a class="reference internal" href="#dicom-img-resort"><span class="std std-ref">Possible volume resort</span></a> on this volume - on the basis that it may
+have caught more than one volume-worth of slices.  Return one or more
+volume’s worth of lists.</p></li>
+</ol>
+</section>
+<section id="final-check">
+<h4>Final check<a class="headerlink" href="#final-check" title="Link to this heading">¶</a></h4>
+<p>For each volume, recalculate z coordinate as above.  Calculate the z
+gaps.  Subtract the mean of the z gaps from all z gaps.  If the average of the
+(gap-mean(gap)) is greater than 1e-4, then print a warning that there
+are missing DICOM files.</p>
+</section>
+<section id="possible-volume-resort">
+<span id="dicom-img-resort"></span><h4>Possible volume resort<a class="headerlink" href="#possible-volume-resort" title="Link to this heading">¶</a></h4>
+<p>This step happens if there were volumes with slices having the same z
+coordinate in the <a class="reference internal" href="#spm-second-pass"><span class="std std-ref">Second pass</span></a> step above.  The resort is on the
+set of DICOM headers that were in the volume, for which there were
+slices with identical z coordinates.  We’ll call the list of headers
+that the routine is still working on - <code class="docutils literal notranslate"><span class="pre">work_list</span></code>.</p>
+<ol class="arabic simple">
+<li><p>If there is no ‘InstanceNumber’ field for the first header in
+<code class="docutils literal notranslate"><span class="pre">work_list</span></code>, bail out.</p></li>
+<li><p>Print a message about the ‘AcquisitionNumber’ not changing from
+volume to volume.  This may be a relic from previous code, because
+this version of SPM does not use the ‘AcquisitionNumber’ field except
+for making filenames.</p></li>
+<li><p>Calculate the z coordinate as for <a class="reference internal" href="#spm-second-pass"><span class="std std-ref">Second pass</span></a>, for each
+DICOM header.</p></li>
+<li><p>Sort the headers by ‘InstanceNumber’</p></li>
+<li><p>If any headers have the same ‘InstanceNumber’, then discard all but
+the first header with the same number.  At this point the remaining
+headers in <code class="docutils literal notranslate"><span class="pre">work_list</span></code> will have different ‘InstanceNumber’s, but
+may have the same z coordinate.</p></li>
+<li><p>Now sort by z coordinate</p></li>
+<li><p>If there are <code class="docutils literal notranslate"><span class="pre">N</span></code> headers, make a <code class="docutils literal notranslate"><span class="pre">N</span></code> length vector of flags
+<code class="docutils literal notranslate"><span class="pre">is_processed</span></code>, for which all values == False</p></li>
+<li><p>Make an output list of header lists, call it <code class="docutils literal notranslate"><span class="pre">hdr_vol_out</span></code>, set to empty.</p></li>
+<li><p>While there are still any False elements in <code class="docutils literal notranslate"><span class="pre">is_processed</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Find first header for which corresponding <code class="docutils literal notranslate"><span class="pre">is_processed</span></code> is
+False - call this <code class="docutils literal notranslate"><span class="pre">hdr_to_check</span></code></p></li>
+<li><p>Collect indices (in <code class="docutils literal notranslate"><span class="pre">work_list</span></code>) of headers which have the same
+z coordinate as <code class="docutils literal notranslate"><span class="pre">hdr_to_check</span></code>, call this list
+<code class="docutils literal notranslate"><span class="pre">z_same_indices</span></code>.</p></li>
+<li><p>Sort <code class="docutils literal notranslate"><span class="pre">work_list[z_same_indices]</span></code> by ‘InstanceNumber’</p></li>
+<li><p>For each index in <code class="docutils literal notranslate"><span class="pre">z_same_indices</span></code> such that <code class="docutils literal notranslate"><span class="pre">i</span></code> indexes the
+indices, and <code class="docutils literal notranslate"><span class="pre">zsind</span></code> is <code class="docutils literal notranslate"><span class="pre">z_same_indices[i]</span></code>: append header
+corresponding to <code class="docutils literal notranslate"><span class="pre">zsind</span></code> to <code class="docutils literal notranslate"><span class="pre">hdr_vol_out[i]</span></code>.  This assumes
+that the original <code class="docutils literal notranslate"><span class="pre">work_list</span></code> contained two or more volumes,
+each with an identical set of z coordinates.</p></li>
+<li><p>Set corresponding <code class="docutils literal notranslate"><span class="pre">is_processed</span></code> flag to True for all <code class="docutils literal notranslate"><span class="pre">z_same_indices</span></code>.</p></li>
+</ol>
+</li>
+<li><p>Finally, if the headers in <code class="docutils literal notranslate"><span class="pre">work_list</span></code> have ‘InstanceNumber’s that
+cannot be sorted to a sequence ascending in units of 1, or if any
+of the lists in <code class="docutils literal notranslate"><span class="pre">hdr_vol_out</span></code> have different lengths, emit a
+warning about missing DICOM files.</p></li>
+</ol>
+</section>
+</section>
+<section id="writing-dicom-volumes">
+<h3>Writing DICOM volumes<a class="headerlink" href="#writing-dicom-volumes" title="Link to this heading">¶</a></h3>
+<p>This means - writing DICOM volumes from standard (slice by slice) DICOM
+datasets rather than <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>.</p>
+<section id="making-the-affine">
+<h4>Making the affine<a class="headerlink" href="#making-the-affine" title="Link to this heading">¶</a></h4>
+<p>We need the (4,4) affine <span class="math notranslate nohighlight">\(A\)</span> going from voxel (array) coordinates in the
+DICOM pixel data, to mm coordinates in the <a class="reference internal" href="dicom_orientation.html#dicom-pcs"><span class="std std-ref">DICOM patient coordinate system</span></a>.</p>
+<p>This section tries to explain how SPM achieves this, but I don’t
+completely understand their method.  See <a class="reference internal" href="dicom_orientation.html#dicom-3d-affines"><span class="std std-ref">Getting a 3D affine from a DICOM slice or list of slices</span></a> for
+what I believe to be a simpler explanation.</p>
+<p>First define the constants, matrices and vectors as in
+<a class="reference internal" href="dicom_orientation.html#dicom-affine-defs"><span class="std std-ref">DICOM affine Definitions</span></a>.</p>
+<p><span class="math notranslate nohighlight">\(N\)</span> is the number of slices in the volume.</p>
+<p>Then define the following matrices:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}R = \left(\begin{smallmatrix}1 &amp; a &amp; 1 &amp; 0\\1 &amp; b &amp; 0 &amp; 1\\1 &amp; c &amp; 0 &amp; 0\\1 &amp; d &amp; 0 &amp; 0\end{smallmatrix}\right)\end{split}\\\begin{split}L = \left(\begin{smallmatrix}T^{1}_{{1}} &amp; e &amp; F_{{11}} \Delta{r} &amp; F_{{12}} \Delta{c}\\T^{1}_{{2}} &amp; f &amp; F_{{21}} \Delta{r} &amp; F_{{22}} \Delta{c}\\T^{1}_{{3}} &amp; g &amp; F_{{31}} \Delta{r} &amp; F_{{32}} \Delta{c}\\1 &amp; h &amp; 0 &amp; 0\end{smallmatrix}\right)\end{split}\end{aligned}\end{align} \]</div>
+<p>For a volume with more than one slice (header), then <span class="math notranslate nohighlight">\(a=1; b=1, c=N, d=1\)</span>. <span class="math notranslate nohighlight">\(e, f, g\)</span> are the values from <span class="math notranslate nohighlight">\(T^N\)</span>,
+and <span class="math notranslate nohighlight">\(h == 1\)</span>.</p>
+<p>For a volume with only one slice (header) <span class="math notranslate nohighlight">\(a=0, b=0, c=1, d=0\)</span> and <span class="math notranslate nohighlight">\(e,
+f, g, h\)</span> are <span class="math notranslate nohighlight">\(n_1 \Delta{s}, n_2 \Delta{s}, n_3 \Delta{s}, 0\)</span>.</p>
+<p>The full transform appears to be <span class="math notranslate nohighlight">\(A_{spm} = R L^{-1}\)</span>.</p>
+<p>Now, SPM, don’t forget, is working in terms of Matlab array indexing,
+which starts at (1,1,1) for a three dimensional array, whereas DICOM
+expects a (0,0,0) start (see <a class="reference internal" href="dicom_orientation.html#dicom-slice-affine"><span class="std std-ref">DICOM affine formula</span></a>).  In this
+particular part of the SPM DICOM code, somewhat confusingly, the (0,0,0)
+to (1,1,1) indexing is dealt with in the <span class="math notranslate nohighlight">\(A\)</span> transform, rather than the
+<code class="docutils literal notranslate"><span class="pre">analyze_to_dicom</span></code> transformation used by SPM in other places. So, the
+transform <span class="math notranslate nohighlight">\(A_{spm}\)</span> goes from (1,1,1) based voxel indices to mm.  To
+get the (0, 0, 0)-based transform we want, we need to pre-apply the
+transform to take 0-based voxel indices to 1-based voxel indices:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A = R L^{-1} \left(\begin{smallmatrix}1 &amp; 0 &amp; 0 &amp; 1\\0 &amp; 1 &amp; 0 &amp; 1\\0 &amp; 0 &amp; 1 &amp; 1\\0 &amp; 0 &amp; 0 &amp; 1\end{smallmatrix}\right)\end{split}\]</div>
+<p>This formula with the definitions above result in the single and multi
+slice formulae in <a class="reference internal" href="dicom_orientation.html#dicom-3d-affine-formulae"><span class="std std-ref">3D affine formulae</span></a>.</p>
+<p>See <a class="reference download internal" download="" href="../_downloads/a0359552c75a1df40c301397f03c7556/spm_dicom_orient.py"><code class="xref download docutils literal notranslate"><span class="pre">derivations/spm_dicom_orient.py</span></code></a> for the derivations and
+some explanations.</p>
+</section>
+<section id="writing-the-voxel-data">
+<h4>Writing the voxel data<a class="headerlink" href="#writing-the-voxel-data" title="Link to this heading">¶</a></h4>
+<p>Just apply scaling and offset from ‘RescaleSlope’ and ‘RescaleIntercept’
+for each slice and write volume.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

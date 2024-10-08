@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="#" title="Python Module Index"
+             >modules</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+
+   <h1>Python Module Index</h1>
+
+   <div class="modindex-jumpbox">
+   <a href="#cap-n"><strong>n</strong></a>
+   </div>
+
+   <table class="indextable modindextable">
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-n"><td></td><td>
+       <strong>n</strong></td><td></td></tr>
+     <tr>
+       <td><img src="_static/minus.png" class="toggler"
+              id="toggle-1" style="display: none" alt="-" /></td>
+       <td>
+       <a href="reference/nibabel.html#module-nibabel"><code class="xref">nibabel</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel._compression.html#module-nibabel._compression"><code class="xref">nibabel._compression</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.affines.html#module-nibabel.affines"><code class="xref">nibabel.affines</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.analyze.html#module-nibabel.analyze"><code class="xref">nibabel.analyze</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.arrayproxy.html#module-nibabel.arrayproxy"><code class="xref">nibabel.arrayproxy</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.arraywriters.html#module-nibabel.arraywriters"><code class="xref">nibabel.arraywriters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.batteryrunners.html#module-nibabel.batteryrunners"><code class="xref">nibabel.batteryrunners</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks"><code class="xref">nibabel.benchmarks</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks.bench_array_to_file"><code class="xref">nibabel.benchmarks.bench_array_to_file</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks.bench_arrayproxy_slicing"><code class="xref">nibabel.benchmarks.bench_arrayproxy_slicing</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks.bench_fileslice"><code class="xref">nibabel.benchmarks.bench_fileslice</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks.bench_finite_range"><code class="xref">nibabel.benchmarks.bench_finite_range</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks.bench_load_save"><code class="xref">nibabel.benchmarks.bench_load_save</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.benchmarks.html#module-nibabel.benchmarks.butils"><code class="xref">nibabel.benchmarks.butils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.brikhead.html#module-nibabel.brikhead"><code class="xref">nibabel.brikhead</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.caret.html#module-nibabel.caret"><code class="xref">nibabel.caret</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.casting.html#module-nibabel.casting"><code class="xref">nibabel.casting</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cifti2.html#module-nibabel.cifti2"><code class="xref">nibabel.cifti2</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cifti2.html#module-nibabel.cifti2.cifti2"><code class="xref">nibabel.cifti2.cifti2</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cifti2.html#module-nibabel.cifti2.cifti2_axes"><code class="xref">nibabel.cifti2.cifti2_axes</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cifti2.html#module-nibabel.cifti2.parse_cifti2"><code class="xref">nibabel.cifti2.parse_cifti2</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline"><code class="xref">nibabel.cmdline</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.conform"><code class="xref">nibabel.cmdline.conform</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.convert"><code class="xref">nibabel.cmdline.convert</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.dicomfs"><code class="xref">nibabel.cmdline.dicomfs</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.diff"><code class="xref">nibabel.cmdline.diff</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.ls"><code class="xref">nibabel.cmdline.ls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.nifti_dx"><code class="xref">nibabel.cmdline.nifti_dx</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.parrec2nii"><code class="xref">nibabel.cmdline.parrec2nii</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.roi"><code class="xref">nibabel.cmdline.roi</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.stats"><code class="xref">nibabel.cmdline.stats</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.tck2trk"><code class="xref">nibabel.cmdline.tck2trk</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.trk2tck"><code class="xref">nibabel.cmdline.trk2tck</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.cmdline.html#module-nibabel.cmdline.utils"><code class="xref">nibabel.cmdline.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.data.html#module-nibabel.data"><code class="xref">nibabel.data</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.dataobj_images.html#module-nibabel.dataobj_images"><code class="xref">nibabel.dataobj_images</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.deprecated.html#module-nibabel.deprecated"><code class="xref">nibabel.deprecated</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.deprecator.html#module-nibabel.deprecator"><code class="xref">nibabel.deprecator</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.dft.html#module-nibabel.dft"><code class="xref">nibabel.dft</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.ecat.html#module-nibabel.ecat"><code class="xref">nibabel.ecat</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.environment.html#module-nibabel.environment"><code class="xref">nibabel.environment</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.eulerangles.html#module-nibabel.eulerangles"><code class="xref">nibabel.eulerangles</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.filebasedimages.html#module-nibabel.filebasedimages"><code class="xref">nibabel.filebasedimages</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.fileholders.html#module-nibabel.fileholders"><code class="xref">nibabel.fileholders</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.filename_parser.html#module-nibabel.filename_parser"><code class="xref">nibabel.filename_parser</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.fileslice.html#module-nibabel.fileslice"><code class="xref">nibabel.fileslice</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.fileutils.html#module-nibabel.fileutils"><code class="xref">nibabel.fileutils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.freesurfer.html#module-nibabel.freesurfer"><code class="xref">nibabel.freesurfer</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.freesurfer.html#module-nibabel.freesurfer.io"><code class="xref">nibabel.freesurfer.io</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.freesurfer.html#module-nibabel.freesurfer.mghformat"><code class="xref">nibabel.freesurfer.mghformat</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.funcs.html#module-nibabel.funcs"><code class="xref">nibabel.funcs</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.gifti.html#module-nibabel.gifti"><code class="xref">nibabel.gifti</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.gifti.html#module-nibabel.gifti.gifti"><code class="xref">nibabel.gifti.gifti</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.gifti.html#module-nibabel.gifti.parse_gifti_fast"><code class="xref">nibabel.gifti.parse_gifti_fast</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.gifti.html#module-nibabel.gifti.util"><code class="xref">nibabel.gifti.util</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.imageclasses.html#module-nibabel.imageclasses"><code class="xref">nibabel.imageclasses</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.imageglobals.html#module-nibabel.imageglobals"><code class="xref">nibabel.imageglobals</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.imagestats.html#module-nibabel.imagestats"><code class="xref">nibabel.imagestats</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.loadsave.html#module-nibabel.loadsave"><code class="xref">nibabel.loadsave</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.minc1.html#module-nibabel.minc1"><code class="xref">nibabel.minc1</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.minc2.html#module-nibabel.minc2"><code class="xref">nibabel.minc2</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.mriutils.html#module-nibabel.mriutils"><code class="xref">nibabel.mriutils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom"><code class="xref">nibabel.nicom</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.ascconv"><code class="xref">nibabel.nicom.ascconv</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.csareader"><code class="xref">nibabel.nicom.csareader</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.dicomreaders"><code class="xref">nibabel.nicom.dicomreaders</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.dicomwrappers"><code class="xref">nibabel.nicom.dicomwrappers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.dwiparams"><code class="xref">nibabel.nicom.dwiparams</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.structreader"><code class="xref">nibabel.nicom.structreader</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nicom.html#module-nibabel.nicom.utils"><code class="xref">nibabel.nicom.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nifti1.html#module-nibabel.nifti1"><code class="xref">nibabel.nifti1</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.nifti2.html#module-nibabel.nifti2"><code class="xref">nibabel.nifti2</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.onetime.html#module-nibabel.onetime"><code class="xref">nibabel.onetime</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.openers.html#module-nibabel.openers"><code class="xref">nibabel.openers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.optpkg.html#module-nibabel.optpkg"><code class="xref">nibabel.optpkg</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.orientations.html#module-nibabel.orientations"><code class="xref">nibabel.orientations</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.parrec.html#module-nibabel.parrec"><code class="xref">nibabel.parrec</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.pointset.html#module-nibabel.pointset"><code class="xref">nibabel.pointset</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.processing.html#module-nibabel.processing"><code class="xref">nibabel.processing</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.pydicom_compat.html#module-nibabel.pydicom_compat"><code class="xref">nibabel.pydicom_compat</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.quaternions.html#module-nibabel.quaternions"><code class="xref">nibabel.quaternions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.rstutils.html#module-nibabel.rstutils"><code class="xref">nibabel.rstutils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.spaces.html#module-nibabel.spaces"><code class="xref">nibabel.spaces</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.spatialimages.html#module-nibabel.spatialimages"><code class="xref">nibabel.spatialimages</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.spm2analyze.html#module-nibabel.spm2analyze"><code class="xref">nibabel.spm2analyze</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.spm99analyze.html#module-nibabel.spm99analyze"><code class="xref">nibabel.spm99analyze</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines"><code class="xref">nibabel.streamlines</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.array_sequence"><code class="xref">nibabel.streamlines.array_sequence</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.header"><code class="xref">nibabel.streamlines.header</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.tck"><code class="xref">nibabel.streamlines.tck</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.tractogram"><code class="xref">nibabel.streamlines.tractogram</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.tractogram_file"><code class="xref">nibabel.streamlines.tractogram_file</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.trk"><code class="xref">nibabel.streamlines.trk</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.streamlines.html#module-nibabel.streamlines.utils"><code class="xref">nibabel.streamlines.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.tmpdirs.html#module-nibabel.tmpdirs"><code class="xref">nibabel.tmpdirs</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.tripwire.html#module-nibabel.tripwire"><code class="xref">nibabel.tripwire</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.viewers.html#module-nibabel.viewers"><code class="xref">nibabel.viewers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.volumeutils.html#module-nibabel.volumeutils"><code class="xref">nibabel.volumeutils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.wrapstruct.html#module-nibabel.wrapstruct"><code class="xref">nibabel.wrapstruct</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/nibabel.xmlutils.html#module-nibabel.xmlutils"><code class="xref">nibabel.xmlutils</code></a></td><td>
+       <em></em></td></tr>
+   </table>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="General tutorials" href="tutorials.html" />
+    <link rel="prev" title="Copyright and Licenses" href="legal.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorials.html" title="General tutorials"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="legal.html" title="Copyright and Licenses"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="manual.html" accesskey="U">NiBabel Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">NiBabel Development Changelog</a><ul>
+<li><a class="reference internal" href="#nibabel-releases">Nibabel releases</a><ul>
+<li><a class="reference internal" href="#tuesday-8-october-2024">5.3.0 (Tuesday 8 October 2024)</a><ul>
+<li><a class="reference internal" href="#new-features">New features</a></li>
+<li><a class="reference internal" href="#enhancements">Enhancements</a></li>
+<li><a class="reference internal" href="#bug-fixes">Bug fixes</a></li>
+<li><a class="reference internal" href="#maintenance">Maintenance</a></li>
+<li><a class="reference internal" href="#api-changes-and-deprecations">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-26-february-2024">5.2.1 (Monday 26 February 2024)</a><ul>
+<li><a class="reference internal" href="#id1">Enhancements</a></li>
+<li><a class="reference internal" href="#id2">Bug fixes</a></li>
+<li><a class="reference internal" href="#id3">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-11-december-2023">5.2.0 (Monday 11 December 2023)</a><ul>
+<li><a class="reference internal" href="#id4">New features</a></li>
+<li><a class="reference internal" href="#id5">Enhancements</a></li>
+<li><a class="reference internal" href="#id6">Bug fixes</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#id7">Maintenance</a></li>
+<li><a class="reference internal" href="#id8">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-3-april-2023">5.1.0 (Monday 3 April 2023)</a><ul>
+<li><a class="reference internal" href="#id9">Enhancements</a></li>
+<li><a class="reference internal" href="#id10">Bug fixes</a></li>
+<li><a class="reference internal" href="#id11">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sunday-12-february-2023">5.0.1 (Sunday 12 February 2023)</a><ul>
+<li><a class="reference internal" href="#id12">Bug fixes</a></li>
+<li><a class="reference internal" href="#id13">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-9-january-2023">5.0.0 (Monday 9 January 2023)</a><ul>
+<li><a class="reference internal" href="#id14">New features</a></li>
+<li><a class="reference internal" href="#id15">Enhancements</a></li>
+<li><a class="reference internal" href="#id16">Bug fixes</a></li>
+<li><a class="reference internal" href="#id17">Maintenance</a></li>
+<li><a class="reference internal" href="#id18">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wednesday-31-august-2022">4.0.2 (Wednesday 31 August 2022)</a><ul>
+<li><a class="reference internal" href="#id19">Bug fixes</a></li>
+<li><a class="reference internal" href="#id20">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#saturday-18-june-2022">4.0.1 (Saturday 18 June 2022)</a><ul>
+<li><a class="reference internal" href="#id21">Bug fixes</a></li>
+<li><a class="reference internal" href="#id22">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id23">4.0.0 (Saturday 18 June 2022)</a><ul>
+<li><a class="reference internal" href="#id24">New features</a></li>
+<li><a class="reference internal" href="#id25">Enhancements</a></li>
+<li><a class="reference internal" href="#id26">Bug fixes</a></li>
+<li><a class="reference internal" href="#id27">Maintenance</a></li>
+<li><a class="reference internal" href="#id28">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-7-february-2022">3.2.2 (Monday 7 February 2022)</a><ul>
+<li><a class="reference internal" href="#id29">Bug fixes</a></li>
+<li><a class="reference internal" href="#id30">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#saturday-28-november-2020">3.2.1 (Saturday 28 November 2020)</a><ul>
+<li><a class="reference internal" href="#id31">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tuesday-20-october-2020">3.2.0 (Tuesday 20 October 2020)</a><ul>
+<li><a class="reference internal" href="#id32">New features</a></li>
+<li><a class="reference internal" href="#id33">Enhancements</a></li>
+<li><a class="reference internal" href="#id34">Bug fixes</a></li>
+<li><a class="reference internal" href="#id35">Maintenance</a></li>
+<li><a class="reference internal" href="#id36">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#friday-26-june-2020">3.1.1 (Friday 26 June 2020)</a><ul>
+<li><a class="reference internal" href="#id37">Bug fixes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-20-april-2020">3.1.0 (Monday 20 April 2020)</a><ul>
+<li><a class="reference internal" href="#id38">New features</a></li>
+<li><a class="reference internal" href="#id39">Bug fixes</a></li>
+<li><a class="reference internal" href="#id40">Maintenance</a></li>
+<li><a class="reference internal" href="#id41">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wednesday-8-april-2020">2.5.2 (Wednesday 8 April 2020)</a><ul>
+<li><a class="reference internal" href="#id42">Bug fixes</a></li>
+<li><a class="reference internal" href="#id43">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-9-march-2020">3.0.2 (Monday 9 March 2020)</a><ul>
+<li><a class="reference internal" href="#id44">Bug fixes</a></li>
+<li><a class="reference internal" href="#id45">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-27-january-2020">3.0.1 (Monday 27 January 2020)</a><ul>
+<li><a class="reference internal" href="#id46">Bug fixes</a></li>
+<li><a class="reference internal" href="#id47">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wednesday-18-december-2019">3.0.0 (Wednesday 18 December 2019)</a><ul>
+<li><a class="reference internal" href="#id48">New features</a></li>
+<li><a class="reference internal" href="#id49">Enhancements</a></li>
+<li><a class="reference internal" href="#id50">Bug fixes</a></li>
+<li><a class="reference internal" href="#id51">Maintenance</a></li>
+<li><a class="reference internal" href="#id52">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-23-september-2019">2.5.1 (Monday 23 September 2019)</a><ul>
+<li><a class="reference internal" href="#id53">Enhancements</a></li>
+<li><a class="reference internal" href="#id54">Bug fixes</a></li>
+<li><a class="reference internal" href="#id55">Maintenance</a></li>
+<li><a class="reference internal" href="#id56">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sunday-4-august-2019">2.5.0 (Sunday 4 August 2019)</a><ul>
+<li><a class="reference internal" href="#id57">Enhancements</a></li>
+<li><a class="reference internal" href="#id58">Bug fixes</a></li>
+<li><a class="reference internal" href="#id59">Maintenance</a></li>
+<li><a class="reference internal" href="#id60">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-27-may-2019">2.4.1 (Monday 27 May 2019)</a><ul>
+<li><a class="reference internal" href="#id61">Enhancements</a></li>
+<li><a class="reference internal" href="#id62">Bug fixes</a></li>
+<li><a class="reference internal" href="#id63">Maintenance</a></li>
+<li><a class="reference internal" href="#id64">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-1-april-2019">2.4.0 (Monday 1 April 2019)</a><ul>
+<li><a class="reference internal" href="#id65">New features</a></li>
+<li><a class="reference internal" href="#id66">Enhancements</a></li>
+<li><a class="reference internal" href="#id67">Bug fixes</a></li>
+<li><a class="reference internal" href="#id68">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wednesday-16-january-2019">2.3.3 (Wednesday 16 January 2019)</a><ul>
+<li><a class="reference internal" href="#id69">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wednesday-2-january-2019">2.3.2 (Wednesday 2 January 2019)</a><ul>
+<li><a class="reference internal" href="#id70">Enhancements</a></li>
+<li><a class="reference internal" href="#id71">Bug fixes</a></li>
+<li><a class="reference internal" href="#id72">Maintenance</a></li>
+<li><a class="reference internal" href="#id73">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tuesday-16-october-2018">2.3.1 (Tuesday 16 October 2018)</a><ul>
+<li><a class="reference internal" href="#id74">New features</a></li>
+<li><a class="reference internal" href="#id75">Enhancements</a></li>
+<li><a class="reference internal" href="#id76">Bug fixes</a></li>
+<li><a class="reference internal" href="#id77">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tuesday-12-june-2018">2.3 (Tuesday 12 June 2018)</a><ul>
+<li><a class="reference internal" href="#id78">New features</a></li>
+<li><a class="reference internal" href="#id79">Enhancements</a></li>
+<li><a class="reference internal" href="#id80">Bug fixes</a></li>
+<li><a class="reference internal" href="#id81">Maintenance</a></li>
+<li><a class="reference internal" href="#id82">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wednesday-22-november-2017">2.2.1 (Wednesday 22 November 2017)</a><ul>
+<li><a class="reference internal" href="#id83">Bug fixes</a></li>
+<li><a class="reference internal" href="#id84">Maintenance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#friday-13-october-2017">2.2 (Friday 13 October 2017)</a><ul>
+<li><a class="reference internal" href="#id85">New features</a></li>
+<li><a class="reference internal" href="#id86">Enhancements</a></li>
+<li><a class="reference internal" href="#id87">Bug fixes</a></li>
+<li><a class="reference internal" href="#id88">Maintenance</a></li>
+<li><a class="reference internal" href="#id89">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-22-august-2016">2.1 (Monday 22 August 2016)</a><ul>
+<li><a class="reference internal" href="#id90">New features</a></li>
+<li><a class="reference internal" href="#id91">Enhancements</a></li>
+<li><a class="reference internal" href="#id92">Bug fixes</a></li>
+<li><a class="reference internal" href="#id93">Maintenance</a></li>
+<li><a class="reference internal" href="#id94">API changes and deprecations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#monday-23-november-2015">2.0.2 (Monday 23 November 2015)</a></li>
+<li><a class="reference internal" href="#saturday-27-june-2015">2.0.1 (Saturday 27 June 2015)</a></li>
+<li><a class="reference internal" href="#tuesday-9-december-2014">2.0.0 (Tuesday 9 December 2014)</a></li>
+<li><a class="reference internal" href="#tuesday-11-september-2012">1.3.0 (Tuesday 11 September 2012)</a></li>
+<li><a class="reference internal" href="#wednesday-27-june-2012">1.2.2 (Wednesday 27 June 2012)</a></li>
+<li><a class="reference internal" href="#wednesday-13-june-2012">1.2.1 (Wednesday 13 June 2012)</a></li>
+<li><a class="reference internal" href="#sunday-6-may-2012">1.2.0 (Sunday 6 May 2012)</a></li>
+<li><a class="reference internal" href="#thursday-28-april-2011">1.1.0 (Thursday 28 April 2011)</a></li>
+<li><a class="reference internal" href="#thursday-14-april-2011">1.0.2 (Thursday 14 April 2011)</a></li>
+<li><a class="reference internal" href="#wednesday-23-feb-2011">1.0.1 (Wednesday 23 Feb 2011)</a></li>
+<li><a class="reference internal" href="#thursday-13-oct-2010">1.0.0 (Thursday, 13, Oct 2010)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pynifti-releases">PyNifti releases</a><ul>
+<li><a class="reference internal" href="#tue-6-jul-2010">0.20100706.1 (Tue, 6 Jul 2010)</a></li>
+<li><a class="reference internal" href="#mon-12-apr-2010">0.20100412.1 (Mon, 12 Apr 2010)</a></li>
+<li><a class="reference internal" href="#tue-3-mar-2009">0.20090303.1 (Tue, 3 Mar 2009)</a></li>
+<li><a class="reference internal" href="#thu-5-feb-2009">0.20090205.1 (Thu, 5 Feb 2009)</a></li>
+<li><a class="reference internal" href="#fri-17-oct-2008">0.20081017.1 (Fri, 17 Oct 2008)</a></li>
+<li><a class="reference internal" href="#thu-7-jul-2008">0.20080710.1 (Thu, 7 Jul 2008)</a></li>
+<li><a class="reference internal" href="#tue-30-jun-2008">0.20080630.1 (Tue, 30 Jun 2008)</a></li>
+<li><a class="reference internal" href="#tue-24-jun-2008">0.20080624.1 (Tue, 24 Jun 2008)</a></li>
+<li><a class="reference internal" href="#sun-30-sep-2007">0.20070930.1 (Sun, 30 Sep 2007)</a></li>
+<li><a class="reference internal" href="#mon-17-sep-2007">0.20070917.1 (Mon, 17 Sep 2007)</a></li>
+<li><a class="reference internal" href="#wed-5-sep-2007">0.20070905.1  (Wed, 5 Sep 2007)</a></li>
+<li><a class="reference internal" href="#fri-3-aug-2007">0.20070803.1 (Fri, 3 Aug 2007)</a></li>
+<li><a class="reference internal" href="#wed-25-apr-2007">0.20070425.1 (Wed, 25 Apr 2007)</a></li>
+<li><a class="reference internal" href="#thu-15-mar-2007">0.20070315.1 (Thu, 15 Mar 2007)</a></li>
+<li><a class="reference internal" href="#thu-1-mar-2007">0.20070301.2 (Thu, 1 Mar 2007)</a></li>
+<li><a class="reference internal" href="#id95">0.20070301.1 (Thu, 1 Mar 2007)</a></li>
+<li><a class="reference internal" href="#tue-20-feb-2007">0.20070220.1 (Tue, 20 Feb 2007)</a></li>
+<li><a class="reference internal" href="#wed-14-feb-2007">0.20070214.1 (Wed, 14 Feb 2007)</a></li>
+<li><a class="reference internal" href="#tue-14-nov-2006">0.20061114 (Tue, 14 Nov 2006)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="legal.html"
+                          title="previous chapter">Copyright and Licenses</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="tutorials.html"
+                          title="next chapter">General tutorials</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/changelog.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="nibabel-development-changelog">
+<span id="changelog"></span><h1>NiBabel Development Changelog<a class="headerlink" href="#nibabel-development-changelog" title="Link to this heading">¶</a></h1>
+<p>NiBabel is the successor to the much-loved PyNifti package. Here we list the
+releases for both packages.</p>
+<p>The full VCS changelog is available here:</p>
+<blockquote>
+<div><p><a class="reference external" href="http://github.com/nipy/nibabel/commits/master">http://github.com/nipy/nibabel/commits/master</a></p>
+</div></blockquote>
+<section id="nibabel-releases">
+<h2>Nibabel releases<a class="headerlink" href="#nibabel-releases" title="Link to this heading">¶</a></h2>
+<p>Most work on NiBabel so far has been by Matthew Brett (MB), Chris Markiewicz
+(CM), Michael Hanke (MH), Marc-Alexandre Côté (MC), Ben Cipollini (BC), Paul
+McCarthy (PM), Chris Cheng (CC), Yaroslav Halchenko (YOH), Satra Ghosh (SG),
+Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).</p>
+<p>References like “pr/298” refer to github pull request numbers.</p>
+<section id="tuesday-8-october-2024">
+<h3>5.3.0 (Tuesday 8 October 2024)<a class="headerlink" href="#tuesday-8-october-2024" title="Link to this heading">¶</a></h3>
+<p>This release primarily adds support for Python 3.13 and Numpy 2.0.</p>
+<p>NiBabel 6.0 will drop support for Numpy 1.x.</p>
+<section id="new-features">
+<h4>New features<a class="headerlink" href="#new-features" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Update NIfTI extension protocol to include <code class="docutils literal notranslate"><span class="pre">.content</span> <span class="pre">:</span> <span class="pre">bytes</span></code>, <code class="docutils literal notranslate"><span class="pre">.text</span> <span class="pre">:</span> <span class="pre">str</span></code> and <code class="docutils literal notranslate"><span class="pre">.json</span> <span class="pre">:</span> <span class="pre">dict</span></code>
+properties for accessing extension contents. Exceptions will be raised on <code class="docutils literal notranslate"><span class="pre">.text</span></code> and <code class="docutils literal notranslate"><span class="pre">.json</span></code> if
+conversion fails. (pr/1336) (CM)</p></li>
+</ul>
+</section>
+<section id="enhancements">
+<h4>Enhancements<a class="headerlink" href="#enhancements" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Ability to read data from many multiframe DICOM files that previously generated errors (pr/1340)
+(Brendan Moloney, reviewed by CM)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nib-nifti-dx</span></code> now supports NIfTI-2 files with a <code class="docutils literal notranslate"><span class="pre">--nifti2</span></code> flag (pr/1323) (CM)</p></li>
+<li><p>Update <a class="reference internal" href="reference/nibabel.streamlines.html#module-nibabel.streamlines.tractogram" title="nibabel.streamlines.tractogram"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.streamlines.tractogram</span></code></a> to support ragged arrays. (pr/1291)
+(Serge Koudoro, reviewed by CM)</p></li>
+<li><p>Filter numpy <code class="docutils literal notranslate"><span class="pre">UserWarning</span></code> on <code class="docutils literal notranslate"><span class="pre">np.finfo(np.longdouble)</span></code>. This can occur on
+Windows systems, but it’s done in the context of checking for the problem that
+is being warned against, so there’s no need to be noisy. (pr/1310)
+(Joshua Newton, reviewed by CM)</p></li>
+<li><p>Improve error message for for dicomwrapper errors in shape calculation (pr/1302)
+(YOH, reviewed by CM)</p></li>
+<li><p>Support “flat” ASCII-encoded GIFTI DataArrays (pr/1298) (PM, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h4>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix location initialization/update in OrthoSlicer3D for permuted axes (pr/1319, pr/1350)
+(Guillaume Becq, reviewed by CM)</p></li>
+<li><p>Fix DICOM scaling, making frame filtering explicit (pr/1342) (Brendan Moloney, reviewed by CM)</p></li>
+<li><p>Fixed multiframe DICOM issue where data could be flipped along slice dimension relative to the
+affine (pr/1340) (Brendan Moloney, reviewed by CM)</p></li>
+<li><p>Fixed multiframe DICOM issue where <code class="docutils literal notranslate"><span class="pre">image_position</span></code> and the translation component in the
+<code class="docutils literal notranslate"><span class="pre">affine</span></code> could be incorrect (pr/1340) (Brendan Moloney, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="maintenance">
+<h4>Maintenance<a class="headerlink" href="#maintenance" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Numpy 2.0 compatibility and addressing deprecations in numpy API
+(pr/1304, pr/1330, pr/1331, pr/1334, pr/1337) (Jon Haitz Legarreta Gorroño, CM)</p></li>
+<li><p>Python 3.13 compatibility (pr/1315) (Sandro from the Fedora Project, reviewed by CM)</p></li>
+<li><p>Testing on Python 3.13 with free-threading (pr/1339) (CM)</p></li>
+<li><p>Testing on ARM64 Mac OS runners (pr/1320) (CM)</p></li>
+<li><p>Proactively address deprecations in coming Python versions (pr/1329, pr/1332, pr/1333)
+(Jon Haitz Legarreta Gorroño, reviewed by CM)</p></li>
+<li><p>Replace nose-era <code class="docutils literal notranslate"><span class="pre">setup()</span></code> and <code class="docutils literal notranslate"><span class="pre">teardown()</span></code> functions with pytest equivalents
+(pr/1325) (Sandro from the Fedora Project, reviewed by Étienne Mollier and CM)</p></li>
+<li><p>Transitioned from blue/isort/flake8 to <a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a>. (pr/1289)
+(Dimitri Papadopoulos, reviewed by CM)</p></li>
+<li><p>Vetted and added various rules to the ruff configuration for auto-formatting and style
+guide enforcement. (pr/1321, pr/1351, pr/1352, pr/1353, pr/1354, pr/1355, pr/1357, pr/1358,
+pr/1359, pr/1360, pr/1361, pr/1362, pr/1363, pr/1364, pr/1368, pr/1369)
+(Dimitri Papadopoulos, reviewed by CM)</p></li>
+<li><p>Fixing typos when found. (pr/1313, pr/1370) (MB, Dimitri Papadopoulos)</p></li>
+<li><p>Applied Repo-Review suggestions (Dimitri Papadopoulos, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="api-changes-and-deprecations">
+<h4>API changes and deprecations<a class="headerlink" href="#api-changes-and-deprecations" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Raise <a class="reference internal" href="reference/nibabel.spatialimages.html#nibabel.spatialimages.HeaderDataError" title="nibabel.spatialimages.HeaderDataError"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeaderDataError</span></code></a> from
+<a class="reference internal" href="reference/nibabel.nifti1.html#nibabel.nifti1.Nifti1Header.set_qform" title="nibabel.nifti1.Nifti1Header.set_qform"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_qform()</span></code></a> if the affine fails to decompose.
+This would previously result in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.LinAlgError.html#scipy.linalg.LinAlgError" title="(in SciPy v1.14.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.linalg.LinAlgError</span></code></a>. (pr/1227) (CM)</p></li>
+<li><p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">nibabel.onetime.auto_attr()</span></code> module can be replaced by <a class="reference external" href="https://docs.python.org/3/library/functools.html#functools.cached_property" title="(in Python v3.13)"><code class="xref py py-func docutils literal notranslate"><span class="pre">functools.cached_property()</span></code></a>
+in all supported versions of Python. This alias may be removed in future versions. (pr/1341) (CM)</p></li>
+<li><p>Removed the deprecated <code class="docutils literal notranslate"><span class="pre">nisext</span></code> (setuptools extensions) package. (pr/1290) (CM, reviewed by MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-26-february-2024">
+<h3>5.2.1 (Monday 26 February 2024)<a class="headerlink" href="#monday-26-february-2024" title="Link to this heading">¶</a></h3>
+<p>Bug-fix release in the 5.2.x series.</p>
+<section id="id1">
+<h4>Enhancements<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Support “flat” ASCII-encoded GIFTI DataArrays (pr/1298) (PM, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id2">
+<h4>Bug fixes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Tolerate missing <code class="docutils literal notranslate"><span class="pre">git</span></code> when reporting version info (pr/1286) (CM, reviewed by
+Yuri Victorovich)</p></li>
+<li><p>Handle Siemens XA30 derived DWI DICOMs (pr/1296) (CM, reviewed by YOH and
+Mathias Goncalves)</p></li>
+</ul>
+</section>
+<section id="id3">
+<h4>Maintenance<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add tool for generating GitHub-friendly release notes (pr/1284) (CM)</p></li>
+<li><p>Accommodate pytest 8 changes (pr/1297) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-11-december-2023">
+<h3>5.2.0 (Monday 11 December 2023)<a class="headerlink" href="#monday-11-december-2023" title="Link to this heading">¶</a></h3>
+<p>New feature release in the 5.2.x series.</p>
+<p>This release requires a minimum Python of 3.8 and NumPy 1.20, and has been
+tested up to Python 3.12 and NumPy 1.26.</p>
+<section id="id4">
+<h4>New features<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add generic <a class="reference internal" href="reference/nibabel.pointset.html#nibabel.pointset.Pointset" title="nibabel.pointset.Pointset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pointset</span></code></a> and regularly spaced
+<a class="reference internal" href="reference/nibabel.pointset.html#nibabel.pointset.Grid" title="nibabel.pointset.Grid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Grid</span></code></a> data structures in preparation for coordinate
+transformation and resampling (pr/1251) (CM, reviewed by Oscar Esteban)</p></li>
+</ul>
+</section>
+<section id="id5">
+<h4>Enhancements<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add <a class="reference internal" href="reference/nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy.copy" title="nibabel.arrayproxy.ArrayProxy.copy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">copy()</span></code></a> method to
+<a class="reference internal" href="reference/nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy" title="nibabel.arrayproxy.ArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayProxy</span></code></a> (pr/1255) (CM, reviewed by Paul McCarthy)</p></li>
+<li><p>Permit <a class="reference internal" href="reference/nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable.to_xml" title="nibabel.xmlutils.XmlSerializable.to_xml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_xml()</span></code></a> methods to pass keyword
+arguments to <a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring" title="(in Python v3.13)"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml.etree.ElementTree.tostring()</span></code></a> (pr/1258)
+(CM)</p></li>
+<li><p>Allow user expansion (e.g., <code class="docutils literal notranslate"><span class="pre">~/...</span></code>) in strings passed to functions that
+accept paths (pr/1260) (Reinder Vos de Wael, reviewed by CM)</p></li>
+<li><p>Expand CIFTI-2 brain structures to permit synonyms (pr/1256) (CM, reviewed
+by Mathias Goncalves)</p></li>
+<li><p>Annotate <a class="reference internal" href="reference/nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a> as accepting
+<code class="docutils literal notranslate"><span class="pre">affine=None</span></code> argument (pr/1253) (Blake Dewey, reviewed by CM)</p></li>
+<li><p>Warn on invalid MINC2 spacing declarations, treat as missing (pr/1237)
+(Peter Suter, reviewed by CM)</p></li>
+<li><p>Refactor <a class="reference internal" href="reference/nibabel.nicom.html#nibabel.nicom.utils.find_private_section" title="nibabel.nicom.utils.find_private_section"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_private_section()</span></code></a> for improved
+readability and maintainability (pr/1228) (MB, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id6">
+<h4>Bug fixes<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Resolve test failure related to randomly generated invalid case (pr/1221) (CM)</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h4>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Remove references to NiPy data packages from documentation (pr/1275)
+(Dimitri Papadopoulos, reviewed by CM, MB)</p></li>
+</ul>
+</section>
+<section id="id7">
+<h4>Maintenance<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Quality of life improvements for CI, including color output and OIDC publishing
+(pr/1282) (CM)</p></li>
+<li><p>Patch for NumPy 2.0 pre-release compatibility (pr/1250) (Mathieu
+Scheltienne and EL, reviewed by CM)</p></li>
+<li><p>Add spellchecking to tox, CI and pre-commit (pr/1266) (CM)</p></li>
+<li><p>Add py312-dev-x64 environment to Tox to test NumPy 2.0 pre-release
+compatibility (pr/1267) (CM, reviewed by EL)</p></li>
+<li><p>Resurrect tox configuration to cover development workflows and CI checks
+(pr/1262) (CM)</p></li>
+<li><p>Updates for Python 3.12 support (pr/1247, pr/1261, pr/1273) (CM)</p></li>
+<li><p>Remove uses of deprecated <code class="docutils literal notranslate"><span class="pre">numpy.compat.py3k</span></code> module (pr/1243) (Eric
+Larson, reviewed by CM)</p></li>
+<li><p>Various fixes for typos and style issues detected by Codespell, pyupgrade and
+refurb (pr/1263, pr/1269, pr/1270, pr/1271, pr/1276) (Dimitri Papadopoulos,
+reviewed by CM)</p></li>
+<li><p>Use stable argsorts in PARREC tests to ensure consistent behavior on systems
+with AVX512 SIMD instructions and numpy 1.25 (pr/1234) (CM)</p></li>
+<li><p>Resolve CodeCov submission failures (pr/1224) (CM)</p></li>
+<li><p>Link to logo with full URL to avoid broken links in PyPI (pr/1218) (CM,
+reviewed by Zvi Baratz)</p></li>
+</ul>
+</section>
+<section id="id8">
+<h4>API changes and deprecations<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="reference/nibabel.pydicom_compat.html#module-nibabel.pydicom_compat" title="nibabel.pydicom_compat"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.pydicom_compat</span></code></a> module is deprecated and will be removed
+in NiBabel 7.0. (pr/1280)</p></li>
+<li><p>The <a class="reference internal" href="reference/nibabel.casting.html#nibabel.casting.int_to_float" title="nibabel.casting.int_to_float"><code class="xref py py-func docutils literal notranslate"><span class="pre">int_to_float()</span></code></a> and <a class="reference internal" href="reference/nibabel.casting.html#nibabel.casting.as_int" title="nibabel.casting.as_int"><code class="xref py py-func docutils literal notranslate"><span class="pre">as_int()</span></code></a>
+functions are no longer needed to work around NumPy deficiencies and have been
+deprecated (pr/1272) (CM, reviewed by EL)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-3-april-2023">
+<h3>5.1.0 (Monday 3 April 2023)<a class="headerlink" href="#monday-3-april-2023" title="Link to this heading">¶</a></h3>
+<p>New feature release in the 5.1.x series.</p>
+<section id="id9">
+<h4>Enhancements<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Make <a class="reference internal" href="reference/nibabel.imagestats.html#module-nibabel.imagestats" title="nibabel.imagestats"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.imagestats</span></code></a> available with <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">nibabel</span></code> (pr/1208)
+(Fabian Perez, reviewed by CM)</p></li>
+<li><p>Use symmetric threshold for identifying unit quaternions on qform
+calculations (pr/1182) (CM, reviewed by MB)</p></li>
+<li><p>Type annotations for <a class="reference internal" href="reference/nibabel.loadsave.html#module-nibabel.loadsave" title="nibabel.loadsave"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a> (pr/1213) and
+<a class="reference internal" href="reference/nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a> APIs (pr/1179),
+<a class="reference internal" href="reference/nibabel.deprecated.html#module-nibabel.deprecated" title="nibabel.deprecated"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecated</span></code></a>, <a class="reference internal" href="reference/nibabel.deprecator.html#module-nibabel.deprecator" title="nibabel.deprecator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></a>,
+<a class="reference internal" href="reference/nibabel.onetime.html#module-nibabel.onetime" title="nibabel.onetime"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a> and <a class="reference internal" href="reference/nibabel.optpkg.html#module-nibabel.optpkg" title="nibabel.optpkg"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a> modules (pr/1188),
+<a class="reference internal" href="reference/nibabel.volumeutils.html#module-nibabel.volumeutils" title="nibabel.volumeutils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a> (pr/1189), <a class="reference internal" href="reference/nibabel.filename_parser.html#module-nibabel.filename_parser" title="nibabel.filename_parser"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a> and
+<a class="reference internal" href="reference/nibabel.openers.html#module-nibabel.openers" title="nibabel.openers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a> (pr/1197) (CM, reviewed by Zvi Baratz)</p></li>
+</ul>
+</section>
+<section id="id10">
+<h4>Bug fixes<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Require explicit overrides to write GIFTI files that contain data arrays
+with data types not permitted by the GIFTI standard (pr/1199) (CM, reviewed
+by Alexis Thual)</p></li>
+</ul>
+</section>
+<section id="id11">
+<h4>Maintenance<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Move compression detection logic into a private <code class="docutils literal notranslate"><span class="pre">nibabel._compression</span></code>
+module, resolving unexpected errors from pyzstd. (pr/1212) (CM)</p></li>
+<li><p>Improved consistency of docstring formatting (pr/1200) (Zvi Baratz, reviewed
+by CM)</p></li>
+<li><p>Modernized README text (pr/1195) (Zvi Baratz, reviewed by CM)</p></li>
+<li><p>Updated README badges to include package distributions (pr/1192) (Horea
+Christian, reviewed by CM)</p></li>
+<li><p>Removed all dependencies on distutils and setuptools (pr/1190) (CM,
+reviewed by Zvi Baratz)</p></li>
+<li><p>Add a <code class="docutils literal notranslate"><span class="pre">_version.pyi</span></code> stub to allow <a class="reference external" href="https://mypy.readthedocs.io/">mypy</a> to run without building nibabel
+(pr/1210) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="sunday-12-february-2023">
+<h3>5.0.1 (Sunday 12 February 2023)<a class="headerlink" href="#sunday-12-february-2023" title="Link to this heading">¶</a></h3>
+<p>Bug-fix release in the 5.0.x series.</p>
+<section id="id12">
+<h4>Bug fixes<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Support ragged voxel arrays in
+<a class="reference internal" href="reference/nibabel.cifti2.html#nibabel.cifti2.cifti2_axes.ParcelsAxis" title="nibabel.cifti2.cifti2_axes.ParcelsAxis"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParcelsAxis</span></code></a> (pr/1194) (Michiel Cottaar,
+reviewed by CM)</p></li>
+<li><p>Return to cwd on exception in <a class="reference internal" href="reference/nibabel.tmpdirs.html#nibabel.tmpdirs.InTemporaryDirectory" title="nibabel.tmpdirs.InTemporaryDirectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">InTemporaryDirectory</span></code></a>
+(pr/1184) (CM)</p></li>
+</ul>
+</section>
+<section id="id13">
+<h4>Maintenance<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">py.typed</span></code> to module root to enable use of types in downstream
+projects (CM, reviewed by Fernando Pérez-Garcia)</p></li>
+<li><p>Cache git-archive separately from Python packages in GitHub Actions
+(pr/1186) (CM, reviewed by Zvi Baratz)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-9-january-2023">
+<h3>5.0.0 (Monday 9 January 2023)<a class="headerlink" href="#monday-9-january-2023" title="Link to this heading">¶</a></h3>
+<p>New feature release in the 5.0.x series.</p>
+<section id="id14">
+<h4>New features<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><a class="reference internal" href="reference/nibabel.filebasedimages.html#nibabel.filebasedimages.SerializableImage" title="nibabel.filebasedimages.SerializableImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SerializableImage</span></code></a> now has
+<a class="reference internal" href="reference/nibabel.filebasedimages.html#nibabel.filebasedimages.SerializableImage.to_stream" title="nibabel.filebasedimages.SerializableImage.to_stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_stream()</span></code></a> and
+<a class="reference internal" href="reference/nibabel.filebasedimages.html#nibabel.filebasedimages.SerializableImage.from_stream" title="nibabel.filebasedimages.SerializableImage.from_stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_stream()</span></code></a> methods to
+read/write streams implementing the <a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOBase</span></code></a> interface. A
+<a class="reference internal" href="reference/nibabel.filebasedimages.html#nibabel.filebasedimages.SerializableImage.from_url" title="nibabel.filebasedimages.SerializableImage.from_url"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_url()</span></code></a> method
+enables loading images from URLs. (pr/1129) (CM, reviewed by MB)</p></li>
+<li><p><a class="reference internal" href="reference/nibabel.streamlines.html#nibabel.streamlines.trk.TrkFile" title="nibabel.streamlines.trk.TrkFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrkFile</span></code></a> supports TRKv3, an
+undocumented but generally compatible variant of TRKv2. (pr/1125) (CM)</p></li>
+</ul>
+</section>
+<section id="id15">
+<h4>Enhancements<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Support multiline header fields in <code class="xref py py-class docutils literal notranslate"><span class="pre">TCKFile</span></code>
+(pr/1175) (CM, reviewed by Matt Cieslak)</p></li>
+<li><p>Make layout order an initialization parameter of
+<a class="reference internal" href="reference/nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayProxy" title="nibabel.arrayproxy.ArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayProxy</span></code></a> (pr/1131) (CM, reviewed by MB)</p></li>
+<li><p>Initial support for type annotations. (pr/1115, pr/1178) (CM, reviewed by
+Zvi Baratz)</p></li>
+</ul>
+</section>
+<section id="id16">
+<h4>Bug fixes<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Handle extension/file-format mismatches implemented incompletely in pr/1013
+(pr/1138) (CM, reviewed by Thomas Phil)</p></li>
+<li><p>Improve handling of invalid TCK files, which could sometimes cause an
+infinite loop (pr/1140) (Anibal Solon, reviewed by CM)</p></li>
+<li><p>Clean up ECAT test case that left filehandle open and failed to use class
+variables (pr/1155) (Dimitri Papadopoulos, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id17">
+<h4>Maintenance<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Simplify TCK reading code by assuming files are open in binary mode
+(pr/1142) (Anibal Solon, reviewed by MC, CM)</p></li>
+<li><p>Code support for tests covering deprecated functionality (pr/1159) (CM)</p></li>
+<li><p>Miscellaneous code cleanups (pr/1148, pr/1149, pr/1153, pr/1154, pr/1156)
+(Dimitri Papadopoulos, reviewed by CM)</p></li>
+<li><p>Update CI to build, test and deploy PyPI artifacts (pr/1134) (CM, reviewed
+by MB)</p></li>
+<li><p>Transition from <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> to <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> package configuration
+(pr/1133) (CM, reviewed by MB)</p></li>
+<li><p>Addressed race conditions preventing running tests with <a class="reference external" href="https://pytest-xdist.readthedocs.io">pytest-xdist</a>.
+(pr/1157, pr/1158) (CM, reviewed by Christian Haselgrove)</p></li>
+<li><p>Apply <a class="reference external" href="https://blue.readthedocs.io">blue</a> and <a class="reference external" href="https://pycqa.github.io/isort/">isort</a> auto-formatters and provide <a class="reference external" href="https://pre-commit.com/">pre-commit</a> configuration
+to reduce human burden of style guidelines. (pr/1124, pr/1165, pr/1169)
+(CM and Zvi Baratz)</p></li>
+<li><p>Manage versioning with <a class="reference external" href="https://github.com/pypa/setuptools_scm">setuptools_scm</a> (pr/1171) (CM, reviewed by Zvi Baratz)</p></li>
+<li><p>Reduce installed package size by excluding very large test file (pr/1176)
+(CM, reviewed by Zvi Baratz)</p></li>
+</ul>
+</section>
+<section id="id18">
+<h4>API changes and deprecations<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Passing an <code class="docutils literal notranslate"><span class="pre">int64</span></code> array to <a class="reference internal" href="reference/nibabel.nifti1.html#nibabel.nifti1.Nifti1Image" title="nibabel.nifti1.Nifti1Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti1Image</span></code></a> without a
+header or dtype argument will raise a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. (pr/1173) (CM)</p></li>
+<li><p><a class="reference internal" href="reference/nibabel.tmpdirs.html#nibabel.tmpdirs.TemporaryDirectory" title="nibabel.tmpdirs.TemporaryDirectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">nibabel.tmpdirs.TemporaryDirectory</span></code></a> is deprecated in favor of
+<a class="reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tempfile.TemporaryDirectory</span></code></a>. (pr/1172) (CM, reviewed by Zvi
+Baratz)</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">nisext</span></code> package is deprecated and will be removed in NiBabel 6.0.
+(pr/1170) (CM, reviewed by MB)</p></li>
+<li><p>Drop support for Python 3.7, Numpy &lt; 1.19 (pr/1177) (CM)</p></li>
+<li><p>The following deprecated functions and methods will now raise
+<code class="docutils literal notranslate"><span class="pre">ExpiredDeprecationError</span></code>s</p>
+<ul>
+<li><p><a class="reference internal" href="reference/nibabel.loadsave.html#nibabel.loadsave.read_img_data" title="nibabel.loadsave.read_img_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">nibabel.loadsave.read_img_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="reference/nibabel.dataobj_images.html#nibabel.dataobj_images.DataobjImage.get_data" title="nibabel.dataobj_images.DataobjImage.get_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">nibabel.dataobj_images.DataobjImage.get_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="reference/nibabel.loadsave.html#nibabel.loadsave.guessed_image_type" title="nibabel.loadsave.guessed_image_type"><code class="xref py py-func docutils literal notranslate"><span class="pre">nibabel.loadsave.guessed_image_type()</span></code></a></p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">nibabel.onetime.setattr_on_read()</span></code></p></li>
+<li><p><a class="reference internal" href="reference/nibabel.orientations.html#nibabel.orientations.flip_axis" title="nibabel.orientations.flip_axis"><code class="xref py py-func docutils literal notranslate"><span class="pre">nibabel.orientations.flip_axis()</span></code></a></p></li>
+</ul>
+</li>
+<li><p>Modules, classes and functions that expired at 4.0 were fully removed.
+<code class="docutils literal notranslate"><span class="pre">ExpiredDeprecationError</span></code>s will now be <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code>s.</p></li>
+</ul>
+</section>
+</section>
+<section id="wednesday-31-august-2022">
+<h3>4.0.2 (Wednesday 31 August 2022)<a class="headerlink" href="#wednesday-31-august-2022" title="Link to this heading">¶</a></h3>
+<p>Bug-fix release in the 4.0.x series.</p>
+<section id="id19">
+<h4>Bug fixes<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Make <code class="docutils literal notranslate"><span class="pre">GiftiMetaData.data</span></code> a list proxy, deprecate (pr/1127) (CM, reviewed
+by Hao-Ting Wang)</p></li>
+</ul>
+</section>
+<section id="id20">
+<h4>Maintenance<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Finalize deprecation of <code class="docutils literal notranslate"><span class="pre">ArrayWriter.to_fileobj(nan2zero=...)</span></code> argument
+(pr/1126) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="saturday-18-june-2022">
+<h3>4.0.1 (Saturday 18 June 2022)<a class="headerlink" href="#saturday-18-june-2022" title="Link to this heading">¶</a></h3>
+<p>Bug-fix release in the 4.0.x series.</p>
+<section id="id21">
+<h4>Bug fixes<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Finalize 4.0 deprecations, converting tests expecting <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> to
+expected <code class="docutils literal notranslate"><span class="pre">ExpiredDeprecationError</span></code> (pr/1117) (CM)</p></li>
+</ul>
+</section>
+<section id="id22">
+<h4>Maintenance<a class="headerlink" href="#id22" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Suppress new numpy warning on nan-to-int cast (pr/1118) (CM, reviewed by MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="id23">
+<h3>4.0.0 (Saturday 18 June 2022)<a class="headerlink" href="#id23" title="Link to this heading">¶</a></h3>
+<p>New feature release in the 4.0.x series.</p>
+<section id="id24">
+<h4>New features<a class="headerlink" href="#id24" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nib-convert</span></code> CLI tool to make image type and data dtype conversion accessible
+via the command line. (pr/1113) (CM, reviewed by Ariel Rokem)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">'mask'</span></code>, <code class="docutils literal notranslate"><span class="pre">'compat'</span></code> and <code class="docutils literal notranslate"><span class="pre">'smallest'</span></code> dtype aliases to NIfTI images
+to allow for dtype specifications that can depend on the contents of the data.
+<code class="docutils literal notranslate"><span class="pre">'mask'</span></code> is a synonym for <code class="docutils literal notranslate"><span class="pre">uint8</span></code>. <code class="docutils literal notranslate"><span class="pre">'compat'</span></code> will find the nearest
+Analyze-compatible (therefore widely supported) dtype that will not truncate
+the data. <code class="docutils literal notranslate"><span class="pre">'smallest'</span></code> attempts to find the smallest integer dtype that will
+contain the data. (pr/1096) (CM, reviewed by Chris Rorden and Josh Teves)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">dtype</span></code> arguments to <code class="docutils literal notranslate"><span class="pre">Cifti2Image</span></code> (pr/1111) (CM)</p></li>
+<li><p>Allow dtypes to be passed to Analyze-like images at <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">to_filename()</span></code> to provide better control over output images. (pr/1082)
+(CM, following discussions with Chris Rorden, Josh Teves, Jerome Dockes, and MB)</p></li>
+<li><p>Allow compressed GIFTI images (MB, reviewed by CM)</p></li>
+<li><p>Add zstd compression support (pr/1005) (Andrew Van, reviewed by CM)</p></li>
+<li><p>Support <code class="docutils literal notranslate"><span class="pre">ExternalFileBinary</span></code> GIFTI data arrays (PM, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id25">
+<h4>Enhancements<a class="headerlink" href="#id25" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Document <code class="docutils literal notranslate"><span class="pre">InTemporaryDirectory</span></code> as non-thread-safe (pr/1103) (Jacob Roberts,
+reviewed by MB)</p></li>
+<li><p>Unify Caret-XML-style metadata structure (GiftiMetaData, Cifti2MetaData)
+as dict-like (pr/1091) (CM, reviewed by Josh Teves and Hao-Ting Wang)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">__repr__</span></code> methods to GIFTI objects (pr/1092) (CM,
+reviewed by Josh Teves and Hao-Ting Wang)</p></li>
+<li><p>Create gzip header deterministically by default (pr/1024) (CM, reviewed by YOH)</p></li>
+<li><p>Provide clear error message when files with zip extensions don’t match
+file contents (pr/1013) (Jérôme Dockès, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id26">
+<h4>Bug fixes<a class="headerlink" href="#id26" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Re-import externals/netcdf.py from scipy to resolve numpy API change (pr/1110)
+(CM)</p></li>
+<li><p>Resize ArraySequence.data without helper function to avoid reference increment
+(pr/1093) (MC, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id27">
+<h4>Maintenance<a class="headerlink" href="#id27" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Update submodule URLs to use https over git protocol (pr/1097) (CM)</p></li>
+<li><p>Published BIAP 9: CoordinateImage API (pr/1084) (CM)</p></li>
+<li><p>Drop uses of deprecated <code class="docutils literal notranslate"><span class="pre">distutils</span></code> (pr/1073) (CM, reviewed by MB)</p></li>
+<li><p>Suppress LGTM false alarm “Clear-text logging of sensitive information”
+(pr/1052) (Dimitri Papadopoulos, reviewed by CM)</p></li>
+<li><p>Test on Python 3.10 (pr/1047) (CM)</p></li>
+<li><p>Fix typos found by codespell (pr/1040, pr/1044)
+(Dimitri Papadopoulos, reviewed by CM)</p></li>
+<li><p>Run stable tests weekly, pre-release tests nightly (pr/1025) (CM)</p></li>
+<li><p>Documentation updates to establish/clarify governance and decision
+making (pr/1019, pr/1020, pr/1022, pr/1018, pr/1017, pr/1016) (MB and CM)</p></li>
+</ul>
+</section>
+<section id="id28">
+<h4>API changes and deprecations<a class="headerlink" href="#id28" title="Link to this heading">¶</a></h4>
+<ul>
+<li><p>Writing NIfTIs with 64-bit integer dtypes is getting harder.
+Passing <code class="docutils literal notranslate"><span class="pre">(u)int64</span></code> arrays to <code class="docutils literal notranslate"><span class="pre">Nifti1Image</span></code> and subclasses will warn unless
+a <code class="docutils literal notranslate"><span class="pre">header</span></code> or <code class="docutils literal notranslate"><span class="pre">dtype</span></code> option is passed; in the future this will become an
+error.
+Additionally, passing <code class="docutils literal notranslate"><span class="pre">int</span></code> or <code class="docutils literal notranslate"><span class="pre">'int'</span></code> to <code class="docutils literal notranslate"><span class="pre">set_data_dtype()</span></code> now raises
+an error, requiring an explicit numpy dtype to make 64-bit integer images.
+(pr/1082) (CM, following discussions with Chris Rorden, Josh Teves, Jerome Dockes,
+and MB)</p></li>
+<li><p>Drop support for Python 3.6, Numpy &lt; 1.17 (pr/1079) (CM)</p></li>
+<li><p>Fully removed the following APIs, which have raised errors on use
+since 3.0 (pr/980) (CM, reviewed by Jonathan Daniel)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.trackvis</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.volumeutils.calculate_scale</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.volumeutils.can_cast</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.volumeutils.scale_min_max</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.dataobj_images.DataobjImage.get_shape</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.minc1.MincImage</span></code> (use <code class="docutils literal notranslate"><span class="pre">Minc1Image</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.minc1.MincFile</span></code> (use <code class="docutils literal notranslate"><span class="pre">Minc1File</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.filebasedimages.FileBasedImage.from_files</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.filebasedimages.FileBasedImage.filespec_to_files</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.filebasedimages.FileBasedImage.to_filespec</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.filebasedimages.FileBasedImage.to_files</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.ArrayProxy.header</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keep_file_open==&quot;auto&quot;</span></code> parameter to load method (now must be boolean)</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+<section id="monday-7-february-2022">
+<h3>3.2.2 (Monday 7 February 2022)<a class="headerlink" href="#monday-7-february-2022" title="Link to this heading">¶</a></h3>
+<p>Bug fix release in the 3.2.x series.</p>
+<section id="id29">
+<h4>Bug fixes<a class="headerlink" href="#id29" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Reshape CIFTI-2 affines to 4x4 when encoded as row-major sequence (pr/1059)
+(Andrew Van, reviewed by CM)</p></li>
+<li><p>Suggest nibabel.save() on calls to deprecated giftiio.write() (pr/1055)
+(Anibal Solon, reviewed by CM)</p></li>
+<li><p>Various bugs and style issues detected by LGTM (pr/1043, pr/1048)
+(Dimitri Papadopoulos, reviewed by CM)</p></li>
+<li><p>Resolve unclosed file warning in GiftiImage (pr/1038) (Lea Waller, reviewed by CM)</p></li>
+<li><p>Fix typos preventing deprecation warnings from being raised (pr/991)
+(Jonathan Daniel, reviewed by MB)</p></li>
+<li><p>Work around numpy SystemError to maintain expected error types (pr/1051) (CM)</p></li>
+<li><p>Use more constrained mock when testing optpkg (pr/983) (CM, reviewed by YOH)</p></li>
+</ul>
+</section>
+<section id="id30">
+<h4>Maintenance<a class="headerlink" href="#id30" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add setuptools requirement to match usage (pr/1009)
+(Tomáš Hrnčiar, reviewed by CM)</p></li>
+<li><p>Fix grammar of headings in CoC (pr/996) (MB, reviewed by CM, Ariel Rokem)</p></li>
+<li><p>Set minimum pydicom to 1.0.0 (pr/1050) (CM)</p></li>
+<li><p>Submit coverage to codecov via pinned PyPI package (pr/1008) (CM)</p></li>
+<li><p>Upgrade versioneer to 0.19 (pr/967) (CM)</p></li>
+<li><p>Migrate to GitHub actions (pr/972) (CM, reviewed by Serge Koudoro)</p></li>
+</ul>
+</section>
+</section>
+<section id="saturday-28-november-2020">
+<h3>3.2.1 (Saturday 28 November 2020)<a class="headerlink" href="#saturday-28-november-2020" title="Link to this heading">¶</a></h3>
+<p>Bug fix release in the 3.2.x series.</p>
+<section id="id31">
+<h4>Maintenance<a class="headerlink" href="#id31" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Drop references to builtin types in Numpy namespace like <code class="docutils literal notranslate"><span class="pre">np.float</span></code>
+(pr/964) (EL, reviewed by CM)</p></li>
+<li><p>Ensure compatibility with Python 3.9 (pr/963) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="tuesday-20-october-2020">
+<h3>3.2.0 (Tuesday 20 October 2020)<a class="headerlink" href="#tuesday-20-october-2020" title="Link to this heading">¶</a></h3>
+<p>New feature release in the 3.2.x series.</p>
+<section id="id32">
+<h4>New features<a class="headerlink" href="#id32" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nib-stats</span></code> CLI tool to expose new <code class="docutils literal notranslate"><span class="pre">nibabel.imagestats</span></code> API. Initial
+implementation of volume calculations, a la <code class="docutils literal notranslate"><span class="pre">fslstats</span> <span class="pre">-V</span></code>. (Julian Klug,
+reviewed by CM and GitHub user 0rC0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nib-roi</span></code> CLI tool to crop images and/or flip axes (pr/947) (CM, reviewed
+by Chris Cheng and Mathias Goncalves)</p></li>
+<li><p>Parser for Siemens “ASCCONV” text format (pr/896) (Brendan Moloney and MB,
+reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id33">
+<h4>Enhancements<a class="headerlink" href="#id33" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Drop confusing mention of <code class="docutils literal notranslate"><span class="pre">img.to_filename()</span></code> in getting started guide
+(pr/946) (Fernando Pérez-Garcia, reviewed by MB, CM)</p></li>
+<li><p>Implement <code class="docutils literal notranslate"><span class="pre">to_bytes()</span></code>/<code class="docutils literal notranslate"><span class="pre">from_bytes()</span></code> methods for <code class="docutils literal notranslate"><span class="pre">Cifti2Image</span></code>
+(pr/938) (CM, reviewed by Mathias Goncalves)</p></li>
+<li><p>Clean up of DICOM documentation (pr/910) (Jonathan Daniel, reviewed by MB)</p></li>
+</ul>
+</section>
+<section id="id34">
+<h4>Bug fixes<a class="headerlink" href="#id34" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Use canvas manager API to set title in <code class="docutils literal notranslate"><span class="pre">OrthoSlicer3D</span></code> (pr/958) (EL,
+reviewed by CM)</p></li>
+<li><p>Record units as seconds parrec2nii; previously set TR to seconds but
+retained msec units (pr/931) (CM, reviewed by MB)</p></li>
+<li><p>Reflect on-disk dimensions in NIfTI-2 view of CIFTI-2 images (pr/930)
+(Mathias Goncalves and CM)</p></li>
+<li><p>Fix outdated Python 2 and Sympy code in DICOM derivations (pr/911) (MB,
+reviewed by CM)</p></li>
+<li><p>Change string with invalid escape to raw string (pr/909) (EL, reviewed
+by MB)</p></li>
+</ul>
+</section>
+<section id="id35">
+<h4>Maintenance<a class="headerlink" href="#id35" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix typo in docs (pr/955) (Carl Gauthier, reviewed by CM)</p></li>
+<li><p>Purge nose from nisext tests (pr/934) (Markéta Calábková, reviewed by CM)</p></li>
+<li><p>Suppress expected warnings in tests (pr/949) (CM, reviewed by Dorota
+Jarecka)</p></li>
+<li><p>Various cleanups and modernizations (pr/916, pr/917, pr/918, pr/919)
+(Jonathan Daniel, reviewed by CM)</p></li>
+<li><p>SVG logo for improved appearance in with zooming (pr/914) (Jonathan Daniel,
+reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id36">
+<h4>API changes and deprecations<a class="headerlink" href="#id36" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Drop support for Numpy &lt; 1.13 (pr/922) (CM)</p></li>
+<li><p>Warn on use of <code class="docutils literal notranslate"><span class="pre">onetime.setattr_on_read</span></code>, which has been a deprecated
+alias of <code class="docutils literal notranslate"><span class="pre">auto_attr</span></code> (pr/948) (CM, reviewed by Ariel Rokem)</p></li>
+</ul>
+</section>
+</section>
+<section id="friday-26-june-2020">
+<h3>3.1.1 (Friday 26 June 2020)<a class="headerlink" href="#friday-26-june-2020" title="Link to this heading">¶</a></h3>
+<p>Bug-fix release in the 3.1.x series.</p>
+<p>These are small compatibility fixes that support ARM64 architecture and
+<code class="docutils literal notranslate"><span class="pre">indexed_gzip&gt;=1.3.0</span></code>.</p>
+<section id="id37">
+<h4>Bug fixes<a class="headerlink" href="#id37" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Detect <code class="docutils literal notranslate"><span class="pre">IndexedGzipFile</span></code> as compressed file type (pr/925) (PM, reviewed by
+CM)</p></li>
+<li><p>Correctly cast <code class="docutils literal notranslate"><span class="pre">nan</span></code> when testing <code class="docutils literal notranslate"><span class="pre">array_to_file</span></code>, fixing ARM64 builds
+(pr/862) (CM, reviewed by MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-20-april-2020">
+<h3>3.1.0 (Monday 20 April 2020)<a class="headerlink" href="#monday-20-april-2020" title="Link to this heading">¶</a></h3>
+<p>New feature release in the 3.1.x series.</p>
+<section id="id38">
+<h4>New features<a class="headerlink" href="#id38" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Conformation function (<code class="docutils literal notranslate"><span class="pre">processing.conform</span></code>) and CLI tool
+(<code class="docutils literal notranslate"><span class="pre">nib-conform</span></code>) to apply shape, orientation and zooms (pr/853) (Jakub
+Kaczmarzyk, reviewed by CM, YOH)</p></li>
+<li><p>Affine rescaling function (<code class="docutils literal notranslate"><span class="pre">affines.rescale_affine</span></code>) to update
+dimensions and voxel sizes (pr/853) (CM, reviewed by Jakub Kaczmarzyk)</p></li>
+</ul>
+</section>
+<section id="id39">
+<h4>Bug fixes<a class="headerlink" href="#id39" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Delay import of h5py until needed (pr/889) (YOH, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id40">
+<h4>Maintenance<a class="headerlink" href="#id40" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix typo in documentation (pr/893) (Zvi Baratz, reviewed by CM)</p></li>
+<li><p>Tests converted from nose to pytest (pr/865 + many sub-PRs)
+(Dorota Jarecka, Krzyzstof Gorgolewski, Roberto Guidotti, Anibal Solon,
+and Or Duek)</p></li>
+</ul>
+</section>
+<section id="id41">
+<h4>API changes and deprecations<a class="headerlink" href="#id41" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">kw_only_meth</span></code>/<code class="docutils literal notranslate"><span class="pre">kw_only_func</span></code> decorators are deprecated (pr/848)
+(RM, reviewed by CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="wednesday-8-april-2020">
+<h3>2.5.2 (Wednesday 8 April 2020)<a class="headerlink" href="#wednesday-8-april-2020" title="Link to this heading">¶</a></h3>
+<p>Bug-fix release in the 2.5.x series. This is an extended-support series,
+providing bug fixes for Python 2.7 and 3.4.</p>
+<p>This and all future releases in the 2.5.x series will be incompatible with
+Python 3.9. The last compatible series of numpy and scipy are 1.16.x and
+1.2.x, respectively.</p>
+<p>If you are able to upgrade to Python 3, it is recommended to upgrade to
+NiBabel 3.</p>
+<section id="id42">
+<h4>Bug fixes<a class="headerlink" href="#id42" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+by CM)</p></li>
+<li><p>Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+(pr/821) (CM)</p></li>
+</ul>
+</section>
+<section id="id43">
+<h4>Maintenance<a class="headerlink" href="#id43" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Set maximum numpy to 1.16.x, maximum scipy to 1.2.x (pr/901) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-9-march-2020">
+<h3>3.0.2 (Monday 9 March 2020)<a class="headerlink" href="#monday-9-march-2020" title="Link to this heading">¶</a></h3>
+<section id="id44">
+<h4>Bug fixes<a class="headerlink" href="#id44" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Attempt to find versioneer version when building docs (pr/894) (CM)</p></li>
+<li><p>Delay import of h5py until needed (backport of pr/889) (YOH, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id45">
+<h4>Maintenance<a class="headerlink" href="#id45" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix typo in documentation (backport of pr/893) (Zvi Baratz, reviewed by CM)</p></li>
+<li><p>Set minimum matplotlib to 1.5.3 to ensure wheels are available on all
+supported Python versions. (backport of pr/887) (CM)</p></li>
+<li><p>Remove <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> for now. (issue/859) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-27-january-2020">
+<h3>3.0.1 (Monday 27 January 2020)<a class="headerlink" href="#monday-27-january-2020" title="Link to this heading">¶</a></h3>
+<section id="id46">
+<h4>Bug fixes<a class="headerlink" href="#id46" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Test failed by using array method on tuple. (pr/860) (Ben Darwin, reviewed by
+CM)</p></li>
+<li><p>Validate <code class="docutils literal notranslate"><span class="pre">ExpiredDeprecationError</span></code>s, promoted by 3.0 release from
+<code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>s. (pr/857) (CM)</p></li>
+</ul>
+</section>
+<section id="id47">
+<h4>Maintenance<a class="headerlink" href="#id47" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Remove logic accommodating numpy without float16 types. (pr/866) (CM)</p></li>
+<li><p>Accommodate new numpy dtype strings. (pr/858) (CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="wednesday-18-december-2019">
+<h3>3.0.0 (Wednesday 18 December 2019)<a class="headerlink" href="#wednesday-18-december-2019" title="Link to this heading">¶</a></h3>
+<section id="id48">
+<h4>New features<a class="headerlink" href="#id48" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>ArrayProxy <code class="docutils literal notranslate"><span class="pre">__array__()</span></code> now accepts a <code class="docutils literal notranslate"><span class="pre">dtype</span></code> parameter, allowing
+<code class="docutils literal notranslate"><span class="pre">numpy.array(dataobj,</span> <span class="pre">dtype=...)</span></code> calls, as well as casting directly
+with a dtype (for example, <code class="docutils literal notranslate"><span class="pre">numpy.float32(dataobj)</span></code>) to control the
+output type. Scale factors (slope, intercept) are applied, but may be
+cast to narrower types, to control memory usage. This is now the basis
+of <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code>, which will scale data in single precision if
+the output type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>. (pr/844) (CM, reviewed by Alejandro
+de la Vega, Ross Markello)</p></li>
+<li><p>GiftiImage method <code class="docutils literal notranslate"><span class="pre">agg_data()</span></code> to return usable data arrays (pr/793)
+(Hao-Ting Wang, reviewed by CM)</p></li>
+<li><p>Accept <code class="docutils literal notranslate"><span class="pre">os.PathLike</span></code> objects in place of filenames (pr/610) (Cameron
+Riddell, reviewed by MB, CM)</p></li>
+<li><p>Function to calculate obliquity of affines (pr/815) (Oscar Esteban,
+reviewed by MB)</p></li>
+</ul>
+</section>
+<section id="id49">
+<h4>Enhancements<a class="headerlink" href="#id49" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Improve testing of data scaling in ArrayProxy API (pr/847) (CM, reviewed
+by Alejandro de la Vega)</p></li>
+<li><p>Document <code class="docutils literal notranslate"><span class="pre">SpatialImage.slicer</span></code> interface (pr/846) (CM)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_fdata(dtype=np.float32)</span></code> will attempt to avoid casting data to
+<code class="docutils literal notranslate"><span class="pre">np.float64</span></code> when scaling parameters would otherwise promote the data
+type unnecessarily. (pr/833) (CM, reviewed by Ross Markello)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ArraySequence</span></code> now supports a large set of Python operators to combine
+or update in-place. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin,
+CM, MB)</p></li>
+<li><p>Warn, rather than fail, on DICOMs with unreadable Siemens CSA tags (pr/818)
+(Henry Braun, reviewed by CM)</p></li>
+<li><p>Improve clarity of coordinate system tutorial (pr/823) (Egor Panfilov,
+reviewed by MB)</p></li>
+</ul>
+</section>
+<section id="id50">
+<h4>Bug fixes<a class="headerlink" href="#id50" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Sliced <code class="docutils literal notranslate"><span class="pre">Tractogram</span></code>s no longer <code class="docutils literal notranslate"><span class="pre">apply_affine</span></code> to the original
+<code class="docutils literal notranslate"><span class="pre">Tractogram</span></code>’s streamlines. (pr/811) (MC, reviewed by Serge Koudoro,
+Philippe Poulin, CM, MB)</p></li>
+<li><p>Change strings with invalid escapes to raw strings (pr/827) (EL, reviewed
+by CM)</p></li>
+<li><p>Re-import externals/netcdf.py from scipy to resolve numpy deprecation
+(pr/821) (CM)</p></li>
+</ul>
+</section>
+<section id="id51">
+<h4>Maintenance<a class="headerlink" href="#id51" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Remove replicated metadata for packaged data from MANIFEST.in (pr/845) (CM)</p></li>
+<li><p>Support Python &gt;=3.5.1, including Python 3.8.0 (pr/787) (CM)</p></li>
+<li><p>Manage versioning with slightly customized Versioneer (pr/786) (CM)</p></li>
+<li><p>Reference Nipy Community Code and Nibabel Developer Guidelines in
+GitHub community documents (pr/778) (CM, reviewed by MB)</p></li>
+</ul>
+</section>
+<section id="id52">
+<h4>API changes and deprecations<a class="headerlink" href="#id52" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fully remove deprecated <code class="docutils literal notranslate"><span class="pre">checkwarns</span></code> and <code class="docutils literal notranslate"><span class="pre">minc</span></code> modules. (pr/852) (CM)</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">keep_file_open</span></code> argument to file load operations and <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>s
+no longer accepts the value <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>, raising a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>. (pr/852)
+(CM)</p></li>
+<li><p>Deprecate <code class="docutils literal notranslate"><span class="pre">ArraySequence.data</span></code> in favor of <code class="docutils literal notranslate"><span class="pre">ArraySequence.get_data()</span></code>,
+which will return a copy. <code class="docutils literal notranslate"><span class="pre">ArraySequence.data</span></code> now returns a read-only
+view. (pr/811) (MC, reviewed by Serge Koudoro, Philippe Poulin, CM, MB)</p></li>
+<li><p>Deprecate <code class="docutils literal notranslate"><span class="pre">DataobjImage.get_data()</span></code> API, to be removed in nibabel 5.0
+(pr/794, pr/809) (CM, reviewed by MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-23-september-2019">
+<h3>2.5.1 (Monday 23 September 2019)<a class="headerlink" href="#monday-23-september-2019" title="Link to this heading">¶</a></h3>
+<section id="id53">
+<h4>Enhancements<a class="headerlink" href="#id53" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Ignore endianness in <code class="docutils literal notranslate"><span class="pre">nib-diff</span></code> if values match (pr/799) (YOH, reviewed
+by CM)</p></li>
+</ul>
+</section>
+<section id="id54">
+<h4>Bug fixes<a class="headerlink" href="#id54" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Correctly handle Philips DICOMs w/ derived volume (pr/795) (Mathias
+Goncalves, reviewed by CM)</p></li>
+<li><p>Raise CSA tag limit to 1000, parametrize for future relaxing (pr/798,
+backported to 2.5.x in pr/800) (Henry Braun, reviewed by CM, MB)</p></li>
+<li><p>Coerce data types to match NIfTI intent codes when writing GIFTI data
+arrays (pr/806) (CM, reported by Tom Holroyd)</p></li>
+</ul>
+</section>
+<section id="id55">
+<h4>Maintenance<a class="headerlink" href="#id55" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Require h5py 2.10 for Windows + Python &lt; 3.6 to resolve unexpected dtypes
+in Minc2 data (pr/804) (CM, reviewed by YOH)</p></li>
+</ul>
+</section>
+<section id="id56">
+<h4>API changes and deprecations<a class="headerlink" href="#id56" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Deprecate <code class="docutils literal notranslate"><span class="pre">nicom.dicomwrappers.Wrapper.get_affine()</span></code> in favor of <code class="docutils literal notranslate"><span class="pre">affine</span></code>
+property; final removal in nibabel 4.0 (pr/796) (YOH, reviewed by CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="sunday-4-august-2019">
+<h3>2.5.0 (Sunday 4 August 2019)<a class="headerlink" href="#sunday-4-august-2019" title="Link to this heading">¶</a></h3>
+<p>The 2.5.x series is the last with support for either Python 2 or Python 3.4.
+Extended support for this series 2.5 will last through December 2020.</p>
+<p>Thanks for the test ECAT file and fix provided by Andrew Crabb.</p>
+<section id="id57">
+<h4>Enhancements<a class="headerlink" href="#id57" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add SerializableImage class with to/from_bytes methods (pr/644) (CM,
+reviewed by MB)</p></li>
+<li><p>Check CIFTI-2 data shape matches shape described by header (pr/774)
+(Michiel Cottaar, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id58">
+<h4>Bug fixes<a class="headerlink" href="#id58" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Handle stricter numpy casting rules in tests (pr/768) (CM)
+reviewed by PM)</p></li>
+<li><p>TRK header fields flipped in files written on big-endian systems
+(pr/782) (CM, reviewed by YOH, MB)</p></li>
+<li><p>Load multiframe ECAT images with Python 3 (CM and Andrew Crabb)</p></li>
+</ul>
+</section>
+<section id="id59">
+<h4>Maintenance<a class="headerlink" href="#id59" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix CodeCov paths on Appveyor for more accurate coverage (pr/769) (CM)</p></li>
+<li><p>Move to setuptools and reduce use <code class="docutils literal notranslate"><span class="pre">nisext</span></code> functions (pr/764) (CM,
+reviewed by YOH)</p></li>
+<li><p>Better handle test setup/teardown (pr/785) (CM, reviewed by YOH)</p></li>
+</ul>
+</section>
+<section id="id60">
+<h4>API changes and deprecations<a class="headerlink" href="#id60" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Effect threatened warnings and set some deprecation timelines (pr/755) (CM)
+* Trackvis methods now default to v2 formats
+* <code class="docutils literal notranslate"><span class="pre">nibabel.trackvis</span></code> scheduled for removal in nibabel 4.0
+* <code class="docutils literal notranslate"><span class="pre">nibabel.minc</span></code> and <code class="docutils literal notranslate"><span class="pre">nibabel.MincImage</span></code> will be removed in nibabel 3.0</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-27-may-2019">
+<h3>2.4.1 (Monday 27 May 2019)<a class="headerlink" href="#monday-27-may-2019" title="Link to this heading">¶</a></h3>
+<p>Contributions from Egor Pafilov, Jath Palasubramaniam, Richard Nemec, and
+Dave Allured.</p>
+<section id="id61">
+<h4>Enhancements<a class="headerlink" href="#id61" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Enable <code class="docutils literal notranslate"><span class="pre">mmap</span></code>, <code class="docutils literal notranslate"><span class="pre">keep_file_open</span></code> options when loading any
+<code class="docutils literal notranslate"><span class="pre">DataobjImage</span></code> (pr/759) (CM, reviewed by PM)</p></li>
+</ul>
+</section>
+<section id="id62">
+<h4>Bug fixes<a class="headerlink" href="#id62" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Ensure loaded GIFTI files expose writable data arrays (pr/750) (CM,
+reviewed by PM)</p></li>
+<li><p>Safer warning registry manipulation when checking for overflows (pr/753)
+(CM, reviewed by MB)</p></li>
+<li><p>Correctly write .annot files with duplicate labels (pr/763) (Richard Nemec
+with CM)</p></li>
+</ul>
+</section>
+<section id="id63">
+<h4>Maintenance<a class="headerlink" href="#id63" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix typo in coordinate systems doc (pr/751) (Egor Panfilov, reviewed by
+CM)</p></li>
+<li><p>Replace invalid MINC1 test file with fixed file (pr/754) (Dave Allured
+with CM)</p></li>
+<li><p>Update Sphinx config to support recent Sphinx/numpydoc (pr/749) (CM,
+reviewed by PM)</p></li>
+<li><p>Pacify <code class="docutils literal notranslate"><span class="pre">FutureWarning</span></code> and <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> from h5py, numpy
+(pr/760) (CM)</p></li>
+<li><p>Accommodate Python 3.8 deprecation of collections.MutableMapping
+(pr/762) (Jath Palasubramaniam, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id64">
+<h4>API changes and deprecations<a class="headerlink" href="#id64" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Deprecate <code class="docutils literal notranslate"><span class="pre">keep_file_open</span> <span class="pre">==</span> <span class="pre">'auto'</span></code> (pr/761) (CM, reviewed by PM)</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-1-april-2019">
+<h3>2.4.0 (Monday 1 April 2019)<a class="headerlink" href="#monday-1-april-2019" title="Link to this heading">¶</a></h3>
+<section id="id65">
+<h4>New features<a class="headerlink" href="#id65" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Alternative <code class="docutils literal notranslate"><span class="pre">Axis</span></code>-based interface for manipulating CIFTI-2 headers
+(pr/641) (Michiel Cottaar, reviewed by Demian Wassermann, CM, SG)</p></li>
+</ul>
+</section>
+<section id="id66">
+<h4>Enhancements<a class="headerlink" href="#id66" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Accept TCK files produced by tools with other delimiter/EOF defaults
+(pr/720) (Soichi Hayashi, reviewed by CM, MB, MC)</p></li>
+<li><p>Allow BrainModels or Parcels to contain a single vertex in CIFTI
+(pr/739) (Michiel Cottaar, reviewed by CM)</p></li>
+<li><p>Support for <code class="docutils literal notranslate"><span class="pre">NIFTI_XFORM_TEMPLATE_OTHER</span></code> xform code (pr/743) (CM)</p></li>
+</ul>
+</section>
+<section id="id67">
+<h4>Bug fixes<a class="headerlink" href="#id67" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Skip refcheck in ArraySequence construction/extension (pr/719) (Ariel
+Rokem, reviewed by CM, MC)</p></li>
+<li><p>Use safe resizing for ArraySequence extension (pr/724) (CM, reviewed
+by MC)</p></li>
+<li><p>Fix typo in error message (pr/726) (Jon Haitz Legarreta Gorroño,
+reviewed by CM)</p></li>
+<li><p>Support DICOM slice sorting in Python 3 (pr/728) (Samir Reddigari,
+reviewed by CM)</p></li>
+<li><p>Correctly reorient dim_info when reorienting NIfTI images
+(Konstantinos Raktivan, CM, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id68">
+<h4>Maintenance<a class="headerlink" href="#id68" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Import updates to reduce upstream deprecation warnings (pr/711,
+pr/705, pr/738) (EL, YOH, reviewed by CM)</p></li>
+<li><p>Delay import of <code class="docutils literal notranslate"><span class="pre">nibabel.testing</span></code>, <code class="docutils literal notranslate"><span class="pre">nose</span></code> and <code class="docutils literal notranslate"><span class="pre">mock</span></code> to speed up
+import (pr/699) (CM)</p></li>
+<li><p>Increase coverage testing, drop coveralls (pr/722, pr/732) (CM)</p></li>
+<li><p>Add Zenodo metadata, sorted by commits (pr/732) (CM + others)</p></li>
+<li><p>Update author listing and copyrights (pr/742) (MB, reviewed by CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="wednesday-16-january-2019">
+<h3>2.3.3 (Wednesday 16 January 2019)<a class="headerlink" href="#wednesday-16-january-2019" title="Link to this heading">¶</a></h3>
+<section id="id69">
+<h4>Maintenance<a class="headerlink" href="#id69" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Restore <code class="docutils literal notranslate"><span class="pre">six</span></code> dependency (pr/714) (CM, reviewed by Gael Varoquaux, MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="wednesday-2-january-2019">
+<h3>2.3.2 (Wednesday 2 January 2019)<a class="headerlink" href="#wednesday-2-january-2019" title="Link to this heading">¶</a></h3>
+<section id="id70">
+<h4>Enhancements<a class="headerlink" href="#id70" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Enable toggling crosshair with <code class="docutils literal notranslate"><span class="pre">Ctrl-x</span></code> in <code class="docutils literal notranslate"><span class="pre">OrthoSlicer3D</span></code> viewer (pr/701)
+(Miguel Estevan Moreno, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id71">
+<h4>Bug fixes<a class="headerlink" href="#id71" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Read .PAR files corresponding to ADC maps (pr/685) (Gregory R. Lee, reviewed
+by CM)</p></li>
+<li><p>Increase maximum number of items read from Siemens CSA format (Igor Solovey,
+reviewed by CM, MB)</p></li>
+<li><p>Check boolean dtypes with <code class="docutils literal notranslate"><span class="pre">numpy.issubdtype(...,</span> <span class="pre">np.bool_)</span></code> (pr/707)
+(Jon Haitz Legarreta Gorroño, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id72">
+<h4>Maintenance<a class="headerlink" href="#id72" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix small typos in parrec2nii help text (pr/682) (Thomas Roos, reviewed by
+MB)</p></li>
+<li><p>Remove deprecated calls to <code class="docutils literal notranslate"><span class="pre">numpy.asscalar</span></code> (pr/686) (CM, reviewed by
+Gregory R. Lee)</p></li>
+<li><p>Update QA directives to accommodate Flake8 3.6 (pr/695) (CM)</p></li>
+<li><p>Update DOI links to use <code class="docutils literal notranslate"><span class="pre">https://doi.org</span></code> (pr/703) (Katrin Leinweber,
+reviewed by CM)</p></li>
+<li><p>Remove deprecated calls to <code class="docutils literal notranslate"><span class="pre">numpy.fromstring</span></code> (pr/700) (Ariel Rokem,
+reviewed by CM, MB)</p></li>
+<li><p>Drop <code class="docutils literal notranslate"><span class="pre">distutils</span></code> support, require <code class="docutils literal notranslate"><span class="pre">bz2file</span></code> for Python 2.7 (pr/700)
+(CM, reviewed by MB)</p></li>
+<li><p>Replace mutable <code class="docutils literal notranslate"><span class="pre">bytes</span></code> hack, disabled in numpy pre-release, with
+<code class="docutils literal notranslate"><span class="pre">bytearray</span></code>/<code class="docutils literal notranslate"><span class="pre">readinto</span></code> strategy (pr/700) (Ariel Rokem, CM, reviewed by
+CM, MB)</p></li>
+</ul>
+</section>
+<section id="id73">
+<h4>API changes and deprecations<a class="headerlink" href="#id73" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">Opener.readinto</span></code> method to read file contents into pre-allocated buffers
+(pr/700) (Ariel Rokem, reviewed by CM, MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="tuesday-16-october-2018">
+<h3>2.3.1 (Tuesday 16 October 2018)<a class="headerlink" href="#tuesday-16-october-2018" title="Link to this heading">¶</a></h3>
+<section id="id74">
+<h4>New features<a class="headerlink" href="#id74" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nib-diff</span></code> command line tool for comparing image files (pr/617, pr/672,
+pr/678) (CC, reviewed by YOH, Pradeep Raamana and CM)</p></li>
+</ul>
+</section>
+<section id="id75">
+<h4>Enhancements<a class="headerlink" href="#id75" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Speed up reading of numeric arrays in CIFTI2 (pr/655) (Michiel Cottaar,
+reviewed by CM)</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">ndim</span></code> property to <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code> and <code class="docutils literal notranslate"><span class="pre">DataobjImage</span></code> (pr/674) (CM,
+reviewed by MB)</p></li>
+</ul>
+</section>
+<section id="id76">
+<h4>Bug fixes<a class="headerlink" href="#id76" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Deterministic deduction of slice ordering in degenerate cases (pr/647)
+(YOH, reviewed by CM)</p></li>
+<li><p>Allow 0ms TR in MGH files (pr/653) (EL, reviewed by CM)</p></li>
+<li><p>Allow for PPC64 little-endian long doubles (pr/658) (MB, reviewed by CM)</p></li>
+<li><p>Correct construction of FreeSurfer annotation labels (pr/666) (CM, reviewed
+by EL, Paul D. McCarthy)</p></li>
+<li><p>Fix logic for persisting filehandles with indexed-gzip (pr/679) (Paul D.
+McCarthy, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id77">
+<h4>Maintenance<a class="headerlink" href="#id77" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix semantic error in coordinate systems documentation (pr/646) (Ariel
+Rokem, reviewed by CM, MB)</p></li>
+<li><p>Test on Python 3.7, minor associated fixes (pr/651) (CM, reviewed by Gregory
+R. Lee, MB)</p></li>
+</ul>
+</section>
+</section>
+<section id="tuesday-12-june-2018">
+<h3>2.3 (Tuesday 12 June 2018)<a class="headerlink" href="#tuesday-12-june-2018" title="Link to this heading">¶</a></h3>
+<section id="id78">
+<h4>New features<a class="headerlink" href="#id78" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>TRK &lt;=&gt; TCK streamlines conversion CLI tools (pr/606) (MC, reviewed by CM)</p></li>
+<li><p>Image slicing for SpatialImages (pr/550) (CM)</p></li>
+</ul>
+</section>
+<section id="id79">
+<h4>Enhancements<a class="headerlink" href="#id79" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Simplfiy MGHImage and add footer fields (pr/569) (CM, reviewed by MB)</p></li>
+<li><p>Force sform/qform codes to be ints, rather than numpy types (pr/575) (Paul
+McCarthy, reviewed by MB, CM)</p></li>
+<li><p>Auto-fill color table in FreeSurfer annotation file (pr/592) (PM,
+reviewed by CM, MB)</p></li>
+<li><p>Set default intent code for CIFTI2 images (pr/604) (Mathias Goncalves,
+reviewed by CM, SG, MB, Tim Coalson)</p></li>
+<li><p>Raise informative error on empty files (pr/611) (Pradeep Raamana, reviewed
+by CM, MB)</p></li>
+<li><p>Accept degenerate filenames such as <code class="docutils literal notranslate"><span class="pre">.nii</span></code> (pr/621) (Dimitri
+Papadopoulos-Orfanos, reviewed by Yaroslav Halchenko)</p></li>
+<li><p>Take advantage of <code class="docutils literal notranslate"><span class="pre">IndexedGzipFile</span></code> <code class="docutils literal notranslate"><span class="pre">drop_handles</span></code> flag to release
+filehandles by default (pr/614) (PM, reviewed by CM, MB)</p></li>
+</ul>
+</section>
+<section id="id80">
+<h4>Bug fixes<a class="headerlink" href="#id80" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Preserve first point of <code class="xref py py-class docutils literal notranslate"><span class="pre">LazyTractogram</span></code>
+(pr/588) (MC, reviewed by Nil Goyette, CM, MB)</p></li>
+<li><p>Stop adding extraneous metadata padding (pr/593) (Jon Stutters, reviewed by
+CM, MB)</p></li>
+<li><p>Accept lower-case orientation codes in TRK files (pr/600) (Kesshi Jordan,
+MB, reviewed by MB, MC, CM)</p></li>
+<li><p>Annotation file reading (pr/592) (PM, reviewed by CM, MB)</p></li>
+<li><p>Fix buffer size calculation in ArraySequence (pr/597) (Serge Koudoro,
+reviewed by MC, MB, Eleftherios Garyfallidis, CM)</p></li>
+<li><p>Resolve <code class="docutils literal notranslate"><span class="pre">UnboundLocalError</span></code> in Python 3 (pr/607) (Jakub Kaczmarzyk,
+reviewed by MB, CM)</p></li>
+<li><p>Do not crash on non-<code class="docutils literal notranslate"><span class="pre">ImportError</span></code> failures in optional imports (pr/618)
+(Yaroslav Halchenko, reviewed by CM)</p></li>
+<li><p>Return original array from <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> for array image, if no cast
+required (pr/638, MB, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id81">
+<h4>Maintenance<a class="headerlink" href="#id81" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Use SSH address to use key-based auth (pr/587) (CM, reviewed by MB)</p></li>
+<li><p>Fix doctests for numpy 1.14 array printing (pr/591) (MB, reviewed by CM)</p></li>
+<li><p>Refactor for pydicom 1.0 API changes (pr/599) (MB, reviewed by CM)</p></li>
+<li><p>Increase test coverage, remove unreachable code (pr/602) (CM, reviewed by
+Yaroslav Halchenko, MB)</p></li>
+<li><p>Move <code class="docutils literal notranslate"><span class="pre">nib-ls</span></code> and other programs to a new cmdline module (pr/601, pr/615)
+(Chris Cheng, reviewed by MB, Yaroslav Halchenko)</p></li>
+<li><p>Remove deprecated numpy indexing (EL, reviewed by CM)</p></li>
+<li><p>Update documentation to encourage <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> over <code class="docutils literal notranslate"><span class="pre">get_data</span></code> (pr/637,
+MB, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id82">
+<h4>API changes and deprecations<a class="headerlink" href="#id82" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Support for <code class="docutils literal notranslate"><span class="pre">keep_file_open</span> <span class="pre">=</span> <span class="pre">'auto'</span></code> as a parameter to <code class="docutils literal notranslate"><span class="pre">Opener()</span></code> will
+be deprecated in 2.4, for removal in 3.0. Accordingly, support for
+<code class="docutils literal notranslate"><span class="pre">openers.KEEP_FILE_OPEN_DEFAULT</span> <span class="pre">=</span> <span class="pre">'auto'</span></code> will be dropped on the same
+schedule.</p></li>
+<li><p>Drop-in support for <code class="docutils literal notranslate"><span class="pre">indexed_gzip</span> <span class="pre">&lt;</span> <span class="pre">0.7</span></code> has been removed.</p></li>
+</ul>
+</section>
+</section>
+<section id="wednesday-22-november-2017">
+<h3>2.2.1 (Wednesday 22 November 2017)<a class="headerlink" href="#wednesday-22-november-2017" title="Link to this heading">¶</a></h3>
+<section id="id83">
+<h4>Bug fixes<a class="headerlink" href="#id83" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Set L/R labels in orthoview correctly (pr/564) (CM)</p></li>
+<li><p>Defer use of ufunc / memmap test - allows “freezing” (pr/572) (MB, reviewed
+by SG)</p></li>
+<li><p>Fix doctest failures with pre-release numpy (pr/582) (MB, reviewed by CM)</p></li>
+</ul>
+</section>
+<section id="id84">
+<h4>Maintenance<a class="headerlink" href="#id84" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Update documentation around NIfTI qform/sform codes (pr/576) (PM,
+reviewed by MB, CM) + (pr/580) (Bennet Fauber, reviewed by PM)</p></li>
+<li><p>Skip precision test on macOS, newer numpy (pr/583) (MB, reviewed by CM)</p></li>
+<li><p>Simplify AppVeyor script, removing conda (pr/584) (MB, reviewed by CM)</p></li>
+</ul>
+</section>
+</section>
+<section id="friday-13-october-2017">
+<h3>2.2 (Friday 13 October 2017)<a class="headerlink" href="#friday-13-october-2017" title="Link to this heading">¶</a></h3>
+<section id="id85">
+<h4>New features<a class="headerlink" href="#id85" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>CIFTI support (pr/249) (SG, Michiel Cottaar, BC, CM, Demian Wassermann, MB)</p></li>
+<li><p>Support for MRtrix TCK streamlines file format (pr/486) (MC, reviewed by
+MB, Arnaud Bore, J-Donald Tournier, Jean-Christophe Houde)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> as default method to retrieve scaled floating point
+data from <code class="docutils literal notranslate"><span class="pre">DataobjImage</span></code>s (pr/551) (MB, reviewed by CM, SG)</p></li>
+</ul>
+</section>
+<section id="id86">
+<h4>Enhancements<a class="headerlink" href="#id86" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Support for alternative header field name variants in .PAR files
+(pr/507) (Gregory R. Lee)</p></li>
+<li><p>Various enhancements to streamlines API by MC: support for reading TRK
+version 1 (pr/512); concatenation of tractograms using <code class="docutils literal notranslate"><span class="pre">+</span></code>/<code class="docutils literal notranslate"><span class="pre">+=</span></code> operators
+(pr/495); function to concatenate multiple ArraySequence objects (pr/494)</p></li>
+<li><p>Support for numpy 1.12 (pr/500, pr/502) (MC, MB)</p></li>
+<li><p>Allow dtype specifiers as fileslice input (pr/485) (MB)</p></li>
+<li><p>Support “headerless” ArrayProxy specification, enabling memory-efficient
+ArrayProxy reshaping (pr/521) (CM)</p></li>
+<li><p>Allow unknown NIfTI intent codes, add FSL codes (pr/528) (PM)</p></li>
+<li><p>Improve error handling for <code class="docutils literal notranslate"><span class="pre">img.__getitem__</span></code> (pr/533) (Ariel Rokem)</p></li>
+<li><p>Delegate reorientation to SpatialImage classes (pr/544) (Mark Hymers, CM,
+reviewed by MB)</p></li>
+<li><p>Enable using <code class="docutils literal notranslate"><span class="pre">indexed_gzip</span></code> to reduce memory usage when reading from
+gzipped NIfTI and MGH files (pr/552) (PM, reviewed by MB, CM)</p></li>
+</ul>
+</section>
+<section id="id87">
+<h4>Bug fixes<a class="headerlink" href="#id87" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Miscellaneous MINC reader fixes (pr/493) (Robert D. Vincent, reviewed by CM,
+MB)</p></li>
+<li><p>Fix corner case in <code class="docutils literal notranslate"><span class="pre">wrapstruct.get</span></code> (pr/516) (PM, reviewed by
+CM, MB)</p></li>
+</ul>
+</section>
+<section id="id88">
+<h4>Maintenance<a class="headerlink" href="#id88" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fix documentation errors (pr/517, pr/536) (Fernando Perez, Venky Reddy)</p></li>
+<li><p>Documentation update (pr/514) (Ivan Gonzalez)</p></li>
+<li><p>Update testing to use pre-release builds of dependencies (pr/509) (MB)</p></li>
+<li><p>Better warnings when nibabel not on path (pr/503) (MB)</p></li>
+</ul>
+</section>
+<section id="id89">
+<h4>API changes and deprecations<a class="headerlink" href="#id89" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">header</span></code> argument to <code class="docutils literal notranslate"><span class="pre">ArrayProxy.__init__</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">spec</span></code></p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">header</span></code> property of <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code> object, for removal in
+3.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wrapstruct.get</span></code> now returns entries evaluating <code class="docutils literal notranslate"><span class="pre">False</span></code>, instead of <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DataobjImage.get_data</span></code> to be deprecated April 2018, scheduled for removal
+April 2020</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-22-august-2016">
+<h3>2.1 (Monday 22 August 2016)<a class="headerlink" href="#monday-22-august-2016" title="Link to this heading">¶</a></h3>
+<section id="id90">
+<h4>New features<a class="headerlink" href="#id90" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>New API for managing streamlines and their different file formats. This
+adds a new module <code class="docutils literal notranslate"><span class="pre">nibabel.streamlines</span></code> that will eventually deprecate
+the current trackvis reader found in <code class="docutils literal notranslate"><span class="pre">nibabel.trackvis</span></code> (pr/391) (MC,
+reviewed by Jean-Christophe Houde, Bago Amirbekian, Eleftherios
+Garyfallidis, Samuel St-Jean, MB);</p></li>
+<li><p>A prototype image viewer using matplotlib (pr/404) (EL, based on a
+proto-prototype by Paul Ivanov) (Reviewed by Gregory R. Lee, MB);</p></li>
+<li><p>Functions for image resampling and smoothing using scipy ndimage (pr/255)
+(MB, reviewed by EL, BC);</p></li>
+<li><p>Add ability to write FreeSurfer morphology data (pr/414) (CM, BC, reviewed
+by BC);</p></li>
+<li><p>Read and write support for DICOM tags in NIfTI Extended Header using
+pydicom (pr/296) (Eric Kastman).</p></li>
+</ul>
+</section>
+<section id="id91">
+<h4>Enhancements<a class="headerlink" href="#id91" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Extensions to FreeSurfer module to fix reading and writing of FreeSurfer
+geometry data (pr/460) (Alexandre Gramfort, Jaakko Leppäkangas, reviewed
+by EL, CM, MB);</p></li>
+<li><p>Various improvements to PAR / REC handling by Gregory R. Lee: supporting
+multiple TR values (pr/429); output of volume labels (pr/427); fix for
+some diffusion files (pr/426); option for more sophisticated sorting of
+volumes (pr/409);</p></li>
+<li><p>Original trackvis reader will now allow final streamline to have fewer
+points than the number declared in the header, with <code class="docutils literal notranslate"><span class="pre">strict=False</span></code>
+argument to <code class="docutils literal notranslate"><span class="pre">read</span></code> function;</p></li>
+<li><p>Helper function to return voxel sizes from an affine matrix (pr/413);</p></li>
+<li><p>Fixes to DICOM multiframe reading to avoid assumptions on the position of
+the multiframe index (pr/439) (Eric M. Baker);</p></li>
+<li><p>More robust handling of “CSA” private information in DICOM files (pr/393)
+(Brendan Moloney);</p></li>
+<li><p>More explicit error when trying to read image from non-existent file
+(pr/455) (Ariel Rokem);</p></li>
+<li><p>Extension to <code class="docutils literal notranslate"><span class="pre">nib-ls</span></code> command to show image statistics (pr/437) and other
+header files (pr/348) (Yarik Halchenko).</p></li>
+</ul>
+</section>
+<section id="id92">
+<h4>Bug fixes<a class="headerlink" href="#id92" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Fixes to rotation order to generate affine matrices of PAR / REC files (MB,
+Gregory R Lee).</p></li>
+</ul>
+</section>
+<section id="id93">
+<h4>Maintenance<a class="headerlink" href="#id93" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Dropped support for Pythons 2.6 and 3.2;</p></li>
+<li><p>Comprehensive refactor and generalization of surface / GIFTI file support
+with improved API and extended tests (pr/352-355, pr/360, pr/365, pr/403)
+(BC, reviewed by CM, MB);</p></li>
+<li><p>Refactor of image classes (pr/328, pr/329) (BC, reviewed by CM);</p></li>
+<li><p>Better Appveyor testing on new Python versions (pr/446) (Ariel Rokem);</p></li>
+<li><p>Fix shebang lines in scripts for correct install into virtualenvs via pip
+(pr/434);</p></li>
+<li><p>Various fixes for numpy, matplotlib, and PIL / Pillow compatibility (CM,
+Ariel Rokem, MB);</p></li>
+<li><p>Improved test framework for warnings (pr/345) (BC, reviewed by CM, MB);</p></li>
+<li><p>New decorator to specify start and end versions for deprecation warnings
+(MB, reviewed by CM);</p></li>
+<li><p>Write qform affine matrix to NIfTI images output by <code class="docutils literal notranslate"><span class="pre">parrec2nii</span></code> (pr/478)
+(Jasper J.F. van den Bosch, reviewed by Gregory R. Lee, MB).</p></li>
+</ul>
+</section>
+<section id="id94">
+<h4>API changes and deprecations<a class="headerlink" href="#id94" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Minor API breakage in original (rather than new) trackvis reader. We are now
+raising a <code class="docutils literal notranslate"><span class="pre">DataError</span></code> if there are too few streamlines in the file,
+instead of a <code class="docutils literal notranslate"><span class="pre">HeaderError</span></code>.  We are raising a <code class="docutils literal notranslate"><span class="pre">DataError</span></code> if the track
+is truncated when <code class="docutils literal notranslate"><span class="pre">strict=True</span></code> (the default), rather than a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>
+when trying to create the points array.</p></li>
+<li><p>Change sform code that <code class="docutils literal notranslate"><span class="pre">parrec2nii</span></code> script writes to NIfTI images; change
+from 2 (“aligned”) to 1 (“scanner”);</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">get_header</span></code>, <code class="docutils literal notranslate"><span class="pre">get_affine</span></code> method of image objects for
+removal in version 4.0;</p></li>
+<li><p>Removed broken <code class="docutils literal notranslate"><span class="pre">from_filespec</span></code> method from image objects, and deprecated
+<code class="docutils literal notranslate"><span class="pre">from_filespec</span></code> method of ECAT image objects for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">class_map</span></code> instance in <code class="docutils literal notranslate"><span class="pre">imageclasses</span></code> module in favor of
+new image class attributes, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">ext_map</span></code> instance in <code class="docutils literal notranslate"><span class="pre">imageclasses</span></code> module in favor of
+new image loading API, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">Header</span></code> class in favor of <code class="docutils literal notranslate"><span class="pre">SpatialHeader</span></code>, for removal
+in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">BinOpener</span></code> class in favor of more generic <code class="docutils literal notranslate"><span class="pre">Opener</span></code>
+class, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">GiftiMetadata</span></code> methods <code class="docutils literal notranslate"><span class="pre">get_metadata</span></code> and <code class="docutils literal notranslate"><span class="pre">get_rgba</span></code>;
+<code class="docutils literal notranslate"><span class="pre">GiftiDataArray</span></code> methods <code class="docutils literal notranslate"><span class="pre">get_metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">get_labeltable</span></code>,
+<code class="docutils literal notranslate"><span class="pre">set_labeltable</span></code>; <code class="docutils literal notranslate"><span class="pre">GiftiImage</span></code> methods <code class="docutils literal notranslate"><span class="pre">get_meta</span></code>, <code class="docutils literal notranslate"><span class="pre">set_meta</span></code>.  All
+these deprecated in favor of corresponding properties, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">giftiio</span></code> <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">write</span></code> functions in favor of
+nibabel <code class="docutils literal notranslate"><span class="pre">load</span></code> and <code class="docutils literal notranslate"><span class="pre">save</span></code> functions, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">gifti.data_tag</span></code> function, for removal in 4.0;</p></li>
+<li><p>Deprecation of write-access to <code class="docutils literal notranslate"><span class="pre">GiftiDataArray.num_dim</span></code>, and new error
+when trying to set invalid values for <code class="docutils literal notranslate"><span class="pre">num_dim</span></code>.  We will remove
+write-access in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">GiftiDataArray.from_array</span></code> in favor of <code class="docutils literal notranslate"><span class="pre">GiftiDataArray</span></code>
+constructor, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">GiftiDataArray</span></code> <code class="docutils literal notranslate"><span class="pre">to_xml_open,</span> <span class="pre">to_xml_close</span></code> methods in
+favor of <code class="docutils literal notranslate"><span class="pre">to_xml</span></code> method, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">parse_gifti_fast.Outputter</span></code> class in favor of
+<code class="docutils literal notranslate"><span class="pre">GiftiImageParser</span></code>, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">parse_gifti_fast.parse_gifti_file</span></code> function in favor of
+<code class="docutils literal notranslate"><span class="pre">GiftiImageParser.parse</span></code> method, for removal in 4.0;</p></li>
+<li><p>Deprecation of <code class="docutils literal notranslate"><span class="pre">loadsave</span></code> functions <code class="docutils literal notranslate"><span class="pre">guessed_image_type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">which_analyze_type</span></code>, in favor of new API where each image class tests the
+file for compatibility during load, for removal in 4.0.</p></li>
+</ul>
+</section>
+</section>
+<section id="monday-23-november-2015">
+<h3>2.0.2 (Monday 23 November 2015)<a class="headerlink" href="#monday-23-november-2015" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fix for integer overflow on large images (pr/325) (MB);</p></li>
+<li><p>Fix for Freesurfer nifti files with unusual dimensions (pr/332) (Chris
+Markiewicz);</p></li>
+<li><p>Fix typos on benchmarks and tests (pr/336, pr/340, pr/347) (Chris
+Markiewicz);</p></li>
+<li><p>Fix Windows install script (pr/339) (MB);</p></li>
+<li><p>Support for Python 3.5 (pr/363) (MB) and numpy 1.10 (pr/358) (Chris
+Markiewicz);</p></li>
+<li><p>Update pydicom imports to permit version 1.0 (pr/379) (Chris Markiewicz);</p></li>
+<li><p>Workaround for Python 3.5.0 gzip regression (pr/383) (Ben Cipollini).</p></li>
+<li><p>tripwire.TripWire object now raises subclass of AttributeError when trying
+to get an attribute, rather than a direct subclass of Exception.  This
+prevents Python 3.5 triggering the tripwire when doing inspection prior to
+running doctests.</p></li>
+<li><p>Minor API change for tripwire.TripWire object; code that checked for
+AttributeError will now also catch TripWireError.</p></li>
+</ul>
+</section>
+<section id="saturday-27-june-2015">
+<h3>2.0.1 (Saturday 27 June 2015)<a class="headerlink" href="#saturday-27-june-2015" title="Link to this heading">¶</a></h3>
+<p>Contributions from Ben Cipollini, Chris Markiewicz, Alexandre Gramfort,
+Clemens Bauer, github user freec84.</p>
+<ul class="simple">
+<li><p>Bugfix release with minor new features;</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">concat_images</span></code> (pr/298) (Ben Cipollini);</p></li>
+<li><p>Fix for unsigned integer data types in ECAT images (pr/302) (MB, test data
+and issue report from Github user freec84);</p></li>
+<li><p>Added new ECAT and Freesurfer data files to automated testing;</p></li>
+<li><p>Fix for Freesurfer labels error on early numpies (pr/307) (Alexandre
+Gramfort);</p></li>
+<li><p>Fixes for PAR / REC header parsing (pr/312) (MB, issue reporting and test
+data by Clemens C. C. Bauer);</p></li>
+<li><p>Workaround for reading Freesurfer ico7 surface files (pr/315) (Chris
+Markiewicz);</p></li>
+<li><p>Changed to github pages for doc hosting;</p></li>
+<li><p>Changed docs to point to <a class="reference external" href="mailto:neuroimaging&#37;&#52;&#48;python&#46;org">neuroimaging<span>&#64;</span>python<span>&#46;</span>org</a> mailing list.</p></li>
+</ul>
+</section>
+<section id="tuesday-9-december-2014">
+<h3>2.0.0 (Tuesday 9 December 2014)<a class="headerlink" href="#tuesday-9-december-2014" title="Link to this heading">¶</a></h3>
+<p>This release had large contributions from Eric Larson, Brendan Moloney,
+Nolan Nichols, Basile Pinsard, Chris Johnson and Nikolaas N. Oosterhof.</p>
+<ul class="simple">
+<li><p>New feature, bugfix release with minor API breakage;</p></li>
+<li><p>Minor API breakage: default write of NIfTI / Analyze image data offset
+value. The data offset is the number of bytes from the beginning of file
+to skip before reading the image data.  Nibabel behavior changed from
+keeping the value as read from file, to setting the offset to zero on
+read, and setting the offset when writing the header. The value of the
+offset will now be the minimum value necessary to make room for the header
+and any extensions when writing the file. You can override the default
+offset by setting value explicitly to some value other than zero. To read
+the original data offset as read from the header, use the <code class="docutils literal notranslate"><span class="pre">offset</span></code>
+property of the image <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> attribute;</p></li>
+<li><p>Minor API breakage: data scaling in NIfTI / Analyze now set to NaN when
+reading images.  Data scaling refers to the data intercept and slope
+values in the NIfTI / Analyze header.  To read the original data scaling
+you need to look at the <code class="docutils literal notranslate"><span class="pre">slope</span></code> and <code class="docutils literal notranslate"><span class="pre">inter</span></code> properties of the image
+<code class="docutils literal notranslate"><span class="pre">dataobj</span></code> attribute.  You can set scaling explicitly by setting the
+slope and intercept values in the header to values other than NaN;</p></li>
+<li><p>New API for managing image caching; images have an <code class="docutils literal notranslate"><span class="pre">in_memory</span></code> property
+that is true if the image data has been loaded into cache, or is already
+an array in memory; <code class="docutils literal notranslate"><span class="pre">get_data</span></code> has new keyword argument <code class="docutils literal notranslate"><span class="pre">caching</span></code> to
+specify whether the cache should be filled by <code class="docutils literal notranslate"><span class="pre">get_data</span></code>;</p></li>
+<li><p>Images now have properties <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>, <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code>. We will
+slowly phase out the <code class="docutils literal notranslate"><span class="pre">get_affine</span></code> and <code class="docutils literal notranslate"><span class="pre">get_header</span></code> image methods;</p></li>
+<li><p>The image <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> can be sliced using an efficient algorithm to avoid
+reading unnecessary data from disk.  This makes it possible to do very
+efficient reads of single volumes from a time series;</p></li>
+<li><p>NIfTI2 read / write support;</p></li>
+<li><p>Read support for MINC2;</p></li>
+<li><p>Much extended read support for PAR / REC, largely due to work from Eric
+Larson and Gregory R. Lee on new code, advice and code review. Thanks also
+to Jeff Stevenson and Bennett Landman for helpful discussion;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parrec2nii</span></code> script outputs images in LAS voxel orientation, which
+appears to be necessary for compatibility with FSL <code class="docutils literal notranslate"><span class="pre">dtifit</span></code> /
+<code class="docutils literal notranslate"><span class="pre">fslview</span></code> diffusion analysis pipeline;</p></li>
+<li><p>Preliminary support for Philips multiframe DICOM images (thanks to Nolan
+Nichols, Ly Nguyen and Brendan Moloney);</p></li>
+<li><p>New function to save Freesurfer annotation files (by Github user ohinds);</p></li>
+<li><p>Method to return MGH format <code class="docutils literal notranslate"><span class="pre">vox2ras_tkr</span></code> affine (Eric Larson);</p></li>
+<li><p>A new API for reading unscaled data from NIfTI and other images, using
+<code class="docutils literal notranslate"><span class="pre">img.dataobj.get_unscaled()</span></code>. Deprecate previous way of doing this,
+which was to read data with the <code class="docutils literal notranslate"><span class="pre">read_img_data</span></code> function;</p></li>
+<li><p>Fix for bug when replacing NaN values with zero when writing floating
+point data as integers.  If the input floating point data range did not
+include zero, then NaN would not get written to a value corresponding to
+zero in the output;</p></li>
+<li><p>Improvements and bug fixes to image orientation calculation and DICOM
+wrappers by Brendan Moloney;</p></li>
+<li><p>Bug fixes writing GIfTI files. We were using a base64 encoding that didn’t
+match the spec, and the wrong field name for the endian code. Thanks to
+Basile Pinsard and Russ Poldrack for diagnosis and fixes;</p></li>
+<li><p>Bug fix in <code class="docutils literal notranslate"><span class="pre">freesurfer.read_annot</span></code> with <code class="docutils literal notranslate"><span class="pre">orig_ids=False</span></code> when annot
+contains vertices with no label (Alexandre Gramfort);</p></li>
+<li><p>More tutorials in the documentation, including introductory tutorial on
+DICOM, and on coordinate systems;</p></li>
+<li><p>Lots of code refactoring, including moving to common code-base for Python
+2 and Python 3;</p></li>
+<li><p>New mechanism to add images for tests via git submodules.</p></li>
+</ul>
+</section>
+<section id="tuesday-11-september-2012">
+<h3>1.3.0 (Tuesday 11 September 2012)<a class="headerlink" href="#tuesday-11-september-2012" title="Link to this heading">¶</a></h3>
+<p>Special thanks to Chris Johnson, Brendan Moloney and JB Poline.</p>
+<ul class="simple">
+<li><p>New feature and bugfix release</p></li>
+<li><p>Add ability to write Freesurfer triangle files (Chris Johnson)</p></li>
+<li><p>Relax threshold for detecting rank deficient affines in orientation
+detection (JB Poline)</p></li>
+<li><p>Fix for DICOM slice normal numerical error (issue #137) (Brendan Moloney)</p></li>
+<li><p>Fix for Python 3 error when writing zero bytes for offset padding</p></li>
+</ul>
+</section>
+<section id="wednesday-27-june-2012">
+<h3>1.2.2 (Wednesday 27 June 2012)<a class="headerlink" href="#wednesday-27-june-2012" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix release</p></li>
+<li><p>Fix longdouble tests for Debian PPC (thanks to Yaroslav Halchecko for
+finding and diagnosing these errors)</p></li>
+<li><p>Generalize longdouble tests in the hope of making them more robust</p></li>
+<li><p>Disable saving of float128 nifti type unless platform has real IEEE
+binary128 longdouble type.</p></li>
+</ul>
+</section>
+<section id="wednesday-13-june-2012">
+<h3>1.2.1 (Wednesday 13 June 2012)<a class="headerlink" href="#wednesday-13-june-2012" title="Link to this heading">¶</a></h3>
+<p>Particular thanks to Yaroslav Halchecko for fixes and cleanups in this
+release.</p>
+<ul class="simple">
+<li><p>Bugfix release</p></li>
+<li><p>Make compatible with pydicom 0.9.7</p></li>
+<li><p>Refactor, rename nifti diagnostic script to <code class="docutils literal notranslate"><span class="pre">nib-nifti-dx</span></code></p></li>
+<li><p>Fix a bug causing an error when analyzing affines for orientation, when the
+affine contained all 0 columns</p></li>
+<li><p>Add missing <code class="docutils literal notranslate"><span class="pre">dicomfs</span></code> script to installation list and rename to
+<code class="docutils literal notranslate"><span class="pre">nib-dicomfs</span></code></p></li>
+</ul>
+</section>
+<section id="sunday-6-may-2012">
+<h3>1.2.0 (Sunday 6 May 2012)<a class="headerlink" href="#sunday-6-may-2012" title="Link to this heading">¶</a></h3>
+<p>This release had large contributions from Krish Subramaniam, Alexandre
+Gramfort, Cindee Madison, Félix C. Morency and Christian Haselgrove.</p>
+<ul class="simple">
+<li><p>New feature and bugfix release</p></li>
+<li><p>Freesurfer format support by Krish Subramaniam and Alexandre Gramfort.</p></li>
+<li><p>ECAT read write support by Cindee Madison and Félix C. Morency.</p></li>
+<li><p>A DICOM fuse filesystem by Christian Haselgrove.</p></li>
+<li><p>Much work on making data scaling on read and write more robust to rounding
+error and overflow (MB).</p></li>
+<li><p>Import of nipy functions for working with affine transformation matrices.</p></li>
+<li><p>Added methods for working with nifti sform and qform fields by Bago
+Amirbekian and MB, with useful discussion by Brendan Moloney.</p></li>
+<li><p>Fixes to read / write of RGB analyze images by Bago Amirbekian.</p></li>
+<li><p>Extensions to <code class="docutils literal notranslate"><span class="pre">concat_images</span></code> by Yannick Schwartz.</p></li>
+<li><p>A new <code class="docutils literal notranslate"><span class="pre">nib-ls</span></code> script to display information about neuroimaging files, and
+various other useful fixes by Yaroslav Halchenko.</p></li>
+</ul>
+</section>
+<section id="thursday-28-april-2011">
+<h3>1.1.0 (Thursday 28 April 2011)<a class="headerlink" href="#thursday-28-april-2011" title="Link to this heading">¶</a></h3>
+<p>Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.</p>
+<ul class="simple">
+<li><p>New feature release</p></li>
+<li><p>Python 3.2 support</p></li>
+<li><p>Substantially enhanced gifti reading support (Stephan Gerhard)</p></li>
+<li><p>Refactoring of trackvis read / write to allow reading and writing of voxel
+points and mm points in tracks.  Deprecate use of negative voxel sizes;
+set voxel_order field in trackvis header.  Thanks to Chris Filo
+Gorgolewski for pointing out the problem and Ruopeng Wang in the trackvis
+forum for clarifying the coordinate system of trackvis files.</p></li>
+<li><p>Added routine to give approximate array orientation in form such as ‘RAS’
+or ‘LPS’</p></li>
+<li><p>Fix numpy dtype hash errors for numpy 1.2.1</p></li>
+<li><p>Other bug fixes as for 1.0.2</p></li>
+</ul>
+</section>
+<section id="thursday-14-april-2011">
+<h3>1.0.2 (Thursday 14 April 2011)<a class="headerlink" href="#thursday-14-april-2011" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix release</p></li>
+<li><p>Make inference of data type more robust to changes in numpy dtype hashing</p></li>
+<li><p>Fix incorrect thresholds in quaternion calculation (thanks to Yarik H for
+pointing this one out)</p></li>
+<li><p>Make parrec2nii pass over errors more gracefully</p></li>
+<li><p>More explicit checks for missing or None field in trackvis and other
+classes - thanks to Marc-Alexandre Cote</p></li>
+<li><p>Make logging and error level work as expected - thanks to Yarik H</p></li>
+<li><p>Loading an image does not change qform or sform - thanks to Yarik H</p></li>
+<li><p>Allow 0 for nifti scaling as for spec - thanks to Yarik H</p></li>
+<li><p>nifti1.save now correctly saves single or pair images</p></li>
+</ul>
+</section>
+<section id="wednesday-23-feb-2011">
+<h3>1.0.1 (Wednesday 23 Feb 2011)<a class="headerlink" href="#wednesday-23-feb-2011" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix release</p></li>
+<li><p>Fix bugs in tests for data package paths</p></li>
+<li><p>Fix leaks of open filehandles when loading images (thanks to Gael
+Varoquaux for the report)</p></li>
+<li><p>Skip rw tests for SPM images when scipy not installed</p></li>
+<li><p>Fix various windows-specific file issues for tests</p></li>
+<li><p>Fix incorrect reading of byte-swapped trackvis files</p></li>
+<li><p>Workaround for odd numpy dtype comparisons leading to header errors for
+some loaded images (thanks to Cindee Madison for the report)</p></li>
+</ul>
+</section>
+<section id="thursday-13-oct-2010">
+<h3>1.0.0 (Thursday, 13, Oct 2010)<a class="headerlink" href="#thursday-13-oct-2010" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>This is the first public release of the NiBabel package.</p></li>
+<li><p>NiBabel is a complete rewrite of the PyNifti package in pure python.  It was
+designed to make the code simpler and easier to work with. Like PyNifti,
+NiBabel has fairly comprehensive NIfTI read and write support.</p></li>
+<li><p>Extended support for SPM Analyze images, including orientation affines from
+matlab <code class="docutils literal notranslate"><span class="pre">.mat</span></code> files.</p></li>
+<li><p>Basic support for simple MINC 1.0 files (MB).  Please let us know if you
+have MINC files that we don’t support well.</p></li>
+<li><p>Support for reading and writing PAR/REC images (MH)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parrec2nii</span></code> script to convert PAR/REC images to NIfTI format (MH)</p></li>
+<li><p>Very preliminary, limited and highly experimental DICOM reading support (MB,
+Ian Nimmo Smith).</p></li>
+<li><p>Some functions (<a class="reference internal" href="reference/nibabel.funcs.html#module-nibabel.funcs" title="nibabel.funcs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel.funcs</span></code></a>) for basic image shape changes, including
+the ability to transform to the image with data closest to the canonical
+image orientation (first axis left-to-right, second back-to-front, third
+down-to-up) (MB, Jonathan Taylor)</p></li>
+<li><p>Gifti format read and write support (preliminary) (Stephen Gerhard)</p></li>
+<li><p>Added utilities to use nipy-style data packages, by rip then edit of nipy
+data package code (MB)</p></li>
+<li><p>Some improvements to release support (Jarrod Millman, MB, Fernando Perez)</p></li>
+<li><p>Huge downward step in the quality and coverage by the docs, caused by MB,
+mostly fixed by a lot of good work by MH.</p></li>
+<li><p>NiBabel will not work with Python &lt; 2.5, and we haven’t even tested it with
+Python 3.  We will get to it soon…</p></li>
+</ul>
+</section>
+</section>
+<section id="pynifti-releases">
+<h2>PyNifti releases<a class="headerlink" href="#pynifti-releases" title="Link to this heading">¶</a></h2>
+<p>Modifications are done by Michael Hanke, if not indicated otherwise. ‘Closes’
+statement IDs refer to the Debian bug tracking system and can be queried by
+visiting the URL:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">bugs</span><span class="o">.</span><span class="n">debian</span><span class="o">.</span><span class="n">org</span><span class="o">/&lt;</span><span class="n">bug</span> <span class="nb">id</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<section id="tue-6-jul-2010">
+<h3>0.20100706.1 (Tue, 6 Jul 2010)<a class="headerlink" href="#tue-6-jul-2010" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix: NiftiFormat.vx2s() used the qform not the sform. Thanks to Tom
+Holroyd for reporting.</p></li>
+</ul>
+</section>
+<section id="mon-12-apr-2010">
+<h3>0.20100412.1 (Mon, 12 Apr 2010)<a class="headerlink" href="#mon-12-apr-2010" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix: Unfortunate interaction between Python garbage collection and C
+library caused memory problems. Thanks to Yaroslav Halchenko for the
+diagnose and fix.</p></li>
+</ul>
+</section>
+<section id="tue-3-mar-2009">
+<h3>0.20090303.1 (Tue, 3 Mar 2009)<a class="headerlink" href="#tue-3-mar-2009" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix: Updating the NIfTI header from a dictionary was broken.</p></li>
+<li><p>Bugfix: Removed left-over print statement in extension code.</p></li>
+<li><p>Bugfix: Prevent saving of bogus ‘None.nii’ images when the filename
+was previously assign, before calling NiftiImage.save() (Closes: #517920).</p></li>
+<li><p>Bugfix: Extension length was to short for all <code class="docutils literal notranslate"><span class="pre">edata</span></code> whose length matches
+n*16-8, for all integer n.</p></li>
+</ul>
+</section>
+<section id="thu-5-feb-2009">
+<h3>0.20090205.1 (Thu, 5 Feb 2009)<a class="headerlink" href="#thu-5-feb-2009" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>This release is the first in a series that aims stabilize the API and
+finally result in PyNIfTI 1.0 with full support of the NIfTI1 standard.</p></li>
+<li><p>The whole package was restructured. The included renaming
+<code class="docutils literal notranslate"><span class="pre">nifti.nifti(image,format,clibs)</span></code> to <code class="docutils literal notranslate"><span class="pre">nifti.(image,format,clibs)</span></code>. Redirect
+modules make sure that existing user code will not break, but they will
+issue a DeprecationWarning and will be removed with the release of PyNIfTI
+1.0.</p></li>
+<li><p>Added a special extension that can embed any serializable Python object
+into the NIfTI file header. The contents of this extension is
+automatically expanded upon request into the <code class="docutils literal notranslate"><span class="pre">.meta</span></code> attribute of each
+NiftiImage. When saving files to disk the content of the dictionary is also
+automatically dumped into this extension.
+Embedded meta data is not loaded automatically, since this has security
+implications, because code from the file header is actually executed.
+The documentation explicitly mentions this risk.</p></li>
+<li><p>Added <code class="xref py py-class docutils literal notranslate"><span class="pre">NiftiExtensions</span></code>. This is a container-like
+handler to access and manipulate NIfTI1 header extensions.</p></li>
+<li><p>Exposed <code class="xref py py-class docutils literal notranslate"><span class="pre">MemMappedNiftiImage</span></code> in the root module.</p></li>
+<li><p>Moved <code class="xref py py-func docutils literal notranslate"><span class="pre">cropImage()</span></code> into the <code class="xref py py-mod docutils literal notranslate"><span class="pre">utils</span></code> module.</p></li>
+<li><p>From now on Sphinx is used to generate the documentation. This includes a
+module reference that replaces that old API reference.</p></li>
+<li><p>Added methods <code class="xref py py-meth docutils literal notranslate"><span class="pre">vx2q()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">vx2s()</span></code> to convert voxel indices into
+coordinates defined by qform or sform respectively.</p></li>
+<li><p>Updating the <code class="docutils literal notranslate"><span class="pre">cal_min</span></code> and <code class="docutils literal notranslate"><span class="pre">cal_max</span></code> values in the NIfTI header when
+saving a file is now conditional, but remains enabled by default.</p></li>
+<li><p>Full set of methods to query and modify axis units. This includes
+expanding the previous <code class="docutils literal notranslate"><span class="pre">xyzt_units</span></code> field in the header dictionary into
+editable <code class="docutils literal notranslate"><span class="pre">xyz_unit</span></code> and <code class="docutils literal notranslate"><span class="pre">time_unit</span></code> fields. The former <code class="docutils literal notranslate"><span class="pre">xyzt_units</span></code> field
+is no longer available. See:
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">getXYZUnit()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">setXYZUnit()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">getTimeUnit()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">setTimeUnit()</span></code>,
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">xyz_unit</span></code>,
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">time_unit</span></code></p></li>
+<li><p>Full set of methods to query and manuipulate qform and sform codes. See:
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">getQFormCode()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">setQFormCode()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">getSFormCode()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">setSFormCode()</span></code>,
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">qform_code</span></code>,
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">sform_code</span></code></p></li>
+<li><p>Each image instance is now able to generate a human-readable dump of its
+most important header information via <code class="docutils literal notranslate"><span class="pre">__str__()</span></code>.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NiftiImage</span></code> objects can now be pickled.</p></li>
+<li><p>Switched to NumPy’s distutils for building the package. Cleaned and
+simplified the build procedure. Added optimization flags to SWIG call.</p></li>
+<li><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">nifti.image.NiftiImage.filename</span></code> can now also be used to assign a
+filename.</p></li>
+<li><p>Introduced <code class="xref py py-data docutils literal notranslate"><span class="pre">nifti.__version__</span></code> as canonical version string.</p></li>
+<li><p>Removed <code class="docutils literal notranslate"><span class="pre">updateQFormFromQuarternion()</span></code> from the list of public methods of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">NiftiFormat</span></code>. This is an internal method that
+should not be used in user code. However, a redirect to the new method
+will remain in-place until PyNIfTI 1.0.</p></li>
+<li><p>Bugfix: <code class="xref py py-meth docutils literal notranslate"><span class="pre">getScaledData()</span></code> returns a
+unmodified data array if <code class="docutils literal notranslate"><span class="pre">slope</span></code> is set to zero (as required by the NIfTI
+standard). Thanks to Thomas Ross for reporting.</p></li>
+<li><p>Bugfix: Unicode filenames are now handled properly, as long as they do not
+contain pure-unicode characters (since the NIfTI library does not support
+them). Thanks to Gaël Varoquaux for reporting this issue.</p></li>
+</ul>
+</section>
+<section id="fri-17-oct-2008">
+<h3>0.20081017.1 (Fri, 17 Oct 2008)<a class="headerlink" href="#fri-17-oct-2008" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Updated included minimal copy of the nifticlibs to version 1.1.0.</p></li>
+<li><p>Few changes to the Makefiles to enhance Posix compatibility. Thanks to
+Chris Burns.</p></li>
+<li><p>When building on non-Debian systems, only add include and library paths
+pointing to the local nifticlibs copy, when it is actually built.
+On Debian system the local copy is still not used at all, as a proper
+nifticlibs package is guaranteed to be available.</p></li>
+<li><p>Added minimal setup_egg.py for setuptools users. Thanks to Gaël Varoquaux.</p></li>
+<li><p>PyNIfTI now does a proper wrapping of the image data with NumPy arrays,
+which no longer leads to accidental memory leaks, when accessing array
+data that has not been copied before (e.g. via the <em>data</em> property of
+NiftiImage). Thanks to Gaël Varoquaux for mentioning this possibility.</p></li>
+</ul>
+</section>
+<section id="thu-7-jul-2008">
+<h3>0.20080710.1 (Thu, 7 Jul 2008)<a class="headerlink" href="#thu-7-jul-2008" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix: Pointer bug introduced by switch to new NumPy API in 0.20080624
+Thanks to Christopher Burns for fixing it.</p></li>
+<li><p>Bugfix: Honored DeprecationWarning: sync() -&gt; flush() for memory mapped
+arrays. Again thanks to Christopher Burns.</p></li>
+<li><p>More unit tests and other improvements (e.g. fixed circular imports) done
+by Christopher Burns.</p></li>
+</ul>
+</section>
+<section id="tue-30-jun-2008">
+<h3>0.20080630.1 (Tue, 30 Jun 2008)<a class="headerlink" href="#tue-30-jun-2008" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix: NiftiImage caused a memory leak by not calling the NiftiFormat
+destructor.</p></li>
+<li><p>Bugfix: Merged bashism-removal patch from Debian packaging.</p></li>
+</ul>
+</section>
+<section id="tue-24-jun-2008">
+<h3>0.20080624.1 (Tue, 24 Jun 2008)<a class="headerlink" href="#tue-24-jun-2008" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Converted all documentation (including docstrings) into the restructured
+text format.</p></li>
+<li><p>Improved Makefile.</p></li>
+<li><p>Included configuration and Makefile support for profiling, API doc
+generation (via epydoc) and code quality checks (with PyLint).</p></li>
+<li><p>Consistently import NumPy as N.</p></li>
+<li><p>Bugfix: Proper handling of [qs]form codes, which previously have not been
+handled at all. Thanks to Christopher Burns for pointing it out.</p></li>
+<li><p>Bugfix: Make NiftiFormat work without setFilename(). Thanks to Benjamin
+Thyreau for reporting.</p></li>
+<li><p>Bugfix: setPixDims() stored meaningless values.</p></li>
+<li><p>Use new NumPy API and replace deprecated function calls
+(<code class="docutils literal notranslate"><span class="pre">PyArray_FromDimsAndData</span></code>).</p></li>
+<li><p>Initial support for memory mapped access to uncompressed NIfTI files
+(<code class="docutils literal notranslate"><span class="pre">MemMappedNiftiImage</span></code>).</p></li>
+<li><p>Add a proper Makefile and setup.cfg for compiling PyNIfTI under Windows
+with MinGW.</p></li>
+<li><p>Include a minimal copy of the most recent nifticlibs (just libniftiio and
+znzlib; version 1.0), to lower the threshold to build PyNIfTI on systems
+that do not provide a developer package for those libraries.</p></li>
+</ul>
+</section>
+<section id="sun-30-sep-2007">
+<h3>0.20070930.1 (Sun, 30 Sep 2007)<a class="headerlink" href="#sun-30-sep-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Relicense under the MIT license, to be compatible with SciPy license.
+<a class="reference external" href="http://www.opensource.org/licenses/mit-license.php">http://www.opensource.org/licenses/mit-license.php</a></p></li>
+<li><p>Updated documentation.</p></li>
+</ul>
+</section>
+<section id="mon-17-sep-2007">
+<h3>0.20070917.1 (Mon, 17 Sep 2007)<a class="headerlink" href="#mon-17-sep-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bugfix: Can now update NIfTI header data when no filename is set
+(Closes: #442175).</p></li>
+<li><p>Unloading of image data without a filename set is no checked and prevented
+as it would damage data integrity and the image data could not be
+recovered.</p></li>
+<li><p>Added ‘pixdim’ property (Yaroslav Halchenko).</p></li>
+</ul>
+</section>
+<section id="wed-5-sep-2007">
+<h3>0.20070905.1  (Wed, 5 Sep 2007)<a class="headerlink" href="#wed-5-sep-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed a bug in the qform/quaternion handling that caused changes to the
+qform to vanish when saving to file (Yaroslav Halchenko).</p></li>
+<li><p>Added more unit tests.</p></li>
+<li><p>‘dim’ vector in the NIfTI header is now guaranteed to only contain
+non-zero elements. This caused problems with some applications.</p></li>
+</ul>
+</section>
+<section id="fri-3-aug-2007">
+<h3>0.20070803.1 (Fri, 3 Aug 2007)<a class="headerlink" href="#fri-3-aug-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Does not depend on SciPy anymore.</p></li>
+<li><p>Initial steps towards a unittest suite.</p></li>
+<li><p>pynifti_pst can now print the peristimulus signal matrix for a single
+voxel (onsets x time) for easier processing of this information in
+external applications.</p></li>
+<li><p>utils.getPeristimulusTimeseries() can now be used to compute mean and
+variance of the signal (among others).</p></li>
+<li><p>pynifti_pst is able to compute more than just the mean peristimulus
+timeseries (e.g. variance and standard deviation).</p></li>
+<li><p>Set default image description when saving a file if none is present.</p></li>
+<li><p>Improved documentation.</p></li>
+</ul>
+</section>
+<section id="wed-25-apr-2007">
+<h3>0.20070425.1 (Wed, 25 Apr 2007)<a class="headerlink" href="#wed-25-apr-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Improved documentation. Added note about the special usage of the header
+property. Also added notes about the relevant properties in the docstring
+of the corresponding accessor methods.</p></li>
+<li><p>Added property and accessor methods to access/modify the repetition time
+of timeseries (dt).</p></li>
+<li><p>Added functions to manipulate the pixdim values.</p></li>
+<li><p>Added utils.py with some utility functions.</p></li>
+<li><p>Added functions/property to determine the bounding box of an image.</p></li>
+<li><p>Fixed a bug that caused a corrupted sform matrix when converting a NumPy
+array and a header dictionary into a NIfTI image.</p></li>
+<li><p>Added script to compute peristimulus timeseries (pynifti_pst).</p></li>
+<li><p>Package now depends on python-scipy.</p></li>
+</ul>
+</section>
+<section id="thu-15-mar-2007">
+<h3>0.20070315.1 (Thu, 15 Mar 2007)<a class="headerlink" href="#thu-15-mar-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Removed functionality for “NiftiImage.save() raises an IOError
+exception when writing the image file fails.” (Yaroslav Halchenko)</p></li>
+<li><p>Added ability to force a filetype when setting the filename or saving
+a file.</p></li>
+<li><p>Reverse the order of the ‘header’ and ‘load’ argument in the NiftiImage
+constructor. ‘header’ is now first as it seems to be used more often.</p></li>
+<li><p>Improved the source code documentation.</p></li>
+<li><p>Added getScaledData() method to NiftiImage that returns a copy of the data
+array that is scaled with the slope and intercept stored in the NIfTI
+header.</p></li>
+</ul>
+</section>
+<section id="thu-1-mar-2007">
+<h3>0.20070301.2 (Thu, 1 Mar 2007)<a class="headerlink" href="#thu-1-mar-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed wrong link to the source tarball in README.html.</p></li>
+</ul>
+</section>
+<section id="id95">
+<h3>0.20070301.1 (Thu, 1 Mar 2007)<a class="headerlink" href="#id95" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Initial upload to the Debian archive. (Closes: #413049)</p></li>
+<li><p>NiftiImage.save() raises an IOError exception when writing the image file
+fails.</p></li>
+<li><p>Added extent, volextent, and timepoints properties to NiftiImage
+class (Yaroslav Halchenko).</p></li>
+</ul>
+</section>
+<section id="tue-20-feb-2007">
+<h3>0.20070220.1 (Tue, 20 Feb 2007)<a class="headerlink" href="#tue-20-feb-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>NiftiFile class is renamed to NiftiImage.</p></li>
+<li><p>SWIG-wrapped libniftiio functions are no available in the nifticlib
+module.</p></li>
+<li><p>Fixed broken NiftiImage from Numpy array constructor.</p></li>
+<li><p>Added initial documentation in README.html.</p></li>
+<li><p>Fulfilled a number of Yarik’s wishes ;)</p></li>
+</ul>
+</section>
+<section id="wed-14-feb-2007">
+<h3>0.20070214.1 (Wed, 14 Feb 2007)<a class="headerlink" href="#wed-14-feb-2007" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Does not depend on libfslio anymore.</p></li>
+<li><p>Up to seven-dimensional dataset are supported (as much as NIfTI can do).</p></li>
+<li><p>The complete NIfTI header dataset is modifiable.</p></li>
+<li><p>Most image properties are accessible via class attributes and accessor
+methods.</p></li>
+<li><p>Improved documentation (but still a long way to go).</p></li>
+</ul>
+</section>
+<section id="tue-14-nov-2006">
+<h3>0.20061114 (Tue, 14 Nov 2006)<a class="headerlink" href="#tue-14-nov-2006" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Initial release.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

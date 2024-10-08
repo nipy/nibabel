@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="spaces" href="nibabel.spaces.html" />
+    <link rel="prev" title="processing" href="nibabel.processing.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.spaces.html" title="spaces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.processing.html" title="processing"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code></a><ul>
+<li><a class="reference internal" href="#dicom-test">dicom_test</a><ul>
+<li><a class="reference internal" href="#nibabel.pydicom_compat.dicom_test"><code class="docutils literal notranslate"><span class="pre">dicom_test()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.processing.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.spaces.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spaces</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.pydicom_compat.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.pydicom_compat">
+<span id="pydicom-compat"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code><a class="headerlink" href="#module-nibabel.pydicom_compat" title="Link to this heading">¶</a></h1>
+<p>Adapter module for working with pydicom &lt; 1.0 and &gt;= 1.0</p>
+<p>In what follows, “dicom is available” means we can import either a) <code class="docutils literal notranslate"><span class="pre">dicom</span></code>
+(pydicom &lt; 1.0) or or b) <code class="docutils literal notranslate"><span class="pre">pydicom</span></code> (pydicom &gt;= 1.0).</p>
+<p>Regardless of whether dicom is available this module should be importable
+without error, and always defines:</p>
+<ul class="simple">
+<li><p>have_dicom : True if we can import pydicom or dicom;</p></li>
+<li><p>pydicom : pydicom module or dicom module or None if not importable;</p></li>
+<li><p>read_file : <code class="docutils literal notranslate"><span class="pre">read_file</span></code> function if pydicom or dicom module is importable
+else None;</p></li>
+<li><p>tag_for_keyword : <code class="docutils literal notranslate"><span class="pre">tag_for_keyword</span></code> function if pydicom or dicom module
+is importable else None;</p></li>
+</ul>
+<p>A test decorator is available in nibabel.nicom.tests:</p>
+<ul class="simple">
+<li><p>dicom_test : test decorator that skips test if dicom not available.</p></li>
+</ul>
+<p>A deprecated copy is available here for backward compatibility.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.pydicom_compat.dicom_test" title="nibabel.pydicom_compat.dicom_test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dicom_test</span></code></a>(func)</p></td>
+<td><p>dicom_test has been moved to nibabel.nicom.tests</p></td>
+</tr>
+</tbody>
+</table>
+<section id="dicom-test">
+<h2>dicom_test<a class="headerlink" href="#dicom-test" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.pydicom_compat.dicom_test">
+<span class="sig-prename descclassname"><span class="pre">nibabel.pydicom_compat.</span></span><span class="sig-name descname"><span class="pre">dicom_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.pydicom_compat.dicom_test" title="Link to this definition">¶</a></dt>
+<dd><p>dicom_test has been moved to nibabel.nicom.tests</p>
+<ul class="simple">
+<li><p>deprecated from version: 3.1</p></li>
+<li><p>Raises &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 5.0</p></li>
+</ul>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

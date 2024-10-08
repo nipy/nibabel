@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SPM DICOM conversion" href="spm_dicom.html" />
+    <link rel="prev" title="Siemens mosaic format" href="dicom_mosaic.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="spm_dicom.html" title="SPM DICOM conversion"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dicom_mosaic.html" title="Siemens mosaic format"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Siemens format DICOM with CSA header</a><ul>
+<li><a class="reference internal" href="#csa-header">CSA header</a></li>
+<li><a class="reference internal" href="#csa1">CSA1</a><ul>
+<li><a class="reference internal" href="#start-header">Start header</a></li>
+<li><a class="reference internal" href="#each-tag">Each tag</a></li>
+<li><a class="reference internal" href="#each-item">Each item</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#csa2">CSA2</a><ul>
+<li><a class="reference internal" href="#id2">Start header</a></li>
+<li><a class="reference internal" href="#id3">Each tag</a></li>
+<li><a class="reference internal" href="#id4">Each item</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dicom_mosaic.html"
+                          title="previous chapter">Siemens mosaic format</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="spm_dicom.html"
+                          title="next chapter">SPM DICOM conversion</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dicom/siemens_csa.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="siemens-format-dicom-with-csa-header">
+<span id="siemens-csa"></span><h1>Siemens format DICOM with CSA header<a class="headerlink" href="#siemens-format-dicom-with-csa-header" title="Link to this heading">¶</a></h1>
+<p>Recent Siemens DICOM images have useful information stored in a private
+header.  We’ll call this the <em>CSA header</em>.</p>
+<section id="csa-header">
+<span id="id1"></span><h2>CSA header<a class="headerlink" href="#csa-header" title="Link to this heading">¶</a></h2>
+<p>See this Siemens <a class="reference external" href="http://www.medical.siemens.com/siemens/en_GLOBAL/rg_marcom_FBAs/files/brochures/DICOM/rs/syngoImaging_DCS_VB30A_External.pdf">Syngo DICOM conformance</a> statement, and a <a class="reference external" href="http://gdcm.sourceforge.net/wiki/">GDCM</a>
+<a class="reference external" href="http://sourceforge.net/apps/mediawiki/gdcm/index.php?title=Gdcmdump#SIEMENS_CSA_Header">Siemens header dump</a>.</p>
+<p>The CSA header is stored in DICOM private tags.  In the images we are
+looking at, there are several relevant tags:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1008</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Image</span> <span class="n">Header</span> <span class="n">Type</span><span class="p">]</span>             <span class="n">OB</span><span class="p">:</span> <span class="s1">&#39;IMAGE NUM 4 &#39;</span>
+<span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1009</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Image</span> <span class="n">Header</span> <span class="n">Version</span><span class="p">]</span>          <span class="n">OB</span><span class="p">:</span> <span class="s1">&#39;20100114&#39;</span>
+<span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1010</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Image</span> <span class="n">Header</span> <span class="n">Info</span><span class="p">]</span>             <span class="n">OB</span><span class="p">:</span> <span class="n">Array</span> <span class="n">of</span> <span class="mi">11560</span> <span class="nb">bytes</span>
+<span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1018</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Series</span> <span class="n">Header</span> <span class="n">Type</span><span class="p">]</span>            <span class="n">OB</span><span class="p">:</span> <span class="s1">&#39;MR&#39;</span>
+<span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1019</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Series</span> <span class="n">Header</span> <span class="n">Version</span><span class="p">]</span>         <span class="n">OB</span><span class="p">:</span> <span class="s1">&#39;20100114&#39;</span>
+<span class="p">(</span><span class="mi">0029</span><span class="p">,</span> <span class="mi">1020</span><span class="p">)</span> <span class="p">[</span><span class="n">CSA</span> <span class="n">Series</span> <span class="n">Header</span> <span class="n">Info</span><span class="p">]</span>            <span class="n">OB</span><span class="p">:</span> <span class="n">Array</span> <span class="n">of</span> <span class="mi">80248</span> <span class="nb">bytes</span>
+</pre></div>
+</div>
+<p>In our case we want to read the ‘CSAImageHeaderInfo’.</p>
+<p>From the <a class="reference external" href="http://www.fil.ion.ucl.ac.uk/spm">SPM</a> (SPM8) code <code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code></p>
+<p>The CSAImageHeaderInfo and the CSA Series Header Info fields are of the
+same format.  The fields can be of two types, CSA1 and CSA2.</p>
+<p>Both are always little-endian, whatever the machine endian is.</p>
+<p>The CSA2 format begins with the string ‘SV10’, the CSA1 format does
+not.</p>
+<p>The code below keeps track of the position <em>within the CSA header
+stream</em>.  We’ll call this <code class="docutils literal notranslate"><span class="pre">csa_position</span></code>.  At this point (after
+reading the 8 bytes of the header), <code class="docutils literal notranslate"><span class="pre">csa_position</span> <span class="pre">==</span> <span class="pre">8</span></code>.   There’s a
+variable that sets the last byte position in the file that is sensibly
+still CSA header, and we’ll call that <code class="docutils literal notranslate"><span class="pre">csa_max_pos</span></code>.</p>
+</section>
+<section id="csa1">
+<h2>CSA1<a class="headerlink" href="#csa1" title="Link to this heading">¶</a></h2>
+<section id="start-header">
+<h3>Start header<a class="headerlink" href="#start-header" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>n_tags, uint32, number of tags.  Number of tags should apparently be
+between 1 and 128.  If this is not true we just abort and move to
+<code class="docutils literal notranslate"><span class="pre">csa_max_pos</span></code>.</p></li>
+<li><p>unused, uint32, apparently has value 77</p></li>
+</ol>
+</section>
+<section id="each-tag">
+<h3>Each tag<a class="headerlink" href="#each-tag" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>name : S64, null terminated string 64 bytes</p></li>
+<li><p>vm : int32</p></li>
+<li><p>vr : S4, first 3 characters only</p></li>
+<li><p>syngodt : int32</p></li>
+<li><p>nitems : int32</p></li>
+<li><p>xx : int32 - apparently either 77 or 205</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">nitems</span></code> gives the number of items in the tag.  The items follow
+directly after the tag.</p>
+</section>
+<section id="each-item">
+<h3>Each item<a class="headerlink" href="#each-item" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>xx : int32 * 4 .  The first of these seems to be the length of the
+item in bytes, modified as below.</p></li>
+</ol>
+<p>At this point SPM does a check, by calculating the length of this item
+<code class="docutils literal notranslate"><span class="pre">item_len</span></code> with <code class="docutils literal notranslate"><span class="pre">xx[0]</span></code> - the <code class="docutils literal notranslate"><span class="pre">nitems</span></code> of the <em>first</em> read tag.
+If <code class="docutils literal notranslate"><span class="pre">item_len</span></code> is less than 0 or greater than
+<code class="docutils literal notranslate"><span class="pre">csa_max_pos-csa_position</span></code> (the remaining number of bytes to read in
+the whole header) then we break from the item reading loop,
+setting the value below to ‘’.</p>
+<p>Then we calculate <code class="docutils literal notranslate"><span class="pre">item_len</span></code> rounded up to the nearest 4 byte boundary
+tp get <code class="docutils literal notranslate"><span class="pre">next_item_pos</span></code>.</p>
+<ol class="arabic simple" start="2">
+<li><p>value : uint8, <code class="docutils literal notranslate"><span class="pre">item_len</span></code>.</p></li>
+</ol>
+<p>We set the stream position to <code class="docutils literal notranslate"><span class="pre">next_item_pos</span></code>.</p>
+</section>
+</section>
+<section id="csa2">
+<h2>CSA2<a class="headerlink" href="#csa2" title="Link to this heading">¶</a></h2>
+<section id="id2">
+<h3>Start header<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>hdr_id : S4 == ‘SV10’</p></li>
+<li><p>unused1 : uint8, 4</p></li>
+<li><p>n_tags, uint32, number of tags.  Number of tags should apparently be
+between 1 and 128.  If this is not true we just abort and move to
+<code class="docutils literal notranslate"><span class="pre">csa_max_pos</span></code>.</p></li>
+<li><p>unused2, uint32, apparently has value 77</p></li>
+</ol>
+</section>
+<section id="id3">
+<h3>Each tag<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>name : S64, null terminated string 64 bytes</p></li>
+<li><p>vm : int32</p></li>
+<li><p>vr : S4, first 3 characters only</p></li>
+<li><p>syngodt : int32</p></li>
+<li><p>nitems : int32</p></li>
+<li><p>xx : int32 - apparently either 77 or 205</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">nitems</span></code> gives the number of items in the tag.  The items follow
+directly after the tag.</p>
+</section>
+<section id="id4">
+<h3>Each item<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>xx : int32 * 4 .  The first of these seems to be the length of the
+item in bytes, modified as below.</p></li>
+</ol>
+<p>Now there’s a different length check from CSA1.  <code class="docutils literal notranslate"><span class="pre">item_len</span></code> is given
+just by <code class="docutils literal notranslate"><span class="pre">xx[1]</span></code>.  If <code class="docutils literal notranslate"><span class="pre">item_len</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">csa_max_pos</span> <span class="pre">-</span> <span class="pre">csa_position</span></code>
+(the remaining bytes in the header), then we just read the remaining
+bytes in the header (as above) into <code class="docutils literal notranslate"><span class="pre">value</span></code> below, as uint8, move the
+filepointer to the next 4 byte boundary, and give up reading.</p>
+<ol class="arabic simple" start="2">
+<li><p>value : uint8, <code class="docutils literal notranslate"><span class="pre">item_len</span></code>.</p></li>
+</ol>
+<p>We set the stream position to the next 4 byte boundary.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

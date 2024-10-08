@@ -1,0 +1,26 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`onetime`
+==============
+.. automodule:: nibabel.onetime
+
+.. currentmodule:: nibabel.onetime
+.. autosummary::
+
+   ResetMixin
+
+
+.. currentmodule:: nibabel.onetime
+
+
+:class:`ResetMixin`
+~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: ResetMixin
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+

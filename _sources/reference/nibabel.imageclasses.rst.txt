@@ -1,0 +1,19 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`imageclasses`
+===================
+.. automodule:: nibabel.imageclasses
+
+.. currentmodule:: nibabel.imageclasses
+.. autosummary::
+
+   spatial_axes_first
+
+
+.. currentmodule:: nibabel.imageclasses
+
+spatial_axes_first
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: spatial_axes_first
+

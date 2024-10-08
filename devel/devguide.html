@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Working with nibabel source code" href="../gitwash/index.html" />
+    <link rel="prev" title="Developer documentation page" href="index.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../gitwash/index.html" title="Working with nibabel source code"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Developer documentation page"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer documentation page</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">NiBabel Developer Guidelines</a><ul>
+<li><a class="reference internal" href="#nibabel-source-code">NiBabel source code</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a><ul>
+<li><a class="reference internal" href="#code-documentation">Code Documentation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#git-repository">Git Repository</a><ul>
+<li><a class="reference internal" href="#layout">Layout</a></li>
+<li><a class="reference internal" href="#commits">Commits</a></li>
+<li><a class="reference internal" href="#merges">Merges</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#style-guide">Style guide</a><ul>
+<li><a class="reference internal" href="#pre-commit-hooks">Pre-commit hooks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#changelog">Changelog</a></li>
+<li><a class="reference internal" href="#code-of-conduct">Community guidelines</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Developer documentation page</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../gitwash/index.html"
+                          title="next chapter">Working with <em>nibabel</em> source code</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/devguide.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="nibabel-developer-guidelines">
+<span id="chap-devguide"></span><h1>NiBabel Developer Guidelines<a class="headerlink" href="#nibabel-developer-guidelines" title="Link to this heading">¶</a></h1>
+<p>Also see <a class="reference internal" href="index.html#devindex"><span class="std std-ref">Developer documentation page</span></a></p>
+<section id="nibabel-source-code">
+<h2>NiBabel source code<a class="headerlink" href="#nibabel-source-code" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gitwash/index.html">Working with <em>nibabel</em> source code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../gitwash/git_intro.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gitwash/git_install.html">Install git</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gitwash/following_latest.html">Following the latest source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gitwash/patching.html">Making a patch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gitwash/git_development.html">Git for development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gitwash/git_resources.html">git resources</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h2>
+<section id="code-documentation">
+<h3>Code Documentation<a class="headerlink" href="#code-documentation" title="Link to this heading">¶</a></h3>
+<p>Please write documentation using Numpy documentation conventions:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard">https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard</a></p>
+</div></blockquote>
+</section>
+</section>
+<section id="git-repository">
+<h2>Git Repository<a class="headerlink" href="#git-repository" title="Link to this heading">¶</a></h2>
+<section id="layout">
+<h3>Layout<a class="headerlink" href="#layout" title="Link to this heading">¶</a></h3>
+<p>The main release branch is called <code class="docutils literal notranslate"><span class="pre">master</span></code>. This is a merge-only branch.
+Features finished or updated by some developer are merged from the
+corresponding branch into <code class="docutils literal notranslate"><span class="pre">master</span></code>. At a certain point the current state of
+<code class="docutils literal notranslate"><span class="pre">master</span></code> is tagged – a release is done.</p>
+<p>Only usable feature should end-up in <code class="docutils literal notranslate"><span class="pre">master</span></code>. Ideally <code class="docutils literal notranslate"><span class="pre">master</span></code> should be
+releasable at all times.</p>
+<p>Additionally, there are distribution branches. They are prefixed <code class="docutils literal notranslate"><span class="pre">dist/</span></code>
+and labeled after the packaging target (e.g. <em>debian</em> for a Debian package).
+If necessary, there can be multiple branches for each distribution target.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">dist/debian/proper</span></code></dt><dd><p>Official Debian packaging</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">dist/debian/dev</span></code></dt><dd><p>Debian packaging of unofficial development snapshots. They do not go into the
+main Debian archive, but might be distributed through other channels (e.g.
+NeuroDebian).</p>
+</dd>
+</dl>
+<p>Releases are merged into the packaging branches, packaging is updated if
+necessary and the branch gets tagged when a package version is released.
+Maintenance (as well as backport) releases or branches off from the respective
+packaging tag.</p>
+<p>There might be additional branches for each developer, prefixed with initials.
+Alternatively, several GitHub (or elsewhere) clones might be used.</p>
+</section>
+<section id="commits">
+<h3>Commits<a class="headerlink" href="#commits" title="Link to this heading">¶</a></h3>
+<p>Please prefix all commit summaries with one (or more) of the following labels.
+This should help others to easily classify the commits into meaningful
+categories:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em>BF</em> : bug fix</p></li>
+<li><p><em>RF</em> : refactoring</p></li>
+<li><p><em>NF</em> : new feature</p></li>
+<li><p><em>BW</em> : addresses backward-compatibility</p></li>
+<li><p><em>OPT</em> : optimization</p></li>
+<li><p><em>BK</em> : breaks something and/or tests fail</p></li>
+<li><p><em>PL</em> : making pylint happier</p></li>
+<li><p><em>DOC</em>: for all kinds of documentation related commits</p></li>
+<li><p><em>TEST</em>: for adding or changing tests</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="merges">
+<h3>Merges<a class="headerlink" href="#merges" title="Link to this heading">¶</a></h3>
+<p>For easy tracking of what changes were absorbed during merge, we
+advise that you enable merge summaries within git:</p>
+<blockquote>
+<div><p>git-config merge.summary true</p>
+</div></blockquote>
+<p>See <a class="reference internal" href="../gitwash/configure_git.html#configure-git"><span class="std std-ref">Configure git</span></a> for more detail.</p>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<p>NiBabel uses <a class="reference external" href="https://tox.wiki/">tox</a> to organize our testing and development workflows.
+tox runs tests in isolated environments that we specify,
+ensuring that we are able to test across many different environments,
+and those environments do not depend on our local configurations.</p>
+<p>If you have the <a class="reference external" href="https://pypa.github.io/pipx/">pipx</a> tool installed, then you may simply:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipx</span> <span class="n">run</span> <span class="n">tox</span>
+</pre></div>
+</div>
+<p>Alternatively, you can install tox and run it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">tox</span>
+<span class="n">tox</span>
+</pre></div>
+</div>
+<p>This will run the tests in several configurations, with multiple sets of
+optional dependencies.
+If you have multiple versions of Python installed in your path, it will
+repeat the process for each version of Python iin our supported range.
+It may be useful to pick a particular version for rapid development:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tox</span> <span class="o">-</span><span class="n">e</span> <span class="n">py311</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">x64</span>
+</pre></div>
+</div>
+<p>This will run the environment using the Python 3.11 interpreter, with the
+full set of optional dependencies that are available for 64-bit
+interpreters. If you are using 32-bit Python, replace <code class="docutils literal notranslate"><span class="pre">-x64</span></code> with <code class="docutils literal notranslate"><span class="pre">-x86</span></code>.</p>
+</section>
+<section id="style-guide">
+<h2>Style guide<a class="headerlink" href="#style-guide" title="Link to this heading">¶</a></h2>
+<p>To ensure code consistency and readability, NiBabel has adopted the following
+tools:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://blue.readthedocs.io/">blue</a> - An auto-formatter that aims to reduce diffs to relevant lines</p></li>
+<li><p><a href="#id2"><span class="problematic" id="id3">isort_</span></a> - An import sorter that groups stdlib, third-party and local imports.</p></li>
+<li><p><a class="reference external" href="https://flake8.pycqa.org/">flake8</a> - A style checker that can catch (but generally not fix) common
+errors in code.</p></li>
+<li><p><a class="reference external" href="https://github.com/codespell-project/codespell">codespell</a> - A spell checker targeted at source code.</p></li>
+<li><p><a href="#id4"><span class="problematic" id="id5">pre-commit_</span></a> - A pre-commit hook manager that runs the above and various
+other checks/fixes.</p></li>
+</ul>
+<p>While some amount of personal preference is involved in selecting and
+configuring auto-formatters, their value lies in largely eliminating the
+need to think or argue about style.
+With pre-commit turned on, you can write in the style that works for you,
+and the NiBabel style will be adopted prior to the commit.</p>
+<p>To apply our style checks uniformly, simply run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tox</span> <span class="o">-</span><span class="n">e</span> <span class="n">style</span><span class="p">,</span><span class="n">spellcheck</span>
+</pre></div>
+</div>
+<p>To fix any issues found:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tox</span> <span class="o">-</span><span class="n">e</span> <span class="n">style</span><span class="o">-</span><span class="n">fix</span>
+<span class="n">tox</span> <span class="o">-</span><span class="n">e</span> <span class="n">spellcheck</span> <span class="o">--</span> <span class="o">-</span><span class="n">w</span>
+</pre></div>
+</div>
+<p>Occasionally, codespell has a false positive. To ignore the suggestion, add
+the intended word to <code class="docutils literal notranslate"><span class="pre">tool.codespell.ignore-words-list</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.
+However, the ignore list is a blunt instrument and could cause a legitimate
+misspelling to be missed. Consider choosing a word that does not trigger
+codespell before adding it to the ignore list.</p>
+<section id="pre-commit-hooks">
+<h3>Pre-commit hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">¶</a></h3>
+<p>NiBabel uses <a href="#id6"><span class="problematic" id="id7">pre-commit_</span></a> to help committers validate their changes
+before committing. To enable these, you can use <a class="reference external" href="https://pypa.github.io/pipx/">pipx</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipx</span> <span class="n">run</span> <span class="n">pre</span><span class="o">-</span><span class="n">commit</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>Or install and run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pre</span><span class="o">-</span><span class="n">commit</span>
+<span class="n">pre</span><span class="o">-</span><span class="n">commit</span> <span class="n">install</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">¶</a></h2>
+<p>The changelog is located in the toplevel directory of the source tree in the
+<cite>Changelog</cite> file. The content of this file should be formatted as restructured
+text to make it easy to put it into manual appendix and on the website.</p>
+<p>This changelog should neither replicate the VCS commit log nor the
+distribution packaging changelogs (e.g. debian/changelog). It should be
+focused on the user perspective and is intended to list rather macroscopic
+and/or important changes to the module, like feature additions or bugfixes in
+the algorithms with implications to the performance or validity of results.</p>
+<p>It may list references to 3rd party bugtrackers, in case the reported bugs
+match the criteria listed above.</p>
+</section>
+<section id="code-of-conduct">
+<span id="community-guidelines"></span><span id="mission-and-values"></span><span id="id1"></span><h2>Community guidelines<a class="headerlink" href="#code-of-conduct" title="Link to this heading">¶</a></h2>
+<p>Please see <a class="reference external" href="https://github.com/nipy/nibabel/blob/master/.github/CODE_OF_CONDUCT.md">our community guidelines</a>.
+Other projects call these guidelines the “code of conduct”.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

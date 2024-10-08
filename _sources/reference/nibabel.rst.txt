@@ -1,0 +1,31 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`nibabel`
+==============
+.. automodule:: nibabel
+
+.. currentmodule:: nibabel
+.. autosummary::
+
+   bench
+   get_info
+   test
+
+
+.. currentmodule:: nibabel
+
+bench
+~~~~~
+
+.. autofunction:: bench
+
+get_info
+~~~~~~~~
+
+.. autofunction:: get_info
+
+test
+~~~~
+
+.. autofunction:: test
+

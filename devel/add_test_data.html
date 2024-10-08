@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to add a new image format to nibabel" href="add_image_format.html" />
+    <link rel="prev" title="BIAP X — Template and Instructions" href="biaps/biap_template.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="add_image_format.html" title="How to add a new image format to nibabel"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="biaps/biap_template.html" title="BIAP X — Template and Instructions"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer documentation page</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Adding test data</a><ul>
+<li><a class="reference internal" href="#small-files">Small files</a></li>
+<li><a class="reference internal" href="#files-with-open-licenses">Files with open licenses</a></li>
+<li><a class="reference internal" href="#adding-the-file-to-nibabel-tests-data">Adding the file to <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code></a></li>
+<li><a class="reference internal" href="#adding-as-a-submodule-to-nibabel-data">Adding as a submodule to <code class="docutils literal notranslate"><span class="pre">nibabel-data</span></code></a><ul>
+<li><a class="reference internal" href="#using-submodules-for-tests">Using submodules for tests</a></li>
+<li><a class="reference internal" href="#how-much-data-should-go-in-a-single-submodule">How much data should go in a single submodule?</a></li>
+<li><a class="reference internal" href="#if-in-doubt">If in doubt</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="biaps/biap_template.html"
+                          title="previous chapter">BIAP X — Template and Instructions</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="add_image_format.html"
+                          title="next chapter">How to add a new image format to nibabel</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/add_test_data.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="adding-test-data">
+<h1>Adding test data<a class="headerlink" href="#adding-test-data" title="Link to this heading">¶</a></h1>
+<ol class="arabic simple">
+<li><p>We really, really like test images, but</p></li>
+<li><p>We are rather conservative about the size of our code repository.</p></li>
+</ol>
+<p>So, we have two different ways of adding test data.</p>
+<ol class="arabic simple">
+<li><p>Small, open licensed files can go in the <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code> directory
+(see below);</p></li>
+<li><p>Larger files or files with extra licensing terms can go in their own git
+repositories and be added as submodules to the <code class="docutils literal notranslate"><span class="pre">nibabel-data</span></code> directory.</p></li>
+</ol>
+<section id="small-files">
+<h2>Small files<a class="headerlink" href="#small-files" title="Link to this heading">¶</a></h2>
+<p>Small files are around 50K or less when compressed.  By “compressed”, we mean,
+compressed with zlib, which is what git uses when storing the file in the
+repository.  You can check the exact length directly with Python and a script
+like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">zlib</span>
+
+<span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fobj</span><span class="p">:</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">compressed</span> <span class="o">=</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">compressed</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1024.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>One way of making files smaller when compressed is to set uninteresting values
+to zero or some other number so that the compression algorithm can be more
+effective.</p>
+<p>Please don’t compress the file yourself before committing to a git repo unless
+there’s a really good reason; git will do this for you when adding to the
+repository, and it’s a shame to make git compress a compressed file.</p>
+</section>
+<section id="files-with-open-licenses">
+<h2>Files with open licenses<a class="headerlink" href="#files-with-open-licenses" title="Link to this heading">¶</a></h2>
+<p>We very much prefer files with completely open licenses such as the <a class="reference external" href="http://opendatacommons.org/licenses/pddl/1.0/">PDDL
+1.0</a> or the <a class="reference external" href="http://opendefinition.org/licenses/cc-zero">CC0</a> license.</p>
+<p>The files in the <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code> will get distributed with the nibabel
+source code, and this can easily get installed without the user having an
+opportunity to review the full license.  We don’t think this is compatible
+with extra license terms like agreeing to cite the people who provided the
+data or agreeing not to try and work out the identity of the person who has
+been scanned, because it would be too easy to miss these requirements when
+using nibabel.  It is fine to use files with these kind of licenses, but they
+should go in their own repository to be used as a submodule, so they do not
+need to be distributed with nibabel.</p>
+</section>
+<section id="adding-the-file-to-nibabel-tests-data">
+<h2>Adding the file to <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code><a class="headerlink" href="#adding-the-file-to-nibabel-tests-data" title="Link to this heading">¶</a></h2>
+<p>If the file is less then about 50K compressed, and the license is open, then
+you might want to commit the file under <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data</span></code>.</p>
+<p>Put the license for any new files in the COPYING file at the top level of the
+nibabel repo.  You’ll see some examples in that file already.</p>
+</section>
+<section id="adding-as-a-submodule-to-nibabel-data">
+<h2>Adding as a submodule to <code class="docutils literal notranslate"><span class="pre">nibabel-data</span></code><a class="headerlink" href="#adding-as-a-submodule-to-nibabel-data" title="Link to this heading">¶</a></h2>
+<p>Make a new git repository with the data.</p>
+<p>There are example repos at</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/yarikoptic/nitest-balls1">https://github.com/yarikoptic/nitest-balls1</a></p></li>
+<li><p><a class="reference external" href="https://github.com/matthew-brett/nitest-minc2">https://github.com/matthew-brett/nitest-minc2</a></p></li>
+</ul>
+<p>Despite the fact that both the examples are on github, <a class="reference external" href="https://bitbucket.org">Bitbucket</a> is good for
+repos like this because they don’t enforce repository size limits.</p>
+<p>Don’t forget to include a LICENSE and README file in the repo.</p>
+<p>When all is done, and the repository is safely on the internet and accessible,
+add the repo as a submodule to the <code class="docutils literal notranslate"><span class="pre">nitests-data</span></code> directory, with something
+like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">add</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">bitbucket</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">nipy</span><span class="o">/</span><span class="n">rosetta</span><span class="o">-</span><span class="n">samples</span><span class="o">.</span><span class="n">git</span> <span class="n">nitests</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="n">rosetta</span><span class="o">-</span><span class="n">samples</span>
+</pre></div>
+</div>
+<p>You should now have a checked out copy of the <code class="docutils literal notranslate"><span class="pre">rosetta-samples</span></code> repository
+in the <code class="docutils literal notranslate"><span class="pre">nibabel-data/rosetta-samples</span></code> directory.  Commit the submodule that
+is now in your git staging area.</p>
+<p>If you are writing tests using files from this repository, you should use the
+<code class="docutils literal notranslate"><span class="pre">needs_nibabel_data</span></code> decorator to skip the tests if the data has not been
+checked out into the submodules.  See <code class="docutils literal notranslate"><span class="pre">nibabel/tests/test_parrec_data.py</span></code>
+for an example.  For our example repository above it might look something
+like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.nibabel_data</span> <span class="kn">import</span> <span class="n">get_nibabel_data</span><span class="p">,</span> <span class="n">needs_nibabel_data</span>
+
+<span class="n">ROSETTA_DATA</span> <span class="o">=</span> <span class="n">pjoin</span><span class="p">(</span><span class="n">get_nibabel_data</span><span class="p">(),</span> <span class="s1">&#39;rosetta-samples&#39;</span><span class="p">)</span>
+
+<span class="nd">@needs_nibabel_data</span><span class="p">(</span><span class="s1">&#39;rosetta-samples&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_something</span><span class="p">():</span>
+    <span class="c1"># Some test using the data</span>
+</pre></div>
+</div>
+<section id="using-submodules-for-tests">
+<h3>Using submodules for tests<a class="headerlink" href="#using-submodules-for-tests" title="Link to this heading">¶</a></h3>
+<p>Tests run via <a class="reference external" href="https://travis-ci.org/nipy/nibabel">nibabel on travis</a> start with an automatic checkout of all
+submodules in the project, so all test data submodules get checked out by
+default.</p>
+<p>If you are running the tests locally, you may well want to do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span>
+</pre></div>
+</div>
+<p>from the root nibabel directory.  This will checkout all the test data
+repositories.</p>
+</section>
+<section id="how-much-data-should-go-in-a-single-submodule">
+<h3>How much data should go in a single submodule?<a class="headerlink" href="#how-much-data-should-go-in-a-single-submodule" title="Link to this heading">¶</a></h3>
+<p>The limiting factor is how long it takes <a class="reference external" href="https://travis-ci.org">travis-ci</a> to checkout the data for
+the tests.  Up to a hundred megabytes in one repository should be OK.  The joy
+of submodules is we can always drop a submodule, split the repository into two
+and add only one back, so you aren’t committing us to anything awful if you
+accidentally put some very large files into your own data repository.</p>
+</section>
+<section id="if-in-doubt">
+<h3>If in doubt<a class="headerlink" href="#if-in-doubt" title="Link to this heading">¶</a></h3>
+<p>If you are not sure, try us with a pull request to <a class="reference external" href="https://github.com/nipy/nibabel">nibabel github</a>, or on the
+<a class="reference external" href="https://mail.python.org/mailman/listinfo/neuroimaging">nipy mailing list</a>, we will try to help.</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

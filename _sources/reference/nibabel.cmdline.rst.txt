@@ -1,0 +1,425 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`cmdline`
+==============
+.. automodule:: nibabel.cmdline
+
+.. currentmodule:: nibabel.cmdline
+.. autosummary::
+
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.conform`
+------------------------------
+.. automodule:: nibabel.cmdline.conform
+
+.. currentmodule:: nibabel.cmdline.conform
+.. autosummary::
+
+   main
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.convert`
+------------------------------
+.. automodule:: nibabel.cmdline.convert
+
+.. currentmodule:: nibabel.cmdline.convert
+.. autosummary::
+
+   main
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.dicomfs`
+------------------------------
+.. automodule:: nibabel.cmdline.dicomfs
+
+.. currentmodule:: nibabel.cmdline.dicomfs
+.. autosummary::
+
+   DICOMFS
+   FileHandle
+   dummy_fuse
+   fuse
+   get_opt_parser
+   main
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.diff`
+---------------------------
+.. automodule:: nibabel.cmdline.diff
+
+.. currentmodule:: nibabel.cmdline.diff
+.. autosummary::
+
+   are_values_different
+   diff
+   display_diff
+   get_data_diff
+   get_data_hash_diff
+   get_headers_diff
+   get_opt_parser
+   main
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.ls`
+-------------------------
+.. automodule:: nibabel.cmdline.ls
+
+.. currentmodule:: nibabel.cmdline.ls
+.. autosummary::
+
+   get_opt_parser
+   main
+   proc_file
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.nifti_dx`
+-------------------------------
+.. automodule:: nibabel.cmdline.nifti_dx
+
+.. currentmodule:: nibabel.cmdline.nifti_dx
+.. autosummary::
+
+   main
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.parrec2nii`
+---------------------------------
+.. automodule:: nibabel.cmdline.parrec2nii
+
+.. currentmodule:: nibabel.cmdline.parrec2nii
+.. autosummary::
+
+   error
+   get_opt_parser
+   main
+   proc_file
+   verbose
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.roi`
+--------------------------
+.. automodule:: nibabel.cmdline.roi
+
+.. currentmodule:: nibabel.cmdline.roi
+.. autosummary::
+
+   lossless_slice
+   main
+   parse_slice
+   sanitize
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.stats`
+----------------------------
+.. automodule:: nibabel.cmdline.stats
+
+.. currentmodule:: nibabel.cmdline.stats
+.. autosummary::
+
+   main
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.tck2trk`
+------------------------------
+.. automodule:: nibabel.cmdline.tck2trk
+
+.. currentmodule:: nibabel.cmdline.tck2trk
+.. autosummary::
+
+   main
+   parse_args
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.trk2tck`
+------------------------------
+.. automodule:: nibabel.cmdline.trk2tck
+
+.. currentmodule:: nibabel.cmdline.trk2tck
+.. autosummary::
+
+   main
+   parse_args
+
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`cmdline.utils`
+----------------------------
+.. automodule:: nibabel.cmdline.utils
+
+.. currentmodule:: nibabel.cmdline.utils
+.. autosummary::
+
+   ap
+   safe_get
+   table2string
+   verbose
+
+
+.. currentmodule:: nibabel.cmdline
+
+
+.. currentmodule:: nibabel.cmdline.conform
+
+main
+~~~~
+
+.. autofunction:: main
+
+
+.. currentmodule:: nibabel.cmdline.convert
+
+main
+~~~~
+
+.. autofunction:: main
+
+
+.. currentmodule:: nibabel.cmdline.dicomfs
+
+
+:class:`DICOMFS`
+~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: DICOMFS
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`FileHandle`
+~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: FileHandle
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`dummy_fuse`
+~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: dummy_fuse
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`fuse`
+~~~~~~~~~~~~~
+
+
+.. autoclass:: fuse
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+get_opt_parser
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_opt_parser
+
+main
+~~~~
+
+.. autofunction:: main
+
+
+.. currentmodule:: nibabel.cmdline.diff
+
+are_values_different
+~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: are_values_different
+
+diff
+~~~~
+
+.. autofunction:: diff
+
+display_diff
+~~~~~~~~~~~~
+
+.. autofunction:: display_diff
+
+get_data_diff
+~~~~~~~~~~~~~
+
+.. autofunction:: get_data_diff
+
+get_data_hash_diff
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_data_hash_diff
+
+get_headers_diff
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_headers_diff
+
+get_opt_parser
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_opt_parser
+
+main
+~~~~
+
+.. autofunction:: main
+
+
+.. currentmodule:: nibabel.cmdline.ls
+
+get_opt_parser
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_opt_parser
+
+main
+~~~~
+
+.. autofunction:: main
+
+proc_file
+~~~~~~~~~
+
+.. autofunction:: proc_file
+
+
+.. currentmodule:: nibabel.cmdline.nifti_dx
+
+main
+~~~~
+
+.. autofunction:: main
+
+
+.. currentmodule:: nibabel.cmdline.parrec2nii
+
+error
+~~~~~
+
+.. autofunction:: error
+
+get_opt_parser
+~~~~~~~~~~~~~~
+
+.. autofunction:: get_opt_parser
+
+main
+~~~~
+
+.. autofunction:: main
+
+proc_file
+~~~~~~~~~
+
+.. autofunction:: proc_file
+
+verbose
+~~~~~~~
+
+.. autofunction:: verbose
+
+
+.. currentmodule:: nibabel.cmdline.roi
+
+lossless_slice
+~~~~~~~~~~~~~~
+
+.. autofunction:: lossless_slice
+
+main
+~~~~
+
+.. autofunction:: main
+
+parse_slice
+~~~~~~~~~~~
+
+.. autofunction:: parse_slice
+
+sanitize
+~~~~~~~~
+
+.. autofunction:: sanitize
+
+
+.. currentmodule:: nibabel.cmdline.stats
+
+main
+~~~~
+
+.. autofunction:: main
+
+
+.. currentmodule:: nibabel.cmdline.tck2trk
+
+main
+~~~~
+
+.. autofunction:: main
+
+parse_args
+~~~~~~~~~~
+
+.. autofunction:: parse_args
+
+
+.. currentmodule:: nibabel.cmdline.trk2tck
+
+main
+~~~~
+
+.. autofunction:: main
+
+parse_args
+~~~~~~~~~~
+
+.. autofunction:: parse_args
+
+
+.. currentmodule:: nibabel.cmdline.utils
+
+ap
+~~
+
+.. autofunction:: ap
+
+safe_get
+~~~~~~~~
+
+.. autofunction:: safe_get
+
+table2string
+~~~~~~~~~~~~
+
+.. autofunction:: table2string
+
+verbose
+~~~~~~~
+
+.. autofunction:: verbose
+

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="parrec" href="nibabel.parrec.html" />
+    <link rel="prev" title="nifti2" href="nibabel.nifti2.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.parrec.html" title="parrec"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.nifti2.html" title="nifti2"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a><ul>
+<li><a class="reference internal" href="#ecatheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader"><code class="docutils literal notranslate"><span class="pre">EcatHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.__init__"><code class="docutils literal notranslate"><span class="pre">EcatHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.default_structarr"><code class="docutils literal notranslate"><span class="pre">EcatHeader.default_structarr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.get_data_dtype"><code class="docutils literal notranslate"><span class="pre">EcatHeader.get_data_dtype()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.get_filetype"><code class="docutils literal notranslate"><span class="pre">EcatHeader.get_filetype()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.get_patient_orient"><code class="docutils literal notranslate"><span class="pre">EcatHeader.get_patient_orient()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.guessed_endian"><code class="docutils literal notranslate"><span class="pre">EcatHeader.guessed_endian()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatHeader.template_dtype"><code class="docutils literal notranslate"><span class="pre">EcatHeader.template_dtype</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ecatimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage"><code class="docutils literal notranslate"><span class="pre">EcatImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.__init__"><code class="docutils literal notranslate"><span class="pre">EcatImage.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.ImageArrayProxy"><code class="docutils literal notranslate"><span class="pre">EcatImage.ImageArrayProxy</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.affine"><code class="docutils literal notranslate"><span class="pre">EcatImage.affine</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.files_types"><code class="docutils literal notranslate"><span class="pre">EcatImage.files_types</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">EcatImage.from_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.from_image"><code class="docutils literal notranslate"><span class="pre">EcatImage.from_image()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.get_data_dtype"><code class="docutils literal notranslate"><span class="pre">EcatImage.get_data_dtype()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.get_frame"><code class="docutils literal notranslate"><span class="pre">EcatImage.get_frame()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.get_frame_affine"><code class="docutils literal notranslate"><span class="pre">EcatImage.get_frame_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.get_mlist"><code class="docutils literal notranslate"><span class="pre">EcatImage.get_mlist()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.get_subheaders"><code class="docutils literal notranslate"><span class="pre">EcatImage.get_subheaders()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.header_class"><code class="docutils literal notranslate"><span class="pre">EcatImage.header_class</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.load"><code class="docutils literal notranslate"><span class="pre">EcatImage.load()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.shape"><code class="docutils literal notranslate"><span class="pre">EcatImage.shape</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.subheader_class"><code class="docutils literal notranslate"><span class="pre">EcatImage.subheader_class</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.to_file_map"><code class="docutils literal notranslate"><span class="pre">EcatImage.to_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">EcatImage.valid_exts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ecatimagearrayproxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatImageArrayProxy</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy"><code class="docutils literal notranslate"><span class="pre">EcatImageArrayProxy</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy.__init__"><code class="docutils literal notranslate"><span class="pre">EcatImageArrayProxy.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy.is_proxy"><code class="docutils literal notranslate"><span class="pre">EcatImageArrayProxy.is_proxy</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy.ndim"><code class="docutils literal notranslate"><span class="pre">EcatImageArrayProxy.ndim</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy.shape"><code class="docutils literal notranslate"><span class="pre">EcatImageArrayProxy.shape</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ecatsubheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatSubHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.__init__"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.data_from_fileobj"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.data_from_fileobj()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.get_frame_affine"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.get_frame_affine()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.get_nframes"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.get_nframes()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.get_shape"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.get_shape()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.get_zooms"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.get_zooms()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.ecat.EcatSubHeader.raw_data_from_fileobj"><code class="docutils literal notranslate"><span class="pre">EcatSubHeader.raw_data_from_fileobj()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-frame-order">get_frame_order</a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.get_frame_order"><code class="docutils literal notranslate"><span class="pre">get_frame_order()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-series-framenumbers">get_series_framenumbers</a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.get_series_framenumbers"><code class="docutils literal notranslate"><span class="pre">get_series_framenumbers()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-mlist">read_mlist</a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.read_mlist"><code class="docutils literal notranslate"><span class="pre">read_mlist()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#read-subheaders">read_subheaders</a><ul>
+<li><a class="reference internal" href="#nibabel.ecat.read_subheaders"><code class="docutils literal notranslate"><span class="pre">read_subheaders()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.nifti2.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.parrec.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.ecat.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.ecat">
+<span id="ecat"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code><a class="headerlink" href="#module-nibabel.ecat" title="Link to this heading">¶</a></h1>
+<p>Read ECAT format images</p>
+<p>An ECAT format image consists of:</p>
+<ul class="simple">
+<li><p>a <em>main header</em>;</p></li>
+<li><p>at least one <em>matrix list</em> (mlist);</p></li>
+</ul>
+<p>ECAT thinks of memory locations in terms of <em>blocks</em>.  One block is 512
+bytes.  Thus block 1 starts at 0 bytes, block 2 at 512 bytes, and so on.</p>
+<p>The matrix list is an array with one row per frame in the data.</p>
+<p>Columns in the matrix list are:</p>
+<ul>
+<li><p>0: Matrix identifier (frame number)</p></li>
+<li><p>1: matrix data start block number (subheader followed by image data)</p></li>
+<li><p>2: Last block number of matrix (image) data</p></li>
+<li><p>3: Matrix status</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>1: hxists - rw</p></li>
+<li><p>2: exists - ro</p></li>
+<li><p>3: matrix deleted</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>There is one sub-header for each image frame (or matrix in the terminology
+above).  A sub-header can also be called an <em>image header</em>.  The sub-header is
+one block (512 bytes), and the frame (image) data follows.</p>
+<p>There is very little documentation of the ECAT format, and many of the comments
+in this code come from a combination of trial and error and wild speculation.</p>
+<p>XMedcon can read and write ECAT 6 format, and read ECAT 7 format: see
+<a class="reference external" href="http://xmedcon.sourceforge.net">http://xmedcon.sourceforge.net</a> and the ECAT files in the source of XMedCon,
+currently <code class="docutils literal notranslate"><span class="pre">libs/tpc/*ecat*</span></code> and <code class="docutils literal notranslate"><span class="pre">source/m-ecat*</span></code>.  Unfortunately XMedCon is
+GPL and some of the header files are adapted from CTI files (called CTI code
+below).  It’s not clear what the licenses are for these files.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.ecat.EcatHeader" title="nibabel.ecat.EcatHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EcatHeader</span></code></a>([binaryblock, endianness, check])</p></td>
+<td><p>Class for basic Ecat PET header</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.ecat.EcatImage" title="nibabel.ecat.EcatImage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EcatImage</span></code></a>(dataobj, affine, header, ...[, ...])</p></td>
+<td><p>Class returns a list of Ecat images, with one image(hdr/data) per frame</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy" title="nibabel.ecat.EcatImageArrayProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EcatImageArrayProxy</span></code></a>(subheader)</p></td>
+<td><p>Ecat implementation of array proxy protocol</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.ecat.EcatSubHeader" title="nibabel.ecat.EcatSubHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EcatSubHeader</span></code></a>(hdr, mlist, fileobj)</p></td>
+<td><p>parses the subheaders in the ecat (.v) file there is one subheader for each frame in the ecat file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.ecat.get_frame_order" title="nibabel.ecat.get_frame_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_frame_order</span></code></a>(mlist)</p></td>
+<td><p>Returns the order of the frames stored in the file Sometimes Frames are not stored in the file in chronological order, this can be used to extract frames in correct order</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.ecat.get_series_framenumbers" title="nibabel.ecat.get_series_framenumbers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_series_framenumbers</span></code></a>(mlist)</p></td>
+<td><p>Returns framenumber of data as it was collected, as part of a series; not just the order of how it was stored in this or across other files</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.ecat.read_mlist" title="nibabel.ecat.read_mlist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_mlist</span></code></a>(fileobj, endianness)</p></td>
+<td><p>read (nframes, 4) matrix list array from <cite>fileobj</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.ecat.read_subheaders" title="nibabel.ecat.read_subheaders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_subheaders</span></code></a>(fileobj, mlist, endianness)</p></td>
+<td><p>Retrieve all subheaders and return list of subheader recarrays</p></td>
+</tr>
+</tbody>
+</table>
+<section id="ecatheader">
+<h2><a class="reference internal" href="#nibabel.ecat.EcatHeader" title="nibabel.ecat.EcatHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatHeader</span></code></a><a class="headerlink" href="#ecatheader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">EcatHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.wrapstruct.html#nibabel.wrapstruct.WrapStruct" title="nibabel.wrapstruct.WrapStruct"><code class="xref py py-class docutils literal notranslate"><span class="pre">WrapStruct</span></code></a>, <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialHeader" title="nibabel.spatialimages.SpatialHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialHeader</span></code></a></p>
+<p>Class for basic Ecat PET header</p>
+<p>Sub-parts of standard Ecat File</p>
+<ul class="simple">
+<li><p>main header</p></li>
+<li><p>matrix list
+which lists the information for each frame collected (can have 1 to many
+frames)</p></li>
+<li><p>subheaders specific to each frame with possibly-variable sized data
+blocks</p></li>
+</ul>
+<p>This just reads the main Ecat Header, it does not load the data or read the
+mlist or any sub headers</p>
+<p>Initialize Ecat header from bytes object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, bytes} optional</span></dt><dd><p>binary block to set into header, By default, None in which case we
+insert default empty header block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’, ‘&gt;’, other endian code}, optional</span></dt><dd><p>endian code of binary block, If None, guess endianness
+from the data</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to check and fix header for errors.  No checks currently
+implemented, so value has no effect.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize Ecat header from bytes object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>binaryblock</strong><span class="classifier">{None, bytes} optional</span></dt><dd><p>binary block to set into header, By default, None in which case we
+insert default empty header block</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{None, ‘&lt;’, ‘&gt;’, other endian code}, optional</span></dt><dd><p>endian code of binary block, If None, guess endianness
+from the data</p>
+</dd>
+<dt><strong>check</strong><span class="classifier">{True, False}, optional</span></dt><dd><p>Whether to check and fix header for errors.  No checks currently
+implemented, so value has no effect.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.default_structarr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_structarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader.default_structarr" title="Link to this definition">¶</a></dt>
+<dd><p>Return header data for empty header with given endianness</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.get_data_dtype">
+<span class="sig-name descname"><span class="pre">get_data_dtype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader.get_data_dtype" title="Link to this definition">¶</a></dt>
+<dd><p>Get numpy dtype for data from header</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.get_filetype">
+<span class="sig-name descname"><span class="pre">get_filetype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader.get_filetype" title="Link to this definition">¶</a></dt>
+<dd><p>Type of ECAT Matrix File from code stored in header</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.get_patient_orient">
+<span class="sig-name descname"><span class="pre">get_patient_orient</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader.get_patient_orient" title="Link to this definition">¶</a></dt>
+<dd><p>gets orientation of patient based on code stored
+in header, not always reliable</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.guessed_endian">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">guessed_endian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatHeader.guessed_endian" title="Link to this definition">¶</a></dt>
+<dd><p>Guess endian from MAGIC NUMBER value of header data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.template_dtype">
+<span class="sig-name descname"><span class="pre">template_dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('magic_number',</span> <span class="pre">'S14'),</span> <span class="pre">('original_filename',</span> <span class="pre">'S32'),</span> <span class="pre">('sw_version',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('system_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('file_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('serial_number',</span> <span class="pre">'S10'),</span> <span class="pre">('scan_start_time',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('isotope_name',</span> <span class="pre">'S8'),</span> <span class="pre">('isotope_halflife',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('radiopharmaceutical',</span> <span class="pre">'S32'),</span> <span class="pre">('gantry_tilt',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('gantry_rotation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('bed_elevation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('intrinsic_tilt',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('wobble_speed',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('transm_source_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('distance_scanned',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('transaxial_fov',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('angular_compression',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('coin_samp_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('axial_samp_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('ecat_calibration_factor',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('calibration_unitS',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('calibration_units_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('compression_code',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('study_type',</span> <span class="pre">'S12'),</span> <span class="pre">('patient_id',</span> <span class="pre">'S16'),</span> <span class="pre">('patient_name',</span> <span class="pre">'S32'),</span> <span class="pre">('patient_sex',</span> <span class="pre">'S1'),</span> <span class="pre">('patient_dexterity',</span> <span class="pre">'S1'),</span> <span class="pre">('patient_age',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_height',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_weight',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_birth_date',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('physician_name',</span> <span class="pre">'S32'),</span> <span class="pre">('operator_name',</span> <span class="pre">'S32'),</span> <span class="pre">('study_description',</span> <span class="pre">'S32'),</span> <span class="pre">('acquisition_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('patient_orientation',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('facility_name',</span> <span class="pre">'S20'),</span> <span class="pre">('num_planes',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_frames',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_gates',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_bed_pos',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('init_bed_position',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('bed_position',</span> <span class="pre">'&lt;f4',</span> <span class="pre">(15,)),</span> <span class="pre">('plane_separation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('lwr_sctr_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('lwr_true_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('upr_true_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('user_process_code',</span> <span class="pre">'S10'),</span> <span class="pre">('acquisition_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('bin_size',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('branching_fraction',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('dose_start_time',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('dosage',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('well_counter_corr_factor',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('data_units',</span> <span class="pre">'S32'),</span> <span class="pre">('septa_state',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('fill',</span> <span class="pre">'S12')])</span></em><a class="headerlink" href="#nibabel.ecat.EcatHeader.template_dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="ecatimage">
+<h2><a class="reference internal" href="#nibabel.ecat.EcatImage" title="nibabel.ecat.EcatImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatImage</span></code></a><a class="headerlink" href="#ecatimage" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">EcatImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subheader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a></p>
+<p>Class returns a list of Ecat images, with one image(hdr/data) per frame</p>
+<p>Initialize Image</p>
+<p>The image is a combination of
+(array, affine matrix, header, subheader, mlist)
+with optional meta data in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">array-like</span></dt><dd><p>image data</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coords and
+world coords.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or header instance</span></dt><dd><p>meta data for this image format</p>
+</dd>
+<dt><strong>subheader</strong><span class="classifier">None or subheader instance</span></dt><dd><p>meta data for each sub-image for frame in the image</p>
+</dd>
+<dt><strong>mlist</strong><span class="classifier">None or array</span></dt><dd><p>Matrix list array giving offset and order of data in file</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata associated with this image that cannot be
+stored in header or subheader</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">ecat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_frame</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data4d</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data4d</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subheader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize Image</p>
+<p>The image is a combination of
+(array, affine matrix, header, subheader, mlist)
+with optional meta data in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">array-like</span></dt><dd><p>image data</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coords and
+world coords.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or header instance</span></dt><dd><p>meta data for this image format</p>
+</dd>
+<dt><strong>subheader</strong><span class="classifier">None or subheader instance</span></dt><dd><p>meta data for each sub-image for frame in the image</p>
+</dd>
+<dt><strong>mlist</strong><span class="classifier">None or array</span></dt><dd><p>Matrix list array giving offset and order of data in file</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata associated with this image that cannot be
+stored in header or subheader</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">ecat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_frame</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data4d</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data4d</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.ImageArrayProxy">
+<span class="sig-name descname"><span class="pre">ImageArrayProxy</span></span><a class="headerlink" href="#nibabel.ecat.EcatImage.ImageArrayProxy" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy" title="nibabel.ecat.EcatImageArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatImageArrayProxy</span></code></a></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.affine">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">affine</span></span><a class="headerlink" href="#nibabel.ecat.EcatImage.affine" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.files_types">
+<span class="sig-name descname"><span class="pre">files_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">'.v'),</span> <span class="pre">('header',</span> <span class="pre">'.v'))</span></em><a class="headerlink" href="#nibabel.ecat.EcatImage.files_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.from_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.from_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>class method to create image from mapping
+specified in file_map</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.from_image">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.from_image" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create new instance of own class from <cite>img</cite></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>img</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">spatialimage</span></code> instance</span></dt><dd><p>In fact, an object with the API of <code class="docutils literal notranslate"><span class="pre">spatialimage</span></code> -
+specifically <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>, <code class="docutils literal notranslate"><span class="pre">affine</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code> and <code class="docutils literal notranslate"><span class="pre">extra</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>cimg</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">spatialimage</span></code> instance</span></dt><dd><p>Image, of our own class</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.get_data_dtype">
+<span class="sig-name descname"><span class="pre">get_data_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.get_data_dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.get_frame">
+<span class="sig-name descname"><span class="pre">get_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.get_frame" title="Link to this definition">¶</a></dt>
+<dd><p>Get full volume for a time frame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> – Time frame index from where to fetch data</p></li>
+<li><p><strong>orientation</strong> – None (default), ‘neurological’ or ‘radiological’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array containing (possibly oriented) raw data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.get_frame_affine">
+<span class="sig-name descname"><span class="pre">get_frame_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.get_frame_affine" title="Link to this definition">¶</a></dt>
+<dd><p>returns 4X4 affine</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.get_mlist">
+<span class="sig-name descname"><span class="pre">get_mlist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.get_mlist" title="Link to this definition">¶</a></dt>
+<dd><p>get access to the mlist</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.get_subheaders">
+<span class="sig-name descname"><span class="pre">get_subheaders</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.get_subheaders" title="Link to this definition">¶</a></dt>
+<dd><p>get access to subheaders</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.header_class">
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.ecat.EcatImage.header_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.ecat.EcatHeader" title="nibabel.ecat.EcatHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatHeader</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filespec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.load" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create image from filename <cite>filename</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>Filename of image to load</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">DataobjImage instance</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#nibabel.ecat.EcatImage.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.subheader_class">
+<span class="sig-name descname"><span class="pre">subheader_class</span></span><a class="headerlink" href="#nibabel.ecat.EcatImage.subheader_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.ecat.EcatSubHeader" title="nibabel.ecat.EcatSubHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatSubHeader</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.to_file_map">
+<span class="sig-name descname"><span class="pre">to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImage.to_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Write ECAT7 image to <cite>file_map</cite> or contained <code class="docutils literal notranslate"><span class="pre">self.file_map</span></code></p>
+<p>The format consist of:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>A main header (512L) with dictionary entries in the form</dt><dd><p>[numAvail, nextDir, previousDir, numUsed]</p>
+</dd>
+</dl>
+</li>
+<li><p>For every frame (3D volume in 4D data)
+- A subheader (size = frame_offset)
+- Frame data (3D volume)</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImage.valid_exts">
+<span class="sig-name descname"><span class="pre">valid_exts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.v',)</span></em><a class="headerlink" href="#nibabel.ecat.EcatImage.valid_exts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="ecatimagearrayproxy">
+<h2><a class="reference internal" href="#nibabel.ecat.EcatImageArrayProxy" title="nibabel.ecat.EcatImageArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatImageArrayProxy</span></code></a><a class="headerlink" href="#ecatimagearrayproxy" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImageArrayProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">EcatImageArrayProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subheader</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImageArrayProxy" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Ecat implementation of array proxy protocol</p>
+<p>The array proxy allows us to freeze the passed fileobj and
+header such that it returns the expected data array.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImageArrayProxy.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subheader</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImageArrayProxy.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImageArrayProxy.is_proxy">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_proxy</span></span><a class="headerlink" href="#nibabel.ecat.EcatImageArrayProxy.is_proxy" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImageArrayProxy.ndim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><a class="headerlink" href="#nibabel.ecat.EcatImageArrayProxy.ndim" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatImageArrayProxy.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#nibabel.ecat.EcatImageArrayProxy.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="ecatsubheader">
+<h2><a class="reference internal" href="#nibabel.ecat.EcatSubHeader" title="nibabel.ecat.EcatSubHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EcatSubHeader</span></code></a><a class="headerlink" href="#ecatsubheader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">EcatSubHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>parses the subheaders in the ecat (.v) file
+there is one subheader for each frame in the ecat file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>hdr</strong><span class="classifier">EcatHeader</span></dt><dd><p>ECAT main header</p>
+</dd>
+<dt><strong>mlist</strong><span class="classifier">array shape (N, 4)</span></dt><dd><p>Matrix list</p>
+</dd>
+<dt><strong>fileobj</strong><span class="classifier">ECAT file &lt;filename&gt;.v  fileholder or file object</span></dt><dd><p>with read, seek methods</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>parses the subheaders in the ecat (.v) file
+there is one subheader for each frame in the ecat file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>hdr</strong><span class="classifier">EcatHeader</span></dt><dd><p>ECAT main header</p>
+</dd>
+<dt><strong>mlist</strong><span class="classifier">array shape (N, 4)</span></dt><dd><p>Matrix list</p>
+</dd>
+<dt><strong>fileobj</strong><span class="classifier">ECAT file &lt;filename&gt;.v  fileholder or file object</span></dt><dd><p>with read, seek methods</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.data_from_fileobj">
+<span class="sig-name descname"><span class="pre">data_from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.data_from_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Read scaled data from file for a given frame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> – Time frame index from where to fetch data</p></li>
+<li><p><strong>orientation</strong> – None (default), ‘neurological’ or ‘radiological’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array containing (possibly oriented) raw data</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>raw_data_from_fileobj</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.get_frame_affine">
+<span class="sig-name descname"><span class="pre">get_frame_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.get_frame_affine" title="Link to this definition">¶</a></dt>
+<dd><p>returns best affine for given frame of data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.get_nframes">
+<span class="sig-name descname"><span class="pre">get_nframes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.get_nframes" title="Link to this definition">¶</a></dt>
+<dd><p>returns number of frames</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.get_shape">
+<span class="sig-name descname"><span class="pre">get_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.get_shape" title="Link to this definition">¶</a></dt>
+<dd><p>returns shape of given frame</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.get_zooms">
+<span class="sig-name descname"><span class="pre">get_zooms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.get_zooms" title="Link to this definition">¶</a></dt>
+<dd><p>returns zooms  …pixdims</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader.raw_data_from_fileobj">
+<span class="sig-name descname"><span class="pre">raw_data_from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader.raw_data_from_fileobj" title="Link to this definition">¶</a></dt>
+<dd><p>Get raw data from file object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> – Time frame index from where to fetch data</p></li>
+<li><p><strong>orientation</strong> – None (default), ‘neurological’ or ‘radiological’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numpy array containing (possibly oriented) raw data</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>data_from_fileobj</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="get-frame-order">
+<h2>get_frame_order<a class="headerlink" href="#get-frame-order" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.ecat.get_frame_order">
+<span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">get_frame_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.get_frame_order" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the order of the frames stored in the file
+Sometimes Frames are not stored in the file in
+chronological order, this can be used to extract frames
+in correct order</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>id_dict: dict mapping frame number -&gt; [mlist_row, mlist_id]</dt><dd></dd>
+<dt>(where mlist id is value in the first column of the mlist matrix )</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">ecat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mlist</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_mlist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_frame_order</span><span class="p">(</span><span class="n">mlist</span><span class="p">)</span>
+<span class="go">{0: [0, 16842758]}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="get-series-framenumbers">
+<h2>get_series_framenumbers<a class="headerlink" href="#get-series-framenumbers" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.ecat.get_series_framenumbers">
+<span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">get_series_framenumbers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.get_series_framenumbers" title="Link to this definition">¶</a></dt>
+<dd><p>Returns framenumber of data as it was collected,
+as part of a series; not just the order of how it was
+stored in this or across other files</p>
+<p>For example, if the data is split between multiple files
+this should give you the true location of this frame as
+collected in the series
+(Frames are numbered starting at ONE (1) not Zero)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>frame_dict: dict mapping order_stored -&gt; frame in series</dt><dd><p>where frame in series counts from 1; [1,2,3,4…]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">ecat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mlist</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_mlist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_series_framenumbers</span><span class="p">(</span><span class="n">mlist</span><span class="p">)</span>
+<span class="go">{0: 1}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="read-mlist">
+<h2>read_mlist<a class="headerlink" href="#read-mlist" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.ecat.read_mlist">
+<span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">read_mlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.read_mlist" title="Link to this definition">¶</a></dt>
+<dd><p>read (nframes, 4) matrix list array from <cite>fileobj</cite></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like</span></dt><dd><p>an open file-like object implementing <code class="docutils literal notranslate"><span class="pre">seek</span></code> and <code class="docutils literal notranslate"><span class="pre">read</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>mlist</strong><span class="classifier">(nframes, 4) ndarray</span></dt><dd><p>matrix list is an array with <code class="docutils literal notranslate"><span class="pre">nframes</span></code> rows and columns:</p>
+<ul>
+<li><p>0: Matrix identifier (frame number)</p></li>
+<li><p>1: matrix data start block number (subheader followed by image data)</p></li>
+<li><p>2: Last block number of matrix (image) data</p></li>
+<li><p>3: Matrix status</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>1: hxists - rw</p></li>
+<li><p>2: exists - ro</p></li>
+<li><p>3: matrix deleted</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>A block is 512 bytes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">block_no</span></code> in the code below is 1-based.  block 1 is the main header,
+and the mlist blocks start at block number 2.</p>
+<p>The 512 bytes in an mlist block contain 32 rows of the int32 (nframes,
+4) mlist matrix.</p>
+<p>The first row of these 32 looks like a special row.  The 4 values appear
+to be (respectively):</p>
+<ul class="simple">
+<li><p>not sure - maybe negative number of mlist rows (out of 31) that are
+blank and not used in this block.  Called <cite>nfree</cite> but unused in CTI
+code;</p></li>
+<li><p>block_no - of next set of mlist entries or 2 if no more entries. We also
+allow 1 or 0 to signal no more entries;</p></li>
+<li><p>&lt;no idea&gt;.  Called <cite>prvblk</cite> in CTI code, so maybe previous block no;</p></li>
+<li><p>n_rows - number of mlist rows in this block (between ?0 and 31) (called
+<cite>nused</cite> in CTI code).</p></li>
+</ul>
+</dd></dl>
+
+</section>
+<section id="read-subheaders">
+<h2>read_subheaders<a class="headerlink" href="#read-subheaders" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.ecat.read_subheaders">
+<span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">read_subheaders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.read_subheaders" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve all subheaders and return list of subheader recarrays</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fileobj</strong><span class="classifier">file-like</span></dt><dd><p>implementing <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">seek</span></code></p>
+</dd>
+<dt><strong>mlist</strong><span class="classifier">(nframes, 4) ndarray</span></dt><dd><p>Columns are:
+* 0 - Matrix identifier.
+* 1 - subheader block number
+* 2 - Last block number of matrix data block.
+* 3 - Matrix status</p>
+</dd>
+<dt><strong>endianness</strong><span class="classifier">{‘&lt;’, ‘&gt;’}</span></dt><dd><p>little / big endian code</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>subheaders</strong><span class="classifier">list</span></dt><dd><p>List of subheader structured arrays</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

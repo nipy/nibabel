@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BIAPs" href="biaps/index.html" />
+    <link rel="prev" title="Governance and Decision Making" href="governance.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="biaps/index.html" title="BIAPs"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="governance.html" title="Governance and Decision Making"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer documentation page</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Roadmap</a><ul>
+<li><a class="reference internal" href="#background">Background</a><ul>
+<li><a class="reference internal" href="#expressive-api">Expressive API</a><ul>
+<li><a class="reference internal" href="#axis-and-tick-labels">Axis and tick labels</a></li>
+<li><a class="reference internal" href="#api-for-surface-data">API for surface data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#range">Range</a><ul>
+<li><a class="reference internal" href="#spatial-transforms">Spatial transforms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="governance.html"
+                          title="previous chapter">Governance and Decision Making</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="biaps/index.html"
+                          title="next chapter">BIAPs</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/roadmap.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="roadmap">
+<h1>Roadmap<a class="headerlink" href="#roadmap" title="Link to this heading">¶</a></h1>
+<p>The roadmap is intended for larger, fundamental changes to the project that are
+likely to take months or years of developer time. Smaller-scoped items will
+continue to be tracked on our issue tracker.</p>
+<p>The scope of these improvements means that these changes may be controversial,
+are likely to involve significant discussion among the core development team,
+and may require the creation of one or more BIAPs (niBabel Increased
+Awesomeness Proposals).</p>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p>Nibabel is a workbench that provides a Python API for working with images in
+many formats.  It is also a base library for tools implementing higher level
+processing.</p>
+<p>Nibabel’s success depends on:</p>
+<ul class="simple">
+<li><p>How easy it is to express common imaging tasks in the API.</p></li>
+<li><p>The range of tasks it can perform.</p></li>
+</ul>
+<p>An expressive, broad API will increase adoption and make it easier to teach.</p>
+<section id="expressive-api">
+<h3>Expressive API<a class="headerlink" href="#expressive-api" title="Link to this heading">¶</a></h3>
+<section id="axis-and-tick-labels">
+<h4>Axis and tick labels<a class="headerlink" href="#axis-and-tick-labels" title="Link to this heading">¶</a></h4>
+<p>Brain images typically have three or four axes, whose meanings depend on the
+way the image was acquired.  Axes have natural labels, expressing meaning,
+such as “time” or “slice”, and they may have tick labels such as acquisition
+time. The scanner captures this information, but typical image formats cannot
+store it, so it is easy to lose metadata and make analysis errors; see
+<a class="reference internal" href="biaps/biap_0006.html#biap6"><span class="std std-ref">BIAP6 - Identifying image axes</span></a>.</p>
+<p>We plan to expand Nibabel’s API to encode axis and tick labels by integrating
+the <a class="reference external" href="http://xarray.pydata.org">Xarray package</a>.  Xarray simplifies HDF5
+serialization, and visualization.</p>
+<p>An API for labels is not useful if we cannot read labels from the scanner
+data, or save them with the image.  We plan to:</p>
+<ul class="simple">
+<li><p>Develop HDF5 equivalents of standard image formats, for serialization of
+data with labels.</p></li>
+<li><p>Expand the current standard image format, NIfTI, to store labels in a JSON
+addition to image metadata: <a class="reference internal" href="biaps/biap_0003.html#biap3"><span class="std std-ref">BIAP3 - A JSON nifti header extension</span></a>.</p></li>
+<li><p>Read image metadata from DICOM, the standard scanner format.</p></li>
+</ul>
+<p>Reading and attaching DICOM data will start with code integrated from
+<a class="reference external" href="https://github.com/moloney/dcmstack">Dcmstack</a>, by Brendan Moloney; see:
+<a class="reference internal" href="biaps/biap_0004.html#biap4"><span class="std std-ref">BIAP4 - Merging nibabel and dcmstack</span></a>.</p>
+<p>DICOM metadata is often hidden inside “private” DICOM elements that need
+specialized parsers. We want to expand these parsers to preserve full metadata
+and build a normalization layer to abstract vendor-specific storage locations
+for metadata elements that describe the same thing.</p>
+</section>
+<section id="api-for-surface-data">
+<h4>API for surface data<a class="headerlink" href="#api-for-surface-data" title="Link to this heading">¶</a></h4>
+<p>Neuroimaging data often refers to locations on the brain surface.  There are
+three common formats for such data: GIFTI, CIFTI and Freesurfer.  Nibabel can
+read these formats, but lacks a standard API for reading and storing surface
+data with metadata; see
+<a class="reference external" href="https://github.com/nipy/nibabel/issues/936">nipy/nibabel#936</a>,
+<a class="reference external" href="https://github.com/nilearn/nilearn/issues/2171">nilearn/nilearn#2171</a>.
+We plan to develop a standard API, apply it to the standard formats,
+and design an efficient general HDF5 storage container for serializing surface
+data and metadata.</p>
+</section>
+</section>
+<section id="range">
+<h3>Range<a class="headerlink" href="#range" title="Link to this heading">¶</a></h3>
+<section id="spatial-transforms">
+<h4>Spatial transforms<a class="headerlink" href="#spatial-transforms" title="Link to this heading">¶</a></h4>
+<p>Neuroimaging toolboxes include spatial registration methods to align the
+objects and features present in two or more images. Registration methods
+estimate and store spatial transforms.  There is no standard or compatible
+format to store and reuse these transforms, across packages.</p>
+<p>Because Nibabel is a workbench, we want to extend its support to read
+transforms calculated with AFNI, FreeSurfer, FSL, ITK/ANTs, NiftyReg, and SPM.</p>
+<p>We have developed the NiTransforms project for this task; we plan to complete
+and integrate NiTransforms into Nibabel.  This will make transforms more
+accessible to researchers, and therefore easier to work with, and reason about.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

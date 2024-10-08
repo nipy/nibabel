@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ecat" href="nibabel.ecat.html" />
+    <link rel="prev" title="nifti1" href="nibabel.nifti1.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.ecat.html" title="ecat"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.nifti1.html" title="nifti1"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a><ul>
+<li><a class="reference internal" href="#nifti2header"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Header</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header"><code class="docutils literal notranslate"><span class="pre">Nifti2Header</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.__init__"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.default_structarr"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.default_structarr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.get_data_shape"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.get_data_shape()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.may_contain_header"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.may_contain_header()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.pair_magic"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.pair_magic</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.pair_vox_offset"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.pair_vox_offset</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.quaternion_threshold"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.quaternion_threshold</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.set_data_shape"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.set_data_shape()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.single_magic"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.single_magic</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.single_vox_offset"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.single_vox_offset</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.sizeof_hdr"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.sizeof_hdr</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Header.template_dtype"><code class="docutils literal notranslate"><span class="pre">Nifti2Header.template_dtype</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nifti2image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Image</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Image"><code class="docutils literal notranslate"><span class="pre">Nifti2Image</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Image.__init__"><code class="docutils literal notranslate"><span class="pre">Nifti2Image.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Image.header_class"><code class="docutils literal notranslate"><span class="pre">Nifti2Image.header_class</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nifti2pair"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Pair</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Pair"><code class="docutils literal notranslate"><span class="pre">Nifti2Pair</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Pair.__init__"><code class="docutils literal notranslate"><span class="pre">Nifti2Pair.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2Pair.header_class"><code class="docutils literal notranslate"><span class="pre">Nifti2Pair.header_class</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nifti2pairheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2PairHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2PairHeader"><code class="docutils literal notranslate"><span class="pre">Nifti2PairHeader</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2PairHeader.__init__"><code class="docutils literal notranslate"><span class="pre">Nifti2PairHeader.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.nifti2.Nifti2PairHeader.is_single"><code class="docutils literal notranslate"><span class="pre">Nifti2PairHeader.is_single</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#load">load</a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#save">save</a><ul>
+<li><a class="reference internal" href="#nibabel.nifti2.save"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.nifti1.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.ecat.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.nifti2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.nifti2">
+<span id="nifti2"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code><a class="headerlink" href="#module-nibabel.nifti2" title="Link to this heading">¶</a></h1>
+<p>Read / write access to NIfTI2 image format</p>
+<p>Format described here:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://www.nitrc.org/forum/message.php?msg_id=3738">https://www.nitrc.org/forum/message.php?msg_id=3738</a></p>
+</div></blockquote>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nifti2.Nifti2Header" title="nibabel.nifti2.Nifti2Header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Nifti2Header</span></code></a>([binaryblock, endianness, ...])</p></td>
+<td><p>Class for NIfTI2 header</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nifti2.Nifti2Image" title="nibabel.nifti2.Nifti2Image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Nifti2Image</span></code></a>(dataobj, affine[, header, ...])</p></td>
+<td><p>Class for single file NIfTI2 format image</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nifti2.Nifti2Pair" title="nibabel.nifti2.Nifti2Pair"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Nifti2Pair</span></code></a>(dataobj, affine[, header, extra, ...])</p></td>
+<td><p>Class for NIfTI2 format image, header pair</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nifti2.Nifti2PairHeader" title="nibabel.nifti2.Nifti2PairHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Nifti2PairHeader</span></code></a>([binaryblock, endianness, ...])</p></td>
+<td><p>Class for NIfTI2 pair header</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.nifti2.load" title="nibabel.nifti2.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(filename)</p></td>
+<td><p>Load NIfTI2 single or pair image from <cite>filename</cite></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.nifti2.save" title="nibabel.nifti2.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(img, filename)</p></td>
+<td><p>Save NIfTI2 single or pair to <cite>filename</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="nifti2header">
+<h2><a class="reference internal" href="#nibabel.nifti2.Nifti2Header" title="nibabel.nifti2.Nifti2Header"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Header</span></code></a><a class="headerlink" href="#nifti2header" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nifti2.</span></span><span class="sig-name descname"><span class="pre">Nifti2Header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Header" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.nifti1.html#nibabel.nifti1.Nifti1Header" title="nibabel.nifti1.Nifti1Header"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti1Header</span></code></a></p>
+<p>Class for NIfTI2 header</p>
+<p>NIfTI2 is a slightly simplified variant of NIfTI1 which replaces 32-bit
+floats with 64-bit floats, and increases some integer widths to 32 or 64
+bits.</p>
+<p>Initialize header from binary data block and extensions</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize header from binary data block and extensions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.default_structarr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_structarr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.default_structarr" title="Link to this definition">¶</a></dt>
+<dd><p>Create empty header binary block with given endianness</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.get_data_shape">
+<span class="sig-name descname"><span class="pre">get_data_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.get_data_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Get shape of data</p>
+<p class="rubric">Notes</p>
+<p>Does not use Nifti1 freesurfer hack for large vectors described in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Nifti1Header.set_data_shape()</span></code></p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="n">Nifti2Header</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(0,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">set_data_shape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_data_shape</span><span class="p">()</span>
+<span class="go">(1, 2, 3)</span>
+</pre></div>
+</div>
+<p>Expanding number of dimensions gets default zooms</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="o">.</span><span class="n">get_zooms</span><span class="p">()</span>
+<span class="go">(1.0, 1.0, 1.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.may_contain_header">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">may_contain_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.may_contain_header" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.pair_magic">
+<span class="sig-name descname"><span class="pre">pair_magic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">b'ni2'</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.pair_magic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.pair_vox_offset">
+<span class="sig-name descname"><span class="pre">pair_vox_offset</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.pair_vox_offset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.quaternion_threshold">
+<span class="sig-name descname"><span class="pre">quaternion_threshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-6.661338147750939e-16</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.quaternion_threshold" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.set_data_shape">
+<span class="sig-name descname"><span class="pre">set_data_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.set_data_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Set shape of data</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">ndims</span> <span class="pre">==</span> <span class="pre">len(shape)</span></code> then we set zooms for dimensions higher than
+<code class="docutils literal notranslate"><span class="pre">ndims</span></code> to 1.0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape</strong><span class="classifier">sequence</span></dt><dd><p>sequence of integers specifying data array shape</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Does not apply nifti1 Freesurfer hack for long vectors (see
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Nifti1Header.set_data_shape()</span></code>)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.single_magic">
+<span class="sig-name descname"><span class="pre">single_magic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">b'n+2'</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.single_magic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.single_vox_offset">
+<span class="sig-name descname"><span class="pre">single_vox_offset</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">544</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.single_vox_offset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.sizeof_hdr">
+<span class="sig-name descname"><span class="pre">sizeof_hdr</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">540</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.sizeof_hdr" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Header.template_dtype">
+<span class="sig-name descname"><span class="pre">template_dtype</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('sizeof_hdr',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('magic',</span> <span class="pre">'S4'),</span> <span class="pre">('eol_check',</span> <span class="pre">'i1',</span> <span class="pre">(4,)),</span> <span class="pre">('datatype',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('bitpix',</span> <span class="pre">'&lt;i2'),</span> <span class="pre">('dim',</span> <span class="pre">'&lt;i8',</span> <span class="pre">(8,)),</span> <span class="pre">('intent_p1',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('intent_p2',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('intent_p3',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('pixdim',</span> <span class="pre">'&lt;f8',</span> <span class="pre">(8,)),</span> <span class="pre">('vox_offset',</span> <span class="pre">'&lt;i8'),</span> <span class="pre">('scl_slope',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('scl_inter',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('cal_max',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('cal_min',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('slice_duration',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('toffset',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('slice_start',</span> <span class="pre">'&lt;i8'),</span> <span class="pre">('slice_end',</span> <span class="pre">'&lt;i8'),</span> <span class="pre">('descrip',</span> <span class="pre">'S80'),</span> <span class="pre">('aux_file',</span> <span class="pre">'S24'),</span> <span class="pre">('qform_code',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('sform_code',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('quatern_b',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('quatern_c',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('quatern_d',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('qoffset_x',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('qoffset_y',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('qoffset_z',</span> <span class="pre">'&lt;f8'),</span> <span class="pre">('srow_x',</span> <span class="pre">'&lt;f8',</span> <span class="pre">(4,)),</span> <span class="pre">('srow_y',</span> <span class="pre">'&lt;f8',</span> <span class="pre">(4,)),</span> <span class="pre">('srow_z',</span> <span class="pre">'&lt;f8',</span> <span class="pre">(4,)),</span> <span class="pre">('slice_code',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('xyzt_units',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('intent_code',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('intent_name',</span> <span class="pre">'S16'),</span> <span class="pre">('dim_info',</span> <span class="pre">'u1'),</span> <span class="pre">('unused_str',</span> <span class="pre">'S15')])</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2Header.template_dtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="nifti2image">
+<h2><a class="reference internal" href="#nibabel.nifti2.Nifti2Image" title="nibabel.nifti2.Nifti2Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Image</span></code></a><a class="headerlink" href="#nifti2image" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Image">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nifti2.</span></span><span class="sig-name descname"><span class="pre">Nifti2Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Image" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.nifti1.html#nibabel.nifti1.Nifti1Image" title="nibabel.nifti1.Nifti1Image"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti1Image</span></code></a></p>
+<p>Class for single file NIfTI2 format image</p>
+<p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If both a <cite>header</cite> and an <cite>affine</cite> are specified, and the <cite>affine</cite> does
+not match the affine that is in the <cite>header</cite>, the <cite>affine</cite> will be used,
+but the <code class="docutils literal notranslate"><span class="pre">sform_code</span></code> and <code class="docutils literal notranslate"><span class="pre">qform_code</span></code> fields in the header will be
+re-initialised to their default values. This is performed on the basis
+that, if you are changing the affine, you are likely to be changing the
+space to which the affine is pointing.  The <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_sform()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">set_qform()</span></code> methods can be used to update the codes after an image
+has been created - see those methods, and the <a class="reference internal" href="../nifti_images.html#default-sform-qform-codes"><span class="std std-ref">manual</span></a> for more details.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Image.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Image.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If both a <cite>header</cite> and an <cite>affine</cite> are specified, and the <cite>affine</cite> does
+not match the affine that is in the <cite>header</cite>, the <cite>affine</cite> will be used,
+but the <code class="docutils literal notranslate"><span class="pre">sform_code</span></code> and <code class="docutils literal notranslate"><span class="pre">qform_code</span></code> fields in the header will be
+re-initialised to their default values. This is performed on the basis
+that, if you are changing the affine, you are likely to be changing the
+space to which the affine is pointing.  The <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_sform()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">set_qform()</span></code> methods can be used to update the codes after an image
+has been created - see those methods, and the <a class="reference internal" href="../nifti_images.html#default-sform-qform-codes"><span class="std std-ref">manual</span></a> for more details.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Image.header_class">
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.nifti2.Nifti2Image.header_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.nifti2.Nifti2Header" title="nibabel.nifti2.Nifti2Header"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Header</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="nifti2pair">
+<h2><a class="reference internal" href="#nibabel.nifti2.Nifti2Pair" title="nibabel.nifti2.Nifti2Pair"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Pair</span></code></a><a class="headerlink" href="#nifti2pair" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Pair">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nifti2.</span></span><span class="sig-name descname"><span class="pre">Nifti2Pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Pair" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.nifti1.html#nibabel.nifti1.Nifti1Pair" title="nibabel.nifti1.Nifti1Pair"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti1Pair</span></code></a></p>
+<p>Class for NIfTI2 format image, header pair</p>
+<p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If both a <cite>header</cite> and an <cite>affine</cite> are specified, and the <cite>affine</cite> does
+not match the affine that is in the <cite>header</cite>, the <cite>affine</cite> will be used,
+but the <code class="docutils literal notranslate"><span class="pre">sform_code</span></code> and <code class="docutils literal notranslate"><span class="pre">qform_code</span></code> fields in the header will be
+re-initialised to their default values. This is performed on the basis
+that, if you are changing the affine, you are likely to be changing the
+space to which the affine is pointing.  The <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_sform()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">set_qform()</span></code> methods can be used to update the codes after an image
+has been created - see those methods, and the <a class="reference internal" href="../nifti_images.html#default-sform-qform-codes"><span class="std std-ref">manual</span></a> for more details.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Pair.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2Pair.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize image</p>
+<p>The image is a combination of (array-like, affine matrix, header), with
+optional metadata in <cite>extra</cite>, and filename / file-like objects
+contained in the <cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns an
+array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have a <code class="docutils literal notranslate"><span class="pre">shape</span></code> attribute
+or property</p>
+</dd>
+<dt><strong>affine</strong><span class="classifier">None or (4,4) array-like</span></dt><dd><p>homogeneous affine giving relationship between voxel coordinates and
+world coordinates.  Affine can also be None.  In this case,
+<code class="docutils literal notranslate"><span class="pre">obj.affine</span></code> also returns None, and the affine as written to disk
+will depend on the file format.</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If both a <cite>header</cite> and an <cite>affine</cite> are specified, and the <cite>affine</cite> does
+not match the affine that is in the <cite>header</cite>, the <cite>affine</cite> will be used,
+but the <code class="docutils literal notranslate"><span class="pre">sform_code</span></code> and <code class="docutils literal notranslate"><span class="pre">qform_code</span></code> fields in the header will be
+re-initialised to their default values. This is performed on the basis
+that, if you are changing the affine, you are likely to be changing the
+space to which the affine is pointing.  The <code class="xref py py-meth docutils literal notranslate"><span class="pre">set_sform()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">set_qform()</span></code> methods can be used to update the codes after an image
+has been created - see those methods, and the <a class="reference internal" href="../nifti_images.html#default-sform-qform-codes"><span class="std std-ref">manual</span></a> for more details.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2Pair.header_class">
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.nifti2.Nifti2Pair.header_class" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.nifti2.Nifti2PairHeader" title="nibabel.nifti2.Nifti2PairHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2PairHeader</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="nifti2pairheader">
+<h2><a class="reference internal" href="#nibabel.nifti2.Nifti2PairHeader" title="nibabel.nifti2.Nifti2PairHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2PairHeader</span></code></a><a class="headerlink" href="#nifti2pairheader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2PairHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.nifti2.</span></span><span class="sig-name descname"><span class="pre">Nifti2PairHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2PairHeader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nibabel.nifti2.Nifti2Header" title="nibabel.nifti2.Nifti2Header"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti2Header</span></code></a></p>
+<p>Class for NIfTI2 pair header</p>
+<p>Initialize header from binary data block and extensions</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2PairHeader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binaryblock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.Nifti2PairHeader.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize header from binary data block and extensions</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.nifti2.Nifti2PairHeader.is_single">
+<span class="sig-name descname"><span class="pre">is_single</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#nibabel.nifti2.Nifti2PairHeader.is_single" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="load">
+<h2>load<a class="headerlink" href="#load" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nifti2.load">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nifti2.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.load" title="Link to this definition">¶</a></dt>
+<dd><p>Load NIfTI2 single or pair image from <cite>filename</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>filename of image to be loaded</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">Nifti2Image or Nifti2Pair</span></dt><dd><p>nifti2 single or pair image instance</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ImageFileError</dt><dd><p>if <cite>filename</cite> doesn’t look like nifti2;</p>
+</dd>
+<dt>OSError</dt><dd><p>if <cite>filename</cite> does not exist.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="save">
+<h2>save<a class="headerlink" href="#save" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.nifti2.save">
+<span class="sig-prename descclassname"><span class="pre">nibabel.nifti2.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.nifti2.save" title="Link to this definition">¶</a></dt>
+<dd><p>Save NIfTI2 single or pair to <cite>filename</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>filename to which to save image</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Siemens format DICOM with CSA header" href="siemens_csa.html" />
+    <link rel="prev" title="DICOM fields" href="dicom_fields.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="siemens_csa.html" title="Siemens format DICOM with CSA header"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dicom_fields.html" title="DICOM fields"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Siemens mosaic format</a><ul>
+<li><a class="reference internal" href="#getting-the-slices-from-the-mosaic">Getting the slices from the mosaic</a></li>
+<li><a class="reference internal" href="#dicom-orientation-for-mosaic">DICOM orientation for mosaic</a></li>
+<li><a class="reference internal" href="#data-scaling">Data scaling</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dicom_fields.html"
+                          title="previous chapter">DICOM fields</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="siemens_csa.html"
+                          title="next chapter">Siemens format DICOM with CSA header</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/dicom/dicom_mosaic.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="siemens-mosaic-format">
+<span id="dicom-mosaic"></span><h1>Siemens mosaic format<a class="headerlink" href="#siemens-mosaic-format" title="Link to this heading">¶</a></h1>
+<p>Siemens mosaic format is a way of storing a 3D image in a <a class="reference external" href="http://medical.nema.org/">DICOM</a> image
+file.  The simplest <a class="reference external" href="http://medical.nema.org/">DICOM</a> images only knows how to store 2D files.  For
+example, a 3D image in DICOM is usually stored as a series of 2D slices,
+each slices as a separate DICOM image. .  Mosaic format stores the 3D
+image slices as a 2D grid - or mosaic.</p>
+<p>For example here are the pixel data as loaded directly from a DICOM image
+with something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">dicom</span>
+<span class="n">dcm_data</span> <span class="o">=</span> <span class="n">dicom</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;my_file.dcm&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dcm_data</span><span class="o">.</span><span class="n">pixel_array</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../_images/mosaic_grid.png" src="../_images/mosaic_grid.png" />
+<section id="getting-the-slices-from-the-mosaic">
+<h2>Getting the slices from the mosaic<a class="headerlink" href="#getting-the-slices-from-the-mosaic" title="Link to this heading">¶</a></h2>
+<p>The apparent image in the DICOM file is a 2D array that consists of blocks,
+that are the output 2D slices.  Let’s call the original array the <em>slab</em>, and
+the contained slices <em>slices</em>.   The slices are of pixel dimension
+<code class="docutils literal notranslate"><span class="pre">n_slice_rows</span></code> x <code class="docutils literal notranslate"><span class="pre">n_slice_cols</span></code>.  The slab is of pixel dimension
+<code class="docutils literal notranslate"><span class="pre">n_slab_rows</span></code> x <code class="docutils literal notranslate"><span class="pre">n_slab_cols</span></code>.  Because the arrangement of blocks in the
+slab is defined as being square, the number of blocks per slab row and slab
+column is the same.  Let <code class="docutils literal notranslate"><span class="pre">n_blocks</span></code> be the number of blocks contained in the
+slab.  There is also <code class="docutils literal notranslate"><span class="pre">n_slices</span></code> - the number of slices actually collected,
+some number &lt;= <code class="docutils literal notranslate"><span class="pre">n_blocks</span></code>.  We have the value <code class="docutils literal notranslate"><span class="pre">n_slices</span></code> from the
+‘NumberOfImagesInMosaic’ field of the Siemens private (CSA) header.
+<code class="docutils literal notranslate"><span class="pre">n_row_blocks</span></code> and <code class="docutils literal notranslate"><span class="pre">n_col_blocks</span></code> are therefore given by
+<code class="docutils literal notranslate"><span class="pre">ceil(sqrt(n_slices))</span></code>, and <code class="docutils literal notranslate"><span class="pre">n_blocks</span></code> is <code class="docutils literal notranslate"><span class="pre">n_row_blocks</span> <span class="pre">**</span> <span class="pre">2</span></code>.  Also
+<code class="docutils literal notranslate"><span class="pre">n_slice_rows</span> <span class="pre">==</span> <span class="pre">n_slab_rows</span> <span class="pre">/</span> <span class="pre">n_row_blocks</span></code>, etc.  Using these numbers we
+can therefore reconstruct the slices from the 2D DICOM pixel array.</p>
+</section>
+<section id="dicom-orientation-for-mosaic">
+<h2>DICOM orientation for mosaic<a class="headerlink" href="#dicom-orientation-for-mosaic" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference internal" href="dicom_orientation.html#dicom-pcs"><span class="std std-ref">DICOM patient coordinate system</span></a> and <a class="reference internal" href="dicom_orientation.html#dicom-orientation"><span class="std std-ref">DICOM voxel to patient coordinate system mapping</span></a>.  We want a 4 x 4
+affine <span class="math notranslate nohighlight">\(A\)</span> that will take us from (transposed) voxel coordinates in the
+DICOM image to mm in the <a class="reference internal" href="dicom_orientation.html#dicom-pcs"><span class="std std-ref">DICOM patient coordinate system</span></a>.  See <a class="reference internal" href="dicom_orientation.html#ij-transpose"><span class="std std-ref">(i, j), columns, rows in DICOM</span></a> for
+what we mean by transposed voxel coordinates.</p>
+<p>We can think of the affine <span class="math notranslate nohighlight">\(A\)</span> as the (3,3) component, <span class="math notranslate nohighlight">\(RS\)</span>, and a (3,1)
+translation vector <span class="math notranslate nohighlight">\(\mathbf{t}\)</span>.  <span class="math notranslate nohighlight">\(RS\)</span> can in turn be thought of as the
+dot product of a (3,3) rotation matrix <span class="math notranslate nohighlight">\(R\)</span> and a scaling matrix <span class="math notranslate nohighlight">\(S\)</span>,
+where <code class="docutils literal notranslate"><span class="pre">S</span> <span class="pre">=</span> <span class="pre">diag(s)</span></code> and <span class="math notranslate nohighlight">\(\mathbf{s}\)</span> is a (3,) vector of voxel sizes.
+<span class="math notranslate nohighlight">\(\mathbf{t}\)</span> is a (3,1) translation vector, defining the coordinate in
+millimeters of the first voxel in the voxel volume (the voxel given by
+<code class="docutils literal notranslate"><span class="pre">voxel_array[0,0,0]</span></code>).</p>
+<p>In the case of the mosaic, we have the first two columns of <span class="math notranslate nohighlight">\(R\)</span> from the
+<span class="math notranslate nohighlight">\(F\)</span> - the left/right flipped version of the <code class="docutils literal notranslate"><span class="pre">ImageOrientationPatient</span></code>
+DICOM field described in <a class="reference internal" href="dicom_orientation.html#dicom-affines-reloaded"><span class="std std-ref">DICOM affines again</span></a>.  To make a full
+rotation matrix, we can generate the last column from the cross product
+of the first two.  However, Siemens defines, in its private
+<a class="reference internal" href="siemens_csa.html#csa-header"><span class="std std-ref">CSA header</span></a>, a <code class="docutils literal notranslate"><span class="pre">SliceNormalVector</span></code> which gives the third column,
+but possibly with a z flip, so that <span class="math notranslate nohighlight">\(R\)</span> is orthogonal, but not a
+rotation matrix (it has a determinant of &lt; 0).</p>
+<p>The first two values of <span class="math notranslate nohighlight">\(\mathbf{s}\)</span> (<span class="math notranslate nohighlight">\(s_1, s_2\)</span>) are given by the
+<code class="docutils literal notranslate"><span class="pre">PixelSpacing</span></code> field.  We get <span class="math notranslate nohighlight">\(s_3\)</span> (the slice scaling
+value) from <code class="docutils literal notranslate"><span class="pre">SpacingBetweenSlices</span></code>.</p>
+<p>The <a class="reference internal" href="spm_dicom.html#spm-dicom"><span class="std std-ref">SPM DICOM conversion</span></a> code has a comment saying that mosaic DICOM images
+have an incorrect <code class="docutils literal notranslate"><span class="pre">ImagePositionPatient</span></code> field. The
+<code class="docutils literal notranslate"><span class="pre">ImagePositionPatient</span></code> field usually gives the <span class="math notranslate nohighlight">\(\mathbf{t}\)</span> vector.
+The comments imply that Siemens has derived <code class="docutils literal notranslate"><span class="pre">ImagePositionPatient</span></code>
+from the (correct) position of the center of the first slice (once the
+mosaic has been unpacked), but has then adjusted the vector to point to
+the top left voxel, where the slice size used for this adjustment is the
+size of the mosaic, before it has been unpacked.  Let’s call the correct
+position in millimeters of the center of the first slice <span class="math notranslate nohighlight">\(\mathbf{c} =
+[c_x, c_y, c_z]\)</span>.  We have the derived <span class="math notranslate nohighlight">\(RS\)</span> matrix from the calculations
+above. The unpacked (eventual, real) slice dimensions are <span class="math notranslate nohighlight">\((rd_{rows},
+rd_{cols})\)</span> and the mosaic dimensions are <span class="math notranslate nohighlight">\((md_{rows}, md_{cols})\)</span>.  The
+<code class="docutils literal notranslate"><span class="pre">ImagePositionPatient</span></code> vector <span class="math notranslate nohighlight">\(\mathbf{i}\)</span> resulted from:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbf{i} = \mathbf{c} + RS
+   \begin{bmatrix} -(md_{rows}-1) / 2\\
+                   -(md_{cols}-1) / 2\\
+                   0 \end{bmatrix}\end{split}\]</div>
+<p>To correct the faulty translation, we reverse it, and add the correct
+translation for the unpacked slice size <span class="math notranslate nohighlight">\((rd_{rows}, rd_{cols})\)</span>, giving
+the true image position <span class="math notranslate nohighlight">\(\mathbf{t}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbf{t} = \mathbf{i} -
+             (RS \begin{bmatrix} -(md_{rows}-1) / 2\\
+                                 -(md_{cols}-1) / 2\\
+                                  0 \end{bmatrix}) +
+             (RS \begin{bmatrix} -(rd_{rows}-1) / 2\\
+                                 -(rd_{cols}-1) / 2\\
+                                  0 \end{bmatrix})\end{split}\]</div>
+<p>Because of the final zero in the voxel translations, this simplifies to:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbf{t} = \mathbf{i} +
+             Q \begin{bmatrix} (md_{rows} - rd_{rowss}) / 2 \\
+                               (md_{cols} - rd_{cols}) / 2 \end{bmatrix}\end{split}\]</div>
+<p>where:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Q = \begin{bmatrix} rs_{11} &amp; rs_{12} \\
+                    rs_{21} &amp; rs_{22} \\
+                    rs_{31} &amp; rs_{32} \end{bmatrix}\end{split}\]</div>
+</section>
+<section id="data-scaling">
+<h2>Data scaling<a class="headerlink" href="#data-scaling" title="Link to this heading">¶</a></h2>
+<p>SPM gets the DICOM scaling, offset for the image (‘RescaleSlope’,
+‘RescaleIntercept’).  It writes these scalings into the <a class="reference external" href="http://nifti.nimh.nih.gov">nifti</a> header.
+Then it writes the raw image data (unscaled) to disk.  Obviously these
+will have the current scalings applied when the nifti image is read again.</p>
+<p>A comment in the code here says that the data are not scaled by the
+maximum amount.  I assume by this they mean that the DICOM scaling may
+not be the maximum scaling, whereas the standard SPM image write is,
+hence the difference, because they are using the DICOM scaling rather
+then their own.  The comment continues by saying that the scaling as
+applied (the DICOM - not maximum - scaling) can lead to rounding errors
+but that it will get around some unspecified problems.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

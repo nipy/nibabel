@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Roadmap" href="roadmap.html" />
+    <link rel="prev" title="Core Developer Guide" href="core_developer.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="roadmap.html" title="Roadmap"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="core_developer.html" title="Core Developer Guide"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Developer documentation page</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Governance and Decision Making</a><ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#roles-and-responsibilities">Roles And Responsibilities</a><ul>
+<li><a class="reference internal" href="#the-community">The Community</a></li>
+<li><a class="reference internal" href="#contributors">Contributors</a></li>
+<li><a class="reference internal" href="#core-developers">Core Developers</a></li>
+<li><a class="reference internal" href="#steering-council">Steering Council</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#decision-making-process">Decision Making Process</a></li>
+<li><a class="reference internal" href="#enhancement-proposals-biaps">Enhancement Proposals (BIAPs)</a></li>
+<li><a class="reference internal" href="#acknowledgments">Acknowledgments</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="core_developer.html"
+                          title="previous chapter">Core Developer Guide</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="roadmap.html"
+                          title="next chapter">Roadmap</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/governance.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="governance-and-decision-making">
+<span id="governance"></span><h1>Governance and Decision Making<a class="headerlink" href="#governance-and-decision-making" title="Link to this heading">¶</a></h1>
+<section id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Link to this heading">¶</a></h2>
+<p>Nibabel is a consensus-based community project. Anyone with an interest in the
+project can join the community, contribute to the project design, and
+participate in the decision making process. This document describes how that
+participation takes place, how to find consensus, and how deadlocks are
+resolved.</p>
+</section>
+<section id="roles-and-responsibilities">
+<h2>Roles And Responsibilities<a class="headerlink" href="#roles-and-responsibilities" title="Link to this heading">¶</a></h2>
+<section id="the-community">
+<h3>The Community<a class="headerlink" href="#the-community" title="Link to this heading">¶</a></h3>
+<p>The Nibabel community consists of anyone using or working with the project
+in any way.</p>
+</section>
+<section id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Link to this heading">¶</a></h3>
+<p>Any community member can become a contributor by interacting directly with the
+project in concrete ways, such as:</p>
+<ul class="simple">
+<li><p>proposing a change to the code or documentation via a GitHub pull request;</p></li>
+<li><p>reporting issues on our
+<a class="reference external" href="https://github.com/nipy/nibabel/issues">GitHub issues page</a>;</p></li>
+<li><p>discussing the design of the library, website, or tutorials on the
+<a class="reference external" href="https://mail.python.org/mailman/listinfo/neuroimaging">mailing list</a>,
+or in existing issues and pull requests; or</p></li>
+<li><p>reviewing
+<a class="reference external" href="https://github.com/nipy/nibabel/pulls">open pull requests</a>,</p></li>
+</ul>
+<p>among other possibilities. By contributing to the project, community members
+can directly help to shape its future.</p>
+<p>Contributors should read the <a class="reference internal" href="devguide.html#chap-devguide"><span class="std std-ref">NiBabel Developer Guidelines</span></a> and our <a class="reference internal" href="devguide.html#community-guidelines"><span class="std std-ref">Community guidelines</span></a>.</p>
+</section>
+<section id="core-developers">
+<h3>Core Developers<a class="headerlink" href="#core-developers" title="Link to this heading">¶</a></h3>
+<p>Core developers are community members that have demonstrated continued
+commitment to the project through ongoing contributions. They
+have shown they can be trusted to maintain Nibabel with care. Becoming a
+core developer allows contributors to merge approved pull requests, cast votes
+for and against merging a pull request, and be involved in deciding major
+changes to the API, and thereby more easily carry on with their project related
+activities.</p>
+<p>Core developers:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>GitHub user</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Chris Markiewicz</p></td>
+<td><p>effigies</p></td>
+</tr>
+<tr class="row-odd"><td><p>Matthew Brett</p></td>
+<td><p>matthew-brett</p></td>
+</tr>
+<tr class="row-even"><td><p>Oscar Esteban</p></td>
+<td><p>oesteban</p></td>
+</tr>
+</tbody>
+</table>
+<p>Core developers also appear as team members on the <a class="reference external" href="https://github.com/orgs/nipy/teams/nibabel-core-developers/members">Nibabel Core Team page</a> and can
+be messaged <code class="docutils literal notranslate"><span class="pre">&#64;nipy/nibabel-core-developers</span></code>. We expect core developers to
+review code contributions while adhering to the <a class="reference internal" href="core_developer.html#core-dev"><span class="std std-ref">Core Developer Guide</span></a>.</p>
+<p>New core developers can be nominated by any existing core developer. Discussion
+about new core developer nominations is one of the few activities that takes
+place on the project’s private management list. The decision to invite a new
+core developer must be made by “lazy consensus”, meaning unanimous agreement by
+all responding existing core developers. Invitation must take place at least
+one week after initial nomination, to allow existing members time to voice any
+objections.</p>
+</section>
+<section id="steering-council">
+<span id="id1"></span><h3>Steering Council<a class="headerlink" href="#steering-council" title="Link to this heading">¶</a></h3>
+<p>The Steering Council (SC) members are current or former core developers who
+have additional responsibilities to ensure the smooth running of the project.
+SC members are expected to participate in strategic planning, approve changes
+to the governance model, and make decisions about funding granted to the
+project itself. (Funding to community members is theirs to pursue and manage.)
+The purpose of the SC is to ensure smooth progress from the big-picture
+perspective. Changes that impact the full project require analysis informed by
+long experience with both the project and the larger ecosystem. When the core
+developer community (including the SC members) fails to reach such a consensus
+in a reasonable timeframe, the SC is the entity that resolves the issue.</p>
+<p>The steering council is:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>GitHub user</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Chris Markiewicz</p></td>
+<td><p>effigies</p></td>
+</tr>
+<tr class="row-odd"><td><p>Matthew Brett</p></td>
+<td><p>matthew-brett</p></td>
+</tr>
+<tr class="row-even"><td><p>Michael Hanke</p></td>
+<td><p>mih</p></td>
+</tr>
+<tr class="row-odd"><td><p>Yaroslav Halchenko</p></td>
+<td><p>yarikoptic</p></td>
+</tr>
+</tbody>
+</table>
+<p>Steering Council members also appear as team members on the <a class="reference external" href="https://github.com/orgs/nipy/teams/nibabel-steering-council/members">Nibabel Steering
+Council Team page</a> and
+can be messaged <code class="docutils literal notranslate"><span class="pre">&#64;nipy/nibabel-steering-council</span></code>.</p>
+</section>
+</section>
+<section id="decision-making-process">
+<h2>Decision Making Process<a class="headerlink" href="#decision-making-process" title="Link to this heading">¶</a></h2>
+<p>Decisions about the future of the project are made through discussion with all
+members of the community. All non-sensitive project management discussion takes
+place on the project
+<a class="reference external" href="https://mail.python.org/mailman/listinfo/neuroimaging">mailing list</a>
+and the <a class="reference external" href="https://github.com/nipy/nibabel/issues">issue tracker</a>.
+Occasionally, sensitive discussion may occur on a private list.</p>
+<p>Decisions should be made in accordance with our <a class="reference internal" href="devguide.html#mission-and-values"><span class="std std-ref">Community guidelines</span></a>.</p>
+<p>Nibabel uses a <em>consensus seeking</em> process for making decisions. The group
+tries to find a resolution that has no open objections among core developers.
+Core developers are expected to distinguish between fundamental objections to a
+proposal and minor perceived flaws that they can live with, and not hold up the
+decision making process for the latter.  If no option can be found without
+an objection, the decision is escalated to the SC, which will itself use
+consensus seeking to come to a resolution. In the unlikely event that there is
+still a deadlock, the proposal will move forward if it has the support of a
+simple majority of the SC. Any proposal must be described by a Nibabel <a class="reference internal" href="#biap"><span class="std std-ref">Enhancement Proposals (BIAPs)</span></a>.</p>
+<p>Decisions (in addition to adding core developers and SC membership as above)
+are made according to the following rules:</p>
+<ul class="simple">
+<li><p><strong>Minor documentation changes</strong>, such as typo fixes, or addition / correction
+of a sentence (but no change of the Nibabel landing page or the “about”
+page), require approval by a core developer <em>and</em> no disagreement or
+requested changes by a core developer on the issue or pull request page (lazy
+consensus). We expect core developers to give “reasonable time” to others to
+give their opinion on the pull request if they’re not confident others would
+agree.</p></li>
+<li><p><strong>Code changes and major documentation changes</strong> require agreement by <em>one</em>
+core developer <em>and</em> no disagreement or requested changes by a core developer
+on the issue or pull-request page (lazy consensus).</p></li>
+<li><p><strong>Changes to the API principles</strong> require a <a class="reference internal" href="#biap"><span class="std std-ref">Enhancement Proposals (BIAPs)</span></a> and follow the
+decision-making process outlined above.</p></li>
+<li><p><strong>Changes to this governance model or our mission and values</strong> require
+a <a class="reference internal" href="#biap"><span class="std std-ref">Enhancement Proposals (BIAPs)</span></a> and follow the decision-making process outlined above, <em>unless</em>
+there is unanimous agreement from core developers on the change.</p></li>
+</ul>
+<p>If an objection is raised on a lazy consensus, the proposer can appeal to the
+community and core developers and the change can be approved or rejected by
+escalating to the SC, and if necessary, a BIAP (see below).</p>
+</section>
+<section id="enhancement-proposals-biaps">
+<span id="biap"></span><h2>Enhancement Proposals (BIAPs)<a class="headerlink" href="#enhancement-proposals-biaps" title="Link to this heading">¶</a></h2>
+<p>Any proposals for enhancements of Nibabel should be written as a formal BIAP
+following the template <a class="reference internal" href="biaps/biap_template.html#biap-template"><span class="std std-ref">BIAP X — Template and Instructions</span></a>. The BIAP must be made public and
+discussed before any vote is taken. The discussion must be summarized by a key
+advocate of the proposal in the appropriate section of the BIAP. Once this
+summary is made public and after sufficient time to allow the core team to
+understand it, they vote.</p>
+<p>The workflow of a BIAP is detailed in <a class="reference internal" href="biaps/biap_0000.html#biap0"><span class="std std-ref">BIAP 0 - Purpose and process</span></a>.</p>
+<p>A list of all existing BIAPs is available <a class="reference internal" href="biaps/index.html#biap-list"><span class="std std-ref">here</span></a>.</p>
+</section>
+<section id="acknowledgments">
+<h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Link to this heading">¶</a></h2>
+<p>Many thanks to Jarrod Millman, Dan Schult and the Scikit-Image team for the
+<a class="reference external" href="https://networkx.github.io/documentation/latest/developer/nxeps/nxep-0001.html">draft on which we based this document</a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

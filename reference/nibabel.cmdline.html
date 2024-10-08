@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="dataobj_images" href="nibabel.dataobj_images.html" />
+    <link rel="prev" title="caret" href="nibabel.caret.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.dataobj_images.html" title="dataobj_images"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.caret.html" title="caret"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code></a><ul>
+<li><a class="reference internal" href="#module-nibabel.cmdline.conform">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.conform</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.convert">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.convert</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.dicomfs">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.dicomfs</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.diff">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.diff</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.ls">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.ls</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.nifti_dx">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.nifti_dx</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.parrec2nii">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.parrec2nii</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.roi">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.roi</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.stats">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.stats</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.tck2trk">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.tck2trk</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.trk2tck">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.trk2tck</span></code></a></li>
+<li><a class="reference internal" href="#module-nibabel.cmdline.utils">Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.utils</span></code></a><ul>
+<li><a class="reference internal" href="#main">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.conform.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id1">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.convert.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dicomfs"><code class="xref py py-class docutils literal notranslate"><span class="pre">DICOMFS</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS"><code class="docutils literal notranslate"><span class="pre">DICOMFS</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.__init__"><code class="docutils literal notranslate"><span class="pre">DICOMFS.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.get_paths"><code class="docutils literal notranslate"><span class="pre">DICOMFS.get_paths()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.getattr"><code class="docutils literal notranslate"><span class="pre">DICOMFS.getattr()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.match_path"><code class="docutils literal notranslate"><span class="pre">DICOMFS.match_path()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.open"><code class="docutils literal notranslate"><span class="pre">DICOMFS.open()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.read"><code class="docutils literal notranslate"><span class="pre">DICOMFS.read()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.readdir"><code class="docutils literal notranslate"><span class="pre">DICOMFS.readdir()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS.release"><code class="docutils literal notranslate"><span class="pre">DICOMFS.release()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#filehandle"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileHandle</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.FileHandle"><code class="docutils literal notranslate"><span class="pre">FileHandle</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.FileHandle.__init__"><code class="docutils literal notranslate"><span class="pre">FileHandle.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dummy-fuse"><code class="xref py py-class docutils literal notranslate"><span class="pre">dummy_fuse</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse"><code class="docutils literal notranslate"><span class="pre">dummy_fuse</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse.__init__"><code class="docutils literal notranslate"><span class="pre">dummy_fuse.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse.Fuse"><code class="docutils literal notranslate"><span class="pre">dummy_fuse.Fuse</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse.fuse_python_api"><code class="docutils literal notranslate"><span class="pre">dummy_fuse.fuse_python_api</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fuse"><code class="xref py py-class docutils literal notranslate"><span class="pre">fuse</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.fuse"><code class="docutils literal notranslate"><span class="pre">fuse</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-opt-parser">get_opt_parser</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.get_opt_parser"><code class="docutils literal notranslate"><span class="pre">get_opt_parser()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.dicomfs.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#are-values-different">are_values_different</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.are_values_different"><code class="docutils literal notranslate"><span class="pre">are_values_different()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#diff">diff</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.diff"><code class="docutils literal notranslate"><span class="pre">diff()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#display-diff">display_diff</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.display_diff"><code class="docutils literal notranslate"><span class="pre">display_diff()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-data-diff">get_data_diff</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.get_data_diff"><code class="docutils literal notranslate"><span class="pre">get_data_diff()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-data-hash-diff">get_data_hash_diff</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.get_data_hash_diff"><code class="docutils literal notranslate"><span class="pre">get_data_hash_diff()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-headers-diff">get_headers_diff</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.get_headers_diff"><code class="docutils literal notranslate"><span class="pre">get_headers_diff()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id3">get_opt_parser</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.get_opt_parser"><code class="docutils literal notranslate"><span class="pre">get_opt_parser()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.diff.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">get_opt_parser</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.ls.get_opt_parser"><code class="docutils literal notranslate"><span class="pre">get_opt_parser()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id6">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.ls.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#proc-file">proc_file</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.ls.proc_file"><code class="docutils literal notranslate"><span class="pre">proc_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id7">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.nifti_dx.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error">error</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.parrec2nii.error"><code class="docutils literal notranslate"><span class="pre">error()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">get_opt_parser</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.parrec2nii.get_opt_parser"><code class="docutils literal notranslate"><span class="pre">get_opt_parser()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id9">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.parrec2nii.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">proc_file</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.parrec2nii.proc_file"><code class="docutils literal notranslate"><span class="pre">proc_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#verbose">verbose</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.parrec2nii.verbose"><code class="docutils literal notranslate"><span class="pre">verbose()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lossless-slice">lossless_slice</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.roi.lossless_slice"><code class="docutils literal notranslate"><span class="pre">lossless_slice()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id11">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.roi.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parse-slice">parse_slice</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.roi.parse_slice"><code class="docutils literal notranslate"><span class="pre">parse_slice()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sanitize">sanitize</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.roi.sanitize"><code class="docutils literal notranslate"><span class="pre">sanitize()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id12">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.stats.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id13">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.tck2trk.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parse-args">parse_args</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.tck2trk.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id14">main</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.trk2tck.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">parse_args</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.trk2tck.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ap">ap</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.utils.ap"><code class="docutils literal notranslate"><span class="pre">ap()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#safe-get">safe_get</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.utils.safe_get"><code class="docutils literal notranslate"><span class="pre">safe_get()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#table2string">table2string</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.utils.table2string"><code class="docutils literal notranslate"><span class="pre">table2string()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id16">verbose</a><ul>
+<li><a class="reference internal" href="#nibabel.cmdline.utils.verbose"><code class="docutils literal notranslate"><span class="pre">verbose()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.caret.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">caret</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.dataobj_images.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.cmdline.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.cmdline">
+<span id="cmdline"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code><a class="headerlink" href="#module-nibabel.cmdline" title="Link to this heading">¶</a></h1>
+<p>Functionality to be exposed in the command line</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+</tbody>
+</table>
+<section id="module-nibabel.cmdline.conform">
+<span id="module-cmdline-conform"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.conform</span></code><a class="headerlink" href="#module-nibabel.cmdline.conform" title="Link to this heading">¶</a></h2>
+<p>Conform neuroimaging volume to arbitrary shape and voxel size.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.conform.main" title="nibabel.cmdline.conform.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p>Main program function.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.convert">
+<span id="module-cmdline-convert"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.convert</span></code><a class="headerlink" href="#module-nibabel.cmdline.convert" title="Link to this heading">¶</a></h2>
+<p>Convert neuroimaging file to new parameters</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.convert.main" title="nibabel.cmdline.convert.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p>Main program function.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.dicomfs">
+<span id="module-cmdline-dicomfs"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.dicomfs</span></code><a class="headerlink" href="#module-nibabel.cmdline.dicomfs" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS" title="nibabel.cmdline.dicomfs.DICOMFS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DICOMFS</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.dicomfs.FileHandle" title="nibabel.cmdline.dicomfs.FileHandle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileHandle</span></code></a>(fno)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse" title="nibabel.cmdline.dicomfs.dummy_fuse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dummy_fuse</span></code></a>()</p></td>
+<td><p>Dummy fuse &quot;module&quot; so that nose does not blow during doctests</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.dicomfs.fuse" title="nibabel.cmdline.dicomfs.fuse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fuse</span></code></a></p></td>
+<td><p>alias of <a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse" title="nibabel.cmdline.dicomfs.dummy_fuse"><code class="xref py py-class docutils literal notranslate"><span class="pre">dummy_fuse</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.dicomfs.get_opt_parser" title="nibabel.cmdline.dicomfs.get_opt_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt_parser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.dicomfs.main" title="nibabel.cmdline.dicomfs.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.diff">
+<span id="module-cmdline-diff"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.diff</span></code><a class="headerlink" href="#module-nibabel.cmdline.diff" title="Link to this heading">¶</a></h2>
+<p>Quick summary of the differences among a set of neuroimaging files</p>
+<dl class="simple">
+<dt>Notes:</dt><dd><ul class="simple">
+<li><p>difference in data types for header fields will be detected, but
+endianness difference will not be detected. It is done so to compare files
+with native endianness used in data files.</p></li>
+</ul>
+</dd>
+</dl>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.are_values_different" title="nibabel.cmdline.diff.are_values_different"><code class="xref py py-obj docutils literal notranslate"><span class="pre">are_values_different</span></code></a>(*values)</p></td>
+<td><p>Generically compare values, return True if different</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.diff" title="nibabel.cmdline.diff.diff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diff</span></code></a>(files[, header_fields, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.display_diff" title="nibabel.cmdline.diff.display_diff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display_diff</span></code></a>(files, diff)</p></td>
+<td><p>Format header differences into a nice string</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.get_data_diff" title="nibabel.cmdline.diff.get_data_diff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data_diff</span></code></a>(files[, max_abs, max_rel, dtype])</p></td>
+<td><p>Get difference between data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.get_data_hash_diff" title="nibabel.cmdline.diff.get_data_hash_diff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data_hash_diff</span></code></a>(files[, dtype])</p></td>
+<td><p>Get difference between md5 values of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.get_headers_diff" title="nibabel.cmdline.diff.get_headers_diff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_headers_diff</span></code></a>(file_headers[, names])</p></td>
+<td><p>Get difference between headers</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.get_opt_parser" title="nibabel.cmdline.diff.get_opt_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt_parser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.diff.main" title="nibabel.cmdline.diff.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args, out])</p></td>
+<td><p>Getting the show on the road</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.ls">
+<span id="module-cmdline-ls"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.ls</span></code><a class="headerlink" href="#module-nibabel.cmdline.ls" title="Link to this heading">¶</a></h2>
+<p>Output a summary table for neuroimaging files (resolution, dimensionality, etc.)</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.ls.get_opt_parser" title="nibabel.cmdline.ls.get_opt_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt_parser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.ls.main" title="nibabel.cmdline.ls.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p>Show must go on</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.ls.proc_file" title="nibabel.cmdline.ls.proc_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">proc_file</span></code></a>(f, opts)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.nifti_dx">
+<span id="module-cmdline-nifti-dx"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.nifti_dx</span></code><a class="headerlink" href="#module-nibabel.cmdline.nifti_dx" title="Link to this heading">¶</a></h2>
+<p>Print nifti diagnostics for header files</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.nifti_dx.main" title="nibabel.cmdline.nifti_dx.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p>Go go team</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.parrec2nii">
+<span id="module-cmdline-parrec2nii"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.parrec2nii</span></code><a class="headerlink" href="#module-nibabel.cmdline.parrec2nii" title="Link to this heading">¶</a></h2>
+<p>Code for PAR/REC to NIfTI converter command</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.parrec2nii.error" title="nibabel.cmdline.parrec2nii.error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">error</span></code></a>(msg, exit_code)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.parrec2nii.get_opt_parser" title="nibabel.cmdline.parrec2nii.get_opt_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_opt_parser</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.parrec2nii.main" title="nibabel.cmdline.parrec2nii.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.parrec2nii.proc_file" title="nibabel.cmdline.parrec2nii.proc_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">proc_file</span></code></a>(infile, opts)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.parrec2nii.verbose" title="nibabel.cmdline.parrec2nii.verbose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verbose</span></code></a>(msg[, indent])</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.roi">
+<span id="module-cmdline-roi"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.roi</span></code><a class="headerlink" href="#module-nibabel.cmdline.roi" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.roi.lossless_slice" title="nibabel.cmdline.roi.lossless_slice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lossless_slice</span></code></a>(img, slicers)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.roi.main" title="nibabel.cmdline.roi.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.roi.parse_slice" title="nibabel.cmdline.roi.parse_slice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_slice</span></code></a>(crop[, allow_step])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.roi.sanitize" title="nibabel.cmdline.roi.sanitize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sanitize</span></code></a>(args)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.stats">
+<span id="module-cmdline-stats"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.stats</span></code><a class="headerlink" href="#module-nibabel.cmdline.stats" title="Link to this heading">¶</a></h2>
+<p>Compute image statistics</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.stats.main" title="nibabel.cmdline.stats.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>([args])</p></td>
+<td><p>Main program function.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.tck2trk">
+<span id="module-cmdline-tck2trk"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.tck2trk</span></code><a class="headerlink" href="#module-nibabel.cmdline.tck2trk" title="Link to this heading">¶</a></h2>
+<p>Convert tractograms (TCK -&gt; TRK).</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.tck2trk.main" title="nibabel.cmdline.tck2trk.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.tck2trk.parse_args" title="nibabel.cmdline.tck2trk.parse_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_args</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.trk2tck">
+<span id="module-cmdline-trk2tck"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.trk2tck</span></code><a class="headerlink" href="#module-nibabel.cmdline.trk2tck" title="Link to this heading">¶</a></h2>
+<p>Convert tractograms (TRK -&gt; TCK).</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.trk2tck.main" title="nibabel.cmdline.trk2tck.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.trk2tck.parse_args" title="nibabel.cmdline.trk2tck.parse_args"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_args</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-nibabel.cmdline.utils">
+<span id="module-cmdline-utils"></span><h2>Module: <code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline.utils</span></code><a class="headerlink" href="#module-nibabel.cmdline.utils" title="Link to this heading">¶</a></h2>
+<p>Helper utilities to be used in cmdline applications</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.utils.ap" title="nibabel.cmdline.utils.ap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ap</span></code></a>(helplist, format_[, sep])</p></td>
+<td><p>Little helper to enforce consistency</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.utils.safe_get" title="nibabel.cmdline.utils.safe_get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">safe_get</span></code></a>(obj, name)</p></td>
+<td><p>A getattr which would return '-' if getattr fails</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.cmdline.utils.table2string" title="nibabel.cmdline.utils.table2string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">table2string</span></code></a>(table[, out])</p></td>
+<td><p>Given list of lists figure out their common widths and print to out</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#nibabel.cmdline.utils.verbose" title="nibabel.cmdline.utils.verbose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verbose</span></code></a>(thing, msg)</p></td>
+<td><p>Print <cite>s</cite> if <cite>thing</cite> is less than the <cite>verbose_level</cite></p></td>
+</tr>
+</tbody>
+</table>
+<section id="main">
+<h3>main<a class="headerlink" href="#main" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.conform.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.conform.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.conform.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main program function.</p>
+</dd></dl>
+
+</section>
+<section id="id1">
+<h3>main<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.convert.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.convert.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.convert.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main program function.</p>
+</dd></dl>
+
+</section>
+<section id="dicomfs">
+<h3><a class="reference internal" href="#nibabel.cmdline.dicomfs.DICOMFS" title="nibabel.cmdline.dicomfs.DICOMFS"><code class="xref py py-class docutils literal notranslate"><span class="pre">DICOMFS</span></code></a><a class="headerlink" href="#dicomfs" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.dicomfs.</span></span><span class="sig-name descname"><span class="pre">DICOMFS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.get_paths">
+<span class="sig-name descname"><span class="pre">get_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.get_paths" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.getattr">
+<span class="sig-name descname"><span class="pre">getattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.getattr" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.match_path">
+<span class="sig-name descname"><span class="pre">match_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.match_path" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flags</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.open" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.read" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.readdir">
+<span class="sig-name descname"><span class="pre">readdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.readdir" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.DICOMFS.release">
+<span class="sig-name descname"><span class="pre">release</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.DICOMFS.release" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="filehandle">
+<h3><a class="reference internal" href="#nibabel.cmdline.dicomfs.FileHandle" title="nibabel.cmdline.dicomfs.FileHandle"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileHandle</span></code></a><a class="headerlink" href="#filehandle" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.FileHandle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.dicomfs.</span></span><span class="sig-name descname"><span class="pre">FileHandle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fno</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.FileHandle" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.FileHandle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fno</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.FileHandle.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="dummy-fuse">
+<h3><a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse" title="nibabel.cmdline.dicomfs.dummy_fuse"><code class="xref py py-class docutils literal notranslate"><span class="pre">dummy_fuse</span></code></a><a class="headerlink" href="#dummy-fuse" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.dummy_fuse">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.dicomfs.</span></span><span class="sig-name descname"><span class="pre">dummy_fuse</span></span><a class="headerlink" href="#nibabel.cmdline.dicomfs.dummy_fuse" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Dummy fuse “module” so that nose does not blow during doctests</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.dummy_fuse.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.dummy_fuse.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.dummy_fuse.Fuse">
+<span class="sig-name descname"><span class="pre">Fuse</span></span><a class="headerlink" href="#nibabel.cmdline.dicomfs.dummy_fuse.Fuse" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.dummy_fuse.fuse_python_api">
+<span class="sig-name descname"><span class="pre">fuse_python_api</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0,</span> <span class="pre">2)</span></em><a class="headerlink" href="#nibabel.cmdline.dicomfs.dummy_fuse.fuse_python_api" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="fuse">
+<h3><a class="reference internal" href="#nibabel.cmdline.dicomfs.fuse" title="nibabel.cmdline.dicomfs.fuse"><code class="xref py py-class docutils literal notranslate"><span class="pre">fuse</span></code></a><a class="headerlink" href="#fuse" title="Link to this heading">¶</a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.fuse">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.dicomfs.</span></span><span class="sig-name descname"><span class="pre">fuse</span></span><a class="headerlink" href="#nibabel.cmdline.dicomfs.fuse" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nibabel.cmdline.dicomfs.dummy_fuse" title="nibabel.cmdline.dicomfs.dummy_fuse"><code class="xref py py-class docutils literal notranslate"><span class="pre">dummy_fuse</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="get-opt-parser">
+<h3>get_opt_parser<a class="headerlink" href="#get-opt-parser" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.get_opt_parser">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.dicomfs.</span></span><span class="sig-name descname"><span class="pre">get_opt_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.get_opt_parser" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id2">
+<h3>main<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.dicomfs.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.dicomfs.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.dicomfs.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="are-values-different">
+<h3>are_values_different<a class="headerlink" href="#are-values-different" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.are_values_different">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">are_values_different</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.are_values_different" title="Link to this definition">¶</a></dt>
+<dd><p>Generically compare values, return True if different</p>
+<p>Note that comparison is targeting reporting of comparison of the headers
+so has following specifics:
+- even a difference in data types is considered a difference, i.e. 1 != 1.0
+- nans are considered to be the “same”, although generally nan != nan</p>
+</dd></dl>
+
+</section>
+<section id="diff">
+<h3>diff<a class="headerlink" href="#diff" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.diff">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_fields='all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_max_abs_diff=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_max_rel_diff=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.diff" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="display-diff">
+<h3>display_diff<a class="headerlink" href="#display-diff" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.display_diff">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">display_diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.display_diff" title="Link to this definition">¶</a></dt>
+<dd><p>Format header differences into a nice string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>files: list of files that were compared so we can print their names</strong></dt><dd></dd>
+<dt><strong>diff: dict of different valued header fields</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>str</dt><dd><p>string-formatted table of differences</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-data-diff">
+<h3>get_data_diff<a class="headerlink" href="#get-data-diff" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.get_data_diff">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">get_data_diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_abs=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rel=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.get_data_diff" title="Link to this definition">¶</a></dt>
+<dd><p>Get difference between data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>files: list of (str or ndarray)</strong></dt><dd><p>If list of strings is provided – they must be existing file names</p>
+</dd>
+<dt><strong>max_abs: float, optional</strong></dt><dd><p>Maximal absolute difference to tolerate.</p>
+</dd>
+<dt><strong>max_rel: float, optional</strong></dt><dd><p>Maximal relative (<cite>abs(diff)/mean(diff)</cite>) difference to tolerate.
+If <cite>max_abs</cite> is specified, then those data points with lesser than that
+absolute difference, are not considered for relative difference testing</p>
+</dd>
+<dt><strong>dtype: np, optional</strong></dt><dd><p>Datatype to be used when extracting data from files</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>diffs: OrderedDict</dt><dd><p>An ordered dict with a record per each file which has differences
+with other files subsequent detected. Each record is a list of
+difference records, one per each file pair.
+Each difference record is an Ordered Dict with possible keys
+‘abs’ or ‘rel’ showing maximal absolute or relative differences
+in the file or the record (‘CMP’: ‘incompat’) if file shapes
+are incompatible.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-data-hash-diff">
+<h3>get_data_hash_diff<a class="headerlink" href="#get-data-hash-diff" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.get_data_hash_diff">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">get_data_hash_diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.get_data_hash_diff" title="Link to this definition">¶</a></dt>
+<dd><p>Get difference between md5 values of data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>files: list of actual files</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list</dt><dd><p>np.array: md5 values of respective files</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="get-headers-diff">
+<h3>get_headers_diff<a class="headerlink" href="#get-headers-diff" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.get_headers_diff">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">get_headers_diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_headers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.get_headers_diff" title="Link to this definition">¶</a></dt>
+<dd><p>Get difference between headers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_headers: list of actual headers (dicts) from files</strong></dt><dd></dd>
+<dt><strong>names: list of header fields to test</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict</dt><dd><p>str: list for each header field which differs, return list of
+values per each file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id3">
+<h3>get_opt_parser<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.get_opt_parser">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">get_opt_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.get_opt_parser" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id4">
+<h3>main<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.diff.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.diff.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.diff.main" title="Link to this definition">¶</a></dt>
+<dd><p>Getting the show on the road</p>
+</dd></dl>
+
+</section>
+<section id="id5">
+<h3>get_opt_parser<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.ls.get_opt_parser">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.ls.</span></span><span class="sig-name descname"><span class="pre">get_opt_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.ls.get_opt_parser" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id6">
+<h3>main<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.ls.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.ls.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.ls.main" title="Link to this definition">¶</a></dt>
+<dd><p>Show must go on</p>
+</dd></dl>
+
+</section>
+<section id="proc-file">
+<h3>proc_file<a class="headerlink" href="#proc-file" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.ls.proc_file">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.ls.</span></span><span class="sig-name descname"><span class="pre">proc_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.ls.proc_file" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id7">
+<h3>main<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.nifti_dx.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.nifti_dx.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.nifti_dx.main" title="Link to this definition">¶</a></dt>
+<dd><p>Go go team</p>
+</dd></dl>
+
+</section>
+<section id="error">
+<h3>error<a class="headerlink" href="#error" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.parrec2nii.error">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.parrec2nii.</span></span><span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exit_code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.parrec2nii.error" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id8">
+<h3>get_opt_parser<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.parrec2nii.get_opt_parser">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.parrec2nii.</span></span><span class="sig-name descname"><span class="pre">get_opt_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.parrec2nii.get_opt_parser" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id9">
+<h3>main<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.parrec2nii.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.parrec2nii.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.parrec2nii.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id10">
+<h3>proc_file<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.parrec2nii.proc_file">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.parrec2nii.</span></span><span class="sig-name descname"><span class="pre">proc_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.parrec2nii.proc_file" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="verbose">
+<h3>verbose<a class="headerlink" href="#verbose" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.parrec2nii.verbose">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.parrec2nii.</span></span><span class="sig-name descname"><span class="pre">verbose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.parrec2nii.verbose" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="lossless-slice">
+<h3>lossless_slice<a class="headerlink" href="#lossless-slice" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.roi.lossless_slice">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.roi.</span></span><span class="sig-name descname"><span class="pre">lossless_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slicers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.roi.lossless_slice" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id11">
+<h3>main<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.roi.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.roi.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.roi.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="parse-slice">
+<h3>parse_slice<a class="headerlink" href="#parse-slice" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.roi.parse_slice">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.roi.</span></span><span class="sig-name descname"><span class="pre">parse_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.roi.parse_slice" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="sanitize">
+<h3>sanitize<a class="headerlink" href="#sanitize" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.roi.sanitize">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.roi.</span></span><span class="sig-name descname"><span class="pre">sanitize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.roi.sanitize" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id12">
+<h3>main<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.stats.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.stats.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.stats.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main program function.</p>
+</dd></dl>
+
+</section>
+<section id="id13">
+<h3>main<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.tck2trk.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.tck2trk.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.tck2trk.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="parse-args">
+<h3>parse_args<a class="headerlink" href="#parse-args" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.tck2trk.parse_args">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.tck2trk.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.tck2trk.parse_args" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id14">
+<h3>main<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.trk2tck.main">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.trk2tck.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.trk2tck.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id15">
+<h3>parse_args<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.trk2tck.parse_args">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.trk2tck.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.trk2tck.parse_args" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="ap">
+<h3>ap<a class="headerlink" href="#ap" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.utils.ap">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.utils.</span></span><span class="sig-name descname"><span class="pre">ap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">helplist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">',</span> <span class="pre">'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.utils.ap" title="Link to this definition">¶</a></dt>
+<dd><p>Little helper to enforce consistency</p>
+</dd></dl>
+
+</section>
+<section id="safe-get">
+<h3>safe_get<a class="headerlink" href="#safe-get" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.utils.safe_get">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.utils.</span></span><span class="sig-name descname"><span class="pre">safe_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.utils.safe_get" title="Link to this definition">¶</a></dt>
+<dd><p>A getattr which would return ‘-’ if getattr fails</p>
+</dd></dl>
+
+</section>
+<section id="table2string">
+<h3>table2string<a class="headerlink" href="#table2string" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.utils.table2string">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.utils.</span></span><span class="sig-name descname"><span class="pre">table2string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.utils.table2string" title="Link to this definition">¶</a></dt>
+<dd><p>Given list of lists figure out their common widths and print to out</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>table</strong><span class="classifier">list of lists of strings</span></dt><dd><p>What is aimed to be printed</p>
+</dd>
+<dt><strong>out</strong><span class="classifier">None or stream</span></dt><dd><p>Where to print. If None – will print and return string</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>string if out was None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="id16">
+<h3>verbose<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="nibabel.cmdline.utils.verbose">
+<span class="sig-prename descclassname"><span class="pre">nibabel.cmdline.utils.</span></span><span class="sig-name descname"><span class="pre">verbose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cmdline.utils.verbose" title="Link to this definition">¶</a></dt>
+<dd><p>Print <cite>s</cite> if <cite>thing</cite> is less than the <cite>verbose_level</cite></p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

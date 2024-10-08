@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Keeping track of whether images have been modified since load" href="modified_images.html" />
+    <link rel="prev" title="Developer discussions" href="devdiscuss.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modified_images.html" title="Keeping track of whether images have been modified since load"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="devdiscuss.html" title="Developer discussions"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" >Developer documentation page</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="devdiscuss.html" accesskey="U">Developer discussions</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Image use-cases in SPM</a><ul>
+<li><a class="reference internal" href="#spm-image-methods-functions">SPM image methods / functions</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="devdiscuss.html"
+                          title="previous chapter">Developer discussions</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="modified_images.html"
+                          title="next chapter">Keeping track of whether images have been modified since load</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/devel/spm_use.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="image-use-cases-in-spm">
+<h1>Image use-cases in SPM<a class="headerlink" href="#image-use-cases-in-spm" title="Link to this heading">¶</a></h1>
+<p>SPM uses a <em>vol struct</em> as a structure characterizing an object.  This
+is a Matlab <code class="docutils literal notranslate"><span class="pre">struct</span></code>.  A <code class="docutils literal notranslate"><span class="pre">struct</span></code> is like a Python dictionary, where
+field names (strings) are associated with values.  There are various
+functions operating on vol structs, so the vol struct is rather like an
+object, where the methods are implemented as functions.  Actually, the
+distinction between methods and functions in Matlab is fairly subtle -
+their call syntax is the same for example.</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;some_image.nii&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_vol</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span><span class="w"> </span><span class="c">% the vol struct</span>
+
+<span class="n">vol</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">      </span><span class="n">fname</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;some_image.nii&#39;</span>
+<span class="w">        </span><span class="n">mat</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>4<span class="n">x4</span><span class="w"> </span><span class="nb">double</span><span class="p">]</span>
+<span class="w">        </span><span class="n">dim</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">91</span><span class="w"> </span><span class="mi">109</span><span class="w"> </span><span class="mi">91</span><span class="p">]</span>
+<span class="w">         </span><span class="n">dt</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span>
+<span class="w">      </span><span class="n">pinfo</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>3<span class="n">x1</span><span class="w"> </span><span class="nb">double</span><span class="p">]</span>
+<span class="w">          </span><span class="n">n</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">descrip</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NIFTI-1 Image&#39;</span>
+<span class="w">    </span><span class="n">private</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>1<span class="n">x1</span><span class="w"> </span><span class="n">nifti</span><span class="p">]</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vol</span><span class="p">.</span><span class="n">mat</span><span class="w"> </span><span class="c">% the &#39;affine&#39;</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="o">-</span><span class="mi">2</span><span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">0</span><span class="w">    </span><span class="mi">92</span>
+<span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">2</span><span class="w">     </span><span class="mi">0</span><span class="w">  </span><span class="o">-</span><span class="mi">128</span>
+<span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">2</span><span class="w">   </span><span class="o">-</span><span class="mi">74</span>
+<span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">0</span><span class="w">     </span><span class="mi">1</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="nb">help</span><span class="w"> </span><span class="n">spm_vol</span>
+<span class="w">  </span><span class="n">Get</span><span class="w"> </span><span class="n">header</span><span class="w"> </span><span class="n">information</span><span class="w"> </span><span class="n">etc</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">images</span><span class="p">.</span>
+<span class="w">  </span><span class="n">FORMAT</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_vol</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+<span class="w">  </span><span class="n">P</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">matrix</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">filenames</span><span class="p">.</span>
+<span class="w">  </span><span class="n">V</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">vector</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">structures</span><span class="w"> </span><span class="n">containing</span><span class="w"> </span><span class="nb">image</span><span class="w"> </span><span class="nb">volume</span><span class="w"> </span><span class="n">information</span><span class="p">.</span>
+<span class="w">  </span><span class="n">The</span><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">structures</span><span class="w"> </span><span class="n">are</span><span class="p">:</span>
+<span class="w">        </span><span class="n">V</span><span class="p">.</span><span class="n">fname</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">filename</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">image</span><span class="p">.</span>
+<span class="w">        </span><span class="n">V</span><span class="p">.</span><span class="n">dim</span><span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">dimensions</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">volume</span>
+<span class="w">        </span><span class="n">V</span><span class="p">.</span><span class="n">dt</span><span class="w">    </span><span class="o">-</span><span class="w"> </span><span class="n">A</span><span class="w"> </span>1<span class="n">x2</span><span class="w"> </span><span class="n">array</span><span class="p">.</span><span class="w">  </span><span class="n">First</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">datatype</span><span class="w"> </span><span class="p">(</span><span class="n">see</span><span class="w"> </span><span class="n">spm_type</span><span class="p">).</span>
+<span class="w">                  </span><span class="n">The</span><span class="w"> </span><span class="nb">second</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="n">or</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">depending</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">endian</span><span class="o">-</span><span class="n">ness</span><span class="p">.</span>
+<span class="w">        </span><span class="n">V</span><span class="p">.</span><span class="n">mat</span><span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="w"> </span>4<span class="n">x4</span><span class="w"> </span><span class="n">affine</span><span class="w"> </span><span class="n">transformation</span><span class="w"> </span><span class="n">matrix</span><span class="w"> </span><span class="n">mapping</span><span class="w"> </span><span class="n">from</span>
+<span class="w">                  </span><span class="n">voxel</span><span class="w"> </span><span class="n">coordinates</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="nb">real</span><span class="w"> </span><span class="n">world</span><span class="w"> </span><span class="n">coordinates</span><span class="p">.</span>
+<span class="w">        </span><span class="n">V</span><span class="p">.</span><span class="n">pinfo</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">plane</span><span class="w"> </span><span class="n">info</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">plane</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">volume</span><span class="p">.</span>
+<span class="w">               </span><span class="n">V</span><span class="p">.</span><span class="n">pinfo</span><span class="p">(</span><span class="mi">1</span><span class="p">,:)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">scale</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">plane</span>
+<span class="w">               </span><span class="n">V</span><span class="p">.</span><span class="n">pinfo</span><span class="p">(</span><span class="mi">2</span><span class="p">,:)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">plane</span>
+<span class="w">                  </span><span class="n">The</span><span class="w"> </span><span class="nb">true</span><span class="w"> </span><span class="n">voxel</span><span class="w"> </span><span class="n">intensities</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">jth</span><span class="w"> </span><span class="nb">image</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">given</span>
+<span class="w">                  </span><span class="n">by</span><span class="p">:</span><span class="w"> </span><span class="n">val</span><span class="o">*</span><span class="n">V</span><span class="p">.</span><span class="n">pinfo</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">j</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">V</span><span class="p">.</span><span class="n">pinfo</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">j</span><span class="p">)</span>
+<span class="w">               </span><span class="n">V</span><span class="p">.</span><span class="n">pinfo</span><span class="p">(</span><span class="mi">3</span><span class="p">,:)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="n">into</span><span class="w"> </span><span class="nb">image</span><span class="w"> </span><span class="p">(</span><span class="n">in</span><span class="w"> </span><span class="n">bytes</span><span class="p">).</span>
+<span class="w">                  </span><span class="n">If</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">size</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">pinfo</span><span class="w"> </span><span class="n">is</span><span class="w"> </span>3<span class="n">x1</span><span class="p">,</span><span class="w"> </span><span class="n">then</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">volume</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">assumed</span>
+<span class="w">                  </span><span class="n">to</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">contiguous</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">plane</span><span class="w"> </span><span class="n">has</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">same</span><span class="w"> </span><span class="n">scalefactor</span>
+<span class="w">                  </span><span class="n">and</span><span class="w"> </span><span class="n">offset</span><span class="p">.</span>
+<span class="w"> </span><span class="n">____________________________________________________________________________</span>
+
+<span class="w">  </span><span class="n">The</span><span class="w"> </span><span class="n">fields</span><span class="w"> </span><span class="n">listed</span><span class="w"> </span><span class="n">above</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">essential</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">mex</span><span class="w"> </span><span class="n">routines</span><span class="p">,</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">other</span>
+<span class="w">  </span><span class="n">fields</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">also</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">incorporated</span><span class="w"> </span><span class="n">into</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">structure</span><span class="p">.</span>
+
+<span class="w">  </span><span class="n">The</span><span class="w"> </span><span class="n">images</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">not</span><span class="w"> </span><span class="nb">memory</span><span class="w"> </span><span class="n">mapped</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="n">this</span><span class="w"> </span><span class="nb">step</span><span class="p">,</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">mapped</span><span class="w"> </span><span class="n">when</span>
+<span class="w">  </span><span class="n">the</span><span class="w"> </span><span class="nb">mex</span><span class="w"> </span><span class="n">routines</span><span class="w"> </span><span class="n">using</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="nb">volume</span><span class="w"> </span><span class="n">information</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">called</span><span class="p">.</span>
+
+<span class="w">  </span><span class="n">Note</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">spm_vol</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">also</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">applied</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">filename</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="mi">4</span><span class="o">-</span><span class="n">dim</span>
+<span class="w">  </span><span class="n">volumes</span><span class="p">.</span><span class="w"> </span><span class="n">In</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="k">case</span><span class="p">,</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">elements</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">V</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">point</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">series</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="mi">3</span><span class="o">-</span><span class="n">dim</span>
+<span class="w">  </span><span class="n">images</span><span class="p">.</span>
+
+<span class="w">  </span><span class="n">This</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">replacement</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">spm_map_vol</span><span class="w"> </span><span class="n">and</span><span class="w"> </span><span class="n">spm_unmap_vol</span><span class="w"> </span><span class="n">stuff</span><span class="w"> </span><span class="n">of</span>
+<span class="w">  </span><span class="n">MatLab4</span><span class="w"> </span><span class="n">SPMs</span><span class="w"> </span><span class="p">(</span><span class="n">SPM94</span><span class="o">-</span><span class="mi">97</span><span class="p">),</span><span class="w"> </span><span class="nb">which</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="nb">now</span><span class="w"> </span><span class="n">obsolete</span><span class="p">.</span>
+<span class="w"> </span><span class="n">_______________________________________________________________________</span>
+<span class="w">  </span><span class="n">Copyright</span><span class="w"> </span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="w"> </span><span class="mi">2005</span><span class="w"> </span><span class="n">Wellcome</span><span class="w"> </span><span class="n">Department</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">Imaging</span><span class="w"> </span><span class="n">Neuroscience</span>
+
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">spm_type</span><span class="p">(</span><span class="n">vol</span><span class="p">.</span><span class="n">dt</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="nb">uint8</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vol</span><span class="p">.</span><span class="n">private</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="n">NIFTI</span><span class="w"> </span><span class="s">object:</span><span class="w"> </span><span class="s">1-by-1</span>
+<span class="w">            </span><span class="n">dat</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>91<span class="n">x109x91</span><span class="w"> </span><span class="n">file_array</span><span class="p">]</span>
+<span class="w">            </span><span class="n">mat</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>4<span class="n">x4</span><span class="w"> </span><span class="nb">double</span><span class="p">]</span>
+<span class="w">     </span><span class="n">mat_intent</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;MNI152&#39;</span>
+<span class="w">           </span><span class="n">mat0</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>4<span class="n">x4</span><span class="w"> </span><span class="nb">double</span><span class="p">]</span>
+<span class="w">    </span><span class="n">mat0_intent</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;MNI152&#39;</span>
+<span class="w">        </span><span class="n">descrip</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NIFTI-1 Image&#39;</span>
+</pre></div>
+</div>
+<p>So, in our (provisional) terms:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">vol.mat</span></code> == <code class="docutils literal notranslate"><span class="pre">img.affine</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vol.dim</span></code> == <code class="docutils literal notranslate"><span class="pre">img.shape</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vol.dt(1)</span></code> (<code class="docutils literal notranslate"><span class="pre">vol.dt[0]</span></code> in Python) is equivalent to
+<code class="docutils literal notranslate"><span class="pre">img.get_data_dtype()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vol.fname</span></code> == <code class="docutils literal notranslate"><span class="pre">img.get_filename()</span></code></p></li>
+</ul>
+<p>SPM abstracts the implementation of the image to the <code class="docutils literal notranslate"><span class="pre">vol.private</span></code>
+member, that is not in fact required by the image interface.</p>
+<p>Images in SPM are always 3D.  Note this behavior:</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;functional_01.nii&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_vol</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+<span class="n">vol</span><span class="w"> </span><span class="p">=</span>
+
+<span class="n">191x1</span><span class="w"> </span><span class="s">struct</span><span class="w"> </span><span class="s">array</span><span class="w"> </span><span class="s">with</span><span class="w"> </span><span class="s">fields:</span>
+<span class="w">    </span><span class="n">fname</span>
+<span class="w">    </span><span class="n">mat</span>
+<span class="w">    </span><span class="n">dim</span>
+<span class="w">    </span><span class="n">dt</span>
+<span class="w">    </span><span class="n">pinfo</span>
+<span class="w">    </span><span class="n">n</span>
+<span class="w">    </span><span class="n">descrip</span>
+<span class="w">    </span><span class="n">private</span>
+</pre></div>
+</div>
+<p>That is, one vol struct per 3D volume in a 4D dataset.</p>
+<section id="spm-image-methods-functions">
+<h2>SPM image methods / functions<a class="headerlink" href="#spm-image-methods-functions" title="Link to this heading">¶</a></h2>
+<p>Some simple ones:</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;some_image.nii&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_vol</span><span class="p">(</span><span class="n">fname</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">img_arr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_read_vols</span><span class="p">(</span><span class="n">vol</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="nb">size</span><span class="p">(</span><span class="n">img_arr</span><span class="p">)</span><span class="w"> </span><span class="c">% just loads in scaled data array</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mi">91</span><span class="w">   </span><span class="mi">109</span><span class="w">    </span><span class="mi">91</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">spm_type</span><span class="p">(</span><span class="n">vol</span><span class="p">.</span><span class="n">dt</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="c">% the disk-level (IO) type is uint8</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="nb">uint8</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="nb">class</span><span class="p">(</span><span class="n">img_arr</span><span class="p">)</span><span class="w"> </span><span class="c">% always double regardless of IO type</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="nb">double</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;another_image.nii&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">vol</span><span class="p">;</span><span class="w">  </span><span class="c">% matlab always copies</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="p">.</span><span class="n">fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">new_fname</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">spm_write_vol</span><span class="p">(</span><span class="n">new_vol</span><span class="p">,</span><span class="w"> </span><span class="n">img_arr</span><span class="p">)</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">      </span><span class="n">fname</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;another_image.nii&#39;</span>
+<span class="w">        </span><span class="n">mat</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>4<span class="n">x4</span><span class="w"> </span><span class="nb">double</span><span class="p">]</span>
+<span class="w">        </span><span class="n">dim</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">91</span><span class="w"> </span><span class="mi">109</span><span class="w"> </span><span class="mi">91</span><span class="p">]</span>
+<span class="w">         </span><span class="n">dt</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span>
+<span class="w">      </span><span class="n">pinfo</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>3<span class="n">x1</span><span class="w"> </span><span class="nb">double</span><span class="p">]</span>
+<span class="w">          </span><span class="n">n</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">    </span><span class="n">descrip</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NIFTI-1 Image&#39;</span>
+<span class="w">    </span><span class="n">private</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>1<span class="n">x1</span><span class="w"> </span><span class="n">nifti</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Creating an image from scratch, and writing plane by plane (slice by slice):</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">struct</span><span class="p">();</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="p">.</span><span class="n">fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;yet_another_image.nii&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="p">.</span><span class="n">dim</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">91</span><span class="w"> </span><span class="mi">109</span><span class="w"> </span><span class="mi">91</span><span class="p">];</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="p">.</span><span class="n">dt</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="n">spm_type</span><span class="p">(</span><span class="s">&#39;float32&#39;</span><span class="p">)</span><span class="w"> </span><span class="mi">0</span><span class="p">];</span><span class="w"> </span><span class="c">% little endian (0)</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="p">.</span><span class="n">mat</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">vol</span><span class="p">.</span><span class="n">mat</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="p">.</span><span class="n">pinfo</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="o">&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">new_vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_create_vol</span><span class="p">(</span><span class="n">new_vol</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">vox_z</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="n">new_vol</span><span class="p">.</span><span class="n">dim</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">new_vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_write_plane</span><span class="p">(</span><span class="n">new_vol</span><span class="p">,</span><span class="w"> </span><span class="n">img_arr</span><span class="p">(:,:,</span><span class="n">vox_z</span><span class="p">),</span><span class="w"> </span><span class="n">vox_z</span><span class="p">);</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>I think it’s true that writing the plane does not change the image
+scalefactors, so it’s only practical to use <code class="docutils literal notranslate"><span class="pre">spm_write_plane</span></code> for data
+for which you already know the dynamic range across the volume.</p>
+<p>Simple resampling from an image:</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">fname</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;some_image.nii&#39;</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vol</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_vol</span><span class="p">(</span><span class="n">fname</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="c">% for voxel coordinate 10,15,20 (1-based)</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">hold_val</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w"> </span><span class="c">% third order spline resampling</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_sample_vol</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="n">hold_val</span><span class="p">)</span>
+
+<span class="n">val</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0510</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">img_arr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_read_vols</span><span class="p">(</span><span class="n">vol</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">img_arr</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">)</span><span class="w">  </span><span class="c">% same as simple indexing for integer coordinates</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0510</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="c">% more than one point</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mf">10.5</span><span class="p">];</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="mf">15.5</span><span class="p">];</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mf">20.5</span><span class="p">];</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vals</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_sample_vol</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="n">hold_val</span><span class="p">)</span>
+
+<span class="n">vals</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0510</span><span class="w">    </span><span class="mf">0.0531</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="c">% you can also get the derivatives, by asking for more output args</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="p">[</span><span class="n">vals</span><span class="p">,</span><span class="w"> </span><span class="n">dx</span><span class="p">,</span><span class="w"> </span><span class="n">dy</span><span class="p">,</span><span class="w"> </span><span class="n">dz</span><span class="p">]</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_sample_vol</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">z</span><span class="p">,</span><span class="w"> </span><span class="n">hold_val</span><span class="p">)</span>
+
+<span class="n">vals</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0510</span><span class="w">    </span><span class="mf">0.0531</span>
+
+
+<span class="n">dx</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0033</span><span class="w">    </span><span class="mf">0.0012</span>
+
+
+<span class="n">dy</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0033</span><span class="w">    </span><span class="mf">0.0012</span>
+
+
+<span class="n">dz</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.0020</span><span class="w">   </span><span class="o">-</span><span class="mf">0.0017</span>
+</pre></div>
+</div>
+<p>This is to speed up optimization in registration - where the optimizer
+needs the derivatives.</p>
+<p><code class="docutils literal notranslate"><span class="pre">spm_sample_vol</span></code> always works in voxel coordinates.  If you want some
+other coordinates, you would transform them yourself.  For example,
+world coordinates according to the affine looks like:</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">wc</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">];</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vc</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">inv</span><span class="p">(</span><span class="n">vol</span><span class="p">.</span><span class="n">mat</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">[</span><span class="n">wc</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="o">&#39;</span>
+
+<span class="n">vc</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">   </span><span class="mf">48.5000</span>
+<span class="w">   </span><span class="mf">58.0000</span>
+<span class="w">   </span><span class="mf">53.0000</span>
+<span class="w">    </span><span class="mf">1.0000</span>
+
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">vals</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_sample_vol</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span><span class="w"> </span><span class="n">vc</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">vc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">vc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">hold_val</span><span class="p">)</span>
+
+<span class="n">vals</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">    </span><span class="mf">0.6792</span>
+</pre></div>
+</div>
+<p>Odder sampling, often used, can be difficult to understand:</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">slice_mat</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">out_size</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">vol</span><span class="p">.</span><span class="n">dim</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">slice_no</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"> </span><span class="c">% slice we want to fetch</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">slice_mat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">slice_no</span><span class="p">;</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">arr_slice</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">spm_slice_vol</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span><span class="w"> </span><span class="n">slice_mat</span><span class="p">,</span><span class="w"> </span><span class="n">out_size</span><span class="p">,</span><span class="w"> </span><span class="n">hold_val</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">img_slice_4</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">img_arr</span><span class="p">(:,:,</span><span class="n">slice_no</span><span class="p">);</span>
+<span class="o">&gt;&gt;</span><span class="w"> </span><span class="nb">all</span><span class="p">(</span><span class="n">arr_slice</span><span class="p">(:)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">img_slice_4</span><span class="p">(:))</span>
+
+<span class="nb">ans</span><span class="w"> </span><span class="p">=</span>
+
+<span class="w">     </span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>This is the simplest use - but in general any affine transform can go in
+<code class="docutils literal notranslate"><span class="pre">slice_mat</span></code> above, giving optimized (for speed) sampling of slices
+from volumes, as long as the transform is an affine.</p>
+<p>Miscellaneous functions operating on vol structs:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">spm_conv_vol</span></code> - convolves volume with separable functions in x, y, z</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spm_render_vol</span></code> - does a projection of a volume onto a surface</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spm_vol_check</span></code> - takes array of vol structs and checks for sameness of
+image dimensions and <code class="docutils literal notranslate"><span class="pre">mat</span></code> (affines) across the list.</p></li>
+</ul>
+<p>And then, many SPM functions accept vol structs as arguments.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

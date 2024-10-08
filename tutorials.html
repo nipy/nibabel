@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <script src="_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Coordinate systems and affines" href="coordinate_systems.html" />
+    <link rel="prev" title="NiBabel Development Changelog" href="changelog.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="coordinate_systems.html" title="Coordinate systems and affines"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="changelog.html" title="NiBabel Development Changelog"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="changelog.html"
+                          title="previous chapter">NiBabel Development Changelog</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="coordinate_systems.html"
+                          title="next chapter">Coordinate systems and affines</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tutorials.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="general-tutorials">
+<span id="tutorials"></span><h1>General tutorials<a class="headerlink" href="#general-tutorials" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="coordinate_systems.html">Coordinate systems and affines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#introducing-someone">Introducing Someone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#voxel-coordinates-are-coordinates-in-the-image-data-array">Voxel coordinates are coordinates in the image data array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#voxel-coordinates-and-points-in-space">Voxel coordinates and points in space</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#the-scanner-subject-reference-space">The scanner-subject reference space</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="coordinate_systems.html#the-scanner-axes">The scanner axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="coordinate_systems.html#from-scanner-to-subject">From scanner to subject</a></li>
+<li class="toctree-l3"><a class="reference internal" href="coordinate_systems.html#naming-reference-spaces">Naming reference spaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#voxel-coordinates-are-in-voxel-space">Voxel coordinates are in voxel space</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#the-affine-matrix-as-a-transformation-between-spaces">The affine matrix as a transformation between spaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel">The inverse of the affine gives the mapping from scanner to voxel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#the-affine-by-example">The affine by example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="coordinate_systems.html#applying-the-affine">Applying the affine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="coordinate_systems.html#the-affine-as-a-series-of-transformations">The affine as a series of transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#other-reference-spaces">Other reference spaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coordinate_systems.html#nibabel-always-uses-an-ras-output-space">Nibabel always uses an RAS+ output space</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="neuro_radio_conventions.html">Radiological vs neurological conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="neuro_radio_conventions.html#neurological-and-radiological-display-convention">Neurological and radiological display convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neuro_radio_conventions.html#alignment-of-world-and-voxel-axes">Alignment of world and voxel axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neuro_radio_conventions.html#neurological-radiological-voxel-layout">Neurological / radiological voxel layout</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dicom/dicom_intro.html">Introduction to DICOM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dicom/dicom_intro.html#dicom-is-messages">DICOM is messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dicom/dicom_intro.html#the-dicom-standard">The DICOM standard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dicom/dicom_intro.html#dicom-data-format">DICOM data format</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dicom/dicom_intro.html#dicom-elements">DICOM elements</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#attribute-tag">Attribute Tag</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="dicom/dicom_intro.html#standard-attribute-tags">Standard attribute tags</a></li>
+<li class="toctree-l5"><a class="reference internal" href="dicom/dicom_intro.html#private-attribute-tags">Private attribute tags</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#value-representation">Value Representation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#value-length">Value length</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#value-field">Value field</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dicom/dicom_intro.html#data-element-tags-and-data-dictionaries">Data element tags and data dictionaries</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#value-representation-in-the-data-dictionary">Value Representation in the data dictionary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#value-multiplicity-in-the-data-dictionary">Value Multiplicity in the data dictionary</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dicom/dicom_intro.html#dicom-data-structures">DICOM data structures</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#a-data-set">A data set</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#background-the-dicom-world">Background - the DICOM world</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dicom/dicom_intro.html#dicom-entities-and-information-object-definitions">DICOM Entities and Information Object Definitions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dicom/dicom_intro.html#dicom-services-dimse">DICOM services (DIMSE)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dicom/dicom_intro.html#dicom-service-object-pairs-sops">DICOM service object pairs (SOPs)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dicom/dicom_intro.html#dicom-files">DICOM files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>

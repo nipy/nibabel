@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neuroimaging in Python &#8212; NiBabel 5.4.0.dev1+g3b1c7b37 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <script src="../_static/documentation_options.js?v=8f87c9ba"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="deprecated" href="nibabel.deprecated.html" />
+    <link rel="prev" title="cmdline" href="nibabel.cmdline.html" />
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
+
+  </head><body>
+<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
+  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
+    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </div>
+  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
+    <h1>NiBabel</h1>
+    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  </div>
+</div>
+
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nibabel.deprecated.html" title="deprecated"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nibabel.cmdline.html" title="cmdline"
+             accesskey="P">previous</a> |</li>
+  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
+  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
+  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
+  <li><a href="legal.html">License</a> |&nbsp;</li>
+
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code></a><ul>
+<li><a class="reference internal" href="#dataobjimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataobjImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage"><code class="docutils literal notranslate"><span class="pre">DataobjImage</span></code></a><ul>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.__init__"><code class="docutils literal notranslate"><span class="pre">DataobjImage.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.dataobj"><code class="docutils literal notranslate"><span class="pre">DataobjImage.dataobj</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">DataobjImage.from_file_map()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.from_filename"><code class="docutils literal notranslate"><span class="pre">DataobjImage.from_filename()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.get_data"><code class="docutils literal notranslate"><span class="pre">DataobjImage.get_data()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.get_fdata"><code class="docutils literal notranslate"><span class="pre">DataobjImage.get_fdata()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.in_memory"><code class="docutils literal notranslate"><span class="pre">DataobjImage.in_memory</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.load"><code class="docutils literal notranslate"><span class="pre">DataobjImage.load()</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.ndim"><code class="docutils literal notranslate"><span class="pre">DataobjImage.ndim</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.shape"><code class="docutils literal notranslate"><span class="pre">DataobjImage.shape</span></code></a></li>
+<li><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.uncache"><code class="docutils literal notranslate"><span class="pre">DataobjImage.uncache()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="nibabel.cmdline.html"
+                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="nibabel.deprecated.html"
+                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecated</span></code></a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/nibabel.dataobj_images.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-nibabel.dataobj_images">
+<span id="dataobj-images"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code><a class="headerlink" href="#module-nibabel.dataobj_images" title="Link to this heading">¶</a></h1>
+<p>File-based images that have data arrays</p>
+<p>The class:<cite>DataObjImage</cite> class defines an image that extends the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code> by adding an array-like object, named <code class="docutils literal notranslate"><span class="pre">dataobj</span></code>.
+This can either be an actual numpy array, or an object that:</p>
+<ul class="simple">
+<li><p>returns an array from <code class="docutils literal notranslate"><span class="pre">numpy.asanyarray(obj)</span></code>;</p></li>
+<li><p>has an attribute or property <code class="docutils literal notranslate"><span class="pre">shape</span></code>.</p></li>
+</ul>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage" title="nibabel.dataobj_images.DataobjImage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataobjImage</span></code></a>(dataobj[, header, extra, file_map])</p></td>
+<td><p>Template class for images that have dataobj data stores</p></td>
+</tr>
+</tbody>
+</table>
+<section id="dataobjimage">
+<h2><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage" title="nibabel.dataobj_images.DataobjImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataobjImage</span></code></a><a class="headerlink" href="#dataobjimage" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nibabel.dataobj_images.</span></span><span class="sig-name descname"><span class="pre">DataobjImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a></p>
+<p>Template class for images that have dataobj data stores</p>
+<p>Initialize dataobj image</p>
+<p>The datobj image is a combination of (dataobj, header), with optional
+metadata in <cite>extra</cite>, and filename / file-like objects contained in the
+<cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns
+an array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have <code class="docutils literal notranslate"><span class="pre">shape</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ndim</span></code> attributes or properties</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize dataobj image</p>
+<p>The datobj image is a combination of (dataobj, header), with optional
+metadata in <cite>extra</cite>, and filename / file-like objects contained in the
+<cite>file_map</cite> mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataobj</strong><span class="classifier">object</span></dt><dd><p>Object containing image data.  It should be some object that returns
+an array from <code class="docutils literal notranslate"><span class="pre">np.asanyarray</span></code>.  It should have <code class="docutils literal notranslate"><span class="pre">shape</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ndim</span></code> attributes or properties</p>
+</dd>
+<dt><strong>header</strong><span class="classifier">None or mapping or header instance, optional</span></dt><dd><p>metadata for this image format</p>
+</dd>
+<dt><strong>extra</strong><span class="classifier">None or mapping, optional</span></dt><dd><p>metadata to associate with image that cannot be stored in the
+metadata of this image type</p>
+</dd>
+<dt><strong>file_map</strong><span class="classifier">mapping, optional</span></dt><dd><p>mapping giving file information for this image format</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.dataobj">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dataobj</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></em><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.dataobj" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.from_file_map">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'c'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'r'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ArrayImgT</span></span></span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.from_file_map" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create image from mapping in <code class="docutils literal notranslate"><span class="pre">file_map</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_map</strong><span class="classifier">dict</span></dt><dd><p>Mapping with (key, value) pairs of (<code class="docutils literal notranslate"><span class="pre">file_type</span></code>, FileHolder
+instance giving file-likes for each file needed for this image
+type.</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+If <code class="docutils literal notranslate"><span class="pre">file_map</span></code> refers to an open file handle, this setting has no
+effect. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">DataobjImage instance</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.from_filename">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'c'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'r'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ArrayImgT</span></span></span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.from_filename" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create image from filename <cite>filename</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>Filename of image to load</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">DataobjImage instance</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.get_data">
+<span class="sig-name descname"><span class="pre">get_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">caching</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fill'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.get_data" title="Link to this definition">¶</a></dt>
+<dd><p>Return image data from image with any necessary scaling applied</p>
+<p>get_data() is deprecated in favor of get_fdata(), which has a more predictable return type. To obtain get_data() behavior going forward, use numpy.asanyarray(img.dataobj).</p>
+<ul class="simple">
+<li><p>deprecated from version: 3.0</p></li>
+<li><p>Raises &lt;class ‘nibabel.deprecator.ExpiredDeprecationError’&gt; as of version: 5.0</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.get_fdata">
+<span class="sig-name descname"><span class="pre">get_fdata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">caching:</span> <span class="pre">ty.Literal['fill'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'unchanged']</span> <span class="pre">=</span> <span class="pre">'fill'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">npt.DTypeLike</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">np.ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">ty.Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">np.floating</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.get_fdata" title="Link to this definition">¶</a></dt>
+<dd><p>Return floating point image data with necessary scaling applied</p>
+<p>The image <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> property can be an array proxy or an array.  An
+array proxy is an object that knows how to load the image data from
+disk.  An image with an array proxy <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> is a <em>proxy image</em>; an
+image with an array in <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> is an <em>array image</em>.</p>
+<p>The default behavior for <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code> on a proxy image is to read
+the data from the proxy, and store in an internal cache.  Future calls
+to <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> will return the cached array.  This is the behavior
+selected with <cite>caching</cite> == “fill”.</p>
+<p>Once the data has been cached and returned from an array proxy, if you
+modify the returned array, you will also modify the cached array
+(because they are the same array).  Regardless of the <cite>caching</cite> flag,
+this is always true of an array image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>caching</strong><span class="classifier">{‘fill’, ‘unchanged’}, optional</span></dt><dd><p>See the Notes section for a detailed explanation.  This argument
+specifies whether the image object should fill in an internal
+cached reference to the returned image data array. “fill” specifies
+that the image should fill an internal cached reference if
+currently empty.  Future calls to <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> will return this
+cached reference.  You might prefer “fill” to save the image object
+from having to reload the array data from disk on each call to
+<code class="docutils literal notranslate"><span class="pre">get_fdata</span></code>.  “unchanged” means that the image should not fill in
+the internal cached reference if the cache is currently empty.  You
+might prefer “unchanged” to “fill” if you want to make sure that
+the call to <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> does not create an extra (cached)
+reference to the returned array.  In this case it is easier for
+Python to free the memory from the returned array.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">numpy dtype specifier</span></dt><dd><p>A numpy dtype specifier specifying a floating point type.  Data is
+returned as this floating point type.  Default is <code class="docutils literal notranslate"><span class="pre">np.float64</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>fdata</strong><span class="classifier">array</span></dt><dd><p>Array of image data of data type <cite>dtype</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#nibabel.dataobj_images.DataobjImage.uncache" title="nibabel.dataobj_images.DataobjImage.uncache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncache</span></code></a></dt><dd><p>empty the array data cache</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>All images have a property <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> that represents the image array
+data.  Images that have been loaded from files usually do not load the
+array data from file immediately, in order to reduce image load time
+and memory use.  For these images, <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> is an <em>array proxy</em>; an
+object that knows how to load the image array data from file.</p>
+<p>By default (<cite>caching</cite> == “fill”), when you call <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> on a
+proxy image, we load the array data from disk, store (cache) an
+internal reference to this array data, and return the array.  The next
+time you call <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code>, you will get the cached reference to the
+array, so we don’t have to load the array data from disk again.</p>
+<p>Array images have a <code class="docutils literal notranslate"><span class="pre">dataobj</span></code> property that already refers to an
+array in memory, so there is no benefit to caching, and the <cite>caching</cite>
+keywords have no effect.</p>
+<p>For proxy images, you may not want to fill the cache after reading the
+data from disk because the cache will hold onto the array memory until
+the image object is deleted, or you use the image <code class="docutils literal notranslate"><span class="pre">uncache</span></code> method.
+If you don’t want to fill the cache, then always use
+<code class="docutils literal notranslate"><span class="pre">get_fdata(caching='unchanged')</span></code>; in this case <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> will not
+fill the cache (store the reference to the array) if the cache is empty
+(no reference to the array).  If the cache is full, “unchanged” leaves
+the cache full and returns the cached array reference.</p>
+<p>The cache can effect the behavior of the image, because if the cache is
+full, or you have an array image, then modifying the returned array
+will modify the result of future calls to <code class="docutils literal notranslate"><span class="pre">get_fdata()</span></code>.  For example
+you might do this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nibabel.testing</span> <span class="kn">import</span> <span class="n">data_path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">img_fname</span><span class="p">)</span> <span class="c1"># This is a proxy image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">is_proxy</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The array is not yet cached by a call to “get_fdata”, so:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>After we call <code class="docutils literal notranslate"><span class="pre">get_fdata</span></code> using the default <cite>caching</cite> == ‘fill’, the
+cache contains a reference to the returned array <code class="docutils literal notranslate"><span class="pre">data</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>We modify an element in the returned data array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">99</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="go">99.0</span>
+</pre></div>
+</div>
+<p>The next time we call ‘get_fdata’, the method returns the cached
+reference to the (modified) array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="ow">is</span> <span class="n">data</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="go">99.0</span>
+</pre></div>
+</div>
+<p>If you had <em>initially</em> used <cite>caching</cite> == ‘unchanged’ then the returned
+<code class="docutils literal notranslate"><span class="pre">data</span></code> array would have been loaded from file, but not cached, and:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">img_fname</span><span class="p">)</span>  <span class="c1"># a proxy image again</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="s1">&#39;unchanged&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="o">.</span><span class="n">in_memory</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">99</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(</span><span class="n">caching</span><span class="o">=</span><span class="s1">&#39;unchanged&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span> <span class="ow">is</span> <span class="n">data</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_again</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.in_memory">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">in_memory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.in_memory" title="Link to this definition">¶</a></dt>
+<dd><p>True when any array data is in memory cache</p>
+<p>There are separate caches for <cite>get_data</cite> reads and <cite>get_fdata</cite> reads.
+This property is True if either of those caches are set.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'c'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'r'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_file_open</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ArrayImgT</span></span></span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.load" title="Link to this definition">¶</a></dt>
+<dd><p>Class method to create image from filename <cite>filename</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>Filename of image to load</p>
+</dd>
+<dt><strong>mmap</strong><span class="classifier">{True, False, ‘c’, ‘r’}, optional, keyword only</span></dt><dd><p><cite>mmap</cite> controls the use of numpy memory mapping for reading image
+array data.  If False, do not try numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> for data array.
+If one of {‘c’, ‘r’}, try numpy memmap with <code class="docutils literal notranslate"><span class="pre">mode=mmap</span></code>.  A
+<cite>mmap</cite> value of True gives the same behavior as <code class="docutils literal notranslate"><span class="pre">mmap='c'</span></code>.  If
+image data file cannot be memory-mapped, ignore <cite>mmap</cite> value and
+read array from file.</p>
+</dd>
+<dt><strong>keep_file_open</strong><span class="classifier">{ None, True, False }, optional, keyword only</span></dt><dd><p><cite>keep_file_open</cite> controls whether a new file handle is created
+every time the image is accessed, or a single file handle is
+created and used for the lifetime of this <code class="docutils literal notranslate"><span class="pre">ArrayProxy</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">True</span></code>, a single file handle is created and used. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+a new file handle is created every time the image is accessed.
+The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) will result in the value of
+<code class="docutils literal notranslate"><span class="pre">nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT</span></code> being used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>img</strong><span class="classifier">DataobjImage instance</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.ndim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.ndim" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.shape" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nibabel.dataobj_images.DataobjImage.uncache">
+<span class="sig-name descname"><span class="pre">uncache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.dataobj_images.DataobjImage.uncache" title="Link to this definition">¶</a></dt>
+<dd><p>Delete any cached read of data from proxied data</p>
+<p>Remember there are two types of images:</p>
+<ul class="simple">
+<li><p><em>array images</em> where the data <code class="docutils literal notranslate"><span class="pre">img.dataobj</span></code> is an array</p></li>
+<li><p><em>proxy images</em> where the data <code class="docutils literal notranslate"><span class="pre">img.dataobj</span></code> is a proxy object</p></li>
+</ul>
+<p>If you call <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code> on a proxy image, the result of reading
+from the proxy gets cached inside the image object, and this cache is
+what gets returned from the next call to <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code>.  If you
+modify the returned data, as in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span>
+<span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">42</span>
+</pre></div>
+</div>
+<p>then the next call to <code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code> returns the modified array,
+whether the image is an array image or a proxy image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span> <span class="o">==</span> <span class="mi">42</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When you uncache an array image, this has no effect on the return of
+<code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code>, but when you uncache a proxy image, the result of
+<code class="docutils literal notranslate"><span class="pre">img.get_fdata()</span></code> returns to its original value.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    </div>
+  </body>
+</html>
