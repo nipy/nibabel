@@ -80,7 +80,7 @@ class Minc1File:
             dtt = np.dtype(np.float64)
         else:
             signtype = self._image.signtype.decode('latin-1')
-            dtt = _dt_dict[(typecode, signtype)]
+            dtt = _dt_dict[typecode, signtype]
         return np.dtype(dtt).newbyteorder('>')
 
     def get_data_shape(self):
