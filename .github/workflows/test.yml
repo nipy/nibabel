@@ -113,17 +113,17 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86', 'arm64']
         dependencies: ['full', 'pre']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
-            python-version: 3.8
+            python-version: 3.9
             dependencies: 'none'
           # Absolute minimum dependencies
           - os: ubuntu-latest
-            python-version: 3.8
+            python-version: 3.9
             dependencies: 'min'
           # NoGIL
           - os: ubuntu-latest
@@ -153,9 +153,9 @@ jobs:
           - os: macos-13
             dependencies: pre
           # Drop pre tests for SPEC-0-unsupported Python versions
-          - python-version: '3.8'
-            dependencies: pre
           - python-version: '3.9'
+            dependencies: pre
+          - python-version: '3.10'
             dependencies: pre
 
     env:
