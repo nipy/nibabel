@@ -26,6 +26,11 @@
       "orcid": "0000-0002-7782-0790"
     },
     {
+      "affiliation": "CEA",
+      "name": "Papadopoulos Orfanos, Dimitri",
+      "orcid": "0000-0002-1242-8990"
+    },
+    {
       "name": "McCarthy, Paul"
     },
     {
@@ -78,13 +83,11 @@
       "orcid": "0000-0001-7159-1387"
     },
     {
-      "name": "Wang, Hao-Ting",
-      "orcid": "0000-0003-4078-2038"
+      "name": "Moloney, Brendan"
     },
     {
-      "affiliation": "CEA",
-      "name": "Papadopoulos Orfanos, Dimitri",
-      "orcid": "0000-0002-1242-8990"
+      "name": "Wang, Hao-Ting",
+      "orcid": "0000-0003-4078-2038"
     },
     {
       "affiliation": "Harvard University - Psychology",
@@ -122,9 +125,6 @@
     },
     {
       "name": "S\u00f3lon, Anibal"
-    },
-    {
-      "name": "Moloney, Brendan"
     },
     {
       "name": "Morency, F\u00e9lix C."
@@ -178,6 +178,11 @@
       "name": "Van, Andrew"
     },
     {
+      "affiliation": "Brigham and Women's Hospital, Mass General Brigham/Harvard Medical School",
+      "name": "Legarreta, Jon Haitz",
+      "orcid": "0000-0002-9661-1396"
+    },
+    {
       "affiliation": "Google",
       "name": "Gorgolewski, Krzysztof J.",
       "orcid": "0000-0003-3321-7583"
@@ -204,6 +209,9 @@
       "name": "Baker, Eric M."
     },
     {
+      "name": "Koudoro, Serge"
+    },
+    {
       "name": "Hayashi, Soichi"
     },
     {
@@ -221,12 +229,12 @@
       "orcid": "0000-0001-8435-6191"
     },
     {
-      "name": "Koudoro, Serge"
-    },
-    {
       "affiliation": "University College London",
       "name": "P\u00e9rez-Garc\u00eda, Fernando",
       "orcid": "0000-0001-9090-3024"
+    },
+    {
+      "name": "Becq, Guillaume"
     },
     {
       "name": "Dock\u00e8s, J\u00e9r\u00f4me"
@@ -270,9 +278,9 @@
       "orcid": "0000-0003-1076-5122"
     },
     {
-      "affiliation": "Brigham and Women's Hospital, Mass General Brigham/Harvard Medical School",
-      "name": "Legarreta, Jon Haitz",
-      "orcid": "0000-0002-9661-1396"
+      "affiliation": "Polytechnique Montr\u00e9al, Montr\u00e9al, CA",
+      "name": "Newton, Joshua",
+      "orcid": "0009-0005-6963-3812"
     },
     {
       "name": "Hahn, Kevin S."
@@ -284,6 +292,9 @@
     },
     {
       "name": "Hinds, Oliver P."
+    },
+    {
+      "name": "Sandro"
     },
     {
       "name": "Fauber, Bennet"
@@ -391,11 +402,6 @@
     },
     {
       "name": "freec84"
-    },
-    {
-      "affiliation": "Polytechnique Montréal, Montréal, CA",
-      "name": "Newton, Joshua",
-      "orcid": "0009-0005-6963-3812"
     }
   ],
   "keywords": [
