@@ -482,9 +482,11 @@ def test_keep_file_open_true_false_invalid():
 
     for test in tests:
         filetype, kfo, have_igzip, exp_persist, exp_kfo = test
-        with InTemporaryDirectory(), mock.patch(
-            'nibabel.openers.ImageOpener', CountingImageOpener
-        ), patch_indexed_gzip(have_igzip):
+        with (
+            InTemporaryDirectory(),
+            mock.patch('nibabel.openers.ImageOpener', CountingImageOpener),
+            patch_indexed_gzip(have_igzip),
+        ):
             fname = f'testdata.{filetype}'
             # create the test data file
             if filetype == 'gz':

@@ -23,7 +23,7 @@ from .openers import ImageOpener
 if ty.TYPE_CHECKING:
     from .filename_parser import ExtensionSpec, FileSpec
 
-FileSniff = ty.Tuple[bytes, str]
+FileSniff = tuple[bytes, str]
 
 ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
 HdrT = ty.TypeVar('HdrT', bound='FileBasedHeader')

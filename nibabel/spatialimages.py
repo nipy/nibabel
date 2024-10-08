@@ -133,6 +133,7 @@ work:
 from __future__ import annotations
 
 import typing as ty
+from functools import cache
 from typing import Literal
 
 import numpy as np
@@ -144,11 +145,6 @@ from .fileslice import canonical_slicers
 from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
-
-try:
-    from functools import cache
-except ImportError:  # PY38
-    from functools import lru_cache as cache
 
 if ty.TYPE_CHECKING:
     import io

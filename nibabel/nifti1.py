@@ -671,7 +671,7 @@ extension_codes = Recoder(
         (38, 'eval', NiftiExtension),
         (40, 'matlab', NiftiExtension),
         (42, 'quantiphyse', NiftiExtension),
-        (44, 'mrs', NiftiExtension[ty.Dict[str, ty.Any]]),
+        (44, 'mrs', NiftiExtension[dict[str, ty.Any]]),
     ),
     fields=('code', 'label', 'handler'),
 )

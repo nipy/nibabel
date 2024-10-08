@@ -90,10 +90,7 @@ def assign2atoms(assign_ast, default_class=int):
             target = target.value
             prev_target_type = OrderedDict
         elif isinstance(target, ast.Subscript):
-            if isinstance(target.slice, ast.Constant):  # PY39
-                index = target.slice.value
-            else:  # PY38
-                index = target.slice.value.n
+            index = target.slice.value
             atoms.append(Atom(target, prev_target_type, index))
             target = target.value
             prev_target_type = list

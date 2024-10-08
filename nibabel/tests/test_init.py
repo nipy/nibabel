@@ -1,13 +1,9 @@
 import pathlib
 import unittest
+from importlib.resources import files
 from unittest import mock
 
 import pytest
-
-try:
-    from importlib.resources import files
-except ImportError:
-    from importlib_resources import files
 
 import nibabel as nib
 
