@@ -607,11 +607,7 @@ def test_a2f_nanpos():
 
 def test_a2f_bad_scaling():
     # Test that pathological scalers raise an error
-    NUMERICAL_TYPES = [
-        x
-        for sublist in (sctypes[key] for key in ('int', 'uint', 'float', 'complex'))
-        for x in sublist
-    ]
+    NUMERICAL_TYPES = [tp for kind in ('int', 'uint', 'float', 'complex') for tp in sctypes[kind]]
     for in_type, out_type, slope, inter in itertools.product(
         NUMERICAL_TYPES,
         NUMERICAL_TYPES,
