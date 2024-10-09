@@ -63,7 +63,7 @@ def get_csa_header(dcm_data, csa_type='image'):
         return None
     element_no = section_start + element_offset
     try:
-        tag = dcm_data[(0x29, element_no)]
+        tag = dcm_data[0x29, element_no]
     except KeyError:
         # The element could be missing due to anonymization
         return None
