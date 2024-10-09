@@ -32,7 +32,7 @@ class ApiDocWriter:
     to Sphinx-parsable reST format"""
 
     # only separating first two levels
-    rst_section_levels = ['*', '=', '-', '~', '^']
+    rst_section_levels = ('*', '=', '-', '~', '^')
 
     def __init__(
         self,
