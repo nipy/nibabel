@@ -84,6 +84,8 @@ constrain the affine.
 
 from __future__ import annotations
 
+import typing as ty
+
 import numpy as np
 
 from .arrayproxy import ArrayProxy
@@ -92,6 +94,7 @@ from .batteryrunners import Report
 from .fileholders import copy_file_map
 from .spatialimages import HeaderDataError, HeaderTypeError, SpatialHeader, SpatialImage
 from .volumeutils import (
+    Recoder,
     apply_read_scaling,
     array_from_file,
     make_dt_codes,
@@ -185,7 +188,7 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
     template_dtype = header_dtype
     _data_type_codes = data_type_codes
     # fields with recoders for their values
-    _field_recoders = {'datatype': data_type_codes}
+    _field_recoders: ty.ClassVar[dict[str, Recoder]] = {'datatype': data_type_codes}
     # default x flip
     default_x_flip = True
 

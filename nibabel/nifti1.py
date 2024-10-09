@@ -815,7 +815,7 @@ class Nifti1Header(SpmAnalyzeHeader):
     _data_type_codes = data_type_codes
 
     # fields with recoders for their values
-    _field_recoders = {
+    _field_recoders: ty.ClassVar[dict[str, Recoder]] = {
         'datatype': data_type_codes,
         'qform_code': xform_codes,
         'sform_code': xform_codes,

@@ -112,6 +112,8 @@ The same for logging::
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import numpy as np
 
 from . import imageglobals as imageglobals
@@ -485,7 +487,7 @@ class WrapStruct:
 class LabeledWrapStruct(WrapStruct):
     """A WrapStruct with some fields having value labels for printing etc"""
 
-    _field_recoders: dict[str, Recoder] = {}  # for recoding values for str
+    _field_recoders: ClassVar[dict[str, Recoder]] = {}  # for recoding values for str
 
     def get_value_label(self, fieldname):
         """Returns label for coded field
