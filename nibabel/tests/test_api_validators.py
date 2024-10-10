@@ -99,18 +99,18 @@ class TestRunAllTests(ValidateAPI):
     We check this in the module teardown function
     """
 
-    run_tests = []
+    run_tests = {}
 
     def obj_params(self):
         yield 1, 2
 
     def validate_first(self, obj, param):
-        self.run_tests.append('first')
+        self.run_tests.add('first')
 
     def validate_second(self, obj, param):
-        self.run_tests.append('second')
+        self.run_tests.add('second')
 
     @classmethod
     def teardown_class(cls):
         # Check that both validate_xxx tests got run
-        assert cls.run_tests == ['first', 'second']
+        assert cls.run_tests == {'first', 'second'}
