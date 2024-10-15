@@ -131,7 +131,7 @@ class Opener:
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
-    compress_ext_map: dict[str | None, OpenerDef] = {
+    compress_ext_map: ty.ClassVar[dict[str | None, OpenerDef]] = {
         '.gz': gz_def,
         '.bz2': bz2_def,
         '.zst': zstd_def,
@@ -141,7 +141,7 @@ class Opener:
     default_compresslevel = 1
     #: default option for zst files
     default_zst_compresslevel = 3
-    default_level_or_option = {
+    default_level_or_option: ty.ClassVar[dict[str, int | None]] = {
         'rb': None,
         'r': None,
         'wb': default_zst_compresslevel,

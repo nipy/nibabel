@@ -634,8 +634,8 @@ class BrainModelAxis(Axis):
         return (
             (
                 self.affine is None
-                or np.allclose(self.affine, other.affine)
-                and self.volume_shape == other.volume_shape
+                or (np.allclose(self.affine, other.affine)
+                and self.volume_shape == other.volume_shape)
             )
             and self.nvertices == other.nvertices
             and np.array_equal(self.name, other.name)

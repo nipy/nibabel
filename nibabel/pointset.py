@@ -178,7 +178,7 @@ class Grid(Pointset):
 class GridIndices:
     """Class for generating indices just-in-time"""
 
-    __slots__ = ('gridshape', 'dtype', 'shape')
+    __slots__ = ('dtype', 'gridshape', 'shape')
     ndim = 2
 
     def __init__(self, shape, dtype=None):
