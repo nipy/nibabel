@@ -326,7 +326,7 @@ class NiftiExtension(ty.Generic[T]):
 
     code: int
     encoding: str | None = None
-    _content: bytes
+    _raw: bytes
     _object: T | None = None
 
     def __init__(
@@ -351,9 +351,13 @@ class NiftiExtension(ty.Generic[T]):
             self.code = extension_codes.code[code]  # type: ignore[assignment]
         except KeyError:
             self.code = code  # type: ignore[assignment]
-        self._content = content
+        self._raw = content
         if object is not None:
             self._object = object
+
+    @property
+    def _content(self):
+        return self.get_object()
 
     @classmethod
     def from_bytes(cls, content: bytes) -> Self:
@@ -394,7 +398,7 @@ class NiftiExtension(ty.Generic[T]):
         and updates the bytes representation accordingly.
         """
         if self._object is not None:
-            self._content = self._mangle(self._object)
+            self._raw = self._mangle(self._object)
 
     def __repr__(self) -> str:
         try:
@@ -402,7 +406,7 @@ class NiftiExtension(ty.Generic[T]):
         except KeyError:
             # deal with unknown codes
             code = self.code
-        return f'{self.__class__.__name__}({code}, {self._content!r})'
+        return f'{self.__class__.__name__}({code}, {self._raw!r})'
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -425,7 +429,7 @@ class NiftiExtension(ty.Generic[T]):
     def content(self) -> bytes:
         """Return the extension content as raw bytes."""
         self._sync()
-        return self._content
+        return self._raw
 
     @property
     def text(self) -> str:
@@ -452,7 +456,7 @@ class NiftiExtension(ty.Generic[T]):
         instead.
         """
         if self._object is None:
-            self._object = self._unmangle(self._content)
+            self._object = self._unmangle(self._raw)
         return self._object
 
     # Backwards compatibility
@@ -488,7 +492,7 @@ class NiftiExtension(ty.Generic[T]):
             extinfo = extinfo.byteswap()
         fileobj.write(extinfo.tobytes())
         # followed by the actual extension content, synced above
-        fileobj.write(self._content)
+        fileobj.write(self._raw)
         # be nice and zero out remaining part of the extension till the
         # next 16 byte border
         pad = extstart + rawsize - fileobj.tell()
