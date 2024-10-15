@@ -1250,6 +1250,33 @@ def test_extension_content_access():
     assert json_ext.json() == {'a': 1}
 
 
+def test_legacy_underscore_content():
+    """Verify that subclasses that depended on access to ._content continue to work."""
+    import io
+    import json
+
+    class MyLegacyExtension(Nifti1Extension):
+        def _mangle(self, value):
+            return json.dumps(value).encode()
+
+        def _unmangle(self, value):
+            if isinstance(value, bytes):
+                value = value.decode()
+            return json.loads(value)
+
+    ext = MyLegacyExtension(0, '{}')
+
+    assert isinstance(ext._content, dict)
+    # Object identity is not broken by multiple accesses
+    assert ext._content is ext._content
+
+    ext._content['val'] = 1
+
+    fobj = io.BytesIO()
+    ext.write_to(fobj)
+    assert fobj.getvalue() == b'\x20\x00\x00\x00\x00\x00\x00\x00{"val": 1}' + bytes(14)
+
+
 def test_extension_codes():
     for k in extension_codes.keys():
         Nifti1Extension(k, 'somevalue')
