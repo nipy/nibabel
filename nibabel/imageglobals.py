@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Defaults for images and headers
+"""Defaults for images and headers
 
 error_level is the problem level (see BatteryRunners) at which an error will be
 raised, by the batteryrunners ``log_raise`` method.  Thus a level of 0 will
@@ -31,9 +31,8 @@ logger = logging.getLogger('nibabel.global')
 logger.addHandler(logging.StreamHandler())
 
 
-class ErrorLevel(object):
-    """ Context manager to set log error level
-    """
+class ErrorLevel:
+    """Context manager to set log error level"""
 
     def __init__(self, level):
         self.level = level
@@ -49,7 +48,7 @@ class ErrorLevel(object):
         return False
 
 
-class LoggingOutputSuppressor(object):
+class LoggingOutputSuppressor:
     """Context manager to prevent global logger from printing"""
 
     def __enter__(self):

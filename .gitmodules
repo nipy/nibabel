@@ -19,3 +19,6 @@
 [submodule "nibabel-data/nitest-dicom"]
 	path = nibabel-data/nitest-dicom
 	url = https://github.com/effigies/nitest-dicom
+[submodule "nibabel-data/dcm_qa_xa30"]
+	path = nibabel-data/dcm_qa_xa30
+	url = https://github.com/neurolabusc/dcm_qa_xa30.git

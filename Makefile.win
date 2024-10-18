@@ -1,6 +1,6 @@
 # Makefile NiBabel under Windows using a standard Python distribution
 
-installer: 
+installer:
 	# now the installer
 	python setup.py bdist_wininst
 

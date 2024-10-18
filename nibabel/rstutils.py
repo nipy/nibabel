@@ -1,4 +1,4 @@
-""" ReStructured Text utilities
+"""ReStructured Text utilities
 
 * Make ReST table given array of values
 """
@@ -6,14 +6,15 @@
 import numpy as np
 
 
-def rst_table(cell_values,
-              row_names=None,
-              col_names=None,
-              title='',
-              val_fmt='{0:5.2f}',
-              format_chars=None
-              ):
-    """ Return string for ReST table with entries `cell_values`
+def rst_table(
+    cell_values,
+    row_names=None,
+    col_names=None,
+    title='',
+    val_fmt='{0:5.2f}',
+    format_chars=None,
+):
+    """Return string for ReST table with entries `cell_values`
 
     Parameters
     ----------
@@ -82,36 +83,35 @@ def rst_table(cell_values,
         if max_len > col_len:
             col_len = max_len
         row_str_list.append(row_strs)
-    row_name_fmt = "{0:<" + str(row_len) + "}"
+    row_name_fmt = '{0:<' + str(row_len) + '}'
     row_names = [row_name_fmt.format(name) for name in row_names]
-    col_name_fmt = "{0:^" + str(col_len) + "}"
+    col_name_fmt = '{0:^' + str(col_len) + '}'
     col_names = [col_name_fmt.format(name) for name in col_names]
     col_headings = [' ' * row_len] + col_names
     col_header = down_joiner.join(col_headings)
     row_val_fmt = '{0:<' + str(col_len) + '}'
     table_strs = []
     if title != '':
-        table_strs += [title_heading * len(title),
-                       title,
-                       title_heading * len(title),
-                       '']
+        table_strs += [
+            title_heading * len(title),
+            title,
+            title_heading * len(title),
+            '',
+        ]
     along_headings = [along * len(h) for h in col_headings]
-    crossed_line = (cross_starter +
-                    cross_joiner.join(along_headings) +
-                    cross_ender)
+    crossed_line = cross_starter + cross_joiner.join(along_headings) + cross_ender
     thick_long_headings = [thick_long * len(h) for h in col_headings]
-    crossed_thick_line = (cross_thick_starter +
-                          cross_thick_joiner.join(thick_long_headings) +
-                          cross_thick_ender)
-    table_strs += [crossed_line,
-                   down_starter + col_header + down_ender,
-                   crossed_thick_line]
+    crossed_thick_line = (
+        cross_thick_starter + cross_thick_joiner.join(thick_long_headings) + cross_thick_ender
+    )
+    table_strs += [
+        crossed_line,
+        down_starter + col_header + down_ender,
+        crossed_thick_line,
+    ]
     for row_no, row_name in enumerate(row_names):
-        row_vals = [row_val_fmt.format(row_str)
-                    for row_str in row_str_list[row_no]]
-        row_line = (down_starter +
-                    down_joiner.join([row_name] + row_vals) +
-                    down_ender)
+        row_vals = [row_val_fmt.format(row_str) for row_str in row_str_list[row_no]]
+        row_line = down_starter + down_joiner.join([row_name] + row_vals) + down_ender
         table_strs.append(row_line)
     table_strs.append(crossed_line)
     return '\n'.join(table_strs)

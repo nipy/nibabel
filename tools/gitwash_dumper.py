@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-""" Checkout gitwash repo into directory and do search replace on name """
+"""Checkout gitwash repo into directory and do search replace on name"""
 
+import fnmatch
+import glob
 import os
-from os.path import join as pjoin
+import re
 import shutil
 import sys
-import re
-import glob
-import fnmatch
 import tempfile
-from subprocess import call
 from optparse import OptionParser
+from os.path import join as pjoin
+from subprocess import call
 
 verbose = False
 
@@ -51,9 +51,7 @@ def cp_files(in_path, globs, out_path):
 
 
 def filename_search_replace(sr_pairs, filename, backup=False):
-    """ Search and replace for expressions in files
-
-    """
+    """Search and replace for expressions in files"""
     in_txt = open(filename, 'rt').read(-1)
     out_txt = in_txt[:]
     for in_exp, out_exp in sr_pairs:
@@ -67,12 +65,9 @@ def filename_search_replace(sr_pairs, filename, backup=False):
     return True
 
 
-def copy_replace(replace_pairs,
-                 repo_path,
-                 out_path,
-                 cp_globs=('*',),
-                 rep_globs=('*',),
-                 renames = ()):
+def copy_replace(
+    replace_pairs, repo_path, out_path, cp_globs=('*',), rep_globs=('*',), renames=()
+):
     out_fnames = cp_files(repo_path, cp_globs, out_path)
     renames = [(re.compile(in_exp), out_exp) for in_exp, out_exp in renames]
     fnames = []
@@ -89,14 +84,10 @@ def copy_replace(replace_pairs,
                 break
 
 
-def make_link_targets(proj_name,
-                      user_name,
-                      repo_name,
-                      known_link_fname,
-                      out_link_fname,
-                      url=None,
-                      ml_url=None):
-    """ Check and make link targets
+def make_link_targets(
+    proj_name, user_name, repo_name, known_link_fname, out_link_fname, url=None, ml_url=None
+):
+    """Check and make link targets
 
     If url is None or ml_url is None, check if there are links present for these
     in `known_link_fname`.  If not, raise error.  The check is:
@@ -132,8 +123,7 @@ def make_link_targets(proj_name,
             if match:
                 have_gh_url = True
     if not have_url or not have_ml_url:
-        raise RuntimeError('Need command line or known project '
-                           'and / or mailing list URLs')
+        raise RuntimeError('Need command line or known project and / or mailing list URLs')
     lines = []
     if not url is None:
         lines.append(f'.. _{proj_name}: {url}\n')
@@ -168,32 +158,50 @@ GITWASH_BRANCH = 'master'
 def main():
     parser = OptionParser()
     parser.set_usage(parser.get_usage().strip() + USAGE)
-    parser.add_option("--repo-name", dest="repo_name",
-                      help="repository name - e.g. nitime",
-                      metavar="REPO_NAME")
-    parser.add_option("--github-user", dest="main_gh_user",
-                      help="github username for main repo - e.g fperez",
-                      metavar="MAIN_GH_USER")
-    parser.add_option("--gitwash-url", dest="gitwash_url",
-                      help=f"URL to gitwash repository - default {GITWASH_CENTRAL}", 
-                      default=GITWASH_CENTRAL,
-                      metavar="GITWASH_URL")
-    parser.add_option("--gitwash-branch", dest="gitwash_branch",
-                      help=f"branch in gitwash repository - default {GITWASH_BRANCH}",
-                      default=GITWASH_BRANCH,
-                      metavar="GITWASH_BRANCH")
-    parser.add_option("--source-suffix", dest="source_suffix",
-                      help="suffix of ReST source files - default '.rst'",
-                      default='.rst',
-                      metavar="SOURCE_SUFFIX")
-    parser.add_option("--project-url", dest="project_url",
-                      help="URL for project web pages",
-                      default=None,
-                      metavar="PROJECT_URL")
-    parser.add_option("--project-ml-url", dest="project_ml_url",
-                      help="URL for project mailing list",
-                      default=None,
-                      metavar="PROJECT_ML_URL")
+    parser.add_option(
+        '--repo-name', dest='repo_name', help='repository name - e.g. nitime', metavar='REPO_NAME'
+    )
+    parser.add_option(
+        '--github-user',
+        dest='main_gh_user',
+        help='github username for main repo - e.g fperez',
+        metavar='MAIN_GH_USER',
+    )
+    parser.add_option(
+        '--gitwash-url',
+        dest='gitwash_url',
+        help=f'URL to gitwash repository - default {GITWASH_CENTRAL}',
+        default=GITWASH_CENTRAL,
+        metavar='GITWASH_URL',
+    )
+    parser.add_option(
+        '--gitwash-branch',
+        dest='gitwash_branch',
+        help=f'branch in gitwash repository - default {GITWASH_BRANCH}',
+        default=GITWASH_BRANCH,
+        metavar='GITWASH_BRANCH',
+    )
+    parser.add_option(
+        '--source-suffix',
+        dest='source_suffix',
+        help="suffix of ReST source files - default '.rst'",
+        default='.rst',
+        metavar='SOURCE_SUFFIX',
+    )
+    parser.add_option(
+        '--project-url',
+        dest='project_url',
+        help='URL for project web pages',
+        default=None,
+        metavar='PROJECT_URL',
+    )
+    parser.add_option(
+        '--project-ml-url',
+        dest='project_ml_url',
+        help='URL for project mailing list',
+        default=None,
+        metavar='PROJECT_ML_URL',
+    )
     (options, args) = parser.parse_args()
     if len(args) < 2:
         parser.print_help()
@@ -205,21 +213,27 @@ def main():
         options.main_gh_user = options.repo_name
     repo_path = clone_repo(options.gitwash_url, options.gitwash_branch)
     try:
-        copy_replace((('PROJECTNAME', project_name),
-                      ('REPONAME', options.repo_name),
-                      ('MAIN_GH_USER', options.main_gh_user)),
-                     repo_path,
-                     out_path,
-                     cp_globs=(pjoin('gitwash', '*'),),
-                     rep_globs=('*.rst',),
-                     renames=(('\.rst$', options.source_suffix),))
-        make_link_targets(project_name,
-                          options.main_gh_user,
-                          options.repo_name,
-                          pjoin(out_path, 'gitwash', 'known_projects.inc'),
-                          pjoin(out_path, 'gitwash', 'this_project.inc'),
-                          options.project_url,
-                          options.project_ml_url)
+        copy_replace(
+            (
+                ('PROJECTNAME', project_name),
+                ('REPONAME', options.repo_name),
+                ('MAIN_GH_USER', options.main_gh_user),
+            ),
+            repo_path,
+            out_path,
+            cp_globs=(pjoin('gitwash', '*'),),
+            rep_globs=('*.rst',),
+            renames=((r'\.rst$', options.source_suffix),),
+        )
+        make_link_targets(
+            project_name,
+            options.main_gh_user,
+            options.repo_name,
+            pjoin(out_path, 'gitwash', 'known_projects.inc'),
+            pjoin(out_path, 'gitwash', 'this_project.inc'),
+            options.project_url,
+            options.project_ml_url,
+        )
     finally:
         shutil.rmtree(repo_path)
 

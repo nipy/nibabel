@@ -1,1 +1,2 @@
-nibabel/_version.py export-subst
+.git_archival.txt export-subst
+nibabel/pkg_info.py export-subst

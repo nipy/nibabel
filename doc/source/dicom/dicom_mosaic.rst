@@ -17,7 +17,7 @@ with something like::
    import dicom
    dcm_data = dicom.read_file('my_file.dcm')
    plt.imshow(dcm_data.pixel_array)
-   
+
 .. image:: mosaic_grid.png
 
 Getting the slices from the mosaic
@@ -83,7 +83,7 @@ rd_{cols})$ and the mosaic dimensions are $(md_{rows}, md_{cols})$.  The
 
 .. math::
 
-   \mathbf{i} = \mathbf{c} + RS 
+   \mathbf{i} = \mathbf{c} + RS
       \begin{bmatrix} -(md_{rows}-1) / 2\\
                       -(md_{cols}-1) / 2\\
                       0 \end{bmatrix}
@@ -94,7 +94,7 @@ the true image position $\mathbf{t}$:
 
 .. math::
 
-   \mathbf{t} = \mathbf{i} - 
+   \mathbf{t} = \mathbf{i} -
                 (RS \begin{bmatrix} -(md_{rows}-1) / 2\\
                                     -(md_{cols}-1) / 2\\
                                      0 \end{bmatrix}) +
@@ -106,11 +106,11 @@ Because of the final zero in the voxel translations, this simplifies to:
 
 .. math::
 
-   \mathbf{t} = \mathbf{i} + 
+   \mathbf{t} = \mathbf{i} +
                 Q \begin{bmatrix} (md_{rows} - rd_{rowss}) / 2 \\
                                   (md_{cols} - rd_{cols}) / 2 \end{bmatrix}
 
-where: 
+where:
 
 .. math::
 

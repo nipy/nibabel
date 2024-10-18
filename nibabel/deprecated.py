@@ -1,14 +1,19 @@
-""" Module to help with deprecating objects and classes
-"""
+"""Module to help with deprecating objects and classes"""
 
+from __future__ import annotations
+
+import typing as ty
 import warnings
 
 from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
 
+if ty.TYPE_CHECKING:
+    P = ty.ParamSpec('P')
 
-class ModuleProxy(object):
-    """ Proxy for module that may not yet have been imported
+
+class ModuleProxy:
+    """Proxy for module that may not yet have been imported
 
     Parameters
     ----------
@@ -28,23 +33,23 @@ class ModuleProxy(object):
     module.
     """
 
-    def __init__(self, module_name):
+    def __init__(self, module_name: str) -> None:
         self._module_name = module_name
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> ty.Any:
         mod = __import__(self._module_name, fromlist=[''])
         return getattr(mod, key)
 
-    def __repr__(self):
-        return f"<module proxy for {self._module_name}>"
+    def __repr__(self) -> str:
+        return f'<module proxy for {self._module_name}>'
 
 
-class FutureWarningMixin(object):
-    """ Insert FutureWarning for object creation
+class FutureWarningMixin:
+    """Insert FutureWarning for object creation
 
     Examples
     --------
-    >>> class C(object): pass
+    >>> class C: pass
     >>> class D(FutureWarningMixin, C):
     ...     warn_message = "Please, don't use this class"
 
@@ -55,17 +60,16 @@ class FutureWarningMixin(object):
     ...     warns[0].message.args[0]
     "Please, don't use this class"
     """
+
     warn_message = 'This class will be removed in future versions'
 
-    def __init__(self, *args, **kwargs):
-        warnings.warn(self.warn_message,
-                      FutureWarning,
-                      stacklevel=2)
-        super(FutureWarningMixin, self).__init__(*args, **kwargs)
+    def __init__(self, *args: P.args, **kwargs: P.kwargs) -> None:
+        warnings.warn(self.warn_message, FutureWarning, stacklevel=2)
+        super().__init__(*args, **kwargs)
 
 
 class VisibleDeprecationWarning(UserWarning):
-    """ Deprecation warning that will be shown by default
+    """Deprecation warning that will be shown by default
 
     Python >= 2.7 does not show standard DeprecationWarnings by default:
 
@@ -73,7 +77,45 @@ class VisibleDeprecationWarning(UserWarning):
 
     Use this class for cases where we do want to show deprecations by default.
     """
+
     pass
 
 
 deprecate_with_version = Deprecator(cmp_pkg_version)
+
+
+def alert_future_error(
+    msg: str,
+    version: str,
+    *,
+    warning_class: type[Warning] = FutureWarning,
+    error_class: type[Exception] = RuntimeError,
+    warning_rec: str = '',
+    error_rec: str = '',
+    stacklevel: int = 2,
+) -> None:
+    """Warn or error with appropriate messages for changing functionality.
+
+    Parameters
+    ----------
+    msg : str
+        Description of the condition that led to the alert
+    version : str
+        NiBabel version at which the warning will become an error
+    warning_class : subclass of Warning, optional
+        Warning class to emit before version
+    error_class : subclass of Exception, optional
+        Error class to emit after version
+    warning_rec : str, optional
+        Guidance for suppressing the warning and avoiding the future error
+    error_rec: str, optional
+        Guidance for resolving the error
+    stacklevel: int, optional
+        Warnings stacklevel to provide; note that this will be incremented by
+        1, so provide the stacklevel you would provide directly to warnings.warn()
+    """
+    if cmp_pkg_version(version) > 0:
+        msg = f'{msg} This will error in NiBabel {version}. {warning_rec}'
+        warnings.warn(msg.strip(), warning_class, stacklevel=stacklevel + 1)
+    else:
+        raise error_class(f'{msg} {error_rec}'.strip())

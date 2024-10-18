@@ -21,4 +21,5 @@ progress.
 
     spm_use
     modified_images
-    data_pkg_design
+    scaling
+    bv_formats

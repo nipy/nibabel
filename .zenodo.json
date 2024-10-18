@@ -26,6 +26,11 @@
       "orcid": "0000-0002-7782-0790"
     },
     {
+      "affiliation": "CEA",
+      "name": "Papadopoulos Orfanos, Dimitri",
+      "orcid": "0000-0002-1242-8990"
+    },
+    {
       "name": "McCarthy, Paul"
     },
     {
@@ -39,6 +44,11 @@
       "orcid": "0000-0001-9112-9464"
     },
     {
+      "affiliation": "University of Washington: Seattle, WA, United States",
+      "name": "Larson, Eric",
+      "orcid": "0000-0003-4782-5360"
+    },
+    {
       "affiliation": "Dartmouth College: Hanover, NH, United States",
       "name": "Halchenko, Yaroslav O.",
       "orcid": "0000-0003-3456-2493"
@@ -47,11 +57,6 @@
       "affiliation": "Wellcome Centre for Integrative Neuroimaging, University of Oxford, UK",
       "name": "Cottaar, Michiel",
       "orcid": "0000-0003-4679-7724"
-    },
-    {
-      "affiliation": "University of Washington: Seattle, WA, United States",
-      "name": "Larson, Eric",
-      "orcid": "0000-0003-4782-5360"
     },
     {
       "affiliation": "MIT, HMS",
@@ -72,6 +77,13 @@
       "affiliation": "Deptartment of Radiology, University of Cincinnati College of Medicine, Cincinnati, OH",
       "name": "Lee, Gregory R.",
       "orcid": "0000-0001-8895-2740"
+    },
+    {
+      "name": "Baratz, Zvi",
+      "orcid": "0000-0001-7159-1387"
+    },
+    {
+      "name": "Moloney, Brendan"
     },
     {
       "name": "Wang, Hao-Ting",
@@ -104,10 +116,15 @@
       "orcid": "0000-0003-0679-1985"
     },
     {
+      "affiliation": "Human Neuroscience Platform, Fondation Campus Biotech Geneva, Geneva, Switzerland",
+      "name": "Mathieu Scheltienne",
+      "orcid": "0000-0001-8316-7436"
+    },
+    {
       "name": "Madison, Cindee"
     },
     {
-      "name": "Moloney, Brendan"
+      "name": "S\u00f3lon, Anibal"
     },
     {
       "name": "Morency, F\u00e9lix C."
@@ -126,9 +143,6 @@
       "affiliation": "Department of Psychology, University of California Davis, CA, USA",
       "name": "Riddell, Cameron",
       "orcid": "0000-0001-8950-0375"
-    },
-    {
-      "name": "S\u00f3lon, Anibal"
     },
     {
       "name": "Burns, Christopher"
@@ -161,12 +175,12 @@
       "name": "Subramaniam, Krish"
     },
     {
-      "affiliation": "CEA",
-      "name": "Papadopoulos Orfanos, Dimitri",
-      "orcid": "0000-0002-1242-8990"
+      "name": "Van, Andrew"
     },
     {
-      "name": "Van, Andrew"
+      "affiliation": "Brigham and Women's Hospital, Mass General Brigham/Harvard Medical School",
+      "name": "Legarreta, Jon Haitz",
+      "orcid": "0000-0002-9661-1396"
     },
     {
       "affiliation": "Google",
@@ -184,12 +198,18 @@
       "orcid": "0000-0002-4849-9811"
     },
     {
+      "name": "Vos de Wael, Reinder"
+    },
+    {
       "affiliation": "SRI International",
       "name": "Nichols, B. Nolan",
       "orcid": "0000-0003-1099-3328"
     },
     {
       "name": "Baker, Eric M."
+    },
+    {
+      "name": "Koudoro, Serge"
     },
     {
       "name": "Hayashi, Soichi"
@@ -209,12 +229,12 @@
       "orcid": "0000-0001-8435-6191"
     },
     {
-      "name": "Koudoro, Serge"
-    },
-    {
       "affiliation": "University College London",
       "name": "P\u00e9rez-Garc\u00eda, Fernando",
       "orcid": "0000-0001-9090-3024"
+    },
+    {
+      "name": "Becq, Guillaume"
     },
     {
       "name": "Dock\u00e8s, J\u00e9r\u00f4me"
@@ -226,10 +246,16 @@
       "name": "Amirbekian, Bago"
     },
     {
+      "name": "Christian, Horea"
+    },
+    {
       "name": "Nimmo-Smith, Ian"
     },
     {
       "name": "Nguyen, Ly"
+    },
+    {
+      "name": "Suter, Peter"
     },
     {
       "affiliation": "BrainSpec, Boston, MA",
@@ -252,9 +278,9 @@
       "orcid": "0000-0003-1076-5122"
     },
     {
-      "affiliation": "Universit\u00e9 de Sherbrooke",
-      "name": "Legarreta, Jon Haitz",
-      "orcid": "0000-0002-9661-1396"
+      "affiliation": "Polytechnique Montr\u00e9al, Montr\u00e9al, CA",
+      "name": "Newton, Joshua",
+      "orcid": "0009-0005-6963-3812"
     },
     {
       "name": "Hahn, Kevin S."
@@ -268,7 +294,16 @@
       "name": "Hinds, Oliver P."
     },
     {
+      "name": "Sandro"
+    },
+    {
       "name": "Fauber, Bennet"
+    },
+    {
+      "name": "Dewey, Blake"
+    },
+    {
+      "name": "Perez, Fabian"
     },
     {
       "name": "Roberts, Jacob"
@@ -304,9 +339,6 @@
     },
     {
       "name": "Schwartz, Yannick"
-    },
-    {
-      "name": "Baratz, Zvi"
     },
     {
       "affiliation": "Hospital for Sick Children",

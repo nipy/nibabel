@@ -2,10 +2,10 @@
 Check that loading an image does not use up filehandles.
 """
 
-from os.path import join as pjoin
 import shutil
-from tempfile import mkdtemp
 import unittest
+from os.path import join as pjoin
+from tempfile import mkdtemp
 
 import numpy as np
 
@@ -21,7 +21,7 @@ from ..loadsave import load, save
 from ..nifti1 import Nifti1Image
 
 
-@unittest.skipIf(SOFT_LIMIT > 4900, "It would take too long to test filehandles")
+@unittest.skipIf(SOFT_LIMIT > 4900, 'It would take too long to test filehandles')
 def test_multiload():
     # Make a tiny image, save, load many times.  If we are leaking filehandles,
     # this will cause us to run out and generate an error
@@ -33,8 +33,7 @@ def test_multiload():
         tmpdir = mkdtemp()
         fname = pjoin(tmpdir, 'test.img')
         save(img, fname)
-        for i in range(N):
-            imgs.append(load(fname))
+        imgs.extend(load(fname) for _ in range(N))
     finally:
         del img, imgs
         shutil.rmtree(tmpdir)

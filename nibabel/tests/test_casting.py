@@ -1,23 +1,30 @@
-""" Test casting utilities
-"""
+"""Test casting utilities"""
+
 import os
-
 from platform import machine
+
 import numpy as np
-
-from ..casting import (float_to_int, shared_range, CastingError, int_to_float,
-                       as_int, int_abs, floor_log2, able_int_type, best_float,
-                       ulp, longdouble_precision_improved)
-from ..testing import suppress_warnings
-
-from numpy.testing import (assert_array_almost_equal, assert_array_equal)
-
 import pytest
+from numpy.testing import assert_array_equal
+
+from ..casting import (
+    CastingError,
+    able_int_type,
+    best_float,
+    float_to_int,
+    floor_log2,
+    int_abs,
+    longdouble_precision_improved,
+    sctypes,
+    shared_range,
+    ulp,
+)
+from ..testing import suppress_warnings
 
 
 def test_shared_range():
-    for ft in np.sctypes['float']:
-        for it in np.sctypes['int'] + np.sctypes['uint']:
+    for ft in sctypes['float']:
+        for it in sctypes['int'] + sctypes['uint']:
             # Test that going a bit above or below the calculated min and max
             # either generates the same number when cast, or the max int value
             # (if this system generates that) or something smaller (because of
@@ -33,7 +40,7 @@ def test_shared_range():
             if casted_mx != imax:
                 # The shared_range have told us that they believe the imax does
                 # not have an exact representation.
-                fimax = int_to_float(imax, ft)
+                fimax = ft(imax)
                 if np.isfinite(fimax):
                     assert int(fimax) != imax
                 # Therefore the imax, cast back to float, and to integer, will
@@ -45,8 +52,8 @@ def test_shared_range():
             if thresh_overflow:
                 assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
-                assert np.all((bit_bigger <= casted_mx))
-            if it in np.sctypes['uint']:
+                assert np.all(bit_bigger <= casted_mx)
+            if it in sctypes['uint']:
                 assert mn == 0
                 continue
             # And something larger for the minimum
@@ -59,7 +66,7 @@ def test_shared_range():
             if casted_mn != imin:
                 # The shared_range have told us that they believe the imin does
                 # not have an exact representation.
-                fimin = int_to_float(imin, ft)
+                fimin = ft(imin)
                 if np.isfinite(fimin):
                     assert int(fimin) != imin
                 # Therefore the imin, cast back to float, and to integer, will
@@ -71,7 +78,7 @@ def test_shared_range():
             if thresh_overflow:
                 assert np.all((bit_smaller == casted_mn) | (bit_smaller == imin))
             else:
-                assert np.all((bit_smaller >= casted_mn))
+                assert np.all(bit_smaller >= casted_mn)
 
 
 def test_shared_range_inputs():
@@ -82,8 +89,8 @@ def test_shared_range_inputs():
 
 
 def test_casting():
-    for ft in np.sctypes['float']:
-        for it in np.sctypes['int'] + np.sctypes['uint']:
+    for ft in sctypes['float']:
+        for it in sctypes['int'] + sctypes['uint']:
             ii = np.iinfo(it)
             arr = [ii.min - 1, ii.max + 1, -np.inf, np.inf, np.nan, 0.2, 10.6]
             farr_orig = np.array(arr, dtype=ft)
@@ -92,11 +99,6 @@ def test_casting():
             mn, mx = shared_range(ft, it)
             with np.errstate(invalid='ignore'):
                 iarr = float_to_int(farr, it)
-            # Dammit - for long doubles we need to jump through some hoops not
-            # to round to numbers outside the range
-            if ft is np.longdouble:
-                mn = as_int(mn)
-                mx = as_int(mx)
             exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11], dtype=it)
             assert_array_equal(iarr, exp_arr)
             # Now test infmax version
@@ -132,7 +134,7 @@ def test_casting():
 
 
 def test_int_abs():
-    for itype in np.sctypes['int']:
+    for itype in sctypes['int']:
         info = np.iinfo(itype)
         in_arr = np.array([info.min, info.max], dtype=itype)
         idtype = np.dtype(itype)
@@ -140,7 +142,7 @@ def test_int_abs():
         assert udtype.kind == 'u'
         assert idtype.itemsize == udtype.itemsize
         mn, mx = in_arr
-        e_mn = as_int(mx) + 1  # as_int needed for numpy 1.4.1 casting
+        e_mn = int(mx) + 1
         assert int_abs(mx) == mx
         assert int_abs(mn) == e_mn
         assert_array_equal(int_abs(in_arr), [e_mn, mx])
@@ -148,7 +150,7 @@ def test_int_abs():
 
 def test_floor_log2():
     assert floor_log2(2**9 + 1) == 9
-    assert floor_log2(-2**9 + 1) == 8
+    assert floor_log2(-(2**9) + 1) == 8
     assert floor_log2(2) == 1
     assert floor_log2(1) == 0
     assert floor_log2(0.5) == -1
@@ -159,27 +161,28 @@ def test_floor_log2():
 
 
 def test_able_int_type():
-    # The integer type cabable of containing values
+    # The integer type capable of containing values
     for vals, exp_out in (
-            ([0, 1], np.uint8),
-            ([0, 255], np.uint8),
-            ([-1, 1], np.int8),
-            ([0, 256], np.uint16),
-            ([-1, 128], np.int16),
-            ([0.1, 1], None),
-            ([0, 2**16], np.uint32),
-            ([-1, 2**15], np.int32),
-            ([0, 2**32], np.uint64),
-            ([-1, 2**31], np.int64),
-            ([-1, 2**64 - 1], None),
-            ([0, 2**64 - 1], np.uint64),
-            ([0, 2**64], None)):
+        ([0, 1], np.uint8),
+        ([0, 255], np.uint8),
+        ([-1, 1], np.int8),
+        ([0, 256], np.uint16),
+        ([-1, 128], np.int16),
+        ([0.1, 1], None),
+        ([0, 2**16], np.uint32),
+        ([-1, 2**15], np.int32),
+        ([0, 2**32], np.uint64),
+        ([-1, 2**31], np.int64),
+        ([-1, 2**64 - 1], None),
+        ([0, 2**64 - 1], np.uint64),
+        ([0, 2**64], None),
+    ):
         assert able_int_type(vals) == exp_out
 
 
 def test_able_casting():
     # Check the able_int_type function guesses numpy out type
-    types = np.sctypes['int'] + np.sctypes['uint']
+    types = sctypes['int'] + sctypes['uint']
     for in_type in types:
         in_info = np.iinfo(in_type)
         in_mn, in_mx = in_info.min, in_info.max
@@ -200,7 +203,7 @@ def test_able_casting():
 
 def test_best_float():
     # Finds the most capable floating point type
-    """ most capable type will be np.longdouble except when
+    """most capable type will be np.longdouble except when
 
     * np.longdouble has float64 precision (MSVC compiled numpy)
     * machine is sparc64 (float128 very slow)
@@ -213,18 +216,26 @@ def test_best_float():
     assert end_of_ints == end_of_ints + 1
     # longdouble may have more, but not on 32 bit windows, at least
     end_of_ints = np.longdouble(2**53)
-    if (end_of_ints == (end_of_ints + 1) or  # off continuous integers
-            machine() == 'sparc64' or  # crippling slow longdouble on sparc
-            longdouble_precision_improved()):  # Windows precisions can change
+    if (
+        end_of_ints == (end_of_ints + 1)
+        or machine() == 'sparc64'  # off continuous integers
+        or longdouble_precision_improved()  # crippling slow longdouble on sparc
+    ):  # Windows precisions can change
         assert best == np.float64
     else:
         assert best == np.longdouble
 
 
 def test_longdouble_precision_improved():
-    # Just check that this can only be True on windows, msvc
-    from numpy.distutils.ccompiler import get_default_compiler
-    if not (os.name == 'nt' and get_default_compiler() == 'msvc'):
+    # Just check that this can only be True on Windows
+
+    # This previously used distutils.ccompiler.get_default_compiler to check for msvc
+    # In https://github.com/python/cpython/blob/3467991/Lib/distutils/ccompiler.py#L919-L956
+    # we see that this was implied by os.name == 'nt', so we can remove this deprecated
+    # call.
+    # However, there may be detectable conditions in Windows where we would expect this
+    # to be False as well.
+    if os.name != 'nt':
         assert not longdouble_precision_improved()
 
 
@@ -248,8 +259,8 @@ def test_ulp():
     assert np.isnan(ulp(-np.inf))
     assert np.isnan(ulp(np.nan))
     # 0 gives subnormal smallest
-    subn64 = np.float64(2**(-1022 - 52))
-    subn32 = np.float32(2**(-126 - 23))
+    subn64 = np.float64(2 ** (-1022 - 52))
+    subn32 = np.float32(2 ** (-126 - 23))
     assert ulp(0.0) == subn64
     assert ulp(np.float64(0)) == subn64
     assert ulp(np.float32(0)) == subn32

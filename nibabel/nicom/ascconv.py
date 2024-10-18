@@ -3,22 +3,23 @@
 """
 Parse the "ASCCONV" meta data format found in a variety of Siemens MR files.
 """
-import re
-import ast
-from collections import OrderedDict
 
+import ast
+import re
+from collections import OrderedDict
 
 ASCCONV_RE = re.compile(
     r'### ASCCONV BEGIN((?:\s*[^=\s]+=[^=\s]+)*) ###\n(.*?)\n### ASCCONV END ###',
-    flags=re.M | re.S)
+    flags=re.MULTILINE | re.DOTALL,
+)
 
 
 class AscconvParseError(Exception):
-    """ Error parsing ascconv file """
+    """Error parsing ascconv file"""
 
 
 class Atom:
-    """ Object to hold operation, object type and object identifier
+    """Object to hold operation, object type and object identifier
 
     An atom represents an element in an expression.  For example::
 
@@ -55,11 +56,11 @@ class Atom:
 
 
 class NoValue:
-    """ Signals no value present """
+    """Signals no value present"""
 
 
 def assign2atoms(assign_ast, default_class=int):
-    """ Parse single assignment ast from ascconv line into atoms
+    """Parse single assignment ast from ascconv line into atoms
 
     Parameters
     ----------
@@ -89,10 +90,7 @@ def assign2atoms(assign_ast, default_class=int):
             target = target.value
             prev_target_type = OrderedDict
         elif isinstance(target, ast.Subscript):
-            if isinstance(target.slice, ast.Constant):  # PY39
-                index = target.slice.n
-            else:  # PY38
-                index = target.slice.value.n
+            index = target.slice.value
             atoms.append(Atom(target, prev_target_type, index))
             target = target.value
             prev_target_type = list
@@ -102,7 +100,7 @@ def assign2atoms(assign_ast, default_class=int):
 
 
 def _create_obj_in(atom, root):
-    """ Find / create object defined in `atom` in dict-like given by `root`
+    """Find / create object defined in `atom` in dict-like given by `root`
 
     Returns corresponding value if there is already a key matching
     `atom.obj_id` in `root`.
@@ -122,7 +120,7 @@ def _create_obj_in(atom, root):
 
 
 def _create_subscript_in(atom, root):
-    """ Find / create and insert object defined by `atom` from list `root`
+    """Find / create and insert object defined by `atom` from list `root`
 
     The `atom` has an index, defined in ``atom.obj_id``.  If `root` is long
     enough to contain this index, return the object at that index.  Otherwise,
@@ -142,7 +140,7 @@ def _create_subscript_in(atom, root):
 
 
 def obj_from_atoms(atoms, namespace):
-    """ Return object defined by list `atoms` in dict-like `namespace`
+    """Return object defined by list `atoms` in dict-like `namespace`
 
     Parameters
     ----------
@@ -167,24 +165,21 @@ def obj_from_atoms(atoms, namespace):
         else:
             root_obj = _create_subscript_in(el, root_obj)
         if not isinstance(root_obj, el.obj_type):
-            raise AscconvParseError(
-                f'Unexpected type for {el.obj_id} in {prev_root}')
+            raise AscconvParseError(f'Unexpected type for {el.obj_id} in {prev_root}')
     return prev_root, el.obj_id
 
 
 def _get_value(assign):
     value = assign.value
-    if isinstance(value, ast.Num):
-        return value.n
-    if isinstance(value, ast.Str):
-        return value.s
+    if isinstance(value, ast.Constant):
+        return value.value
     if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub):
-        return -value.operand.n
+        return -value.operand.value
     raise AscconvParseError(f'Unexpected RHS of assignment: {value}')
 
 
 def parse_ascconv(ascconv_str, str_delim='"'):
-    '''Parse the 'ASCCONV' format from `input_str`.
+    """Parse the 'ASCCONV' format from `input_str`.
 
     Parameters
     ----------
@@ -204,11 +199,11 @@ def parse_ascconv(ascconv_str, str_delim='"'):
     ------
     AsconvParseError
         A line of the ASCCONV section could not be parsed.
-    '''
+    """
     attrs, content = ASCCONV_RE.match(ascconv_str).groups()
-    attrs = OrderedDict((tuple(x.split('=')) for x in attrs.split()))
+    attrs = OrderedDict(tuple(x.split('=')) for x in attrs.split())
     # Normalize string start / end markers to something Python understands
-    content = content.replace(str_delim, '"""').replace("\\", "\\\\")
+    content = content.replace(str_delim, '"""').replace('\\', '\\\\')
     # Use Python's own parser to parse modified ASCCONV assignments
     tree = ast.parse(content)
 

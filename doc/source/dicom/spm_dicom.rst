@@ -5,7 +5,7 @@
 ======================
 
 These are some notes on the algorithms that SPM_ uses to convert from
-DICOM_ to nifti_.  There are other notes in :ref:`dicom-mosaic`. 
+DICOM_ to nifti_.  There are other notes in :ref:`dicom-mosaic`.
 
 The relevant SPM files are ``spm_dicom_headers.m``,
 ``spm_dicom_dict.mat`` and ``spm_dicom_convert.m``.  These notes refer
@@ -29,7 +29,7 @@ written by John Ahsburner (JA).  Relevant fixes are:
 File opening
 ------------
 
-When opening the DICOM file, SPM (subfunction ``readdicomfile``) 
+When opening the DICOM file, SPM (subfunction ``readdicomfile``)
 
 #. opens as little endian
 #. reads 4 characters starting at pos 128
@@ -76,12 +76,12 @@ explicit (as in 'explicit little endian'):
 
 There's a check for not-even tag length.  If not even:
 
-#. 4294967295 appears to be OK - and decoded as Inf for tag length. 
+#. 4294967295 appears to be OK - and decoded as Inf for tag length.
 #. 13 appears to mean 10 and is reset to be 10
 #. Any other odd number is not valid and gives a tag length of 0
 
-``SQ`` VR type (Sequnce of items type)
---------------------------------------
+``SQ`` VR type (Sequence of items type)
+---------------------------------------
 
 tag length of 13 set to tag length 10.
 
@@ -89,7 +89,7 @@ tag length of 13 set to tag length 10.
 ``spm_dicom_convert.m``
 =======================
 
-Written by John Ashburner and Jesper Andersson. 
+Written by John Ashburner and Jesper Andersson.
 
 File categorization
 -------------------
@@ -97,7 +97,7 @@ File categorization
 SPM makes a special case of Siemens 'spectroscopy images'.  These are
 images that have 'SOPClassUID' == '1.3.12.2.1107.5.9.1' and the private
 tag of (29, 1210); for these it pulls out the affine, and writes a
-volume of ones corresponding to the acquisition planes. 
+volume of ones corresponding to the acquisition planes.
 
 For images that are not spectroscopy:
 
@@ -111,7 +111,7 @@ For images that are not spectroscopy:
 * Fields 'SeriesNumber', 'AcquisitionNumber' and 'InstanceNumber' are
   set to 1 if absent.
 
-Next SPM distinguishes between :ref:`dicom-mosaic` and standard DICOM. 
+Next SPM distinguishes between :ref:`dicom-mosaic` and standard DICOM.
 
 Mosaic images are those with the Siemens private tag::
 
@@ -140,7 +140,7 @@ Take first header, put as start of first volume.   For each subsequent header:
    field in form of 9 integers separated by '_', where 'X' in this
    string replaced by '-1' - giving 'ICE1'
 
-Then, for each currently identified volume: 
+Then, for each currently identified volume:
 
 #. If we have ICE1 above, and we do have 'CSAIMageHeaderInfo', with a
    'name', in the first header in this volume, then extract ICE dims in
@@ -180,7 +180,7 @@ For each volume:
 #. For each header in this volume, get the z coordinate by taking the
    dot product of the 'ImagePositionPatient' vector and ``z_dir_cos``
    (see :ref:`dicom-z-from-slice`).
-#. Sort the headers according to this estimated z coordinate. 
+#. Sort the headers according to this estimated z coordinate.
 #. If this volume is more than one slice, and there are any slices with
    the same z coordinate (as defined above), run the
    :ref:`dicom-img-resort` on this volume - on the basis that it may
@@ -214,7 +214,7 @@ that the routine is still working on - ``work_list``.
    for making filenames.
 #. Calculate the z coordinate as for :ref:`spm-second-pass`, for each
    DICOM header.
-#. Sort the headers by 'InstanceNumber' 
+#. Sort the headers by 'InstanceNumber'
 #. If any headers have the same 'InstanceNumber', then discard all but
    the first header with the same number.  At this point the remaining
    headers in ``work_list`` will have different 'InstanceNumber's, but
@@ -222,7 +222,7 @@ that the routine is still working on - ``work_list``.
 #. Now sort by z coordinate
 #. If there are ``N`` headers, make a ``N`` length vector of flags
    ``is_processed``, for which all values == False
-#. Make an output list of header lists, call it ``hdr_vol_out``, set to empty. 
+#. Make an output list of header lists, call it ``hdr_vol_out``, set to empty.
 #. While there are still any False elements in ``is_processed``:
 
    #. Find first header for which corresponding ``is_processed`` is
@@ -236,7 +236,7 @@ that the routine is still working on - ``work_list``.
       corresponding to ``zsind`` to ``hdr_vol_out[i]``.  This assumes
       that the original ``work_list`` contained two or more volumes,
       each with an identical set of z coordinates.
-   #. Set corresponding ``is_processed`` flag to True for all ``z_same_indices``. 
+   #. Set corresponding ``is_processed`` flag to True for all ``z_same_indices``.
 
 #. Finally, if the headers in ``work_list`` have 'InstanceNumber's that
    cannot be sorted to a sequence ascending in units of 1, or if any
@@ -269,7 +269,7 @@ Then define the following matrices:
 .. math::
 
    R = \left(\begin{smallmatrix}1 & a & 1 & 0\\1 & b & 0 & 1\\1 & c & 0 & 0\\1 & d & 0 & 0\end{smallmatrix}\right)
-   
+
    L = \left(\begin{smallmatrix}T^{1}_{{1}} & e & F_{{11}} \Delta{r} & F_{{12}} \Delta{c}\\T^{1}_{{2}} & f & F_{{21}} \Delta{r} & F_{{22}} \Delta{c}\\T^{1}_{{3}} & g & F_{{31}} \Delta{r} & F_{{32}} \Delta{c}\\1 & h & 0 & 0\end{smallmatrix}\right)
 
 For a volume with more than one slice (header), then $a=1; b=1, c=N, d=1$. $e, f, g$ are the values from $T^N$,

@@ -1,4 +1,4 @@
-""" Benchmarks for load and save of image arrays
+"""Benchmarks for load and save of image arrays
 
 Run benchmarks with::
 
@@ -11,16 +11,13 @@ Run this benchmark with::
 """
 
 import sys
-
-import numpy as np
-
 from io import BytesIO
 
-from .. import Nifti1Image
-
-from .butils import print_git_title
-
+import numpy as np
 from numpy.testing import measure
+
+from .. import Nifti1Image
+from .butils import print_git_title
 
 
 def bench_load_save():
@@ -34,7 +31,7 @@ def bench_load_save():
     hdr = img.header
     sys.stdout.flush()
     print()
-    print_git_title("Image load save")
+    print_git_title('Image load save')
     hdr.set_data_dtype(np.float32)
     mtime = measure('sio.truncate(0); img.to_file_map()', repeat)
     print('%30s %6.2f' % ('Save float64 to float32', mtime))

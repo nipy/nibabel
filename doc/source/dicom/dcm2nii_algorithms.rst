@@ -7,7 +7,7 @@
 dcm2nii_ is an open source DICOM_ to nifti_ conversion program, written
 by Chris Rorden, in Delphi (object orientated pascal).  It's part of
 Chris' popular mricron_ collection of programs.  The source appears to
-be best found on the `mricron NITRC site`_.  It's BSD_ licensed. 
+be best found on the `mricron NITRC site`_.  It's BSD_ licensed.
 
 .. _mricron NITRC site: https://www.nitrc.org/projects/mricron
 
@@ -18,7 +18,7 @@ Compiling dcm2nii
 =================
 
 Follow the download / install instructions at the
-http://www.lazarus.freepascal.org/ site.  I was on a Mac, and folowed the
+http://www.lazarus.freepascal.org/ site.  I was on a Mac, and followed the
 instructions here:
 http://wiki.lazarus.freepascal.org/Installing_Lazarus_on_MacOS_X .  Default
 build with version 0.9.28.2 gave an error linking against Carbon, so I needed to

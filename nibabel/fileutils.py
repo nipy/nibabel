@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Utilities for reading and writing to binary file formats
-"""
+"""Utilities for reading and writing to binary file formats"""
 
 
 def read_zt_byte_strings(fobj, n_strings=1, bufsize=1024):

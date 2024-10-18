@@ -1,11 +1,38 @@
 from nibabel.cifti2 import cifti2_axes
 
-equivalents = [('CIFTI_STRUCTURE_CORTEX_LEFT', ('CortexLeft', 'LeftCortex', 'left_cortex', 'Left Cortex',
-                                                'Cortex_Left', 'cortex left', 'CORTEX_LEFT', 'LEFT CORTEX',
-                                                ('cortex', 'left'), ('CORTEX', 'Left'), ('LEFT', 'coRTEX'))),
-               ('CIFTI_STRUCTURE_CORTEX', ('Cortex', 'CortexBOTH', 'Cortex_both', 'both cortex',
-                                           'BOTH_CORTEX', 'cortex', 'CORTEX', ('cortex', ),
-                                           ('COrtex', 'Both'), ('both', 'cortex')))]
+equivalents = [
+    (
+        'CIFTI_STRUCTURE_CORTEX_LEFT',
+        (
+            'CortexLeft',
+            'LeftCortex',
+            'left_cortex',
+            'Left Cortex',
+            'Cortex_Left',
+            'cortex left',
+            'CORTEX_LEFT',
+            'LEFT CORTEX',
+            ('cortex', 'left'),
+            ('CORTEX', 'Left'),
+            ('LEFT', 'coRTEX'),
+        ),
+    ),
+    (
+        'CIFTI_STRUCTURE_CORTEX',
+        (
+            'Cortex',
+            'CortexBOTH',
+            'Cortex_both',
+            'both cortex',
+            'BOTH_CORTEX',
+            'cortex',
+            'CORTEX',
+            ('cortex',),
+            ('COrtex', 'Both'),
+            ('both', 'cortex'),
+        ),
+    ),
+]
 
 
 def test_name_conversion():

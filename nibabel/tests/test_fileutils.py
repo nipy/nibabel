@@ -6,14 +6,11 @@
 #   copyright and license terms.
 #
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Testing fileutils module
-"""
-
-
-from ..fileutils import read_zt_byte_strings
+"""Testing fileutils module"""
 
 import pytest
 
+from ..fileutils import read_zt_byte_strings
 from ..tmpdirs import InTemporaryDirectory
 
 

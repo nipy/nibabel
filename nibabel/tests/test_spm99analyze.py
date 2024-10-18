@@ -7,48 +7,55 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
-import numpy as np
 import itertools
-
+import unittest
 from io import BytesIO
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-import unittest
+import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ..optpkg import optional_package
+
 _, have_scipy, _ = optional_package('scipy')
 
 # Decorator to skip tests requiring save / load if scipy not available for mat
 # files
 needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
-from ..spm99analyze import (Spm99AnalyzeHeader, Spm99AnalyzeImage,
-                            HeaderTypeError)
-from ..casting import type_info, shared_range
-from ..volumeutils import apply_read_scaling, _dt_min_max
-from ..spatialimages import supported_np_types, HeaderDataError
-
+from ..casting import sctypes_aliases, shared_range, type_info
+from ..spatialimages import HeaderDataError
+from ..spm99analyze import HeaderTypeError, Spm99AnalyzeHeader, Spm99AnalyzeImage
 from ..testing import (
-    bytesio_round_trip,
-    bytesio_filemap,
     assert_allclose_safely,
-    suppress_warnings
+    bytesio_filemap,
+    bytesio_round_trip,
+    suppress_warnings,
 )
-
+from ..volumeutils import _dt_min_max, apply_read_scaling
 from . import test_analyze
 
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
-INT_TYPES = np.sctypes['int']
-UINT_TYPES = np.sctypes['uint']
+# np.core.sctypes values are lists of types with unique sizes
+# For testing, we want all concrete classes of a type
+# Key on kind, rather than abstract base classes, since timedelta64 is a signedinteger
+sctypes = {}
+for sctype in sctypes_aliases:
+    sctypes.setdefault(np.dtype(sctype).kind, []).append(sctype)
+
+# Sort types to ensure that xdist doesn't complain about test order when we parametrize
+FLOAT_TYPES = sorted(sctypes['f'], key=lambda x: x.__name__)
+COMPLEX_TYPES = sorted(sctypes['c'], key=lambda x: x.__name__)
+INT_TYPES = sorted(sctypes['i'], key=lambda x: x.__name__)
+UINT_TYPES = sorted(sctypes['u'], key=lambda x: x.__name__)
+
+# Create combined type lists
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
 IUINT_TYPES = INT_TYPES + UINT_TYPES
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
 
 
-class HeaderScalingMixin(object):
-    """ Mixin to add scaling tests to header tests
+class HeaderScalingMixin:
+    """Mixin to add scaling tests to header tests
 
     Needs to be a mixin so nifti tests can use this method without inheriting
     directly from the SPM header tests
@@ -82,12 +89,11 @@ class HeaderScalingMixin(object):
         assert np.all(data == data_back)
 
 
-class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
-                             HeaderScalingMixin):
+class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin):
     header_class = Spm99AnalyzeHeader
 
     def test_empty(self):
-        super(TestSpm99AnalyzeHeader, self).test_empty()
+        super().test_empty()
         hdr = self.header_class()
         assert hdr['scl_slope'] == 1
 
@@ -109,20 +115,21 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         hdr = self.header_class()
         assert hdr.get_slope_inter() == (1.0, None)
         for in_tup, exp_err, out_tup, raw_slope in (
-                ((2.0,), None, (2.0, None), 2.),
-                ((None,), None, (None, None), np.nan),
-                ((1.0, None), None, (1.0, None), 1.),
-                # non zero intercept causes error
-                ((None, 1.1), HeaderTypeError, (None, None), np.nan),
-                ((2.0, 1.1), HeaderTypeError, (None, None), 2.),
-                # null scalings
-                ((0.0, None), HeaderDataError, (None, None), 0.),
-                ((np.nan, np.nan), None, (None, None), np.nan),
-                ((np.nan, None), None, (None, None), np.nan),
-                ((None, np.nan), None, (None, None), np.nan),
-                ((np.inf, None), HeaderDataError, (None, None), np.inf),
-                ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
-                ((None, 0.0), None, (None, None), np.nan)):
+            ((2.0,), None, (2.0, None), 2.0),
+            ((None,), None, (None, None), np.nan),
+            ((1.0, None), None, (1.0, None), 1.0),
+            # non zero intercept causes error
+            ((None, 1.1), HeaderTypeError, (None, None), np.nan),
+            ((2.0, 1.1), HeaderTypeError, (None, None), 2.0),
+            # null scalings
+            ((0.0, None), HeaderDataError, (None, None), 0.0),
+            ((np.nan, np.nan), None, (None, None), np.nan),
+            ((np.nan, None), None, (None, None), np.nan),
+            ((None, np.nan), None, (None, None), np.nan),
+            ((np.inf, None), HeaderDataError, (None, None), np.inf),
+            ((-np.inf, None), HeaderDataError, (None, None), -np.inf),
+            ((None, 0.0), None, (None, None), np.nan),
+        ):
             hdr = self.header_class()
             if not exp_err is None:
                 with pytest.raises(exp_err):
@@ -146,16 +153,18 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader,
         hdr['origin'][0] = 101  # severity 20
         fhdr, message, raiser = self.log_chk(hdr, 20)
         assert fhdr == hdr
-        assert (message == 'very large origin values '
-                           'relative to dims; leaving as set, '
-                           'ignoring for affine')
+        assert (
+            message == 'very large origin values '
+            'relative to dims; leaving as set, '
+            'ignoring for affine'
+        )
         pytest.raises(*raiser)
         # diagnose binary block
         dxer = self.header_class.diagnose_binaryblock
         assert dxer(hdr.binaryblock) == 'very large origin values relative to dims'
 
 
-class ImageScalingMixin(object):
+class ImageScalingMixin:
     # Mixin to add scaling checks to image test class
     # Nifti tests inherits from Analyze tests not Spm Analyze tests.  We need
     # these tests for Nifti scaling, hence the mixin.
@@ -229,21 +238,13 @@ class ImageScalingMixin(object):
         if not hdr_class.has_data_intercept:
             return
         invalid_inters = (np.nan, np.inf, -np.inf)
-        invalid_pairs = tuple(
-            itertools.product(invalid_slopes, invalid_inters))
-        bad_slopes_good_inter = tuple(
-            itertools.product(invalid_slopes, (0, 1)))
-        good_slope_bad_inters = tuple(
-            itertools.product((1, 2), invalid_inters))
-        for slope, inter in (invalid_pairs + bad_slopes_good_inter +
-                             good_slope_bad_inters):
+        invalid_pairs = tuple(itertools.product(invalid_slopes, invalid_inters))
+        bad_slopes_good_inter = tuple(itertools.product(invalid_slopes, (0, 1)))
+        good_slope_bad_inters = tuple(itertools.product((1, 2), invalid_inters))
+        for slope, inter in invalid_pairs + bad_slopes_good_inter + good_slope_bad_inters:
             self.assert_null_scaling(arr, slope, inter)
 
-    def _check_write_scaling(self,
-                             slope,
-                             inter,
-                             effective_slope,
-                             effective_inter):
+    def _check_write_scaling(self, slope, inter, effective_slope, effective_inter):
         # Test that explicit set of slope / inter forces write of data using
         # this slope, inter.  We use this helper function for children of the
         # Analyze header
@@ -275,16 +276,13 @@ class ImageScalingMixin(object):
         assert_array_equal(img.get_fdata(), arr)
         # But the array scaled after round trip
         img_rt = bytesio_round_trip(img)
-        assert_array_equal(img_rt.get_fdata(),
-                           apply_read_scaling(arr,
-                                              effective_slope,
-                                              effective_inter))
+        assert_array_equal(
+            img_rt.get_fdata(), apply_read_scaling(arr, effective_slope, effective_inter)
+        )
         # The scaling set into the array proxy
         do_slope, do_inter = img.header.get_slope_inter()
-        assert_array_equal(img_rt.dataobj.slope,
-                           1 if do_slope is None else do_slope)
-        assert_array_equal(img_rt.dataobj.inter,
-                           0 if do_inter is None else do_inter)
+        assert_array_equal(img_rt.dataobj.slope, 1 if do_slope is None else do_slope)
+        assert_array_equal(img_rt.dataobj.inter, 0 if do_inter is None else do_inter)
         # The new header scaling has been reset
         self.assert_scale_me_scaling(img_rt.header)
         # But the original is the same as it was when we set it
@@ -293,20 +291,19 @@ class ImageScalingMixin(object):
         img.header.set_data_dtype(np.uint8)
         with np.errstate(invalid='ignore'):
             img_rt = bytesio_round_trip(img)
-        assert_array_equal(img_rt.get_fdata(),
-                           apply_read_scaling(np.round(arr),
-                                              effective_slope,
-                                              effective_inter))
+        assert_array_equal(
+            img_rt.get_fdata(), apply_read_scaling(np.round(arr), effective_slope, effective_inter)
+        )
         # But we have to clip too
         arr[-1, -1, -1] = 256
         arr[-2, -1, -1] = -1
         with np.errstate(invalid='ignore'):
             img_rt = bytesio_round_trip(img)
         exp_unscaled_arr = np.clip(np.round(arr), 0, 255)
-        assert_array_equal(img_rt.get_fdata(),
-                           apply_read_scaling(exp_unscaled_arr,
-                                              effective_slope,
-                                              effective_inter))
+        assert_array_equal(
+            img_rt.get_fdata(),
+            apply_read_scaling(exp_unscaled_arr, effective_slope, effective_inter),
+        )
 
     def test_int_int_scaling(self):
         # Check int to int conversion without slope, inter
@@ -319,63 +316,58 @@ class ImageScalingMixin(object):
         img_rt = bytesio_round_trip(img)
         assert_array_equal(img_rt.get_fdata(), np.clip(arr, 0, 255))
 
-    def test_no_scaling(self):
+    # NOTE: Need to check complex scaling
+    @pytest.mark.parametrize('in_dtype', FLOAT_TYPES + IUINT_TYPES)
+    def test_no_scaling(self, in_dtype, supported_dtype):
         # Test writing image converting types when not calculating scaling
         img_class = self.image_class
         hdr_class = img_class.header_class
         hdr = hdr_class()
-        supported_types = supported_np_types(hdr)
         # Any old non-default slope and intercept
         slope = 2
         inter = 10 if hdr.has_data_intercept else 0
-        for in_dtype, out_dtype in itertools.product(
-                FLOAT_TYPES + IUINT_TYPES,
-                supported_types):
-            # Need to check complex scaling
-            mn_in, mx_in = _dt_min_max(in_dtype)
-            arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
-            img = img_class(arr, np.eye(4), hdr)
-            img.set_data_dtype(out_dtype)
-            # Setting the scaling means we don't calculate it later
-            img.header.set_slope_inter(slope, inter)
-            with np.errstate(invalid='ignore'):
-                rt_img = bytesio_round_trip(img)
-            with suppress_warnings():  # invalid mult
-                back_arr = np.asanyarray(rt_img.dataobj)
-            exp_back = arr.copy()
-            # If converting to floating point type, casting is direct.
-            # Otherwise we will need to do float-(u)int casting at some point
-            if out_dtype in IUINT_TYPES:
-                if in_dtype in FLOAT_TYPES:
-                    # Working precision is (at least) float
-                    exp_back = exp_back.astype(float)
-                    # Float to iu conversion will always round, clip
-                    with np.errstate(invalid='ignore'):
-                        exp_back = np.round(exp_back)
-                    if in_dtype in FLOAT_TYPES:
-                        # Clip to shared range of working precision
-                        exp_back = np.clip(exp_back,
-                                           *shared_range(float, out_dtype))
-                else:  # iu input and output type
-                    # No scaling, never gets converted to float.
-                    # Does get clipped to range of output type
-                    mn_out, mx_out = _dt_min_max(out_dtype)
-                    if (mn_in, mx_in) != (mn_out, mx_out):
-                        # Use smaller of input, output range to avoid np.clip
-                        # upcasting the array because of large clip limits.
-                        exp_back = np.clip(exp_back,
-                                           max(mn_in, mn_out),
-                                           min(mx_in, mx_out))
-            if out_dtype in COMPLEX_TYPES:
-                # always cast to real from complex
-                exp_back = exp_back.astype(out_dtype)
-            else:
-                # Cast to working precision
+
+        mn_in, mx_in = _dt_min_max(in_dtype)
+        mn = -1 if np.dtype(in_dtype).kind != 'u' else 0
+        arr = np.array([mn_in, mn, 0, 1, 10, mx_in], dtype=in_dtype)
+        img = img_class(arr, np.eye(4), hdr)
+        img.set_data_dtype(supported_dtype)
+        # Setting the scaling means we don't calculate it later
+        img.header.set_slope_inter(slope, inter)
+        with np.errstate(invalid='ignore'):
+            rt_img = bytesio_round_trip(img)
+        with suppress_warnings():  # invalid mult
+            back_arr = np.asanyarray(rt_img.dataobj)
+        exp_back = arr.copy()
+        # If converting to floating point type, casting is direct.
+        # Otherwise we will need to do float-(u)int casting at some point
+        if supported_dtype in IUINT_TYPES:
+            if in_dtype in FLOAT_TYPES:
+                # Working precision is (at least) float
                 exp_back = exp_back.astype(float)
-            # Allow for small differences in large numbers
-            with suppress_warnings():  # invalid value
-                assert_allclose_safely(back_arr,
-                                       exp_back * slope + inter)
+                # Float to iu conversion will always round, clip
+                with np.errstate(invalid='ignore'):
+                    exp_back = np.round(exp_back)
+                if in_dtype in FLOAT_TYPES:
+                    # Clip to shared range of working precision
+                    exp_back = np.clip(exp_back, *shared_range(float, supported_dtype))
+            else:  # iu input and output type
+                # No scaling, never gets converted to float.
+                # Does get clipped to range of output type
+                mn_out, mx_out = _dt_min_max(supported_dtype)
+                if (mn_in, mx_in) != (mn_out, mx_out):
+                    # Use smaller of input, output range to avoid np.clip
+                    # upcasting the array because of large clip limits.
+                    exp_back = np.clip(exp_back, max(mn_in, mn_out), min(mx_in, mx_out))
+        if supported_dtype in COMPLEX_TYPES:
+            # always cast to real from complex
+            exp_back = exp_back.astype(supported_dtype)
+        else:
+            # Cast to working precision
+            exp_back = exp_back.astype(float)
+        # Allow for small differences in large numbers
+        with suppress_warnings():  # invalid value
+            assert_allclose_safely(back_arr, exp_back * slope + inter)
 
     def test_write_scaling(self):
         # Check writes with scaling set
@@ -414,7 +406,9 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     test_header_updating = needs_scipy(test_analyze.TestAnalyzeImage.test_header_updating)
     test_offset_to_zero = needs_scipy(test_analyze.TestAnalyzeImage.test_offset_to_zero)
     test_big_offset_exts = needs_scipy(test_analyze.TestAnalyzeImage.test_big_offset_exts)
-    test_dtype_to_filename_arg = needs_scipy(test_analyze.TestAnalyzeImage.test_dtype_to_filename_arg)
+    test_dtype_to_filename_arg = needs_scipy(
+        test_analyze.TestAnalyzeImage.test_dtype_to_filename_arg
+    )
     test_header_scaling = needs_scipy(ImageScalingMixin.test_header_scaling)
     test_int_int_scaling = needs_scipy(ImageScalingMixin.test_int_int_scaling)
     test_write_scaling = needs_scipy(ImageScalingMixin.test_write_scaling)
@@ -429,7 +423,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         aff = np.diag([2, 3, 4, 1])  # no LR flip in affine
         img = img_klass(arr, aff)
         fm = img.file_map
-        for key, value in fm.items():
+        for value in fm.values():
             value.fileobj = BytesIO()
         # Test round trip
         img.to_file_map()
@@ -441,6 +435,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         # the saved mat file
         mat_fileobj = img.file_map['mat'].fileobj
         from scipy.io import loadmat, savemat
+
         mat_fileobj.seek(0)
         mats = loadmat(mat_fileobj)
         assert 'M' in mats and 'mat' in mats
@@ -458,21 +453,18 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         flipper = np.diag([-1, 1, 1, 1])
         assert_array_equal(mats['M'], np.dot(aff, np.dot(flipper, from_111)))
         mat_fileobj.seek(0)
-        savemat(mat_fileobj,
-                dict(M=np.diag([3, 4, 5, 1]), mat=np.diag([6, 7, 8, 1])))
+        savemat(mat_fileobj, dict(M=np.diag([3, 4, 5, 1]), mat=np.diag([6, 7, 8, 1])))
         # Check we are preferring the 'mat' matrix
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_fdata(), arr)
-        assert_array_equal(r_img.affine,
-                           np.dot(np.diag([6, 7, 8, 1]), to_111))
+        assert_array_equal(r_img.affine, np.dot(np.diag([6, 7, 8, 1]), to_111))
         # But will use M if present
         mat_fileobj.seek(0)
         mat_fileobj.truncate(0)
         savemat(mat_fileobj, dict(M=np.diag([3, 4, 5, 1])))
         r_img = img_klass.from_file_map(fm)
         assert_array_equal(r_img.get_fdata(), arr)
-        assert_array_equal(r_img.affine,
-                           np.dot(np.diag([3, 4, 5, 1]), np.dot(flipper, to_111)))
+        assert_array_equal(r_img.affine, np.dot(np.diag([3, 4, 5, 1]), np.dot(flipper, to_111)))
 
     def test_none_affine(self):
         # Allow for possibility of no affine resulting in nothing written into
@@ -483,7 +475,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         img = img_klass(np.zeros((2, 3, 4)), None)
         aff = img.header.get_best_affine()
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
@@ -499,29 +491,41 @@ def test_origin_affine():
     assert hdr.default_x_flip
     assert_array_almost_equal(
         hdr.get_origin_affine(),  # from center of image
-        [[-3., 0., 0., 3.],
-         [0., 2., 0., -4.],
-         [0., 0., 1., -3.],
-         [0., 0., 0., 1.]])
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ],
+    )
     hdr['origin'][:3] = [3, 4, 5]
     assert_array_almost_equal(
         hdr.get_origin_affine(),  # using origin
-        [[-3., 0., 0., 6.],
-         [0., 2., 0., -6.],
-         [0., 0., 1., -4.],
-         [0., 0., 0., 1.]])
+        [
+            [-3.0, 0.0, 0.0, 6.0],
+            [0.0, 2.0, 0.0, -6.0],
+            [0.0, 0.0, 1.0, -4.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ],
+    )
     hdr['origin'] = 0  # unset origin
     hdr.set_data_shape((3, 5))
     assert_array_almost_equal(
         hdr.get_origin_affine(),
-        [[-3., 0., 0., 3.],
-         [0., 2., 0., -4.],
-         [0., 0., 1., -0.],
-         [0., 0., 0., 1.]])
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ],
+    )
     hdr.set_data_shape((3, 5, 7))
     assert_array_almost_equal(
         hdr.get_origin_affine(),  # from center of image
-        [[-3., 0., 0., 3.],
-         [0., 2., 0., -4.],
-         [0., 0., 1., -3.],
-         [0., 0., 0., 1.]])
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ],
+    )

@@ -1,28 +1,28 @@
-"""  Define abstract interface for Tractogram file classes
-"""
+"""Define abstract interface for Tractogram file classes"""
+
 from abc import ABC, abstractmethod
 
 from .header import Field
 
 
 class ExtensionWarning(Warning):
-    """ Base class for warnings about tractogram file extension. """
+    """Base class for warnings about tractogram file extension."""
 
 
 class HeaderWarning(Warning):
-    """ Base class for warnings about tractogram file header. """
+    """Base class for warnings about tractogram file header."""
 
 
 class DataWarning(Warning):
-    """ Base class for warnings about tractogram file data. """
+    """Base class for warnings about tractogram file data."""
 
 
 class HeaderError(Exception):
-    """ Raised when a tractogram file header contains invalid information. """
+    """Raised when a tractogram file header contains invalid information."""
 
 
 class DataError(Exception):
-    """ Raised when data is missing or inconsistent in a tractogram file. """
+    """Raised when data is missing or inconsistent in a tractogram file."""
 
 
 class abstractclassmethod(classmethod):
@@ -30,11 +30,11 @@ class abstractclassmethod(classmethod):
 
     def __init__(self, callable):
         callable.__isabstractmethod__ = True
-        super(abstractclassmethod, self).__init__(callable)
+        super().__init__(callable)
 
 
 class TractogramFile(ABC):
-    """ Convenience class to encapsulate tractogram file format. """
+    """Convenience class to encapsulate tractogram file format."""
 
     def __init__(self, tractogram, header=None):
         self._tractogram = tractogram
@@ -54,12 +54,12 @@ class TractogramFile(ABC):
 
     @property
     def affine(self):
-        """ voxmm -> rasmm affine. """
+        """voxmm -> rasmm affine."""
         return self.header.get(Field.VOXEL_TO_RASMM)
 
     @abstractclassmethod
     def is_correct_format(cls, fileobj):
-        """ Checks if the file has the right streamlines file format.
+        """Checks if the file has the right streamlines file format.
 
         Parameters
         ----------
@@ -74,16 +74,16 @@ class TractogramFile(ABC):
             Returns True if `fileobj` is in the right streamlines file format,
             otherwise returns False.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def create_empty_header(cls):
-        """ Returns an empty header for this streamlines file format. """
+        """Returns an empty header for this streamlines file format."""
         return {}
 
     @abstractclassmethod
     def load(cls, fileobj, lazy_load=True):
-        """ Loads streamlines from a filename or file-like object.
+        """Loads streamlines from a filename or file-like object.
 
         Parameters
         ----------
@@ -101,11 +101,11 @@ class TractogramFile(ABC):
             Returns an object containing tractogram data and header
             information.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def save(self, fileobj):
-        """ Saves streamlines to a filename or file-like object.
+        """Saves streamlines to a filename or file-like object.
 
         Parameters
         ----------
@@ -113,4 +113,4 @@ class TractogramFile(ABC):
             If string, a filename; otherwise an open file-like object
             opened and ready to write.
         """
-        raise NotImplementedError()
+        raise NotImplementedError

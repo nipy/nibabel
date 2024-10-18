@@ -10,7 +10,6 @@
 Helper utilities to be used in cmdline applications
 """
 
-
 # global verbosity switch
 import re
 from io import StringIO
@@ -29,10 +28,9 @@ def _err(msg=None):
 
 
 def verbose(thing, msg):
-    """Print `s` if `thing` is less than the `verbose_level`
-    """
+    """Print `s` if `thing` is less than the `verbose_level`"""
     # TODO: consider using nibabel's logger
-    if thing <= int(verbose_level):
+    if thing <= verbose_level:
         print(' ' * thing + msg)
 
 
@@ -56,9 +54,7 @@ def table2string(table, out=None):
         out = StringIO()
 
     # equalize number of elements in each row
-    nelements_max = \
-        len(table) and \
-        max(len(x) for x in table)
+    nelements_max = len(table) and max(len(x) for x in table)
 
     for i, table_ in enumerate(table):
         table[i] += [''] * (nelements_max - len(table_))
@@ -67,17 +63,16 @@ def table2string(table, out=None):
     atable = np.asarray(table)
     # eat whole entry while computing width for @w (for wide)
     markup_strip = re.compile('^@([lrc]|w.*)')
-    col_width = [max([len(markup_strip.sub('', x))
-                      for x in column]) for column in atable.T]
-    string = ""
+    col_width = [max(len(markup_strip.sub('', x)) for x in column) for column in atable.T]
+    string = ''
     for i, table_ in enumerate(table):
-        string_ = ""
+        string_ = ''
         for j, item in enumerate(table_):
             item = str(item)
             if item.startswith('@'):
                 align = item[1]
                 item = item[2:]
-                if align not in ['l', 'r', 'c', 'w']:
+                if align not in ('l', 'r', 'c', 'w'):
                     raise ValueError(f'Unknown alignment {align}. Known are l,r,c')
             else:
                 align = 'c'
@@ -85,7 +80,7 @@ def table2string(table, out=None):
             nspacesl = max(ceil((col_width[j] - len(item)) / 2.0), 0)
             nspacesr = max(col_width[j] - nspacesl - len(item), 0)
 
-            if align in ['w', 'c']:
+            if align in ('w', 'c'):
                 pass
             elif align == 'l':
                 nspacesl, nspacesr = 0, nspacesl + nspacesr
@@ -94,8 +89,7 @@ def table2string(table, out=None):
             else:
                 raise RuntimeError(f'Should not get here with align={align}')
 
-            string_ += "%%%ds%%s%%%ds " \
-                       % (nspacesl, nspacesr) % ('', item, '')
+            string_ += '%%%ds%%s%%%ds ' % (nspacesl, nspacesr) % ('', item, '')
         string += string_.rstrip() + '\n'
     out.write(string)
 
@@ -114,11 +108,10 @@ def ap(helplist, format_, sep=', '):
 
 
 def safe_get(obj, name):
-    """A getattr which would return '-' if getattr fails
-    """
+    """A getattr which would return '-' if getattr fails"""
     try:
         f = getattr(obj, 'get_' + name)
         return f()
     except Exception as e:
-        verbose(2, f"get_{name}() failed -- {e}")
+        verbose(2, f'get_{name}() failed -- {e}')
         return '-'
