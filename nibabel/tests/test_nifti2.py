@@ -16,8 +16,7 @@ from ..nifti1 import (Nifti1Header, Nifti1PairHeader, Nifti1Extension,
                       Nifti1Extensions)
 from ..nifti2 import (Nifti2Header, Nifti2PairHeader, Nifti2Image, Nifti2Pair)
 
-from .test_nifti1 import (TestNifti1PairHeader, TestNifti1SingleHeader,
-                          TestNifti1Pair, TestNifti1Image, TestNifti1General)
+from . import test_nifti1 as tn1
 
 from numpy.testing import assert_array_equal
 
@@ -59,27 +58,27 @@ class _Nifti2Mixin(object):
                 'setting EOL check to 13, 10, 26, 10')
 
 
-class TestNifti2PairHeader(_Nifti2Mixin, TestNifti1PairHeader):
+class TestNifti2PairHeader(_Nifti2Mixin, tn1.TestNifti1PairHeader):
     header_class = Nifti2PairHeader
     example_file = header_file
 
 
-class TestNifti2SingleHeader(_Nifti2Mixin, TestNifti1SingleHeader):
+class TestNifti2SingleHeader(_Nifti2Mixin, tn1.TestNifti1SingleHeader):
     header_class = Nifti2Header
     example_file = header_file
 
 
-class TestNifti2Image(TestNifti1Image):
+class TestNifti2Image(tn1.TestNifti1Image):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti2Image
 
 
-class TestNifti2Pair(TestNifti1Pair):
+class TestNifti2Pair(tn1.TestNifti1Pair):
     # Run analyze-flavor spatialimage tests
     image_class = Nifti2Pair
 
 
-class TestNifti2General(TestNifti1General):
+class TestNifti2General(tn1.TestNifti1General):
     """ Test class to test nifti2 in general
 
     Tests here which mix the pair and the single type, and that should only be

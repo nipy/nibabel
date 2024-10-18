@@ -308,7 +308,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         ret._affine = np.dot(ret._affine, to_111)
         return ret
 
-    def to_file_map(self, file_map=None):
+    def to_file_map(self, file_map=None, dtype=None):
         """ Write image to `file_map` or contained ``self.file_map``
 
         Extends Analyze ``to_file_map`` method by writing ``mat`` file
@@ -321,7 +321,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         """
         if file_map is None:
             file_map = self.file_map
-        super(Spm99AnalyzeImage, self).to_file_map(file_map)
+        super(Spm99AnalyzeImage, self).to_file_map(file_map, dtype=dtype)
         mat = self._affine
         if mat is None:
             return

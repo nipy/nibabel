@@ -414,6 +414,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
     test_header_updating = needs_scipy(test_analyze.TestAnalyzeImage.test_header_updating)
     test_offset_to_zero = needs_scipy(test_analyze.TestAnalyzeImage.test_offset_to_zero)
     test_big_offset_exts = needs_scipy(test_analyze.TestAnalyzeImage.test_big_offset_exts)
+    test_dtype_to_filename_arg = needs_scipy(test_analyze.TestAnalyzeImage.test_dtype_to_filename_arg)
     test_header_scaling = needs_scipy(ImageScalingMixin.test_header_scaling)
     test_int_int_scaling = needs_scipy(ImageScalingMixin.test_int_int_scaling)
     test_write_scaling = needs_scipy(ImageScalingMixin.test_write_scaling)

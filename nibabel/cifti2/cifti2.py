@@ -19,6 +19,10 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 import re
 from collections.abc import MutableSequence, MutableMapping, Iterable
 from collections import OrderedDict
+from warnings import warn
+
+import numpy as np
+
 from .. import xmlutils as xml
 from ..filebasedimages import FileBasedHeader, SerializableImage
 from ..dataobj_images import DataobjImage
@@ -26,7 +30,7 @@ from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Image, Nifti2Header
 from ..arrayproxy import reshape_dataobj
 from ..caret import CaretMetaData
-from warnings import warn
+from ..volumeutils import make_dt_codes
 
 
 def _float_01(val):
@@ -40,6 +44,22 @@ class Cifti2HeaderError(Exception):
     """ Error in CIFTI-2 header
     """
 
+
+_dtdefs = (  # code, label, dtype definition, niistring
+    (2, 'uint8', np.uint8, "NIFTI_TYPE_UINT8"),
+    (4, 'int16', np.int16, "NIFTI_TYPE_INT16"),
+    (8, 'int32', np.int32, "NIFTI_TYPE_INT32"),
+    (16, 'float32', np.float32, "NIFTI_TYPE_FLOAT32"),
+    (64, 'float64', np.float64, "NIFTI_TYPE_FLOAT64"),
+    (256, 'int8', np.int8, "NIFTI_TYPE_INT8"),
+    (512, 'uint16', np.uint16, "NIFTI_TYPE_UINT16"),
+    (768, 'uint32', np.uint32, "NIFTI_TYPE_UINT32"),
+    (1024, 'int64', np.int64, "NIFTI_TYPE_INT64"),
+    (1280, 'uint64', np.uint64, "NIFTI_TYPE_UINT64"),
+)
+
+# Make full code alias bank, including dtype column
+data_type_codes = make_dt_codes(_dtdefs)
 
 CIFTI_MAP_TYPES = ('CIFTI_INDEX_TYPE_BRAIN_MODELS',
                    'CIFTI_INDEX_TYPE_PARCELS',
@@ -101,6 +121,10 @@ def _underscore(string):
     """ Convert a string from CamelCase to underscored """
     string = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', string)
     return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', string).lower()
+
+
+class LimitedNifti2Header(Nifti2Header):
+    _data_type_codes = data_type_codes
 
 
 class Cifti2MetaData(CaretMetaData):
@@ -1363,7 +1387,8 @@ class Cifti2Image(DataobjImage, SerializableImage):
                  header=None,
                  nifti_header=None,
                  extra=None,
-                 file_map=None):
+                 file_map=None,
+                 dtype=None):
         """ Initialize image
 
         The image is a combination of (dataobj, header), with optional metadata
@@ -1392,12 +1417,13 @@ class Cifti2Image(DataobjImage, SerializableImage):
             header = Cifti2Header.from_axes(header)
         super(Cifti2Image, self).__init__(dataobj, header=header,
                                           extra=extra, file_map=file_map)
-        self._nifti_header = Nifti2Header.from_header(nifti_header)
+        self._nifti_header = LimitedNifti2Header.from_header(nifti_header)
 
         # if NIfTI header not specified, get data type from input array
-        if nifti_header is None:
-            if hasattr(dataobj, 'dtype'):
-                self._nifti_header.set_data_dtype(dataobj.dtype)
+        if dtype is not None:
+            self.set_data_dtype(dtype)
+        elif nifti_header is None and hasattr(dataobj, 'dtype'):
+            self.set_data_dtype(dataobj.dtype)
         self.update_headers()
 
         if self._dataobj.shape != self.header.matrix.get_data_shape():
@@ -1460,7 +1486,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
             return img
         raise NotImplementedError
 
-    def to_file_map(self, file_map=None):
+    def to_file_map(self, file_map=None, dtype=None):
         """ Write image to `file_map` or contained ``self.file_map``
 
         Parameters
@@ -1493,7 +1519,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
         # If qform not set, reset pixdim values so Nifti2 does not complain
         if header['qform_code'] == 0:
             header['pixdim'][:4] = 1
-        img = Nifti2Image(data, None, header)
+        img = Nifti2Image(data, None, header, dtype=dtype)
         img.to_file_map(file_map or self.file_map)
 
     def update_headers(self):

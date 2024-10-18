@@ -51,6 +51,12 @@ class TemporaryDirectory(object):
 class InTemporaryDirectory(TemporaryDirectory):
     """ Create, return, and change directory to a temporary directory
 
+    Notes
+    ------
+    As its name suggests, the class temporarily changes the working
+    directory of the Python process, and this is not thread-safe.  We suggest
+    using it only for tests.
+
     Examples
     --------
     >>> import os

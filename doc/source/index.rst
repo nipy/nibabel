@@ -117,6 +117,8 @@ contributed code and discussion (in rough order of appearance):
 * Lea Waller
 * Tomáš Hrnčiar
 * Andrew Van
+* Jérôme Dockès
+* Jacob Roberts
 
 License reprise
 ===============

@@ -914,12 +914,15 @@ class AnalyzeImage(SpatialImage):
     ImageArrayProxy = ArrayProxy
 
     def __init__(self, dataobj, affine, header=None,
-                 extra=None, file_map=None):
+                 extra=None, file_map=None, dtype=None):
         super(AnalyzeImage, self).__init__(
             dataobj, affine, header, extra, file_map)
         # Reset consumable values
         self._header.set_data_offset(0)
         self._header.set_slope_inter(None, None)
+
+        if dtype is not None:
+            self.set_data_dtype(dtype)
     __init__.__doc__ = SpatialImage.__init__.__doc__
 
     def get_data_dtype(self):
@@ -989,7 +992,7 @@ class AnalyzeImage(SpatialImage):
         """
         return file_map['header'], file_map['image']
 
-    def to_file_map(self, file_map=None):
+    def to_file_map(self, file_map=None, dtype=None):
         """ Write image to `file_map` or contained ``self.file_map``
 
         Parameters
@@ -997,27 +1000,44 @@ class AnalyzeImage(SpatialImage):
         file_map : None or mapping, optional
            files mapping.  If None (default) use object's ``file_map``
            attribute instead
+        dtype : dtype-like, optional
+           The on-disk data type to coerce the data array.
         """
         if file_map is None:
             file_map = self.file_map
         data = np.asanyarray(self.dataobj)
         self.update_header()
         hdr = self._header
-        out_dtype = self.get_data_dtype()
         # Store consumable values for later restore
         offset = hdr.get_data_offset()
+        data_dtype = hdr.get_data_dtype()
+        # Override dtype conditionally
+        if dtype is not None:
+            hdr.set_data_dtype(dtype)
+        out_dtype = hdr.get_data_dtype()
         # Scalars of slope, offset to get immutable values
         slope = hdr['scl_slope'].item() if hdr.has_data_slope else np.nan
         inter = hdr['scl_inter'].item() if hdr.has_data_intercept else np.nan
         # Check whether to calculate slope / inter
         scale_me = np.all(np.isnan((slope, inter)))
-        if scale_me:
-            arr_writer = make_array_writer(data,
-                                           out_dtype,
-                                           hdr.has_data_slope,
-                                           hdr.has_data_intercept)
-        else:
-            arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
+        try:
+            if scale_me:
+                arr_writer = make_array_writer(data,
+                                               out_dtype,
+                                               hdr.has_data_slope,
+                                               hdr.has_data_intercept)
+            else:
+                arr_writer = ArrayWriter(data, out_dtype, check_scaling=False)
+        except WriterError:
+            # Restore any changed consumable values, in case caller catches
+            # Should match cleanup at the end of the method
+            hdr.set_data_offset(offset)
+            hdr.set_data_dtype(data_dtype)
+            if hdr.has_data_slope:
+                hdr['scl_slope'] = slope
+            if hdr.has_data_intercept:
+                hdr['scl_inter'] = inter
+            raise
         hdr_fh, img_fh = self._get_fileholders(file_map)
         # Check if hdr and img refer to same file; this can happen with odd
         # analyze images but most often this is because it's a single nifti
@@ -1045,6 +1065,7 @@ class AnalyzeImage(SpatialImage):
         self.file_map = file_map
         # Restore any changed consumable values
         hdr.set_data_offset(offset)
+        hdr.set_data_dtype(data_dtype)
         if hdr.has_data_slope:
             hdr['scl_slope'] = slope
         if hdr.has_data_intercept:

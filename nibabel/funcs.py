@@ -35,7 +35,7 @@ def squeeze_image(img):
     --------
     >>> import nibabel as nf
     >>> shape = (10,20,30,1,1)
-    >>> data = np.arange(np.prod(shape)).reshape(shape)
+    >>> data = np.arange(np.prod(shape), dtype='int32').reshape(shape)
     >>> affine = np.eye(4)
     >>> img = nf.Nifti1Image(data, affine)
     >>> img.shape == (10, 20, 30, 1, 1)
@@ -47,7 +47,7 @@ def squeeze_image(img):
     If the data are 3D then last dimensions of 1 are ignored
 
     >>> shape = (10,1,1)
-    >>> data = np.arange(np.prod(shape)).reshape(shape)
+    >>> data = np.arange(np.prod(shape), dtype='int32').reshape(shape)
     >>> img = nf.ni1.Nifti1Image(data, affine)
     >>> img.shape == (10, 1, 1)
     True

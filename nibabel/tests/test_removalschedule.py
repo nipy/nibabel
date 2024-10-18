@@ -22,7 +22,8 @@ OBJECT_SCHEDULE = [
 ]
 
 ATTRIBUTE_SCHEDULE = [
-    ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data")]),
+    ("5.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_data"),
+               ("nibabel.freesurfer.mghformat", "MGHHeader", "_header_data")]),
     ("4.0.0", [("nibabel.dataobj_images", "DataobjImage", "get_shape"),
                ("nibabel.filebasedimages", "FileBasedImage", "filespec_to_files"),
                ("nibabel.filebasedimages", "FileBasedImage", "to_filespec"),
