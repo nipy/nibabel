@@ -13,7 +13,6 @@ from __future__ import annotations
 from numbers import Integral
 
 import numpy as np
-from typing import Tuple
 
 from .externals.netcdf import netcdf_file
 from .fileslice import canonical_slicers
@@ -113,7 +112,7 @@ class Minc1File:
         aff[:nspatial, nspatial] = origin
         return aff
 
-    def get_units(self) -> Tuple[str, str, str]:
+    def get_units(self) -> tuple[str, str, str]:
         return tuple(d.units.decode('utf-8') for d in self._dims)
 
     def _get_valid_range(self):
@@ -308,7 +307,7 @@ class MincHeader(SpatialHeader):
         """See Header class for an implementation we can't use"""
         raise NotImplementedError
 
-    def get_xyzt_units(self) -> Tuple[str, str]:
+    def get_xyzt_units(self) -> tuple[str, str]:
         return self._units, 'unknown'
 
 
