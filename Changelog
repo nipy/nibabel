@@ -57,9 +57,9 @@ NiBabel 6.0 will drop support for Numpy 1.x.
 
 New features
 ------------
-* Update NIfTI extension protocol to include ``.content : bytes``, ``.text : str`` and ``.json : dict``
-  properties for accessing extension contents. Exceptions will be raised on ``.text`` and ``.json`` if
-  conversion fails. (pr/1336) (CM)
+* Update NIfTI extension protocol to include ``.content : bytes``, ``.text : str`` and
+  ``.json() : dict`` properties/methods for accessing extension contents.
+  Exceptions will be raised on ``.text`` and ``.json()`` if conversion fails. (pr/1336) (CM)
 
 Enhancements
 ------------
