@@ -25,6 +25,17 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.3.2 (Monday 21 October 2024)
+==============================
+
+Bug-fix release in the 5.3.x series.
+
+Bug fixes
+---------
+* Restore MRS extension type to Nifti1Extension to maintain backwards compatibility.
+  (pr/1380) (CM)
+
+
 5.3.1 (Tuesday 15 October 2024)
 ===============================
 
