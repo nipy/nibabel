@@ -207,7 +207,6 @@ jobs:
           uv venv --python ${{ matrix.python-version }} ../.venv
           . .venv/bin/activate
           echo "PATH=$PATH" >> $GITHUB_ENV
-          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
           uv pip install pip
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
