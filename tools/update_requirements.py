@@ -2,7 +2,10 @@
 import sys
 from pathlib import Path
 
-import tomli
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 if sys.version_info < (3, 6):
     print('This script requires Python 3.6 to work correctly')
@@ -15,7 +18,7 @@ min_reqs = repo_root / 'min-requirements.txt'
 doc_reqs = repo_root / 'doc-requirements.txt'
 
 with open(pyproject_toml, 'rb') as fobj:
-    config = tomli.load(fobj)
+    config = tomllib.load(fobj)
 requirements = config['project']['dependencies']
 doc_requirements = config['project']['optional-dependencies']['doc']
 
