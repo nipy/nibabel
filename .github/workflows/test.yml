@@ -212,7 +212,7 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
         run: |
-          uv tool install tox --with=tox-gh-actions --with=tox-uv
+          uv tool install tox --with=tox-gh-actions --with=tox-uv --with=pip
       - name: Show tox config
         run: tox c
       - name: Run tox
