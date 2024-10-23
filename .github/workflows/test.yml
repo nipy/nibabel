@@ -113,24 +113,42 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.13t"]
         architecture: ['x64', 'x86', 'arm64']
         dependencies: ['full', 'pre']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
-            python-version: 3.9
+            python-version: "3.9"
             dependencies: 'none'
           # Absolute minimum dependencies
           - os: ubuntu-latest
-            python-version: 3.9
+            python-version: "3.9"
             dependencies: 'min'
-          # NoGIL
-          - os: ubuntu-latest
-            python-version: '3.13-dev'
-            dependencies: 'dev'
         exclude:
-          # x86 for Windows + Python<3.12
+          # Use ubuntu-latest to cover the whole range of Python. For Windows
+          # and OSX, checking oldest and newest should be sufficient.
+          - os: windows-latest
+            python-version: "3.10"
+          - os: windows-latest
+            python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.12"
+          - os: macos-13
+            python-version: "3.10"
+          - os: macos-13
+            python-version: "3.11"
+          - os: macos-13
+            python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.10"
+          - os: macos-latest
+            python-version: "3.11"
+          - os: macos-latest
+            python-version: "3.12"
+
+          # Unavailable architectures
+          # x86 is only available for Windows + Python<3.12
           - os: ubuntu-latest
             architecture: x86
           - os: macos-13
@@ -138,6 +156,10 @@ jobs:
           - os: macos-latest
             architecture: x86
           - python-version: '3.12'
+            architecture: x86
+          - python-version: '3.13'
+            architecture: x86
+          - python-version: '3.13t'
             architecture: x86
           # arm64 is available for macos-14+
           - os: ubuntu-latest
@@ -149,6 +171,8 @@ jobs:
           # x64 is not available for macos-14+
           - os: macos-latest
             architecture: x64
+
+          # Reduced support
           # Drop pre tests for macos-13
           - os: macos-13
             dependencies: pre
@@ -167,25 +191,28 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v3
       - name: Set up Python ${{ matrix.python-version }}
-        if: "!endsWith(matrix.python-version, '-dev')"
+        if: "!endsWith(matrix.python-version, 't')"
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
           allow-prereleases: true
       - name: Set up Python ${{ matrix.python-version }}
-        if: endsWith(matrix.python-version, '-dev')
-        uses: deadsnakes/action@v3.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-          nogil: true
+        if: endsWith(matrix.python-version, 't')
+        run: |
+          uv python install ${{ matrix.python-version }}
+          uv venv --python ${{ matrix.python-version }} ../.venv
+          . .venv/bin/activate
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          uv pip install pip
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install tox tox-gh-actions
+          uv tool install tox --with=tox-gh-actions --with=tox-uv --with=pip
       - name: Show tox config
         run: tox c
       - name: Run tox
