@@ -25,6 +25,29 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.3.2 (Wednesday 23 October 2024)
+=================================
+
+Bug-fix release in the 5.3.x series.
+
+Bug fixes
+---------
+* Restore MRS extension type to Nifti1Extension to maintain backwards compatibility.
+  (pr/1380) (CM)
+
+
+5.3.1 (Tuesday 15 October 2024)
+===============================
+
+Bug-fix release in the 5.3.x series.
+
+Bug fixes
+---------
+* Restore access to private attribute ``Nifti1Extension._content`` to unbreak subclasses
+  that did not use public accessor methods. (pr/1378) (CM, reviewed by Basile Pinsard)
+* Remove test order dependency in ``test_api_validators`` (pr/1377) (CM)
+
+
 5.3.0 (Tuesday 8 October 2024)
 ==============================
 
@@ -34,9 +57,9 @@ NiBabel 6.0 will drop support for Numpy 1.x.
 
 New features
 ------------
-* Update NIfTI extension protocol to include ``.content : bytes``, ``.text : str`` and ``.json : dict``
-  properties for accessing extension contents. Exceptions will be raised on ``.text`` and ``.json`` if
-  conversion fails. (pr/1336) (CM)
+* Update NIfTI extension protocol to include ``.content : bytes``, ``.text : str`` and
+  ``.json() : dict`` properties/methods for accessing extension contents.
+  Exceptions will be raised on ``.text`` and ``.json()`` if conversion fails. (pr/1336) (CM)
 
 Enhancements
 ------------
