@@ -204,8 +204,8 @@ jobs:
         if: endsWith(matrix.python-version, 't')
         run: |
           uv python install ${{ matrix.python-version }}
-          uv venv --python ${{ matrix.python-version }} ../.venv
-          . .venv/bin/activate
+          uv venv --python ${{ matrix.python-version }} ../venv
+          . ../venv/bin/activate
           echo "PATH=$PATH" >> $GITHUB_ENV
           uv pip install pip
       - name: Display Python version
