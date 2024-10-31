@@ -200,3 +200,6 @@ enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 [tool.codespell]
 skip = "*/data/*,./nibabel-data"
 ignore-words-list = "ans,te,ue,ist,nin,nd,ccompiler,ser"
+
+[tool.uv.pip]
+only-binary = ["numpy", "scipy", "h5py"]
