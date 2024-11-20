@@ -532,8 +532,8 @@ class Wrapper:
 class FrameFilter:
     """Base class for defining how to filter out (ignore) frames from a multiframe file
 
-    It is guaranteed that the `applies` method will on a dataset before the `keep` method
-    is called on any of the frames inside.
+    It is guaranteed that the `applies` method will called on a dataset before the `keep`
+    method is called on any of the frames inside.
     """
 
     def applies(self, dcm_wrp) -> bool:
@@ -549,7 +549,7 @@ class FilterMultiStack(FrameFilter):
     """Filter out all but one `StackID`"""
 
     def __init__(self, keep_id=None):
-        self._keep_id = keep_id
+        self._keep_id = str(keep_id) if keep_id is not None else None
 
     def applies(self, dcm_wrp) -> bool:
         first_fcs = dcm_wrp.frames[0].get('FrameContentSequence', (None,))[0]
@@ -562,10 +562,16 @@ class FilterMultiStack(FrameFilter):
             self._selected = self._keep_id
         if len(stack_ids) > 1:
             if self._keep_id is None:
+                try:
+                    sids = [int(x) for x in stack_ids]
+                except:
+                    self._selected = dcm_wrp.frames[0].FrameContentSequence[0].StackID
+                else:
+                    self._selected = str(min(sids))
                 warnings.warn(
-                    'A multi-stack file was passed without an explicit filter, just using lowest StackID'
+                    'A multi-stack file was passed without an explicit filter, '
+                    f'using StackID = {self._selected}'
                 )
-                self._selected = min(stack_ids)
             return True
         return False
 
@@ -707,6 +713,7 @@ class MultiframeWrapper(Wrapper):
 
     @cached_property
     def frame_order(self):
+        """The ordering of frames to make nD array"""
         if self._frame_indices is None:
             _ = self.image_shape
         return np.lexsort(self._frame_indices.T)
@@ -742,14 +749,20 @@ class MultiframeWrapper(Wrapper):
         rows, cols = self.get('Rows'), self.get('Columns')
         if None in (rows, cols):
             raise WrapperError('Rows and/or Columns are empty.')
-        # Check number of frames, initialize array of frame indices
+        # Check number of frames and handle single frame files
         n_frames = len(self.frames)
+        if n_frames == 1:
+            self._frame_indices = np.array([[0]], dtype=np.int64)
+            return (rows, cols)
+        # Initialize array of frame indices
         try:
             frame_indices = np.array(
                 [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
             )
         except AttributeError:
             raise WrapperError("Can't find frame 'DimensionIndexValues'")
+        if len(frame_indices.shape) == 1:
+            frame_indices = frame_indices.reshape(frame_indices.shape + (1,))
         # Determine the shape and which indices to use
         shape = [rows, cols]
         curr_parts = n_frames
