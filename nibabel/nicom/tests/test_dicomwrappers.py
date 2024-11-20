@@ -594,6 +594,17 @@ class TestMultiFrameWrapper(TestCase):
         # Check for error when explicitly requested StackID is missing
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf, frame_filters=(didw.FilterMultiStack(3),))
+        # StackID can be a string
+        div_seq = ((1,), (2,), (3,), (4,))
+        sid_seq = ('a', 'a', 'a', 'b')
+        fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
+        with pytest.warns(
+            UserWarning,
+            match='A multi-stack file was passed without an explicit filter,',
+        ):
+            assert MFW(fake_mf).image_shape == (32, 64, 3)
+        assert MFW(fake_mf, frame_filters=(didw.FilterMultiStack('a'),)).image_shape == (32, 64, 3)
+        assert MFW(fake_mf, frame_filters=(didw.FilterMultiStack('b'),)).image_shape == (32, 64)
         # Make some fake frame data for 4D when StackID index is 0
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2), (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
