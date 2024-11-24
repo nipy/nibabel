@@ -182,6 +182,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
+"nibabel/benchmarks/*.py" = ["UP031"]
 
 [tool.ruff.format]
 quote-style = "single"

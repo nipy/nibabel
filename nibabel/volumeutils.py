@@ -338,11 +338,10 @@ def pretty_mapping(
     if getterfunc is None:
         getterfunc = getitem
     mxlen = max(len(str(name)) for name in mapping)
-    fmt = '%%-%ds  : %%s' % mxlen
     out = []
     for name in mapping:
         value = getterfunc(mapping, name)
-        out.append(fmt % (name, value))
+        out.append(f'{name:{mxlen}}  : {value}')
     return '\n'.join(out)
 
 
