@@ -161,7 +161,7 @@ foo
 class TestDeprecatorMaker:
     """Test deprecator class creation with custom warnings and errors"""
 
-    dep_maker = partial(Deprecator, cmp_func)
+    dep_maker = staticmethod(partial(Deprecator, cmp_func))
 
     def test_deprecator_maker(self):
         dec = self.dep_maker(warn_class=UserWarning)
