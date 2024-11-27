@@ -49,7 +49,7 @@ class XmlParser:
         CharacterDataHandler
     """
 
-    HANDLER_NAMES = ['StartElementHandler', 'EndElementHandler', 'CharacterDataHandler']
+    HANDLER_NAMES = ('StartElementHandler', 'EndElementHandler', 'CharacterDataHandler')
 
     def __init__(self, encoding='utf-8', buffer_size=35000000, verbose=0):
         """

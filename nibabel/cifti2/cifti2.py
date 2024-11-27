@@ -1045,14 +1045,6 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
         If it is a series, units
     """
 
-    _valid_type_mappings_ = {
-        Cifti2BrainModel: ('CIFTI_INDEX_TYPE_BRAIN_MODELS',),
-        Cifti2Parcel: ('CIFTI_INDEX_TYPE_PARCELS',),
-        Cifti2NamedMap: ('CIFTI_INDEX_TYPE_LABELS',),
-        Cifti2Volume: ('CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_SERIES'),
-        Cifti2Surface: ('CIFTI_INDEX_TYPE_SCALARS', 'CIFTI_INDEX_TYPE_SERIES'),
-    }
-
     def __init__(
         self,
         applies_to_matrix_dimension,
