@@ -357,7 +357,7 @@ def conform(
     mode : str, optional
         Points outside the boundaries of the input are filled according to the
         given mode ('constant', 'nearest', 'reflect' or 'wrap'). Default is
-        'constant' (see scipy.ndimage.affine_transform)
+        'constant' (see :func:`scipy.ndimage.affine_transform`)
     cval : scalar, optional
         Value used for points outside the boundaries of the input if
         ``mode='constant'``. Default is 0.0 (see
