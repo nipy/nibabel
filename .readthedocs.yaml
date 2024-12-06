@@ -18,3 +18,5 @@ build:
     post_install:
       # Use a cache dir in the same mount to halve the install time
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv pip install --cache-dir $READTHEDOCS_VIRTUALENV_PATH/../../uv_cache .[doc]
+    pre_build:
+      - ( cd doc; python tools/build_modref_templates.py nibabel source/reference False )
