@@ -320,6 +320,7 @@ def conform(
     out_shape=(256, 256, 256),
     voxel_size=(1.0, 1.0, 1.0),
     order=3,
+    mode='constant',
     cval=0.0,
     orientation='RAS',
     out_class=None,
@@ -353,6 +354,10 @@ def conform(
     order : int, optional
         The order of the spline interpolation, default is 3.  The order has to
         be in the range 0-5 (see ``scipy.ndimage.affine_transform``)
+    mode : str, optional
+        Points outside the boundaries of the input are filled according to the
+        given mode ('constant', 'nearest', 'reflect' or 'wrap'). Default is
+        'constant' (see :func:`scipy.ndimage.affine_transform`)
     cval : scalar, optional
         Value used for points outside the boundaries of the input if
         ``mode='constant'``. Default is 0.0 (see
@@ -393,7 +398,7 @@ def conform(
         from_img=from_img,
         to_vox_map=(out_shape, out_aff),
         order=order,
-        mode='constant',
+        mode=mode,
         cval=cval,
         out_class=out_class,
     )
