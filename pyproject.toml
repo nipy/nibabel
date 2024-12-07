@@ -51,13 +51,15 @@ nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
 
 [project.optional-dependencies]
-all = ["nibabel[dicomfs,minc2,spm,zstd]"]
+all = ["nibabel[dicomfs,indexed_gzip,minc2,spm,zstd]"]
 # Features
+indexed_gzip = ["indexed_gzip >=1.6"]
 dicom = ["pydicom >=2.3"]
-dicomfs = ["nibabel[dicom]", "pillow"]
-minc2 = ["h5py"]
-spm = ["scipy"]
-zstd = ["pyzstd >= 0.14.3"]
+dicomfs = ["nibabel[dicom]", "pillow >=8.4"]
+minc2 = ["h5py >=3.5"]
+spm = ["scipy >=1.8"]
+viewers = ["matplotlib >=3.5"]
+zstd = ["pyzstd >=0.15.2"]
 # For doc and test, make easy to use outside of tox
 # tox should use these with extras instead of duplicating
 doc = [
@@ -68,12 +70,12 @@ doc = [
   "tomli; python_version < '3.11'",
 ]
 test = [
-  "pytest",
-  "pytest-doctestplus",
-  "pytest-cov",
-  "pytest-httpserver",
-  "pytest-xdist",
-  "coverage>=7.2",
+  "pytest >=6",
+  "pytest-doctestplus >=1",
+  "pytest-cov >=2.11",
+  "pytest-httpserver >=1.0.7",
+  "pytest-xdist >=3.5",
+  "coverage[toml]>=7.2",
 ]
 # Remaining: Simpler to centralize in tox
 dev = ["tox"]
