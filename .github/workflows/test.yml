@@ -204,15 +204,13 @@ jobs:
         if: endsWith(matrix.python-version, 't')
         run: |
           uv python install ${{ matrix.python-version }}
-          uv venv --python ${{ matrix.python-version }} ../venv
-          . ../venv/bin/activate
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          uv pip install pip
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
         run: |
           uv tool install tox --with=tox-gh-actions --with=tox-uv
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
       - name: Show tox config
         run: tox c
       - name: Run tox
