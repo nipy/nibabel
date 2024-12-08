@@ -158,12 +158,19 @@ jobs:
           - os: macos-latest
             python-version: "3.12"
 
-          # Unavailable architectures
+          ## Unavailable architectures
+          # arm64 is available for macos-14+
+          - os: ubuntu-latest
+            architecture: arm64
+          - os: windows-latest
+            architecture: arm64
+          - os: macos-13
+            architecture: arm64
           # x64 is not available for macos-14+
           - os: macos-latest
             architecture: x64
 
-          # Reduced support
+          ## Reduced support
           # Drop pre tests for macos-13
           - os: macos-13
             dependencies: pre
