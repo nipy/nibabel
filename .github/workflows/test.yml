@@ -114,17 +114,28 @@ jobs:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.13t"]
-        architecture: ['x64', 'x86', 'arm64']
+        architecture: ['x64', 'arm64']
         dependencies: ['full', 'pre']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
             python-version: "3.9"
+            architecture: 'x64'
             dependencies: 'none'
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: "3.9"
+            architecture: 'x64'
             dependencies: 'min'
+          # Only numpy of the scipy stack still supports win32
+          - os: windows-latest
+            python-version: "3.9"
+            architecture: 'x86'
+            dependencies: 'none'
+          - os: windows-latest
+            python-version: "3.13"
+            architecture: 'x86'
+            dependencies: 'none'
         exclude:
           # Use ubuntu-latest to cover the whole range of Python. For Windows
           # and OSX, checking oldest and newest should be sufficient.
@@ -148,26 +159,6 @@ jobs:
             python-version: "3.12"
 
           # Unavailable architectures
-          # x86 is only available for Windows + Python<3.12
-          - os: ubuntu-latest
-            architecture: x86
-          - os: macos-13
-            architecture: x86
-          - os: macos-latest
-            architecture: x86
-          - python-version: '3.12'
-            architecture: x86
-          - python-version: '3.13'
-            architecture: x86
-          - python-version: '3.13t'
-            architecture: x86
-          # arm64 is available for macos-14+
-          - os: ubuntu-latest
-            architecture: arm64
-          - os: windows-latest
-            architecture: arm64
-          - os: macos-13
-            architecture: arm64
           # x64 is not available for macos-14+
           - os: macos-latest
             architecture: x64
