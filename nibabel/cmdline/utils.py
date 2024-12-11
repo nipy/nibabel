@@ -65,7 +65,7 @@ def table2string(table, out=None):
     markup_strip = re.compile('^@([lrc]|w.*)')
     col_width = [max(len(markup_strip.sub('', x)) for x in column) for column in atable.T]
     string = ''
-    for i, table_ in enumerate(table):
+    for table_ in table:
         string_ = ''
         for j, item in enumerate(table_):
             item = str(item)
@@ -89,7 +89,7 @@ def table2string(table, out=None):
             else:
                 raise RuntimeError(f'Should not get here with align={align}')
 
-            string_ += '%%%ds%%s%%%ds ' % (nspacesl, nspacesr) % ('', item, '')
+            string_ += f'{" " * nspacesl}{item}{" " * nspacesr} '
         string += string_.rstrip() + '\n'
     out.write(string)
 

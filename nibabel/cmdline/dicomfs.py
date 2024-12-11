@@ -231,7 +231,7 @@ def main(args=None):
 
     if opts.verbose:
         logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(opts.verbose > 1 and logging.DEBUG or logging.INFO)
+        logger.setLevel((opts.verbose > 1 and logging.DEBUG) or logging.INFO)
 
     if len(files) != 2:
         sys.stderr.write(f'Please provide two arguments:\n{parser.usage}\n')
