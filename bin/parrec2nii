@@ -1,6 +1,5 @@
 #!python
-"""PAR/REC to NIfTI converter
-"""
+"""PAR/REC to NIfTI converter"""
 
 from nibabel.cmdline.parrec2nii import main
 
