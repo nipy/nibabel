@@ -427,13 +427,6 @@ def fake_shape_dependents(
         generate ipp values so slice location is negatively correlated with slice index
     """
 
-    class PrintBase:
-        def __repr__(self):
-            attr_strs = [
-                f'{attr}={getattr(self, attr)}' for attr in dir(self) if attr[0].isupper()
-            ]
-            return f"{self.__class__.__name__}({', '.join(attr_strs)})"
-
     class DimIdxSeqElem(pydicom.Dataset):
         def __init__(self, dip=(0, 0), fgp=None):
             super().__init__()
@@ -444,8 +437,8 @@ def fake_shape_dependents(
     class FrmContSeqElem(pydicom.Dataset):
         def __init__(self, div, sid):
             super().__init__()
-            self.DimensionIndexValues = div
-            self.StackID = sid
+            self.DimensionIndexValues = list(div)
+            self.StackID = str(sid)
 
     class PlnPosSeqElem(pydicom.Dataset):
         def __init__(self, ipp):
@@ -545,17 +538,28 @@ class TestMultiFrameWrapper(TestCase):
         with pytest.raises(didw.WrapperError):
             dw.image_shape
         fake_mf.Rows = 32
-        # No frame data raises WrapperError
+        # Single frame doesn't need dimension index values
+        assert dw.image_shape == (32, 64)
+        assert len(dw.frame_order) == 1
+        assert dw.frame_order[0] == 0
+        # Multiple frames do require dimension index values
+        fake_mf.PerFrameFunctionalGroupsSequence = [pydicom.Dataset(), pydicom.Dataset()]
         with pytest.raises(didw.WrapperError):
-            dw.image_shape
+            MFW(fake_mf).image_shape
         # check 2D shape with StackID index is 0
         div_seq = ((1, 1),)
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert MFW(fake_mf).image_shape == (32, 64)
+        dw = MFW(fake_mf)
+        assert dw.image_shape == (32, 64)
+        assert len(dw.frame_order) == 1
+        assert dw.frame_order[0] == 0
         # Check 2D shape with extraneous extra indices
         div_seq = ((1, 1, 2),)
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
-        assert MFW(fake_mf).image_shape == (32, 64)
+        dw = MFW(fake_mf)
+        assert dw.image_shape == (32, 64)
+        assert len(dw.frame_order) == 1
+        assert dw.frame_order[0] == 0
         # Check 2D plus time
         div_seq = ((1, 1, 1), (1, 1, 2), (1, 1, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
@@ -569,7 +573,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         with pytest.warns(
             UserWarning,
-            match='A multi-stack file was passed without an explicit filter, just using lowest StackID',
+            match='A multi-stack file was passed without an explicit filter,',
         ):
             assert MFW(fake_mf).image_shape == (32, 64, 3)
         # No warning if we expclitly select that StackID to keep
@@ -581,7 +585,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
         with pytest.warns(
             UserWarning,
-            match='A multi-stack file was passed without an explicit filter, just using lowest StackID',
+            match='A multi-stack file was passed without an explicit filter,',
         ):
             assert MFW(fake_mf).image_shape == (32, 64, 3)
         # No warning if we expclitly select that StackID to keep
@@ -590,6 +594,17 @@ class TestMultiFrameWrapper(TestCase):
         # Check for error when explicitly requested StackID is missing
         with pytest.raises(didw.WrapperError):
             MFW(fake_mf, frame_filters=(didw.FilterMultiStack(3),))
+        # StackID can be a string
+        div_seq = ((1,), (2,), (3,), (4,))
+        sid_seq = ('a', 'a', 'a', 'b')
+        fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
+        with pytest.warns(
+            UserWarning,
+            match='A multi-stack file was passed without an explicit filter,',
+        ):
+            assert MFW(fake_mf).image_shape == (32, 64, 3)
+        assert MFW(fake_mf, frame_filters=(didw.FilterMultiStack('a'),)).image_shape == (32, 64, 3)
+        assert MFW(fake_mf, frame_filters=(didw.FilterMultiStack('b'),)).image_shape == (32, 64)
         # Make some fake frame data for 4D when StackID index is 0
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2), (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
@@ -599,7 +614,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
         with pytest.warns(
             UserWarning,
-            match='A multi-stack file was passed without an explicit filter, just using lowest StackID',
+            match='A multi-stack file was passed without an explicit filter,',
         ):
             with pytest.raises(didw.WrapperError):
                 MFW(fake_mf).image_shape
@@ -638,7 +653,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_seq=sid_seq))
         with pytest.warns(
             UserWarning,
-            match='A multi-stack file was passed without an explicit filter, just using lowest StackID',
+            match='A multi-stack file was passed without an explicit filter,',
         ):
             with pytest.raises(didw.WrapperError):
                 MFW(fake_mf).image_shape
@@ -651,7 +666,7 @@ class TestMultiFrameWrapper(TestCase):
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
         with pytest.warns(
             UserWarning,
-            match='A multi-stack file was passed without an explicit filter, just using lowest StackID',
+            match='A multi-stack file was passed without an explicit filter,',
         ):
             assert MFW(fake_mf).image_shape == (32, 64, 3)
         # Make some fake frame data for 4D when StackID index is 1
