@@ -111,8 +111,7 @@ def types_filenames(
     template_fname = _stringify_path(template_fname)
     if not isinstance(template_fname, str):
         raise TypesFilenamesError('Need file name as input to set_filenames')
-    if template_fname.endswith('.'):
-        template_fname = template_fname[:-1]
+    template_fname = template_fname.removesuffix('.')
     filename, found_ext, ignored, guessed_name = parse_filename(
         template_fname, types_exts, trailing_suffixes, match_case
     )
