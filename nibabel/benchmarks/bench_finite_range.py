@@ -28,16 +28,17 @@ def bench_finite_range():
     sys.stdout.flush()
     print_git_title('\nFinite range')
     mtime = measure('finite_range(arr)', repeat)
-    print('%30s %6.2f' % ('float64 all finite', mtime))
+    fmt = '{:30s} {:6.2f}'.format
+    print(fmt('float64 all finite', mtime))
     arr[:, :, :, 1] = np.nan
     mtime = measure('finite_range(arr)', repeat)
-    print('%30s %6.2f' % ('float64 many NaNs', mtime))
+    print(fmt('float64 many NaNs', mtime))
     arr[:, :, :, 1] = np.inf
     mtime = measure('finite_range(arr)', repeat)
-    print('%30s %6.2f' % ('float64 many infs', mtime))
+    print(fmt('float64 many infs', mtime))
     # Int16 input, float output
     arr = np.random.random_integers(low=-1000, high=1000, size=img_shape)
     arr = arr.astype(np.int16)
     mtime = measure('finite_range(arr)', repeat)
-    print('%30s %6.2f' % ('int16', mtime))
+    print(fmt('int16', mtime))
     sys.stdout.flush()
