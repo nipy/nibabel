@@ -579,7 +579,7 @@ class TrkFile(TractogramFile):
                 header_rec = header_rec.view(header_rec.dtype.newbyteorder())
                 if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
                     msg = (
-                        f"Invalid hdr_size: {header_rec['hdr_size']} "
+                        f'Invalid hdr_size: {header_rec["hdr_size"]} '
                         f'instead of {TrkFile.HEADER_SIZE}'
                     )
                     raise HeaderError(msg)

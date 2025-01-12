@@ -294,8 +294,7 @@ class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
             self._labels[key] = Cifti2Label(*([key] + list(value)))
         except ValueError:
             raise ValueError(
-                'Key should be int, value should be sequence '
-                'of str and 4 floats between 0 and 1'
+                'Key should be int, value should be sequence of str and 4 floats between 0 and 1'
             )
 
     def __delitem__(self, key):

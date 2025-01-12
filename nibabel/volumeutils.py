@@ -473,7 +473,7 @@ def array_from_file(
     if n_bytes != n_read:
         raise OSError(
             f'Expected {n_bytes} bytes, got {n_read} bytes from '
-            f"{getattr(infile, 'name', 'object')}\n - could the file be damaged?"
+            f'{getattr(infile, "name", "object")}\n - could the file be damaged?'
         )
     arr: np.ndarray = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
     if needs_copy:

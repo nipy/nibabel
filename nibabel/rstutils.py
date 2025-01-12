@@ -52,7 +52,7 @@ def rst_table(
     cross = format_chars.pop('cross', '+')
     title_heading = format_chars.pop('title_heading', '*')
     if len(format_chars) != 0:
-        raise ValueError(f"Unexpected ``format_char`` keys {', '.join(format_chars)}")
+        raise ValueError(f'Unexpected ``format_char`` keys {", ".join(format_chars)}')
     down_joiner = ' ' + down + ' '
     down_starter = down + ' '
     down_ender = ' ' + down

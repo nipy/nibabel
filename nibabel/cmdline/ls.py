@@ -103,8 +103,8 @@ def proc_file(f, opts):
 
     row += [
         str(safe_get(h, 'data_dtype')),
-        f"@l[{ap(safe_get(h, 'data_shape'), '%3g')}]",
-        f"@l{ap(safe_get(h, 'zooms'), '%.2f', 'x')}",
+        f'@l[{ap(safe_get(h, "data_shape"), "%3g")}]',
+        f'@l{ap(safe_get(h, "zooms"), "%.2f", "x")}',
     ]
     # Slope
     if (
