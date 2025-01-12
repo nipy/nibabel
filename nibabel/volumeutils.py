@@ -35,8 +35,8 @@ if ty.TYPE_CHECKING:
     DT = ty.TypeVar('DT', bound=np.generic)
 
 sys_is_le = sys.byteorder == 'little'
-native_code = sys_is_le and '<' or '>'
-swapped_code = sys_is_le and '>' or '<'
+native_code = '<' if sys_is_le else '>'
+swapped_code = '>' if sys_is_le else '<'
 
 _endian_codes = (  # numpy code, aliases
     ('<', 'little', 'l', 'le', 'L', 'LE'),
