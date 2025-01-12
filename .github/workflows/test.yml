@@ -199,7 +199,9 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         if: endsWith(matrix.python-version, 't')
         run: |
-          uv python install ${IMPL}-${VERSION}-${OS%-*}-${ARCH}-${LIBC}
+          echo "UV_PYTHON=${IMPL}-${VERSION}-${OS%-*}-${ARCH}-${LIBC}" >> $GITHUB_ENV
+          source $GITHUB_ENV
+          uv python install $UV_PYTHON
         env:
           IMPL: cpython
           VERSION: ${{ matrix.python-version }}
@@ -215,9 +217,7 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
         run: |
-          uv tool install tox --with=git+https://github.com/effigies/tox-gh-actions@abiflags --with=tox-uv
-        env:
-          UV_PYTHON: ${{ matrix.python-version }}
+          uv tool install -v tox --with=git+https://github.com/effigies/tox-gh-actions@abiflags --with=tox-uv
       - name: Show tox config
         run: tox c
       - name: Run tox
