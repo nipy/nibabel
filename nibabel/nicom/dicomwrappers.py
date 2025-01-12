@@ -756,13 +756,13 @@ class MultiframeWrapper(Wrapper):
             return (rows, cols)
         # Initialize array of frame indices
         try:
-            frame_indices = np.array(
-                [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
+            frame_indices = np.stack(
+                np.atleast_1d(
+                    *(frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames)
+                )
             )
         except AttributeError:
             raise WrapperError("Can't find frame 'DimensionIndexValues'")
-        if len(frame_indices.shape) == 1:
-            frame_indices = frame_indices.reshape(frame_indices.shape + (1,))
         # Determine the shape and which indices to use
         shape = [rows, cols]
         curr_parts = n_frames
