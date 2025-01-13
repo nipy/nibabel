@@ -338,7 +338,7 @@ def pretty_mapping(
     if getterfunc is None:
         getterfunc = getitem
     mxlen = max(len(str(name)) for name in mapping)
-    return '\n'.join([f'{name:{mxlen}s}  : {getterfunc(mapping, name)}' for name in mapping])
+    return '\n'.join(f'{name:{mxlen}s}  : {getterfunc(mapping, name)}' for name in mapping)
 
 
 def make_dt_codes(codes_seqs: ty.Sequence[ty.Sequence]) -> Recoder:
