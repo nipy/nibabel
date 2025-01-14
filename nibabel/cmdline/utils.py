@@ -55,7 +55,7 @@ def table2string(table, out=None):
     # eat whole entry while computing width for @w (for wide)
     markup_strip = re.compile('^@([lrc]|w.*)')
     col_width = [max(len(markup_strip.sub('', x)) for x in column) for column in zip(*table)]
-    trans = str.maketrans("lrcw", "<>^^")
+    trans = str.maketrans('lrcw', '<>^^')
     lines = []
     for row in table:
         line = []

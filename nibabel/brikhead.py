@@ -555,7 +555,7 @@ class AFNIImage(SpatialImage):
             fname = fholder.filename
             if key == 'header' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
-                    fname = fname[: -len(ext)] if fname.endswith(ext) else fname
+                    fname = fname.removesuffix(ext)
             elif key == 'image' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
                     if os.path.exists(fname + ext):

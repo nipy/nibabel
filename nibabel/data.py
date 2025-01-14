@@ -290,7 +290,7 @@ def make_datasource(pkg_def, **kwargs):
         pkg_hint = pkg_def.get('install hint', DEFAULT_INSTALL_HINT)
         msg = f'{e}; Is it possible you have not installed a data package?'
         if 'name' in pkg_def:
-            msg += f"\n\nYou may need the package \"{pkg_def['name']}\""
+            msg += f'\n\nYou may need the package "{pkg_def["name"]}"'
         if pkg_hint is not None:
             msg += f'\n\n{pkg_hint}'
         raise DataError(msg)

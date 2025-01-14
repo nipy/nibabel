@@ -212,7 +212,7 @@ class Deprecator:
             messages.append('* deprecated from version: ' + since)
         if until:
             messages.append(
-                f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
+                f'* {"Raises" if self.is_bad_version(until) else "Will raise"} '
                 f'{exception} as of version: {until}'
             )
         message = '\n'.join(messages)

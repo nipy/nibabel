@@ -1,3 +1,7 @@
+# Sun Jan 12 12:22:13 2025 -0500 - markiewicz@stanford.edu - sty: ruff format [git-blame-ignore-rev]
+40e41208a0f04063b3c4e373a65da1a2a6a275b5
+# Sun Jan 12 11:51:49 2025 -0500 - markiewicz@stanford.edu - STY: ruff format [git-blame-ignore-rev]
+7e5d584910c67851dcfcd074ff307122689b61f5
 # Sun Jan 1 12:38:02 2023 -0500 - effigies@gmail.com - STY: Run pre-commit config on all files
 d14c1cf282a9c3b19189f490f10c35f5739e24d1
 # Thu Dec 29 22:53:17 2022 -0500 - effigies@gmail.com - STY: Reduce array().astype() and similar constructs

@@ -782,10 +782,10 @@ class PARRECHeader(SpatialHeader):
         # Here we set the parameters we can to simplify PAR/REC
         # to NIfTI conversion.
         descr = (
-            f"{self.general_info['exam_name']};"
-            f"{self.general_info['patient_name']};"
-            f"{self.general_info['exam_date'].replace(' ', '')};"
-            f"{self.general_info['protocol_name']}"
+            f'{self.general_info["exam_name"]};'
+            f'{self.general_info["patient_name"]};'
+            f'{self.general_info["exam_date"].replace(" ", "")};'
+            f'{self.general_info["protocol_name"]}'
         )[:80]
         is_fmri = self.general_info['max_dynamics'] > 1
         # PAR/REC uses msec, but in _calc_zooms we convert to sec

@@ -96,7 +96,7 @@ def bench_arrayproxy_slicing():
                 slcstr.append(s)
             else:
                 slcstr.append(str(int(s * SHAPE[i])))
-        return f"[{', '.join(slcstr)}]"
+        return f'[{", ".join(slcstr)}]'
 
     with InTemporaryDirectory():
         print(f'Generating test data... ({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')

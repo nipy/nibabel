@@ -101,9 +101,9 @@ def test_concat():
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
-                                assert (
-                                    not expect_error
-                                ), 'Expected a concatenation error, but got none.'
+                                assert not expect_error, (
+                                    'Expected a concatenation error, but got none.'
+                                )
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
@@ -117,9 +117,9 @@ def test_concat():
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
-                                assert (
-                                    not expect_error
-                                ), 'Expected a concatenation error, but got none.'
+                                assert not expect_error, (
+                                    'Expected a concatenation error, but got none.'
+                                )
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 

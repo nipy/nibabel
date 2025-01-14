@@ -35,8 +35,8 @@ if ty.TYPE_CHECKING:
     DT = ty.TypeVar('DT', bound=np.generic)
 
 sys_is_le = sys.byteorder == 'little'
-native_code = sys_is_le and '<' or '>'
-swapped_code = sys_is_le and '>' or '<'
+native_code = '<' if sys_is_le else '>'
+swapped_code = '>' if sys_is_le else '<'
 
 _endian_codes = (  # numpy code, aliases
     ('<', 'little', 'l', 'le', 'L', 'LE'),
@@ -338,12 +338,7 @@ def pretty_mapping(
     if getterfunc is None:
         getterfunc = getitem
     mxlen = max(len(str(name)) for name in mapping)
-    fmt = '%%-%ds  : %%s' % mxlen
-    out = []
-    for name in mapping:
-        value = getterfunc(mapping, name)
-        out.append(fmt % (name, value))
-    return '\n'.join(out)
+    return '\n'.join(f'{name:{mxlen}s}  : {getterfunc(mapping, name)}' for name in mapping)
 
 
 def make_dt_codes(codes_seqs: ty.Sequence[ty.Sequence]) -> Recoder:
@@ -473,7 +468,7 @@ def array_from_file(
     if n_bytes != n_read:
         raise OSError(
             f'Expected {n_bytes} bytes, got {n_read} bytes from '
-            f"{getattr(infile, 'name', 'object')}\n - could the file be damaged?"
+            f'{getattr(infile, "name", "object")}\n - could the file be damaged?'
         )
     arr: np.ndarray = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
     if needs_copy:

@@ -125,8 +125,7 @@ def save(tractogram, filename, **kwargs):
         tractogram_file = tractogram
         if tractogram_file_class is None or not isinstance(tractogram_file, tractogram_file_class):
             msg = (
-                'The extension you specified is unusual for the provided'
-                " 'TractogramFile' object."
+                "The extension you specified is unusual for the provided 'TractogramFile' object."
             )
             warnings.warn(msg, ExtensionWarning)
 

@@ -177,9 +177,9 @@ def assert_default_types(loaded):
             continue
         with suppress_warnings():
             loadedtype = type(getattr(loaded, attr))
-        assert (
-            loadedtype == defaulttype
-        ), f'Type mismatch for attribute: {attr} ({loadedtype} != {defaulttype})'
+        assert loadedtype == defaulttype, (
+            f'Type mismatch for attribute: {attr} ({loadedtype} != {defaulttype})'
+        )
 
 
 def test_default_types():

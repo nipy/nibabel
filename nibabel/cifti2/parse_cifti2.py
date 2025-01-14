@@ -384,8 +384,7 @@ class Cifti2Parser(xml.XmlParser):
             model = self.struct_state[-1]
             if not isinstance(model, Cifti2BrainModel):
                 raise Cifti2HeaderError(
-                    'VertexIndices element can only be a child '
-                    'of the CIFTI-2 BrainModel element'
+                    'VertexIndices element can only be a child of the CIFTI-2 BrainModel element'
                 )
             self.fsm_state.append('VertexIndices')
             model.vertex_indices = index

@@ -68,7 +68,7 @@ def test_sniff_and_guessed_image_type(img_klasses=all_image_classes):
                 # Check that the image type was recognized.
                 new_msg = (
                     f'{basename(img_path)} ({msg}) image '
-                    f"is{'' if is_img else ' not'} "
+                    f'is{"" if is_img else " not"} '
                     f'a {img_klass.__name__} image.'
                 )
                 assert is_img, new_msg

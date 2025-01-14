@@ -87,7 +87,7 @@ def _define_operators(cls):
         '__xor__',
     ):
         _wrap(cls, op=op, inplace=False)
-        _wrap(cls, op=f"__i{op.strip('_')}__", inplace=True)
+        _wrap(cls, op=f'__i{op.strip("_")}__', inplace=True)
 
     for op in ('__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__'):
         _wrap(cls, op)

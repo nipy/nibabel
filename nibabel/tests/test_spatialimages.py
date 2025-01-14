@@ -610,9 +610,9 @@ class MmapImageMixin:
                     back_img = func(param1, **kwargs)
                     back_data = np.asanyarray(back_img.dataobj)
                     if expected_mode is None:
-                        assert not isinstance(
-                            back_data, np.memmap
-                        ), f'Should not be a {img_klass.__name__}'
+                        assert not isinstance(back_data, np.memmap), (
+                            f'Should not be a {img_klass.__name__}'
+                        )
                     else:
                         assert isinstance(back_data, np.memmap), f'Not a {img_klass.__name__}'
                         if self.check_mmap_mode:

@@ -1804,7 +1804,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             raise HeaderDataError(f'slice ordering of {st_order} fits with no known scheme')
         if len(matching_labels) > 1:
             warnings.warn(
-                f"Multiple slice orders satisfy: {', '.join(matching_labels)}. "
+                f'Multiple slice orders satisfy: {", ".join(matching_labels)}. '
                 'Choosing the first one'
             )
         label = matching_labels[0]
