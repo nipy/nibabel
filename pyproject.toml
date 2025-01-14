@@ -125,6 +125,7 @@ select = [
     "FLY",
     "FURB",
     "I",
+    "ISC",
     "PERF",
     "PGH",
     "PIE",
@@ -177,8 +178,6 @@ ignore = [
     "Q003",
     "COM812",
     "COM819",
-    "ISC001",
-    "ISC002",
 ]
 
 [tool.ruff.lint.per-file-ignores]
