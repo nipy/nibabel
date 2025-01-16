@@ -309,11 +309,11 @@ def display_diff(files, diff):
                 item_str = str(item)
             # Value might start/end with some invisible spacing characters so we
             # would "condition" it on both ends a bit
-            item_str = re.sub('^[ \t]+', '<', item_str)
-            item_str = re.sub('[ \t]+$', '>', item_str)
+            item_str = re.sub(r'^[ \t]+', '<', item_str)
+            item_str = re.sub(r'[ \t]+$', '>', item_str)
             # and also replace some other invisible symbols with a question
             # mark
-            item_str = re.sub('[\x00]', '?', item_str)
+            item_str = re.sub(r'[\x00]', '?', item_str)
             output += value_width.format(item_str)
 
         output += '\n'
