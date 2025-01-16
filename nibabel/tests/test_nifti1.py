@@ -538,11 +538,11 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_slice_duration(0.1)
         # We need a function to print out the Nones and floating point
         # values in a predictable way, for the tests below.
-        _stringer = lambda val: f'{val:2.1f}' if val is not None else None
-        _print_me = lambda s: list(map(_stringer, s))
+        stringer = lambda val: f'{val:2.1f}' if val is not None else None
+        print_me = lambda s: list(map(stringer, s))
         # The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']
-        assert _print_me(hdr.get_slice_times()) == [
+        assert print_me(hdr.get_slice_times()) == [
             '0.0',
             '0.1',
             '0.2',
@@ -553,17 +553,17 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         ]
         hdr['slice_start'] = 1
         hdr['slice_end'] = 5
-        assert _print_me(hdr.get_slice_times()) == [None, '0.0', '0.1', '0.2', '0.3', '0.4', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.0', '0.1', '0.2', '0.3', '0.4', None]
         hdr['slice_code'] = slice_order_codes['sequential decreasing']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.4', '0.3', '0.2', '0.1', '0.0', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.4', '0.3', '0.2', '0.1', '0.0', None]
         hdr['slice_code'] = slice_order_codes['alternating increasing']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.0', '0.3', '0.1', '0.4', '0.2', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.0', '0.3', '0.1', '0.4', '0.2', None]
         hdr['slice_code'] = slice_order_codes['alternating decreasing']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.2', '0.4', '0.1', '0.3', '0.0', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.2', '0.4', '0.1', '0.3', '0.0', None]
         hdr['slice_code'] = slice_order_codes['alternating increasing 2']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.2', '0.0', '0.3', '0.1', '0.4', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.2', '0.0', '0.3', '0.1', '0.4', None]
         hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
         # test set
         hdr = self.header_class()
         hdr.set_dim_info(slice=2)
