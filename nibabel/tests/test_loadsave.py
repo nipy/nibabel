@@ -88,7 +88,7 @@ def test_load_bad_compressed_extension(tmp_path, extension):
         pytest.skip()
     file_path = tmp_path / f'img.nii{extension}'
     file_path.write_bytes(b'bad')
-    with pytest.raises(ImageFileError, match='.*is not a .* file'):
+    with pytest.raises(ImageFileError, match=r'.*is not a .* file'):
         load(file_path)
 
 
@@ -99,7 +99,7 @@ def test_load_good_extension_with_bad_data(tmp_path, extension):
     file_path = tmp_path / f'img.nii{extension}'
     with Opener(file_path, 'wb') as fobj:
         fobj.write(b'bad')
-    with pytest.raises(ImageFileError, match='Cannot work out file type of .*'):
+    with pytest.raises(ImageFileError, match=r'Cannot work out file type of .*'):
         load(file_path)
 
 
