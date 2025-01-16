@@ -497,7 +497,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = self.header_class()
         s1 = str(hdr)
         # check the datacode recoding
-        rexp = re.compile('^datatype +: float32', re.MULTILINE)
+        rexp = re.compile(r'^datatype +: float32', re.MULTILINE)
         assert rexp.search(s1) is not None
 
     def test_from_header(self):
