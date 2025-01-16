@@ -153,11 +153,11 @@ class Wrapper:
         # Look at manufacturer tag first
         mfgr = self.get('Manufacturer')
         if mfgr:
-            if re.search('Siemens', mfgr, re.IGNORECASE):
+            if re.search(r'Siemens', mfgr, re.IGNORECASE):
                 return Vendor.SIEMENS
-            if re.search('Philips', mfgr, re.IGNORECASE):
+            if re.search(r'Philips', mfgr, re.IGNORECASE):
                 return Vendor.PHILIPS
-            if re.search('GE Medical', mfgr, re.IGNORECASE):
+            if re.search(r'GE Medical', mfgr, re.IGNORECASE):
                 return Vendor.GE
         # Next look at UID prefixes
         for uid_src in ('StudyInstanceUID', 'SeriesInstanceUID', 'SOPInstanceUID'):
