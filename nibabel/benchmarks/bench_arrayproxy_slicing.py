@@ -99,7 +99,7 @@ def bench_arrayproxy_slicing():
         return f'[{", ".join(slcstr)}]'
 
     with InTemporaryDirectory():
-        print(f'Generating test data... ({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')
+        print(f'Generating test data... ({round(np.prod(SHAPE) * 4 / 1048576.0)} MB)')
 
         data = np.array(np.random.random(SHAPE), dtype=np.float32)
 

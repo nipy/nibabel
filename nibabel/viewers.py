@@ -373,11 +373,11 @@ class OrthoSlicer3D:
 
     def _set_volume_index(self, v, update_slices=True):
         """Set the plot data using a volume index"""
-        v = self._data_idx[3] if v is None else int(round(v))
+        v = self._data_idx[3] if v is None else round(v)
         if v == self._data_idx[3]:
             return
         max_ = np.prod(self._volume_dims)
-        self._data_idx[3] = max(min(int(round(v)), max_ - 1), 0)
+        self._data_idx[3] = max(min(round(v), max_ - 1), 0)
         idx = (slice(None), slice(None), slice(None))
         if self._data.ndim > 3:
             idx = idx + tuple(np.unravel_index(self._data_idx[3], self._volume_dims))
@@ -401,7 +401,7 @@ class OrthoSlicer3D:
         idxs = np.dot(self._inv_affine, self._position)[:3]
         idxs_new_order = idxs[self._order]
         for ii, (size, idx) in enumerate(zip(self._sizes, idxs_new_order)):
-            self._data_idx[ii] = max(min(int(round(idx)), size - 1), 0)
+            self._data_idx[ii] = max(min(round(idx), size - 1), 0)
         for ii in range(3):
             # sagittal: get to S/A
             # coronal: get to S/L
