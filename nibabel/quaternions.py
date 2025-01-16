@@ -25,11 +25,14 @@ they are applied on the left of the vector.  For example:
 >>> vec = np.array([1, 2, 3]).reshape((3,1)) # column vector
 >>> tvec = np.dot(M, vec)
 """
+
 import math
 
 import numpy as np
 
-MAX_FLOAT = np.maximum_sctype(float)
+from .casting import sctypes
+
+MAX_FLOAT = sctypes['float'][-1]
 FLOAT_EPS = np.finfo(float).eps
 
 

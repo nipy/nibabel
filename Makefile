@@ -233,25 +233,6 @@ bdist_rpm:
 bdist_mpkg:
 	$(PYTHON) tools/mpkg_wrapper.py setup.py install
 
-# Check for files not installed
-check-files:
-	$(PYTHON) -c 'from nisext.testers import check_files; check_files("nibabel")'
-
-# Print out info for possible install methods
-check-version-info:
-	$(PYTHON) -c 'from nisext.testers import info_from_here; info_from_here("nibabel")'
-
-# Run tests from installed code
-installed-tests:
-	$(PYTHON) -c 'from nisext.testers import tests_installed; tests_installed("nibabel")'
-
-# Run tests from packaged distributions
-sdist-tests:
-	$(PYTHON) -c 'from nisext.testers import sdist_tests; sdist_tests("nibabel", doctests=False)'
-
-bdist-egg-tests:
-	$(PYTHON) -c 'from nisext.testers import bdist_egg_tests; bdist_egg_tests("nibabel", doctests=False, label="not script_test")'
-
 sdist-venv: clean
 	rm -rf dist venv
 	unset PYTHONPATH && $(PYTHON) setup.py sdist --formats=zip
@@ -260,7 +241,7 @@ sdist-venv: clean
 	mkdir venv/tmp
 	cd venv/tmp && unzip ../../dist/*.zip
 	. venv/bin/activate && cd venv/tmp/nibabel* && python setup.py install
-	unset PYTHONPATH && . venv/bin/activate && cd venv && nosetests --with-doctest nibabel nisext
+	unset PYTHONPATH && . venv/bin/activate && cd venv && pytest --doctest-modules --doctest-plus --pyargs nibabel
 
 source-release: distclean
 	$(PYTHON) -m compileall .

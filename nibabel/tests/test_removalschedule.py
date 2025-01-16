@@ -1,4 +1,3 @@
-import unittest
 from unittest import mock
 
 import pytest
@@ -6,6 +5,7 @@ import pytest
 from ..pkg_info import cmp_pkg_version
 
 MODULE_SCHEDULE = [
+    ('7.0.0', ['nibabel.pydicom_compat']),
     ('5.0.0', ['nibabel.keywordonly', 'nibabel.py3k']),
     ('4.0.0', ['nibabel.trackvis']),
     ('3.0.0', ['nibabel.minc', 'nibabel.checkwarns']),
@@ -17,6 +17,8 @@ OBJECT_SCHEDULE = [
     (
         '8.0.0',
         [
+            ('nibabel.casting', 'as_int'),
+            ('nibabel.casting', 'int_to_float'),
             ('nibabel.tmpdirs', 'TemporaryDirectory'),
         ],
     ),
@@ -123,7 +125,7 @@ def test_module_removal():
     for module in _filter(MODULE_SCHEDULE):
         with pytest.raises(ImportError):
             __import__(module)
-            assert False, f'Time to remove {module}'
+            raise AssertionError(f'Time to remove {module}')
 
 
 def test_object_removal():

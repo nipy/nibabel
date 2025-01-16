@@ -1,6 +1,5 @@
 """Test slicing of file-like objects"""
 
-
 import time
 from functools import partial
 from io import BytesIO
@@ -490,16 +489,16 @@ def test_optimize_read_slicers():
         (slice(None),),
     )
     # Check gap threshold with 3D
-    _depends0 = partial(threshold_heuristic, skip_thresh=10 * 4 - 1)
-    _depends1 = partial(threshold_heuristic, skip_thresh=10 * 4)
+    depends0 = partial(threshold_heuristic, skip_thresh=10 * 4 - 1)
+    depends1 = partial(threshold_heuristic, skip_thresh=10 * 4)
     assert optimize_read_slicers(
-        (slice(9), slice(None), slice(None)), (10, 6, 2), 4, _depends0
+        (slice(9), slice(None), slice(None)), (10, 6, 2), 4, depends0
     ) == ((slice(None), slice(None), slice(None)), (slice(0, 9, 1), slice(None), slice(None)))
     assert optimize_read_slicers(
-        (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends0
+        (slice(None), slice(5), slice(None)), (10, 6, 2), 4, depends0
     ) == ((slice(None), slice(0, 5, 1), slice(None)), (slice(None), slice(None), slice(None)))
     assert optimize_read_slicers(
-        (slice(None), slice(5), slice(None)), (10, 6, 2), 4, _depends1
+        (slice(None), slice(5), slice(None)), (10, 6, 2), 4, depends1
     ) == ((slice(None), slice(None), slice(None)), (slice(None), slice(0, 5, 1), slice(None)))
     # Check longs as integer slices
     sn = slice(None)

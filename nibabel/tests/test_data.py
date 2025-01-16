@@ -1,6 +1,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Tests for data module"""
+
 import os
 import sys
 import tempfile
@@ -22,11 +23,11 @@ from ..data import (
     get_data_path,
     make_datasource,
 )
-from .test_environment import DATA_KEY, USER_KEY, with_environment
+from .test_environment import DATA_KEY, USER_KEY, with_environment  # noqa: F401
 
 
 @pytest.fixture
-def with_nimd_env(request, with_environment):
+def with_nimd_env(request, with_environment):  # noqa: F811
     DATA_FUNCS = {}
     DATA_FUNCS['home_dir_func'] = nibd.get_nipy_user_dir
     DATA_FUNCS['sys_dir_func'] = nibd.get_nipy_system_dir
@@ -159,7 +160,7 @@ def test_data_path(with_nimd_env):
         tmpfile = pjoin(tmpdir, 'another_example.ini')
         with open(tmpfile, 'w') as fobj:
             fobj.write('[DATA]\n')
-            fobj.write('path = %s\n' % '/path/two')
+            fobj.write('path = {}\n'.format('/path/two'))
         assert get_data_path() == tst_list + ['/path/two'] + old_pth
 
 

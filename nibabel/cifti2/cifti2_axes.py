@@ -118,6 +118,7 @@ like:
 ...                                     bm_cortex)))
 <class 'nibabel.cifti2.cifti2.Cifti2Header'>
 """
+
 import abc
 from operator import xor
 
@@ -372,7 +373,7 @@ class BrainModelAxis(Axis):
         else:
             raise ValueError(
                 'Mask should be either 1-dimensional (for surfaces) or '
-                '3-dimensional (for volumes), not %i-dimensional' % mask.ndim
+                f'3-dimensional (for volumes), not {mask.ndim}-dimensional'
             )
 
     @classmethod
@@ -633,8 +634,10 @@ class BrainModelAxis(Axis):
         return (
             (
                 self.affine is None
-                or np.allclose(self.affine, other.affine)
-                and self.volume_shape == other.volume_shape
+                or (
+                    np.allclose(self.affine, other.affine)
+                    and self.volume_shape == other.volume_shape
+                )
             )
             and self.nvertices == other.nvertices
             and np.array_equal(self.name, other.name)
@@ -1518,7 +1521,6 @@ class SeriesAxis(Axis):
             index = self.size + index
         if index >= self.size or index < 0:
             raise IndexError(
-                'index %i is out of range for SeriesAxis with size %i'
-                % (original_index, self.size)
+                f'index {original_index} is out of range for SeriesAxis with size {self.size}'
             )
         return self.start + self.step * index

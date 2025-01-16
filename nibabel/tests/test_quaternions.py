@@ -112,7 +112,6 @@ def test_fillpositive_simulated_error(dtype):
     # Permit 1 epsilon per value (default, but make explicit here)
     w2_thresh = 3 * np.finfo(dtype).eps
 
-    pos_error = neg_error = False
     for _ in range(50):
         xyz = norm(gen_vec(dtype))
 
@@ -147,7 +146,7 @@ def test_inverse_0():
     assert iq.dtype.kind == 'f'
 
 
-@pytest.mark.parametrize('M, q', eg_pairs)
+@pytest.mark.parametrize(('M', 'q'), eg_pairs)
 def test_inverse_1(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -170,15 +169,15 @@ def test_norm():
     assert not nq.isunit(qi)
 
 
-@pytest.mark.parametrize('M1, q1', eg_pairs[0::4])
-@pytest.mark.parametrize('M2, q2', eg_pairs[1::4])
+@pytest.mark.parametrize(('M1', 'q1'), eg_pairs[0::4])
+@pytest.mark.parametrize(('M2', 'q2'), eg_pairs[1::4])
 def test_mult(M1, q1, M2, q2):
     # Test that quaternion * same as matrix *
     q21 = nq.mult(q2, q1)
     assert_array_almost_equal, M2 @ M1, nq.quat2mat(q21)
 
 
-@pytest.mark.parametrize('M, q', eg_pairs)
+@pytest.mark.parametrize(('M', 'q'), eg_pairs)
 def test_inverse(M, q):
     iq = nq.inverse(q)
     iqM = nq.quat2mat(iq)
@@ -186,14 +185,8 @@ def test_inverse(M, q):
     assert np.allclose(iM, iqM)
 
 
-def test_eye():
-    qi = nq.eye()
-    assert np.all([1, 0, 0, 0] == qi)
-    assert np.allclose(nq.quat2mat(qi), np.eye(3))
-
-
 @pytest.mark.parametrize('vec', np.eye(3))
-@pytest.mark.parametrize('M, q', eg_pairs)
+@pytest.mark.parametrize(('M', 'q'), eg_pairs)
 def test_qrotate(vec, M, q):
     vdash = nq.rotate_vector(vec, q)
     vM = M @ vec

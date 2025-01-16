@@ -6,7 +6,7 @@ from ..spatialimages import supported_np_types
 # Generate dynamic fixtures
 def pytest_generate_tests(metafunc):
     if 'supported_dtype' in metafunc.fixturenames:
-        if metafunc.cls is None or not getattr(metafunc.cls, 'image_class'):
+        if metafunc.cls is None or not metafunc.cls.image_class:
             raise pytest.UsageError(
                 'Attempting to use supported_dtype fixture outside an image test case'
             )

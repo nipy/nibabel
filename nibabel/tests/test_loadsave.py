@@ -1,5 +1,4 @@
-"""Testing loadsave module
-"""
+"""Testing loadsave module"""
 
 import pathlib
 import shutil
@@ -21,7 +20,7 @@ from ..filebasedimages import ImageFileError
 from ..loadsave import _signature_matches_extension, load, read_img_data
 from ..openers import Opener
 from ..optpkg import optional_package
-from ..testing import expires
+from ..testing import deprecated_to, expires
 from ..tmpdirs import InTemporaryDirectory
 
 _, have_scipy, _ = optional_package('scipy')
@@ -50,14 +49,14 @@ def test_read_img_data():
             fpath = pathlib.Path(fpath)
         img = load(fpath)
         data = img.get_fdata()
-        with pytest.deprecated_call():
+        with deprecated_to('5.0.0'):
             data2 = read_img_data(img)
         assert_array_equal(data, data2)
         # These examples have null scaling - assert prefer=unscaled is the same
         dao = img.dataobj
         if hasattr(dao, 'slope') and hasattr(img.header, 'raw_data_from_fileobj'):
             assert (dao.slope, dao.inter) == (1, 0)
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(read_img_data(img, prefer='unscaled'), data)
         # Assert all caps filename works as well
         with TemporaryDirectory() as tmpdir:
@@ -89,7 +88,7 @@ def test_load_bad_compressed_extension(tmp_path, extension):
         pytest.skip()
     file_path = tmp_path / f'img.nii{extension}'
     file_path.write_bytes(b'bad')
-    with pytest.raises(ImageFileError, match='.*is not a .* file'):
+    with pytest.raises(ImageFileError, match=r'.*is not a .* file'):
         load(file_path)
 
 
@@ -100,7 +99,7 @@ def test_load_good_extension_with_bad_data(tmp_path, extension):
     file_path = tmp_path / f'img.nii{extension}'
     with Opener(file_path, 'wb') as fobj:
         fobj.write(b'bad')
-    with pytest.raises(ImageFileError, match='Cannot work out file type of .*'):
+    with pytest.raises(ImageFileError, match=r'Cannot work out file type of .*'):
         load(file_path)
 
 
@@ -140,21 +139,21 @@ def test_read_img_data_nifti():
             img = img_class(data, np.eye(4))
             img.set_data_dtype(out_dtype)
             # No filemap => error
-            with pytest.deprecated_call(), pytest.raises(ImageFileError):
+            with deprecated_to('5.0.0'), pytest.raises(ImageFileError):
                 read_img_data(img)
             # Make a filemap
             froot = f'an_image_{i}'
             img.file_map = img.filespec_to_file_map(froot)
             # Trying to read from this filemap will generate an error because
             # we are going to read from files that do not exist
-            with pytest.deprecated_call(), pytest.raises(OSError):
+            with deprecated_to('5.0.0'), pytest.raises(OSError):
                 read_img_data(img)
             img.to_file_map()
             # Load - now the scaling and offset correctly applied
             img_fname = img.file_map['image'].filename
             img_back = load(img_fname)
             data_back = img_back.get_fdata()
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(data_back, read_img_data(img_back))
             # This is the same as if we loaded the image and header separately
             hdr_fname = img.file_map['header'].filename if 'header' in img.file_map else img_fname
@@ -166,16 +165,16 @@ def test_read_img_data_nifti():
             # Unscaled is the same as returned from raw_data_from_fileobj
             with open(img_fname, 'rb') as fobj:
                 unscaled_back = hdr_back.raw_data_from_fileobj(fobj)
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(unscaled_back, read_img_data(img_back, prefer='unscaled'))
             # If we futz with the scaling in the header, the result changes
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(data_back, read_img_data(img_back))
             has_inter = hdr_back.has_data_intercept
             old_slope = hdr_back['scl_slope']
             old_inter = hdr_back['scl_inter'] if has_inter else 0
             est_unscaled = (data_back - old_inter) / old_slope
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 actual_unscaled = read_img_data(img_back, prefer='unscaled')
             assert_almost_equal(est_unscaled, actual_unscaled)
             img_back.header['scl_slope'] = 2.1
@@ -185,10 +184,10 @@ def test_read_img_data_nifti():
             else:
                 new_inter = 0
             # scaled scaling comes from new parameters in header
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert np.allclose(actual_unscaled * 2.1 + new_inter, read_img_data(img_back))
             # Unscaled array didn't change
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(actual_unscaled, read_img_data(img_back, prefer='unscaled'))
             # Check the offset too
             img.header.set_data_offset(1024)
@@ -200,14 +199,14 @@ def test_read_img_data_nifti():
                 fobj.write(b'\x00\x00')
             img_back = load(img_fname)
             data_back = img_back.get_fdata()
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(data_back, read_img_data(img_back))
             img_back.header.set_data_offset(1026)
             # Check we pick up new offset
             exp_offset = np.zeros((data.size,), data.dtype) + old_inter
             exp_offset[:-1] = np.ravel(data_back, order='F')[1:]
             exp_offset = np.reshape(exp_offset, shape, order='F')
-            with pytest.deprecated_call():
+            with deprecated_to('5.0.0'):
                 assert_array_equal(exp_offset, read_img_data(img_back))
             # Delete stuff that might hold onto file references
             del img, img_back, data_back

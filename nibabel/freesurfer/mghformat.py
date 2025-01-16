@@ -10,6 +10,7 @@
 
 Author: Krish Subramaniam
 """
+
 from os.path import splitext
 
 import numpy as np
@@ -280,7 +281,7 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
         zooms = np.asarray(zooms)
         ndims = self._ndims()
         if len(zooms) > ndims:
-            raise HeaderDataError('Expecting %d zoom values' % ndims)
+            raise HeaderDataError(f'Expecting {ndims} zoom values')
         if np.any(zooms[:3] <= 0):
             raise HeaderDataError(
                 f'Spatial (first three) zooms must be positive; got {tuple(zooms[:3])}'
@@ -495,7 +496,7 @@ class MGHImage(SpatialImage, SerializableImage):
         Parameters
         ----------
         file_map : dict
-            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            Mapping with (key, value) pairs of (``file_type``, FileHolder
             instance giving file-likes for each file needed for this image
             type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only
@@ -569,7 +570,9 @@ class MGHImage(SpatialImage, SerializableImage):
         """
         shape = header.get_data_shape()
         if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' % ', '.join(str(s) for s in shape))
+            raise HeaderDataError(
+                'Data should be shape ({})'.format(', '.join(str(s) for s in shape))
+            )
         offset = header.get_data_offset()
         out_dtype = header.get_data_dtype()
         array_to_file(data, mghfile, out_dtype, offset)

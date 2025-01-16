@@ -62,6 +62,27 @@ For more information on previous releases, see the `release archive`_ or
 .. _release archive: https://github.com/nipy/NiBabel/releases
 .. _development changelog: https://nipy.org/nibabel/changelog.html
 
+Testing
+=======
+
+During development, we recommend using tox_ to run nibabel tests::
+
+    git clone https://github.com/nipy/nibabel.git
+    cd nibabel
+    tox
+
+To test an installed version of nibabel, install the test dependencies
+and run pytest_::
+
+    pip install nibabel[test]
+    pytest --pyargs nibabel
+
+For more information, consult the `developer guidelines`_.
+
+.. _tox: https://tox.wiki
+.. _pytest: https://docs.pytest.org
+.. _developer guidelines: https://nipy.org/nibabel/devel/devguide.html
+
 Mailing List
 ============
 
@@ -87,4 +108,4 @@ the top of the release notes. Click on the badge for more information.
 
 .. _Digital Object Identifier: https://en.wikipedia.org/wiki/Digital_object_identifier
 .. _zenodo: https://zenodo.org
-"""   # noqa: E501
+"""

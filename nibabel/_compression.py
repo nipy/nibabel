@@ -7,17 +7,19 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Constants and types for dealing transparently with compression"""
+
 from __future__ import annotations
 
 import bz2
 import gzip
-import io
 import typing as ty
 
 from .optpkg import optional_package
 
-if ty.TYPE_CHECKING:  # pragma: no cover
-    import indexed_gzip  # type: ignore
+if ty.TYPE_CHECKING:
+    import io
+
+    import indexed_gzip  # type: ignore[import]
     import pyzstd
 
     HAVE_INDEXED_GZIP = True
@@ -40,7 +42,7 @@ COMPRESSION_ERRORS: tuple[type[BaseException], ...] = (
 if HAVE_INDEXED_GZIP:
     COMPRESSED_FILE_LIKES += (indexed_gzip.IndexedGzipFile,)
     COMPRESSION_ERRORS += (indexed_gzip.ZranError,)
-    from indexed_gzip import IndexedGzipFile  # type: ignore
+    from indexed_gzip import IndexedGzipFile  # type: ignore[import-not-found]
 else:
     IndexedGzipFile = gzip.GzipFile
 

@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Test for openers module"""
+
 import contextlib
 import hashlib
 import os
@@ -19,7 +20,6 @@ from unittest import mock
 import pytest
 from packaging.version import Version
 
-from ..deprecator import ExpiredDeprecationError
 from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
 from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
@@ -121,8 +121,9 @@ def patch_indexed_gzip(state):
         values = (True, MockIndexedGzipFile)
     else:
         values = (False, GzipFile)
-    with mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]), mock.patch(
-        'nibabel.openers.IndexedGzipFile', values[1], create=True
+    with (
+        mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]),
+        mock.patch('nibabel.openers.IndexedGzipFile', values[1], create=True),
     ):
         yield
 
@@ -431,17 +432,17 @@ def test_DeterministicGzipFile_fileobj():
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(filename='', mode='wb', fileobj=fobj) as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(fileobj=fobj, mode='wb') as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
         with open('test.gz', 'wb') as fobj:
             with DeterministicGzipFile(filename='test.gz', mode='wb', fileobj=fobj) as gzobj:
                 gzobj.write(msg)
-        md5sum('test.gz') == ref_chksum
+        assert md5sum('test.gz') == ref_chksum
 
 
 def test_bitwise_determinism():

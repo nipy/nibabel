@@ -1,6 +1,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Utility routines for working with points and affine transforms"""
+
 from functools import reduce
 
 import numpy as np
@@ -365,7 +366,7 @@ def rescale_affine(affine, shape, zooms, new_shape=None):
         A new affine transform with the specified voxel sizes
 
     """
-    shape = np.array(shape, copy=False)
+    shape = np.asarray(shape)
     new_shape = np.array(new_shape if new_shape is not None else shape)
 
     s = voxel_sizes(affine)

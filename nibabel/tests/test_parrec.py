@@ -1,5 +1,4 @@
-"""Testing parrec module
-"""
+"""Testing parrec module"""
 
 from glob import glob
 from os.path import basename, dirname
@@ -285,8 +284,8 @@ def test_affine_regression():
     # Test against checked affines from previous runs
     # Checked against Michael's data using some GUI tools
     # Data at http://psydata.ovgu.de/philips_achieva_testfiles/conversion2
-    for basename, exp_affine in PREVIOUS_AFFINES.items():
-        fname = pjoin(DATA_PATH, basename + '.PAR')
+    for basename_affine, exp_affine in PREVIOUS_AFFINES.items():
+        fname = pjoin(DATA_PATH, basename_affine + '.PAR')
         with open(fname) as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
@@ -607,7 +606,7 @@ def test_truncations():
         PARRECHeader(gen_info, slice_info)
     gen_info['max_echoes'] = 1
     hdr = PARRECHeader(gen_info, slice_info)
-    # dyamics
+    # dynamics
     gen_info['max_dynamics'] = 3
     with pytest.raises(PARRECError):
         PARRECHeader(gen_info, slice_info)
@@ -884,7 +883,6 @@ def test_dualTR():
 def test_ADC_map():
     # test reading an apparent diffusion coefficient map
     with open(ADC_PAR) as fobj:
-
         # two truncation warnings expected because general_info indicates:
         # 1.) multiple directions
         # 2.) multiple b-values

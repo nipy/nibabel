@@ -1,4 +1,5 @@
 """Utilities for getting array slices out of file-like objects"""
+
 import operator
 from functools import reduce
 from mmap import mmap
@@ -126,7 +127,7 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
             if slicer < 0:
                 slicer = dim_len + slicer
             elif check_inds and slicer >= dim_len:
-                raise ValueError('Integer index %d to large' % slicer)
+                raise ValueError(f'Integer index {slicer} too large')
         can_slicers.append(slicer)
     # Fill out any missing dimensions
     if n_real < n_dim:

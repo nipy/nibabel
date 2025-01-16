@@ -23,7 +23,7 @@ _counter = 0
 
 def _as_fname(img):
     global _counter
-    fname = 'img%3d.nii' % _counter
+    fname = f'img{_counter:3d}.nii'
     _counter = _counter + 1
     save(img, fname)
     return fname
@@ -58,7 +58,6 @@ def test_concat():
 
                 # Loop over every possible axis, including None (explicit and implied)
                 for axis in list(range(-(dim - 2), (dim - 1))) + [None, '__default__']:
-
                     # Allow testing default vs. passing explicit param
                     if axis == '__default__':
                         np_concat_kwargs = dict(axis=-1)
@@ -102,9 +101,9 @@ def test_concat():
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
-                                assert (
-                                    not expect_error
-                                ), 'Expected a concatenation error, but got none.'
+                                assert not expect_error, (
+                                    'Expected a concatenation error, but got none.'
+                                )
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 
@@ -118,9 +117,9 @@ def test_concat():
                             except ValueError as ve:
                                 assert expect_error, str(ve)
                             else:
-                                assert (
-                                    not expect_error
-                                ), 'Expected a concatenation error, but got none.'
+                                assert not expect_error, (
+                                    'Expected a concatenation error, but got none.'
+                                )
                                 assert_array_equal(all_imgs.get_fdata(), all_data)
                                 assert_array_equal(all_imgs.affine, affine)
 

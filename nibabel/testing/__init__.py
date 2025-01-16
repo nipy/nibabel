@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Utilities for testing"""
+
 from __future__ import annotations
 
 import os
@@ -16,6 +17,7 @@ import typing as ty
 import unittest
 import warnings
 from contextlib import nullcontext
+from importlib.resources import as_file, files
 from itertools import zip_longest
 
 import numpy as np
@@ -25,12 +27,8 @@ from numpy.testing import assert_array_equal
 from .helpers import assert_data_similar, bytesio_filemap, bytesio_round_trip
 from .np_features import memmap_after_ufunc
 
-try:
-    from importlib.abc import Traversable
-    from importlib.resources import as_file, files
-except ImportError:  # PY38
-    from importlib_resources import as_file, files
-    from importlib_resources.abc import Traversable
+if ty.TYPE_CHECKING:
+    from importlib.resources.abc import Traversable
 
 
 def get_test_data(
@@ -149,9 +147,10 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     Examples
     --------
     >>> import warnings
-    >>> with clear_and_catch_warnings(modules=[np.core.fromnumeric]):
+    >>> with clear_and_catch_warnings(modules=[np.lib.scimath]):
     ...     warnings.simplefilter('always')
-    ...     # do something that raises a warning in np.core.fromnumeric
+    ...     # do something that raises a warning in np.lib.scimath
+    ...     _ = np.arccos(90)
     """
 
     class_modules = ()
@@ -233,3 +232,15 @@ def expires(version):
         return lambda x: x
 
     return pytest.mark.xfail(raises=ExpiredDeprecationError)
+
+
+def deprecated_to(version):
+    """Context manager to expect DeprecationWarnings until a given version"""
+    from packaging.version import Version
+
+    from nibabel import __version__ as nbver
+
+    if Version(nbver) < Version(version):
+        return pytest.deprecated_call()
+
+    return nullcontext()

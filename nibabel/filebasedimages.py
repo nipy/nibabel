@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Common interface for any image format--volume or surface, binary or xml"""
+
 from __future__ import annotations
 
 import io
@@ -19,10 +20,10 @@ from .fileholders import FileHolder, FileMap
 from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
 from .openers import ImageOpener
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     from .filename_parser import ExtensionSpec, FileSpec
 
-FileSniff = ty.Tuple[bytes, str]
+FileSniff = tuple[bytes, str]
 
 ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
 HdrT = ty.TypeVar('HdrT', bound='FileBasedHeader')
@@ -53,13 +54,13 @@ class FileBasedHeader:
 
     @classmethod
     def from_fileobj(klass: type[HdrT], fileobj: io.IOBase) -> HdrT:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def write_to(self, fileobj: io.IOBase) -> None:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def __eq__(self, other: object) -> bool:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def __ne__(self, other: object) -> bool:
         return not self == other
@@ -250,7 +251,7 @@ class FileBasedImage:
 
     @classmethod
     def from_file_map(klass: type[ImgT], file_map: FileMap) -> ImgT:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     @classmethod
     def filespec_to_file_map(klass, filespec: FileSpec) -> FileMap:
@@ -307,7 +308,7 @@ class FileBasedImage:
         self.to_file_map(**kwargs)
 
     def to_file_map(self, file_map: FileMap | None = None, **kwargs) -> None:
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     @classmethod
     def make_file_map(klass, mapping: ty.Mapping[str, str | io.IOBase] | None = None) -> FileMap:
@@ -372,7 +373,7 @@ class FileBasedImage:
         img : ``FileBasedImage`` instance
            Image, of our own class
         """
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     @classmethod
     def _sniff_meta_for(

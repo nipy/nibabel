@@ -1,7 +1,7 @@
 exclude: ".*/data/.*"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -12,21 +12,16 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-vcs-permalinks
-  - repo: https://github.com/grantjenks/blue
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.1
     hooks:
-      - id: blue
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        exclude: "^(doc|nisext|tools)/"
+      - id: ruff
+        args: [ --fix ]
+        exclude: = ["doc", "tools"]
+      - id: ruff-format
+        exclude: = ["doc", "tools"]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.14.1
     hooks:
       - id: mypy
         # Sync with project.optional-dependencies.typing
@@ -40,3 +35,9 @@ repos:
           - importlib_resources
         args: ["nibabel"]
         pass_filenames: false
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        additional_dependencies:
+          - tomli

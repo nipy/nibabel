@@ -7,8 +7,9 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Thin layer around xml.etree.ElementTree, to abstract nibabel xml support"""
+
 from io import BytesIO
-from xml.etree.ElementTree import Element, SubElement, tostring  # noqa
+from xml.etree.ElementTree import Element, SubElement, tostring  # noqa: F401
 from xml.parsers.expat import ParserCreate
 
 from .filebasedimages import FileBasedHeader
@@ -19,7 +20,7 @@ class XmlSerializable:
 
     def _to_xml_element(self) -> Element:
         """Output should be a xml.etree.ElementTree.Element"""
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def to_xml(self, enc='utf-8', **kwargs) -> bytes:
         r"""Generate an XML bytestring with a given encoding.
@@ -32,7 +33,7 @@ class XmlSerializable:
             Additional keyword arguments to :func:`xml.etree.ElementTree.tostring`.
         """
         ele = self._to_xml_element()
-        return b'' if ele is None else tostring(ele, enc, **kwargs)
+        return tostring(ele, enc, **kwargs)
 
 
 class XmlBasedHeader(FileBasedHeader, XmlSerializable):
@@ -108,10 +109,10 @@ class XmlParser:
         parser.ParseFile(fptr)
 
     def StartElementHandler(self, name, attrs):
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def EndElementHandler(self, name):
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def CharacterDataHandler(self, data):
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError

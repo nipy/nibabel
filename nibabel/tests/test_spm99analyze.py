@@ -23,8 +23,8 @@ _, have_scipy, _ = optional_package('scipy')
 # files
 needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
-from ..casting import shared_range, type_info
-from ..spatialimages import HeaderDataError, supported_np_types
+from ..casting import sctypes_aliases, shared_range, type_info
+from ..spatialimages import HeaderDataError
 from ..spm99analyze import HeaderTypeError, Spm99AnalyzeHeader, Spm99AnalyzeImage
 from ..testing import (
     assert_allclose_safely,
@@ -35,11 +35,11 @@ from ..testing import (
 from ..volumeutils import _dt_min_max, apply_read_scaling
 from . import test_analyze
 
-# np.sctypes values are lists of types with unique sizes
+# np.core.sctypes values are lists of types with unique sizes
 # For testing, we want all concrete classes of a type
 # Key on kind, rather than abstract base classes, since timedelta64 is a signedinteger
 sctypes = {}
-for sctype in set(np.sctypeDict.values()):
+for sctype in sctypes_aliases:
     sctypes.setdefault(np.dtype(sctype).kind, []).append(sctype)
 
 # Sort types to ensure that xdist doesn't complain about test order when we parametrize
@@ -328,7 +328,8 @@ class ImageScalingMixin:
         inter = 10 if hdr.has_data_intercept else 0
 
         mn_in, mx_in = _dt_min_max(in_dtype)
-        arr = np.array([mn_in, -1, 0, 1, 10, mx_in], dtype=in_dtype)
+        mn = -1 if np.dtype(in_dtype).kind != 'u' else 0
+        arr = np.array([mn_in, mn, 0, 1, 10, mx_in], dtype=in_dtype)
         img = img_class(arr, np.eye(4), hdr)
         img.set_data_dtype(supported_dtype)
         # Setting the scaling means we don't calculate it later
@@ -422,7 +423,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         aff = np.diag([2, 3, 4, 1])  # no LR flip in affine
         img = img_klass(arr, aff)
         fm = img.file_map
-        for key, value in fm.items():
+        for value in fm.values():
             value.fileobj = BytesIO()
         # Test round trip
         img.to_file_map()
@@ -474,7 +475,7 @@ class TestSpm99AnalyzeImage(test_analyze.TestAnalyzeImage, ImageScalingMixin):
         img = img_klass(np.zeros((2, 3, 4)), None)
         aff = img.header.get_best_affine()
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)

@@ -11,13 +11,14 @@
 The Gifti specification was (at time of writing) available as a PDF download
 from http://www.nitrc.org/projects/gifti/
 """
+
 from __future__ import annotations
 
 import base64
 import sys
 import warnings
 from copy import copy
-from typing import Type, cast
+from typing import cast
 
 import numpy as np
 
@@ -228,7 +229,7 @@ class GiftiLabelTable(xml.XmlSerializable):
             label = xml.SubElement(labeltable, 'Label')
             label.attrib['Key'] = str(ele.key)
             label.text = ele.label
-            for attr in ['Red', 'Green', 'Blue', 'Alpha']:
+            for attr in ('Red', 'Green', 'Blue', 'Alpha'):
                 if getattr(ele, attr.lower(), None) is not None:
                     label.attrib[attr] = str(getattr(ele, attr.lower()))
         return labeltable
@@ -373,7 +374,7 @@ class GiftiCoordSystem(xml.XmlSerializable):
     def print_summary(self):
         print('Dataspace: ', xform_codes.niistring[self.dataspace])
         print('XFormSpace: ', xform_codes.niistring[self.xformspace])
-        print('Affine Transformation Matrix: \n', self.xform)
+        print('Affine Transformation Matrix:\n', self.xform)
 
 
 def _data_tag_element(dataarray, encoding, dtype, ordering):
@@ -521,7 +522,7 @@ class GiftiDataArray(xml.XmlSerializable):
             },
         )
         for di, dn in enumerate(self.dims):
-            data_array.attrib['Dim%d' % di] = str(dn)
+            data_array.attrib[f'Dim{di}'] = str(dn)
 
         if self.meta is not None:
             data_array.append(self.meta._to_xml_element())
@@ -597,7 +598,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     # The parser will in due course be a GiftiImageParser, but we can't set
     # that now, because it would result in a circular import.  We set it after
     # the class has been defined, at the end of the class definition.
-    parser: Type[xml.XmlParser]
+    parser: type[xml.XmlParser]
 
     def __init__(
         self,
@@ -745,7 +746,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
         >>> triangles_2 = surf_img.agg_data('triangle')
         >>> triangles_3 = surf_img.agg_data(1009)  # Numeric code for pointset
         >>> print(np.array2string(triangles))
-        [0 1 2]
+        [[0 1 2]]
         >>> np.array_equal(triangles, triangles_2)
         True
         >>> np.array_equal(triangles, triangles_3)

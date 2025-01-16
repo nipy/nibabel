@@ -1,8 +1,6 @@
-"""Testing package info
-"""
+"""Testing package info"""
 
 import pytest
-from packaging.version import Version
 
 import nibabel as nib
 from nibabel.pkg_info import cmp_pkg_version
@@ -16,7 +14,7 @@ def test_pkg_info():
         - nibabel.pkg_info.get_pkg_info
         - nibabel.pkg_info.pkg_commit_hash
     """
-    info = nib.get_info()
+    nib.get_info()
 
 
 def test_version():
@@ -39,7 +37,7 @@ def test_cmp_pkg_version_0():
 
 
 @pytest.mark.parametrize(
-    'test_ver, pkg_ver, exp_out',
+    ('test_ver', 'pkg_ver', 'exp_out'),
     [
         ('1.0', '1.0', 0),
         ('1.0.0', '1.0', 0),
@@ -54,8 +52,6 @@ def test_cmp_pkg_version_0():
         ('1.1dev', '1.1', -1),
         ('1.2.1', '1.2.1rc1', 1),
         ('1.2.1rc1', '1.2.1', -1),
-        ('1.2.1rc1', '1.2.1rc', 1),
-        ('1.2.1rc', '1.2.1rc1', -1),
         ('1.2.1rc1', '1.2.1rc', 1),
         ('1.2.1rc', '1.2.1rc1', -1),
         ('1.2.1b', '1.2.1a', 1),

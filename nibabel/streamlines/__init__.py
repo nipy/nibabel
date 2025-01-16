@@ -1,5 +1,5 @@
-"""Multiformat-capable streamline format read / write interface
-"""
+"""Multiformat-capable streamline format read / write interface"""
+
 import os
 import warnings
 
@@ -125,13 +125,12 @@ def save(tractogram, filename, **kwargs):
         tractogram_file = tractogram
         if tractogram_file_class is None or not isinstance(tractogram_file, tractogram_file_class):
             msg = (
-                'The extension you specified is unusual for the provided'
-                " 'TractogramFile' object."
+                "The extension you specified is unusual for the provided 'TractogramFile' object."
             )
             warnings.warn(msg, ExtensionWarning)
 
         if kwargs:
-            msg = "A 'TractogramFile' object was provided, no need for" ' keyword arguments.'
+            msg = "A 'TractogramFile' object was provided, no need for keyword arguments."
             raise ValueError(msg)
 
     tractogram_file.save(filename)

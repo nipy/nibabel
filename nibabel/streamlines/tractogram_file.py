@@ -1,5 +1,5 @@
-"""Define abstract interface for Tractogram file classes
-"""
+"""Define abstract interface for Tractogram file classes"""
+
 from abc import ABC, abstractmethod
 
 from .header import Field
@@ -74,7 +74,7 @@ class TractogramFile(ABC):
             Returns True if `fileobj` is in the right streamlines file format,
             otherwise returns False.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def create_empty_header(cls):
@@ -101,7 +101,7 @@ class TractogramFile(ABC):
             Returns an object containing tractogram data and header
             information.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def save(self, fileobj):
@@ -113,4 +113,4 @@ class TractogramFile(ABC):
             If string, a filename; otherwise an open file-like object
             opened and ready to write.
         """
-        raise NotImplementedError()
+        raise NotImplementedError

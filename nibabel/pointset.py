@@ -17,6 +17,7 @@ A *mesh* is a collection of points and some structure that enables
 adjacent points to be identified. A *triangular mesh* in particular
 uses triplets of adjacent vertices to describe faces.
 """
+
 from __future__ import annotations
 
 import math
@@ -29,7 +30,7 @@ from nibabel.casting import able_int_type
 from nibabel.fileslice import strided_scalar
 from nibabel.spatialimages import SpatialImage
 
-if ty.TYPE_CHECKING:  # pragma: no cover
+if ty.TYPE_CHECKING:
     from typing_extensions import Self
 
     _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
@@ -40,12 +41,10 @@ class CoordinateArray(ty.Protocol):
     shape: tuple[int, int]
 
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]:
-        ...  # pragma: no cover
+    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]:
-        ...  # pragma: no cover
+    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...
 
 
 class HasMeshAttrs(ty.Protocol):
@@ -107,7 +106,11 @@ class Pointset:
         """The dimensionality of the space the coordinates are in"""
         return self.coordinates.shape[1] - self.homogeneous
 
-    def __rmatmul__(self, affine: np.ndarray) -> Self:
+    # Use __rmatmul__ to prefer to compose affines. Mypy does not like that
+    # this conflicts with ndarray.__matmul__. We will need some more feedback
+    # on how this plays out for type-checking or code suggestions before we
+    # can do better than ignore.
+    def __rmatmul__(self, affine: np.ndarray) -> Self:  # type: ignore[misc]
         """Apply an affine transformation to the pointset
 
         This will return a new pointset with an updated affine matrix only.
@@ -131,7 +134,7 @@ class Pointset:
         ----------
         as_homogeneous : :class:`bool`
             Return homogeneous coordinates if ``True``, or Cartesian
-            coordiantes if ``False``.
+            coordinates if ``False``.
 
         name : :class:`str`
             Select a particular coordinate system if more than one may exist.
@@ -256,7 +259,7 @@ class Grid(Pointset):
 class GridIndices:
     """Class for generating indices just-in-time"""
 
-    __slots__ = ('gridshape', 'dtype', 'shape')
+    __slots__ = ('dtype', 'gridshape', 'shape')
     ndim = 2
 
     def __init__(self, shape, dtype=None):

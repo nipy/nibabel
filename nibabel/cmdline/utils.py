@@ -10,13 +10,8 @@
 Helper utilities to be used in cmdline applications
 """
 
-
 # global verbosity switch
 import re
-from io import StringIO
-from math import ceil
-
-import numpy as np
 
 verbose_level = 0
 
@@ -43,61 +38,45 @@ def table2string(table, out=None):
     table : list of lists of strings
       What is aimed to be printed
     out : None or stream
-      Where to print. If None -- will print and return string
+      Where to print. If None, return string
 
     Returns
     -------
     string if out was None
     """
 
-    print2string = out is None
-    if print2string:
-        out = StringIO()
-
     # equalize number of elements in each row
     nelements_max = len(table) and max(len(x) for x in table)
 
+    table = [row + [''] * (nelements_max - len(row)) for row in table]
     for i, table_ in enumerate(table):
         table[i] += [''] * (nelements_max - len(table_))
 
-    # figure out lengths within each column
-    atable = np.asarray(table)
     # eat whole entry while computing width for @w (for wide)
-    markup_strip = re.compile('^@([lrc]|w.*)')
-    col_width = [max(len(markup_strip.sub('', x)) for x in column) for column in atable.T]
-    string = ''
-    for i, table_ in enumerate(table):
-        string_ = ''
-        for j, item in enumerate(table_):
+    markup_strip = re.compile(r'^@([lrc]|w.*)')
+    col_width = [max(len(markup_strip.sub('', x)) for x in column) for column in zip(*table)]
+    trans = str.maketrans('lrcw', '<>^^')
+    lines = []
+    for row in table:
+        line = []
+        for item, width in zip(row, col_width):
             item = str(item)
             if item.startswith('@'):
                 align = item[1]
                 item = item[2:]
-                if align not in ['l', 'r', 'c', 'w']:
+                if align not in ('l', 'r', 'c', 'w'):
                     raise ValueError(f'Unknown alignment {align}. Known are l,r,c')
             else:
                 align = 'c'
 
-            nspacesl = max(ceil((col_width[j] - len(item)) / 2.0), 0)
-            nspacesr = max(col_width[j] - nspacesl - len(item), 0)
+            line.append(f'{item:{align.translate(trans)}{width}}')
+        lines.append(' '.join(line).rstrip())
 
-            if align in ['w', 'c']:
-                pass
-            elif align == 'l':
-                nspacesl, nspacesr = 0, nspacesl + nspacesr
-            elif align == 'r':
-                nspacesl, nspacesr = nspacesl + nspacesr, 0
-            else:
-                raise RuntimeError(f'Should not get here with align={align}')
-
-            string_ += '%%%ds%%s%%%ds ' % (nspacesl, nspacesr) % ('', item, '')
-        string += string_.rstrip() + '\n'
-    out.write(string)
-
-    if print2string:
-        value = out.getvalue()
-        out.close()
-        return value
+    ret = '\n'.join(lines) + '\n'
+    if out is not None:
+        out.write(ret)
+    else:
+        return ret
 
 
 def ap(helplist, format_, sep=', '):

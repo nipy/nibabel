@@ -1,22 +1,21 @@
-"""Test casting utilities
-"""
+"""Test casting utilities"""
+
 import os
 from platform import machine
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_equal
 
 from ..casting import (
     CastingError,
     able_int_type,
-    as_int,
     best_float,
     float_to_int,
     floor_log2,
     int_abs,
-    int_to_float,
     longdouble_precision_improved,
+    sctypes,
     shared_range,
     ulp,
 )
@@ -24,8 +23,8 @@ from ..testing import suppress_warnings
 
 
 def test_shared_range():
-    for ft in np.sctypes['float']:
-        for it in np.sctypes['int'] + np.sctypes['uint']:
+    for ft in sctypes['float']:
+        for it in sctypes['int'] + sctypes['uint']:
             # Test that going a bit above or below the calculated min and max
             # either generates the same number when cast, or the max int value
             # (if this system generates that) or something smaller (because of
@@ -41,7 +40,7 @@ def test_shared_range():
             if casted_mx != imax:
                 # The shared_range have told us that they believe the imax does
                 # not have an exact representation.
-                fimax = int_to_float(imax, ft)
+                fimax = ft(imax)
                 if np.isfinite(fimax):
                     assert int(fimax) != imax
                 # Therefore the imax, cast back to float, and to integer, will
@@ -54,7 +53,7 @@ def test_shared_range():
                 assert np.all((bit_bigger == casted_mx) | (bit_bigger == imax))
             else:
                 assert np.all(bit_bigger <= casted_mx)
-            if it in np.sctypes['uint']:
+            if it in sctypes['uint']:
                 assert mn == 0
                 continue
             # And something larger for the minimum
@@ -67,7 +66,7 @@ def test_shared_range():
             if casted_mn != imin:
                 # The shared_range have told us that they believe the imin does
                 # not have an exact representation.
-                fimin = int_to_float(imin, ft)
+                fimin = ft(imin)
                 if np.isfinite(fimin):
                     assert int(fimin) != imin
                 # Therefore the imin, cast back to float, and to integer, will
@@ -90,8 +89,8 @@ def test_shared_range_inputs():
 
 
 def test_casting():
-    for ft in np.sctypes['float']:
-        for it in np.sctypes['int'] + np.sctypes['uint']:
+    for ft in sctypes['float']:
+        for it in sctypes['int'] + sctypes['uint']:
             ii = np.iinfo(it)
             arr = [ii.min - 1, ii.max + 1, -np.inf, np.inf, np.nan, 0.2, 10.6]
             farr_orig = np.array(arr, dtype=ft)
@@ -100,11 +99,6 @@ def test_casting():
             mn, mx = shared_range(ft, it)
             with np.errstate(invalid='ignore'):
                 iarr = float_to_int(farr, it)
-            # Dammit - for long doubles we need to jump through some hoops not
-            # to round to numbers outside the range
-            if ft is np.longdouble:
-                mn = as_int(mn)
-                mx = as_int(mx)
             exp_arr = np.array([mn, mx, mn, mx, 0, 0, 11], dtype=it)
             assert_array_equal(iarr, exp_arr)
             # Now test infmax version
@@ -140,7 +134,7 @@ def test_casting():
 
 
 def test_int_abs():
-    for itype in np.sctypes['int']:
+    for itype in sctypes['int']:
         info = np.iinfo(itype)
         in_arr = np.array([info.min, info.max], dtype=itype)
         idtype = np.dtype(itype)
@@ -148,7 +142,7 @@ def test_int_abs():
         assert udtype.kind == 'u'
         assert idtype.itemsize == udtype.itemsize
         mn, mx = in_arr
-        e_mn = as_int(mx) + 1  # as_int needed for numpy 1.4.1 casting
+        e_mn = int(mx) + 1
         assert int_abs(mx) == mx
         assert int_abs(mn) == e_mn
         assert_array_equal(int_abs(in_arr), [e_mn, mx])
@@ -167,7 +161,7 @@ def test_floor_log2():
 
 
 def test_able_int_type():
-    # The integer type cabable of containing values
+    # The integer type capable of containing values
     for vals, exp_out in (
         ([0, 1], np.uint8),
         ([0, 255], np.uint8),
@@ -188,7 +182,7 @@ def test_able_int_type():
 
 def test_able_casting():
     # Check the able_int_type function guesses numpy out type
-    types = np.sctypes['int'] + np.sctypes['uint']
+    types = sctypes['int'] + sctypes['uint']
     for in_type in types:
         in_info = np.iinfo(in_type)
         in_mn, in_mx = in_info.min, in_info.max

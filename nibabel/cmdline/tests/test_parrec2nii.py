@@ -1,5 +1,5 @@
-"""Tests for the parrec2nii exe code
-"""
+"""Tests for the parrec2nii exe code"""
+
 from os.path import basename, isfile, join
 from unittest.mock import MagicMock, Mock, patch
 

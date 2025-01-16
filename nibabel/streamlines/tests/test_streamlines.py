@@ -1,5 +1,4 @@
 import os
-import tempfile
 import unittest
 import warnings
 from io import BytesIO
@@ -7,7 +6,6 @@ from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.compat.py3k import asbytes
 
 import nibabel as nib
 from nibabel.testing import clear_and_catch_warnings, data_path, error_warnings
@@ -21,7 +19,7 @@ from .test_tractogram import assert_tractogram_equal
 DATA = {}
 
 
-def setup():
+def setup_module():
     global DATA
     DATA['empty_filenames'] = [pjoin(data_path, 'empty' + ext) for ext in FORMATS.keys()]
     DATA['simple_filenames'] = [pjoin(data_path, 'simple' + ext) for ext in FORMATS.keys()]
@@ -96,7 +94,7 @@ def test_is_supported_detect_format(tmp_path):
     # Valid file without extension
     for tfile_cls in FORMATS.values():
         f = BytesIO()
-        f.write(asbytes(tfile_cls.MAGIC_NUMBER))
+        f.write(tfile_cls.MAGIC_NUMBER)
         f.seek(0, os.SEEK_SET)
         assert nib.streamlines.is_supported(f)
         assert nib.streamlines.detect_format(f) is tfile_cls
@@ -105,7 +103,7 @@ def test_is_supported_detect_format(tmp_path):
     for tfile_cls in FORMATS.values():
         fpath = tmp_path / 'test.txt'
         with open(fpath, 'w+b') as f:
-            f.write(asbytes(tfile_cls.MAGIC_NUMBER))
+            f.write(tfile_cls.MAGIC_NUMBER)
             f.seek(0, os.SEEK_SET)
             assert nib.streamlines.is_supported(f)
             assert nib.streamlines.detect_format(f) is tfile_cls
@@ -193,13 +191,13 @@ class TestLoadSave(unittest.TestCase):
         trk_file = trk.TrkFile(tractogram)
 
         # No need for keyword arguments.
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             nib.streamlines.save(trk_file, 'dummy.trk', header={})
 
         # Wrong extension.
         with pytest.warns(ExtensionWarning, match='extension'):
             trk_file = trk.TrkFile(tractogram)
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 nib.streamlines.save(trk_file, 'dummy.tck', header={})
 
         with InTemporaryDirectory():
@@ -209,7 +207,7 @@ class TestLoadSave(unittest.TestCase):
 
     def test_save_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
-        for ext, cls in FORMATS.items():
+        for ext in FORMATS:
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram, filename)
@@ -218,7 +216,7 @@ class TestLoadSave(unittest.TestCase):
 
     def test_save_simple_file(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
-        for ext, cls in FORMATS.items():
+        for ext in FORMATS:
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram, filename)
@@ -264,7 +262,7 @@ class TestLoadSave(unittest.TestCase):
     def test_save_sliced_tractogram(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
         original_tractogram = tractogram.copy()
-        for ext, cls in FORMATS.items():
+        for ext in FORMATS:
             with InTemporaryDirectory():
                 filename = 'streamlines' + ext
                 nib.streamlines.save(tractogram[::2], filename)
@@ -274,18 +272,18 @@ class TestLoadSave(unittest.TestCase):
                 assert_tractogram_equal(tractogram, original_tractogram)
 
     def test_load_unknown_format(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             nib.streamlines.load('')
 
     def test_save_unknown_format(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             nib.streamlines.save(Tractogram(), '')
 
     def test_save_from_generator(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
 
         # Just to create a generator
-        for ext, _ in FORMATS.items():
+        for ext in FORMATS:
             filtered = (s for s in tractogram.streamlines if True)
             lazy_tractogram = LazyTractogram(lambda: filtered, affine_to_rasmm=np.eye(4))
 

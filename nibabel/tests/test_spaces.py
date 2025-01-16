@@ -1,5 +1,4 @@
-"""Tests for spaces module
-"""
+"""Tests for spaces module"""
 
 import numpy as np
 import numpy.linalg as npl
@@ -126,7 +125,7 @@ def test_slice2volume():
 
 
 @pytest.mark.parametrize(
-    'index, axis',
+    ('index', 'axis'),
     [
         [-1, 0],
         [0, -1],

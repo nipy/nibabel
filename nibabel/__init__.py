@@ -39,11 +39,10 @@ For more detailed information see the :ref:`manual`.
 
 # module imports
 from . import analyze as ana
-from . import ecat, imagestats, mriutils, orientations
+from . import ecat, imagestats, mriutils, orientations, streamlines, viewers
 from . import nifti1 as ni1
 from . import spm2analyze as spm2
 from . import spm99analyze as spm99
-from . import streamlines, viewers
 
 # isort: split
 
@@ -171,10 +170,7 @@ def bench(label=None, verbose=1, extra_argv=None):
     code : ExitCode
         Returns the result of running the tests as a ``pytest.ExitCode`` enum
     """
-    try:
-        from importlib.resources import as_file, files
-    except ImportError:
-        from importlib_resources import as_file, files
+    from importlib.resources import as_file, files
 
     args = []
     if extra_argv is not None:

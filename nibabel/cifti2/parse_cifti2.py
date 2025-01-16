@@ -40,19 +40,15 @@ from .cifti2 import (
 )
 
 
-class Cifti2Extension(Nifti1Extension):
+class Cifti2Extension(Nifti1Extension[Cifti2Header]):
     code = 32
 
-    def __init__(self, code=None, content=None):
-        Nifti1Extension.__init__(self, code=code or self.code, content=content)
-
-    def _unmangle(self, value):
+    def _unmangle(self, value: bytes) -> Cifti2Header:
         parser = Cifti2Parser()
         parser.parse(string=value)
-        self._content = parser.header
-        return self._content
+        return parser.header
 
-    def _mangle(self, value):
+    def _mangle(self, value: Cifti2Header) -> bytes:
         if not isinstance(value, Cifti2Header):
             raise ValueError('Can only mangle a Cifti2Header.')
         return value.to_xml()
@@ -203,13 +199,13 @@ class Cifti2Parser(xml.XmlParser):
                 applies_to_matrix_dimension=dimensions,
                 indices_map_to_data_type=attrs['IndicesMapToDataType'],
             )
-            for key, dtype in [
+            for key, dtype in (
                 ('NumberOfSeriesPoints', int),
                 ('SeriesExponent', int),
                 ('SeriesStart', float),
                 ('SeriesStep', float),
                 ('SeriesUnit', str),
-            ]:
+            ):
                 if key in attrs:
                     setattr(mim, _underscore(key), dtype(attrs[key]))
             matrix = self.struct_state[-1]
@@ -366,13 +362,13 @@ class Cifti2Parser(xml.XmlParser):
                     'BrainModel element can only be a child of a MatrixIndicesMap '
                     'with CIFTI_INDEX_TYPE_BRAIN_MODELS type'
                 )
-            for key, dtype in [
+            for key, dtype in (
                 ('IndexOffset', int),
                 ('IndexCount', int),
                 ('ModelType', str),
                 ('BrainStructure', str),
                 ('SurfaceNumberOfVertices', int),
-            ]:
+            ):
                 if key in attrs:
                     setattr(model, _underscore(key), dtype(attrs[key]))
             if model.brain_structure not in CIFTI_BRAIN_STRUCTURES:
@@ -388,8 +384,7 @@ class Cifti2Parser(xml.XmlParser):
             model = self.struct_state[-1]
             if not isinstance(model, Cifti2BrainModel):
                 raise Cifti2HeaderError(
-                    'VertexIndices element can only be a child '
-                    'of the CIFTI-2 BrainModel element'
+                    'VertexIndices element can only be a child of the CIFTI-2 BrainModel element'
                 )
             self.fsm_state.append('VertexIndices')
             model.vertex_indices = index

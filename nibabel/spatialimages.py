@@ -129,54 +129,46 @@ work:
     >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
 """
+
 from __future__ import annotations
 
-import io
 import typing as ty
-from collections.abc import Sequence
+from functools import cache
 from typing import Literal
 
 import numpy as np
 
-from .arrayproxy import ArrayLike
+from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage
-from .fileholders import FileMap
 from .fileslice import canonical_slicers
 from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
 
-try:
-    from functools import cache
-except ImportError:  # PY38
-    from functools import lru_cache as cache
+if ty.TYPE_CHECKING:
+    import io
+    from collections.abc import Sequence
 
-if ty.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
+
+    from .arrayproxy import ArrayLike
+    from .fileholders import FileMap
 
 SpatialImgT = ty.TypeVar('SpatialImgT', bound='SpatialImage')
 SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')
 
 
 class HasDtype(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype:
-        ...  # pragma: no cover
-
-    def set_data_dtype(self, dtype: npt.DTypeLike) -> None:
-        ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None: ...
 
 
 @ty.runtime_checkable
 class SpatialProtocol(ty.Protocol):
-    def get_data_dtype(self) -> np.dtype:
-        ...  # pragma: no cover
-
-    def get_data_shape(self) -> ty.Tuple[int, ...]:
-        ...  # pragma: no cover
-
-    def get_zooms(self) -> ty.Tuple[float, ...]:
-        ...  # pragma: no cover
+    def get_data_dtype(self) -> np.dtype: ...
+    def get_data_shape(self) -> tuple[int, ...]: ...
+    def get_zooms(self) -> tuple[float, ...]: ...
 
 
 class HeaderDataError(Exception):
@@ -271,7 +263,7 @@ class SpatialHeader(FileBasedHeader, SpatialProtocol):
         shape = self.get_data_shape()
         ndim = len(shape)
         if len(zooms) != ndim:
-            raise HeaderDataError('Expecting %d zoom values for ndim %d' % (ndim, ndim))
+            raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
         if any(z < 0 for z in zooms):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
@@ -333,7 +325,7 @@ def _supported_np_types(klass: type[HasDtype]) -> set[type[np.generic]]:
         else:
             raise e
     supported = set()
-    for np_type in set(np.sctypeDict.values()):
+    for np_type in sctypes_aliases:
         try:
             obj.set_data_dtype(np_type)
         except HeaderDataError:

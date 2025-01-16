@@ -81,6 +81,7 @@ zooms, in particular, negative X zooms.  We did not do this because the image
 can be loaded with and without a default flip, so the saved zoom will not
 constrain the affine.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -514,7 +515,9 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         data = np.asanyarray(data)
         shape = self.get_data_shape()
         if data.shape != shape:
-            raise HeaderDataError('Data should be shape (%s)' % ', '.join(str(s) for s in shape))
+            raise HeaderDataError(
+                'Data should be shape ({})'.format(', '.join(str(s) for s in shape))
+            )
         out_dtype = self.get_data_dtype()
         if rescale:
             try:
@@ -696,7 +699,7 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         ndim = dims[0]
         zooms = np.asarray(zooms)
         if len(zooms) != ndim:
-            raise HeaderDataError('Expecting %d zoom values for ndim %d' % (ndim, ndim))
+            raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
         if np.any(zooms < 0):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
@@ -815,11 +818,11 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
             dtype = klass._data_type_codes.dtype[code]
         except KeyError:
             rep.problem_level = 40
-            rep.problem_msg = 'data code %d not recognized' % code
+            rep.problem_msg = f'data code {code} not recognized'
         else:
             if dtype.itemsize == 0:
                 rep.problem_level = 40
-                rep.problem_msg = 'data code %d not supported' % code
+                rep.problem_msg = f'data code {code} not supported'
             else:
                 return hdr, rep
         if fix:
@@ -929,7 +932,7 @@ class AnalyzeImage(SpatialImage):
         Parameters
         ----------
         file_map : dict
-            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            Mapping with (key, value) pairs of (``file_type``, FileHolder
             instance giving file-likes for each file needed for this image
             type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only

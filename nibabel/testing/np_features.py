@@ -1,11 +1,11 @@
-"""Look for changes in numpy behavior over versions
-"""
-from functools import lru_cache
+"""Look for changes in numpy behavior over versions"""
+
+from functools import cache
 
 import numpy as np
 
 
-@lru_cache(maxsize=None)
+@cache
 def memmap_after_ufunc() -> bool:
     """Return True if ufuncs on memmap arrays always return memmap arrays
 

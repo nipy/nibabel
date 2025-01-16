@@ -1,5 +1,4 @@
-"""Testing dft
-"""
+"""Testing dft"""
 
 import os
 import sqlite3
@@ -27,7 +26,7 @@ PImage, have_pil, _ = optional_package('PIL.Image')
 data_dir = pjoin(dirname(__file__), 'data')
 
 
-def setUpModule():
+def setup_module():
     if os.name == 'nt':
         raise unittest.SkipTest('FUSE not available for windows, skipping dft tests')
     if not have_dicom:
@@ -59,7 +58,7 @@ def db(monkeypatch):
     and not modify the host filesystem."""
     database = dft._DB(fname=':memory:')
     monkeypatch.setattr(dft, 'DB', database)
-    yield database
+    return database
 
 
 def test_init(db):

@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read MINC1 format images"""
+
 from __future__ import annotations
 
 from numbers import Integral

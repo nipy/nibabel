@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read / write access to SPM99 version of analyze image format"""
+
 import warnings
 from io import BytesIO
 
@@ -22,10 +23,10 @@ have_scipy = optional_package('scipy')[1]
 """ Support subtle variations of SPM version of Analyze """
 header_key_dtd = analyze.header_key_dtd
 # funused1 in dime subfield is scalefactor
-image_dimension_dtd = analyze.image_dimension_dtd[:]
+image_dimension_dtd = analyze.image_dimension_dtd.copy()
 image_dimension_dtd[image_dimension_dtd.index(('funused1', 'f4'))] = ('scl_slope', 'f4')
 # originator text field used as image origin (translations)
-data_history_dtd = analyze.data_history_dtd[:]
+data_history_dtd = analyze.data_history_dtd.copy()
 data_history_dtd[data_history_dtd.index(('originator', 'S10'))] = ('origin', 'i2', (5,))
 
 # Full header numpy dtype combined across sub-fields
@@ -240,7 +241,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
         Parameters
         ----------
         file_map : dict
-            Mapping with (kay, value) pairs of (``file_type``, FileHolder
+            Mapping with (key, value) pairs of (``file_type``, FileHolder
             instance giving file-likes for each file needed for this image
             type.
         mmap : {True, False, 'c', 'r'}, optional, keyword only
@@ -275,7 +276,7 @@ class Spm99AnalyzeImage(analyze.AnalyzeImage):
             contents = matf.read()
         if len(contents) == 0:
             return ret
-        import scipy.io as sio  # type: ignore
+        import scipy.io as sio  # type: ignore[import]
 
         mats = sio.loadmat(BytesIO(contents))
         if 'mat' in mats:  # this overrides a 'M', and includes any flip

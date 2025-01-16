@@ -1,5 +1,6 @@
-"""Utilities for working with DICOM datasets
-"""
+"""Utilities for working with DICOM datasets"""
+
+from enum import Enum
 
 
 def find_private_section(dcm_data, group_no, creator):
@@ -46,3 +47,55 @@ def find_private_section(dcm_data, group_no, creator):
         if match_func(val):
             return elno * 0x100
     return None
+
+
+class Vendor(Enum):
+    SIEMENS = 1
+    GE = 2
+    PHILIPS = 3
+
+
+vendor_priv_sections = {
+    Vendor.SIEMENS: [
+        (0x9, 'SIEMENS SYNGO INDEX SERVICE'),
+        (0x19, 'SIEMENS MR HEADER'),
+        (0x21, 'SIEMENS MR SDR 01'),
+        (0x21, 'SIEMENS MR SDS 01'),
+        (0x21, 'SIEMENS MR SDI 02'),
+        (0x29, 'SIEMENS CSA HEADER'),
+        (0x29, 'SIEMENS MEDCOM HEADER2'),
+        (0x51, 'SIEMENS MR HEADER'),
+    ],
+    Vendor.PHILIPS: [
+        (0x2001, 'Philips Imaging DD 001'),
+        (0x2001, 'Philips Imaging DD 002'),
+        (0x2001, 'Philips Imaging DD 129'),
+        (0x2005, 'Philips MR Imaging DD 001'),
+        (0x2005, 'Philips MR Imaging DD 002'),
+        (0x2005, 'Philips MR Imaging DD 003'),
+        (0x2005, 'Philips MR Imaging DD 004'),
+        (0x2005, 'Philips MR Imaging DD 005'),
+        (0x2005, 'Philips MR Imaging DD 006'),
+        (0x2005, 'Philips MR Imaging DD 007'),
+        (0x2005, 'Philips MR Imaging DD 005'),
+        (0x2005, 'Philips MR Imaging DD 006'),
+    ],
+    Vendor.GE: [
+        (0x9, 'GEMS_IDEN_01'),
+        (0x19, 'GEMS_ACQU_01'),
+        (0x21, 'GEMS_RELA_01'),
+        (0x23, 'GEMS_STDY_01'),
+        (0x25, 'GEMS_SERS_01'),
+        (0x27, 'GEMS_IMAG_01'),
+        (0x29, 'GEMS_IMPS_01'),
+        (0x43, 'GEMS_PARM_01'),
+    ],
+}
+
+
+def vendor_from_private(dcm_data):
+    """Try to determine the vendor by looking for specific private tags"""
+    for vendor, priv_sections in vendor_priv_sections.items():
+        for priv_group, priv_creator in priv_sections:
+            if find_private_section(dcm_data, priv_group, priv_creator) != None:
+                return vendor

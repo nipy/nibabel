@@ -1,18 +1,15 @@
 import pathlib
+import unittest
+from importlib.resources import files
 from unittest import mock
 
 import pytest
-
-try:
-    from importlib.resources import as_file, files
-except ImportError:
-    from importlib_resources import as_file, files
 
 import nibabel as nib
 
 
 @pytest.mark.parametrize(
-    'verbose, v_args', [(-2, ['-qq']), (-1, ['-q']), (0, []), (1, ['-v']), (2, ['-vv'])]
+    ('verbose', 'v_args'), [(-2, ['-qq']), (-1, ['-q']), (0, []), (1, ['-v']), (2, ['-vv'])]
 )
 @pytest.mark.parametrize('doctests', (True, False))
 @pytest.mark.parametrize('coverage', (True, False))

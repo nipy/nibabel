@@ -33,8 +33,7 @@ def test_multiload():
         tmpdir = mkdtemp()
         fname = pjoin(tmpdir, 'test.img')
         save(img, fname)
-        for i in range(N):
-            imgs.append(load(fname))
+        imgs.extend(load(fname) for _ in range(N))
     finally:
         del img, imgs
         shutil.rmtree(tmpdir)

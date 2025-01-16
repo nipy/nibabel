@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 
 from .. import Nifti1Header, Nifti1Image
 from ..arraywriters import ScalingError
-from ..casting import best_float, type_info, ulp
+from ..casting import best_float, sctypes, type_info, ulp
 from ..spatialimages import HeaderDataError, supported_np_types
 
 DEBUG = False
@@ -102,21 +102,21 @@ def test_round_trip():
     rng = np.random.RandomState(20111121)
     N = 10000
     sd_10s = range(-20, 51, 5)
-    iuint_types = np.sctypes['int'] + np.sctypes['uint']
+    iuint_types = sctypes['int'] + sctypes['uint']
     # Remove types which cannot be set into nifti header datatype
     nifti_supported = supported_np_types(Nifti1Header())
     iuint_types = [t for t in iuint_types if t in nifti_supported]
     f_types = [np.float32, np.float64]
     # Expanding standard deviations
-    for i, sd_10 in enumerate(sd_10s):
+    for sd_10 in sd_10s:
         sd = 10.0**sd_10
         V_in = rng.normal(0, sd, size=(N, 1))
-        for j, in_type in enumerate(f_types):
-            for k, out_type in enumerate(iuint_types):
+        for in_type in f_types:
+            for out_type in iuint_types:
                 check_arr(sd_10, V_in, in_type, out_type, scaling_type)
     # Spread integers across range
-    for i, sd in enumerate(np.linspace(0.05, 0.5, 5)):
-        for j, in_type in enumerate(iuint_types):
+    for sd in np.linspace(0.05, 0.5, 5):
+        for in_type in iuint_types:
             info = np.iinfo(in_type)
             mn, mx = info.min, info.max
             type_range = mx - mn
@@ -124,7 +124,7 @@ def test_round_trip():
             # float(sd) because type_range can be type 'long'
             width = type_range * float(sd)
             V_in = rng.normal(center, width, size=(N, 1))
-            for k, out_type in enumerate(iuint_types):
+            for out_type in iuint_types:
                 check_arr(sd, V_in, in_type, out_type, scaling_type)
 
 

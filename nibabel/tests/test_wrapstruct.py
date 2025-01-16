@@ -23,6 +23,7 @@ With deprecation warnings
 
 _field_recoders -> field_recoders
 """
+
 import logging
 from io import BytesIO, StringIO
 
@@ -32,11 +33,12 @@ from numpy.testing import assert_array_equal
 
 from .. import imageglobals
 from ..batteryrunners import Report
+from ..casting import sctypes
 from ..spatialimages import HeaderDataError
 from ..volumeutils import Recoder, native_code, swapped_code
 from ..wrapstruct import LabeledWrapStruct, WrapStruct, WrapStructError
 
-INTEGER_TYPES = np.sctypes['int'] + np.sctypes['uint']
+INTEGER_TYPES = sctypes['int'] + sctypes['uint']
 
 
 def log_chk(hdr, level):
@@ -424,15 +426,6 @@ class TestMyWrapStruct(_TestWrapStructBase):
         assert len(s1) > 0
         assert 'an_integer' in s1
         assert 'a_str' in s1
-
-    def test_copy(self):
-        hdr = self.header_class()
-        hdr2 = hdr.copy()
-        assert hdr == hdr2
-        self._set_something_into_hdr(hdr)
-        assert hdr != hdr2
-        self._set_something_into_hdr(hdr2)
-        assert hdr == hdr2
 
     def test_copy(self):
         hdr = self.header_class()

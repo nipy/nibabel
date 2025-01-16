@@ -366,7 +366,6 @@ class TrkFile(TractogramFile):
             tractogram = LazyTractogram.from_data_func(_read)
 
         else:
-
             # Speed up loading by guessing a suitable buffer size.
             with Opener(fileobj) as f:
                 old_file_position = f.tell()
@@ -577,10 +576,10 @@ class TrkFile(TractogramFile):
                 endianness = swapped_code
 
                 # Swap byte order
-                header_rec = header_rec.newbyteorder()
+                header_rec = header_rec.view(header_rec.dtype.newbyteorder())
                 if header_rec['hdr_size'] != TrkFile.HEADER_SIZE:
                     msg = (
-                        f"Invalid hdr_size: {header_rec['hdr_size']} "
+                        f'Invalid hdr_size: {header_rec["hdr_size"]} '
                         f'instead of {TrkFile.HEADER_SIZE}'
                     )
                     raise HeaderError(msg)
@@ -773,6 +772,4 @@ swap_xy: {swap_xy}
 swap_yz: {swap_yz}
 swap_zx: {swap_zx}
 n_count: {NB_STREAMLINES}
-hdr_size: {hdr_size}""".format(
-            **vars
-        )
+hdr_size: {hdr_size}""".format(**vars)

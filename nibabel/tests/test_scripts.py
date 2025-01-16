@@ -11,9 +11,8 @@ import shutil
 import sys
 import unittest
 from glob import glob
-from os.path import abspath, basename, dirname, exists
+from os.path import abspath, basename, dirname, exists, splitext
 from os.path import join as pjoin
-from os.path import splitext
 
 import numpy as np
 import pytest
@@ -167,9 +166,9 @@ def test_nib_ls_multiple():
     # they should be indented correctly.  Since all files are int type -
     ln = max(len(f) for f in fnames)
     i_str = ' i' if sys.byteorder == 'little' else ' <i'
-    assert [l[ln : ln + len(i_str)] for l in stdout_lines] == [
-        i_str
-    ] * 4, f"Type sub-string didn't start with '{i_str}'. Full output was: {stdout_lines}"
+    assert [l[ln : ln + len(i_str)] for l in stdout_lines] == [i_str] * 4, (
+        f"Type sub-string didn't start with '{i_str}'. Full output was: {stdout_lines}"
+    )
     # and if disregard type indicator which might vary
     assert [l[l.index('[') :] for l in stdout_lines] == [
         '[128,  96,  24,   2] 2.00x2.00x2.20x2000.00  #exts: 2 sform',
@@ -197,13 +196,13 @@ def test_help():
             # needs special treatment since depends on fuse module which
             # might not be available.
             try:
-                import fuse
+                import fuse  # noqa: F401
             except Exception:
                 continue  # do not test this one
         code, stdout, stderr = run_command([cmd, '--help'])
         assert code == 0
         assert_re_in(f'.*{cmd}', stdout)
-        assert_re_in('.*Usage', stdout)
+        assert_re_in('.*[uU]sage', stdout)
         # Some third party modules might like to announce some Deprecation
         # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
         if 'warning' not in stderr.lower():

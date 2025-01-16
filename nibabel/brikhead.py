@@ -26,6 +26,7 @@ exclusively) time axis. Thus, DATASET_RANK[1] will (at least as far as I (RM)
 am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
+
 import os
 import re
 from copy import deepcopy
@@ -197,7 +198,7 @@ def parse_AFNI_header(fobj):
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
-    return {key: value for key, value in map(_unpack_var, head)}
+    return dict(map(_unpack_var, head))
 
 
 class AFNIArrayProxy(ArrayProxy):
@@ -390,7 +391,7 @@ class AFNIHeader(SpatialHeader):
         # AFNI default is RAI- == LPS+ == DICOM order.  We need to flip RA sign
         # to align with nibabel RAS+ system
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
-        affine = np.row_stack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
+        affine = np.vstack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
         return affine
 
     def get_data_scaling(self):
@@ -554,7 +555,7 @@ class AFNIImage(SpatialImage):
             fname = fholder.filename
             if key == 'header' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
-                    fname = fname[: -len(ext)] if fname.endswith(ext) else fname
+                    fname = fname.removesuffix(ext)
             elif key == 'image' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
                     if os.path.exists(fname + ext):

@@ -53,7 +53,7 @@ def read_mosaic_dir(dicom_path, globber='*.dcm', check_is_dwi=False, dicom_kwarg
        If True, raises an error if we don't find DWI information in the
        DICOM headers.
     dicom_kwargs : None or dict
-       Extra keyword arguments to pass to the pydicom ``read_file`` function.
+       Extra keyword arguments to pass to the pydicom ``dcmread`` function.
 
     Returns
     -------
@@ -131,7 +131,7 @@ def slices_to_series(wrappers):
                 break
         else:  # no match in current volume lists
             volume_lists.append([dw])
-    print('We appear to have %d Series' % len(volume_lists))
+    print(f'We appear to have {len(volume_lists)} Series')
     # second pass
     out_vol_lists = []
     for vol_list in volume_lists:
@@ -143,7 +143,7 @@ def slices_to_series(wrappers):
                 out_vol_lists += _third_pass(vol_list)
                 continue
         out_vol_lists.append(vol_list)
-    print('We have %d volumes after second pass' % len(out_vol_lists))
+    print(f'We have {len(out_vol_lists)} volumes after second pass')
     # final pass check
     for vol_list in out_vol_lists:
         zs = [s.slice_indicator for s in vol_list]

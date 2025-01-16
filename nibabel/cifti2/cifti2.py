@@ -16,6 +16,7 @@ Definition of the CIFTI-2 header format and file extensions can be found at:
 
     http://www.nitrc.org/projects/cifti
 """
+
 import re
 from collections import OrderedDict
 from collections.abc import Iterable, MutableMapping, MutableSequence
@@ -293,8 +294,7 @@ class Cifti2LabelTable(xml.XmlSerializable, MutableMapping):
             self._labels[key] = Cifti2Label(*([key] + list(value)))
         except ValueError:
             raise ValueError(
-                'Key should be int, value should be sequence '
-                'of str and 4 floats between 0 and 1'
+                'Key should be int, value should be sequence of str and 4 floats between 0 and 1'
             )
 
     def __delitem__(self, key):
@@ -968,13 +968,13 @@ class Cifti2BrainModel(xml.XmlSerializable):
     def _to_xml_element(self):
         brain_model = xml.Element('BrainModel')
 
-        for key in [
+        for key in (
             'IndexOffset',
             'IndexCount',
             'ModelType',
             'BrainStructure',
             'SurfaceNumberOfVertices',
-        ]:
+        ):
             attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
@@ -1157,14 +1157,14 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
         mat_ind_map = xml.Element('MatrixIndicesMap')
         dims_as_strings = [str(dim) for dim in self.applies_to_matrix_dimension]
         mat_ind_map.attrib['AppliesToMatrixDimension'] = ','.join(dims_as_strings)
-        for key in [
+        for key in (
             'IndicesMapToDataType',
             'NumberOfSeriesPoints',
             'SeriesExponent',
             'SeriesStart',
             'SeriesStep',
             'SeriesUnit',
-        ]:
+        ):
             attr = _underscore(key)
             value = getattr(self, attr)
             if value is not None:
@@ -1569,7 +1569,7 @@ class Cifti2Image(DataobjImage, SerializableImage):
 
         self.update_headers()
         header = self._nifti_header
-        extension = Cifti2Extension(content=self.header.to_xml())
+        extension = Cifti2Extension.from_bytes(self.header.to_xml())
         header.extensions = Nifti1Extensions(
             ext for ext in header.extensions if not isinstance(ext, Cifti2Extension)
         )

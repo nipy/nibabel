@@ -21,12 +21,8 @@ from .. import quaternions as nq
 FLOAT_EPS = np.finfo(np.float64).eps
 
 # Example rotations """
-eg_rots = []
 params = np.arange(-pi * 2, pi * 2.5, pi / 2)
-for x in params:
-    for y in params:
-        for z in params:
-            eg_rots.append((x, y, z))
+eg_rots = [(x, y, z) for x in params for y in params for z in params]
 
 
 def x_only(x):
@@ -123,7 +119,7 @@ def test_euler_mat_1():
     assert_array_equal(M, np.eye(3))
 
 
-@pytest.mark.parametrize('x, y, z', eg_rots)
+@pytest.mark.parametrize(('x', 'y', 'z'), eg_rots)
 def test_euler_mat_2(x, y, z):
     M1 = nea.euler2mat(z, y, x)
     M2 = sympy_euler(z, y, x)
@@ -176,7 +172,7 @@ def test_euler_instability():
     assert not np.allclose(M_e, M_e_back)
 
 
-@pytest.mark.parametrize('x, y, z', eg_rots)
+@pytest.mark.parametrize(('x', 'y', 'z'), eg_rots)
 def test_quats(x, y, z):
     M1 = nea.euler2mat(z, y, x)
     quatM = nq.mat2quat(M1)

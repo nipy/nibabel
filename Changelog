@@ -25,6 +25,192 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.3.2 (Wednesday 23 October 2024)
+=================================
+
+Bug-fix release in the 5.3.x series.
+
+Bug fixes
+---------
+* Restore MRS extension type to Nifti1Extension to maintain backwards compatibility.
+  (pr/1380) (CM)
+
+
+5.3.1 (Tuesday 15 October 2024)
+===============================
+
+Bug-fix release in the 5.3.x series.
+
+Bug fixes
+---------
+* Restore access to private attribute ``Nifti1Extension._content`` to unbreak subclasses
+  that did not use public accessor methods. (pr/1378) (CM, reviewed by Basile Pinsard)
+* Remove test order dependency in ``test_api_validators`` (pr/1377) (CM)
+
+
+5.3.0 (Tuesday 8 October 2024)
+==============================
+
+This release primarily adds support for Python 3.13 and Numpy 2.0.
+
+NiBabel 6.0 will drop support for Numpy 1.x.
+
+New features
+------------
+* Update NIfTI extension protocol to include ``.content : bytes``, ``.text : str`` and
+  ``.json() : dict`` properties/methods for accessing extension contents.
+  Exceptions will be raised on ``.text`` and ``.json()`` if conversion fails. (pr/1336) (CM)
+
+Enhancements
+------------
+* Ability to read data from many multiframe DICOM files that previously generated errors (pr/1340)
+  (Brendan Moloney, reviewed by CM)
+* ``nib-nifti-dx`` now supports NIfTI-2 files with a ``--nifti2`` flag (pr/1323) (CM)
+* Update :mod:`nibabel.streamlines.tractogram` to support ragged arrays. (pr/1291)
+  (Serge Koudoro, reviewed by CM)
+* Filter numpy ``UserWarning`` on ``np.finfo(np.longdouble)``. This can occur on
+  Windows systems, but it's done in the context of checking for the problem that
+  is being warned against, so there's no need to be noisy. (pr/1310)
+  (Joshua Newton, reviewed by CM)
+* Improve error message for for dicomwrapper errors in shape calculation (pr/1302)
+  (YOH, reviewed by CM)
+* Support "flat" ASCII-encoded GIFTI DataArrays (pr/1298) (PM, reviewed by CM)
+
+Bug fixes
+---------
+* Fix location initialization/update in OrthoSlicer3D for permuted axes (pr/1319, pr/1350)
+  (Guillaume Becq, reviewed by CM)
+* Fix DICOM scaling, making frame filtering explicit (pr/1342) (Brendan Moloney, reviewed by CM)
+* Fixed multiframe DICOM issue where data could be flipped along slice dimension relative to the
+  affine (pr/1340) (Brendan Moloney, reviewed by CM)
+* Fixed multiframe DICOM issue where ``image_position`` and the translation component in the
+  ``affine`` could be incorrect (pr/1340) (Brendan Moloney, reviewed by CM)
+
+Maintenance
+-----------
+* Numpy 2.0 compatibility and addressing deprecations in numpy API
+  (pr/1304, pr/1330, pr/1331, pr/1334, pr/1337) (Jon Haitz Legarreta Gorroño, CM)
+* Python 3.13 compatibility (pr/1315) (Sandro from the Fedora Project, reviewed by CM)
+* Testing on Python 3.13 with free-threading (pr/1339) (CM)
+* Testing on ARM64 Mac OS runners (pr/1320) (CM)
+* Proactively address deprecations in coming Python versions (pr/1329, pr/1332, pr/1333)
+  (Jon Haitz Legarreta Gorroño, reviewed by CM)
+* Replace nose-era ``setup()`` and ``teardown()`` functions with pytest equivalents
+  (pr/1325) (Sandro from the Fedora Project, reviewed by Étienne Mollier and CM)
+* Transitioned from blue/isort/flake8 to `ruff <https://docs.astral.sh/ruff/>`__. (pr/1289)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Vetted and added various rules to the ruff configuration for auto-formatting and style
+  guide enforcement. (pr/1321, pr/1351, pr/1352, pr/1353, pr/1354, pr/1355, pr/1357, pr/1358,
+  pr/1359, pr/1360, pr/1361, pr/1362, pr/1363, pr/1364, pr/1368, pr/1369)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Fixing typos when found. (pr/1313, pr/1370) (MB, Dimitri Papadopoulos)
+* Applied Repo-Review suggestions (Dimitri Papadopoulos, reviewed by CM)
+
+API changes and deprecations
+----------------------------
+* Raise :class:`~nibabel.spatialimages.HeaderDataError` from
+  :func:`~nibabel.nifti1.Nifti1Header.set_qform` if the affine fails to decompose.
+  This would previously result in :class:`numpy.linalg.LinAlgError`. (pr/1227) (CM)
+* The :func:`nibabel.onetime.auto_attr` module can be replaced by :func:`functools.cached_property`
+  in all supported versions of Python. This alias may be removed in future versions. (pr/1341) (CM)
+* Removed the deprecated ``nisext`` (setuptools extensions) package. (pr/1290) (CM, reviewed by MB)
+
+
+5.2.1 (Monday 26 February 2024)
+===============================
+
+Bug-fix release in the 5.2.x series.
+
+Enhancements
+------------
+* Support "flat" ASCII-encoded GIFTI DataArrays (pr/1298) (PM, reviewed by CM)
+
+Bug fixes
+---------
+* Tolerate missing ``git`` when reporting version info (pr/1286) (CM, reviewed by
+  Yuri Victorovich)
+* Handle Siemens XA30 derived DWI DICOMs (pr/1296) (CM, reviewed by YOH and
+  Mathias Goncalves)
+
+Maintenance
+-----------
+* Add tool for generating GitHub-friendly release notes (pr/1284) (CM)
+* Accommodate pytest 8 changes (pr/1297) (CM)
+
+
+5.2.0 (Monday 11 December 2023)
+===============================
+
+New feature release in the 5.2.x series.
+
+This release requires a minimum Python of 3.8 and NumPy 1.20, and has been
+tested up to Python 3.12 and NumPy 1.26.
+
+New features
+------------
+* Add generic :class:`~nibabel.pointset.Pointset` and regularly spaced
+  :class:`~nibabel.pointset.Grid` data structures in preparation for coordinate
+  transformation and resampling (pr/1251) (CM, reviewed by Oscar Esteban)
+
+Enhancements
+------------
+* Add :meth:`~nibabel.arrayproxy.ArrayProxy.copy` method to
+  :class:`~nibabel.arrayproxy.ArrayProxy` (pr/1255) (CM, reviewed by Paul McCarthy)
+* Permit :meth:`~nibabel.xmlutils.XmlSerializable.to_xml` methods to pass keyword
+  arguments to :func:`xml.etree.ElementTree.tostring` (pr/1258)
+  (CM)
+* Allow user expansion (e.g., ``~/...``) in strings passed to functions that
+  accept paths (pr/1260) (Reinder Vos de Wael, reviewed by CM)
+* Expand CIFTI-2 brain structures to permit synonyms (pr/1256) (CM, reviewed
+  by Mathias Goncalves)
+* Annotate :class:`~nibabel.spatialimages.SpatialImage` as accepting
+  ``affine=None`` argument (pr/1253) (Blake Dewey, reviewed by CM)
+* Warn on invalid MINC2 spacing declarations, treat as missing (pr/1237)
+  (Peter Suter, reviewed by CM)
+* Refactor :func:`~nibabel.nicom.utils.find_private_section` for improved
+  readability and maintainability (pr/1228) (MB, reviewed by CM)
+
+Bug fixes
+---------
+* Resolve test failure related to randomly generated invalid case (pr/1221) (CM)
+
+Documentation
+-------------
+* Remove references to NiPy data packages from documentation (pr/1275)
+  (Dimitri Papadopoulos, reviewed by CM, MB)
+
+Maintenance
+-----------
+* Quality of life improvements for CI, including color output and OIDC publishing
+  (pr/1282) (CM)
+* Patch for NumPy 2.0 pre-release compatibility (pr/1250) (Mathieu
+  Scheltienne and EL, reviewed by CM)
+* Add spellchecking to tox, CI and pre-commit (pr/1266) (CM)
+* Add py312-dev-x64 environment to Tox to test NumPy 2.0 pre-release
+  compatibility (pr/1267) (CM, reviewed by EL)
+* Resurrect tox configuration to cover development workflows and CI checks
+  (pr/1262) (CM)
+* Updates for Python 3.12 support (pr/1247, pr/1261, pr/1273) (CM)
+* Remove uses of deprecated ``numpy.compat.py3k`` module (pr/1243) (Eric
+  Larson, reviewed by CM)
+* Various fixes for typos and style issues detected by Codespell, pyupgrade and
+  refurb (pr/1263, pr/1269, pr/1270, pr/1271, pr/1276) (Dimitri Papadopoulos,
+  reviewed by CM)
+* Use stable argsorts in PARREC tests to ensure consistent behavior on systems
+  with AVX512 SIMD instructions and numpy 1.25 (pr/1234) (CM)
+* Resolve CodeCov submission failures (pr/1224) (CM)
+* Link to logo with full URL to avoid broken links in PyPI (pr/1218) (CM,
+  reviewed by Zvi Baratz)
+
+API changes and deprecations
+----------------------------
+* The :mod:`nibabel.pydicom_compat` module is deprecated and will be removed
+  in NiBabel 7.0. (pr/1280)
+* The :func:`~nibabel.casting.int_to_float` and :func:`~nibabel.casting.as_int`
+  functions are no longer needed to work around NumPy deficiencies and have been
+  deprecated (pr/1272) (CM, reviewed by EL)
+
+
 5.1.0 (Monday 3 April 2023)
 ===========================
 
@@ -1246,7 +1432,7 @@ Special thanks to Chris Burns, Jarrod Millman and Yaroslav Halchenko.
 * Very preliminary, limited and highly experimental DICOM reading support (MB,
   Ian Nimmo Smith).
 * Some functions (:py:mod:`nibabel.funcs`) for basic image shape changes, including
-  the ability to transform to the image with data closest to the cononical
+  the ability to transform to the image with data closest to the canonical
   image orientation (first axis left-to-right, second back-to-front, third
   down-to-up) (MB, Jonathan Taylor)
 * Gifti format read and write support (preliminary) (Stephen Gerhard)

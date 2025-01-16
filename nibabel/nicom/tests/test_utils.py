@@ -1,5 +1,5 @@
-"""Testing nicom.utils module
-"""
+"""Testing nicom.utils module"""
+
 import re
 
 from nibabel.optpkg import optional_package
@@ -15,7 +15,7 @@ def test_find_private_section_real():
     # On real data first
     assert fps(DATA, 0x29, 'SIEMENS CSA HEADER') == 0x1000
     assert fps(DATA, 0x29, b'SIEMENS CSA HEADER') == 0x1000
-    assert fps(DATA, 0x29, re.compile('SIEMENS CSA HEADER')) == 0x1000
+    assert fps(DATA, 0x29, re.compile(r'SIEMENS CSA HEADER')) == 0x1000
     assert fps(DATA, 0x29, 'NOT A HEADER') is None
     assert fps(DATA, 0x29, 'SIEMENS MEDCOM HEADER2') == 0x1100
     assert fps(DATA_PHILIPS, 0x29, 'SIEMENS CSA HEADER') == None
@@ -55,7 +55,7 @@ def test_find_private_section_fake():
     ds.add_new((0x11, 0x15), 'LO', b'far section')
     assert fps(ds, 0x11, 'far section') == 0x1500
     # More than one match - find the first.
-    assert fps(ds, 0x11, re.compile('(another|third) section')) == 0x1100
+    assert fps(ds, 0x11, re.compile(r'(another|third) section')) == 0x1100
     # The signalling element number must be <= 0xFF
     ds = pydicom.dataset.Dataset({})
     ds.add_new((0x11, 0xFF), 'LO', b'some section')

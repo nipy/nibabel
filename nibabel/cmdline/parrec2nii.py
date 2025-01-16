@@ -1,5 +1,4 @@
-"""Code for PAR/REC to NIfTI converter command
-"""
+"""Code for PAR/REC to NIfTI converter command"""
 
 import csv
 import os
@@ -414,7 +413,7 @@ def main():
 
     verbose.switch = opts.verbose
 
-    if opts.origin not in ['scanner', 'fov']:
+    if opts.origin not in ('scanner', 'fov'):
         error(f"Unrecognized value for --origin: '{opts.origin}'.", 1)
     if opts.dwell_time and opts.field_strength is None:
         error('Need --field-strength for dwell time calculation', 1)

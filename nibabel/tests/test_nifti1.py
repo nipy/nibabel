@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti reading package"""
+
 import os
 import struct
 import unittest
@@ -79,7 +80,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         (np.int8, np.uint16, np.uint32, np.int64, np.uint64, np.complex128)
     )
     if have_binary128():
-        supported_np_types = supported_np_types.union((np.longdouble, np.longcomplex))
+        supported_np_types = supported_np_types.union((np.longdouble, np.clongdouble))
     tana.add_duplicate_types(supported_np_types)
 
     def test_empty(self):
@@ -537,11 +538,11 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_slice_duration(0.1)
         # We need a function to print out the Nones and floating point
         # values in a predictable way, for the tests below.
-        _stringer = lambda val: val is not None and '%2.1f' % val or None
-        _print_me = lambda s: list(map(_stringer, s))
+        stringer = lambda val: f'{val:2.1f}' if val is not None else None
+        print_me = lambda s: list(map(stringer, s))
         # The following examples are from the nifti1.h documentation.
         hdr['slice_code'] = slice_order_codes['sequential increasing']
-        assert _print_me(hdr.get_slice_times()) == [
+        assert print_me(hdr.get_slice_times()) == [
             '0.0',
             '0.1',
             '0.2',
@@ -552,17 +553,17 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         ]
         hdr['slice_start'] = 1
         hdr['slice_end'] = 5
-        assert _print_me(hdr.get_slice_times()) == [None, '0.0', '0.1', '0.2', '0.3', '0.4', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.0', '0.1', '0.2', '0.3', '0.4', None]
         hdr['slice_code'] = slice_order_codes['sequential decreasing']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.4', '0.3', '0.2', '0.1', '0.0', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.4', '0.3', '0.2', '0.1', '0.0', None]
         hdr['slice_code'] = slice_order_codes['alternating increasing']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.0', '0.3', '0.1', '0.4', '0.2', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.0', '0.3', '0.1', '0.4', '0.2', None]
         hdr['slice_code'] = slice_order_codes['alternating decreasing']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.2', '0.4', '0.1', '0.3', '0.0', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.2', '0.4', '0.1', '0.3', '0.0', None]
         hdr['slice_code'] = slice_order_codes['alternating increasing 2']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.2', '0.0', '0.3', '0.1', '0.4', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.2', '0.0', '0.3', '0.1', '0.4', None]
         hdr['slice_code'] = slice_order_codes['alternating decreasing 2']
-        assert _print_me(hdr.get_slice_times()) == [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
+        assert print_me(hdr.get_slice_times()) == [None, '0.4', '0.1', '0.3', '0.0', '0.2', None]
         # test set
         hdr = self.header_class()
         hdr.set_dim_info(slice=2)
@@ -577,12 +578,12 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         with pytest.raises(HeaderDataError):
             # all None
             hdr.set_slice_times((None,) * len(times))
-        n_mid_times = times[:]
+        n_mid_times = times.copy()
         n_mid_times[3] = None
         with pytest.raises(HeaderDataError):
             # None in middle
             hdr.set_slice_times(n_mid_times)
-        funny_times = times[:]
+        funny_times = times.copy()
         funny_times[3] = 0.05
         with pytest.raises(HeaderDataError):
             # can't get single slice duration
@@ -731,7 +732,6 @@ def unshear_44(affine):
 
 
 class TestNifti1SingleHeader(TestNifti1PairHeader):
-
     header_class = Nifti1Header
 
     def test_empty(self):
@@ -820,7 +820,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr['qform_code'] = 3
         hdr['sform_code'] = 4
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         return img.from_file_map(img.file_map)
@@ -1224,6 +1224,59 @@ def test_ext_eq():
     assert not ext == ext2
 
 
+def test_extension_content_access():
+    ext = Nifti1Extension('comment', b'123')
+    # Unmangled content access
+    assert ext.get_content() == b'123'
+
+    # Raw, text and JSON access
+    assert ext.content == b'123'
+    assert ext.text == '123'
+    assert ext.json() == 123
+
+    # Encoding can be set
+    ext.encoding = 'ascii'
+    assert ext.text == '123'
+
+    # Test that encoding errors are caught
+    ascii_ext = Nifti1Extension('comment', 'hôpital'.encode())
+    ascii_ext.encoding = 'ascii'
+    with pytest.raises(UnicodeDecodeError):
+        ascii_ext.text
+
+    json_ext = Nifti1Extension('unknown', b'{"a": 1}')
+    assert json_ext.content == b'{"a": 1}'
+    assert json_ext.text == '{"a": 1}'
+    assert json_ext.json() == {'a': 1}
+
+
+def test_legacy_underscore_content():
+    """Verify that subclasses that depended on access to ._content continue to work."""
+    import io
+    import json
+
+    class MyLegacyExtension(Nifti1Extension):
+        def _mangle(self, value):
+            return json.dumps(value).encode()
+
+        def _unmangle(self, value):
+            if isinstance(value, bytes):
+                value = value.decode()
+            return json.loads(value)
+
+    ext = MyLegacyExtension(0, '{}')
+
+    assert isinstance(ext._content, dict)
+    # Object identity is not broken by multiple accesses
+    assert ext._content is ext._content
+
+    ext._content['val'] = 1
+
+    fobj = io.BytesIO()
+    ext.write_to(fobj)
+    assert fobj.getvalue() == b'\x20\x00\x00\x00\x00\x00\x00\x00{"val": 1}' + bytes(14)
+
+
 def test_extension_codes():
     for k in extension_codes.keys():
         Nifti1Extension(k, 'somevalue')
@@ -1339,7 +1392,7 @@ def test_nifti_dicom_extension():
     dcmbytes_explicit = struct.pack('<HH2sH4s', 0x10, 0x20, b'LO', 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_implicit_VR is False
     assert dcmext._is_little_endian is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
@@ -1350,7 +1403,7 @@ def test_nifti_dicom_extension():
     # create a single dicom tag (Patient ID, [0010,0020]) with Implicit VR
     dcmbytes_implicit = struct.pack('<HHL4s', 0x10, 0x20, 4, b'NiPy')
     dcmext = Nifti1DicomExtension(2, dcmbytes_implicit)
-    assert dcmext._guess_implicit_VR() is True
+    assert dcmext._is_implicit_VR is True
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert len(dcmext.get_content().values()) == 1
@@ -1362,7 +1415,7 @@ def test_nifti_dicom_extension():
     hdr_be = Nifti1Header(endianness='>')  # Big Endian Nifti1Header
     dcmext = Nifti1DicomExtension(2, dcmbytes_explicit_be, parent_hdr=hdr_be)
     assert dcmext.__class__ == Nifti1DicomExtension
-    assert dcmext._guess_implicit_VR() is False
+    assert dcmext._is_implicit_VR is False
     assert dcmext.get_code() == 2
     assert dcmext.get_content().PatientID == 'NiPy'
     assert dcmext.get_content()[0x10, 0x20].value == 'NiPy'

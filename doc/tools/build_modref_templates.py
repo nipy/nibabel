@@ -9,7 +9,7 @@ import re
 import sys
 
 # version comparison
-from distutils.version import LooseVersion as V
+from packaging.version import Version as V
 from os.path import join as pjoin
 
 # local imports
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     try:
         __import__(package)
-    except ImportError as e:
+    except ImportError:
         abort('Can not import ' + package)
 
     module = sys.modules[package]
@@ -73,6 +73,8 @@ if __name__ == '__main__':
                 if re.match('^_version_(major|minor|micro|extra)', v)
             ]
         )
+
+    source_version = V(source_version)
     print('***', source_version)
 
     if source_version != installed_version:

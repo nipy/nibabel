@@ -1,6 +1,5 @@
 import copy
 import operator
-import sys
 import unittest
 import warnings
 from collections import defaultdict
@@ -50,8 +49,8 @@ def make_fake_tractogram(
 ):
     """Make multiple streamlines according to provided requirements."""
     all_streamlines = []
-    all_data_per_point = defaultdict(lambda: [])
-    all_data_per_streamline = defaultdict(lambda: [])
+    all_data_per_point = defaultdict(list)
+    all_data_per_streamline = defaultdict(list)
     for nb_points in list_nb_points:
         data = make_fake_streamline(
             nb_points, data_per_point_shapes, data_for_streamline_shapes, rng
@@ -80,6 +79,7 @@ def make_dummy_streamline(nb_points):
             'mean_curvature': np.array([1.11], dtype='f4'),
             'mean_torsion': np.array([1.22], dtype='f4'),
             'mean_colors': np.array([1, 0, 0], dtype='f4'),
+            'clusters_labels': np.array([0, 1], dtype='i4'),
         }
 
     elif nb_points == 2:
@@ -92,6 +92,7 @@ def make_dummy_streamline(nb_points):
             'mean_curvature': np.array([2.11], dtype='f4'),
             'mean_torsion': np.array([2.22], dtype='f4'),
             'mean_colors': np.array([0, 1, 0], dtype='f4'),
+            'clusters_labels': np.array([2, 3, 4], dtype='i4'),
         }
 
     elif nb_points == 5:
@@ -104,6 +105,7 @@ def make_dummy_streamline(nb_points):
             'mean_curvature': np.array([3.11], dtype='f4'),
             'mean_torsion': np.array([3.22], dtype='f4'),
             'mean_colors': np.array([0, 0, 1], dtype='f4'),
+            'clusters_labels': np.array([5, 6, 7, 8], dtype='i4'),
         }
 
     return streamline, data_per_point, data_for_streamline
@@ -119,6 +121,7 @@ def setup_module():
     DATA['mean_curvature'] = []
     DATA['mean_torsion'] = []
     DATA['mean_colors'] = []
+    DATA['clusters_labels'] = []
     for nb_points in [1, 2, 5]:
         data = make_dummy_streamline(nb_points)
         streamline, data_per_point, data_for_streamline = data
@@ -128,12 +131,14 @@ def setup_module():
         DATA['mean_curvature'].append(data_for_streamline['mean_curvature'])
         DATA['mean_torsion'].append(data_for_streamline['mean_torsion'])
         DATA['mean_colors'].append(data_for_streamline['mean_colors'])
+        DATA['clusters_labels'].append(data_for_streamline['clusters_labels'])
 
     DATA['data_per_point'] = {'colors': DATA['colors'], 'fa': DATA['fa']}
     DATA['data_per_streamline'] = {
         'mean_curvature': DATA['mean_curvature'],
         'mean_torsion': DATA['mean_torsion'],
         'mean_colors': DATA['mean_colors'],
+        'clusters_labels': DATA['clusters_labels'],
     }
 
     DATA['empty_tractogram'] = Tractogram(affine_to_rasmm=np.eye(4))
@@ -154,6 +159,7 @@ def setup_module():
         'mean_curvature': lambda: (e for e in DATA['mean_curvature']),
         'mean_torsion': lambda: (e for e in DATA['mean_torsion']),
         'mean_colors': lambda: (e for e in DATA['mean_colors']),
+        'clusters_labels': lambda: (e for e in DATA['clusters_labels']),
     }
 
     DATA['lazy_tractogram'] = LazyTractogram(
@@ -165,7 +171,6 @@ def setup_module():
 
 
 def check_tractogram_item(tractogram_item, streamline, data_for_streamline={}, data_for_points={}):
-
     assert_array_equal(tractogram_item.streamline, streamline)
 
     assert len(tractogram_item.data_for_streamline) == len(data_for_streamline)
@@ -214,7 +219,10 @@ class TestPerArrayDict(unittest.TestCase):
         data_dict = PerArrayDict(nb_streamlines, data_per_streamline)
         assert data_dict.keys() == data_per_streamline.keys()
         for k in data_dict.keys():
-            assert_array_equal(data_dict[k], data_per_streamline[k])
+            if isinstance(data_dict[k], np.ndarray) and np.all(
+                data_dict[k].shape[0] == data_dict[k].shape
+            ):
+                assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
         assert len(data_dict) == len(data_per_streamline) - 1
@@ -224,7 +232,10 @@ class TestPerArrayDict(unittest.TestCase):
         data_dict = PerArrayDict(nb_streamlines, data_per_streamline)
         assert data_dict.keys() == data_per_streamline.keys()
         for k in data_dict.keys():
-            assert_array_equal(data_dict[k], data_per_streamline[k])
+            if isinstance(data_dict[k], np.ndarray) and np.all(
+                data_dict[k].shape[0] == data_dict[k].shape
+            ):
+                assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
         assert len(data_dict) == len(data_per_streamline) - 1
@@ -234,7 +245,10 @@ class TestPerArrayDict(unittest.TestCase):
         data_dict = PerArrayDict(nb_streamlines, **data_per_streamline)
         assert data_dict.keys() == data_per_streamline.keys()
         for k in data_dict.keys():
-            assert_array_equal(data_dict[k], data_per_streamline[k])
+            if isinstance(data_dict[k], np.ndarray) and np.all(
+                data_dict[k].shape[0] == data_dict[k].shape
+            ):
+                assert_array_equal(data_dict[k], data_per_streamline[k])
 
         del data_dict['mean_curvature']
         assert len(data_dict) == len(data_per_streamline) - 1
@@ -261,6 +275,7 @@ class TestPerArrayDict(unittest.TestCase):
             'mean_curvature': 2 * np.array(DATA['mean_curvature']),
             'mean_torsion': 3 * np.array(DATA['mean_torsion']),
             'mean_colors': 4 * np.array(DATA['mean_colors']),
+            'clusters_labels': 5 * np.array(DATA['clusters_labels'], dtype=object),
         }
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
 
@@ -284,7 +299,8 @@ class TestPerArrayDict(unittest.TestCase):
             'mean_curvature': 2 * np.array(DATA['mean_curvature']),
             'mean_torsion': 3 * np.array(DATA['mean_torsion']),
             'mean_colors': 4 * np.array(DATA['mean_colors']),
-            'other': 5 * np.array(DATA['mean_colors']),
+            'clusters_labels': 5 * np.array(DATA['clusters_labels'], dtype=object),
+            'other': 6 * np.array(DATA['mean_colors']),
         }
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
 
@@ -305,6 +321,7 @@ class TestPerArrayDict(unittest.TestCase):
             'mean_curvature': 2 * np.array(DATA['mean_curvature']),
             'mean_torsion': 3 * np.array(DATA['mean_torsion']),
             'mean_colors': 4 * np.array(DATA['mean_torsion']),
+            'clusters_labels': 5 * np.array(DATA['clusters_labels'], dtype=object),
         }
         sdict2 = PerArrayDict(len(DATA['tractogram']), new_data)
         with pytest.raises(ValueError):
@@ -441,7 +458,10 @@ class TestLazyDict(unittest.TestCase):
             assert is_lazy_dict(data_dict)
             assert data_dict.keys() == expected_keys
             for k in data_dict.keys():
-                assert_array_equal(list(data_dict[k]), list(DATA['data_per_streamline'][k]))
+                if isinstance(data_dict[k], np.ndarray) and np.all(
+                    data_dict[k].shape[0] == data_dict[k].shape
+                ):
+                    assert_array_equal(list(data_dict[k]), list(DATA['data_per_streamline'][k]))
 
             assert len(data_dict) == len(DATA['data_per_streamline_func'])
 
@@ -578,6 +598,7 @@ class TestTractogram(unittest.TestCase):
         t.data_per_streamline['mean_curvature'] = DATA['mean_curvature']
         t.data_per_streamline['mean_torsion'] = DATA['mean_torsion']
         t.data_per_streamline['mean_colors'] = DATA['mean_colors']
+        t.data_per_streamline['clusters_labels'] = DATA['clusters_labels']
         assert_tractogram_equal(t, DATA['tractogram'])
 
         # Retrieve tractogram by their index.
@@ -598,6 +619,7 @@ class TestTractogram(unittest.TestCase):
         t.data_per_streamline['mean_curvature'] = DATA['mean_curvature']
         t.data_per_streamline['mean_torsion'] = DATA['mean_torsion']
         t.data_per_streamline['mean_colors'] = DATA['mean_colors']
+        t.data_per_streamline['clusters_labels'] = DATA['clusters_labels']
         assert_tractogram_equal(t, DATA['tractogram'])
 
     def test_tractogram_copy(self):
@@ -646,14 +668,6 @@ class TestTractogram(unittest.TestCase):
 
         with pytest.raises(ValueError):
             Tractogram(streamlines=DATA['streamlines'], data_per_point={'scalars': scalars})
-
-        # Inconsistent dimension for a data_per_streamline.
-        properties = [[1.11, 1.22], [2.11], [3.11, 3.22]]
-
-        with pytest.raises(ValueError):
-            Tractogram(
-                streamlines=DATA['streamlines'], data_per_streamline={'properties': properties}
-            )
 
         # Too many dimension for a data_per_streamline.
         properties = [
@@ -870,6 +884,7 @@ class TestLazyTractogram(unittest.TestCase):
             DATA['mean_curvature'],
             DATA['mean_torsion'],
             DATA['mean_colors'],
+            DATA['clusters_labels'],
         ]
 
         def _data_gen():
@@ -879,6 +894,7 @@ class TestLazyTractogram(unittest.TestCase):
                     'mean_curvature': d[3],
                     'mean_torsion': d[4],
                     'mean_colors': d[5],
+                    'clusters_labels': d[6],
                 }
                 yield TractogramItem(d[0], data_for_streamline, data_for_points)
 

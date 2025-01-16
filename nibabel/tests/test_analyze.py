@@ -26,8 +26,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from .. import imageglobals
 from ..analyze import AnalyzeHeader, AnalyzeImage
 from ..arraywriters import WriterError
-from ..casting import as_int
-from ..loadsave import read_img_data
+from ..casting import sctypes_aliases
 from ..nifti1 import Nifti1Header
 from ..optpkg import optional_package
 from ..spatialimages import HeaderDataError, HeaderTypeError, supported_np_types
@@ -52,9 +51,7 @@ PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 def add_duplicate_types(supported_np_types):
     # Update supported numpy types with named scalar types that map to the same set of dtypes
     dtypes = {np.dtype(t) for t in supported_np_types}
-    supported_np_types.update(
-        scalar for scalar in set(np.sctypeDict.values()) if np.dtype(scalar) in dtypes
-    )
+    supported_np_types.update(scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes)
 
 
 class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
@@ -311,8 +308,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
             assert hdr.get_data_shape() == shape
         # Check max works, but max+1 raises error
         dim_dtype = hdr.structarr['dim'].dtype
-        # as_int for safety to deal with numpy 1.4.1 int conversion errors
-        mx = as_int(np.iinfo(dim_dtype).max)
+        mx = int(np.iinfo(dim_dtype).max)
         shape = (mx,)
         hdr.set_data_shape(shape)
         assert hdr.get_data_shape() == shape
@@ -501,7 +497,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = self.header_class()
         s1 = str(hdr)
         # check the datacode recoding
-        rexp = re.compile('^datatype +: float32', re.MULTILINE)
+        rexp = re.compile(r'^datatype +: float32', re.MULTILINE)
         assert rexp.search(s1) is not None
 
     def test_from_header(self):
@@ -732,8 +728,8 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         IC = self.image_class
         # save an image to a file map
         fm = IC.make_file_map()
-        for key, value in fm.items():
-            fm[key].fileobj = BytesIO()
+        for value in fm.values():
+            value.fileobj = BytesIO()
         shape = (2, 3, 4)
         data = np.arange(24, dtype=np.int8).reshape(shape)
         affine = np.eye(4)
@@ -835,7 +831,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         hdr = img.header
         hdr.set_zooms((4, 5, 6))
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
@@ -846,7 +842,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(hdr.get_zooms(), (2, 3, 4))
         # Modify affine in-place? Update on save.
         img.affine[0, 0] = 9
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
@@ -868,7 +864,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(img.get_fdata(), img2.get_fdata())
         assert img.header == img2.header
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_prox = img.from_file_map(img.file_map)

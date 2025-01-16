@@ -26,7 +26,7 @@ from .butils import print_git_title
 
 # if memory_profiler is installed, we get memory usage results
 try:
-    from memory_profiler import memory_usage  # type: ignore
+    from memory_profiler import memory_usage  # type: ignore[import]
 except ImportError:
     memory_usage = None
 
@@ -56,7 +56,6 @@ else:
 
 
 def bench_arrayproxy_slicing():
-
     print_git_title('\nArrayProxy gzip slicing')
 
     # each test is a tuple containing
@@ -97,11 +96,10 @@ def bench_arrayproxy_slicing():
                 slcstr.append(s)
             else:
                 slcstr.append(str(int(s * SHAPE[i])))
-        return f"[{', '.join(slcstr)}]"
+        return f'[{", ".join(slcstr)}]'
 
     with InTemporaryDirectory():
-
-        print(f'Generating test data... ({int(round(np.prod(SHAPE) * 4 / 1048576.0))} MB)')
+        print(f'Generating test data... ({round(np.prod(SHAPE) * 4 / 1048576.0)} MB)')
 
         data = np.array(np.random.random(SHAPE), dtype=np.float32)
 
@@ -128,7 +126,6 @@ def bench_arrayproxy_slicing():
         seeds = [np.random.randint(0, 2**32) for s in SLICEOBJS]
 
         for ti, test in enumerate(tests):
-
             label = get_test_label(test)
             have_igzip, keep_open, sliceobj = test
             seed = seeds[SLICEOBJS.index(sliceobj)]
