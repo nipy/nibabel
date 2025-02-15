@@ -166,6 +166,10 @@ class _TestProxyAPI(ValidateAPI):
                 assert_dt_equal(out.dtype, np.dtype(dtype))
                 # Shape matches expected shape
                 assert out.shape == params['shape']
+                del out
+            del direct
+
+        del orig
 
         if context is not None:
             context.__exit__()
