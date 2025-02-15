@@ -9,14 +9,13 @@ build:
       - asdf plugin add uv
       - asdf install uv latest
       - asdf global uv latest
-      # Turn `python -m virtualenv` into `python -c pass`
-      - truncate --size 0 $( dirname $( uv python find ) )/../lib/python3*/site-packages/virtualenv/__main__.py
-    post_create_environment:
+    create_environment:
       - uv venv $READTHEDOCS_VIRTUALENV_PATH
-      # Turn `python -m pip` into `python -c pass`
-      - truncate --size 0 $( ls -d $READTHEDOCS_VIRTUALENV_PATH/lib/python3* )/site-packages/pip.py
-    post_install:
+    install:
       # Use a cache dir in the same mount to halve the install time
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv pip install --cache-dir $READTHEDOCS_VIRTUALENV_PATH/../../uv_cache .[doc]
     pre_build:
       - ( cd doc; python tools/build_modref_templates.py nibabel source/reference False )
+
+sphinx:
+  configuration: doc/source/conf.py
