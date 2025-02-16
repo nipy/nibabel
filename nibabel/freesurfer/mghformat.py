@@ -22,7 +22,7 @@ from ..filebasedimages import SerializableImage
 from ..fileholders import FileHolder
 from ..filename_parser import _stringify_path
 from ..openers import ImageOpener
-from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
+from ..spatialimages import Affine, HeaderDataError, SpatialHeader, SpatialImage
 from ..volumeutils import Recoder, array_from_file, array_to_file, endian_codes
 from ..wrapstruct import LabeledWrapStruct
 
@@ -459,7 +459,7 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
         return '\n'.join([report.message for report in reports if report.message])
 
 
-class MGHImage(SpatialImage, SerializableImage):
+class MGHImage(SpatialImage[Affine], SerializableImage):
     """Class for MGH format image"""
 
     header_class = MGHHeader

@@ -239,22 +239,18 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        check: ['style', 'doctest', 'typecheck', 'spellcheck']
+        check: ['style', 'doctest', 'typecheck', 'spellcheck', 'type-inference']
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v5
+      - name: Install tox
+        run: uv tool install tox --with=tox-uv
       - name: Show tox config
-        run: pipx run tox c
-      - name: Show tox config (this call)
-        run: pipx run tox c -e ${{ matrix.check }}
+        run: tox c -e ${{ matrix.check }}
       - name: Run check
-        run: pipx run tox -e ${{ matrix.check }}
+        run: tox -e ${{ matrix.check }}
 
   publish:
     runs-on: ubuntu-latest

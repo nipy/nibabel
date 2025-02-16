@@ -59,10 +59,11 @@ KEEP_FILE_OPEN_DEFAULT = False
 
 if ty.TYPE_CHECKING:
     import numpy.typing as npt
-    from typing_extensions import Self  # PY310
+
+    from ._typing import Self, TypeVar
 
     # Taken from numpy/__init__.pyi
-    _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
+    _DType = TypeVar('_DType', bound=np.dtype[ty.Any])
 
 
 class ArrayLike(ty.Protocol):

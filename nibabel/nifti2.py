@@ -19,7 +19,7 @@ from .analyze import AnalyzeHeader
 from .batteryrunners import Report
 from .filebasedimages import ImageFileError
 from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
-from .spatialimages import HeaderDataError
+from .spatialimages import AffT, HeaderDataError
 
 r"""
 Header struct from : https://www.nitrc.org/forum/message.php?msg_id=3738
@@ -240,17 +240,19 @@ class Nifti2PairHeader(Nifti2Header):
     is_single = False
 
 
-class Nifti2Pair(Nifti1Pair):
+class Nifti2Pair(Nifti1Pair[AffT]):
     """Class for NIfTI2 format image, header pair"""
 
-    header_class = Nifti2PairHeader
+    header_class: type[Nifti2Header] = Nifti2PairHeader
+    header: Nifti2Header
     _meta_sniff_len = header_class.sizeof_hdr
 
 
-class Nifti2Image(Nifti1Image):
+class Nifti2Image(Nifti1Image[AffT]):
     """Class for single file NIfTI2 format image"""
 
-    header_class = Nifti2Header
+    header_class: type[Nifti2Header] = Nifti2Header
+    header: Nifti2Header
     _meta_sniff_len = header_class.sizeof_hdr
 
 

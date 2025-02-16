@@ -35,7 +35,7 @@ import numpy as np
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
-from .spatialimages import HeaderDataError, ImageDataError, SpatialHeader, SpatialImage
+from .spatialimages import Affine, HeaderDataError, ImageDataError, SpatialHeader, SpatialImage
 from .volumeutils import Recoder
 
 # used for doc-tests
@@ -453,7 +453,7 @@ class AFNIHeader(SpatialHeader):
         return labels
 
 
-class AFNIImage(SpatialImage):
+class AFNIImage(SpatialImage[Affine]):
     """
     AFNI Image file
 

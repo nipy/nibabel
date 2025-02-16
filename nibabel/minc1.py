@@ -16,7 +16,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 from .fileslice import canonical_slicers
-from .spatialimages import SpatialHeader, SpatialImage
+from .spatialimages import Affine, SpatialHeader, SpatialImage
 
 _dt_dict = {
     ('b', 'unsigned'): np.uint8,
@@ -299,7 +299,7 @@ class Minc1Header(MincHeader):
         return binaryblock[:4] == b'CDF\x01'
 
 
-class Minc1Image(SpatialImage):
+class Minc1Image(SpatialImage[Affine]):
     """Class for MINC1 format images
 
     The MINC1 image class uses the default header type, rather than a specific

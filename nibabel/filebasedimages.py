@@ -16,6 +16,7 @@ from copy import deepcopy
 from urllib import request
 
 from ._compression import COMPRESSION_ERRORS
+from ._typing import TypeVar
 from .fileholders import FileHolder, FileMap
 from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
 from .openers import ImageOpener
@@ -25,10 +26,10 @@ if ty.TYPE_CHECKING:
 
 FileSniff = tuple[bytes, str]
 
-ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
-HdrT = ty.TypeVar('HdrT', bound='FileBasedHeader')
+ImgT = TypeVar('ImgT', bound='FileBasedImage')
+HdrT = TypeVar('HdrT', bound='FileBasedHeader')
 
-StreamImgT = ty.TypeVar('StreamImgT', bound='SerializableImage')
+StreamImgT = TypeVar('StreamImgT', bound='SerializableImage')
 
 
 class ImageFileError(Exception):

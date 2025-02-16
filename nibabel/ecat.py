@@ -43,16 +43,29 @@ GPL and some of the header files are adapted from CTI files (called CTI code
 below).  It's not clear what the licenses are for these files.
 """
 
+from __future__ import annotations
+
 import warnings
 from numbers import Integral
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .arraywriters import make_array_writer
 from .fileslice import canonical_slicers, predict_shape, slice2outax
-from .spatialimages import SpatialHeader, SpatialImage
+from .spatialimages import Affine, AffT, SpatialHeader, SpatialImage
 from .volumeutils import array_from_file, make_dt_codes, native_code, swapped_code
 from .wrapstruct import WrapStruct
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import Literal as L
+
+    import numpy.typing as npt
+
+    from .arrayproxy import ArrayLike
+    from .filebasedimages import FileBasedHeader
+    from .fileholders import FileMap
 
 BLOCK_SIZE = 512
 
@@ -743,7 +756,7 @@ class EcatImageArrayProxy:
         return out_data
 
 
-class EcatImage(SpatialImage):
+class EcatImage(SpatialImage[AffT]):
     """Class returns a list of Ecat images, with one image(hdr/data) per frame"""
 
     header_class = EcatHeader
@@ -756,7 +769,16 @@ class EcatImage(SpatialImage):
 
     ImageArrayProxy = EcatImageArrayProxy
 
-    def __init__(self, dataobj, affine, header, subheader, mlist, extra=None, file_map=None):
+    def __init__(
+        self,
+        dataobj: ArrayLike,
+        affine: AffT,
+        header: FileBasedHeader | Mapping | None,
+        subheader: EcatSubHeader,
+        mlist: npt.NDArray[np.integer],
+        extra: Mapping | None = None,
+        file_map: FileMap | None = None,
+    ) -> None:
         """Initialize Image
 
         The image is a combination of
@@ -798,40 +820,38 @@ class EcatImage(SpatialImage):
         >>> data4d.shape == (10, 10, 3, 1)
         True
         """
+        super().__init__(
+            dataobj=dataobj,
+            affine=affine,
+            header=header,
+            extra=extra,
+            file_map=file_map,
+        )
         self._subheader = subheader
         self._mlist = mlist
-        self._dataobj = dataobj
-        if affine is not None:
-            # Check that affine is array-like 4,4.  Maybe this is too strict at
-            # this abstract level, but so far I think all image formats we know
-            # do need 4,4.
-            affine = np.array(affine, dtype=np.float64, copy=True)
-            if not affine.shape == (4, 4):
-                raise ValueError('Affine should be shape 4,4')
-        self._affine = affine
-        if extra is None:
-            extra = {}
-        self.extra = extra
-        self._header = header
-        if file_map is None:
-            file_map = self.__class__.make_file_map()
-        self.file_map = file_map
-        self._data_cache = None
-        self._fdata_cache = None
+
+    # Override SpatialImage default, which attempts to set the
+    # affine in the header.
+    def update_header(self) -> None:
+        """Does nothing"""
 
     @property
-    def affine(self):
+    def affine(self) -> AffT:
         if not self._subheader._check_affines():
             warnings.warn(
                 'Affines different across frames, loading affine from FIRST frame', UserWarning
             )
         return self._affine
 
-    def get_frame_affine(self, frame):
+    def get_frame_affine(self, frame: int) -> Affine:
         """returns 4X4 affine"""
         return self._subheader.get_frame_affine(frame=frame)
 
-    def get_frame(self, frame, orientation=None):
+    def get_frame(
+        self,
+        frame: int,
+        orientation: L['neurological', 'radiological'] | None = None,
+    ) -> np.ndarray:
         """
         Get full volume for a time frame
 
@@ -847,16 +867,16 @@ class EcatImage(SpatialImage):
         return dt
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, int, int, int]:
         x, y, z = self._subheader.get_shape()
         nframes = self._subheader.get_nframes()
         return (x, y, z, nframes)
 
-    def get_mlist(self):
+    def get_mlist(self) -> npt.NDArray[np.integer]:
         """get access to the mlist"""
         return self._mlist
 
-    def get_subheaders(self):
+    def get_subheaders(self) -> EcatSubHeader:
         """get access to subheaders"""
         return self._subheader
 

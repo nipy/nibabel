@@ -28,11 +28,13 @@ if ty.TYPE_CHECKING:
 
     import numpy.typing as npt
 
+    from ._typing import TypeVar
+
     Scalar = np.number | float
 
-    K = ty.TypeVar('K')
-    V = ty.TypeVar('V')
-    DT = ty.TypeVar('DT', bound=np.generic)
+    K = TypeVar('K')
+    V = TypeVar('V')
+    DT = TypeVar('DT', bound=np.generic)
 
 sys_is_le = sys.byteorder == 'little'
 native_code: ty.Literal['<', '>'] = '<' if sys_is_le else '>'
