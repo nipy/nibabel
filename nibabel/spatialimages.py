@@ -138,8 +138,8 @@ from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import TypeVar
 
+from ._typing import TypeVar
 from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage

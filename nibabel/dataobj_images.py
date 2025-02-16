@@ -14,6 +14,7 @@ import typing as ty
 
 import numpy as np
 
+from ._typing import TypeVar
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
 
@@ -24,13 +25,13 @@ if ty.TYPE_CHECKING:
     from .fileholders import FileMap
     from .filename_parser import FileSpec
 
-    FT = ty.TypeVar('FT', bound=np.floating)
+    FT = TypeVar('FT', bound=np.floating)
     F16 = ty.Literal['float16', 'f2', '|f2', '=f2', '<f2', '>f2']
     F32 = ty.Literal['float32', 'f4', '|f4', '=f4', '<f4', '>f4']
     F64 = ty.Literal['float64', 'f8', '|f8', '=f8', '<f8', '>f8']
     Caching = ty.Literal['fill', 'unchanged']
 
-ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
+ArrayImgT = TypeVar('ArrayImgT', bound='DataobjImage')
 
 
 class DataobjImage(FileBasedImage):

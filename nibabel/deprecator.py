@@ -10,8 +10,10 @@ import warnings
 from textwrap import dedent
 
 if ty.TYPE_CHECKING:
-    T = ty.TypeVar('T')
-    P = ty.ParamSpec('P')
+    from ._typing import ParamSpec, TypeVar
+
+    T = TypeVar('T')
+    P = ParamSpec('P')
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
 
