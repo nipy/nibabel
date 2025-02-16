@@ -84,13 +84,15 @@ constrain the affine.
 
 from __future__ import annotations
 
+import typing as ty
+
 import numpy as np
 
 from .arrayproxy import ArrayProxy
 from .arraywriters import ArrayWriter, WriterError, get_slope_inter, make_array_writer
 from .batteryrunners import Report
 from .fileholders import copy_file_map
-from .spatialimages import HeaderDataError, HeaderTypeError, SpatialHeader, SpatialImage
+from .spatialimages import AffT, HeaderDataError, HeaderTypeError, SpatialHeader, SpatialImage
 from .volumeutils import (
     apply_read_scaling,
     array_from_file,
@@ -101,6 +103,13 @@ from .volumeutils import (
     swapped_code,
 )
 from .wrapstruct import LabeledWrapStruct
+
+if ty.TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from .arrayproxy import ArrayLike
+    from .filebasedimages import FileBasedHeader
+    from .fileholders import FileMap
 
 # Sub-parts of standard analyze header from
 # Mayo dbh.h file
@@ -893,11 +902,12 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         return 348 in (hdr_struct['sizeof_hdr'], bs_hdr_struct['sizeof_hdr'])
 
 
-class AnalyzeImage(SpatialImage):
+class AnalyzeImage(SpatialImage[AffT]):
     """Class for basic Analyze format image"""
 
     header_class: type[AnalyzeHeader] = AnalyzeHeader
     header: AnalyzeHeader
+    _header: AnalyzeHeader
     _meta_sniff_len = header_class.sizeof_hdr
     files_types: tuple[tuple[str, str], ...] = (('image', '.img'), ('header', '.hdr'))
     valid_exts: tuple[str, ...] = ('.img', '.hdr')
@@ -908,7 +918,15 @@ class AnalyzeImage(SpatialImage):
 
     ImageArrayProxy = ArrayProxy
 
-    def __init__(self, dataobj, affine, header=None, extra=None, file_map=None, dtype=None):
+    def __init__(
+        self,
+        dataobj: ArrayLike,
+        affine: AffT,
+        header: FileBasedHeader | Mapping | None = None,
+        extra: Mapping | None = None,
+        file_map: FileMap | None = None,
+        dtype=None,
+    ) -> None:
         super().__init__(dataobj, affine, header, extra, file_map)
         # Reset consumable values
         self._header.set_data_offset(0)

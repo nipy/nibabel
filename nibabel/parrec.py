@@ -134,7 +134,7 @@ from .eulerangles import euler2mat
 from .fileslice import fileslice, strided_scalar
 from .nifti1 import unit_codes
 from .openers import ImageOpener
-from .spatialimages import SpatialHeader, SpatialImage
+from .spatialimages import Affine, SpatialHeader, SpatialImage
 from .volumeutils import Recoder, array_from_file
 
 # PSL to RAS affine
@@ -1248,7 +1248,7 @@ class PARRECHeader(SpatialHeader):
         return sort_info
 
 
-class PARRECImage(SpatialImage):
+class PARRECImage(SpatialImage[Affine]):
     """PAR/REC image"""
 
     header_class = PARRECHeader
