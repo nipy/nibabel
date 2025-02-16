@@ -35,12 +35,18 @@ from .deprecated import alert_future_error
 from .filebasedimages import ImageFileError, SerializableImage
 from .optpkg import optional_package
 from .quaternions import fillpositive, mat2quat, quat2mat
-from .spatialimages import HeaderDataError
+from .spatialimages import AffT, HeaderDataError
 from .spm99analyze import SpmAnalyzeHeader
 from .volumeutils import Recoder, endian_codes, make_dt_codes
 
 if ty.TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import pydicom as pdcm
+
+    from .arrayproxy import ArrayLike
+    from .filebasedimages import FileBasedHeader
+    from .fileholders import FileMap
 
     have_dicom = True
     DicomDataset = pdcm.Dataset
@@ -1971,11 +1977,12 @@ class Nifti1PairHeader(Nifti1Header):
     is_single = False
 
 
-class Nifti1Pair(analyze.AnalyzeImage):
+class Nifti1Pair(analyze.AnalyzeImage[AffT]):
     """Class for NIfTI1 format image, header pair"""
 
     header_class: type[Nifti1Header] = Nifti1PairHeader
     header: Nifti1Header
+    _header: Nifti1Header
     _meta_sniff_len = header_class.sizeof_hdr
     rw = True
 
@@ -1983,7 +1990,15 @@ class Nifti1Pair(analyze.AnalyzeImage):
     # the data at serialization time
     _dtype_alias = None
 
-    def __init__(self, dataobj, affine, header=None, extra=None, file_map=None, dtype=None):
+    def __init__(
+        self,
+        dataobj: ArrayLike,
+        affine: AffT,
+        header: FileBasedHeader | Mapping | None = None,
+        extra: Mapping | None = None,
+        file_map: FileMap | None = None,
+        dtype=None,
+    ) -> None:
         # Special carve-out for 64 bit integers
         # See GitHub issues
         #  * https://github.com/nipy/nibabel/issues/1046
@@ -1994,7 +2009,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         danger_dts = (np.dtype('int64'), np.dtype('uint64'))
         if header is None and dtype is None and get_obj_dtype(dataobj) in danger_dts:
             alert_future_error(
-                f'Image data has type {dataobj.dtype}, which may cause '
+                f'Image data has type {get_obj_dtype(dataobj)}, which may cause '
                 'incompatibilities with other tools.',
                 '5.0',
                 warning_rec='This warning can be silenced by passing the dtype argument'
@@ -2410,7 +2425,7 @@ class Nifti1Pair(analyze.AnalyzeImage):
         return img
 
 
-class Nifti1Image(Nifti1Pair, SerializableImage):
+class Nifti1Image(Nifti1Pair[AffT], SerializableImage):
     """Class for single file NIfTI1 format image"""
 
     header_class = Nifti1Header
