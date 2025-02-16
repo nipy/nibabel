@@ -14,7 +14,6 @@ NIfTI1 format defined at http://nifti.nimh.nih.gov/nifti-1/
 from __future__ import annotations
 
 import json
-import sys
 import typing as ty
 import warnings
 from io import BytesIO
@@ -22,12 +21,8 @@ from io import BytesIO
 import numpy as np
 import numpy.linalg as npl
 
-if sys.version_info < (3, 13):
-    from typing_extensions import Self, TypeVar  # PY312
-else:
-    from typing import Self, TypeVar
-
 from . import analyze  # module import
+from ._typing import Self, TypeVar
 from .arrayproxy import get_obj_dtype
 from .batteryrunners import Report
 from .casting import have_binary128

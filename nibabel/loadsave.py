@@ -27,10 +27,11 @@ _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
 
 if ty.TYPE_CHECKING:
+    from ._typing import ParamSpec
     from .filebasedimages import FileBasedImage
     from .filename_parser import FileSpec
 
-    P = ty.ParamSpec('P')
+    P = ParamSpec('P')
 
     class Signature(ty.TypedDict):
         signature: bytes

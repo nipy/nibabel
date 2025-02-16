@@ -5,15 +5,11 @@ from __future__ import annotations
 import typing as ty
 import warnings
 
+from ._typing import ParamSpec
 from .deprecator import Deprecator
 from .pkg_info import cmp_pkg_version
 
-if ty.TYPE_CHECKING:
-    # PY39: ParamSpec is available in Python 3.10+
-    P = ty.ParamSpec('P')
-else:
-    # Just to keep the runtime happy
-    P = ty.TypeVar('P')
+P = ParamSpec('P')
 
 
 class ModuleProxy:
