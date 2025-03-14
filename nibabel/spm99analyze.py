@@ -16,7 +16,7 @@ import numpy as np
 from . import analyze  # module import
 from .batteryrunners import Report
 from .optpkg import optional_package
-from .spatialimages import HeaderDataError, HeaderTypeError
+from .spatialimages import AffT, HeaderDataError, HeaderTypeError
 
 have_scipy = optional_package('scipy')[1]
 
@@ -224,7 +224,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         return hdr, rep
 
 
-class Spm99AnalyzeImage(analyze.AnalyzeImage):
+class Spm99AnalyzeImage(analyze.AnalyzeImage[AffT]):
     """Class for SPM99 variant of basic Analyze image"""
 
     header_class = Spm99AnalyzeHeader

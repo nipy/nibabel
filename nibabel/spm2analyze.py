@@ -10,7 +10,8 @@
 
 import numpy as np
 
-from . import spm99analyze as spm99  # module import
+from . import spm99analyze as spm99
+from .spatialimages import AffT
 
 image_dimension_dtd = spm99.image_dimension_dtd.copy()
 image_dimension_dtd[image_dimension_dtd.index(('funused2', 'f4'))] = ('scl_inter', 'f4')
@@ -125,7 +126,7 @@ class Spm2AnalyzeHeader(spm99.Spm99AnalyzeHeader):
         )
 
 
-class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage):
+class Spm2AnalyzeImage(spm99.Spm99AnalyzeImage[AffT]):
     """Class for SPM2 variant of basic Analyze image"""
 
     header_class = Spm2AnalyzeHeader

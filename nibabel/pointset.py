@@ -31,9 +31,9 @@ from nibabel.fileslice import strided_scalar
 from nibabel.spatialimages import SpatialImage
 
 if ty.TYPE_CHECKING:
-    from typing_extensions import Self
+    from ._typing import Self, TypeVar
 
-    _DType = ty.TypeVar('_DType', bound=np.dtype[ty.Any])
+    _DType = TypeVar('_DType', bound=np.dtype[ty.Any])
 
 
 class CoordinateArray(ty.Protocol):

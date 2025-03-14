@@ -14,6 +14,7 @@ import typing as ty
 
 import numpy as np
 
+from ._typing import TypeVar
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
 
@@ -24,7 +25,13 @@ if ty.TYPE_CHECKING:
     from .fileholders import FileMap
     from .filename_parser import FileSpec
 
-ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
+    FT = TypeVar('FT', bound=np.floating)
+    F16 = ty.Literal['float16', 'f2', '|f2', '=f2', '<f2', '>f2']
+    F32 = ty.Literal['float32', 'f4', '|f4', '=f4', '<f4', '>f4']
+    F64 = ty.Literal['float64', 'f8', '|f8', '=f8', '<f8', '>f8']
+    Caching = ty.Literal['fill', 'unchanged']
+
+ArrayImgT = TypeVar('ArrayImgT', bound='DataobjImage')
 
 
 class DataobjImage(FileBasedImage):
@@ -39,7 +46,7 @@ class DataobjImage(FileBasedImage):
         header: FileBasedHeader | ty.Mapping | None = None,
         extra: ty.Mapping | None = None,
         file_map: FileMap | None = None,
-    ):
+    ) -> None:
         """Initialize dataobj image
 
         The datobj image is a combination of (dataobj, header), with optional
@@ -224,11 +231,33 @@ class DataobjImage(FileBasedImage):
             self._data_cache = data
         return data
 
+    # Types and dtypes, e.g., np.float64 or np.dtype('f8')
+    @ty.overload
+    def get_fdata(
+        self, *, caching: Caching = 'fill', dtype: type[FT] | np.dtype[FT]
+    ) -> npt.NDArray[FT]: ...
+    @ty.overload
+    def get_fdata(self, caching: Caching, dtype: type[FT] | np.dtype[FT]) -> npt.NDArray[FT]: ...
+    # Support string literals
+    @ty.overload
+    def get_fdata(self, caching: Caching, dtype: F16) -> npt.NDArray[np.float16]: ...
+    @ty.overload
+    def get_fdata(self, caching: Caching, dtype: F32) -> npt.NDArray[np.float32]: ...
+    @ty.overload
+    def get_fdata(self, *, caching: Caching = 'fill', dtype: F16) -> npt.NDArray[np.float16]: ...
+    @ty.overload
+    def get_fdata(self, *, caching: Caching = 'fill', dtype: F32) -> npt.NDArray[np.float32]: ...
+    # Double-up on float64 literals and the default (no arguments) case
+    @ty.overload
+    def get_fdata(
+        self, caching: Caching = 'fill', dtype: F64 = 'f8'
+    ) -> npt.NDArray[np.float64]: ...
+
     def get_fdata(
         self,
-        caching: ty.Literal['fill', 'unchanged'] = 'fill',
+        caching: Caching = 'fill',
         dtype: npt.DTypeLike = np.float64,
-    ) -> np.ndarray[ty.Any, np.dtype[np.floating]]:
+    ) -> npt.NDArray[np.floating]:
         """Return floating point image data with necessary scaling applied
 
         The image ``dataobj`` property can be an array proxy or an array.  An

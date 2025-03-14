@@ -137,7 +137,9 @@ from functools import cache
 from typing import Literal
 
 import numpy as np
+import numpy.typing as npt
 
+from ._typing import TypeVar
 from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage
@@ -150,13 +152,17 @@ if ty.TYPE_CHECKING:
     import io
     from collections.abc import Sequence
 
-    import numpy.typing as npt
-
     from .arrayproxy import ArrayLike
     from .fileholders import FileMap
 
-SpatialImgT = ty.TypeVar('SpatialImgT', bound='SpatialImage')
-SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')
+# Track whether the image is initialized with an affine or not
+# This will almost always be the case, but there are some exceptions
+# and some functions that will fail if the affine is not present
+Affine = npt.NDArray[np.floating]
+AffT = TypeVar('AffT', covariant=True, bound=ty.Union[Affine, None], default=Affine)
+SpatialImgT = TypeVar('SpatialImgT', bound='SpatialImage[Affine]')
+SpatialHdrT = TypeVar('SpatialHdrT', bound='SpatialHeader')
+AnySpatialImgT = TypeVar('AnySpatialImgT', bound='SpatialImage[Affine | None]')
 
 
 class HasDtype(ty.Protocol):
@@ -194,7 +200,7 @@ class SpatialHeader(FileBasedHeader, SpatialProtocol):
         data_dtype: npt.DTypeLike = np.float32,
         shape: Sequence[int] = (0,),
         zooms: Sequence[float] | None = None,
-    ):
+    ) -> None:
         self.set_data_dtype(data_dtype)
         self._zooms = ()
         self.set_data_shape(shape)
@@ -461,7 +467,7 @@ class SpatialFirstSlicer(ty.Generic[SpatialImgT]):
         return self.img.affine.dot(transform)
 
 
-class SpatialImage(DataobjImage):
+class SpatialImage(DataobjImage, ty.Generic[AffT]):
     """Template class for volumetric (3D/4D) images"""
 
     header_class: type[SpatialHeader] = SpatialHeader
@@ -473,11 +479,11 @@ class SpatialImage(DataobjImage):
     def __init__(
         self,
         dataobj: ArrayLike,
-        affine: np.ndarray | None,
+        affine: AffT,
         header: FileBasedHeader | ty.Mapping | None = None,
         extra: ty.Mapping | None = None,
         file_map: FileMap | None = None,
-    ):
+    ) -> None:
         """Initialize image
 
         The image is a combination of (array-like, affine matrix, header), with
@@ -510,7 +516,7 @@ class SpatialImage(DataobjImage):
             # do need 4,4.
             # Copy affine to isolate from environment.  Specify float type to
             # avoid surprising integer rounding when setting values into affine
-            affine = np.array(affine, dtype=np.float64, copy=True)
+            affine = np.array(affine, dtype=np.float64, copy=True)  # type: ignore[assignment]
             if not affine.shape == (4, 4):
                 raise ValueError('Affine should be shape 4,4')
         self._affine = affine
@@ -524,7 +530,7 @@ class SpatialImage(DataobjImage):
         self._data_cache = None
 
     @property
-    def affine(self):
+    def affine(self) -> AffT:
         return self._affine
 
     def update_header(self) -> None:
@@ -586,7 +592,7 @@ metadata:
         self._header.set_data_dtype(dtype)
 
     @classmethod
-    def from_image(klass: type[SpatialImgT], img: SpatialImage | FileBasedImage) -> SpatialImgT:
+    def from_image(klass: type[AnySpatialImgT], img: FileBasedImage) -> AnySpatialImgT:
         """Class method to create new instance of own class from `img`
 
         Parameters
@@ -629,7 +635,7 @@ metadata:
         """
         return self.ImageSlicer(self)
 
-    def __getitem__(self, idx: object) -> None:
+    def __getitem__(self, idx: object) -> ty.Never:
         """No slicing or dictionary interface for images
 
         Use the slicer attribute to perform cropping and subsampling at your
