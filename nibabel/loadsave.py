@@ -12,7 +12,6 @@
 from __future__ import annotations
 
 import os
-import typing as ty
 
 import numpy as np
 
@@ -26,13 +25,17 @@ from .openers import ImageOpener
 _compressed_suffixes = ('.gz', '.bz2', '.zst')
 
 
-if ty.TYPE_CHECKING:
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    from ._typing import ParamSpec
     from .filebasedimages import FileBasedImage
     from .filename_parser import FileSpec
 
-    P = ty.ParamSpec('P')
+    P = ParamSpec('P')
 
-    class Signature(ty.TypedDict):
+    class Signature(TypedDict):
         signature: bytes
         format_name: str
 

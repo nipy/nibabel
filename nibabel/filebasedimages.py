@@ -15,22 +15,16 @@ import typing as ty
 from copy import deepcopy
 from urllib import request
 
-from typing_extensions import Self
-
 from ._compression import COMPRESSION_ERRORS
 from .fileholders import FileHolder, FileMap
 from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
 from .openers import ImageOpener
 
 if ty.TYPE_CHECKING:
+    from ._typing import Self
     from .filename_parser import ExtensionSpec, FileSpec
 
 FileSniff = tuple[bytes, str]
-
-ImgT = ty.TypeVar('ImgT', bound='FileBasedImage')
-HdrT = ty.TypeVar('HdrT', bound='FileBasedHeader')
-
-StreamImgT = ty.TypeVar('StreamImgT', bound='SerializableImage')
 
 
 class ImageFileError(Exception):

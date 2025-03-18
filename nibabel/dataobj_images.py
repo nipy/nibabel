@@ -13,7 +13,6 @@ from __future__ import annotations
 import typing as ty
 
 import numpy as np
-from typing_extensions import Self
 
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
@@ -21,11 +20,10 @@ from .filebasedimages import FileBasedHeader, FileBasedImage
 if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
+    from ._typing import Self
     from .arrayproxy import ArrayLike
     from .fileholders import FileMap
     from .filename_parser import FileSpec
-
-ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
 
 
 class DataobjImage(FileBasedImage):

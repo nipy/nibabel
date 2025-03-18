@@ -22,7 +22,8 @@ if ty.TYPE_CHECKING:
     from types import TracebackType
 
     from _typeshed import WriteableBuffer
-    from typing_extensions import Self
+
+    from ._typing import Self
 
     ModeRT = ty.Literal['r', 'rt']
     ModeRB = ty.Literal['rb']
