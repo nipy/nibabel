@@ -969,7 +969,7 @@ def working_type(
 
 
 def int_scinter_ftype(
-    ifmt: type[np.integer],
+    ifmt: np.dtype[np.integer] | type[np.integer],
     slope: npt.ArrayLike = 1.0,
     inter: npt.ArrayLike = 0.0,
     default: type[np.floating] = np.float32,
