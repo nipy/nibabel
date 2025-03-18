@@ -15,6 +15,8 @@ import typing as ty
 from copy import deepcopy
 from urllib import request
 
+from typing_extensions import Self
+
 from ._compression import COMPRESSION_ERRORS
 from .fileholders import FileHolder, FileMap
 from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
@@ -39,7 +41,7 @@ class FileBasedHeader:
     """Template class to implement header protocol"""
 
     @classmethod
-    def from_header(klass: type[HdrT], header: FileBasedHeader | ty.Mapping | None = None) -> HdrT:
+    def from_header(klass, header: FileBasedHeader | ty.Mapping | None = None) -> Self:
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
@@ -53,7 +55,7 @@ class FileBasedHeader:
         )
 
     @classmethod
-    def from_fileobj(klass: type[HdrT], fileobj: io.IOBase) -> HdrT:
+    def from_fileobj(klass, fileobj: io.IOBase) -> Self:
         raise NotImplementedError
 
     def write_to(self, fileobj: io.IOBase) -> None:
@@ -65,7 +67,7 @@ class FileBasedHeader:
     def __ne__(self, other: object) -> bool:
         return not self == other
 
-    def copy(self: HdrT) -> HdrT:
+    def copy(self) -> Self:
         """Copy object to independent representation
 
         The copy should not be affected by any changes to the original
@@ -245,12 +247,12 @@ class FileBasedImage:
         self.file_map = self.__class__.filespec_to_file_map(filename)
 
     @classmethod
-    def from_filename(klass: type[ImgT], filename: FileSpec) -> ImgT:
+    def from_filename(klass, filename: FileSpec) -> Self:
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map)
 
     @classmethod
-    def from_file_map(klass: type[ImgT], file_map: FileMap) -> ImgT:
+    def from_file_map(klass, file_map: FileMap) -> Self:
         raise NotImplementedError
 
     @classmethod
@@ -360,7 +362,7 @@ class FileBasedImage:
         img.to_filename(filename)
 
     @classmethod
-    def from_image(klass: type[ImgT], img: FileBasedImage) -> ImgT:
+    def from_image(klass, img: FileBasedImage) -> Self:
         """Class method to create new instance of own class from `img`
 
         Parameters
@@ -540,7 +542,7 @@ class SerializableImage(FileBasedImage):
         return klass.make_file_map({klass.files_types[0][0]: io_obj})
 
     @classmethod
-    def from_stream(klass: type[StreamImgT], io_obj: io.IOBase) -> StreamImgT:
+    def from_stream(klass, io_obj: io.IOBase) -> Self:
         """Load image from readable IO stream
 
         Convert to BytesIO to enable seeking, if input stream is not seekable
@@ -567,7 +569,7 @@ class SerializableImage(FileBasedImage):
         self.to_file_map(self._filemap_from_iobase(io_obj), **kwargs)
 
     @classmethod
-    def from_bytes(klass: type[StreamImgT], bytestring: bytes) -> StreamImgT:
+    def from_bytes(klass, bytestring: bytes) -> Self:
         """Construct image from a byte string
 
         Class method
@@ -598,9 +600,7 @@ class SerializableImage(FileBasedImage):
         return bio.getvalue()
 
     @classmethod
-    def from_url(
-        klass: type[StreamImgT], url: str | request.Request, timeout: float = 5
-    ) -> StreamImgT:
+    def from_url(klass, url: str | request.Request, timeout: float = 5) -> Self:
         """Retrieve and load an image from a URL
 
         Class method

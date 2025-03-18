@@ -13,6 +13,7 @@ from __future__ import annotations
 import typing as ty
 
 import numpy as np
+from typing_extensions import Self
 
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
@@ -427,12 +428,12 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_file_map(
-        klass: type[ArrayImgT],
+        klass,
         file_map: FileMap,
         *,
         mmap: bool | ty.Literal['c', 'r'] = True,
         keep_file_open: bool | None = None,
-    ) -> ArrayImgT:
+    ) -> Self:
         """Class method to create image from mapping in ``file_map``
 
         Parameters
@@ -466,12 +467,12 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_filename(
-        klass: type[ArrayImgT],
+        klass,
         filename: FileSpec,
         *,
         mmap: bool | ty.Literal['c', 'r'] = True,
         keep_file_open: bool | None = None,
-    ) -> ArrayImgT:
+    ) -> Self:
         """Class method to create image from filename `filename`
 
         Parameters
