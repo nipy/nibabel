@@ -11,7 +11,7 @@ readme = "README.rst"
 license = { text = "MIT License" }
 requires-python = ">=3.9"
 dependencies = [
-  "numpy >=1.22",
+  "numpy >=1.23",
   "packaging >=20",
   "importlib_resources >=5.12; python_version < '3.12'",
   "typing_extensions >=4.6; python_version < '3.13'",
