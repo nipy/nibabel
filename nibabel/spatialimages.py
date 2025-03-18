@@ -138,6 +138,7 @@ from typing import Literal
 
 import numpy as np
 
+from ._typing import TypeVar
 from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
 from .filebasedimages import FileBasedHeader, FileBasedImage
@@ -152,11 +153,11 @@ if ty.TYPE_CHECKING:
 
     import numpy.typing as npt
 
+    from ._typing import Self
     from .arrayproxy import ArrayLike
     from .fileholders import FileMap
 
-SpatialImgT = ty.TypeVar('SpatialImgT', bound='SpatialImage')
-SpatialHdrT = ty.TypeVar('SpatialHdrT', bound='SpatialHeader')
+SpatialImgT = TypeVar('SpatialImgT', bound='SpatialImage')
 
 
 class HasDtype(ty.Protocol):
@@ -203,9 +204,9 @@ class SpatialHeader(FileBasedHeader, SpatialProtocol):
 
     @classmethod
     def from_header(
-        klass: type[SpatialHdrT],
+        klass,
         header: SpatialProtocol | FileBasedHeader | ty.Mapping | None = None,
-    ) -> SpatialHdrT:
+    ) -> Self:
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
@@ -227,7 +228,7 @@ class SpatialHeader(FileBasedHeader, SpatialProtocol):
             )
         return NotImplemented
 
-    def copy(self: SpatialHdrT) -> SpatialHdrT:
+    def copy(self) -> Self:
         """Copy object to independent representation
 
         The copy should not be affected by any changes to the original
@@ -586,7 +587,7 @@ metadata:
         self._header.set_data_dtype(dtype)
 
     @classmethod
-    def from_image(klass: type[SpatialImgT], img: SpatialImage | FileBasedImage) -> SpatialImgT:
+    def from_image(klass, img: SpatialImage | FileBasedImage) -> Self:
         """Class method to create new instance of own class from `img`
 
         Parameters
@@ -610,7 +611,7 @@ metadata:
         return super().from_image(img)
 
     @property
-    def slicer(self: SpatialImgT) -> SpatialFirstSlicer[SpatialImgT]:
+    def slicer(self) -> SpatialFirstSlicer[Self]:
         """Slicer object that returns cropped and subsampled images
 
         The image is resliced in the current orientation; no rotation or
@@ -658,7 +659,7 @@ metadata:
         """
         return OrthoSlicer3D(self.dataobj, self.affine, title=self.get_filename())
 
-    def as_reoriented(self: SpatialImgT, ornt: Sequence[Sequence[int]]) -> SpatialImgT:
+    def as_reoriented(self, ornt: Sequence[Sequence[int]]) -> Self:
         """Apply an orientation change and return a new image
 
         If ornt is identity transform, return the original image, unchanged

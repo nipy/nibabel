@@ -20,11 +20,10 @@ from .filebasedimages import FileBasedHeader, FileBasedImage
 if ty.TYPE_CHECKING:
     import numpy.typing as npt
 
+    from ._typing import Self
     from .arrayproxy import ArrayLike
     from .fileholders import FileMap
     from .filename_parser import FileSpec
-
-ArrayImgT = ty.TypeVar('ArrayImgT', bound='DataobjImage')
 
 
 class DataobjImage(FileBasedImage):
@@ -427,12 +426,12 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_file_map(
-        klass: type[ArrayImgT],
+        klass,
         file_map: FileMap,
         *,
         mmap: bool | ty.Literal['c', 'r'] = True,
         keep_file_open: bool | None = None,
-    ) -> ArrayImgT:
+    ) -> Self:
         """Class method to create image from mapping in ``file_map``
 
         Parameters
@@ -466,12 +465,12 @@ class DataobjImage(FileBasedImage):
 
     @classmethod
     def from_filename(
-        klass: type[ArrayImgT],
+        klass,
         filename: FileSpec,
         *,
         mmap: bool | ty.Literal['c', 'r'] = True,
         keep_file_open: bool | None = None,
-    ) -> ArrayImgT:
+    ) -> Self:
         """Class method to create image from filename `filename`
 
         Parameters

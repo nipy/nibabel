@@ -867,7 +867,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
                 if arr.datatype not in GIFTI_DTYPES:
                     arr = copy(arr)
                     # TODO: Better typing for recoders
-                    dtype = cast(np.dtype, data_type_codes.dtype[arr.datatype])
+                    dtype = cast('np.dtype', data_type_codes.dtype[arr.datatype])
                     if np.issubdtype(dtype, np.floating):
                         arr.datatype = data_type_codes['float32']
                     elif np.issubdtype(dtype, np.integer):

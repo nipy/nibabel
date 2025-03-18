@@ -22,7 +22,8 @@ if ty.TYPE_CHECKING:
     from types import TracebackType
 
     from _typeshed import WriteableBuffer
-    from typing_extensions import Self
+
+    from ._typing import Self
 
     ModeRT = ty.Literal['r', 'rt']
     ModeRB = ty.Literal['rb']
@@ -68,7 +69,7 @@ class DeterministicGzipFile(gzip.GzipFile):
             if filename is None:
                 raise TypeError('Must define either fileobj or filename')
             # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
-            fileobj = self.myfileobj = ty.cast(io.FileIO, open(filename, modestr))
+            fileobj = self.myfileobj = ty.cast('io.FileIO', open(filename, modestr))
         super().__init__(
             filename='',
             mode=modestr,
