@@ -154,7 +154,7 @@ class Opener:
 
     fobj: io.IOBase
 
-    def __init__(self, fileish: str | io.IOBase, *args, compression: str | None, **kwargs):
+    def __init__(self, fileish: str | io.IOBase, *args, compression: str | None = None, **kwargs):
         if isinstance(fileish, (io.IOBase, Fileish)):
             self.fobj = fileish
             self.me_opened = False
