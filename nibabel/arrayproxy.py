@@ -214,7 +214,7 @@ class ArrayProxy(ArrayLike):
         # Flags to keep track of whether a single ImageOpener is created, and
         # whether a single underlying file handle is created.
         self._keep_file_open, self._persist_opener = \
-            self._should_keep_file_open(file_like, keep_file_open, compression)
+            self._should_keep_file_open(keep_file_open, compression)
         self._lock = RLock()
 
     def _has_fh(self) -> bool:
