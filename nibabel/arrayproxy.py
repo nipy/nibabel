@@ -122,7 +122,7 @@ class ArrayProxy(ArrayLike):
     _default_order = 'F'
 
     def __init__(self, file_like, spec, *,
-                 mmap=True, keep_file_open=None, compression=None):
+                 mmap=True, order=None, keep_file_open=None, compression=None):
         """Initialize array proxy instance
 
         Parameters
